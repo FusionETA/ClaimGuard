@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowLeft, ShieldCheck } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { redirect } from "next/navigation"
 
 import { LoginForm } from "@/app/login/login-form"
@@ -38,16 +38,15 @@ export default async function LoginPage() {
                   Back to home
                 </Link>
 
-                <div className="mt-10 flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                    <ShieldCheck className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground/70">
-                      ClaimGuard
-                    </p>
-                    <p className="font-headline text-2xl font-black">Secure access</p>
-                  </div>
+                <div className="mt-10">
+                  <Image
+                    src="/logo.svg"
+                    alt="ClaimGuard logo"
+                    width={360}
+                    height={186}
+                    className="h-auto w-[280px]"
+                    priority
+                  />
                 </div>
 
                 <p className="mt-10 text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground/70">
@@ -63,23 +62,15 @@ export default async function LoginPage() {
 
           <div className="space-y-3 sm:space-y-4">
             <div className="lg:hidden">
-              <div className="mx-auto flex w-fit items-center gap-3 rounded-full border border-white/60 bg-white/85 px-4 py-2.5 shadow-ambient">
+              <div className="mx-auto flex w-fit items-center rounded-[28px] border border-white/60 bg-white/85 px-4 py-3 shadow-ambient">
                 <Image
-                  src="/icon.svg"
+                  src="/logo.svg"
                   alt="ClaimGuard logo"
-                  width={44}
-                  height={44}
-                  className="h-10 w-10 rounded-2xl"
+                  width={180}
+                  height={93}
+                  className="h-auto w-[138px]"
                   priority
                 />
-                <div className="text-left">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                    {copy.eyebrow}
-                  </p>
-                  <p className="font-headline text-lg font-black tracking-tight text-foreground">
-                    ClaimGuard
-                  </p>
-                </div>
               </div>
             </div>
 

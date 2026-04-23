@@ -11,20 +11,15 @@ export default function HomePage() {
       <div className="max-w-md space-y-4">
         <div className="mb-6 text-center sm:mb-8">
           <div className="flex justify-center">
-            <div className="rounded-[24px] border border-white/60 bg-white/80 p-2.5 shadow-ambient sm:rounded-[28px] sm:p-3">
-              <Image
-                src="/icon.svg"
-                alt="ClaimGuard logo"
-                width={72}
-                height={72}
-                className="h-14 w-14 rounded-2xl sm:h-[72px] sm:w-[72px] sm:rounded-[20px]"
-                priority
-              />
-            </div>
+            <Image
+              src="/logo.svg"
+              alt="ClaimGuard logo"
+              width={340}
+              height={176}
+              className="h-auto w-[250px] sm:w-[320px]"
+              priority
+            />
           </div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            ClaimGuard
-          </p>
         </div>
 
         <Card>

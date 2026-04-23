@@ -1,12 +1,12 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   Network,
   LayoutDashboard,
   LogOut,
-  Shield,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
@@ -44,9 +44,14 @@ export function AdminShell({ children, user }: AdminShellProps) {
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[300px_1fr]">
       <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[22px] bg-primary text-primary-foreground shadow-ambient">
-            <Shield className="h-6 w-6" />
-          </div>
+          <Image
+            src="/icon.svg"
+            alt="ClaimGuard icon"
+            width={48}
+            height={48}
+            className="h-12 w-12"
+            priority
+          />
           <div>
             <p className="font-headline text-xl font-black tracking-tight text-primary">
               ClaimGuard

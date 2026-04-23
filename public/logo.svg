@@ -1,0 +1,12 @@
+<svg width="1080" height="560" viewBox="0 0 1080 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1080" height="560" rx="48" fill="white"/>
+  <g transform="translate(334 54)">
+    <path d="M206 10L352 52.438V225.25C352 335.25 289.188 416.75 206 458C122.812 416.75 60 335.25 60 225.25V52.438L206 10Z" fill="#E7F6F5"/>
+    <path d="M206 49L318 81.188V220.406C318 300.625 274.375 368.625 206 404.688C137.625 368.625 94 300.625 94 220.406V81.188L206 49Z" fill="white"/>
+    <path d="M206 10L352 52.438V225.25C352 335.25 289.188 416.75 206 458C122.812 416.75 60 335.25 60 225.25V52.438L206 10Z" stroke="#0D5E6B" stroke-width="32" stroke-linejoin="round"/>
+    <path d="M143 240L202 299L365 121" stroke="#0D5E6B" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M154 100L274 65L367 93L301 27L206 0L112 29L105 154C105 248 151 320 206 353C159 313 124 244 124 166V100H154Z" fill="#D6F0EF" fill-opacity="0.92"/>
+  </g>
+  <text x="540" y="430" text-anchor="middle" fill="#0D5E6B" font-family="Manrope, Arial, sans-serif" font-size="104" font-weight="800" letter-spacing="-2">ClaimGuard</text>
+  <text x="540" y="492" text-anchor="middle" fill="#7A8487" font-family="Manrope, Arial, sans-serif" font-size="34" font-weight="500">SECURE EMPLOYEE CLAIM SUBMISSION</text>
+</svg>

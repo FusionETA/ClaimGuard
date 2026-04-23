@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -8,10 +9,10 @@ import {
   LogOut,
   Plus,
   ClipboardCheck,
-  ShieldCheck,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
+import { PushNotificationPrompt } from "@/components/pwa/push-notification-prompt"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import type { AuthenticatedSession } from "@/lib/auth/types"
@@ -76,9 +77,14 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
     <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
       <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[22px] bg-primary text-primary-foreground shadow-ambient">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
+          <Image
+            src="/icon.svg"
+            alt="ClaimGuard icon"
+            width={48}
+            height={48}
+            className="h-12 w-12"
+            priority
+          />
           <div>
             <p className="font-headline text-xl font-black tracking-tight text-primary">
               ClaimGuard
@@ -146,6 +152,8 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
             </div>
           </div>
         </header>
+
+        <PushNotificationPrompt />
 
         <main className="flex-1 pb-28 lg:pb-10">
           <div className="container py-6 lg:py-8">{children}</div>

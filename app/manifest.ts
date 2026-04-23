@@ -8,15 +8,26 @@ export default function manifest(): MetadataRoute.Manifest {
       "Responsive employee and admin claims portals with offline-friendly PWA support.",
     start_url: "/",
     display: "standalone",
-    background_color: "#f7f9fb",
-    theme_color: "#0a396c",
+    background_color: "#EAF4F2",
+    theme_color: "#0D5E6B",
     categories: ["business", "finance", "productivity"],
     icons: [
       {
-        src: "/icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/icon",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icon",
+        sizes: "512x512",
+        type: "image/png",
         purpose: "maskable",
+      },
+      {
+        src: "/apple-icon",
+        sizes: "180x180",
+        type: "image/png",
       },
     ],
   }
