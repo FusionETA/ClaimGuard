@@ -43,23 +43,18 @@ export function AdminShell({ children, user }: AdminShellProps) {
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[300px_1fr]">
       <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="block">
           <Image
-            src="/icon.svg"
-            alt="ClaimGuard icon"
-            width={48}
-            height={48}
-            className="h-12 w-12"
+            src="/brand-logo.png"
+            alt="ClaimGuard logo"
+            width={1280}
+            height={851}
+            className="h-auto w-[92px] object-contain"
             priority
           />
-          <div>
-            <p className="font-headline text-xl font-black tracking-tight text-primary">
-              ClaimGuard
-            </p>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Enterprise Admin
-            </p>
-          </div>
+          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Enterprise Admin
+          </p>
         </Link>
 
         <nav className="mt-10 space-y-2">

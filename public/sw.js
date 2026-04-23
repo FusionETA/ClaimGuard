@@ -1,6 +1,6 @@
-const CACHE_NAME = "claimguard-shell-v3"
+const CACHE_NAME = "claimguard-shell-v4"
 const OFFLINE_FALLBACK = "/offline.html"
-const APP_SHELL = ["/", OFFLINE_FALLBACK, "/icon.svg"]
+const APP_SHELL = ["/", OFFLINE_FALLBACK, "/brand-logo.png"]
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -82,8 +82,8 @@ self.addEventListener("push", (event) => {
       data: {
         url: payload.url || "/",
       },
-      icon: "/icon.svg",
-      badge: "/icon.svg",
+      icon: "/brand-logo.png",
+      badge: "/brand-logo.png",
     })
   )
 })

@@ -40,11 +40,11 @@ export default async function LoginPage() {
 
                 <div className="mt-10">
                   <Image
-                    src="/logo.svg"
+                    src="/brand-logo.png"
                     alt="ClaimGuard logo"
-                    width={360}
-                    height={186}
-                    className="h-auto w-[280px]"
+                    width={1280}
+                    height={851}
+                    className="h-auto w-[128px] object-contain"
                     priority
                   />
                 </div>
@@ -62,13 +62,13 @@ export default async function LoginPage() {
 
           <div className="space-y-3 sm:space-y-4">
             <div className="lg:hidden">
-              <div className="mx-auto flex w-fit items-center rounded-[28px] border border-white/60 bg-white/85 px-4 py-3 shadow-ambient">
+              <div className="mx-auto flex w-fit items-center rounded-[28px] border border-white/60 bg-white/85 px-5 py-4 shadow-ambient">
                 <Image
-                  src="/logo.svg"
+                  src="/brand-logo.png"
                   alt="ClaimGuard logo"
-                  width={180}
-                  height={93}
-                  className="h-auto w-[138px]"
+                  width={1280}
+                  height={851}
+                  className="h-auto w-[88px] object-contain"
                   priority
                 />
               </div>

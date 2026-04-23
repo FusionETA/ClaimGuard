@@ -12,11 +12,11 @@ export default function HomePage() {
         <div className="mb-6 text-center sm:mb-8">
           <div className="flex justify-center">
             <Image
-              src="/logo.svg"
+              src="/brand-logo.png"
               alt="ClaimGuard logo"
-              width={340}
-              height={176}
-              className="h-auto w-[250px] sm:w-[320px]"
+              width={1280}
+              height={851}
+              className="h-auto w-[120px] object-contain sm:w-[160px]"
               priority
             />
           </div>

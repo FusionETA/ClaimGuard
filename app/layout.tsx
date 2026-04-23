@@ -35,8 +35,8 @@ export const metadata: Metadata = {
     title: "ClaimGuard",
   },
   icons: {
-    icon: [{ url: "/icon", type: "image/png" }],
-    apple: [{ url: "/apple-icon", type: "image/png" }],
+    icon: [{ url: "/brand-logo.png", type: "image/png" }],
+    apple: [{ url: "/brand-logo.png", type: "image/png" }],
   },
 }
 
