@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next"
 
+const BRAND_ICON_URL = "/brand-icon.png?v=2"
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "ClaimGuard",
@@ -13,20 +15,20 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["business", "finance", "productivity"],
     icons: [
       {
-        src: "/brand-logo.png",
-        sizes: "1280x851",
+        src: BRAND_ICON_URL,
+        sizes: "512x512",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/brand-logo.png",
-        sizes: "1280x851",
+        src: BRAND_ICON_URL,
+        sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
       },
       {
-        src: "/brand-logo.png",
-        sizes: "1280x851",
+        src: BRAND_ICON_URL,
+        sizes: "512x512",
         type: "image/png",
       },
     ],

@@ -76,13 +76,13 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
       <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
-        <Link href="/" className="block">
+        <Link href="/" className="block self-center text-center">
           <Image
             src="/brand-logo.png"
             alt="ClaimGuard logo"
             width={1280}
             height={851}
-            className="h-auto w-[92px] object-contain"
+            className="h-auto w-[148px] object-contain"
             priority
           />
           <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">

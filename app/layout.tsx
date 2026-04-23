@@ -20,6 +20,8 @@ const manropeBody = Manrope({
   display: "swap",
 })
 
+const BRAND_ICON_URL = "/brand-icon.png?v=2"
+
 export const metadata: Metadata = {
   title: {
     default: "ClaimGuard",
@@ -35,8 +37,8 @@ export const metadata: Metadata = {
     title: "ClaimGuard",
   },
   icons: {
-    icon: [{ url: "/brand-logo.png", type: "image/png" }],
-    apple: [{ url: "/brand-logo.png", type: "image/png" }],
+    icon: [{ url: BRAND_ICON_URL, type: "image/png" }],
+    apple: [{ url: BRAND_ICON_URL, type: "image/png" }],
   },
 }
 

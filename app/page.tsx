@@ -12,11 +12,19 @@ export default function HomePage() {
         <div className="mb-6 text-center sm:mb-8">
           <div className="flex justify-center">
             <Image
+              src="/brand-icon.png"
+              alt="ClaimGuard logo"
+              width={512}
+              height={512}
+              className="h-auto w-[112px] object-contain sm:hidden"
+              priority
+            />
+            <Image
               src="/brand-logo.png"
               alt="ClaimGuard logo"
               width={1280}
               height={851}
-              className="h-auto w-[120px] object-contain sm:w-[160px]"
+              className="hidden h-auto w-[160px] object-contain sm:block lg:w-[190px]"
               priority
             />
           </div>
