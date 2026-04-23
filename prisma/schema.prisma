@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserRole {
+  ADMIN
+  EMPLOYEE
+  SUPERVISOR
+}
+
+enum ClaimCategory {
+  TRAVEL
+  TRANSPORT
+  MEAL
+  MEDICAL
+  WELLNESS
+  HARDWARE
+  OFFICE
+  OTHER
+}
+
+enum ClaimStatus {
+  SUBMITTED
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  name            String
+  role            UserRole
+  passwordHash    String
+  avatarUrl       String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  employeeProfile EmployeeProfile? @relation("EmployeeProfileUser")
+  supervisedProfiles EmployeeProfile[] @relation("SupervisorReports")
+  claims          Claim[]          @relation("EmployeeClaims")
+  reviews         Claim[]          @relation("AdminReviews")
+}
+
+model EmployeeProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  employeeId        String   @unique
+  project           String   @map("department")
+  jobTitle          String
+  supervisorId      String?
+  payoutMethod      String?
+  preferredCurrency String   @default("USD")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  supervisor        User?    @relation("SupervisorReports", fields: [supervisorId], references: [id], onDelete: SetNull)
+
+  @@index([supervisorId])
+}
+
+model Claim {
+  id           String        @id @default(cuid())
+  claimNumber  String        @unique
+  title        String
+  description  String        @db.Text
+  category     ClaimCategory
+  amount       Decimal       @db.Decimal(10, 2)
+  currency     String        @default("USD")
+  spentAt      DateTime
+  submittedAt  DateTime      @default(now())
+  reviewedAt   DateTime?
+  payoutAt     DateTime?
+  status       ClaimStatus   @default(PENDING)
+  receiptUrl   String?
+  reviewNotes  String?       @db.Text
+  employeeId   String
+  reviewerId   String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  employee     User          @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer     User?         @relation("AdminReviews", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId, submittedAt])
+  @@index([status, submittedAt])
+}

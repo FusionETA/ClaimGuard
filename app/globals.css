@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 33% 98%;
+    --foreground: 222 17% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 17% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 17% 12%;
+    --primary: 212 83% 23%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 197 48% 87%;
+    --secondary-foreground: 204 35% 22%;
+    --muted: 214 18% 94%;
+    --muted-foreground: 220 12% 35%;
+    --accent: 214 44% 35%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72% 43%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 20% 85%;
+    --input: 220 18% 85%;
+    --ring: 212 83% 23%;
+    --radius: 0.875rem;
+    --surface: 210 33% 98%;
+    --surface-container: 214 13% 93%;
+    --surface-container-low: 210 21% 96%;
+    --surface-container-high: 214 12% 91%;
+    --surface-container-lowest: 0 0% 100%;
+    --tertiary: 20 100% 28%;
+    --tertiary-foreground: 0 0% 100%;
+    --tertiary-fixed: 20 100% 90%;
+    --success: 140 53% 34%;
+    --success-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 218 23% 10%;
+    --foreground: 210 40% 96%;
+    --card: 220 21% 14%;
+    --card-foreground: 210 40% 96%;
+    --popover: 220 21% 14%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 213 72% 68%;
+    --primary-foreground: 220 50% 12%;
+    --secondary: 211 22% 24%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 218 19% 18%;
+    --muted-foreground: 215 20% 72%;
+    --accent: 213 45% 34%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 218 19% 23%;
+    --input: 218 19% 23%;
+    --ring: 213 72% 68%;
+    --surface: 218 23% 10%;
+    --surface-container: 220 20% 13%;
+    --surface-container-low: 220 18% 16%;
+    --surface-container-high: 220 15% 18%;
+    --surface-container-lowest: 220 18% 21%;
+    --tertiary: 17 82% 71%;
+    --tertiary-foreground: 24 67% 12%;
+    --tertiary-fixed: 18 53% 24%;
+    --success: 141 44% 52%;
+    --success-foreground: 144 100% 6%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image: radial-gradient(
+        circle at top left,
+        rgba(42, 80, 132, 0.14),
+        transparent 40%
+      ),
+      radial-gradient(circle at top right, rgba(203, 231, 245, 0.4), transparent 26%);
+    font-family: var(--font-body), sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-headline), sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-xl dark:bg-slate-900/70;
+  }
+
+  .tonal-panel {
+    @apply bg-surface-lowest shadow-panel;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
