@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  CircleUserRound,
   FileText,
   Home,
   LogOut,
@@ -40,11 +39,6 @@ const employeeNav = [
     icon: ClipboardCheck,
     supervisorOnly: true,
   },
-  {
-    href: "/employee/account",
-    label: "Account",
-    icon: CircleUserRound,
-  },
 ] as const
 
 function getSectionTitle(pathname: string) {
@@ -80,9 +74,9 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
-      <aside className="hidden h-screen flex-col border-r border-white/30 bg-white/70 p-6 backdrop-blur-xl lg:flex">
+      <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-[#2a5084] text-primary-foreground shadow-panel">
+          <div className="flex h-12 w-12 items-center justify-center rounded-[22px] bg-primary text-primary-foreground shadow-ambient">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <div>
@@ -105,10 +99,10 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all",
+                  "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
                   active
-                    ? "bg-surface-lowest text-primary shadow-ambient"
-                    : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
+                    ? "border-primary/40 bg-card text-primary shadow-ambient"
+                    : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -120,7 +114,7 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
       </aside>
 
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 border-b border-white/40 bg-background/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-xl">
           <div className="container flex items-center justify-between py-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -130,14 +124,19 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
                 {getSectionTitle(pathname)}
               </h1>
             </div>
-            <div className="flex items-center gap-3 rounded-full bg-white/80 px-3 py-2 shadow-ambient">
-              <Avatar className="h-10 w-10">
-                <AvatarFallback>{user.initials}</AvatarFallback>
-              </Avatar>
-              <div className="hidden text-right sm:block">
-                <p className="text-sm font-bold">{user.name}</p>
-                <p className="text-xs text-muted-foreground">{user.subtitle}</p>
-              </div>
+            <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
+              <Link
+                href="/employee/account"
+                className="flex items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background"
+              >
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback>{user.initials}</AvatarFallback>
+                </Avatar>
+                <div className="hidden text-right sm:block">
+                  <p className="text-sm font-bold">{user.name}</p>
+                  <p className="text-xs text-muted-foreground">{user.subtitle}</p>
+                </div>
+              </Link>
               <form action={logoutAction} suppressHydrationWarning>
                 <Button type="submit" variant="ghost" size="sm" className="rounded-full">
                   <LogOut className="h-4 w-4" />
@@ -152,11 +151,11 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
           <div className="container py-6 lg:py-8">{children}</div>
         </main>
 
-        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[28px] border border-white/50 px-3 py-2 shadow-panel lg:hidden">
+        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[28px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
           <div
             className={cn(
               "grid gap-1",
-              user.role === "SUPERVISOR" ? "grid-cols-5" : "grid-cols-4"
+              user.role === "SUPERVISOR" ? "grid-cols-4" : "grid-cols-3"
             )}
           >
             {visibleNav.map((item) => {

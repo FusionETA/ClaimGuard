@@ -25,7 +25,6 @@ export default function HomePage() {
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
             ClaimGuard
           </p>
-          <h1 className="mt-2 text-2xl font-black sm:text-3xl">Welcome to ClaimGuard</h1>
         </div>
 
         <Card>

@@ -1,8 +1,9 @@
 import "server-only"
 
-import { getEmployeeStore } from "@/lib/app-store"
+import { getEmployeeStore, clearEmployeeStore } from "@/lib/app-store"
 import { loadEmployeeData } from "@/lib/load-user-data"
 import { getCurrentSession } from "@/lib/auth/session"
+import { isStoreExpired } from "@/lib/app-store"
 import {
   buildEmployeeDashboard,
 } from "@/modules/claims/application/services/claim-analytics"
@@ -25,6 +26,12 @@ async function getStore() {
   }
 
   let store = getEmployeeStore(session.email)
+
+  // Evict if the cached entry has passed its TTL.
+  if (store && isStoreExpired(store.cachedAt)) {
+    clearEmployeeStore(session.email)
+    store = null
+  }
 
   if (!store) {
     // Server restart cleared memory — reload from DB transparently.

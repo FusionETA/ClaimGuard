@@ -42,9 +42,9 @@ export function AdminShell({ children, user }: AdminShellProps) {
 
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[300px_1fr]">
-      <aside className="hidden h-screen flex-col border-r border-white/30 bg-[#f7f9fb]/80 p-6 backdrop-blur-xl lg:flex">
+      <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-[#2a5084] text-primary-foreground shadow-panel">
+          <div className="flex h-12 w-12 items-center justify-center rounded-[22px] bg-primary text-primary-foreground shadow-ambient">
             <Shield className="h-6 w-6" />
           </div>
           <div>
@@ -67,10 +67,10 @@ export function AdminShell({ children, user }: AdminShellProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all",
+                  "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
                   active
-                    ? "bg-surface-lowest text-primary shadow-ambient"
-                    : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
+                    ? "border-primary/40 bg-card text-primary shadow-ambient"
+                    : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -82,7 +82,7 @@ export function AdminShell({ children, user }: AdminShellProps) {
       </aside>
 
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 border-b border-white/40 bg-background/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-xl">
           <div className="container flex items-center justify-between py-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -93,7 +93,7 @@ export function AdminShell({ children, user }: AdminShellProps) {
               </h1>
             </div>
             <div className="flex items-center">
-              <div className="flex items-center gap-3 rounded-full bg-white/80 px-3 py-2 shadow-ambient">
+              <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
                 <Avatar className="h-10 w-10">
                   <AvatarFallback>{user.initials}</AvatarFallback>
                 </Avatar>
@@ -116,7 +116,7 @@ export function AdminShell({ children, user }: AdminShellProps) {
           <div className="container py-6 lg:py-8">{children}</div>
         </main>
 
-        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[28px] border border-white/50 px-3 py-2 shadow-panel lg:hidden">
+        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[28px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
           <div className="grid grid-cols-2 gap-1">
             {adminNav.map((item) => {
               const active = pathname === item.href

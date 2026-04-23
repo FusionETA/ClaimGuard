@@ -5,6 +5,7 @@ import { z } from "zod"
 import { clearEmployeeStore } from "@/lib/app-store"
 import type { AuthenticatedSession } from "@/lib/auth/types"
 import { loadEmployeeData } from "@/lib/load-user-data"
+import { sendPushToUser } from "@/lib/web-push"
 import { invalidateAdminStore } from "@/modules/claims/application/services/admin-portal.service"
 import type {
   ClaimRecord,
@@ -215,6 +216,20 @@ export async function createClaimForEmployee({
   await loadEmployeeData(session.email)
   invalidateAdminStore()
 
+  try {
+    const supervisorId = await claimRepository.getSupervisorIdForUser(employeeId)
+
+    if (supervisorId) {
+      await sendPushToUser(supervisorId, {
+        title: "New Claim Submitted",
+        body: `${session.name} submitted "${parsed.data.title}" for review.`,
+        url: "/employee/review",
+      })
+    }
+  } catch {
+    // Push notifications should never block a successful claim submission.
+  }
+
   return { ok: true }
 }
 
@@ -287,6 +302,19 @@ export async function reviewClaimForSupervisor({
   }
 
   invalidateAdminStore()
+
+  try {
+    await sendPushToUser(result.employeeUserId, {
+      title: "Claim Updated",
+      body:
+        parsed.data.decision === "APPROVED"
+          ? `Your claim "${result.claimTitle}" was approved.`
+          : `Your claim "${result.claimTitle}" was rejected.`,
+      url: "/employee/claims",
+    })
+  } catch {
+    // Push notifications should never block a successful review.
+  }
 
   return {
     ok: true,

@@ -1,4 +1,4 @@
-const CACHE_NAME = "claimguard-shell-v2"
+const CACHE_NAME = "claimguard-shell-v3"
 const OFFLINE_FALLBACK = "/offline.html"
 const APP_SHELL = ["/", OFFLINE_FALLBACK, "/icon.svg"]
 
@@ -52,6 +52,57 @@ self.addEventListener("fetch", (event) => {
         void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned))
         return response
       })
+    })
+  )
+})
+
+self.addEventListener("push", (event) => {
+  if (!event.data) {
+    return
+  }
+
+  let payload = {
+    title: "ClaimGuard",
+    body: "",
+    url: "/",
+  }
+
+  try {
+    payload = {
+      ...payload,
+      ...event.data.json(),
+    }
+  } catch {
+    payload.body = event.data.text()
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      data: {
+        url: payload.url || "/",
+      },
+      icon: "/icon.svg",
+      badge: "/icon.svg",
+    })
+  )
+})
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close()
+
+  const targetUrl = new URL(event.notification.data?.url || "/", self.location.origin).toString()
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ("focus" in client && client.url.startsWith(self.location.origin)) {
+          client.navigate(targetUrl)
+          return client.focus()
+        }
+      }
+
+      return self.clients.openWindow(targetUrl)
     })
   )
 })

@@ -10,8 +10,6 @@ import { getCurrentSession, getHomePathForRole } from "@/lib/auth/session"
 const loginCopy = {
   eyebrow: "ClaimGuard Access",
   title: "Login once, continue to the right workspace",
-  description:
-    "Use your company account. ClaimGuard will detect whether you are an employee, supervisor, or administrator.",
   mobileTitle: "Welcome back",
   mobileDescription: "Sign in and we will route you to the right workspace automatically.",
 } as const
@@ -58,9 +56,6 @@ export default async function LoginPage() {
                 <h1 className="mt-3 max-w-lg font-headline text-4xl font-black tracking-tight">
                   {copy.title}
                 </h1>
-                <p className="mt-4 max-w-xl text-sm leading-6 text-primary-foreground/75">
-                  {copy.description}
-                </p>
               </div>
 
             </CardContent>

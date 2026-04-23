@@ -4,30 +4,30 @@
 
 @layer base {
   :root {
-    --background: 210 33% 98%;
-    --foreground: 222 17% 12%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 17% 12%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 17% 12%;
-    --primary: 212 83% 23%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 197 48% 87%;
-    --secondary-foreground: 204 35% 22%;
-    --muted: 214 18% 94%;
-    --muted-foreground: 220 12% 35%;
-    --accent: 214 44% 35%;
-    --accent-foreground: 210 40% 98%;
+    --background: 180 13% 96%;
+    --foreground: 210 14% 13%;
+    --card: 210 20% 98%;
+    --card-foreground: 210 14% 13%;
+    --popover: 210 20% 98%;
+    --popover-foreground: 210 14% 13%;
+    --primary: 188 78% 24%;
+    --primary-foreground: 180 25% 98%;
+    --secondary: 176 37% 91%;
+    --secondary-foreground: 189 29% 25%;
+    --muted: 180 8% 90%;
+    --muted-foreground: 210 7% 46%;
+    --accent: 192 21% 34%;
+    --accent-foreground: 180 25% 98%;
     --destructive: 0 72% 43%;
     --destructive-foreground: 210 40% 98%;
-    --border: 220 20% 85%;
-    --input: 220 18% 85%;
-    --ring: 212 83% 23%;
-    --radius: 0.875rem;
-    --surface: 210 33% 98%;
-    --surface-container: 214 13% 93%;
-    --surface-container-low: 210 21% 96%;
-    --surface-container-high: 214 12% 91%;
+    --border: 195 16% 79%;
+    --input: 195 16% 79%;
+    --ring: 188 78% 24%;
+    --radius: 1.5rem;
+    --surface: 180 13% 96%;
+    --surface-container: 180 10% 92%;
+    --surface-container-low: 180 9% 94%;
+    --surface-container-high: 180 8% 89%;
     --surface-container-lowest: 0 0% 100%;
     --tertiary: 20 100% 28%;
     --tertiary-foreground: 0 0% 100%;
@@ -81,10 +81,22 @@
     @apply bg-background text-foreground antialiased;
     background-image: radial-gradient(
         circle at top left,
-        rgba(42, 80, 132, 0.14),
-        transparent 40%
+        rgba(13, 94, 107, 0.14),
+        transparent 38%
       ),
-      radial-gradient(circle at top right, rgba(203, 231, 245, 0.4), transparent 26%);
+      radial-gradient(circle at top right, rgba(224, 242, 241, 0.9), transparent 28%),
+      linear-gradient(rgba(255, 255, 255, 0.58) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.58) 1px, transparent 1px);
+    background-size:
+      auto,
+      auto,
+      28px 28px,
+      28px 28px;
+    background-position:
+      0 0,
+      0 0,
+      0 0,
+      0 0;
     font-family: var(--font-body), sans-serif;
   }
 
@@ -101,7 +113,7 @@
 
 @layer utilities {
   .glass-panel {
-    @apply bg-white/80 backdrop-blur-xl dark:bg-slate-900/70;
+    @apply bg-white/90 backdrop-blur-xl dark:bg-slate-900/70;
   }
 
   .tonal-panel {

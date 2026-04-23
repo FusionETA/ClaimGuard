@@ -3,6 +3,7 @@ import "server-only"
 import { getAdminStore, clearAdminStore } from "@/lib/app-store"
 import { loadAdminData } from "@/lib/load-user-data"
 import { getCurrentSession } from "@/lib/auth/session"
+import { isStoreExpired } from "@/lib/app-store"
 import {
   buildAdminOverview,
 } from "@/modules/claims/application/services/claim-analytics"
@@ -26,6 +27,12 @@ async function getStore() {
   }
 
   let store = getAdminStore()
+
+  // Evict if the cached entry has passed its TTL.
+  if (store && isStoreExpired(store.cachedAt)) {
+    clearAdminStore()
+    store = null
+  }
 
   if (!store) {
     // Server restart cleared memory — reload from DB transparently.

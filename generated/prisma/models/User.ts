@@ -210,6 +210,7 @@ export type UserWhereInput = {
   supervisedProfiles?: Prisma.EmployeeProfileListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   reviews?: Prisma.ClaimListRelationFilter
+  pushSubscriptions?: Prisma.PushSubscriptionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -225,6 +226,7 @@ export type UserOrderByWithRelationInput = {
   supervisedProfiles?: Prisma.EmployeeProfileOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
   reviews?: Prisma.ClaimOrderByRelationAggregateInput
+  pushSubscriptions?: Prisma.PushSubscriptionOrderByRelationAggregateInput
   _relevance?: Prisma.UserOrderByRelevanceInput
 }
 
@@ -244,6 +246,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   supervisedProfiles?: Prisma.EmployeeProfileListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   reviews?: Prisma.ClaimListRelationFilter
+  pushSubscriptions?: Prisma.PushSubscriptionListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -287,6 +290,7 @@ export type UserCreateInput = {
   supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -302,6 +306,7 @@ export type UserUncheckedCreateInput = {
   supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -317,6 +322,7 @@ export type UserUpdateInput = {
   supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -332,6 +338,7 @@ export type UserUncheckedUpdateInput = {
   supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -432,6 +439,20 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type UserCreateNestedOneWithoutPushSubscriptionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPushSubscriptionsInput, Prisma.UserUncheckedCreateWithoutPushSubscriptionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPushSubscriptionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPushSubscriptionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPushSubscriptionsInput, Prisma.UserUncheckedCreateWithoutPushSubscriptionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPushSubscriptionsInput
+  upsert?: Prisma.UserUpsertWithoutPushSubscriptionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPushSubscriptionsInput, Prisma.UserUpdateWithoutPushSubscriptionsInput>, Prisma.UserUncheckedUpdateWithoutPushSubscriptionsInput>
+}
+
 export type UserCreateNestedOneWithoutEmployeeProfileInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutEmployeeProfileInput, Prisma.UserUncheckedCreateWithoutEmployeeProfileInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmployeeProfileInput
@@ -492,6 +513,82 @@ export type UserUpdateOneWithoutReviewsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReviewsInput, Prisma.UserUpdateWithoutReviewsInput>, Prisma.UserUncheckedUpdateWithoutReviewsInput>
 }
 
+export type UserCreateWithoutPushSubscriptionsInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+}
+
+export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+}
+
+export type UserCreateOrConnectWithoutPushSubscriptionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPushSubscriptionsInput, Prisma.UserUncheckedCreateWithoutPushSubscriptionsInput>
+}
+
+export type UserUpsertWithoutPushSubscriptionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPushSubscriptionsInput, Prisma.UserUncheckedUpdateWithoutPushSubscriptionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPushSubscriptionsInput, Prisma.UserUncheckedCreateWithoutPushSubscriptionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPushSubscriptionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPushSubscriptionsInput, Prisma.UserUncheckedUpdateWithoutPushSubscriptionsInput>
+}
+
+export type UserUpdateWithoutPushSubscriptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+}
+
 export type UserCreateWithoutEmployeeProfileInput = {
   id?: string
   email: string
@@ -504,6 +601,7 @@ export type UserCreateWithoutEmployeeProfileInput = {
   supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutEmployeeProfileInput = {
@@ -518,6 +616,7 @@ export type UserUncheckedCreateWithoutEmployeeProfileInput = {
   supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutEmployeeProfileInput = {
@@ -537,6 +636,7 @@ export type UserCreateWithoutSupervisedProfilesInput = {
   employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSupervisedProfilesInput = {
@@ -551,6 +651,7 @@ export type UserUncheckedCreateWithoutSupervisedProfilesInput = {
   employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSupervisedProfilesInput = {
@@ -581,6 +682,7 @@ export type UserUpdateWithoutEmployeeProfileInput = {
   supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEmployeeProfileInput = {
@@ -595,6 +697,7 @@ export type UserUncheckedUpdateWithoutEmployeeProfileInput = {
   supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutSupervisedProfilesInput = {
@@ -620,6 +723,7 @@ export type UserUpdateWithoutSupervisedProfilesInput = {
   employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSupervisedProfilesInput = {
@@ -634,6 +738,7 @@ export type UserUncheckedUpdateWithoutSupervisedProfilesInput = {
   employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutClaimsInput = {
@@ -648,6 +753,7 @@ export type UserCreateWithoutClaimsInput = {
   employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
   supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClaimsInput = {
@@ -662,6 +768,7 @@ export type UserUncheckedCreateWithoutClaimsInput = {
   employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
   supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClaimsInput = {
@@ -681,6 +788,7 @@ export type UserCreateWithoutReviewsInput = {
   employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
   supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -695,6 +803,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
   supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -725,6 +834,7 @@ export type UserUpdateWithoutClaimsInput = {
   employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
   supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClaimsInput = {
@@ -739,6 +849,7 @@ export type UserUncheckedUpdateWithoutClaimsInput = {
   employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
   supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutReviewsInput = {
@@ -764,6 +875,7 @@ export type UserUpdateWithoutReviewsInput = {
   employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
   supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -778,6 +890,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
   supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -789,12 +902,14 @@ export type UserCountOutputType = {
   supervisedProfiles: number
   claims: number
   reviews: number
+  pushSubscriptions: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   supervisedProfiles?: boolean | UserCountOutputTypeCountSupervisedProfilesArgs
   claims?: boolean | UserCountOutputTypeCountClaimsArgs
   reviews?: boolean | UserCountOutputTypeCountReviewsArgs
+  pushSubscriptions?: boolean | UserCountOutputTypeCountPushSubscriptionsArgs
 }
 
 /**
@@ -828,6 +943,13 @@ export type UserCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.ClaimWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPushSubscriptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PushSubscriptionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -842,6 +964,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   supervisedProfiles?: boolean | Prisma.User$supervisedProfilesArgs<ExtArgs>
   claims?: boolean | Prisma.User$claimsArgs<ExtArgs>
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
+  pushSubscriptions?: boolean | Prisma.User$pushSubscriptionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -864,6 +987,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   supervisedProfiles?: boolean | Prisma.User$supervisedProfilesArgs<ExtArgs>
   claims?: boolean | Prisma.User$claimsArgs<ExtArgs>
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
+  pushSubscriptions?: boolean | Prisma.User$pushSubscriptionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -874,6 +998,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     supervisedProfiles: Prisma.$EmployeeProfilePayload<ExtArgs>[]
     claims: Prisma.$ClaimPayload<ExtArgs>[]
     reviews: Prisma.$ClaimPayload<ExtArgs>[]
+    pushSubscriptions: Prisma.$PushSubscriptionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1228,6 +1353,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   supervisedProfiles<T extends Prisma.User$supervisedProfilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$supervisedProfilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claims<T extends Prisma.User$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.User$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  pushSubscriptions<T extends Prisma.User$pushSubscriptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pushSubscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PushSubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1701,6 +1827,30 @@ export type User$reviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.ClaimScalarFieldEnum | Prisma.ClaimScalarFieldEnum[]
+}
+
+/**
+ * User.pushSubscriptions
+ */
+export type User$pushSubscriptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PushSubscription
+   */
+  select?: Prisma.PushSubscriptionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PushSubscription
+   */
+  omit?: Prisma.PushSubscriptionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PushSubscriptionInclude<ExtArgs> | null
+  where?: Prisma.PushSubscriptionWhereInput
+  orderBy?: Prisma.PushSubscriptionOrderByWithRelationInput | Prisma.PushSubscriptionOrderByWithRelationInput[]
+  cursor?: Prisma.PushSubscriptionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PushSubscriptionScalarFieldEnum | Prisma.PushSubscriptionScalarFieldEnum[]
 }
 
 /**

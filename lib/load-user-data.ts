@@ -15,7 +15,7 @@ export async function loadEmployeeData(email: string): Promise<void> {
 
   if (!employee) throw new Error(`Employee not found: ${email}`)
 
-  setEmployeeStore(email, { employee, claims })
+  setEmployeeStore(email, { employee, claims, cachedAt: Date.now() })
 }
 
 /**
@@ -30,5 +30,5 @@ export async function loadAdminData(email: string): Promise<void> {
 
   if (!admin) throw new Error(`Admin not found: ${email}`)
 
-  setAdminStore({ admin, allClaims })
+  setAdminStore({ admin, allClaims, cachedAt: Date.now() })
 }

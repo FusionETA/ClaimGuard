@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
   Claim: 'Claim'
 } as const
@@ -84,6 +85,18 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const PushSubscriptionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth',
+  createdAt: 'createdAt'
+} as const
+
+export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
 
 
 export const EmployeeProfileScalarFieldEnum = {
@@ -151,6 +164,17 @@ export const UserOrderByRelevanceFieldEnum = {
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
+
+
+export const PushSubscriptionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  endpoint: 'endpoint',
+  p256dh: 'p256dh',
+  auth: 'auth'
+} as const
+
+export type PushSubscriptionOrderByRelevanceFieldEnum = (typeof PushSubscriptionOrderByRelevanceFieldEnum)[keyof typeof PushSubscriptionOrderByRelevanceFieldEnum]
 
 
 export const EmployeeProfileOrderByRelevanceFieldEnum = {

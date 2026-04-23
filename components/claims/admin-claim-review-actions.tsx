@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/toaster"
 import { categoryMeta } from "@/modules/claims/domain/metadata"
 import { formatCurrency, formatShortDate } from "@/lib/utils"
 import type { ClaimRecord, ClaimStatus } from "@/modules/claims/domain/models"
@@ -27,6 +28,7 @@ function isActionableStatus(status: ClaimStatus) {
 }
 
 export function AdminClaimReviewActions({ claim }: { claim: ClaimRecord }) {
+  const { toast } = useToast()
   const initialState = useMemo(
     () => createInitialReviewClaimFormState(claim.reviewNotes ?? ""),
     [claim.reviewNotes]
@@ -41,9 +43,13 @@ export function AdminClaimReviewActions({ claim }: { claim: ClaimRecord }) {
 
   useEffect(() => {
     if (state.status === "success") {
+      toast({ title: state.message, variant: "success" })
       setOpen(false)
     }
-  }, [state.status])
+    if (state.status === "error" && state.message) {
+      toast({ title: state.message, variant: "error" })
+    }
+  }, [state.status, state.message, toast])
 
   const currentStatus = state.claimStatus ?? claim.status
   const actionable = isActionableStatus(currentStatus)

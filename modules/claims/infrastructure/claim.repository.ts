@@ -136,6 +136,8 @@ export type ReviewClaimResult =
   | {
       ok: true
       employeeEmail: string
+      employeeUserId: string
+      claimTitle: string
     }
   | {
       ok: false
@@ -258,6 +260,19 @@ export const claimRepository = {
     return row?.id ?? null
   },
 
+  /** Finds the supervisor user id for a given employee/supervisor user id. */
+  async getSupervisorIdForUser(userId: string): Promise<string | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const row = await prisma.employeeProfile.findUnique({
+      where: { userId },
+      select: { supervisorId: true },
+    })
+
+    return row?.supervisorId ?? null
+  },
+
   /** Returns employees and supervisors for hierarchy management. */
   async getOrganizationMembers(): Promise<OrganizationMember[]> {
     const prisma = getPrismaClient()
@@ -337,6 +352,7 @@ export const claimRepository = {
       where: { id: data.claimId },
       select: {
         id: true,
+        title: true,
         status: true,
         employeeId: true,
         employee: {
@@ -377,6 +393,8 @@ export const claimRepository = {
     return {
       ok: true,
       employeeEmail: existingClaim.employee.email,
+      employeeUserId: existingClaim.employeeId,
+      claimTitle: existingClaim.title,
     }
   },
 }

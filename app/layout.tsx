@@ -1,21 +1,22 @@
 import type { Metadata, Viewport } from "next"
-import { Inter, Manrope } from "next/font/google"
+import { Manrope } from "next/font/google"
 
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ToasterProvider } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-body",
-  display: "swap",
-})
-
 const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-headline",
+  display: "swap",
+})
+
+const manropeBody = Manrope({
+  subsets: ["latin"],
+  variable: "--font-body",
   display: "swap",
 })
 
@@ -43,7 +44,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0a396c",
+  themeColor: "#0D5E6B",
   colorScheme: "light dark",
 }
 
@@ -54,15 +55,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(inter.variable, manrope.variable, "font-body")}>
+      <body className={cn(manropeBody.variable, manrope.variable, "font-body")}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
-          <ServiceWorkerRegister />
-          {children}
+          <ToasterProvider>
+            <ServiceWorkerRegister />
+            {children}
+          </ToasterProvider>
         </ThemeProvider>
       </body>
     </html>

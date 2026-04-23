@@ -33,18 +33,31 @@ enum ClaimStatus {
 }
 
 model User {
-  id              String           @id @default(cuid())
-  email           String           @unique
-  name            String
-  role            UserRole
-  passwordHash    String
-  avatarUrl       String?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  employeeProfile EmployeeProfile? @relation("EmployeeProfileUser")
-  supervisedProfiles EmployeeProfile[] @relation("SupervisorReports")
-  claims          Claim[]          @relation("EmployeeClaims")
-  reviews         Claim[]          @relation("AdminReviews")
+  id                 String             @id @default(cuid())
+  email              String             @unique
+  name               String
+  role               UserRole
+  passwordHash       String
+  avatarUrl          String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  employeeProfile    EmployeeProfile?   @relation("EmployeeProfileUser")
+  supervisedProfiles EmployeeProfile[]  @relation("SupervisorReports")
+  claims             Claim[]            @relation("EmployeeClaims")
+  reviews            Claim[]            @relation("AdminReviews")
+  pushSubscriptions  PushSubscription[]
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique @db.VarChar(500)
+  p256dh    String   @db.VarChar(255)
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model EmployeeProfile {

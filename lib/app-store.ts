@@ -7,12 +7,24 @@ import type {
 } from "@/modules/claims/domain/models"
 
 // ---------------------------------------------------------------------------
+// TTL — cached data is considered stale after this many milliseconds.
+// ---------------------------------------------------------------------------
+
+export const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+/** Returns true if the store entry is older than CACHE_TTL_MS. */
+export function isStoreExpired(cachedAt: number): boolean {
+  return Date.now() - cachedAt > CACHE_TTL_MS
+}
+
+// ---------------------------------------------------------------------------
 // Employee store — one entry per logged-in employee, keyed by email
 // ---------------------------------------------------------------------------
 
 export type EmployeeStore = {
   employee: PortalUser
   claims: ClaimRecord[]
+  cachedAt: number
 }
 
 // ---------------------------------------------------------------------------
@@ -22,6 +34,7 @@ export type EmployeeStore = {
 export type AdminStore = {
   admin: AdminProfile
   allClaims: ClaimRecord[]
+  cachedAt: number
 }
 
 declare global {
