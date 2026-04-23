@@ -127,6 +127,7 @@ export function ClaimForm() {
                   name="spentAt"
                   type="date"
                   defaultValue={state.values?.spentAt ?? ""}
+                  className="min-w-0 max-w-full appearance-none pr-3"
                   aria-invalid={Boolean(state.errors?.spentAt)}
                 />
                 {state.errors?.spentAt ? (

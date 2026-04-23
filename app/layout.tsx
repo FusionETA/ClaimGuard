@@ -20,7 +20,7 @@ const manropeBody = Manrope({
   display: "swap",
 })
 
-const BRAND_ICON_URL = "/brand-icon.png?v=2"
+const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
 
 export const metadata: Metadata = {
   title: {

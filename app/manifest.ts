@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-const BRAND_ICON_URL = "/brand-icon.png?v=2"
+const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {

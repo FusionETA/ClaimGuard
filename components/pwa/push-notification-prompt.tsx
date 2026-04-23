@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { BellRing, X } from "lucide-react"
+import { BellRing, LoaderCircle, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/toaster"
@@ -55,7 +55,7 @@ export function PushNotificationPrompt() {
 
   return (
     <div className="px-4 pb-4 lg:hidden">
-      <div className="rounded-[28px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
+      <div className="overflow-hidden rounded-[28px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
             <BellRing className="h-5 w-5" />
@@ -71,6 +71,7 @@ export function PushNotificationPrompt() {
           <button
             type="button"
             onClick={() => setVisible(false)}
+            disabled={loading}
             className="rounded-full p-1 text-muted-foreground transition hover:bg-surface-low hover:text-foreground"
             aria-label="Dismiss notification prompt"
           >
@@ -79,10 +80,10 @@ export function PushNotificationPrompt() {
         </div>
 
         {!blocked ? (
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex flex-col gap-2 min-[420px]:items-end">
             <Button
               type="button"
-              className="rounded-2xl"
+              className="w-full justify-center rounded-2xl min-[420px]:w-auto min-[420px]:min-w-[13rem]"
               disabled={loading}
               onClick={async () => {
                 setLoading(true)
@@ -109,6 +110,7 @@ export function PushNotificationPrompt() {
                 }
               }}
             >
+              {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
               {loading ? "Enabling..." : "Enable notifications"}
             </Button>
           </div>

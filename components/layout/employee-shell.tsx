@@ -150,7 +150,7 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
 
         <PushNotificationPrompt />
 
-        <main className="flex-1 pb-28 lg:pb-10">
+        <main className="flex-1 pb-40 lg:pb-10">
           <div className="container py-6 lg:py-8">{children}</div>
         </main>
 

@@ -1,6 +1,6 @@
-const CACHE_NAME = "claimguard-shell-v5"
+const CACHE_NAME = "claimguard-shell-v6"
 const OFFLINE_FALLBACK = "/offline.html"
-const BRAND_ICON_URL = "/brand-icon.png?v=2"
+const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
 const APP_SHELL = ["/", OFFLINE_FALLBACK, BRAND_ICON_URL]
 
 self.addEventListener("install", (event) => {
