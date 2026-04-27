@@ -67,6 +67,7 @@ type PrismaClaim = {
     type: string | null
     status: string | null
     isSelectable: boolean
+    isCustom: boolean
   } | null
   employee: PrismaUser
 }
@@ -133,6 +134,7 @@ function mapChartAccount(account?: {
   type: string | null
   status: string | null
   isSelectable: boolean
+  isCustom: boolean
 } | null): ChartOfAccountOption | undefined {
   if (!account) return undefined
 
@@ -143,6 +145,7 @@ function mapChartAccount(account?: {
     type: account.type ?? undefined,
     status: account.status ?? undefined,
     isSelectable: account.isSelectable,
+    isCustom: account.isCustom,
   }
 }
 
