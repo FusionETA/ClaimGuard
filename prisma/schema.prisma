@@ -32,20 +32,44 @@ enum ClaimStatus {
   PAID
 }
 
+enum XeroSyncStatus {
+  NOT_SYNCED
+  SYNCED
+  ERROR
+}
+
 model User {
   id                 String             @id @default(cuid())
   email              String             @unique
   name               String
   role               UserRole
+  organizationId     String?
   passwordHash       String
   avatarUrl          String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+  organization       Organization?      @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   employeeProfile    EmployeeProfile?   @relation("EmployeeProfileUser")
   supervisedProfiles EmployeeProfile[]  @relation("SupervisorReports")
   claims             Claim[]            @relation("EmployeeClaims")
   reviews            Claim[]            @relation("AdminReviews")
   pushSubscriptions  PushSubscription[]
+  xeroConnections    XeroConnection[]   @relation("XeroConnectedBy")
+
+  @@index([organizationId])
+}
+
+model Organization {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  claimCutoffDay  Int              @default(25)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  users           User[]
+  claims          Claim[]
+  xeroConnections XeroConnection[]
+  chartAccounts   ChartOfAccount[]
+  projects        XeroProject[]
 }
 
 model PushSubscription {
@@ -61,44 +85,126 @@ model PushSubscription {
 }
 
 model EmployeeProfile {
-  id                String   @id @default(cuid())
-  userId            String   @unique
-  employeeId        String   @unique
-  project           String   @map("department")
+  id                String          @id @default(cuid())
+  userId            String          @unique
+  employeeId        String          @unique
+  project           String          @map("department")
   jobTitle          String
   supervisorId      String?
   payoutMethod      String?
-  preferredCurrency String   @default("USD")
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
-  supervisor        User?    @relation("SupervisorReports", fields: [supervisorId], references: [id], onDelete: SetNull)
+  preferredCurrency String          @default("USD")
+  xeroConnectionId  String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  user              User            @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  supervisor        User?           @relation("SupervisorReports", fields: [supervisorId], references: [id], onDelete: SetNull)
+  xeroConnection    XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: SetNull)
 
   @@index([supervisorId])
+  @@index([xeroConnectionId])
 }
 
 model Claim {
-  id           String        @id @default(cuid())
-  claimNumber  String        @unique
-  title        String
-  description  String        @db.Text
-  category     ClaimCategory
-  amount       Decimal       @db.Decimal(10, 2)
-  currency     String        @default("USD")
-  spentAt      DateTime
-  submittedAt  DateTime      @default(now())
-  reviewedAt   DateTime?
-  payoutAt     DateTime?
-  status       ClaimStatus   @default(PENDING)
-  receiptUrl   String?
-  reviewNotes  String?       @db.Text
-  employeeId   String
-  reviewerId   String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  employee     User          @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
-  reviewer     User?         @relation("AdminReviews", fields: [reviewerId], references: [id], onDelete: SetNull)
+  id               String         @id @default(cuid())
+  claimNumber      String         @unique
+  title            String
+  description      String         @db.Text
+  category         ClaimCategory
+  organizationId   String?
+  chartOfAccountId String?
+  amount           Decimal        @db.Decimal(10, 2)
+  currency         String         @default("USD")
+  spentAt          DateTime
+  submittedAt      DateTime       @default(now())
+  claimRunMonth    DateTime?
+  reviewedAt       DateTime?
+  payoutAt         DateTime?
+  status           ClaimStatus    @default(PENDING)
+  receiptUrl       String?
+  reviewNotes      String?        @db.Text
+  employeeId       String
+  reviewerId       String?
+  xeroBillId       String?        @unique
+  xeroBillRef      String?
+  xeroSyncStatus   XeroSyncStatus @default(NOT_SYNCED)
+  xeroSyncError    String?        @db.Text
+  xeroSyncedAt     DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  organization     Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  chartOfAccount   ChartOfAccount? @relation(fields: [chartOfAccountId], references: [id], onDelete: SetNull)
+  employee         User           @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer         User?          @relation("AdminReviews", fields: [reviewerId], references: [id], onDelete: SetNull)
 
+  @@index([organizationId, submittedAt])
+  @@index([chartOfAccountId])
   @@index([employeeId, submittedAt])
   @@index([status, submittedAt])
+  @@index([xeroSyncStatus])
+}
+
+model ChartOfAccount {
+  id               String          @id @default(cuid())
+  organizationId   String
+  xeroConnectionId String?
+  xeroAccountId    String?
+  code             String
+  name             String
+  type             String?
+  status           String?
+  isSelectable     Boolean         @default(false)
+  isCustom         Boolean         @default(false)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
+  claims           Claim[]
+
+  @@unique([xeroConnectionId, xeroAccountId])
+  @@unique([organizationId, code])
+  @@index([organizationId, xeroConnectionId, isSelectable])
+}
+
+model XeroConnection {
+  id                   String           @id @default(cuid())
+  provider             String           @default("xero")
+  organizationId       String
+  tenantId             String           @unique
+  tenantName           String
+  tenantType           String?
+  accessToken          String           @db.Text
+  refreshToken         String           @db.Text
+  scope                String           @db.Text
+  tokenType            String
+  accessTokenExpiresAt DateTime
+  connectedByAdminId   String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  connectedByAdmin     User?            @relation("XeroConnectedBy", fields: [connectedByAdminId], references: [id], onDelete: SetNull)
+  chartAccounts        ChartOfAccount[]
+  xeroProjects         XeroProject[]
+  employeeProfiles     EmployeeProfile[]
+
+  @@unique([organizationId, tenantId])
+  @@index([organizationId])
+  @@index([provider])
+  @@index([connectedByAdminId])
+}
+
+model XeroProject {
+  id               String         @id @default(cuid())
+  organizationId   String
+  xeroConnectionId String
+  xeroProjectId    String
+  name             String
+  status           String?
+  contactId        String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  xeroConnection   XeroConnection @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
+
+  @@unique([xeroConnectionId, xeroProjectId])
+  @@index([xeroConnectionId, name])
 }

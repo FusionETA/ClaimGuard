@@ -9,7 +9,11 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/Organization'
 export type * from './models/PushSubscription'
 export type * from './models/EmployeeProfile'
 export type * from './models/Claim'
+export type * from './models/ChartOfAccount'
+export type * from './models/XeroConnection'
+export type * from './models/XeroProject'
 export type * from './commonInputTypes'

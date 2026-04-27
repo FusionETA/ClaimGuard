@@ -22,13 +22,25 @@ export async function loadEmployeeData(email: string): Promise<void> {
  * Fetches the admin profile and ALL claims from the database,
  * then stores the result in the app store for instant page reads.
  */
-export async function loadAdminData(email: string): Promise<void> {
-  const [admin, allClaims] = await Promise.all([
-    claimRepository.getAdminProfile(email),
-    claimRepository.getAllClaims(),
-  ])
+export async function loadAdminData(
+  email: string,
+  activeXeroConnectionId?: string
+): Promise<void> {
+  const admin = await claimRepository.getAdminProfile(email)
 
   if (!admin) throw new Error(`Admin not found: ${email}`)
 
-  setAdminStore({ admin, allClaims, cachedAt: Date.now() })
+  const allClaims = admin.organizationId
+    ? await claimRepository.getClaimsForOrganization(
+        admin.organizationId,
+        activeXeroConnectionId
+      )
+    : []
+
+  setAdminStore(email, {
+    admin,
+    allClaims,
+    cachedAt: Date.now(),
+    activeXeroConnectionId,
+  })
 }

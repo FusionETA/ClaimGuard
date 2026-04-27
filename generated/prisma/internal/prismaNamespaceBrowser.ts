@@ -52,9 +52,13 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  Organization: 'Organization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
-  Claim: 'Claim'
+  Claim: 'Claim',
+  ChartOfAccount: 'ChartOfAccount',
+  XeroConnection: 'XeroConnection',
+  XeroProject: 'XeroProject'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -78,6 +82,7 @@ export const UserScalarFieldEnum = {
   email: 'email',
   name: 'name',
   role: 'role',
+  organizationId: 'organizationId',
   passwordHash: 'passwordHash',
   avatarUrl: 'avatarUrl',
   createdAt: 'createdAt',
@@ -85,6 +90,17 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const OrganizationScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  claimCutoffDay: 'claimCutoffDay',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
 
 
 export const PushSubscriptionScalarFieldEnum = {
@@ -108,6 +124,7 @@ export const EmployeeProfileScalarFieldEnum = {
   supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
   preferredCurrency: 'preferredCurrency',
+  xeroConnectionId: 'xeroConnectionId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -121,10 +138,13 @@ export const ClaimScalarFieldEnum = {
   title: 'title',
   description: 'description',
   category: 'category',
+  organizationId: 'organizationId',
+  chartOfAccountId: 'chartOfAccountId',
   amount: 'amount',
   currency: 'currency',
   spentAt: 'spentAt',
   submittedAt: 'submittedAt',
+  claimRunMonth: 'claimRunMonth',
   reviewedAt: 'reviewedAt',
   payoutAt: 'payoutAt',
   status: 'status',
@@ -132,11 +152,69 @@ export const ClaimScalarFieldEnum = {
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
+  xeroBillId: 'xeroBillId',
+  xeroBillRef: 'xeroBillRef',
+  xeroSyncStatus: 'xeroSyncStatus',
+  xeroSyncError: 'xeroSyncError',
+  xeroSyncedAt: 'xeroSyncedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
+
+
+export const ChartOfAccountScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  xeroConnectionId: 'xeroConnectionId',
+  xeroAccountId: 'xeroAccountId',
+  code: 'code',
+  name: 'name',
+  type: 'type',
+  status: 'status',
+  isSelectable: 'isSelectable',
+  isCustom: 'isCustom',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ChartOfAccountScalarFieldEnum = (typeof ChartOfAccountScalarFieldEnum)[keyof typeof ChartOfAccountScalarFieldEnum]
+
+
+export const XeroConnectionScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  organizationId: 'organizationId',
+  tenantId: 'tenantId',
+  tenantName: 'tenantName',
+  tenantType: 'tenantType',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  scope: 'scope',
+  tokenType: 'tokenType',
+  accessTokenExpiresAt: 'accessTokenExpiresAt',
+  connectedByAdminId: 'connectedByAdminId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type XeroConnectionScalarFieldEnum = (typeof XeroConnectionScalarFieldEnum)[keyof typeof XeroConnectionScalarFieldEnum]
+
+
+export const XeroProjectScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  xeroConnectionId: 'xeroConnectionId',
+  xeroProjectId: 'xeroProjectId',
+  name: 'name',
+  status: 'status',
+  contactId: 'contactId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -159,11 +237,20 @@ export const UserOrderByRelevanceFieldEnum = {
   id: 'id',
   email: 'email',
   name: 'name',
+  organizationId: 'organizationId',
   passwordHash: 'passwordHash',
   avatarUrl: 'avatarUrl'
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
+
+
+export const OrganizationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
 
 
 export const PushSubscriptionOrderByRelevanceFieldEnum = {
@@ -185,7 +272,8 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   jobTitle: 'jobTitle',
   supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
-  preferredCurrency: 'preferredCurrency'
+  preferredCurrency: 'preferredCurrency',
+  xeroConnectionId: 'xeroConnectionId'
 } as const
 
 export type EmployeeProfileOrderByRelevanceFieldEnum = (typeof EmployeeProfileOrderByRelevanceFieldEnum)[keyof typeof EmployeeProfileOrderByRelevanceFieldEnum]
@@ -196,12 +284,61 @@ export const ClaimOrderByRelevanceFieldEnum = {
   claimNumber: 'claimNumber',
   title: 'title',
   description: 'description',
+  organizationId: 'organizationId',
+  chartOfAccountId: 'chartOfAccountId',
   currency: 'currency',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
-  reviewerId: 'reviewerId'
+  reviewerId: 'reviewerId',
+  xeroBillId: 'xeroBillId',
+  xeroBillRef: 'xeroBillRef',
+  xeroSyncError: 'xeroSyncError'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
+
+
+export const ChartOfAccountOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  xeroConnectionId: 'xeroConnectionId',
+  xeroAccountId: 'xeroAccountId',
+  code: 'code',
+  name: 'name',
+  type: 'type',
+  status: 'status'
+} as const
+
+export type ChartOfAccountOrderByRelevanceFieldEnum = (typeof ChartOfAccountOrderByRelevanceFieldEnum)[keyof typeof ChartOfAccountOrderByRelevanceFieldEnum]
+
+
+export const XeroConnectionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  organizationId: 'organizationId',
+  tenantId: 'tenantId',
+  tenantName: 'tenantName',
+  tenantType: 'tenantType',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  scope: 'scope',
+  tokenType: 'tokenType',
+  connectedByAdminId: 'connectedByAdminId'
+} as const
+
+export type XeroConnectionOrderByRelevanceFieldEnum = (typeof XeroConnectionOrderByRelevanceFieldEnum)[keyof typeof XeroConnectionOrderByRelevanceFieldEnum]
+
+
+export const XeroProjectOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  xeroConnectionId: 'xeroConnectionId',
+  xeroProjectId: 'xeroProjectId',
+  name: 'name',
+  status: 'status',
+  contactId: 'contactId'
+} as const
+
+export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
 

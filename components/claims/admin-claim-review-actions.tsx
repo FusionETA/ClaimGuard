@@ -5,7 +5,6 @@ import { ExternalLink, LoaderCircle } from "lucide-react"
 
 import { reviewClaimAction } from "@/app/(employee)/employee/review/actions"
 import { createInitialReviewClaimFormState } from "@/app/(admin)/admin/claims/form-state"
-import { ClaimCategoryIcon } from "@/components/claims/claim-category-icon"
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,8 +18,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/toaster"
-import { categoryMeta } from "@/modules/claims/domain/metadata"
-import { formatCurrency, formatShortDate } from "@/lib/utils"
+import { formatCurrency, formatMonthYear, formatShortDate } from "@/lib/utils"
 import type { ClaimRecord, ClaimStatus } from "@/modules/claims/domain/models"
 
 function isActionableStatus(status: ClaimStatus) {
@@ -106,11 +104,12 @@ export function AdminClaimReviewActions({ claim }: { claim: ClaimRecord }) {
                 <p className="mt-1 text-sm text-muted-foreground">{claim.currency}</p>
               </div>
               <div className="rounded-[24px] bg-surface-low p-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Category</p>
-                <div className="mt-2 flex items-center gap-2 text-foreground">
-                  <ClaimCategoryIcon category={claim.category} className="h-5 w-5 text-primary" />
-                  <span className="font-semibold">{categoryMeta[claim.category].label}</span>
-                </div>
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Chart of account</p>
+                <p className="mt-2 font-semibold text-foreground">
+                  {claim.chartOfAccount
+                    ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
+                    : "Not assigned"}
+                </p>
               </div>
               <div className="rounded-[24px] bg-surface-low p-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Submitted</p>
@@ -118,6 +117,11 @@ export function AdminClaimReviewActions({ claim }: { claim: ClaimRecord }) {
                 <p className="mt-1 text-sm text-muted-foreground">
                   Spent on {formatShortDate(claim.spentAt)}
                 </p>
+                {claim.claimRunMonth ? (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Claims run: {formatMonthYear(claim.claimRunMonth)}
+                  </p>
+                ) : null}
               </div>
             </div>
 

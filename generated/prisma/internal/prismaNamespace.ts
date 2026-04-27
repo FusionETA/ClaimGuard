@@ -385,9 +385,13 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  Organization: 'Organization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
-  Claim: 'Claim'
+  Claim: 'Claim',
+  ChartOfAccount: 'ChartOfAccount',
+  XeroConnection: 'XeroConnection',
+  XeroProject: 'XeroProject'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -403,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "pushSubscription" | "employeeProfile" | "claim"
+    modelProps: "user" | "organization" | "pushSubscription" | "employeeProfile" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -470,6 +474,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    Organization: {
+      payload: Prisma.$OrganizationPayload<ExtArgs>
+      fields: Prisma.OrganizationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OrganizationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OrganizationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationPayload>
+        }
+        findFirst: {
+          args: Prisma.OrganizationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OrganizationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationPayload>
+        }
+        findMany: {
+          args: Prisma.OrganizationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationPayload>[]
+        }
+        create: {
+          args: Prisma.OrganizationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationPayload>
+        }
+        createMany: {
+          args: Prisma.OrganizationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.OrganizationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationPayload>
+        }
+        update: {
+          args: Prisma.OrganizationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationPayload>
+        }
+        deleteMany: {
+          args: Prisma.OrganizationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OrganizationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.OrganizationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OrganizationPayload>
+        }
+        aggregate: {
+          args: Prisma.OrganizationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOrganization>
+        }
+        groupBy: {
+          args: Prisma.OrganizationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrganizationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OrganizationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OrganizationCountAggregateOutputType> | number
         }
       }
     }
@@ -671,6 +741,204 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ChartOfAccount: {
+      payload: Prisma.$ChartOfAccountPayload<ExtArgs>
+      fields: Prisma.ChartOfAccountFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ChartOfAccountFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChartOfAccountPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ChartOfAccountFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChartOfAccountPayload>
+        }
+        findFirst: {
+          args: Prisma.ChartOfAccountFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChartOfAccountPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ChartOfAccountFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChartOfAccountPayload>
+        }
+        findMany: {
+          args: Prisma.ChartOfAccountFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChartOfAccountPayload>[]
+        }
+        create: {
+          args: Prisma.ChartOfAccountCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChartOfAccountPayload>
+        }
+        createMany: {
+          args: Prisma.ChartOfAccountCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ChartOfAccountDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChartOfAccountPayload>
+        }
+        update: {
+          args: Prisma.ChartOfAccountUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChartOfAccountPayload>
+        }
+        deleteMany: {
+          args: Prisma.ChartOfAccountDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ChartOfAccountUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ChartOfAccountUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ChartOfAccountPayload>
+        }
+        aggregate: {
+          args: Prisma.ChartOfAccountAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateChartOfAccount>
+        }
+        groupBy: {
+          args: Prisma.ChartOfAccountGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ChartOfAccountGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ChartOfAccountCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ChartOfAccountCountAggregateOutputType> | number
+        }
+      }
+    }
+    XeroConnection: {
+      payload: Prisma.$XeroConnectionPayload<ExtArgs>
+      fields: Prisma.XeroConnectionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.XeroConnectionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroConnectionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.XeroConnectionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroConnectionPayload>
+        }
+        findFirst: {
+          args: Prisma.XeroConnectionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroConnectionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.XeroConnectionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroConnectionPayload>
+        }
+        findMany: {
+          args: Prisma.XeroConnectionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroConnectionPayload>[]
+        }
+        create: {
+          args: Prisma.XeroConnectionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroConnectionPayload>
+        }
+        createMany: {
+          args: Prisma.XeroConnectionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.XeroConnectionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroConnectionPayload>
+        }
+        update: {
+          args: Prisma.XeroConnectionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroConnectionPayload>
+        }
+        deleteMany: {
+          args: Prisma.XeroConnectionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.XeroConnectionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.XeroConnectionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroConnectionPayload>
+        }
+        aggregate: {
+          args: Prisma.XeroConnectionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateXeroConnection>
+        }
+        groupBy: {
+          args: Prisma.XeroConnectionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroConnectionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.XeroConnectionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroConnectionCountAggregateOutputType> | number
+        }
+      }
+    }
+    XeroProject: {
+      payload: Prisma.$XeroProjectPayload<ExtArgs>
+      fields: Prisma.XeroProjectFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.XeroProjectFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroProjectPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.XeroProjectFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroProjectPayload>
+        }
+        findFirst: {
+          args: Prisma.XeroProjectFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroProjectPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.XeroProjectFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroProjectPayload>
+        }
+        findMany: {
+          args: Prisma.XeroProjectFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroProjectPayload>[]
+        }
+        create: {
+          args: Prisma.XeroProjectCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroProjectPayload>
+        }
+        createMany: {
+          args: Prisma.XeroProjectCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.XeroProjectDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroProjectPayload>
+        }
+        update: {
+          args: Prisma.XeroProjectUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroProjectPayload>
+        }
+        deleteMany: {
+          args: Prisma.XeroProjectDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.XeroProjectUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.XeroProjectUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$XeroProjectPayload>
+        }
+        aggregate: {
+          args: Prisma.XeroProjectAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateXeroProject>
+        }
+        groupBy: {
+          args: Prisma.XeroProjectGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroProjectGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.XeroProjectCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.XeroProjectCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -715,6 +983,7 @@ export const UserScalarFieldEnum = {
   email: 'email',
   name: 'name',
   role: 'role',
+  organizationId: 'organizationId',
   passwordHash: 'passwordHash',
   avatarUrl: 'avatarUrl',
   createdAt: 'createdAt',
@@ -722,6 +991,17 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const OrganizationScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  claimCutoffDay: 'claimCutoffDay',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
 
 
 export const PushSubscriptionScalarFieldEnum = {
@@ -745,6 +1025,7 @@ export const EmployeeProfileScalarFieldEnum = {
   supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
   preferredCurrency: 'preferredCurrency',
+  xeroConnectionId: 'xeroConnectionId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -758,10 +1039,13 @@ export const ClaimScalarFieldEnum = {
   title: 'title',
   description: 'description',
   category: 'category',
+  organizationId: 'organizationId',
+  chartOfAccountId: 'chartOfAccountId',
   amount: 'amount',
   currency: 'currency',
   spentAt: 'spentAt',
   submittedAt: 'submittedAt',
+  claimRunMonth: 'claimRunMonth',
   reviewedAt: 'reviewedAt',
   payoutAt: 'payoutAt',
   status: 'status',
@@ -769,11 +1053,69 @@ export const ClaimScalarFieldEnum = {
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
+  xeroBillId: 'xeroBillId',
+  xeroBillRef: 'xeroBillRef',
+  xeroSyncStatus: 'xeroSyncStatus',
+  xeroSyncError: 'xeroSyncError',
+  xeroSyncedAt: 'xeroSyncedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
+
+
+export const ChartOfAccountScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  xeroConnectionId: 'xeroConnectionId',
+  xeroAccountId: 'xeroAccountId',
+  code: 'code',
+  name: 'name',
+  type: 'type',
+  status: 'status',
+  isSelectable: 'isSelectable',
+  isCustom: 'isCustom',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ChartOfAccountScalarFieldEnum = (typeof ChartOfAccountScalarFieldEnum)[keyof typeof ChartOfAccountScalarFieldEnum]
+
+
+export const XeroConnectionScalarFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  organizationId: 'organizationId',
+  tenantId: 'tenantId',
+  tenantName: 'tenantName',
+  tenantType: 'tenantType',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  scope: 'scope',
+  tokenType: 'tokenType',
+  accessTokenExpiresAt: 'accessTokenExpiresAt',
+  connectedByAdminId: 'connectedByAdminId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type XeroConnectionScalarFieldEnum = (typeof XeroConnectionScalarFieldEnum)[keyof typeof XeroConnectionScalarFieldEnum]
+
+
+export const XeroProjectScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  xeroConnectionId: 'xeroConnectionId',
+  xeroProjectId: 'xeroProjectId',
+  name: 'name',
+  status: 'status',
+  contactId: 'contactId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -796,11 +1138,20 @@ export const UserOrderByRelevanceFieldEnum = {
   id: 'id',
   email: 'email',
   name: 'name',
+  organizationId: 'organizationId',
   passwordHash: 'passwordHash',
   avatarUrl: 'avatarUrl'
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
+
+
+export const OrganizationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
 
 
 export const PushSubscriptionOrderByRelevanceFieldEnum = {
@@ -822,7 +1173,8 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   jobTitle: 'jobTitle',
   supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
-  preferredCurrency: 'preferredCurrency'
+  preferredCurrency: 'preferredCurrency',
+  xeroConnectionId: 'xeroConnectionId'
 } as const
 
 export type EmployeeProfileOrderByRelevanceFieldEnum = (typeof EmployeeProfileOrderByRelevanceFieldEnum)[keyof typeof EmployeeProfileOrderByRelevanceFieldEnum]
@@ -833,14 +1185,63 @@ export const ClaimOrderByRelevanceFieldEnum = {
   claimNumber: 'claimNumber',
   title: 'title',
   description: 'description',
+  organizationId: 'organizationId',
+  chartOfAccountId: 'chartOfAccountId',
   currency: 'currency',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
-  reviewerId: 'reviewerId'
+  reviewerId: 'reviewerId',
+  xeroBillId: 'xeroBillId',
+  xeroBillRef: 'xeroBillRef',
+  xeroSyncError: 'xeroSyncError'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
+
+
+export const ChartOfAccountOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  xeroConnectionId: 'xeroConnectionId',
+  xeroAccountId: 'xeroAccountId',
+  code: 'code',
+  name: 'name',
+  type: 'type',
+  status: 'status'
+} as const
+
+export type ChartOfAccountOrderByRelevanceFieldEnum = (typeof ChartOfAccountOrderByRelevanceFieldEnum)[keyof typeof ChartOfAccountOrderByRelevanceFieldEnum]
+
+
+export const XeroConnectionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  provider: 'provider',
+  organizationId: 'organizationId',
+  tenantId: 'tenantId',
+  tenantName: 'tenantName',
+  tenantType: 'tenantType',
+  accessToken: 'accessToken',
+  refreshToken: 'refreshToken',
+  scope: 'scope',
+  tokenType: 'tokenType',
+  connectedByAdminId: 'connectedByAdminId'
+} as const
+
+export type XeroConnectionOrderByRelevanceFieldEnum = (typeof XeroConnectionOrderByRelevanceFieldEnum)[keyof typeof XeroConnectionOrderByRelevanceFieldEnum]
+
+
+export const XeroProjectOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  xeroConnectionId: 'xeroConnectionId',
+  xeroProjectId: 'xeroProjectId',
+  name: 'name',
+  status: 'status',
+  contactId: 'contactId'
+} as const
+
+export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
 
 
 
@@ -871,6 +1272,13 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
  * Reference to a field of type 'ClaimCategory'
  */
 export type EnumClaimCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimCategory'>
@@ -892,9 +1300,23 @@ export type EnumClaimStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'XeroSyncStatus'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type EnumXeroSyncStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'XeroSyncStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
 
 /**
@@ -993,9 +1415,13 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  organization?: Prisma.OrganizationOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
   employeeProfile?: Prisma.EmployeeProfileOmit
   claim?: Prisma.ClaimOmit
+  chartOfAccount?: Prisma.ChartOfAccountOmit
+  xeroConnection?: Prisma.XeroConnectionOmit
+  xeroProject?: Prisma.XeroProjectOmit
 }
 
 /* Types for Logging */

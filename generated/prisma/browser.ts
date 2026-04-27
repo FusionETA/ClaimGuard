@@ -23,6 +23,11 @@ export * from './enums';
  */
 export type User = Prisma.UserModel
 /**
+ * Model Organization
+ * 
+ */
+export type Organization = Prisma.OrganizationModel
+/**
  * Model PushSubscription
  * 
  */
@@ -37,3 +42,18 @@ export type EmployeeProfile = Prisma.EmployeeProfileModel
  * 
  */
 export type Claim = Prisma.ClaimModel
+/**
+ * Model ChartOfAccount
+ * 
+ */
+export type ChartOfAccount = Prisma.ChartOfAccountModel
+/**
+ * Model XeroConnection
+ * 
+ */
+export type XeroConnection = Prisma.XeroConnectionModel
+/**
+ * Model XeroProject
+ * 
+ */
+export type XeroProject = Prisma.XeroProjectModel

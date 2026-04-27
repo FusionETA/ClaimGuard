@@ -1,14 +1,14 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Search } from "lucide-react"
 
 import { AdminClaimReviewActions } from "@/components/claims/admin-claim-review-actions"
-import { ClaimCategoryIcon } from "@/components/claims/claim-category-icon"
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import {
   Table,
   TableBody,
@@ -18,7 +18,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { cn, formatCurrency, formatShortDate } from "@/lib/utils"
-import { categoryMeta } from "@/modules/claims/domain/metadata"
 import {
   claimStatuses,
   type ClaimRecord,
@@ -32,10 +31,12 @@ const visibleStatusOptions = claimStatuses.filter(
 const statusOptions = ["ALL", ...visibleStatusOptions] as const
 
 type StatusFilter = (typeof statusOptions)[number]
+const PAGE_SIZE = 10
 
 export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
   const [searchTerm, setSearchTerm] = useState("")
+  const [page, setPage] = useState(1)
 
   const filteredClaims = useMemo(() => {
     const normalizedQuery = searchTerm.trim().toLowerCase()
@@ -56,7 +57,8 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
               claim.title,
               claim.employee.name,
               claim.employee.project,
-              categoryMeta[claim.category].label,
+              claim.chartOfAccount?.code,
+              claim.chartOfAccount?.name,
             ]
               .join(" ")
               .toLowerCase()
@@ -65,6 +67,23 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
       return matchesStatus && matchesQuery
     })
   }, [claims, searchTerm, statusFilter])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchTerm, statusFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filteredClaims.length / PAGE_SIZE))
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages)
+    }
+  }, [page, totalPages])
+
+  const paginatedClaims = useMemo(() => {
+    const startIndex = (page - 1) * PAGE_SIZE
+    return filteredClaims.slice(startIndex, startIndex + PAGE_SIZE)
+  }, [filteredClaims, page])
 
   const hasActiveFilters = statusFilter !== "ALL" || searchTerm.trim().length > 0
 
@@ -78,7 +97,7 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
               <Input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search by claim, employee, or category"
+                placeholder="Search by claim, employee, or account"
                 className="pl-10"
               />
             </div>
@@ -184,7 +203,7 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
       {filteredClaims.length > 0 ? (
         <>
           <div className="grid gap-4 lg:hidden">
-            {filteredClaims.map((claim) => (
+            {paginatedClaims.map((claim) => (
               <Card key={claim.id}>
                 <CardContent className="space-y-4 p-5">
                   <div className="flex items-start justify-between gap-4">
@@ -199,8 +218,12 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Category</p>
-                      <p className="mt-1 font-semibold">{categoryMeta[claim.category].label}</p>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Account</p>
+                      <p className="mt-1 font-semibold">
+                        {claim.chartOfAccount
+                          ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
+                          : "Not assigned"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Amount</p>
@@ -220,13 +243,13 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
           </div>
 
           <Card className="hidden lg:block">
-            <CardContent className="p-0">
+            <CardContent className="space-y-4 p-0">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Employee</TableHead>
                     <TableHead>Claim</TableHead>
-                    <TableHead>Category</TableHead>
+                    <TableHead>Chart of account</TableHead>
                     <TableHead>Submitted</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Status</TableHead>
@@ -234,7 +257,7 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredClaims.map((claim) => (
+                  {paginatedClaims.map((claim) => (
                     <TableRow key={claim.id}>
                       <TableCell>
                         <div>
@@ -251,10 +274,9 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <ClaimCategoryIcon category={claim.category} className="text-primary" />
-                          <span>{categoryMeta[claim.category].label}</span>
-                        </div>
+                        {claim.chartOfAccount
+                          ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
+                          : "Not assigned"}
                       </TableCell>
                       <TableCell>{formatShortDate(claim.submittedAt)}</TableCell>
                       <TableCell>{formatCurrency(claim.amount)}</TableCell>
@@ -268,9 +290,31 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
                   ))}
                 </TableBody>
               </Table>
+
+              <PaginationControls
+                className="flex flex-col gap-3 px-5 pb-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-6"
+                currentPage={page}
+                pageSize={PAGE_SIZE}
+                totalItems={filteredClaims.length}
+                itemLabel="claims"
+                onPageChange={setPage}
+              />
             </CardContent>
           </Card>
         </>
+      ) : null}
+
+      {filteredClaims.length > 0 ? (
+        <div className="lg:hidden">
+          <PaginationControls
+            className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            currentPage={page}
+            pageSize={PAGE_SIZE}
+            totalItems={filteredClaims.length}
+            itemLabel="claims"
+            onPageChange={setPage}
+          />
+        </div>
       ) : null}
     </div>
   )

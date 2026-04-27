@@ -9,6 +9,9 @@ export type SessionUser = {
   role: AppRole
   initials: string
   subtitle: string
+  organizationId?: string
+  organizationName?: string
+  activeXeroConnectionId?: string
 }
 
 export type AuthenticatedSession = SessionUser & {

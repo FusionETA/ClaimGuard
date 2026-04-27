@@ -41,3 +41,12 @@ export const ClaimStatus = {
 } as const
 
 export type ClaimStatus = (typeof ClaimStatus)[keyof typeof ClaimStatus]
+
+
+export const XeroSyncStatus = {
+  NOT_SYNCED: 'NOT_SYNCED',
+  SYNCED: 'SYNCED',
+  ERROR: 'ERROR'
+} as const
+
+export type XeroSyncStatus = (typeof XeroSyncStatus)[keyof typeof XeroSyncStatus]

@@ -26,3 +26,10 @@ export function formatMonthLabel(value: string | Date) {
     month: "short",
   }).format(new Date(value))
 }
+
+export function formatMonthYear(value: string | Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(value))
+}

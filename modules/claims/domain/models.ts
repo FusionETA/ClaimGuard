@@ -1,13 +1,9 @@
-export const claimCategories = [
-  "TRAVEL",
-  "TRANSPORT",
-  "MEAL",
-  "MEDICAL",
-  "WELLNESS",
-  "HARDWARE",
-  "OFFICE",
-  "OTHER",
-] as const
+import type {
+  ChartOfAccountOption,
+  OrganizationProjectOption,
+  OrganizationSummary,
+  XeroConnectionSummary,
+} from "@/modules/organization/domain/models"
 
 export const claimStatuses = [
   "SUBMITTED",
@@ -17,14 +13,23 @@ export const claimStatuses = [
   "PAID",
 ] as const
 
-export type ClaimCategory = (typeof claimCategories)[number]
 export type ClaimStatus = (typeof claimStatuses)[number]
+
+export type ClaimRunPreview = {
+  claimCutoffDay: number
+  submittedOn: string
+  targetMonth: string
+  targetLabel: string
+  isCurrentMonth: boolean
+}
 
 export type PortalUser = {
   name: string
   email: string
   employeeId: string
   role: "EMPLOYEE" | "SUPERVISOR" | "ADMIN"
+  organizationId?: string
+  organizationName?: string
   project: string
   jobTitle: string
   initials: string
@@ -32,6 +37,8 @@ export type PortalUser = {
   supervisorName?: string
   payoutMethod?: string
   preferredCurrency?: string
+  xeroConnectionId?: string
+  xeroConnectionName?: string
 }
 
 export type AdminProfile = {
@@ -39,6 +46,8 @@ export type AdminProfile = {
   role: string
   email: string
   initials: string
+  organizationId?: string
+  organizationName?: string
 }
 
 export type ClaimRecord = {
@@ -46,11 +55,13 @@ export type ClaimRecord = {
   claimNumber: string
   title: string
   description: string
-  category: ClaimCategory
+  organizationName?: string
+  chartOfAccount?: ChartOfAccountOption
   amount: number
   currency: string
   spentAt: string
   submittedAt: string
+  claimRunMonth?: string
   status: ClaimStatus
   receiptUrl?: string
   reviewNotes?: string
@@ -61,7 +72,7 @@ export type ClaimRecord = {
 export type CreateClaimInput = {
   title: string
   description: string
-  category: ClaimCategory
+  chartOfAccountId: string
   amount: number
   spentAt: Date
   receiptUrl?: string
@@ -74,6 +85,7 @@ export type CreateClaimResult = {
 
 export type EmployeeDashboardData = {
   employee: PortalUser
+  organization?: OrganizationSummary
   totals: {
     reimbursed: number
     pending: number
@@ -85,11 +97,19 @@ export type EmployeeDashboardData = {
 
 export type EmployeeAccountData = {
   employee: PortalUser
+  organization?: OrganizationSummary
   preferences: {
     notifications: boolean
     weeklyDigest: boolean
     expensePolicyVersion: string
   }
+}
+
+export type EmployeeClaimSubmissionData = {
+  employee: PortalUser
+  organization?: OrganizationSummary
+  chartAccounts: ChartOfAccountOption[]
+  claimRunPreview?: ClaimRunPreview
 }
 
 export type AdminDashboardData = {
@@ -112,14 +132,10 @@ export type AdminDashboardData = {
   queue: ClaimRecord[]
 }
 
-export type OrganizationMember = {
-  id: string
-  name: string
-  email: string
-  role: "EMPLOYEE" | "SUPERVISOR"
-  employeeId: string
-  project: string
-  jobTitle: string
-  supervisorId?: string
-  supervisorName?: string
+export type AdminSettingsData = {
+  admin: AdminProfile
+  organization?: OrganizationSummary
+  xeroConnection: XeroConnectionSummary
+  chartAccounts: ChartOfAccountOption[]
+  projects: OrganizationProjectOption[]
 }

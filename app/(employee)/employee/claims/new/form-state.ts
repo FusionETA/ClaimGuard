@@ -1,8 +1,6 @@
-import type { ClaimCategory } from "@/modules/claims/domain/models"
-
 export type ClaimFormValues = {
   title: string
-  category: ClaimCategory
+  chartOfAccountId: string
   amount: string
   spentAt: string
   description: string
@@ -21,7 +19,7 @@ export const initialClaimFormState: ClaimFormState = {
   message: "",
   values: {
     title: "",
-    category: "TRAVEL",
+    chartOfAccountId: "",
     amount: "",
     spentAt: "",
     description: "",

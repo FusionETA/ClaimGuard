@@ -40,10 +40,13 @@ export type ClaimMinAggregateOutputType = {
   title: string | null
   description: string | null
   category: $Enums.ClaimCategory | null
+  organizationId: string | null
+  chartOfAccountId: string | null
   amount: runtime.Decimal | null
   currency: string | null
   spentAt: Date | null
   submittedAt: Date | null
+  claimRunMonth: Date | null
   reviewedAt: Date | null
   payoutAt: Date | null
   status: $Enums.ClaimStatus | null
@@ -51,6 +54,11 @@ export type ClaimMinAggregateOutputType = {
   reviewNotes: string | null
   employeeId: string | null
   reviewerId: string | null
+  xeroBillId: string | null
+  xeroBillRef: string | null
+  xeroSyncStatus: $Enums.XeroSyncStatus | null
+  xeroSyncError: string | null
+  xeroSyncedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -61,10 +69,13 @@ export type ClaimMaxAggregateOutputType = {
   title: string | null
   description: string | null
   category: $Enums.ClaimCategory | null
+  organizationId: string | null
+  chartOfAccountId: string | null
   amount: runtime.Decimal | null
   currency: string | null
   spentAt: Date | null
   submittedAt: Date | null
+  claimRunMonth: Date | null
   reviewedAt: Date | null
   payoutAt: Date | null
   status: $Enums.ClaimStatus | null
@@ -72,6 +83,11 @@ export type ClaimMaxAggregateOutputType = {
   reviewNotes: string | null
   employeeId: string | null
   reviewerId: string | null
+  xeroBillId: string | null
+  xeroBillRef: string | null
+  xeroSyncStatus: $Enums.XeroSyncStatus | null
+  xeroSyncError: string | null
+  xeroSyncedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -82,10 +98,13 @@ export type ClaimCountAggregateOutputType = {
   title: number
   description: number
   category: number
+  organizationId: number
+  chartOfAccountId: number
   amount: number
   currency: number
   spentAt: number
   submittedAt: number
+  claimRunMonth: number
   reviewedAt: number
   payoutAt: number
   status: number
@@ -93,6 +112,11 @@ export type ClaimCountAggregateOutputType = {
   reviewNotes: number
   employeeId: number
   reviewerId: number
+  xeroBillId: number
+  xeroBillRef: number
+  xeroSyncStatus: number
+  xeroSyncError: number
+  xeroSyncedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -113,10 +137,13 @@ export type ClaimMinAggregateInputType = {
   title?: true
   description?: true
   category?: true
+  organizationId?: true
+  chartOfAccountId?: true
   amount?: true
   currency?: true
   spentAt?: true
   submittedAt?: true
+  claimRunMonth?: true
   reviewedAt?: true
   payoutAt?: true
   status?: true
@@ -124,6 +151,11 @@ export type ClaimMinAggregateInputType = {
   reviewNotes?: true
   employeeId?: true
   reviewerId?: true
+  xeroBillId?: true
+  xeroBillRef?: true
+  xeroSyncStatus?: true
+  xeroSyncError?: true
+  xeroSyncedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -134,10 +166,13 @@ export type ClaimMaxAggregateInputType = {
   title?: true
   description?: true
   category?: true
+  organizationId?: true
+  chartOfAccountId?: true
   amount?: true
   currency?: true
   spentAt?: true
   submittedAt?: true
+  claimRunMonth?: true
   reviewedAt?: true
   payoutAt?: true
   status?: true
@@ -145,6 +180,11 @@ export type ClaimMaxAggregateInputType = {
   reviewNotes?: true
   employeeId?: true
   reviewerId?: true
+  xeroBillId?: true
+  xeroBillRef?: true
+  xeroSyncStatus?: true
+  xeroSyncError?: true
+  xeroSyncedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -155,10 +195,13 @@ export type ClaimCountAggregateInputType = {
   title?: true
   description?: true
   category?: true
+  organizationId?: true
+  chartOfAccountId?: true
   amount?: true
   currency?: true
   spentAt?: true
   submittedAt?: true
+  claimRunMonth?: true
   reviewedAt?: true
   payoutAt?: true
   status?: true
@@ -166,6 +209,11 @@ export type ClaimCountAggregateInputType = {
   reviewNotes?: true
   employeeId?: true
   reviewerId?: true
+  xeroBillId?: true
+  xeroBillRef?: true
+  xeroSyncStatus?: true
+  xeroSyncError?: true
+  xeroSyncedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -263,10 +311,13 @@ export type ClaimGroupByOutputType = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  organizationId: string | null
+  chartOfAccountId: string | null
   amount: runtime.Decimal
   currency: string
   spentAt: Date
   submittedAt: Date
+  claimRunMonth: Date | null
   reviewedAt: Date | null
   payoutAt: Date | null
   status: $Enums.ClaimStatus
@@ -274,6 +325,11 @@ export type ClaimGroupByOutputType = {
   reviewNotes: string | null
   employeeId: string
   reviewerId: string | null
+  xeroBillId: string | null
+  xeroBillRef: string | null
+  xeroSyncStatus: $Enums.XeroSyncStatus
+  xeroSyncError: string | null
+  xeroSyncedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: ClaimCountAggregateOutputType | null
@@ -307,10 +363,13 @@ export type ClaimWhereInput = {
   title?: Prisma.StringFilter<"Claim"> | string
   description?: Prisma.StringFilter<"Claim"> | string
   category?: Prisma.EnumClaimCategoryFilter<"Claim"> | $Enums.ClaimCategory
+  organizationId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  chartOfAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
   amount?: Prisma.DecimalFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"Claim"> | string
   spentAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
   submittedAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
+  claimRunMonth?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   payoutAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   status?: Prisma.EnumClaimStatusFilter<"Claim"> | $Enums.ClaimStatus
@@ -318,8 +377,15 @@ export type ClaimWhereInput = {
   reviewNotes?: Prisma.StringNullableFilter<"Claim"> | string | null
   employeeId?: Prisma.StringFilter<"Claim"> | string
   reviewerId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroBillId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroBillRef?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"Claim"> | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSyncedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
+  organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
+  chartOfAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -330,10 +396,13 @@ export type ClaimOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  chartOfAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   spentAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
+  claimRunMonth?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   payoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -341,8 +410,15 @@ export type ClaimOrderByWithRelationInput = {
   reviewNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroBillId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroBillRef?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSyncStatus?: Prisma.SortOrder
+  xeroSyncError?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  organization?: Prisma.OrganizationOrderByWithRelationInput
+  chartOfAccount?: Prisma.ChartOfAccountOrderByWithRelationInput
   employee?: Prisma.UserOrderByWithRelationInput
   reviewer?: Prisma.UserOrderByWithRelationInput
   _relevance?: Prisma.ClaimOrderByRelevanceInput
@@ -351,16 +427,20 @@ export type ClaimOrderByWithRelationInput = {
 export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   claimNumber?: string
+  xeroBillId?: string
   AND?: Prisma.ClaimWhereInput | Prisma.ClaimWhereInput[]
   OR?: Prisma.ClaimWhereInput[]
   NOT?: Prisma.ClaimWhereInput | Prisma.ClaimWhereInput[]
   title?: Prisma.StringFilter<"Claim"> | string
   description?: Prisma.StringFilter<"Claim"> | string
   category?: Prisma.EnumClaimCategoryFilter<"Claim"> | $Enums.ClaimCategory
+  organizationId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  chartOfAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
   amount?: Prisma.DecimalFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"Claim"> | string
   spentAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
   submittedAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
+  claimRunMonth?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   payoutAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   status?: Prisma.EnumClaimStatusFilter<"Claim"> | $Enums.ClaimStatus
@@ -368,11 +448,17 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   reviewNotes?: Prisma.StringNullableFilter<"Claim"> | string | null
   employeeId?: Prisma.StringFilter<"Claim"> | string
   reviewerId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroBillRef?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"Claim"> | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSyncedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
+  organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
+  chartOfAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-}, "id" | "claimNumber">
+}, "id" | "claimNumber" | "xeroBillId">
 
 export type ClaimOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -380,10 +466,13 @@ export type ClaimOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
+  chartOfAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   spentAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
+  claimRunMonth?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   payoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -391,6 +480,11 @@ export type ClaimOrderByWithAggregationInput = {
   reviewNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroBillId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroBillRef?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSyncStatus?: Prisma.SortOrder
+  xeroSyncError?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ClaimCountOrderByAggregateInput
@@ -409,10 +503,13 @@ export type ClaimScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Claim"> | string
   description?: Prisma.StringWithAggregatesFilter<"Claim"> | string
   category?: Prisma.EnumClaimCategoryWithAggregatesFilter<"Claim"> | $Enums.ClaimCategory
+  organizationId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  chartOfAccountId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   amount?: Prisma.DecimalWithAggregatesFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringWithAggregatesFilter<"Claim"> | string
   spentAt?: Prisma.DateTimeWithAggregatesFilter<"Claim"> | Date | string
   submittedAt?: Prisma.DateTimeWithAggregatesFilter<"Claim"> | Date | string
+  claimRunMonth?: Prisma.DateTimeNullableWithAggregatesFilter<"Claim"> | Date | string | null
   reviewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Claim"> | Date | string | null
   payoutAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Claim"> | Date | string | null
   status?: Prisma.EnumClaimStatusWithAggregatesFilter<"Claim"> | $Enums.ClaimStatus
@@ -420,6 +517,11 @@ export type ClaimScalarWhereWithAggregatesInput = {
   reviewNotes?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   employeeId?: Prisma.StringWithAggregatesFilter<"Claim"> | string
   reviewerId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  xeroBillId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  xeroBillRef?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusWithAggregatesFilter<"Claim"> | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  xeroSyncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Claim"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Claim"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Claim"> | Date | string
 }
@@ -434,13 +536,21 @@ export type ClaimCreateInput = {
   currency?: string
   spentAt: Date | string
   submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
+  chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
 }
@@ -451,10 +561,13 @@ export type ClaimUncheckedCreateInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  organizationId?: string | null
+  chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
   submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
   status?: $Enums.ClaimStatus
@@ -462,6 +575,11 @@ export type ClaimUncheckedCreateInput = {
   reviewNotes?: string | null
   employeeId: string
   reviewerId?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -476,13 +594,21 @@ export type ClaimUpdateInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
+  chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
 }
@@ -493,10 +619,13 @@ export type ClaimUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
@@ -504,6 +633,11 @@ export type ClaimUncheckedUpdateInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -514,10 +648,13 @@ export type ClaimCreateManyInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  organizationId?: string | null
+  chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
   submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
   status?: $Enums.ClaimStatus
@@ -525,6 +662,11 @@ export type ClaimCreateManyInput = {
   reviewNotes?: string | null
   employeeId: string
   reviewerId?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -539,11 +681,17 @@ export type ClaimUpdateManyMutationInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -554,10 +702,13 @@ export type ClaimUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
@@ -565,6 +716,11 @@ export type ClaimUncheckedUpdateManyInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -591,10 +747,13 @@ export type ClaimCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
+  chartOfAccountId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   spentAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
+  claimRunMonth?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
   payoutAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -602,6 +761,11 @@ export type ClaimCountOrderByAggregateInput = {
   reviewNotes?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
+  xeroBillId?: Prisma.SortOrder
+  xeroBillRef?: Prisma.SortOrder
+  xeroSyncStatus?: Prisma.SortOrder
+  xeroSyncError?: Prisma.SortOrder
+  xeroSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -616,10 +780,13 @@ export type ClaimMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
+  chartOfAccountId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   spentAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
+  claimRunMonth?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
   payoutAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -627,6 +794,11 @@ export type ClaimMaxOrderByAggregateInput = {
   reviewNotes?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
+  xeroBillId?: Prisma.SortOrder
+  xeroBillRef?: Prisma.SortOrder
+  xeroSyncStatus?: Prisma.SortOrder
+  xeroSyncError?: Prisma.SortOrder
+  xeroSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -637,10 +809,13 @@ export type ClaimMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  organizationId?: Prisma.SortOrder
+  chartOfAccountId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   spentAt?: Prisma.SortOrder
   submittedAt?: Prisma.SortOrder
+  claimRunMonth?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
   payoutAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -648,6 +823,11 @@ export type ClaimMinOrderByAggregateInput = {
   reviewNotes?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
+  xeroBillId?: Prisma.SortOrder
+  xeroBillRef?: Prisma.SortOrder
+  xeroSyncStatus?: Prisma.SortOrder
+  xeroSyncError?: Prisma.SortOrder
+  xeroSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -740,6 +920,48 @@ export type ClaimUncheckedUpdateManyWithoutReviewerNestedInput = {
   deleteMany?: Prisma.ClaimScalarWhereInput | Prisma.ClaimScalarWhereInput[]
 }
 
+export type ClaimCreateNestedManyWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.ClaimCreateWithoutOrganizationInput, Prisma.ClaimUncheckedCreateWithoutOrganizationInput> | Prisma.ClaimCreateWithoutOrganizationInput[] | Prisma.ClaimUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.ClaimCreateOrConnectWithoutOrganizationInput | Prisma.ClaimCreateOrConnectWithoutOrganizationInput[]
+  createMany?: Prisma.ClaimCreateManyOrganizationInputEnvelope
+  connect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+}
+
+export type ClaimUncheckedCreateNestedManyWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.ClaimCreateWithoutOrganizationInput, Prisma.ClaimUncheckedCreateWithoutOrganizationInput> | Prisma.ClaimCreateWithoutOrganizationInput[] | Prisma.ClaimUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.ClaimCreateOrConnectWithoutOrganizationInput | Prisma.ClaimCreateOrConnectWithoutOrganizationInput[]
+  createMany?: Prisma.ClaimCreateManyOrganizationInputEnvelope
+  connect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+}
+
+export type ClaimUpdateManyWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimCreateWithoutOrganizationInput, Prisma.ClaimUncheckedCreateWithoutOrganizationInput> | Prisma.ClaimCreateWithoutOrganizationInput[] | Prisma.ClaimUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.ClaimCreateOrConnectWithoutOrganizationInput | Prisma.ClaimCreateOrConnectWithoutOrganizationInput[]
+  upsert?: Prisma.ClaimUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.ClaimUpsertWithWhereUniqueWithoutOrganizationInput[]
+  createMany?: Prisma.ClaimCreateManyOrganizationInputEnvelope
+  set?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  disconnect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  delete?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  connect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  update?: Prisma.ClaimUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.ClaimUpdateWithWhereUniqueWithoutOrganizationInput[]
+  updateMany?: Prisma.ClaimUpdateManyWithWhereWithoutOrganizationInput | Prisma.ClaimUpdateManyWithWhereWithoutOrganizationInput[]
+  deleteMany?: Prisma.ClaimScalarWhereInput | Prisma.ClaimScalarWhereInput[]
+}
+
+export type ClaimUncheckedUpdateManyWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimCreateWithoutOrganizationInput, Prisma.ClaimUncheckedCreateWithoutOrganizationInput> | Prisma.ClaimCreateWithoutOrganizationInput[] | Prisma.ClaimUncheckedCreateWithoutOrganizationInput[]
+  connectOrCreate?: Prisma.ClaimCreateOrConnectWithoutOrganizationInput | Prisma.ClaimCreateOrConnectWithoutOrganizationInput[]
+  upsert?: Prisma.ClaimUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.ClaimUpsertWithWhereUniqueWithoutOrganizationInput[]
+  createMany?: Prisma.ClaimCreateManyOrganizationInputEnvelope
+  set?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  disconnect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  delete?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  connect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  update?: Prisma.ClaimUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.ClaimUpdateWithWhereUniqueWithoutOrganizationInput[]
+  updateMany?: Prisma.ClaimUpdateManyWithWhereWithoutOrganizationInput | Prisma.ClaimUpdateManyWithWhereWithoutOrganizationInput[]
+  deleteMany?: Prisma.ClaimScalarWhereInput | Prisma.ClaimScalarWhereInput[]
+}
+
 export type EnumClaimCategoryFieldUpdateOperationsInput = {
   set?: $Enums.ClaimCategory
 }
@@ -760,6 +982,52 @@ export type EnumClaimStatusFieldUpdateOperationsInput = {
   set?: $Enums.ClaimStatus
 }
 
+export type EnumXeroSyncStatusFieldUpdateOperationsInput = {
+  set?: $Enums.XeroSyncStatus
+}
+
+export type ClaimCreateNestedManyWithoutChartOfAccountInput = {
+  create?: Prisma.XOR<Prisma.ClaimCreateWithoutChartOfAccountInput, Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput> | Prisma.ClaimCreateWithoutChartOfAccountInput[] | Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput[]
+  connectOrCreate?: Prisma.ClaimCreateOrConnectWithoutChartOfAccountInput | Prisma.ClaimCreateOrConnectWithoutChartOfAccountInput[]
+  createMany?: Prisma.ClaimCreateManyChartOfAccountInputEnvelope
+  connect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+}
+
+export type ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput = {
+  create?: Prisma.XOR<Prisma.ClaimCreateWithoutChartOfAccountInput, Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput> | Prisma.ClaimCreateWithoutChartOfAccountInput[] | Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput[]
+  connectOrCreate?: Prisma.ClaimCreateOrConnectWithoutChartOfAccountInput | Prisma.ClaimCreateOrConnectWithoutChartOfAccountInput[]
+  createMany?: Prisma.ClaimCreateManyChartOfAccountInputEnvelope
+  connect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+}
+
+export type ClaimUpdateManyWithoutChartOfAccountNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimCreateWithoutChartOfAccountInput, Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput> | Prisma.ClaimCreateWithoutChartOfAccountInput[] | Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput[]
+  connectOrCreate?: Prisma.ClaimCreateOrConnectWithoutChartOfAccountInput | Prisma.ClaimCreateOrConnectWithoutChartOfAccountInput[]
+  upsert?: Prisma.ClaimUpsertWithWhereUniqueWithoutChartOfAccountInput | Prisma.ClaimUpsertWithWhereUniqueWithoutChartOfAccountInput[]
+  createMany?: Prisma.ClaimCreateManyChartOfAccountInputEnvelope
+  set?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  disconnect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  delete?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  connect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  update?: Prisma.ClaimUpdateWithWhereUniqueWithoutChartOfAccountInput | Prisma.ClaimUpdateWithWhereUniqueWithoutChartOfAccountInput[]
+  updateMany?: Prisma.ClaimUpdateManyWithWhereWithoutChartOfAccountInput | Prisma.ClaimUpdateManyWithWhereWithoutChartOfAccountInput[]
+  deleteMany?: Prisma.ClaimScalarWhereInput | Prisma.ClaimScalarWhereInput[]
+}
+
+export type ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput = {
+  create?: Prisma.XOR<Prisma.ClaimCreateWithoutChartOfAccountInput, Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput> | Prisma.ClaimCreateWithoutChartOfAccountInput[] | Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput[]
+  connectOrCreate?: Prisma.ClaimCreateOrConnectWithoutChartOfAccountInput | Prisma.ClaimCreateOrConnectWithoutChartOfAccountInput[]
+  upsert?: Prisma.ClaimUpsertWithWhereUniqueWithoutChartOfAccountInput | Prisma.ClaimUpsertWithWhereUniqueWithoutChartOfAccountInput[]
+  createMany?: Prisma.ClaimCreateManyChartOfAccountInputEnvelope
+  set?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  disconnect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  delete?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  connect?: Prisma.ClaimWhereUniqueInput | Prisma.ClaimWhereUniqueInput[]
+  update?: Prisma.ClaimUpdateWithWhereUniqueWithoutChartOfAccountInput | Prisma.ClaimUpdateWithWhereUniqueWithoutChartOfAccountInput[]
+  updateMany?: Prisma.ClaimUpdateManyWithWhereWithoutChartOfAccountInput | Prisma.ClaimUpdateManyWithWhereWithoutChartOfAccountInput[]
+  deleteMany?: Prisma.ClaimScalarWhereInput | Prisma.ClaimScalarWhereInput[]
+}
+
 export type ClaimCreateWithoutEmployeeInput = {
   id?: string
   claimNumber: string
@@ -770,13 +1038,21 @@ export type ClaimCreateWithoutEmployeeInput = {
   currency?: string
   spentAt: Date | string
   submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
+  chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
 }
 
@@ -786,16 +1062,24 @@ export type ClaimUncheckedCreateWithoutEmployeeInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  organizationId?: string | null
+  chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
   submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerId?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -820,13 +1104,21 @@ export type ClaimCreateWithoutReviewerInput = {
   currency?: string
   spentAt: Date | string
   submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
+  chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
 }
 
@@ -836,16 +1128,24 @@ export type ClaimUncheckedCreateWithoutReviewerInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  organizationId?: string | null
+  chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
   submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
   employeeId: string
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -885,10 +1185,13 @@ export type ClaimScalarWhereInput = {
   title?: Prisma.StringFilter<"Claim"> | string
   description?: Prisma.StringFilter<"Claim"> | string
   category?: Prisma.EnumClaimCategoryFilter<"Claim"> | $Enums.ClaimCategory
+  organizationId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  chartOfAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
   amount?: Prisma.DecimalFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFilter<"Claim"> | string
   spentAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
   submittedAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
+  claimRunMonth?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   payoutAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   status?: Prisma.EnumClaimStatusFilter<"Claim"> | $Enums.ClaimStatus
@@ -896,6 +1199,11 @@ export type ClaimScalarWhereInput = {
   reviewNotes?: Prisma.StringNullableFilter<"Claim"> | string | null
   employeeId?: Prisma.StringFilter<"Claim"> | string
   reviewerId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroBillId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroBillRef?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"Claim"> | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSyncedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
 }
@@ -916,7 +1224,7 @@ export type ClaimUpdateManyWithWhereWithoutReviewerInput = {
   data: Prisma.XOR<Prisma.ClaimUpdateManyMutationInput, Prisma.ClaimUncheckedUpdateManyWithoutReviewerInput>
 }
 
-export type ClaimCreateManyEmployeeInput = {
+export type ClaimCreateWithoutOrganizationInput = {
   id?: string
   claimNumber: string
   title: string
@@ -926,12 +1234,184 @@ export type ClaimCreateManyEmployeeInput = {
   currency?: string
   spentAt: Date | string
   submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
+  reviewedAt?: Date | string | null
+  payoutAt?: Date | string | null
+  status?: $Enums.ClaimStatus
+  receiptUrl?: string | null
+  reviewNotes?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
+  employee: Prisma.UserCreateNestedOneWithoutClaimsInput
+  reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
+}
+
+export type ClaimUncheckedCreateWithoutOrganizationInput = {
+  id?: string
+  claimNumber: string
+  title: string
+  description: string
+  category: $Enums.ClaimCategory
+  chartOfAccountId?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  spentAt: Date | string
+  submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
+  reviewedAt?: Date | string | null
+  payoutAt?: Date | string | null
+  status?: $Enums.ClaimStatus
+  receiptUrl?: string | null
+  reviewNotes?: string | null
+  employeeId: string
+  reviewerId?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClaimCreateOrConnectWithoutOrganizationInput = {
+  where: Prisma.ClaimWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClaimCreateWithoutOrganizationInput, Prisma.ClaimUncheckedCreateWithoutOrganizationInput>
+}
+
+export type ClaimCreateManyOrganizationInputEnvelope = {
+  data: Prisma.ClaimCreateManyOrganizationInput | Prisma.ClaimCreateManyOrganizationInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClaimUpsertWithWhereUniqueWithoutOrganizationInput = {
+  where: Prisma.ClaimWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClaimUpdateWithoutOrganizationInput, Prisma.ClaimUncheckedUpdateWithoutOrganizationInput>
+  create: Prisma.XOR<Prisma.ClaimCreateWithoutOrganizationInput, Prisma.ClaimUncheckedCreateWithoutOrganizationInput>
+}
+
+export type ClaimUpdateWithWhereUniqueWithoutOrganizationInput = {
+  where: Prisma.ClaimWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClaimUpdateWithoutOrganizationInput, Prisma.ClaimUncheckedUpdateWithoutOrganizationInput>
+}
+
+export type ClaimUpdateManyWithWhereWithoutOrganizationInput = {
+  where: Prisma.ClaimScalarWhereInput
+  data: Prisma.XOR<Prisma.ClaimUpdateManyMutationInput, Prisma.ClaimUncheckedUpdateManyWithoutOrganizationInput>
+}
+
+export type ClaimCreateWithoutChartOfAccountInput = {
+  id?: string
+  claimNumber: string
+  title: string
+  description: string
+  category: $Enums.ClaimCategory
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  spentAt: Date | string
+  submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
+  reviewedAt?: Date | string | null
+  payoutAt?: Date | string | null
+  status?: $Enums.ClaimStatus
+  receiptUrl?: string | null
+  reviewNotes?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
+  employee: Prisma.UserCreateNestedOneWithoutClaimsInput
+  reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
+}
+
+export type ClaimUncheckedCreateWithoutChartOfAccountInput = {
+  id?: string
+  claimNumber: string
+  title: string
+  description: string
+  category: $Enums.ClaimCategory
+  organizationId?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  spentAt: Date | string
+  submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
+  reviewedAt?: Date | string | null
+  payoutAt?: Date | string | null
+  status?: $Enums.ClaimStatus
+  receiptUrl?: string | null
+  reviewNotes?: string | null
+  employeeId: string
+  reviewerId?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClaimCreateOrConnectWithoutChartOfAccountInput = {
+  where: Prisma.ClaimWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClaimCreateWithoutChartOfAccountInput, Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput>
+}
+
+export type ClaimCreateManyChartOfAccountInputEnvelope = {
+  data: Prisma.ClaimCreateManyChartOfAccountInput | Prisma.ClaimCreateManyChartOfAccountInput[]
+  skipDuplicates?: boolean
+}
+
+export type ClaimUpsertWithWhereUniqueWithoutChartOfAccountInput = {
+  where: Prisma.ClaimWhereUniqueInput
+  update: Prisma.XOR<Prisma.ClaimUpdateWithoutChartOfAccountInput, Prisma.ClaimUncheckedUpdateWithoutChartOfAccountInput>
+  create: Prisma.XOR<Prisma.ClaimCreateWithoutChartOfAccountInput, Prisma.ClaimUncheckedCreateWithoutChartOfAccountInput>
+}
+
+export type ClaimUpdateWithWhereUniqueWithoutChartOfAccountInput = {
+  where: Prisma.ClaimWhereUniqueInput
+  data: Prisma.XOR<Prisma.ClaimUpdateWithoutChartOfAccountInput, Prisma.ClaimUncheckedUpdateWithoutChartOfAccountInput>
+}
+
+export type ClaimUpdateManyWithWhereWithoutChartOfAccountInput = {
+  where: Prisma.ClaimScalarWhereInput
+  data: Prisma.XOR<Prisma.ClaimUpdateManyMutationInput, Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountInput>
+}
+
+export type ClaimCreateManyEmployeeInput = {
+  id?: string
+  claimNumber: string
+  title: string
+  description: string
+  category: $Enums.ClaimCategory
+  organizationId?: string | null
+  chartOfAccountId?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  spentAt: Date | string
+  submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerId?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -942,16 +1422,24 @@ export type ClaimCreateManyReviewerInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  organizationId?: string | null
+  chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
   submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
   employeeId: string
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -966,13 +1454,21 @@ export type ClaimUpdateWithoutEmployeeInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
+  chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
 }
 
@@ -982,16 +1478,24 @@ export type ClaimUncheckedUpdateWithoutEmployeeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1002,16 +1506,24 @@ export type ClaimUncheckedUpdateManyWithoutEmployeeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1026,13 +1538,21 @@ export type ClaimUpdateWithoutReviewerInput = {
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
+  chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
 }
 
@@ -1042,16 +1562,24 @@ export type ClaimUncheckedUpdateWithoutReviewerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1062,16 +1590,248 @@ export type ClaimUncheckedUpdateManyWithoutReviewerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClaimCreateManyOrganizationInput = {
+  id?: string
+  claimNumber: string
+  title: string
+  description: string
+  category: $Enums.ClaimCategory
+  chartOfAccountId?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  spentAt: Date | string
+  submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
+  reviewedAt?: Date | string | null
+  payoutAt?: Date | string | null
+  status?: $Enums.ClaimStatus
+  receiptUrl?: string | null
+  reviewNotes?: string | null
+  employeeId: string
+  reviewerId?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClaimUpdateWithoutOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  claimNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
+  employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
+  reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
+}
+
+export type ClaimUncheckedUpdateWithoutOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  claimNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClaimUncheckedUpdateManyWithoutOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  claimNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClaimCreateManyChartOfAccountInput = {
+  id?: string
+  claimNumber: string
+  title: string
+  description: string
+  category: $Enums.ClaimCategory
+  organizationId?: string | null
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: string
+  spentAt: Date | string
+  submittedAt?: Date | string
+  claimRunMonth?: Date | string | null
+  reviewedAt?: Date | string | null
+  payoutAt?: Date | string | null
+  status?: $Enums.ClaimStatus
+  receiptUrl?: string | null
+  reviewNotes?: string | null
+  employeeId: string
+  reviewerId?: string | null
+  xeroBillId?: string | null
+  xeroBillRef?: string | null
+  xeroSyncStatus?: $Enums.XeroSyncStatus
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ClaimUpdateWithoutChartOfAccountInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  claimNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
+  employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
+  reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
+}
+
+export type ClaimUncheckedUpdateWithoutChartOfAccountInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  claimNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type ClaimUncheckedUpdateManyWithoutChartOfAccountInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  claimNumber?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
+  xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1084,10 +1844,13 @@ export type ClaimSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   title?: boolean
   description?: boolean
   category?: boolean
+  organizationId?: boolean
+  chartOfAccountId?: boolean
   amount?: boolean
   currency?: boolean
   spentAt?: boolean
   submittedAt?: boolean
+  claimRunMonth?: boolean
   reviewedAt?: boolean
   payoutAt?: boolean
   status?: boolean
@@ -1095,8 +1858,15 @@ export type ClaimSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   reviewNotes?: boolean
   employeeId?: boolean
   reviewerId?: boolean
+  xeroBillId?: boolean
+  xeroBillRef?: boolean
+  xeroSyncStatus?: boolean
+  xeroSyncError?: boolean
+  xeroSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  organization?: boolean | Prisma.Claim$organizationArgs<ExtArgs>
+  chartOfAccount?: boolean | Prisma.Claim$chartOfAccountArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.Claim$reviewerArgs<ExtArgs>
 }, ExtArgs["result"]["claim"]>
@@ -1109,10 +1879,13 @@ export type ClaimSelectScalar = {
   title?: boolean
   description?: boolean
   category?: boolean
+  organizationId?: boolean
+  chartOfAccountId?: boolean
   amount?: boolean
   currency?: boolean
   spentAt?: boolean
   submittedAt?: boolean
+  claimRunMonth?: boolean
   reviewedAt?: boolean
   payoutAt?: boolean
   status?: boolean
@@ -1120,12 +1893,19 @@ export type ClaimSelectScalar = {
   reviewNotes?: boolean
   employeeId?: boolean
   reviewerId?: boolean
+  xeroBillId?: boolean
+  xeroBillRef?: boolean
+  xeroSyncStatus?: boolean
+  xeroSyncError?: boolean
+  xeroSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "amount" | "currency" | "spentAt" | "submittedAt" | "reviewedAt" | "payoutAt" | "status" | "receiptUrl" | "reviewNotes" | "employeeId" | "reviewerId" | "createdAt" | "updatedAt", ExtArgs["result"]["claim"]>
+export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "organizationId" | "chartOfAccountId" | "amount" | "currency" | "spentAt" | "submittedAt" | "claimRunMonth" | "reviewedAt" | "payoutAt" | "status" | "receiptUrl" | "reviewNotes" | "employeeId" | "reviewerId" | "xeroBillId" | "xeroBillRef" | "xeroSyncStatus" | "xeroSyncError" | "xeroSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["claim"]>
 export type ClaimInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  organization?: boolean | Prisma.Claim$organizationArgs<ExtArgs>
+  chartOfAccount?: boolean | Prisma.Claim$chartOfAccountArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.Claim$reviewerArgs<ExtArgs>
 }
@@ -1133,6 +1913,8 @@ export type ClaimInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Claim"
   objects: {
+    organization: Prisma.$OrganizationPayload<ExtArgs> | null
+    chartOfAccount: Prisma.$ChartOfAccountPayload<ExtArgs> | null
     employee: Prisma.$UserPayload<ExtArgs>
     reviewer: Prisma.$UserPayload<ExtArgs> | null
   }
@@ -1142,10 +1924,13 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     title: string
     description: string
     category: $Enums.ClaimCategory
+    organizationId: string | null
+    chartOfAccountId: string | null
     amount: runtime.Decimal
     currency: string
     spentAt: Date
     submittedAt: Date
+    claimRunMonth: Date | null
     reviewedAt: Date | null
     payoutAt: Date | null
     status: $Enums.ClaimStatus
@@ -1153,6 +1938,11 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     reviewNotes: string | null
     employeeId: string
     reviewerId: string | null
+    xeroBillId: string | null
+    xeroBillRef: string | null
+    xeroSyncStatus: $Enums.XeroSyncStatus
+    xeroSyncError: string | null
+    xeroSyncedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["claim"]>
@@ -1495,6 +2285,8 @@ readonly fields: ClaimFieldRefs;
  */
 export interface Prisma__ClaimClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  organization<T extends Prisma.Claim$organizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$organizationArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  chartOfAccount<T extends Prisma.Claim$chartOfAccountArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$chartOfAccountArgs<ExtArgs>>): Prisma.Prisma__ChartOfAccountClient<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   employee<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   reviewer<T extends Prisma.Claim$reviewerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$reviewerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
@@ -1531,10 +2323,13 @@ export interface ClaimFieldRefs {
   readonly title: Prisma.FieldRef<"Claim", 'String'>
   readonly description: Prisma.FieldRef<"Claim", 'String'>
   readonly category: Prisma.FieldRef<"Claim", 'ClaimCategory'>
+  readonly organizationId: Prisma.FieldRef<"Claim", 'String'>
+  readonly chartOfAccountId: Prisma.FieldRef<"Claim", 'String'>
   readonly amount: Prisma.FieldRef<"Claim", 'Decimal'>
   readonly currency: Prisma.FieldRef<"Claim", 'String'>
   readonly spentAt: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly submittedAt: Prisma.FieldRef<"Claim", 'DateTime'>
+  readonly claimRunMonth: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly reviewedAt: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly payoutAt: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly status: Prisma.FieldRef<"Claim", 'ClaimStatus'>
@@ -1542,6 +2337,11 @@ export interface ClaimFieldRefs {
   readonly reviewNotes: Prisma.FieldRef<"Claim", 'String'>
   readonly employeeId: Prisma.FieldRef<"Claim", 'String'>
   readonly reviewerId: Prisma.FieldRef<"Claim", 'String'>
+  readonly xeroBillId: Prisma.FieldRef<"Claim", 'String'>
+  readonly xeroBillRef: Prisma.FieldRef<"Claim", 'String'>
+  readonly xeroSyncStatus: Prisma.FieldRef<"Claim", 'XeroSyncStatus'>
+  readonly xeroSyncError: Prisma.FieldRef<"Claim", 'String'>
+  readonly xeroSyncedAt: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Claim", 'DateTime'>
 }
@@ -1889,6 +2689,44 @@ export type ClaimDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * Limit how many Claims to delete.
    */
   limit?: number
+}
+
+/**
+ * Claim.organization
+ */
+export type Claim$organizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Organization
+   */
+  select?: Prisma.OrganizationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Organization
+   */
+  omit?: Prisma.OrganizationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganizationInclude<ExtArgs> | null
+  where?: Prisma.OrganizationWhereInput
+}
+
+/**
+ * Claim.chartOfAccount
+ */
+export type Claim$chartOfAccountArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ChartOfAccount
+   */
+  select?: Prisma.ChartOfAccountSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ChartOfAccount
+   */
+  omit?: Prisma.ChartOfAccountOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ChartOfAccountInclude<ExtArgs> | null
+  where?: Prisma.ChartOfAccountWhereInput
 }
 
 /**

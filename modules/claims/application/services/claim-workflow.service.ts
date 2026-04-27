@@ -10,13 +10,14 @@ import { invalidateAdminStore } from "@/modules/claims/application/services/admi
 import type {
   ClaimRecord,
   ClaimStatus,
+  ClaimRunPreview,
 } from "@/modules/claims/domain/models"
-import { claimCategories } from "@/modules/claims/domain/models"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 export const createClaimSchema = z.object({
   title: z.string().min(3, "Give the claim a short title."),
-  category: z.enum(claimCategories),
+  chartOfAccountId: z.string().min(1, "Select the chart of account for this claim."),
   amount: z.coerce.number().positive("Amount must be greater than zero."),
   spentAt: z.string().min(1, "Select the expense date."),
   description: z.string().min(12, "Add enough detail for the reviewer."),
@@ -50,7 +51,7 @@ export type ReviewClaimInput = {
 
 export type CreateClaimInput = {
   title: string
-  category: string
+  chartOfAccountId: string
   amount: string | number
   spentAt: string
   description: string
@@ -68,7 +69,7 @@ export type CreateClaimServiceResult =
       values: CreateClaimInput
       fieldErrors?: {
         title?: string
-        category?: string
+        chartOfAccountId?: string
         amount?: string
         spentAt?: string
         description?: string
@@ -102,7 +103,9 @@ export async function listClaimsForSession({
 }): Promise<ClaimRecord[]> {
   const claims =
     session.role === "ADMIN"
-      ? await claimRepository.getAllClaims()
+      ? session.organizationId
+        ? await claimRepository.getClaimsForOrganization(session.organizationId)
+        : []
       : await claimRepository.getClaimsByEmployee(session.email)
 
   if (!status || status === "ALL") {
@@ -168,7 +171,7 @@ export async function createClaimForEmployee({
       values: input,
       fieldErrors: {
         title: fieldErrors.title?.[0],
-        category: fieldErrors.category?.[0],
+        chartOfAccountId: fieldErrors.chartOfAccountId?.[0],
         amount: fieldErrors.amount?.[0],
         spentAt: fieldErrors.spentAt?.[0],
         description: fieldErrors.description?.[0],
@@ -179,7 +182,7 @@ export async function createClaimForEmployee({
 
   const [employeeId, reviewerId] = await Promise.all([
     claimRepository.getUserId(session.email, "EMPLOYEE"),
-    claimRepository.getFirstAdminId(),
+    claimRepository.getFirstAdminId(session.organizationId),
   ])
 
   if (!employeeId) {
@@ -191,14 +194,59 @@ export async function createClaimForEmployee({
     }
   }
 
+  if (!session.organizationId) {
+    return {
+      ok: false,
+      status: 409,
+      message: "Your account is not assigned to an organization yet.",
+      values: input,
+    }
+  }
+
+  const [organization, chartOfAccount] = await Promise.all([
+    organizationRepository.getOrganizationById(session.organizationId),
+    organizationRepository.getChartAccountByIdForOrganization({
+      organizationId: session.organizationId,
+      chartOfAccountId: parsed.data.chartOfAccountId,
+    }),
+  ])
+
+  if (!organization) {
+    return {
+      ok: false,
+      status: 404,
+      message: "Your organization settings could not be found.",
+      values: input,
+    }
+  }
+
+  if (!chartOfAccount) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Please choose one of the enabled chart of account options.",
+      values: input,
+      fieldErrors: {
+        chartOfAccountId: "Select an enabled chart of account option.",
+      },
+    }
+  }
+
+  const claimRunMonth = calculateClaimRunMonth({
+    submittedAt: new Date(),
+    claimCutoffDay: organization.claimCutoffDay,
+  })
+
   const ok = await claimRepository.createClaim({
     claimNumber: `CLM-${Date.now().toString().slice(-5)}`,
     title: parsed.data.title,
     description: parsed.data.description,
-    category: parsed.data.category,
+    organizationId: session.organizationId,
+    chartOfAccountId: parsed.data.chartOfAccountId,
     amount: parsed.data.amount.toFixed(2),
     currency: "USD",
     spentAt: new Date(parsed.data.spentAt),
+    claimRunMonth: claimRunMonth.targetMonth,
     receiptUrl: parsed.data.receiptUrl || undefined,
     employeeId,
     reviewerId,
@@ -231,6 +279,54 @@ export async function createClaimForEmployee({
   }
 
   return { ok: true }
+}
+
+export function calculateClaimRunMonth({
+  submittedAt,
+  claimCutoffDay,
+}: {
+  submittedAt: Date
+  claimCutoffDay: number
+}): { targetMonth: Date } {
+  const effectiveCutoff = Math.min(Math.max(claimCutoffDay, 1), 28)
+  const target = new Date(submittedAt)
+
+  if (submittedAt.getDate() > effectiveCutoff) {
+    target.setMonth(target.getMonth() + 1)
+  }
+
+  target.setDate(1)
+  target.setHours(0, 0, 0, 0)
+
+  return { targetMonth: target }
+}
+
+export function buildClaimRunPreview({
+  submittedAt,
+  claimCutoffDay,
+}: {
+  submittedAt: Date
+  claimCutoffDay: number
+}): ClaimRunPreview {
+  const { targetMonth } = calculateClaimRunMonth({
+    submittedAt,
+    claimCutoffDay,
+  })
+
+  const targetLabel = new Intl.DateTimeFormat("en-MY", {
+    month: "long",
+    year: "numeric",
+  }).format(targetMonth)
+
+  return {
+    claimCutoffDay,
+    submittedOn: submittedAt.toISOString(),
+    targetMonth: targetMonth.toISOString(),
+    targetLabel,
+    isCurrentMonth:
+      targetMonth.getMonth() === submittedAt.getMonth() &&
+      targetMonth.getFullYear() === submittedAt.getFullYear(),
+  }
 }
 
 export async function reviewClaimForSupervisor({

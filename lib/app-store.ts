@@ -28,20 +28,21 @@ export type EmployeeStore = {
 }
 
 // ---------------------------------------------------------------------------
-// Admin store — single global (all admins see the same full claim list)
+// Admin store — one entry per logged-in admin, keyed by email
 // ---------------------------------------------------------------------------
 
 export type AdminStore = {
   admin: AdminProfile
   allClaims: ClaimRecord[]
   cachedAt: number
+  activeXeroConnectionId?: string
 }
 
 declare global {
   // eslint-disable-next-line no-var
   var __employeeStore: Map<string, EmployeeStore> | undefined
   // eslint-disable-next-line no-var
-  var __adminStore: AdminStore | undefined
+  var __adminStore: Map<string, AdminStore> | undefined
 }
 
 function employeeMap(): Map<string, EmployeeStore> {
@@ -67,14 +68,26 @@ export function clearEmployeeStore(email: string): void {
 
 // --- Admin ---
 
-export function getAdminStore(): AdminStore | null {
-  return globalThis.__adminStore ?? null
+function adminMap(): Map<string, AdminStore> {
+  if (!globalThis.__adminStore) {
+    globalThis.__adminStore = new Map()
+  }
+  return globalThis.__adminStore
 }
 
-export function setAdminStore(data: AdminStore): void {
-  globalThis.__adminStore = data
+export function getAdminStore(email: string): AdminStore | null {
+  return adminMap().get(email) ?? null
 }
 
-export function clearAdminStore(): void {
-  globalThis.__adminStore = undefined
+export function setAdminStore(email: string, data: AdminStore): void {
+  adminMap().set(email, data)
+}
+
+export function clearAdminStore(email?: string): void {
+  if (!email) {
+    adminMap().clear()
+    return
+  }
+
+  adminMap().delete(email)
 }

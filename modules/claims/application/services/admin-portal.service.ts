@@ -10,7 +10,6 @@ import {
 import type {
   AdminDashboardData,
   ClaimRecord,
-  OrganizationMember,
 } from "@/modules/claims/domain/models"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 
@@ -26,22 +25,26 @@ async function getStore() {
     return null
   }
 
-  let store = getAdminStore()
+  let store = getAdminStore(session.email)
 
-  // Evict if the cached entry has passed its TTL.
-  if (store && isStoreExpired(store.cachedAt)) {
-    clearAdminStore()
+  // Evict if the cached entry has passed its TTL or the active connection changed.
+  if (
+    store &&
+    (isStoreExpired(store.cachedAt) ||
+      store.activeXeroConnectionId !== session.activeXeroConnectionId)
+  ) {
+    clearAdminStore(session.email)
     store = null
   }
 
   if (!store) {
-    // Server restart cleared memory — reload from DB transparently.
+    // Server restart cleared memory or connection switched — reload from DB transparently.
     try {
-      await loadAdminData(session.email)
+      await loadAdminData(session.email, session.activeXeroConnectionId)
     } catch {
       return null
     }
-    store = getAdminStore()
+    store = getAdminStore(session.email)
   }
 
   return store ?? null
@@ -63,13 +66,7 @@ export async function getAdminClaimsQueue(): Promise<ClaimRecord[] | null> {
   return store.allClaims
 }
 
-export async function getOrganizationHierarchy(): Promise<OrganizationMember[] | null> {
-  const store = await getStore()
-  if (!store) return null
-  return claimRepository.getOrganizationMembers()
-}
-
 /** Called after a claim is submitted so the admin queue stays fresh. */
-export function invalidateAdminStore(): void {
-  clearAdminStore()
+export function invalidateAdminStore(email?: string): void {
+  clearAdminStore(email)
 }

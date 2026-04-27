@@ -7,8 +7,7 @@ import { getAdminClaimsQueue, getAdminDashboard } from "@/modules/claims/applica
 import { formatCurrency } from "@/lib/utils"
 
 export default async function AdminOverviewPage() {
-  const data = await getAdminDashboard()
-  const claims = await getAdminClaimsQueue()
+  const [data, claims] = await Promise.all([getAdminDashboard(), getAdminClaimsQueue()])
   if (!data) redirect("/login")
   if (!claims) redirect("/login")
 

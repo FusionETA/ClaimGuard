@@ -1,13 +1,13 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Search } from "lucide-react"
 
-import { ClaimCategoryIcon } from "@/components/claims/claim-category-icon"
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { PaginationControls } from "@/components/ui/pagination-controls"
 import {
   Table,
   TableBody,
@@ -16,14 +16,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { categoryMeta } from "@/modules/claims/domain/metadata"
 import {
   claimStatuses,
   type ClaimRecord,
   type ClaimStatus,
 } from "@/modules/claims/domain/models"
 import { cn } from "@/lib/utils"
-import { formatCurrency, formatShortDate } from "@/lib/utils"
+import { formatCurrency, formatMonthYear, formatShortDate } from "@/lib/utils"
 
 type EmployeeClaimsHistoryProps = {
   claims: ClaimRecord[]
@@ -40,10 +39,12 @@ const statusLabels: Record<ClaimStatus, string> = {
 const visibleStatusOptions = claimStatuses.filter(
   (status) => status !== "SUBMITTED"
 ) as Exclude<ClaimStatus, "SUBMITTED">[]
+const PAGE_SIZE = 10
 
 export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
   const [status, setStatus] = useState<ClaimStatus | "ALL">("ALL")
   const [searchTerm, setSearchTerm] = useState("")
+  const [page, setPage] = useState(1)
 
   const filteredClaims = useMemo(() => {
     const normalizedQuery = searchTerm.trim().toLowerCase()
@@ -59,7 +60,7 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
       const matchesQuery =
         normalizedQuery.length === 0
           ? true
-          : [claim.claimNumber, claim.title, categoryMeta[claim.category].label]
+          : [claim.claimNumber, claim.title, claim.chartOfAccount?.code, claim.chartOfAccount?.name]
               .join(" ")
               .toLowerCase()
               .includes(normalizedQuery)
@@ -67,6 +68,23 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
       return matchesStatus && matchesQuery
     })
   }, [claims, searchTerm, status])
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchTerm, status])
+
+  const totalPages = Math.max(1, Math.ceil(filteredClaims.length / PAGE_SIZE))
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages)
+    }
+  }, [page, totalPages])
+
+  const paginatedClaims = useMemo(() => {
+    const startIndex = (page - 1) * PAGE_SIZE
+    return filteredClaims.slice(startIndex, startIndex + PAGE_SIZE)
+  }, [filteredClaims, page])
 
   const hasActiveFilters = status !== "ALL" || searchTerm.trim().length > 0
 
@@ -80,7 +98,7 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
               <Input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search by claim, title, or category"
+                placeholder="Search by claim, title, or account"
                 className="pl-10"
               />
             </div>
@@ -188,23 +206,20 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
 
       {filteredClaims.length > 0 ? (
         <div className="grid gap-3 sm:gap-4 md:hidden">
-          {filteredClaims.map((claim) => (
+          {paginatedClaims.map((claim) => (
             <Card key={claim.id}>
               <CardContent className="space-y-3 p-4 sm:space-y-4 sm:p-5">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="rounded-xl bg-surface-low p-2.5 text-primary sm:rounded-2xl sm:p-3">
-                      <ClaimCategoryIcon category={claim.category} className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </div>
-                    <div>
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
-                        {claim.claimNumber}
-                      </p>
-                      <p className="mt-1 text-base font-black sm:text-lg">{claim.title}</p>
-                      <p className="text-xs text-muted-foreground sm:text-sm">
-                        {categoryMeta[claim.category].label}
-                      </p>
-                    </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
+                      {claim.claimNumber}
+                    </p>
+                    <p className="mt-1 text-base font-black sm:text-lg">{claim.title}</p>
+                    <p className="text-xs text-muted-foreground sm:text-sm">
+                      {claim.chartOfAccount
+                        ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
+                        : "Account not assigned"}
+                    </p>
                   </div>
                   <ClaimStatusBadge status={claim.status} />
                 </div>
@@ -226,6 +241,16 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
                     </p>
                   </div>
                 </div>
+                {claim.claimRunMonth ? (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
+                      Claims run
+                    </p>
+                    <p className="mt-1 text-sm font-semibold sm:text-base">
+                      {formatMonthYear(claim.claimRunMonth)}
+                    </p>
+                  </div>
+                ) : null}
                 {claim.reviewNotes ? (
                   <div className="rounded-[20px] bg-surface-low p-3.5 sm:rounded-2xl sm:p-4">
                     <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
@@ -244,19 +269,20 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
 
       {filteredClaims.length > 0 ? (
         <Card className="hidden md:block">
-          <CardContent className="p-0">
+          <CardContent className="space-y-4 p-0">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Claim</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Chart of account</TableHead>
                   <TableHead>Submitted</TableHead>
+                  <TableHead>Claims run</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredClaims.map((claim) => (
+                {paginatedClaims.map((claim) => (
                   <TableRow key={claim.id}>
                     <TableCell>
                       <div>
@@ -272,12 +298,14 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <ClaimCategoryIcon category={claim.category} className="text-primary" />
-                        <span>{categoryMeta[claim.category].label}</span>
-                      </div>
+                      {claim.chartOfAccount
+                        ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
+                        : "Not assigned"}
                     </TableCell>
                     <TableCell>{formatShortDate(claim.submittedAt)}</TableCell>
+                    <TableCell>
+                      {claim.claimRunMonth ? formatMonthYear(claim.claimRunMonth) : "Not set"}
+                    </TableCell>
                     <TableCell>{formatCurrency(claim.amount)}</TableCell>
                     <TableCell>
                       <ClaimStatusBadge status={claim.status} />
@@ -286,8 +314,30 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
                 ))}
               </TableBody>
             </Table>
+
+            <PaginationControls
+              className="flex flex-col gap-3 px-5 pb-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:pb-6"
+              currentPage={page}
+              pageSize={PAGE_SIZE}
+              totalItems={filteredClaims.length}
+              itemLabel="claims"
+              onPageChange={setPage}
+            />
           </CardContent>
         </Card>
+      ) : null}
+
+      {filteredClaims.length > 0 ? (
+        <div className="md:hidden">
+          <PaginationControls
+            className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            currentPage={page}
+            pageSize={PAGE_SIZE}
+            totalItems={filteredClaims.length}
+            itemLabel="claims"
+            onPageChange={setPage}
+          />
+        </div>
       ) : null}
     </div>
   )

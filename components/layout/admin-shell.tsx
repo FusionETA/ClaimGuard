@@ -3,16 +3,20 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTransition } from "react"
 import {
   Network,
   LayoutDashboard,
   LogOut,
+  Settings2,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
+import { switchActiveXeroConnectionAction } from "@/app/(admin)/admin/settings/actions"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import type { AuthenticatedSession } from "@/lib/auth/types"
+import type { XeroConnectionInfo } from "@/modules/organization/domain/models"
 import { cn } from "@/lib/utils"
 
 const adminNav = [
@@ -26,19 +30,44 @@ const adminNav = [
     label: "Hierarchy",
     icon: Network,
   },
+  {
+    href: "/admin/settings",
+    label: "Settings",
+    icon: Settings2,
+  },
 ] as const
 
 function getTitle(pathname: string) {
-  return pathname.startsWith("/admin/hierarchy") ? "Organization Hierarchy" : "Executive Overview"
+  if (pathname.startsWith("/admin/hierarchy")) {
+    return "Organization Hierarchy"
+  }
+
+  if (pathname.startsWith("/admin/settings")) {
+    return "Organization Settings"
+  }
+
+  return "Executive Overview"
 }
 
 type AdminShellProps = {
   children: React.ReactNode
   user: AuthenticatedSession
+  organizationName?: string
+  xeroConnections?: XeroConnectionInfo[]
+  activeXeroConnectionId?: string
 }
 
-export function AdminShell({ children, user }: AdminShellProps) {
+export function AdminShell({ children, user, organizationName, xeroConnections = [], activeXeroConnectionId }: AdminShellProps) {
   const pathname = usePathname()
+  const [switchPending, startSwitch] = useTransition()
+
+  const hasMultipleConnections = xeroConnections.length > 1
+  const activeConnection = xeroConnections.find((c) => c.id === activeXeroConnectionId) ?? xeroConnections[0]
+  const displayName = activeConnection?.tenantName ?? organizationName
+
+  function handleSwitch(connectionId: string) {
+    startSwitch(() => switchActiveXeroConnectionAction(connectionId))
+  }
 
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[300px_1fr]">
@@ -91,6 +120,22 @@ export function AdminShell({ children, user }: AdminShellProps) {
               <h1 className="font-headline text-2xl font-black tracking-tight">
                 {getTitle(pathname)}
               </h1>
+              {hasMultipleConnections ? (
+                <select
+                  value={activeXeroConnectionId ?? ""}
+                  disabled={switchPending}
+                  onChange={(e) => handleSwitch(e.target.value)}
+                  className="mt-1 h-8 rounded-lg border border-transparent bg-transparent px-0 text-sm text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 cursor-pointer"
+                >
+                  {xeroConnections.map((conn) => (
+                    <option key={conn.id} value={conn.id}>
+                      {conn.tenantName}
+                    </option>
+                  ))}
+                </select>
+              ) : displayName ? (
+                <p className="mt-1 text-sm text-muted-foreground">{displayName}</p>
+              ) : null}
             </div>
             <div className="flex items-center">
               <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
@@ -116,8 +161,8 @@ export function AdminShell({ children, user }: AdminShellProps) {
           <div className="container py-6 lg:py-8">{children}</div>
         </main>
 
-        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[28px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
-          <div className="grid grid-cols-2 gap-1">
+        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
+          <div className="grid grid-cols-3 gap-1">
             {adminNav.map((item) => {
               const active = pathname === item.href
               const Icon = item.icon
@@ -127,7 +172,7 @@ export function AdminShell({ children, user }: AdminShellProps) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-[11px] font-semibold",
+                    "flex flex-col items-center gap-1 rounded-[28px] px-2 py-3 text-[11px] font-semibold",
                     active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                   )}
                 >

@@ -1,35 +1,47 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
+import { useActionState, useEffect, useMemo, useState } from "react"
 import { Camera, LoaderCircle, Upload } from "lucide-react"
 
 import { submitClaimAction } from "@/app/(employee)/employee/claims/new/actions"
 import { initialClaimFormState } from "@/app/(employee)/employee/claims/new/form-state"
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { categoryMeta } from "@/modules/claims/domain/metadata"
-import {
-  claimCategories,
-  type ClaimCategory,
-} from "@/modules/claims/domain/models"
+import type { ClaimRunPreview } from "@/modules/claims/domain/models"
+import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 
-export function ClaimForm() {
+export function ClaimForm({
+  chartAccounts,
+  claimRunPreview,
+  organizationName,
+}: {
+  chartAccounts: ChartOfAccountOption[]
+  claimRunPreview?: ClaimRunPreview
+  organizationName?: string
+}) {
   const [state, formAction, pending] = useActionState(
     submitClaimAction,
     initialClaimFormState
   )
-  const [selectedCategory, setSelectedCategory] = useState<ClaimCategory>("TRAVEL")
   const [selectedReceiptName, setSelectedReceiptName] = useState("")
+  const [selectedChartAccountId, setSelectedChartAccountId] = useState(
+    chartAccounts[0]?.id ?? ""
+  )
 
   useEffect(() => {
-    if (state?.values?.category) {
-      setSelectedCategory(state.values.category)
+    if (state?.values?.chartOfAccountId) {
+      setSelectedChartAccountId(state.values.chartOfAccountId)
     }
-  }, [state?.values?.category])
+  }, [state?.values?.chartOfAccountId])
+
+  useEffect(() => {
+    if (!state?.values?.chartOfAccountId && chartAccounts[0]?.id) {
+      setSelectedChartAccountId(chartAccounts[0].id)
+    }
+  }, [chartAccounts, state?.values?.chartOfAccountId])
 
   useEffect(() => {
     if (state.status === "success") {
@@ -37,10 +49,15 @@ export function ClaimForm() {
     }
   }, [state.status])
 
+  const selectedChartAccount = useMemo(
+    () => chartAccounts.find((account) => account.id === selectedChartAccountId),
+    [chartAccounts, selectedChartAccountId]
+  )
+
+  const canSubmit = chartAccounts.length > 0
+
   return (
     <form action={formAction} className="space-y-4 sm:space-y-6" suppressHydrationWarning>
-      <input type="hidden" name="category" value={selectedCategory} suppressHydrationWarning />
-
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <Card>
           <CardContent className="space-y-5 p-4 sm:space-y-6 sm:p-6">
@@ -59,46 +76,48 @@ export function ClaimForm() {
             </div>
 
             <div className="space-y-3">
-              <Label>Category</Label>
-              <div className="sm:hidden">
+              <Label htmlFor="chartOfAccountId">Chart of account</Label>
+              <div className="space-y-3">
                 <select
+                  id="chartOfAccountId"
+                  name="chartOfAccountId"
                   suppressHydrationWarning
-                  value={selectedCategory}
-                  onChange={(event) =>
-                    setSelectedCategory(event.target.value as ClaimCategory)
-                  }
-                  aria-label="Select claim category"
+                  value={selectedChartAccountId}
+                  onChange={(event) => setSelectedChartAccountId(event.target.value)}
+                  aria-label="Select chart of account"
                   className="h-11 w-full rounded-xl border border-transparent bg-surface-low px-4 text-base text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background sm:text-sm"
                 >
-                  {claimCategories.map((category) => (
-                    <option key={category} value={category}>
-                      {categoryMeta[category].label}
+                  {chartAccounts.length === 0 ? (
+                    <option value="">No enabled chart of account options yet</option>
+                  ) : null}
+                  {chartAccounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.code} · {account.name}
                     </option>
                   ))}
                 </select>
-              </div>
-              <div className="hidden gap-2.5 sm:grid sm:grid-cols-2 sm:gap-3">
-                {claimCategories.map((category) => (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => setSelectedCategory(category)}
-                    className={cn(
-                      "rounded-[20px] border p-3 text-left transition-all sm:rounded-[24px] sm:p-4",
-                      selectedCategory === category
-                        ? "border-primary bg-primary/5 shadow-ambient"
-                        : "border-transparent bg-surface-low hover:border-border"
-                    )}
-                  >
-                    <p className="text-sm font-bold sm:text-base">{categoryMeta[category].label}</p>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm sm:leading-6">
-                      {categoryMeta[category].description}
+
+                {selectedChartAccount ? (
+                  <div className="rounded-[20px] bg-surface-low p-4 text-sm text-muted-foreground sm:rounded-[24px]">
+                    <p className="font-bold text-foreground">
+                      {selectedChartAccount.code} · {selectedChartAccount.name}
                     </p>
-                  </button>
-                ))}
+                    <p className="mt-1 leading-6">
+                      {selectedChartAccount.type
+                        ? `${selectedChartAccount.type}${selectedChartAccount.status ? ` · ${selectedChartAccount.status}` : ""}`
+                        : selectedChartAccount.status ?? "Enabled for claim submission"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-[20px] border border-amber-300/50 bg-amber-50/70 p-4 text-sm leading-6 text-amber-900 sm:rounded-[24px]">
+                    {organizationName
+                      ? `No selectable chart of account has been enabled for ${organizationName} yet. Ask your admin to connect Xero and enable claim accounts in Settings.`
+                      : "No selectable chart of account has been enabled yet. Ask your admin to connect Xero and enable claim accounts in Settings."}
+                  </div>
+                )}
               </div>
-              {state.errors?.category ? (
-                <p className="text-sm text-destructive">{state.errors.category}</p>
+              {state.errors?.chartOfAccountId ? (
+                <p className="text-sm text-destructive">{state.errors.chartOfAccountId}</p>
               ) : null}
             </div>
 
@@ -149,6 +168,19 @@ export function ClaimForm() {
                 <p className="text-sm text-destructive">{state.errors.description}</p>
               ) : null}
             </div>
+
+            {claimRunPreview ? (
+              <div className="rounded-[20px] bg-surface-low p-4 text-sm leading-6 text-muted-foreground sm:rounded-[24px] sm:p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
+                  Claim run
+                </p>
+                <p className="mt-2 font-semibold text-foreground">
+                  {claimRunPreview.isCurrentMonth
+                    ? `Submit before day ${claimRunPreview.claimCutoffDay} to be included in the ${claimRunPreview.targetLabel} claims run.`
+                    : `This submission will be scheduled for the ${claimRunPreview.targetLabel} claims run because the cutoff is day ${claimRunPreview.claimCutoffDay}.`}
+                </p>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -207,7 +239,7 @@ export function ClaimForm() {
           <Button
             type="submit"
             className="h-11 w-full rounded-2xl text-sm sm:h-12 sm:rounded-xl sm:text-base"
-            disabled={pending}
+            disabled={pending || !canSubmit}
           >
             {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
             Submit claim

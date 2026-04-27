@@ -46,7 +46,7 @@ export async function submitClaimAction(
 
   const values: ClaimFormValues = {
     title: String(formData.get("title") ?? ""),
-    category: String(formData.get("category") ?? "TRAVEL") as ClaimFormValues["category"],
+    chartOfAccountId: String(formData.get("chartOfAccountId") ?? ""),
     amount: String(formData.get("amount") ?? ""),
     spentAt: String(formData.get("spentAt") ?? ""),
     description: String(formData.get("description") ?? ""),
@@ -72,7 +72,7 @@ export async function submitClaimAction(
       values,
       errors: {
         title: fieldErrors.title?.[0],
-        category: fieldErrors.category?.[0],
+        chartOfAccountId: fieldErrors.chartOfAccountId?.[0],
         amount: fieldErrors.amount?.[0],
         spentAt: fieldErrors.spentAt?.[0],
         description: fieldErrors.description?.[0],
@@ -120,7 +120,7 @@ export async function submitClaimAction(
     session,
     input: {
       title: parsed.data.title,
-      category: parsed.data.category,
+      chartOfAccountId: parsed.data.chartOfAccountId,
       amount: parsed.data.amount,
       spentAt: parsed.data.spentAt,
       description: parsed.data.description,

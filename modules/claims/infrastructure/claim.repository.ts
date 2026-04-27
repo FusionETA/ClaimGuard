@@ -1,23 +1,18 @@
 import "server-only"
 
 import { getPrismaClient } from "@/lib/prisma"
+import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 import type {
   AdminProfile,
-  ClaimCategory,
   ClaimRecord,
   ClaimStatus,
-  OrganizationMember,
   PortalUser,
 } from "@/modules/claims/domain/models"
-
-// ---------------------------------------------------------------------------
-// Internal Prisma shape helpers
-// ---------------------------------------------------------------------------
 
 function buildInitials(name: string) {
   return name
     .split(" ")
-    .map((p) => p[0])
+    .map((part) => part[0])
     .join("")
     .slice(0, 2)
     .toUpperCase()
@@ -28,6 +23,12 @@ type PrismaUser = {
   name: string
   email: string
   role: string
+  organizationId?: string | null
+  organization?: {
+    id: string
+    name: string
+    claimCutoffDay: number
+  } | null
   employeeProfile: {
     employeeId: string
     project: string
@@ -39,23 +40,9 @@ type PrismaUser = {
     } | null
     payoutMethod: string | null
     preferredCurrency: string
+    xeroConnectionId?: string | null
+    xeroConnection?: { tenantName: string } | null
   } | null
-}
-
-function mapUser(user: PrismaUser): PortalUser {
-  return {
-    name: user.name,
-    email: user.email,
-    employeeId: user.employeeProfile?.employeeId ?? "N/A",
-    role: user.role as PortalUser["role"],
-    project: user.employeeProfile?.project ?? "Unknown",
-    jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
-    initials: buildInitials(user.name),
-    supervisorEmail: user.employeeProfile?.supervisor?.email ?? undefined,
-    supervisorName: user.employeeProfile?.supervisor?.name ?? undefined,
-    payoutMethod: user.employeeProfile?.payoutMethod ?? undefined,
-    preferredCurrency: user.employeeProfile?.preferredCurrency ?? "USD",
-  }
 }
 
 type PrismaClaim = {
@@ -63,63 +50,38 @@ type PrismaClaim = {
   claimNumber: string
   title: string
   description: string
-  category: string
   amount: { toString(): string } | number | string
   currency: string
   spentAt: Date
   submittedAt: Date
+  claimRunMonth: Date | null
   status: string
   receiptUrl: string | null
   reviewNotes: string | null
   reviewer: { name: string } | null
+  organization: { name: string } | null
+  chartOfAccount: {
+    id: string
+    code: string
+    name: string
+    type: string | null
+    status: string | null
+    isSelectable: boolean
+  } | null
   employee: PrismaUser
 }
-
-function mapClaim(claim: PrismaClaim): ClaimRecord {
-  return {
-    id: claim.id,
-    claimNumber: claim.claimNumber,
-    title: claim.title,
-    description: claim.description,
-    category: claim.category as ClaimCategory,
-    amount: Number(claim.amount),
-    currency: claim.currency,
-    spentAt: claim.spentAt.toISOString(),
-    submittedAt: claim.submittedAt.toISOString(),
-    status: claim.status as ClaimStatus,
-    receiptUrl: claim.receiptUrl ?? undefined,
-    reviewNotes: claim.reviewNotes ?? undefined,
-    reviewerName: claim.reviewer?.name ?? undefined,
-    employee: mapUser(claim.employee),
-  }
-}
-
-const claimInclude = {
-  employee: {
-    include: {
-      employeeProfile: {
-        include: {
-          supervisor: true,
-        },
-      },
-    },
-  },
-  reviewer: true,
-} as const
-
-// ---------------------------------------------------------------------------
-// Repository — all Prisma queries live here
-// ---------------------------------------------------------------------------
 
 export type CreateClaimData = {
   claimNumber: string
   title: string
   description: string
-  category: ClaimCategory
   amount: string
   currency: string
   spentAt: Date
   receiptUrl?: string
+  organizationId: string
+  chartOfAccountId: string
+  claimRunMonth: Date
   employeeId: string
   reviewerId: string | null
 }
@@ -135,6 +97,7 @@ export type ReviewClaimData = {
 export type ReviewClaimResult =
   | {
       ok: true
+      claimId: string
       employeeEmail: string
       employeeUserId: string
       claimTitle: string
@@ -144,8 +107,104 @@ export type ReviewClaimResult =
       error: "DB_UNAVAILABLE" | "NOT_FOUND" | "NOT_ACTIONABLE"
     }
 
+export type ClaimForXeroSync = {
+  id: string
+  claimNumber: string
+  title: string
+  description: string
+  amount: number
+  currency: string
+  spentAt: Date
+  xeroBillId: string | null
+  chartOfAccount?: {
+    code: string
+    name: string
+  } | null
+  employee: {
+    name: string
+    email: string
+  }
+}
+
+function mapChartAccount(account?: {
+  id: string
+  code: string
+  name: string
+  type: string | null
+  status: string | null
+  isSelectable: boolean
+} | null): ChartOfAccountOption | undefined {
+  if (!account) return undefined
+
+  return {
+    id: account.id,
+    code: account.code,
+    name: account.name,
+    type: account.type ?? undefined,
+    status: account.status ?? undefined,
+    isSelectable: account.isSelectable,
+  }
+}
+
+function mapUser(user: PrismaUser): PortalUser {
+  return {
+    name: user.name,
+    email: user.email,
+    employeeId: user.employeeProfile?.employeeId ?? "N/A",
+    role: user.role as PortalUser["role"],
+    organizationId: user.organizationId ?? undefined,
+    organizationName: user.organization?.name ?? undefined,
+    project: user.employeeProfile?.project ?? "Unknown",
+    jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
+    initials: buildInitials(user.name),
+    supervisorEmail: user.employeeProfile?.supervisor?.email ?? undefined,
+    supervisorName: user.employeeProfile?.supervisor?.name ?? undefined,
+    payoutMethod: user.employeeProfile?.payoutMethod ?? undefined,
+    preferredCurrency: user.employeeProfile?.preferredCurrency ?? "USD",
+    xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
+    xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
+  }
+}
+
+function mapClaim(claim: PrismaClaim): ClaimRecord {
+  return {
+    id: claim.id,
+    claimNumber: claim.claimNumber,
+    title: claim.title,
+    description: claim.description,
+    organizationName: claim.organization?.name ?? undefined,
+    chartOfAccount: mapChartAccount(claim.chartOfAccount),
+    amount: Number(claim.amount),
+    currency: claim.currency,
+    spentAt: claim.spentAt.toISOString(),
+    submittedAt: claim.submittedAt.toISOString(),
+    claimRunMonth: claim.claimRunMonth?.toISOString(),
+    status: claim.status as ClaimStatus,
+    receiptUrl: claim.receiptUrl ?? undefined,
+    reviewNotes: claim.reviewNotes ?? undefined,
+    reviewerName: claim.reviewer?.name ?? undefined,
+    employee: mapUser(claim.employee),
+  }
+}
+
+const claimInclude = {
+  organization: true,
+  chartOfAccount: true,
+  employee: {
+    include: {
+      organization: true,
+      employeeProfile: {
+        include: {
+          supervisor: true,
+          xeroConnection: { select: { tenantName: true } },
+        },
+      },
+    },
+  },
+  reviewer: true,
+} as const
+
 export const claimRepository = {
-  /** Returns the employee's profile row, or null if not found. */
   async getEmployeeWithProfile(email: string): Promise<PortalUser | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
@@ -153,9 +212,11 @@ export const claimRepository = {
     const row = await prisma.user.findFirst({
       where: { email, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
       include: {
+        organization: true,
         employeeProfile: {
           include: {
             supervisor: true,
+            xeroConnection: { select: { tenantName: true } },
           },
         },
       },
@@ -164,13 +225,15 @@ export const claimRepository = {
     return row ? mapUser(row) : null
   },
 
-  /** Returns the admin's profile row, or null if not found. */
   async getAdminProfile(email: string): Promise<AdminProfile | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
 
     const row = await prisma.user.findFirst({
       where: { email, role: "ADMIN" },
+      include: {
+        organization: true,
+      },
     })
 
     if (!row) return null
@@ -180,10 +243,11 @@ export const claimRepository = {
       email: row.email,
       role: "Administrator",
       initials: buildInitials(row.name),
+      organizationId: row.organizationId ?? undefined,
+      organizationName: row.organization?.name ?? undefined,
     }
   },
 
-  /** Returns all claims belonging to the given employee email, newest first. */
   async getClaimsByEmployee(email: string): Promise<ClaimRecord[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
@@ -197,20 +261,20 @@ export const claimRepository = {
     return rows.map(mapClaim)
   },
 
-  /** Returns claims submitted by employees who report to the supervisor. */
   async getClaimsForSupervisor(email: string): Promise<ClaimRecord[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
     const supervisor = await prisma.user.findFirst({
       where: { email, role: "SUPERVISOR" },
-      select: { id: true },
+      select: { id: true, organizationId: true },
     })
 
     if (!supervisor) return []
 
     const rows = await prisma.claim.findMany({
       where: {
+        organizationId: supervisor.organizationId ?? undefined,
         employee: {
           employeeProfile: {
             supervisorId: supervisor.id,
@@ -224,12 +288,20 @@ export const claimRepository = {
     return rows.map(mapClaim)
   },
 
-  /** Returns every claim in the system, newest first. */
-  async getAllClaims(): Promise<ClaimRecord[]> {
+  async getClaimsForOrganization(
+    organizationId: string,
+    xeroConnectionId?: string
+  ): Promise<ClaimRecord[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
     const rows = await prisma.claim.findMany({
+      where: {
+        organizationId,
+        ...(xeroConnectionId
+          ? { employee: { employeeProfile: { xeroConnectionId } } }
+          : {}),
+      },
       include: claimInclude,
       orderBy: { submittedAt: "desc" },
     })
@@ -237,17 +309,24 @@ export const claimRepository = {
     return rows.map(mapClaim)
   },
 
-  /** Finds the first admin user id (used as default reviewer). */
-  async getFirstAdminId(): Promise<string | null> {
+  async getFirstAdminId(organizationId?: string): Promise<string | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
 
-    const row = await prisma.user.findFirst({ where: { role: "ADMIN" } })
+    const row = await prisma.user.findFirst({
+      where: {
+        role: "ADMIN",
+        ...(organizationId ? { organizationId } : {}),
+      },
+      orderBy: { createdAt: "asc" },
+    })
     return row?.id ?? null
   },
 
-  /** Finds a user's database id by email + role. */
-  async getUserId(email: string, role: "EMPLOYEE" | "SUPERVISOR" | "ADMIN"): Promise<string | null> {
+  async getUserId(
+    email: string,
+    role: "EMPLOYEE" | "SUPERVISOR" | "ADMIN"
+  ): Promise<string | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
 
@@ -260,7 +339,6 @@ export const claimRepository = {
     return row?.id ?? null
   },
 
-  /** Finds the supervisor user id for a given employee/supervisor user id. */
   async getSupervisorIdForUser(userId: string): Promise<string | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
@@ -273,75 +351,30 @@ export const claimRepository = {
     return row?.supervisorId ?? null
   },
 
-  /** Returns employees and supervisors for hierarchy management. */
-  async getOrganizationMembers(): Promise<OrganizationMember[]> {
-    const prisma = getPrismaClient()
-    if (!prisma) return []
-
-    const rows = await prisma.user.findMany({
-      where: { role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
-      include: {
-        employeeProfile: {
-          include: {
-            supervisor: true,
-          },
-        },
-      },
-      orderBy: { name: "asc" },
-    })
-
-    return rows.map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role as OrganizationMember["role"],
-      employeeId: user.employeeProfile?.employeeId ?? "N/A",
-      project: user.employeeProfile?.project ?? "Unknown",
-      jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
-      supervisorId: user.employeeProfile?.supervisorId ?? undefined,
-      supervisorName: user.employeeProfile?.supervisor?.name ?? undefined,
-    }))
-  },
-
-  /** Updates a user's employee role and profile hierarchy fields. */
-  async updateOrganizationMember(data: {
-    userId: string
-    role: "EMPLOYEE" | "SUPERVISOR"
-    project: string
-    jobTitle: string
-    supervisorId?: string
-  }): Promise<boolean> {
-    const prisma = getPrismaClient()
-    if (!prisma) return false
-
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: data.userId },
-        data: { role: data.role },
-      }),
-      prisma.employeeProfile.update({
-        where: { userId: data.userId },
-        data: {
-          project: data.project,
-          jobTitle: data.jobTitle,
-          supervisorId: data.supervisorId || null,
-        },
-      }),
-    ])
-
-    return true
-  },
-
-  /** Inserts a new claim row. Returns true on success. */
   async createClaim(data: CreateClaimData): Promise<boolean> {
     const prisma = getPrismaClient()
     if (!prisma) return false
 
-    await prisma.claim.create({ data })
+    await prisma.claim.create({
+      data: {
+        claimNumber: data.claimNumber,
+        title: data.title,
+        description: data.description,
+        category: "OTHER",
+        organizationId: data.organizationId,
+        chartOfAccountId: data.chartOfAccountId,
+        amount: data.amount,
+        currency: data.currency,
+        spentAt: data.spentAt,
+        claimRunMonth: data.claimRunMonth,
+        receiptUrl: data.receiptUrl,
+        employeeId: data.employeeId,
+        reviewerId: data.reviewerId,
+      },
+    })
     return true
   },
 
-  /** Updates a pending/submitted claim with an admin review decision. */
   async reviewClaim(data: ReviewClaimData): Promise<ReviewClaimResult> {
     const prisma = getPrismaClient()
     if (!prisma) {
@@ -376,7 +409,10 @@ export const claimRepository = {
       return { ok: false, error: "NOT_ACTIONABLE" }
     }
 
-    if (data.supervisorOnly && existingClaim.employee.employeeProfile?.supervisorId !== data.reviewerId) {
+    if (
+      data.supervisorOnly &&
+      existingClaim.employee.employeeProfile?.supervisorId !== data.reviewerId
+    ) {
       return { ok: false, error: "NOT_FOUND" }
     }
 
@@ -392,9 +428,96 @@ export const claimRepository = {
 
     return {
       ok: true,
+      claimId: existingClaim.id,
       employeeEmail: existingClaim.employee.email,
       employeeUserId: existingClaim.employeeId,
       claimTitle: existingClaim.title,
     }
+  },
+
+  async getClaimForXeroSync(claimId: string): Promise<ClaimForXeroSync | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const claim = await prisma.claim.findUnique({
+      where: { id: claimId },
+      select: {
+        id: true,
+        claimNumber: true,
+        title: true,
+        description: true,
+        amount: true,
+        currency: true,
+        spentAt: true,
+        xeroBillId: true,
+        chartOfAccount: {
+          select: {
+            code: true,
+            name: true,
+          },
+        },
+        employee: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    })
+
+    if (!claim) return null
+
+    return {
+      id: claim.id,
+      claimNumber: claim.claimNumber,
+      title: claim.title,
+      description: claim.description,
+      amount: Number(claim.amount),
+      currency: claim.currency,
+      spentAt: claim.spentAt,
+      xeroBillId: claim.xeroBillId,
+      chartOfAccount: claim.chartOfAccount,
+      employee: claim.employee,
+    }
+  },
+
+  async markClaimXeroSynced(data: {
+    claimId: string
+    xeroBillId: string
+    xeroBillRef?: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await prisma.claim.update({
+      where: { id: data.claimId },
+      data: {
+        xeroBillId: data.xeroBillId,
+        xeroBillRef: data.xeroBillRef ?? null,
+        xeroSyncStatus: "SYNCED",
+        xeroSyncError: null,
+        xeroSyncedAt: new Date(),
+      },
+    })
+  },
+
+  async markClaimXeroError(data: {
+    claimId: string
+    message: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await prisma.claim.update({
+      where: { id: data.claimId },
+      data: {
+        xeroSyncStatus: "ERROR",
+        xeroSyncError: data.message.slice(0, 5000),
+      },
+    })
   },
 }

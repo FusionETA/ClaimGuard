@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     session,
     input: {
       title: String(body?.title ?? ""),
-      category: String(body?.category ?? "TRAVEL"),
+      chartOfAccountId: String(body?.chartOfAccountId ?? ""),
       amount: body?.amount ?? "",
       spentAt: String(body?.spentAt ?? ""),
       description: String(body?.description ?? ""),

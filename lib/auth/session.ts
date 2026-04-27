@@ -23,6 +23,9 @@ const sessionSchema = z.object({
   role: z.enum(["EMPLOYEE", "SUPERVISOR", "ADMIN"]),
   initials: z.string().min(1),
   subtitle: z.string().min(1),
+  organizationId: z.string().min(1).optional(),
+  organizationName: z.string().min(1).optional(),
+  activeXeroConnectionId: z.string().min(1).optional(),
   expiresAt: z.number().int().positive(),
 })
 
@@ -114,6 +117,31 @@ export async function createUserSession(user: SessionUser) {
   return session
 }
 
+export async function updateCurrentSession(
+  patch: Partial<Omit<AuthenticatedSession, "expiresAt">>
+) {
+  const currentSession = await getCurrentSession()
+
+  if (!currentSession) {
+    return null
+  }
+
+  const nextSession = {
+    ...currentSession,
+    ...patch,
+    expiresAt: currentSession.expiresAt,
+  }
+  const cookieStore = await cookies()
+
+  cookieStore.set(
+    SESSION_COOKIE_NAME,
+    encodeSession(nextSession),
+    getCookieOptions(currentSession.expiresAt)
+  )
+
+  return nextSession
+}
+
 export async function clearUserSession() {
   const cookieStore = await cookies()
 
@@ -144,6 +172,16 @@ export async function requirePortalSession(role: AppRole) {
 
   if (!matchesEmployeePortal && !matchesExactRole) {
     redirect(getHomePath(session.role))
+  }
+
+  // Rolling session — extend expiry by the full duration on every authenticated visit
+  // so active users are never logged out unexpectedly.
+  const renewThreshold = SESSION_DURATION_MS / 2
+  if (session.expiresAt - Date.now() < renewThreshold) {
+    const cookieStore = await cookies()
+    const newExpiresAt = Date.now() + SESSION_DURATION_MS
+    const renewed = { ...session, expiresAt: newExpiresAt }
+    cookieStore.set(SESSION_COOKIE_NAME, encodeSession(renewed), getCookieOptions(newExpiresAt))
   }
 
   return session

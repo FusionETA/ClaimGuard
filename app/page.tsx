@@ -1,11 +1,19 @@
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
+import { redirect } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { getCurrentSession, getHomePathForRole } from "@/lib/auth/session"
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getCurrentSession()
+
+  if (session) {
+    redirect(getHomePathForRole(session.role))
+  }
+
   return (
     <main className="container flex h-[100svh] flex-col items-center justify-center overflow-hidden py-4 sm:min-h-screen sm:py-10">
       <div className="max-w-md space-y-4">

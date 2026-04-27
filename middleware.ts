@@ -35,9 +35,10 @@ export function middleware(request: NextRequest) {
   }
 
   try {
-    // Edge-runtime-safe base64url decode
+    // Edge-runtime-safe base64url decode — atob() requires standard base64 with padding
     const base64 = payload.replace(/-/g, "+").replace(/_/g, "/")
-    const session = JSON.parse(atob(base64))
+    const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, "=")
+    const session = JSON.parse(atob(padded))
 
     // Check expiry
     if (!session.expiresAt || session.expiresAt <= Date.now()) {

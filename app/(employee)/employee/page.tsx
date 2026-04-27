@@ -2,13 +2,11 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { ArrowRight, CircleDollarSign, Clock3, FileCheck2, Plus } from "lucide-react"
 
-import { ClaimCategoryIcon } from "@/components/claims/claim-category-icon"
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { MetricCard } from "@/components/claims/metric-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getEmployeeDashboard } from "@/modules/claims/application/services/employee-portal.service"
-import { categoryMeta } from "@/modules/claims/domain/metadata"
 import { formatCurrency, formatShortDate } from "@/lib/utils"
 
 export default async function EmployeeDashboardPage() {
@@ -104,16 +102,16 @@ export default async function EmployeeDashboardPage() {
                 className="flex flex-col gap-3 rounded-[20px] bg-surface-low p-3.5 sm:gap-4 sm:rounded-[24px] sm:p-4 md:flex-row md:items-center md:justify-between"
               >
                 <div className="flex items-start gap-3 sm:gap-4">
-                  <div className="rounded-xl bg-white p-2.5 text-primary shadow-sm sm:rounded-2xl sm:p-3">
-                    <ClaimCategoryIcon category={claim.category} className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
                       {claim.claimNumber}
                     </p>
                     <p className="mt-1 text-base font-black sm:text-lg">{claim.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                      {formatShortDate(claim.submittedAt)} · {categoryMeta[claim.category].label}
+                      {formatShortDate(claim.submittedAt)} ·{" "}
+                      {claim.chartOfAccount
+                        ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
+                        : "Account not assigned"}
                     </p>
                   </div>
                 </div>

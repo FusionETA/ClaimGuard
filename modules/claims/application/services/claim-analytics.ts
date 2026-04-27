@@ -2,14 +2,20 @@ import type {
   ClaimRecord,
   PortalUser,
 } from "@/modules/claims/domain/models"
+import type { OrganizationSummary } from "@/modules/organization/domain/models"
 
-export function buildEmployeeDashboard(employee: PortalUser, claims: ClaimRecord[]) {
+export function buildEmployeeDashboard(
+  employee: PortalUser,
+  claims: ClaimRecord[],
+  organization?: OrganizationSummary
+) {
   const paidTotal = claims
     .filter((claim) => claim.status === "PAID" || claim.status === "APPROVED")
     .reduce((sum, claim) => sum + claim.amount, 0)
 
   return {
     employee,
+    organization,
     totals: {
       reimbursed: paidTotal,
       pending: claims.filter((claim) => claim.status === "PENDING" || claim.status === "SUBMITTED")
@@ -64,5 +70,3 @@ export function buildAdminOverview(claims: ClaimRecord[]) {
     }),
   }
 }
-
-

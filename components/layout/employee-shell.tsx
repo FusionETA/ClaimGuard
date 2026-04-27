@@ -65,9 +65,10 @@ function getSectionTitle(pathname: string) {
 type EmployeeShellProps = {
   children: React.ReactNode
   user: AuthenticatedSession
+  organizationName?: string
 }
 
-export function EmployeeShell({ children, user }: EmployeeShellProps) {
+export function EmployeeShell({ children, user, organizationName }: EmployeeShellProps) {
   const pathname = usePathname()
   const visibleNav = employeeNav.filter(
     (item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR"
@@ -124,6 +125,9 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
               <h1 className="font-headline text-2xl font-black tracking-tight">
                 {getSectionTitle(pathname)}
               </h1>
+              {organizationName ? (
+                <p className="mt-1 text-sm text-muted-foreground">{organizationName}</p>
+              ) : null}
             </div>
             <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
               <Link
@@ -154,7 +158,7 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
           <div className="container py-6 lg:py-8">{children}</div>
         </main>
 
-        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[28px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
+        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
           <div
             className={cn(
               "grid gap-1",
@@ -170,7 +174,7 @@ export function EmployeeShell({ children, user }: EmployeeShellProps) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-[11px] font-semibold",
+                    "flex flex-col items-center gap-1 rounded-[28px] px-2 py-3 text-[11px] font-semibold",
                     active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                   )}
                 >

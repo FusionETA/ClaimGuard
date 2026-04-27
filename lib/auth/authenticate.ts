@@ -49,7 +49,7 @@ export async function authenticateUser({
 
   const user = await prisma.user.findUnique({
     where: { email: normalizedEmail },
-    include: { employeeProfile: true },
+    include: { employeeProfile: true, organization: true },
   })
 
   if (!user) {
@@ -75,6 +75,8 @@ export async function authenticateUser({
       role: user.role,
       initials: buildInitials(user.name),
       subtitle: buildSubtitle(user.role, user.employeeProfile),
+      organizationId: user.organizationId ?? undefined,
+      organizationName: user.organization?.name ?? undefined,
     } satisfies SessionUser,
   }
 }
