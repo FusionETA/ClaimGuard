@@ -38,6 +38,29 @@ enum XeroSyncStatus {
   ERROR
 }
 
+enum AttendanceStatus {
+  ON_TIME
+  LATE
+  MISSING
+  CLOCKED_IN
+  CLOCKED_OUT
+  ON_LEAVE
+}
+
+enum OTRequestType {
+  LATE_REPLACEMENT
+  OT_OFFSET
+  UNRESOLVED
+}
+
+enum OTStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  OFFSET
+  UNRESOLVED
+}
+
 model User {
   id                 String             @id @default(cuid())
   email              String             @unique
@@ -55,6 +78,9 @@ model User {
   reviews            Claim[]            @relation("AdminReviews")
   pushSubscriptions  PushSubscription[]
   xeroConnections    XeroConnection[]   @relation("XeroConnectedBy")
+  attendance         AttendanceRecord[] @relation("EmployeeAttendance")
+  otRequests         OTRequest[]        @relation("EmployeeOT")
+  otReviews          OTRequest[]        @relation("ReviewerOT")
 
   @@index([organizationId])
 }
@@ -207,4 +233,48 @@ model XeroProject {
 
   @@unique([xeroConnectionId, xeroProjectId])
   @@index([xeroConnectionId, name])
+}
+
+model AttendanceRecord {
+  id          String           @id @default(cuid())
+  employeeId  String
+  date        DateTime
+  timeIn      DateTime?
+  timeOut     DateTime?
+  durationMin Int?
+  lateByMin   Int?
+  location    String?
+  project     String?
+  status      AttendanceStatus @default(MISSING)
+  notes       String?          @db.Text
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  employee    User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@index([employeeId, date])
+  @@index([status, date])
+}
+
+model OTRequest {
+  id          String        @id @default(cuid())
+  employeeId  String
+  reviewerId  String?
+  type        OTRequestType
+  date        DateTime
+  title       String
+  detail      String        @db.Text
+  lateMinutes Int?
+  offsetRef   String?
+  status      OTStatus      @default(PENDING)
+  reviewNotes String?       @db.Text
+  submittedAt DateTime      @default(now())
+  reviewedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  employee    User          @relation("EmployeeOT", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer    User?         @relation("ReviewerOT", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId, date])
+  @@index([status, date])
 }
