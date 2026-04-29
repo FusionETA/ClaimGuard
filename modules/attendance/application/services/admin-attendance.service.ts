@@ -5,8 +5,10 @@ import type {
   ApprovalRequestView,
 } from "@/modules/attendance/domain/models"
 import {
+  getMockWorkingHours,
   mockOrgOverview,
   mockPendingApprovals,
+  setMockWorkingHours,
 } from "@/modules/attendance/infrastructure/mock-data"
 
 // TODO(step-4): replace mock returns with attendanceRepository calls.
@@ -32,7 +34,15 @@ export const adminAttendanceService = {
       totalLate: 187,
       totalMissing: 24,
       totalOnLeave: 96,
-      pendingOT: mockPendingApprovals.length,
+      pendingOT: mockPendingApprovals.filter((a) => a.status === "PENDING").length,
     }
+  },
+
+  async getWorkingHours(): Promise<{ start: string; end: string }> {
+    return getMockWorkingHours()
+  },
+
+  async setWorkingHours(start: string, end: string): Promise<void> {
+    setMockWorkingHours(start, end)
   },
 }

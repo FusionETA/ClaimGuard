@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/attendance/ui/card"
 import { requirePortalSession } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 
+import { WorkingHoursForm } from "./working-hours-form"
+
 export default async function AdminAttendancePage() {
   await requirePortalSession("ADMIN")
   const overview = await adminAttendanceService.getOrgOverview()
@@ -12,6 +14,7 @@ export default async function AdminAttendancePage() {
     new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
     new Date(),
   )
+  const workingHours = await adminAttendanceService.getWorkingHours()
 
   const presentRate = Math.round((overview.presentToday / overview.headcount) * 100)
 
@@ -25,6 +28,8 @@ export default async function AdminAttendancePage() {
           Attendance overview
         </h2>
       </div>
+
+      <WorkingHoursForm initial={workingHours} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[

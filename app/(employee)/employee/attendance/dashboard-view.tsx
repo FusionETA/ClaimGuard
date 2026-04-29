@@ -1,46 +1,92 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, Coffee, Fingerprint, LogOut } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import type { EmployeeAttendanceDashboard } from "@/modules/attendance/domain/models"
-import { mockWorkingHours } from "@/modules/attendance/infrastructure/mock-data"
 import { cn } from "@/lib/utils"
 
 type ClockState = "OUT" | "IN"
 
 type ClockEvent = {
   kind: "IN" | "OUT" | "BREAK"
-  at: Date
+  at: string // ISO so localStorage round-trips cleanly
 }
 
 type Props = {
+  employeeId: string
   firstName: string
   dashboard: EmployeeAttendanceDashboard
+  workingHours: { start: string; end: string }
 }
 
-function fmt(d: Date) {
-  return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+function fmt(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  })
 }
 
-export function EmployeeAttendanceDashboardView({ firstName, dashboard }: Props) {
+// Per-employee, per-day localStorage key — wipes overnight automatically
+// because the date suffix changes.
+function storageKey(employeeId: string) {
+  const today = new Date()
+  const ymd = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
+  return `claimguard.attendance.clock.${employeeId}.${ymd}`
+}
+
+export function EmployeeAttendanceDashboardView({
+  employeeId,
+  firstName,
+  dashboard,
+  workingHours,
+}: Props) {
   const [events, setEvents] = useState<ClockEvent[]>([])
+  const [hydrated, setHydrated] = useState(false)
+  const [now, setNow] = useState(() => new Date().toISOString())
+
+  // Hydrate from localStorage after mount to avoid SSR mismatch.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(storageKey(employeeId))
+      if (raw) setEvents(JSON.parse(raw) as ClockEvent[])
+    } catch {
+      // ignore
+    }
+    setHydrated(true)
+  }, [employeeId])
+
+  // Persist on every change (after hydration so we don't wipe on first paint).
+  useEffect(() => {
+    if (!hydrated) return
+    try {
+      window.localStorage.setItem(storageKey(employeeId), JSON.stringify(events))
+    } catch {
+      // ignore
+    }
+  }, [events, hydrated, employeeId])
+
+  // Tick the clock every minute so the displayed time stays current.
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date().toISOString()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
   const lastClockEvent = [...events]
     .reverse()
     .find((e) => e.kind === "IN" || e.kind === "OUT")
   const state: ClockState = lastClockEvent?.kind === "IN" ? "IN" : "OUT"
 
-  const today = new Date()
-  const dateStr = today.toLocaleDateString("en-US", {
+  const dateStr = new Date(now).toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
   })
 
   function record(kind: ClockEvent["kind"]) {
-    setEvents((prev) => [...prev, { kind, at: new Date() }])
+    setEvents((prev) => [...prev, { kind, at: new Date().toISOString() }])
   }
 
   return (
@@ -61,7 +107,7 @@ export function EmployeeAttendanceDashboardView({ firstName, dashboard }: Props)
               Working hours
             </p>
             <p className="mt-0.5 font-headline text-lg font-extrabold text-foreground">
-              {mockWorkingHours.start} – {mockWorkingHours.end}
+              {workingHours.start} – {workingHours.end}
             </p>
           </div>
           <Badge variant={state === "IN" ? "clocked-in" : "clocked-out"}>
@@ -76,9 +122,7 @@ export function EmployeeAttendanceDashboardView({ firstName, dashboard }: Props)
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Right now
             </p>
-            <p className="mt-0.5 text-3xl font-extrabold text-foreground">
-              {fmt(today)}
-            </p>
+            <p className="mt-0.5 text-3xl font-extrabold text-foreground">{fmt(now)}</p>
           </div>
         </div>
 

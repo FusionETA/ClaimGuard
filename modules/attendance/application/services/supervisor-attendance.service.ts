@@ -11,6 +11,7 @@ import {
   mockOTRecords,
   mockPendingApprovals,
   mockTeam,
+  reviewMockApproval,
 } from "@/modules/attendance/infrastructure/mock-data"
 
 // TODO(step-4): replace mock returns with attendanceRepository calls.
@@ -23,7 +24,15 @@ export const supervisorAttendanceService = {
   async getPendingApprovalsForSupervisor(
     _supervisorId: string,
   ): Promise<ApprovalRequestView[]> {
-    return mockPendingApprovals
+    return mockPendingApprovals.filter((a) => a.status === "PENDING")
+  },
+
+  async reviewApproval(
+    _supervisorId: string,
+    approvalId: string,
+    status: "APPROVED" | "REJECTED",
+  ): Promise<void> {
+    reviewMockApproval(approvalId, status)
   },
 
   async getEmployeeDrilldown(

@@ -13,8 +13,32 @@ import type {
 // Source: attendance-next/data/mockData.ts
 // ---------------------------------------------------------------------------
 
-// Org-wide working window. TODO(step-4): pull per-organisation from settings.
-export const mockWorkingHours = { start: "09:00", end: "18:00" } as const
+// ---------------------------------------------------------------------------
+// Mutable mock store. In-process state — resets on server restart.
+// TODO(step-4): persist working hours per-organisation in Prisma; persist
+// approval reviews via attendanceRepository.
+// ---------------------------------------------------------------------------
+
+const workingHours = { start: "09:00", end: "18:00" }
+
+export function getMockWorkingHours() {
+  return { ...workingHours }
+}
+
+export function setMockWorkingHours(start: string, end: string) {
+  workingHours.start = start
+  workingHours.end = end
+}
+
+export function reviewMockApproval(
+  id: string,
+  status: "APPROVED" | "REJECTED",
+) {
+  const item = mockPendingApprovals.find((a) => a.id === id)
+  if (item) {
+    item.status = status
+  }
+}
 
 export const mockProjects = [
   { id: "1", name: "Main Office HQ", address: "450 Serra Mall, Stanford", radius: 300 },

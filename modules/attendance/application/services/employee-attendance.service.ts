@@ -6,6 +6,7 @@ import type {
   OTRequestView,
 } from "@/modules/attendance/domain/models"
 import {
+  getMockWorkingHours,
   mockAttendanceHistory,
   mockEmployeeDashboard,
   mockOTRecords,
@@ -28,5 +29,9 @@ export const employeeAttendanceService = {
 
   async getEmployeeOTRecords(_employeeId: string): Promise<OTRequestView[]> {
     return mockOTRecords
+  },
+
+  async getWorkingHours(): Promise<{ start: string; end: string }> {
+    return getMockWorkingHours()
   },
 }

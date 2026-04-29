@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useTransition } from "react"
 import { Search } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
@@ -10,6 +10,8 @@ import { Input } from "@/components/attendance/ui/input"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
 import { otTypeMeta } from "@/modules/attendance/domain/metadata"
 import { cn } from "@/lib/utils"
+
+import { reviewApprovalAction } from "./actions"
 
 const CLOCK_LABEL: Record<string, string> = {
   CLOCK_IN: "Clock in",
@@ -26,15 +28,39 @@ type Props = {
 export function ApprovalsList({ items }: Props) {
   const [filter, setFilter] = useState<Filter>("ALL")
   const [query, setQuery] = useState("")
+  const [optimisticallyHidden, setOptimisticallyHidden] = useState<Set<string>>(new Set())
+  const [pendingId, setPendingId] = useState<string | null>(null)
+  const [, startTransition] = useTransition()
+
+  function review(id: string, status: "APPROVED" | "REJECTED") {
+    setPendingId(id)
+    setOptimisticallyHidden((prev) => new Set(prev).add(id))
+    const formData = new FormData()
+    formData.set("approvalId", id)
+    formData.set("status", status)
+    startTransition(async () => {
+      const result = await reviewApprovalAction({}, formData)
+      if (result.error) {
+        // rollback if the action rejected
+        setOptimisticallyHidden((prev) => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        })
+      }
+      setPendingId(null)
+    })
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return items.filter((r) => {
+      if (optimisticallyHidden.has(r.id)) return false
       if (filter !== "ALL" && r.kind !== filter) return false
       if (q && !r.employeeName.toLowerCase().includes(q)) return false
       return true
     })
-  }, [items, filter, query])
+  }, [items, filter, query, optimisticallyHidden])
 
   return (
     <div className="space-y-4">
@@ -118,10 +144,21 @@ export function ApprovalsList({ items }: Props) {
                   </div>
                 </div>
                 <div className="mt-3 flex gap-2">
-                  <Button size="sm" className="flex-1">
-                    Approve
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    disabled={pendingId === r.id}
+                    onClick={() => review(r.id, "APPROVED")}
+                  >
+                    {pendingId === r.id ? "Saving…" : "Approve"}
                   </Button>
-                  <Button size="sm" variant="outline" className="flex-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    disabled={pendingId === r.id}
+                    onClick={() => review(r.id, "REJECTED")}
+                  >
                     Reject
                   </Button>
                 </div>
