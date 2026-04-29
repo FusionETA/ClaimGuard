@@ -50,3 +50,43 @@ export const XeroSyncStatus = {
 } as const
 
 export type XeroSyncStatus = (typeof XeroSyncStatus)[keyof typeof XeroSyncStatus]
+
+
+export const AttendanceStatus = {
+  ON_TIME: 'ON_TIME',
+  LATE: 'LATE',
+  MISSING: 'MISSING',
+  CLOCKED_IN: 'CLOCKED_IN',
+  CLOCKED_OUT: 'CLOCKED_OUT',
+  ON_LEAVE: 'ON_LEAVE'
+} as const
+
+export type AttendanceStatus = (typeof AttendanceStatus)[keyof typeof AttendanceStatus]
+
+
+export const ApprovalKind = {
+  CLOCK_IN: 'CLOCK_IN',
+  CLOCK_OUT: 'CLOCK_OUT',
+  BREAK: 'BREAK',
+  OT: 'OT'
+} as const
+
+export type ApprovalKind = (typeof ApprovalKind)[keyof typeof ApprovalKind]
+
+
+export const ApprovalStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type ApprovalStatus = (typeof ApprovalStatus)[keyof typeof ApprovalStatus]
+
+
+export const OTSubtype = {
+  LATE_REPLACEMENT: 'LATE_REPLACEMENT',
+  OT_OFFSET: 'OT_OFFSET',
+  UNRESOLVED: 'UNRESOLVED'
+} as const
+
+export type OTSubtype = (typeof OTSubtype)[keyof typeof OTSubtype]

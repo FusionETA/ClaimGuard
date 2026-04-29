@@ -7,23 +7,14 @@ export const attendanceStatuses = [
   "ON_LEAVE",
 ] as const
 
-export const otRequestTypes = [
-  "LATE_REPLACEMENT",
-  "OT_OFFSET",
-  "UNRESOLVED",
-] as const
-
-export const otStatuses = [
-  "PENDING",
-  "APPROVED",
-  "REJECTED",
-  "OFFSET",
-  "UNRESOLVED",
-] as const
+export const approvalKinds = ["CLOCK_IN", "CLOCK_OUT", "BREAK", "OT"] as const
+export const approvalStatuses = ["PENDING", "APPROVED", "REJECTED"] as const
+export const otSubtypes = ["LATE_REPLACEMENT", "OT_OFFSET", "UNRESOLVED"] as const
 
 export type AttendanceStatus = (typeof attendanceStatuses)[number]
-export type OTRequestType = (typeof otRequestTypes)[number]
-export type OTStatus = (typeof otStatuses)[number]
+export type ApprovalKind = (typeof approvalKinds)[number]
+export type ApprovalStatus = (typeof approvalStatuses)[number]
+export type OTSubtype = (typeof otSubtypes)[number]
 
 export type AttendanceRecordView = {
   id: string
@@ -39,51 +30,38 @@ export type AttendanceRecordView = {
   notes: string | null
 }
 
-export type OTRequestView = {
+export type ApprovalRequestView = {
   id: string
+  kind: ApprovalKind
+  status: ApprovalStatus
   employeeId: string
-  employeeName?: string
+  employeeName: string
   reviewerId: string | null
-  type: OTRequestType
-  date: string
+  date: string // ISO yyyy-mm-dd
+  eventAt: string | null
   title: string
   detail: string
+  location: string | null
+  otSubtype: OTSubtype | null
   lateMinutes: number | null
   offsetRef: string | null
-  status: OTStatus
   reviewNotes: string | null
   submittedAt: string
   reviewedAt: string | null
 }
 
-export const approvalKinds = ["OT", "CLOCK"] as const
-export type ApprovalKind = (typeof approvalKinds)[number]
-
-export const clockEventTypes = ["CLOCK_IN", "CLOCK_OUT", "BREAK"] as const
-export type ClockEventType = (typeof clockEventTypes)[number]
-
-export type ApprovalRequestView = {
+export type ClockEventLite = {
   id: string
-  kind: ApprovalKind
-  employeeId: string
-  employeeName: string
-  date: string
-  title: string
-  detail: string
-  status: "PENDING" | "APPROVED" | "REJECTED"
-  // OT-specific
-  otType?: OTRequestType
-  // Clock-specific
-  clockEvent?: ClockEventType
-  location?: string
-  submittedAt: string
+  kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK"
+  status: ApprovalStatus
+  eventAt: string
 }
 
 export type EmployeeAttendanceDashboard = {
   today: AttendanceRecordView | null
   weekToDate: AttendanceRecordView[]
-  pendingOT: OTRequestView[]
-  recentOT: OTRequestView[]
+  todayEvents: ClockEventLite[]
+  recentOT: ApprovalRequestView[]
 }
 
 export type SupervisorTeamOverview = {

@@ -8,7 +8,7 @@ import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/attendance/ui/input"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
-import { otTypeMeta } from "@/modules/attendance/domain/metadata"
+import { otSubtypeMeta } from "@/modules/attendance/domain/metadata"
 import { cn } from "@/lib/utils"
 
 import { reviewApprovalAction } from "./actions"
@@ -41,7 +41,6 @@ export function ApprovalsList({ items }: Props) {
     startTransition(async () => {
       const result = await reviewApprovalAction({}, formData)
       if (result.error) {
-        // rollback if the action rejected
         setOptimisticallyHidden((prev) => {
           const next = new Set(prev)
           next.delete(id)
@@ -56,7 +55,9 @@ export function ApprovalsList({ items }: Props) {
     const q = query.trim().toLowerCase()
     return items.filter((r) => {
       if (optimisticallyHidden.has(r.id)) return false
-      if (filter !== "ALL" && r.kind !== filter) return false
+      const isOT = r.kind === "OT"
+      if (filter === "OT" && !isOT) return false
+      if (filter === "CLOCK" && isOT) return false
       if (q && !r.employeeName.toLowerCase().includes(q)) return false
       return true
     })
@@ -116,19 +117,19 @@ export function ApprovalsList({ items }: Props) {
                     <div className="flex items-center gap-2">
                       {r.kind === "OT" ? (
                         <Badge variant="overtime">
-                          {r.otType ? otTypeMeta[r.otType].label : "OT"}
+                          {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"}
                         </Badge>
                       ) : (
                         <Badge
                           variant={
-                            r.clockEvent === "CLOCK_IN"
+                            r.kind === "CLOCK_IN"
                               ? "clocked-in"
-                              : r.clockEvent === "CLOCK_OUT"
+                              : r.kind === "CLOCK_OUT"
                                 ? "clocked-out"
                                 : "pending"
                           }
                         >
-                          {r.clockEvent ? CLOCK_LABEL[r.clockEvent] : "Clock"}
+                          {CLOCK_LABEL[r.kind] ?? "Clock"}
                         </Badge>
                       )}
                       <span className="text-xs font-semibold text-muted-foreground">

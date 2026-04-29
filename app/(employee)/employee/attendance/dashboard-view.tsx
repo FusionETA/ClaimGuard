@@ -1,99 +1,60 @@
-"use client"
-
-import { useEffect, useState } from "react"
 import { AlertTriangle, CheckCircle2, Coffee, Fingerprint, LogOut } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
-import type { EmployeeAttendanceDashboard } from "@/modules/attendance/domain/models"
+import type {
+  ClockEventLite,
+  EmployeeAttendanceDashboard,
+} from "@/modules/attendance/domain/models"
 import { cn } from "@/lib/utils"
 
-type ClockState = "OUT" | "IN"
-
-type ClockEvent = {
-  kind: "IN" | "OUT" | "BREAK"
-  at: string // ISO so localStorage round-trips cleanly
-}
+import {
+  clockInAction,
+  clockOutAction,
+  confirmBreakAction,
+} from "./actions"
 
 type Props = {
-  employeeId: string
   firstName: string
   dashboard: EmployeeAttendanceDashboard
   workingHours: { start: string; end: string }
 }
 
-function fmt(iso: string) {
+function fmtTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
   })
 }
 
-// Per-employee, per-day localStorage key — wipes overnight automatically
-// because the date suffix changes.
-function storageKey(employeeId: string) {
-  const today = new Date()
-  const ymd = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
-  return `claimguard.attendance.clock.${employeeId}.${ymd}`
-}
-
-export function EmployeeAttendanceDashboardView({
-  employeeId,
-  firstName,
-  dashboard,
-  workingHours,
-}: Props) {
-  const [events, setEvents] = useState<ClockEvent[]>([])
-  const [hydrated, setHydrated] = useState(false)
-  const [now, setNow] = useState(() => new Date().toISOString())
-
-  // Hydrate from localStorage after mount to avoid SSR mismatch.
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(storageKey(employeeId))
-      if (raw) setEvents(JSON.parse(raw) as ClockEvent[])
-    } catch {
-      // ignore
-    }
-    setHydrated(true)
-  }, [employeeId])
-
-  // Persist on every change (after hydration so we don't wipe on first paint).
-  useEffect(() => {
-    if (!hydrated) return
-    try {
-      window.localStorage.setItem(storageKey(employeeId), JSON.stringify(events))
-    } catch {
-      // ignore
-    }
-  }, [events, hydrated, employeeId])
-
-  // Tick the clock every minute so the displayed time stays current.
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date().toISOString()), 60_000)
-    return () => clearInterval(id)
-  }, [])
-
-  const lastClockEvent = [...events]
-    .reverse()
-    .find((e) => e.kind === "IN" || e.kind === "OUT")
-  const state: ClockState = lastClockEvent?.kind === "IN" ? "IN" : "OUT"
-
-  const dateStr = new Date(now).toLocaleDateString("en-US", {
+function fmtDate(d: Date) {
+  return d.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
   })
+}
 
-  function record(kind: ClockEvent["kind"]) {
-    setEvents((prev) => [...prev, { kind, at: new Date().toISOString() }])
-  }
+function deriveState(events: ClockEventLite[]): "IN" | "OUT" {
+  const last = [...events]
+    .reverse()
+    .find((e) => e.kind === "CLOCK_IN" || e.kind === "CLOCK_OUT")
+  return last?.kind === "CLOCK_IN" ? "IN" : "OUT"
+}
+
+export function EmployeeAttendanceDashboardView({
+  firstName,
+  dashboard,
+  workingHours,
+}: Props) {
+  const state = deriveState(dashboard.todayEvents)
+  const now = new Date()
 
   return (
     <div className="space-y-4">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {dateStr}
+          {fmtDate(now)}
         </p>
         <h2 className="mt-0.5 text-xl font-bold text-foreground">
           Hello, {firstName} 👋
@@ -122,79 +83,93 @@ export function EmployeeAttendanceDashboardView({
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Right now
             </p>
-            <p className="mt-0.5 text-3xl font-extrabold text-foreground">{fmt(now)}</p>
+            <p className="mt-0.5 text-3xl font-extrabold text-foreground">
+              {now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+            </p>
           </div>
         </div>
 
         {state === "OUT" ? (
-          <button
-            onClick={() => record("IN")}
-            className="group flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-secondary bg-secondary/40 py-6 transition hover:bg-secondary/60 active:scale-95"
-          >
-            <div className="relative mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-primary shadow-panel">
-              <div className="absolute h-20 w-20 animate-ping2 rounded-full bg-primary opacity-20" />
-              <Fingerprint className="h-10 w-10 text-primary-foreground" />
-            </div>
-            <p className="text-sm font-bold text-primary">Tap to Clock In</p>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Pending supervisor approval after tap
-            </p>
-          </button>
+          <form action={clockInAction}>
+            <button
+              type="submit"
+              className="group flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-secondary bg-secondary/40 py-6 transition hover:bg-secondary/60 active:scale-95"
+            >
+              <div className="relative mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-primary shadow-panel">
+                <div className="absolute h-20 w-20 animate-ping2 rounded-full bg-primary opacity-20" />
+                <Fingerprint className="h-10 w-10 text-primary-foreground" />
+              </div>
+              <p className="text-sm font-bold text-primary">Tap to Clock In</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Pending supervisor approval after tap
+              </p>
+            </button>
+          </form>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => record("BREAK")}
-              className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-secondary bg-secondary/40 py-5 transition hover:bg-secondary/60 active:scale-95"
-            >
-              <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                <Coffee className="h-6 w-6" />
-              </div>
-              <p className="text-sm font-bold text-foreground">Confirm Break</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">Still on site</p>
-            </button>
+            <form action={confirmBreakAction}>
+              <button
+                type="submit"
+                className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-secondary bg-secondary/40 py-5 transition hover:bg-secondary/60 active:scale-95"
+              >
+                <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                  <Coffee className="h-6 w-6" />
+                </div>
+                <p className="text-sm font-bold text-foreground">Confirm Break</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">Still on site</p>
+              </button>
+            </form>
 
-            <button
-              onClick={() => record("OUT")}
-              className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-destructive/40 bg-destructive/5 py-5 transition hover:bg-destructive/10 active:scale-95"
-            >
-              <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
-                <LogOut className="h-6 w-6" />
-              </div>
-              <p className="text-sm font-bold text-destructive">Clock Out</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">End shift</p>
-            </button>
+            <form action={clockOutAction}>
+              <button
+                type="submit"
+                className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-destructive/40 bg-destructive/5 py-5 transition hover:bg-destructive/10 active:scale-95"
+              >
+                <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
+                  <LogOut className="h-6 w-6" />
+                </div>
+                <p className="text-sm font-bold text-destructive">Clock Out</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">End shift</p>
+              </button>
+            </form>
           </div>
         )}
       </Card>
 
-      {events.length > 0 ? (
+      {dashboard.todayEvents.length > 0 ? (
         <Card>
           <CardContent className="p-4">
             <p className="mb-3 text-sm font-bold text-foreground">Today&apos;s events</p>
             <div className="space-y-2">
-              {events.map((e, i) => (
+              {dashboard.todayEvents.map((e) => (
                 <div
-                  key={i}
+                  key={e.id}
                   className="flex items-center gap-3 border-b border-border/50 py-2 last:border-0"
                 >
                   <Badge
                     variant={
-                      e.kind === "IN"
+                      e.kind === "CLOCK_IN"
                         ? "clocked-in"
-                        : e.kind === "OUT"
+                        : e.kind === "CLOCK_OUT"
                           ? "clocked-out"
                           : "pending"
                     }
                   >
-                    {e.kind === "IN"
+                    {e.kind === "CLOCK_IN"
                       ? "Clock in"
-                      : e.kind === "OUT"
+                      : e.kind === "CLOCK_OUT"
                         ? "Clock out"
                         : "Break"}
                   </Badge>
-                  <span className="text-sm font-semibold text-foreground">{fmt(e.at)}</span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {fmtTime(e.eventAt)}
+                  </span>
                   <span className="ml-auto text-[11px] text-muted-foreground">
-                    Pending approval
+                    {e.status === "PENDING"
+                      ? "Pending approval"
+                      : e.status === "APPROVED"
+                        ? "Approved"
+                        : "Rejected"}
                   </span>
                 </div>
               ))}
@@ -203,57 +178,54 @@ export function EmployeeAttendanceDashboardView({
         </Card>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { label: "This Week", value: "32.5h", sub: "total hours" },
-          { label: "Days Present", value: "4 / 5", sub: "this week" },
-        ].map((c) => (
-          <Card key={c.label} className="p-4">
-            <p className="mt-2 text-2xl font-extrabold text-foreground">{c.value}</p>
-            <p className="text-[11px] font-semibold text-muted-foreground">{c.sub}</p>
-          </Card>
-        ))}
-      </div>
-
       <div>
-        <p className="mb-2 text-sm font-bold text-foreground">Recent Shifts</p>
-        <div className="space-y-2">
-          {dashboard.weekToDate.slice(0, 3).map((r) => (
-            <div
-              key={r.id}
-              className={cn(
-                "flex items-center gap-3 rounded-xl border-l-4 bg-card px-4 py-3 shadow-panel",
-                r.status === "ON_TIME"
-                  ? "border-l-success"
-                  : r.status === "LATE"
-                    ? "border-l-tertiary"
-                    : "border-l-destructive",
-              )}
-            >
-              {r.status === "MISSING" ? (
-                <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
-              ) : (
-                <CheckCircle2
-                  className={cn(
-                    "h-5 w-5 shrink-0",
-                    r.status === "ON_TIME" ? "text-success" : "text-tertiary",
-                  )}
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">{r.date}</p>
-                <p className="text-xs text-muted-foreground">
-                  {r.timeIn} {r.timeOut ? `– ${r.timeOut}` : ""}
-                </p>
+        <p className="mb-2 text-sm font-bold text-foreground">Recent shifts</p>
+        {dashboard.weekToDate.length === 0 ? (
+          <Card className="p-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              No attendance records yet this week.
+            </p>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {dashboard.weekToDate.slice(0, 5).map((r) => (
+              <div
+                key={r.id}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl border-l-4 bg-card px-4 py-3 shadow-panel",
+                  r.status === "ON_TIME"
+                    ? "border-l-success"
+                    : r.status === "LATE"
+                      ? "border-l-tertiary"
+                      : "border-l-destructive",
+                )}
+              >
+                {r.status === "MISSING" ? (
+                  <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
+                ) : (
+                  <CheckCircle2
+                    className={cn(
+                      "h-5 w-5 shrink-0",
+                      r.status === "ON_TIME" ? "text-success" : "text-tertiary",
+                    )}
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-foreground">{r.date}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {r.timeIn ? fmtTime(r.timeIn) : "—"}{" "}
+                    {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}
+                  </p>
+                </div>
+                <span className="shrink-0 text-xs font-bold text-muted-foreground">
+                  {r.durationMin
+                    ? `${Math.floor(r.durationMin / 60)}h ${r.durationMin % 60}m`
+                    : "–"}
+                </span>
               </div>
-              <span className="shrink-0 text-xs font-bold text-muted-foreground">
-                {r.durationMin
-                  ? `${Math.floor(r.durationMin / 60)}h ${r.durationMin % 60}m`
-                  : "–"}
-              </span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

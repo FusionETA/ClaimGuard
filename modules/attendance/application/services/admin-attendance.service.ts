@@ -1,48 +1,39 @@
 import "server-only"
 
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type {
   AdminOrgOverview,
   ApprovalRequestView,
 } from "@/modules/attendance/domain/models"
-import {
-  getMockWorkingHours,
-  mockOrgOverview,
-  mockPendingApprovals,
-  setMockWorkingHours,
-} from "@/modules/attendance/infrastructure/mock-data"
-
-// TODO(step-4): replace mock returns with attendanceRepository calls.
 
 export const adminAttendanceService = {
-  async getOrgOverview(): Promise<AdminOrgOverview> {
-    return mockOrgOverview
+  async getOrgOverview(orgId: string | null): Promise<AdminOrgOverview> {
+    return attendanceRepository.getOrgOverview(orgId)
   },
 
-  async getAllPendingApprovals(): Promise<ApprovalRequestView[]> {
-    return mockPendingApprovals
+  async getAllPendingApprovals(orgId: string | null): Promise<ApprovalRequestView[]> {
+    return attendanceRepository.getAllPendingApprovals(orgId)
   },
 
-  async getAggregateStats(_from: Date, _to: Date): Promise<{
+  async getAggregateStats(
+    from: Date,
+    to: Date,
+    orgId: string | null,
+  ): Promise<{
     totalAttendanceRecords: number
     totalLate: number
     totalMissing: number
     totalOnLeave: number
     pendingOT: number
   }> {
-    return {
-      totalAttendanceRecords: 4_280,
-      totalLate: 187,
-      totalMissing: 24,
-      totalOnLeave: 96,
-      pendingOT: mockPendingApprovals.filter((a) => a.status === "PENDING").length,
-    }
+    return attendanceRepository.getAggregateStats(from, to, orgId)
   },
 
-  async getWorkingHours(): Promise<{ start: string; end: string }> {
-    return getMockWorkingHours()
+  async getWorkingHours(orgId: string | null): Promise<{ start: string; end: string }> {
+    return attendanceRepository.getWorkingHours(orgId)
   },
 
-  async setWorkingHours(start: string, end: string): Promise<void> {
-    setMockWorkingHours(start, end)
+  async setWorkingHours(orgId: string, start: string, end: string): Promise<void> {
+    await attendanceRepository.setWorkingHours(orgId, start, end)
   },
 }

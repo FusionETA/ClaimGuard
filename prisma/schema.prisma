@@ -47,17 +47,22 @@ enum AttendanceStatus {
   ON_LEAVE
 }
 
-enum OTRequestType {
-  LATE_REPLACEMENT
-  OT_OFFSET
-  UNRESOLVED
+enum ApprovalKind {
+  CLOCK_IN
+  CLOCK_OUT
+  BREAK
+  OT
 }
 
-enum OTStatus {
+enum ApprovalStatus {
   PENDING
   APPROVED
   REJECTED
-  OFFSET
+}
+
+enum OTSubtype {
+  LATE_REPLACEMENT
+  OT_OFFSET
   UNRESOLVED
 }
 
@@ -79,23 +84,25 @@ model User {
   pushSubscriptions  PushSubscription[]
   xeroConnections    XeroConnection[]   @relation("XeroConnectedBy")
   attendance         AttendanceRecord[] @relation("EmployeeAttendance")
-  otRequests         OTRequest[]        @relation("EmployeeOT")
-  otReviews          OTRequest[]        @relation("ReviewerOT")
+  approvals          ApprovalRequest[]  @relation("EmployeeApprovals")
+  approvalReviews    ApprovalRequest[]  @relation("ReviewerApprovals")
 
   @@index([organizationId])
 }
 
 model Organization {
-  id              String           @id @default(cuid())
-  name            String           @unique
-  claimCutoffDay  Int              @default(25)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  users           User[]
-  claims          Claim[]
-  xeroConnections XeroConnection[]
-  chartAccounts   ChartOfAccount[]
-  projects        XeroProject[]
+  id                String           @id @default(cuid())
+  name              String           @unique
+  claimCutoffDay    Int              @default(25)
+  workingHoursStart String           @default("09:00")
+  workingHoursEnd   String           @default("18:00")
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  users             User[]
+  claims            Claim[]
+  xeroConnections   XeroConnection[]
+  chartAccounts     ChartOfAccount[]
+  projects          XeroProject[]
 }
 
 model PushSubscription {
@@ -256,25 +263,31 @@ model AttendanceRecord {
   @@index([status, date])
 }
 
-model OTRequest {
-  id          String        @id @default(cuid())
+model ApprovalRequest {
+  id          String         @id @default(cuid())
   employeeId  String
   reviewerId  String?
-  type        OTRequestType
-  date        DateTime
+  kind        ApprovalKind
+  status      ApprovalStatus @default(PENDING)
+  date        DateTime       // event day
+  eventAt     DateTime?      // exact timestamp for clock events
   title       String
-  detail      String        @db.Text
+  detail      String         @db.Text
+  location    String?
+  // OT-specific
+  otSubtype   OTSubtype?
   lateMinutes Int?
   offsetRef   String?
-  status      OTStatus      @default(PENDING)
-  reviewNotes String?       @db.Text
-  submittedAt DateTime      @default(now())
+  // review lifecycle
+  reviewNotes String?        @db.Text
+  submittedAt DateTime       @default(now())
   reviewedAt  DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  employee    User          @relation("EmployeeOT", fields: [employeeId], references: [id], onDelete: Cascade)
-  reviewer    User?         @relation("ReviewerOT", fields: [reviewerId], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  employee    User           @relation("EmployeeApprovals", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer    User?          @relation("ReviewerApprovals", fields: [reviewerId], references: [id], onDelete: SetNull)
 
   @@index([employeeId, date])
   @@index([status, date])
+  @@index([kind, status])
 }

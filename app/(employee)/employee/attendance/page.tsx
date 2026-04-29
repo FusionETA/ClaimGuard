@@ -7,12 +7,11 @@ export default async function EmployeeAttendancePage() {
   const session = await requirePortalSession("EMPLOYEE")
   const [dashboard, workingHours] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
-    employeeAttendanceService.getWorkingHours(),
+    employeeAttendanceService.getWorkingHours(session.userId),
   ])
 
   return (
     <EmployeeAttendanceDashboardView
-      employeeId={session.userId}
       firstName={session.name.split(" ")[0] ?? session.name}
       dashboard={dashboard}
       workingHours={workingHours}

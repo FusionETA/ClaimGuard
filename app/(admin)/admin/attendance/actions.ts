@@ -24,7 +24,11 @@ export async function setWorkingHoursAction(
   _prev: SetWorkingHoursState,
   formData: FormData,
 ): Promise<SetWorkingHoursState> {
-  await requirePortalSession("ADMIN")
+  const session = await requirePortalSession("ADMIN")
+
+  if (!session.organizationId) {
+    return { error: "Admin account is not assigned to an organisation." }
+  }
 
   const parsed = workingHoursSchema.safeParse({
     start: formData.get("start"),
@@ -39,7 +43,11 @@ export async function setWorkingHoursAction(
     return { error: "Start time must be before end time" }
   }
 
-  await adminAttendanceService.setWorkingHours(parsed.data.start, parsed.data.end)
+  await adminAttendanceService.setWorkingHours(
+    session.organizationId,
+    parsed.data.start,
+    parsed.data.end,
+  )
 
   revalidatePath("/admin/attendance")
   revalidatePath("/employee/attendance")

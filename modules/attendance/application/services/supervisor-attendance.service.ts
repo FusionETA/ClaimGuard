@@ -1,50 +1,44 @@
 import "server-only"
 
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type {
   ApprovalRequestView,
   AttendanceRecordView,
-  OTRequestView,
   SupervisorTeamOverview,
 } from "@/modules/attendance/domain/models"
-import {
-  mockAttendanceHistory,
-  mockOTRecords,
-  mockPendingApprovals,
-  mockTeam,
-  reviewMockApproval,
-} from "@/modules/attendance/infrastructure/mock-data"
-
-// TODO(step-4): replace mock returns with attendanceRepository calls.
 
 export const supervisorAttendanceService = {
-  async getTeamOverview(_supervisorId: string): Promise<SupervisorTeamOverview> {
-    return mockTeam
+  async getTeamOverview(supervisorId: string): Promise<SupervisorTeamOverview> {
+    return attendanceRepository.getTeamOverview(supervisorId)
   },
 
   async getPendingApprovalsForSupervisor(
-    _supervisorId: string,
+    supervisorId: string,
   ): Promise<ApprovalRequestView[]> {
-    return mockPendingApprovals.filter((a) => a.status === "PENDING")
-  },
-
-  async reviewApproval(
-    _supervisorId: string,
-    approvalId: string,
-    status: "APPROVED" | "REJECTED",
-  ): Promise<void> {
-    reviewMockApproval(approvalId, status)
+    return attendanceRepository.getPendingApprovalsForSupervisor(supervisorId)
   },
 
   async getEmployeeDrilldown(
     _supervisorId: string,
-    _employeeId: string,
+    employeeId: string,
   ): Promise<{
     history: AttendanceRecordView[]
-    otRecords: OTRequestView[]
+    otRecords: ApprovalRequestView[]
   }> {
-    return {
-      history: mockAttendanceHistory,
-      otRecords: mockOTRecords,
-    }
+    const now = new Date()
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    const [history, otRecords] = await Promise.all([
+      attendanceRepository.getAttendanceHistory(employeeId, thirtyDaysAgo, now),
+      attendanceRepository.getEmployeeOTApprovals(employeeId),
+    ])
+    return { history, otRecords }
+  },
+
+  async reviewApproval(
+    supervisorId: string,
+    approvalId: string,
+    status: "APPROVED" | "REJECTED",
+  ): Promise<void> {
+    await attendanceRepository.reviewApproval(approvalId, supervisorId, status)
   },
 }
