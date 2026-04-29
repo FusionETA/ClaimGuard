@@ -6,11 +6,12 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   CalendarClock,
+  CalendarDays,
   ClipboardCheck,
   FileText,
   Home,
   LogOut,
-  Plus,
+  Receipt,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
@@ -38,11 +39,10 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     href: "/employee/claims",
     label: "Claims",
     icon: FileText,
-  },
-  {
-    href: "/employee/claims/new",
-    label: "New Claim",
-    icon: Plus,
+    children: [
+      { href: "/employee/claims", label: "All claims" },
+      { href: "/employee/claims/new", label: "New claim" },
+    ],
   },
   {
     href: "/employee/attendance",
@@ -54,6 +54,16 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
       { href: "/employee/attendance/team", label: "Team", supervisorOnly: true },
       { href: "/employee/attendance/approvals", label: "Approvals", supervisorOnly: true },
     ],
+  },
+  {
+    href: "/employee/leave",
+    label: "Leave",
+    icon: CalendarDays,
+  },
+  {
+    href: "/employee/payslip",
+    label: "Payslip",
+    icon: Receipt,
   },
   {
     href: "/employee/review",
@@ -78,6 +88,14 @@ function getSectionTitle(pathname: string) {
 
   if (pathname.startsWith("/employee/review")) {
     return "Review Claims"
+  }
+
+  if (pathname.startsWith("/employee/leave")) {
+    return "Leave"
+  }
+
+  if (pathname.startsWith("/employee/payslip")) {
+    return "Payslip"
   }
 
   if (pathname.startsWith("/employee/attendance/history")) {
@@ -131,7 +149,7 @@ export function EmployeeShell({
   const hasPendingApprovals = pendingApprovals > 0
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
+    <div className="attendance-module !bg-transparent min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
       <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
         <Link href="/" className="block self-center text-center">
           <Image
@@ -157,7 +175,7 @@ export function EmployeeShell({
             return (
               <div key={item.href}>
                 <Link
-                  href={item.href}
+                  href={item.href as Route}
                   className={cn(
                     "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
                     parentActive
@@ -181,7 +199,7 @@ export function EmployeeShell({
                         return (
                           <Link
                             key={child.href}
-                            href={child.href}
+                            href={child.href as Route}
                             className={cn(
                               "flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
                               childActive
@@ -251,7 +269,7 @@ export function EmployeeShell({
           <div
             className={cn(
               "grid gap-1",
-              user.role === "SUPERVISOR" ? "grid-cols-5" : "grid-cols-4"
+              user.role === "SUPERVISOR" ? "grid-cols-6" : "grid-cols-5"
             )}
           >
             {visibleNav.map((item) => {
@@ -264,7 +282,7 @@ export function EmployeeShell({
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={item.href as Route}
                   className={cn(
                     "relative flex flex-col items-center gap-1 rounded-[28px] px-1.5 py-3 text-center text-[10px] font-semibold leading-tight",
                     active ? "bg-primary text-primary-foreground" : "text-muted-foreground"

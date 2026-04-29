@@ -6,7 +6,7 @@ import { Camera, LoaderCircle, Upload } from "lucide-react"
 import { submitClaimAction } from "@/app/(employee)/employee/claims/new/actions"
 import { initialClaimFormState } from "@/app/(employee)/employee/claims/new/form-state"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -85,7 +85,7 @@ export function ClaimForm({
                   value={selectedChartAccountId}
                   onChange={(event) => setSelectedChartAccountId(event.target.value)}
                   aria-label="Select chart of account"
-                  className="h-11 w-full rounded-xl border border-transparent bg-surface-low px-4 text-base text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background sm:text-sm"
+                  className="h-11 w-full rounded-xl border border-border/70 bg-card/94 px-4 text-base text-foreground shadow-ambient backdrop-blur-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background sm:text-sm"
                 >
                   {chartAccounts.length === 0 ? (
                     <option value="">No enabled chart of account options yet</option>
@@ -98,7 +98,7 @@ export function ClaimForm({
                 </select>
 
                 {selectedChartAccount ? (
-                  <div className="rounded-[20px] bg-surface-low p-4 text-sm text-muted-foreground sm:rounded-[24px]">
+                  <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 text-sm text-muted-foreground shadow-ambient backdrop-blur-sm sm:rounded-[24px]">
                     <p className="font-bold text-foreground">
                       {selectedChartAccount.code} · {selectedChartAccount.name}
                     </p>
@@ -170,7 +170,7 @@ export function ClaimForm({
             </div>
 
             {claimRunPreview ? (
-              <div className="rounded-[20px] bg-surface-low p-4 text-sm leading-6 text-muted-foreground sm:rounded-[24px] sm:p-5">
+              <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 text-sm leading-6 text-muted-foreground shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
                   Claim run
                 </p>
@@ -199,7 +199,7 @@ export function ClaimForm({
                 <Label htmlFor="receiptFile">Receipt photo</Label>
                 <label
                   htmlFor="receiptFile"
-                  className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface-low px-4 py-5 text-center transition-colors hover:border-primary/40 hover:bg-surface"
+                  className="flex min-h-28 cursor-pointer flex-col items-center justify-center rounded-2xl border border-border/70 bg-card/94 px-4 py-5 text-center shadow-ambient backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-card"
                 >
                   <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                     <Upload className="h-4 w-4" />

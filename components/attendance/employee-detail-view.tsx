@@ -1,0 +1,301 @@
+import { AlertTriangle, CheckCircle2 } from "lucide-react"
+
+import { Avatar, AvatarFallback } from "@/components/attendance/ui/avatar"
+import { Badge } from "@/components/attendance/ui/badge"
+import { Card, CardContent } from "@/components/attendance/ui/card"
+import {
+  approvalStatusMeta,
+  attendanceStatusMeta,
+  otSubtypeMeta,
+} from "@/modules/attendance/domain/metadata"
+import type {
+  ApprovalRequestView,
+  AttendanceRecordView,
+  ClockEventLite,
+} from "@/modules/attendance/domain/models"
+import { cn } from "@/lib/utils"
+
+const STATUS_VARIANT: Record<string, string> = {
+  ON_TIME: "on-time",
+  LATE: "late",
+  MISSING: "missing",
+  ON_LEAVE: "on-leave",
+  CLOCKED_IN: "clocked-in",
+  CLOCKED_OUT: "clocked-out",
+}
+
+const APPROVAL_VARIANT: Record<string, string> = {
+  PENDING: "pending",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+}
+
+const CLOCK_LABEL: Record<string, string> = {
+  CLOCK_IN: "Clock in",
+  CLOCK_OUT: "Clock out",
+  BREAK: "Break",
+}
+
+function fmtTime(iso: string | null) {
+  return iso
+    ? new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    : "—"
+}
+
+export type EmployeeDetailData = {
+  profile: {
+    name: string
+    email: string
+    role: string
+    initials: string
+    jobTitle: string | null
+    project: string | null
+    employeeIdRef: string | null
+    supervisorName: string | null
+  }
+  todayRecord: AttendanceRecordView | null
+  todayEvents: ClockEventLite[]
+  monthSummary: {
+    totalMin: number
+    onTime: number
+    late: number
+    missing: number
+  }
+  history: AttendanceRecordView[]
+  otRecords: ApprovalRequestView[]
+}
+
+export function EmployeeDetailView({ data }: { data: EmployeeDetailData }) {
+  const { profile, todayRecord, todayEvents, monthSummary, history, otRecords } = data
+  const monthHours = Math.floor(monthSummary.totalMin / 60)
+  const monthMins = monthSummary.totalMin % 60
+
+  return (
+    <div className="space-y-5">
+      <Card className="p-5">
+        <div className="flex items-start gap-4">
+          <Avatar className="h-14 w-14">
+            <AvatarFallback className="text-base">{profile.initials}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h2 className="font-headline text-xl font-extrabold text-foreground">
+                {profile.name}
+              </h2>
+              <Badge variant={profile.role === "SUPERVISOR" ? "overtime" : "outline"}>
+                {profile.role}
+              </Badge>
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">{profile.email}</p>
+            <div className="mt-2 grid grid-cols-1 gap-1 text-xs sm:grid-cols-2">
+              {profile.employeeIdRef ? (
+                <p>
+                  <span className="text-muted-foreground">Employee ID: </span>
+                  <span className="font-semibold">{profile.employeeIdRef}</span>
+                </p>
+              ) : null}
+              {profile.jobTitle ? (
+                <p>
+                  <span className="text-muted-foreground">Title: </span>
+                  <span className="font-semibold">{profile.jobTitle}</span>
+                </p>
+              ) : null}
+              {profile.project ? (
+                <p>
+                  <span className="text-muted-foreground">Project: </span>
+                  <span className="font-semibold">{profile.project}</span>
+                </p>
+              ) : null}
+              {profile.supervisorName ? (
+                <p>
+                  <span className="text-muted-foreground">Reports to: </span>
+                  <span className="font-semibold">{profile.supervisorName}</span>
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        <Card className="p-4">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Today
+          </p>
+          {todayRecord ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-foreground">
+                  {fmtTime(todayRecord.timeIn)} – {fmtTime(todayRecord.timeOut)}
+                </p>
+                <Badge variant={STATUS_VARIANT[todayRecord.status] as never}>
+                  {attendanceStatusMeta[todayRecord.status].label}
+                </Badge>
+              </div>
+              {todayRecord.project ? (
+                <p className="text-xs text-muted-foreground">🛠 {todayRecord.project}</p>
+              ) : null}
+              {todayRecord.lateByMin ? (
+                <p className="text-xs text-tertiary">Late by {todayRecord.lateByMin}m</p>
+              ) : null}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No clock-in yet today.</p>
+          )}
+
+          {todayEvents.length > 0 ? (
+            <div className="mt-3 border-t border-border/60 pt-3">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Events today
+              </p>
+              <div className="space-y-1.5">
+                {todayEvents.map((e) => (
+                  <div key={e.id} className="flex items-center gap-2">
+                    <Badge
+                      variant={
+                        e.kind === "CLOCK_IN"
+                          ? "clocked-in"
+                          : e.kind === "CLOCK_OUT"
+                            ? "clocked-out"
+                            : "pending"
+                      }
+                    >
+                      {CLOCK_LABEL[e.kind]}
+                    </Badge>
+                    <span className="text-xs font-semibold text-foreground">
+                      {fmtTime(e.eventAt)}
+                    </span>
+                    <span className="ml-auto text-[10px] text-muted-foreground">
+                      {e.status === "PENDING"
+                        ? "Pending"
+                        : e.status === "APPROVED"
+                          ? "Approved"
+                          : "Rejected"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </Card>
+
+        <Card className="p-4">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            This month
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="font-headline text-2xl font-extrabold text-foreground">
+                {monthHours}h <span className="text-base">{monthMins}m</span>
+              </p>
+              <p className="text-[11px] text-muted-foreground">Total worked</p>
+            </div>
+            <div>
+              <p className="font-headline text-2xl font-extrabold text-success">
+                {monthSummary.onTime}
+              </p>
+              <p className="text-[11px] text-muted-foreground">On time</p>
+            </div>
+            <div>
+              <p className="font-headline text-2xl font-extrabold text-tertiary">
+                {monthSummary.late}
+              </p>
+              <p className="text-[11px] text-muted-foreground">Late</p>
+            </div>
+            <div>
+              <p className="font-headline text-2xl font-extrabold text-destructive">
+                {monthSummary.missing}
+              </p>
+              <p className="text-[11px] text-muted-foreground">Missing</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <Card>
+        <CardContent className="p-4">
+          <p className="mb-3 text-sm font-bold text-foreground">Recent attendance</p>
+          {history.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No attendance records in the last 30 days.
+            </p>
+          ) : (
+            <div className="space-y-1">
+              {history.slice(0, 30).map((r) => (
+                <div
+                  key={r.id}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl border-l-4 px-3 py-2",
+                    r.status === "ON_TIME"
+                      ? "border-l-success"
+                      : r.status === "LATE"
+                        ? "border-l-tertiary"
+                        : "border-l-destructive",
+                  )}
+                >
+                  {r.status === "MISSING" ? (
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-destructive" />
+                  ) : (
+                    <CheckCircle2
+                      className={cn(
+                        "h-4 w-4 shrink-0",
+                        r.status === "ON_TIME" ? "text-success" : "text-tertiary",
+                      )}
+                    />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {r.date}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {fmtTime(r.timeIn)}{" "}
+                      {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}{" "}
+                      {r.project ? `• ${r.project}` : ""}
+                    </p>
+                  </div>
+                  <Badge variant={STATUS_VARIANT[r.status] as never}>
+                    {attendanceStatusMeta[r.status].label}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <div className="mb-3 flex items-baseline justify-between">
+            <p className="text-sm font-bold text-foreground">OT &amp; replacements</p>
+            <span className="text-xs text-muted-foreground">{otRecords.length} entries</span>
+          </div>
+          {otRecords.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No overtime entries.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {otRecords.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-start gap-3 border-b border-border/50 pb-2 last:border-0 last:pb-0"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-foreground">{r.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"} • {r.date}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{r.detail}</p>
+                  </div>
+                  <Badge variant={APPROVAL_VARIANT[r.status] as never}>
+                    {approvalStatusMeta[r.status].label}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

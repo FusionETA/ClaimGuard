@@ -6,6 +6,10 @@ import type {
   ApprovalRequestView,
   TodayRollCall,
 } from "@/modules/attendance/domain/models"
+import {
+  loadEmployeeDetailForAdmin,
+  loadOrgEmployeeListForAdmin,
+} from "./employee-detail-loader"
 
 export const adminAttendanceService = {
   async getOrgOverview(orgId: string | null): Promise<AdminOrgOverview> {
@@ -40,5 +44,13 @@ export const adminAttendanceService = {
 
   async setWorkingHours(orgId: string, start: string, end: string): Promise<void> {
     await attendanceRepository.setWorkingHours(orgId, start, end)
+  },
+
+  async getEmployeeList(orgId: string | null) {
+    return loadOrgEmployeeListForAdmin(orgId)
+  },
+
+  async getEmployeeDetail(adminOrgId: string | null, employeeId: string) {
+    return loadEmployeeDetailForAdmin(adminOrgId, employeeId)
   },
 }

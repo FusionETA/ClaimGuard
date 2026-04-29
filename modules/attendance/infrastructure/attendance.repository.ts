@@ -466,6 +466,125 @@ export const attendanceRepository = {
     return records.map(approvalToView)
   },
 
+  async getEmployeeProfile(employeeId: string): Promise<{
+    id: string
+    name: string
+    email: string
+    role: string
+    initials: string
+    jobTitle: string | null
+    project: string | null
+    employeeIdRef: string | null
+    organizationId: string | null
+    supervisorName: string | null
+  } | null> {
+    const prisma = getClient()
+    const user = await prisma.user.findUnique({
+      where: { id: employeeId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        organizationId: true,
+        employeeProfile: {
+          select: {
+            employeeId: true,
+            jobTitle: true,
+            project: true,
+            supervisor: { select: { name: true } },
+          },
+        },
+      },
+    })
+    if (!user) return null
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      initials: buildInitials(user.name),
+      jobTitle: user.employeeProfile?.jobTitle ?? null,
+      project: user.employeeProfile?.project ?? null,
+      employeeIdRef: user.employeeProfile?.employeeId ?? null,
+      organizationId: user.organizationId,
+      supervisorName: user.employeeProfile?.supervisor?.name ?? null,
+    }
+  },
+
+  async getOrgEmployeeList(orgId: string | null): Promise<
+    Array<{
+      id: string
+      name: string
+      email: string
+      role: string
+      initials: string
+      jobTitle: string | null
+      project: string | null
+      todayStatus: AttendanceStatus | null
+      todayTimeIn: string | null
+    }>
+  > {
+    if (!orgId) return []
+    const prisma = getClient()
+    const today = startOfDay(new Date())
+    const users = await prisma.user.findMany({
+      where: { organizationId: orgId, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
+      orderBy: [{ role: "asc" }, { name: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        employeeProfile: { select: { jobTitle: true, project: true } },
+      },
+    })
+    if (users.length === 0) return []
+    const records = await prisma.attendanceRecord.findMany({
+      where: { date: today, employeeId: { in: users.map((u) => u.id) } },
+      select: { employeeId: true, status: true, timeIn: true },
+    })
+    const byUser = new Map(records.map((r) => [r.employeeId, r]))
+    return users.map((u) => {
+      const today = byUser.get(u.id)
+      return {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        initials: buildInitials(u.name),
+        jobTitle: u.employeeProfile?.jobTitle ?? null,
+        project: u.employeeProfile?.project ?? null,
+        todayStatus: (today?.status as AttendanceStatus | undefined) ?? null,
+        todayTimeIn: today?.timeIn?.toISOString() ?? null,
+      }
+    })
+  },
+
+  async getEmployeeMonthSummary(
+    employeeId: string,
+    monthStart: Date,
+  ): Promise<{
+    totalMin: number
+    onTime: number
+    late: number
+    missing: number
+  }> {
+    const prisma = getClient()
+    const monthEnd = new Date(monthStart)
+    monthEnd.setUTCMonth(monthEnd.getUTCMonth() + 1)
+    const records = await prisma.attendanceRecord.findMany({
+      where: { employeeId, date: { gte: monthStart, lt: monthEnd } },
+      select: { durationMin: true, status: true },
+    })
+    return {
+      totalMin: records.reduce((acc, r) => acc + (r.durationMin ?? 0), 0),
+      onTime: records.filter((r) => r.status === "ON_TIME").length,
+      late: records.filter((r) => r.status === "LATE").length,
+      missing: records.filter((r) => r.status === "MISSING").length,
+    }
+  },
+
   async countPendingApprovalsForSupervisor(supervisorId: string): Promise<number> {
     const prisma = getClient()
     const memberIds = await this.getTeamMemberIds(supervisorId)

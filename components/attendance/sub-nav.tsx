@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 type SubNavItem = {
   href: Route
   label: string
+  badge?: boolean
 }
 
 type Props = {
@@ -26,15 +27,21 @@ export function AttendanceSubNav({ items }: Props) {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={item.href as Route}
               className={cn(
-                "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                "relative shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
                 active
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border/60 bg-card text-muted-foreground hover:text-foreground",
               )}
             >
               {item.label}
+              {item.badge ? (
+                <span
+                  aria-label="pending"
+                  className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-destructive shadow-[0_0_0_2px_hsl(var(--card))]"
+                />
+              ) : null}
             </Link>
           )
         })}
