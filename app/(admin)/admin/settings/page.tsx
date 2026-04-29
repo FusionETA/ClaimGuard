@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 
 import { AdminSettingsPanel } from "@/components/admin/admin-settings-panel"
 import { getCurrentSession } from "@/lib/auth/session"
+import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import { getXeroConnectionSummary } from "@/modules/organization/application/services/xero-connection.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
@@ -24,7 +25,9 @@ export default async function AdminSettingsPage({
 
   if (!admin) redirect("/login")
 
-  const organizationId = admin.organizationId ?? session.organizationId
+  // activeOrganizationId reflects the company selected in the org dropdown;
+  // fall back to the admin's own org if not set.
+  const organizationId = session.activeOrganizationId ?? admin.organizationId ?? session.organizationId
 
   // Resolve active connection: prefer session value, then cookie, then first connection
   const cookieStore = await cookies()
@@ -52,17 +55,21 @@ export default async function AdminSettingsPage({
     activeXeroConnectionId = xeroConnection.connections[0]?.id ?? undefined
   }
 
-  // Fetch COA and projects scoped to the active connection (if set)
-  const [chartAccounts, projects, customAccounts] = await Promise.all([
+  // Fetch COA, projects, members scoped to the active connection (if set)
+  const [chartAccounts, projects, customAccounts, members, workingHours] = await Promise.all([
     activeXeroConnectionId
       ? organizationRepository.getChartAccountsForConnection(activeXeroConnectionId)
       : Promise.resolve([]),
-    activeXeroConnectionId
-      ? organizationRepository.getProjectsForConnection(activeXeroConnectionId)
+    organizationId
+      ? organizationRepository.getProjectsForOrganization(organizationId)
       : Promise.resolve([]),
     organizationId
       ? organizationRepository.getCustomChartAccountsForOrganization(organizationId)
       : Promise.resolve([]),
+    organizationId
+      ? organizationRepository.getOrganizationMembers(organizationId)
+      : Promise.resolve([]),
+    adminAttendanceService.getWorkingHours(organizationId ?? null),
   ])
 
   // When the OAuth callback returned multiple tenants, the token is stored in a
@@ -98,11 +105,13 @@ export default async function AdminSettingsPage({
       chartAccounts={chartAccounts}
       customAccounts={customAccounts}
       projects={projects}
+      members={members}
       activeXeroConnectionId={activeXeroConnectionId}
       xeroStatus={typeof params.xero === "string" ? params.xero : undefined}
       xeroReason={typeof params.reason === "string" ? params.reason : undefined}
       pendingTenants={pendingTenants}
       takenTenantIds={takenTenantIds}
+      workingHours={workingHours}
     />
   )
 }

@@ -9,8 +9,9 @@ export type SessionUser = {
   role: AppRole
   initials: string
   subtitle: string
-  organizationId?: string
+  organizationId?: string        // employee's home org (unchanged)
   organizationName?: string
+  activeOrganizationId?: string  // admin's currently selected company
   activeXeroConnectionId?: string
 }
 

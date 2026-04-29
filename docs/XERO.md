@@ -22,8 +22,8 @@ XERO_REDIRECT_URI=https://your-domain.com/api/xero/callback
 Optional:
 
 ```env
-XERO_SCOPES=offline_access accounting.transactions accounting.contacts
-```
+XERO_SCOPES=offline_access accounting.transactions accounting.contacts projects
+``` 
 
 `XERO_SCOPES` is configurable because Xero scope requirements vary by app setup and creation date.
 

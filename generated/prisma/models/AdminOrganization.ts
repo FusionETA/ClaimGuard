@@ -174,8 +174,8 @@ export type AdminOrganizationWhereInput = {
   adminId?: Prisma.StringFilter<"AdminOrganization"> | string
   organizationId?: Prisma.StringFilter<"AdminOrganization"> | string
   createdAt?: Prisma.DateTimeFilter<"AdminOrganization"> | Date | string
-  User?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  Organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  admin?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
 export type AdminOrganizationOrderByWithRelationInput = {
@@ -183,8 +183,8 @@ export type AdminOrganizationOrderByWithRelationInput = {
   adminId?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  User?: Prisma.UserOrderByWithRelationInput
-  Organization?: Prisma.OrganizationOrderByWithRelationInput
+  admin?: Prisma.UserOrderByWithRelationInput
+  organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.AdminOrganizationOrderByRelevanceInput
 }
 
@@ -197,8 +197,8 @@ export type AdminOrganizationWhereUniqueInput = Prisma.AtLeast<{
   adminId?: Prisma.StringFilter<"AdminOrganization"> | string
   organizationId?: Prisma.StringFilter<"AdminOrganization"> | string
   createdAt?: Prisma.DateTimeFilter<"AdminOrganization"> | Date | string
-  User?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  Organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  admin?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id" | "adminId_organizationId">
 
 export type AdminOrganizationOrderByWithAggregationInput = {
@@ -222,14 +222,14 @@ export type AdminOrganizationScalarWhereWithAggregatesInput = {
 }
 
 export type AdminOrganizationCreateInput = {
-  id: string
+  id?: string
   createdAt?: Date | string
-  User: Prisma.UserCreateNestedOneWithoutAdminOrganizationInput
-  Organization: Prisma.OrganizationCreateNestedOneWithoutAdminOrganizationInput
+  admin: Prisma.UserCreateNestedOneWithoutAdminOrganizationsInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutAdminMembersInput
 }
 
 export type AdminOrganizationUncheckedCreateInput = {
-  id: string
+  id?: string
   adminId: string
   organizationId: string
   createdAt?: Date | string
@@ -238,8 +238,8 @@ export type AdminOrganizationUncheckedCreateInput = {
 export type AdminOrganizationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  User?: Prisma.UserUpdateOneRequiredWithoutAdminOrganizationNestedInput
-  Organization?: Prisma.OrganizationUpdateOneRequiredWithoutAdminOrganizationNestedInput
+  admin?: Prisma.UserUpdateOneRequiredWithoutAdminOrganizationsNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutAdminMembersNestedInput
 }
 
 export type AdminOrganizationUncheckedUpdateInput = {
@@ -250,7 +250,7 @@ export type AdminOrganizationUncheckedUpdateInput = {
 }
 
 export type AdminOrganizationCreateManyInput = {
-  id: string
+  id?: string
   adminId: string
   organizationId: string
   createdAt?: Date | string
@@ -310,45 +310,45 @@ export type AdminOrganizationMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
 }
 
-export type AdminOrganizationCreateNestedManyWithoutUserInput = {
-  create?: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutUserInput, Prisma.AdminOrganizationUncheckedCreateWithoutUserInput> | Prisma.AdminOrganizationCreateWithoutUserInput[] | Prisma.AdminOrganizationUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.AdminOrganizationCreateOrConnectWithoutUserInput | Prisma.AdminOrganizationCreateOrConnectWithoutUserInput[]
-  createMany?: Prisma.AdminOrganizationCreateManyUserInputEnvelope
+export type AdminOrganizationCreateNestedManyWithoutAdminInput = {
+  create?: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutAdminInput, Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput> | Prisma.AdminOrganizationCreateWithoutAdminInput[] | Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput[]
+  connectOrCreate?: Prisma.AdminOrganizationCreateOrConnectWithoutAdminInput | Prisma.AdminOrganizationCreateOrConnectWithoutAdminInput[]
+  createMany?: Prisma.AdminOrganizationCreateManyAdminInputEnvelope
   connect?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
 }
 
-export type AdminOrganizationUncheckedCreateNestedManyWithoutUserInput = {
-  create?: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutUserInput, Prisma.AdminOrganizationUncheckedCreateWithoutUserInput> | Prisma.AdminOrganizationCreateWithoutUserInput[] | Prisma.AdminOrganizationUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.AdminOrganizationCreateOrConnectWithoutUserInput | Prisma.AdminOrganizationCreateOrConnectWithoutUserInput[]
-  createMany?: Prisma.AdminOrganizationCreateManyUserInputEnvelope
+export type AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput = {
+  create?: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutAdminInput, Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput> | Prisma.AdminOrganizationCreateWithoutAdminInput[] | Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput[]
+  connectOrCreate?: Prisma.AdminOrganizationCreateOrConnectWithoutAdminInput | Prisma.AdminOrganizationCreateOrConnectWithoutAdminInput[]
+  createMany?: Prisma.AdminOrganizationCreateManyAdminInputEnvelope
   connect?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
 }
 
-export type AdminOrganizationUpdateManyWithoutUserNestedInput = {
-  create?: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutUserInput, Prisma.AdminOrganizationUncheckedCreateWithoutUserInput> | Prisma.AdminOrganizationCreateWithoutUserInput[] | Prisma.AdminOrganizationUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.AdminOrganizationCreateOrConnectWithoutUserInput | Prisma.AdminOrganizationCreateOrConnectWithoutUserInput[]
-  upsert?: Prisma.AdminOrganizationUpsertWithWhereUniqueWithoutUserInput | Prisma.AdminOrganizationUpsertWithWhereUniqueWithoutUserInput[]
-  createMany?: Prisma.AdminOrganizationCreateManyUserInputEnvelope
+export type AdminOrganizationUpdateManyWithoutAdminNestedInput = {
+  create?: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutAdminInput, Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput> | Prisma.AdminOrganizationCreateWithoutAdminInput[] | Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput[]
+  connectOrCreate?: Prisma.AdminOrganizationCreateOrConnectWithoutAdminInput | Prisma.AdminOrganizationCreateOrConnectWithoutAdminInput[]
+  upsert?: Prisma.AdminOrganizationUpsertWithWhereUniqueWithoutAdminInput | Prisma.AdminOrganizationUpsertWithWhereUniqueWithoutAdminInput[]
+  createMany?: Prisma.AdminOrganizationCreateManyAdminInputEnvelope
   set?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
   disconnect?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
   delete?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
   connect?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
-  update?: Prisma.AdminOrganizationUpdateWithWhereUniqueWithoutUserInput | Prisma.AdminOrganizationUpdateWithWhereUniqueWithoutUserInput[]
-  updateMany?: Prisma.AdminOrganizationUpdateManyWithWhereWithoutUserInput | Prisma.AdminOrganizationUpdateManyWithWhereWithoutUserInput[]
+  update?: Prisma.AdminOrganizationUpdateWithWhereUniqueWithoutAdminInput | Prisma.AdminOrganizationUpdateWithWhereUniqueWithoutAdminInput[]
+  updateMany?: Prisma.AdminOrganizationUpdateManyWithWhereWithoutAdminInput | Prisma.AdminOrganizationUpdateManyWithWhereWithoutAdminInput[]
   deleteMany?: Prisma.AdminOrganizationScalarWhereInput | Prisma.AdminOrganizationScalarWhereInput[]
 }
 
-export type AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput = {
-  create?: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutUserInput, Prisma.AdminOrganizationUncheckedCreateWithoutUserInput> | Prisma.AdminOrganizationCreateWithoutUserInput[] | Prisma.AdminOrganizationUncheckedCreateWithoutUserInput[]
-  connectOrCreate?: Prisma.AdminOrganizationCreateOrConnectWithoutUserInput | Prisma.AdminOrganizationCreateOrConnectWithoutUserInput[]
-  upsert?: Prisma.AdminOrganizationUpsertWithWhereUniqueWithoutUserInput | Prisma.AdminOrganizationUpsertWithWhereUniqueWithoutUserInput[]
-  createMany?: Prisma.AdminOrganizationCreateManyUserInputEnvelope
+export type AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput = {
+  create?: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutAdminInput, Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput> | Prisma.AdminOrganizationCreateWithoutAdminInput[] | Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput[]
+  connectOrCreate?: Prisma.AdminOrganizationCreateOrConnectWithoutAdminInput | Prisma.AdminOrganizationCreateOrConnectWithoutAdminInput[]
+  upsert?: Prisma.AdminOrganizationUpsertWithWhereUniqueWithoutAdminInput | Prisma.AdminOrganizationUpsertWithWhereUniqueWithoutAdminInput[]
+  createMany?: Prisma.AdminOrganizationCreateManyAdminInputEnvelope
   set?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
   disconnect?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
   delete?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
   connect?: Prisma.AdminOrganizationWhereUniqueInput | Prisma.AdminOrganizationWhereUniqueInput[]
-  update?: Prisma.AdminOrganizationUpdateWithWhereUniqueWithoutUserInput | Prisma.AdminOrganizationUpdateWithWhereUniqueWithoutUserInput[]
-  updateMany?: Prisma.AdminOrganizationUpdateManyWithWhereWithoutUserInput | Prisma.AdminOrganizationUpdateManyWithWhereWithoutUserInput[]
+  update?: Prisma.AdminOrganizationUpdateWithWhereUniqueWithoutAdminInput | Prisma.AdminOrganizationUpdateWithWhereUniqueWithoutAdminInput[]
+  updateMany?: Prisma.AdminOrganizationUpdateManyWithWhereWithoutAdminInput | Prisma.AdminOrganizationUpdateManyWithWhereWithoutAdminInput[]
   deleteMany?: Prisma.AdminOrganizationScalarWhereInput | Prisma.AdminOrganizationScalarWhereInput[]
 }
 
@@ -394,42 +394,42 @@ export type AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput =
   deleteMany?: Prisma.AdminOrganizationScalarWhereInput | Prisma.AdminOrganizationScalarWhereInput[]
 }
 
-export type AdminOrganizationCreateWithoutUserInput = {
-  id: string
+export type AdminOrganizationCreateWithoutAdminInput = {
+  id?: string
   createdAt?: Date | string
-  Organization: Prisma.OrganizationCreateNestedOneWithoutAdminOrganizationInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutAdminMembersInput
 }
 
-export type AdminOrganizationUncheckedCreateWithoutUserInput = {
-  id: string
+export type AdminOrganizationUncheckedCreateWithoutAdminInput = {
+  id?: string
   organizationId: string
   createdAt?: Date | string
 }
 
-export type AdminOrganizationCreateOrConnectWithoutUserInput = {
+export type AdminOrganizationCreateOrConnectWithoutAdminInput = {
   where: Prisma.AdminOrganizationWhereUniqueInput
-  create: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutUserInput, Prisma.AdminOrganizationUncheckedCreateWithoutUserInput>
+  create: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutAdminInput, Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput>
 }
 
-export type AdminOrganizationCreateManyUserInputEnvelope = {
-  data: Prisma.AdminOrganizationCreateManyUserInput | Prisma.AdminOrganizationCreateManyUserInput[]
+export type AdminOrganizationCreateManyAdminInputEnvelope = {
+  data: Prisma.AdminOrganizationCreateManyAdminInput | Prisma.AdminOrganizationCreateManyAdminInput[]
   skipDuplicates?: boolean
 }
 
-export type AdminOrganizationUpsertWithWhereUniqueWithoutUserInput = {
+export type AdminOrganizationUpsertWithWhereUniqueWithoutAdminInput = {
   where: Prisma.AdminOrganizationWhereUniqueInput
-  update: Prisma.XOR<Prisma.AdminOrganizationUpdateWithoutUserInput, Prisma.AdminOrganizationUncheckedUpdateWithoutUserInput>
-  create: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutUserInput, Prisma.AdminOrganizationUncheckedCreateWithoutUserInput>
+  update: Prisma.XOR<Prisma.AdminOrganizationUpdateWithoutAdminInput, Prisma.AdminOrganizationUncheckedUpdateWithoutAdminInput>
+  create: Prisma.XOR<Prisma.AdminOrganizationCreateWithoutAdminInput, Prisma.AdminOrganizationUncheckedCreateWithoutAdminInput>
 }
 
-export type AdminOrganizationUpdateWithWhereUniqueWithoutUserInput = {
+export type AdminOrganizationUpdateWithWhereUniqueWithoutAdminInput = {
   where: Prisma.AdminOrganizationWhereUniqueInput
-  data: Prisma.XOR<Prisma.AdminOrganizationUpdateWithoutUserInput, Prisma.AdminOrganizationUncheckedUpdateWithoutUserInput>
+  data: Prisma.XOR<Prisma.AdminOrganizationUpdateWithoutAdminInput, Prisma.AdminOrganizationUncheckedUpdateWithoutAdminInput>
 }
 
-export type AdminOrganizationUpdateManyWithWhereWithoutUserInput = {
+export type AdminOrganizationUpdateManyWithWhereWithoutAdminInput = {
   where: Prisma.AdminOrganizationScalarWhereInput
-  data: Prisma.XOR<Prisma.AdminOrganizationUpdateManyMutationInput, Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserInput>
+  data: Prisma.XOR<Prisma.AdminOrganizationUpdateManyMutationInput, Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminInput>
 }
 
 export type AdminOrganizationScalarWhereInput = {
@@ -443,13 +443,13 @@ export type AdminOrganizationScalarWhereInput = {
 }
 
 export type AdminOrganizationCreateWithoutOrganizationInput = {
-  id: string
+  id?: string
   createdAt?: Date | string
-  User: Prisma.UserCreateNestedOneWithoutAdminOrganizationInput
+  admin: Prisma.UserCreateNestedOneWithoutAdminOrganizationsInput
 }
 
 export type AdminOrganizationUncheckedCreateWithoutOrganizationInput = {
-  id: string
+  id?: string
   adminId: string
   createdAt?: Date | string
 }
@@ -480,32 +480,32 @@ export type AdminOrganizationUpdateManyWithWhereWithoutOrganizationInput = {
   data: Prisma.XOR<Prisma.AdminOrganizationUpdateManyMutationInput, Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationInput>
 }
 
-export type AdminOrganizationCreateManyUserInput = {
-  id: string
+export type AdminOrganizationCreateManyAdminInput = {
+  id?: string
   organizationId: string
   createdAt?: Date | string
 }
 
-export type AdminOrganizationUpdateWithoutUserInput = {
+export type AdminOrganizationUpdateWithoutAdminInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Organization?: Prisma.OrganizationUpdateOneRequiredWithoutAdminOrganizationNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutAdminMembersNestedInput
 }
 
-export type AdminOrganizationUncheckedUpdateWithoutUserInput = {
+export type AdminOrganizationUncheckedUpdateWithoutAdminInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type AdminOrganizationUncheckedUpdateManyWithoutUserInput = {
+export type AdminOrganizationUncheckedUpdateManyWithoutAdminInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type AdminOrganizationCreateManyOrganizationInput = {
-  id: string
+  id?: string
   adminId: string
   createdAt?: Date | string
 }
@@ -513,7 +513,7 @@ export type AdminOrganizationCreateManyOrganizationInput = {
 export type AdminOrganizationUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  User?: Prisma.UserUpdateOneRequiredWithoutAdminOrganizationNestedInput
+  admin?: Prisma.UserUpdateOneRequiredWithoutAdminOrganizationsNestedInput
 }
 
 export type AdminOrganizationUncheckedUpdateWithoutOrganizationInput = {
@@ -535,8 +535,8 @@ export type AdminOrganizationSelect<ExtArgs extends runtime.Types.Extensions.Int
   adminId?: boolean
   organizationId?: boolean
   createdAt?: boolean
-  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  Organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  admin?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["adminOrganization"]>
 
 
@@ -550,15 +550,15 @@ export type AdminOrganizationSelectScalar = {
 
 export type AdminOrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "adminId" | "organizationId" | "createdAt", ExtArgs["result"]["adminOrganization"]>
 export type AdminOrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  User?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  Organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  admin?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
 
 export type $AdminOrganizationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AdminOrganization"
   objects: {
-    User: Prisma.$UserPayload<ExtArgs>
-    Organization: Prisma.$OrganizationPayload<ExtArgs>
+    admin: Prisma.$UserPayload<ExtArgs>
+    organization: Prisma.$OrganizationPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -905,8 +905,8 @@ readonly fields: AdminOrganizationFieldRefs;
  */
 export interface Prisma__AdminOrganizationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  User<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  Organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  admin<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

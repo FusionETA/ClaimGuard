@@ -66,7 +66,7 @@ export async function loginAction(
     if (result.user.role === "EMPLOYEE" || result.user.role === "SUPERVISOR") {
       await loadEmployeeData(result.user.email)
     } else {
-      await loadAdminData(result.user.email)
+      await loadAdminData(result.user.email, result.user.organizationId)
     }
   } catch {
     // If pre-fetch fails, pages will lazy-load from DB on first visit.

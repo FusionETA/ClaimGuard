@@ -10,6 +10,7 @@ import { getCurrentSession, updateCurrentSession } from "@/lib/auth/session"
 import type { XeroTenant } from "@/lib/xero"
 import { deleteXeroConnection } from "@/lib/xero"
 import {
+  disconnectXeroConnection,
   syncOrganizationChartAccounts,
   syncOrganizationProjects,
 } from "@/modules/organization/application/services/xero-connection.service"
@@ -27,6 +28,23 @@ const claimRunSchema = z.object({
     .int("Use a whole number for the cutoff day.")
     .min(1, "Cutoff day must be between 1 and 28.")
     .max(28, "Cutoff day must be between 1 and 28."),
+})
+
+const otRateMultiplier = z.coerce
+  .number({ message: "Rates must be a number." })
+  .min(1, "Rates must be at least 1.0×.")
+  .max(10, "Rates must be at most 10.0×.")
+
+const otRatesSchema = z.object({
+  otRateNormalDay: otRateMultiplier,
+  otRateRestDay: otRateMultiplier,
+  otRatePublicHoliday: otRateMultiplier,
+  restDayInShiftRate: otRateMultiplier,
+  publicHolidayInShiftRate: otRateMultiplier,
+  otSalaryThreshold: z.coerce
+    .number({ message: "Threshold must be a number." })
+    .min(0, "Threshold must be 0 or greater.")
+    .max(1_000_000, "Threshold seems unrealistic."),
 })
 
 function revalidateAdminSurfaces() {
@@ -71,15 +89,27 @@ export async function saveOrganizationSettingsAction(
     }
   }
 
-  const organization = await organizationRepository.upsertAdminOrganization({
-    adminUserId: session.userId,
-    organizationName: parsed.data.organizationName!,
-  })
+  const organizationId = session.activeOrganizationId ?? session.organizationId
 
-  await updateCurrentSession({
-    organizationId: organization.id,
-    organizationName: organization.name,
-  })
+  const organization = organizationId
+    ? await organizationRepository.updateOrganizationName({
+        adminId: session.userId,
+        organizationId,
+        organizationName: parsed.data.organizationName!,
+      })
+    : await organizationRepository.upsertAdminOrganization({
+        adminUserId: session.userId,
+        organizationName: parsed.data.organizationName!,
+      })
+
+  await updateCurrentSession(
+    organizationId && organizationId !== session.organizationId
+      ? {}
+      : {
+          organizationId: organization.id,
+          organizationName: organization.name,
+        }
+  )
 
   clearAdminStore(session.email)
   revalidateAdminSurfaces()
@@ -169,7 +199,8 @@ export async function saveSelectableAccountsAction(
     }
   }
 
-  if (!session.organizationId) {
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
     return {
       status: "error",
       message: "Create or assign an organization before enabling claim accounts.",
@@ -184,7 +215,7 @@ export async function saveSelectableAccountsAction(
     .filter(Boolean)
 
   await organizationRepository.setSelectableChartAccounts({
-    organizationId: session.organizationId,
+    organizationId,
     xeroConnectionId: connectionId,
     chartAccountIds,
   })
@@ -205,6 +236,25 @@ export async function switchActiveXeroConnectionAction(
   revalidatePath("/admin", "layout")
 }
 
+export async function switchActiveOrganizationAction(
+  organizationId: string
+): Promise<void> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") return
+
+  // Verify the admin actually belongs to this org before switching
+  const isAdmin = await organizationRepository.isAdminOfOrganization(session.userId, organizationId)
+  if (!isAdmin) return
+
+  // Clear active Xero connection when switching org — the new org has its own
+  await updateCurrentSession({
+    activeOrganizationId: organizationId,
+    activeXeroConnectionId: undefined,
+  })
+  clearAdminStore(session.email)
+  revalidatePath("/admin", "layout")
+}
+
 export async function createCustomAccountAction(
   _previousState: SettingsActionState,
   formData: FormData
@@ -215,7 +265,8 @@ export async function createCustomAccountAction(
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
-  if (!session.organizationId) {
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
     return { status: "error", message: "Create an organization before adding accounts." }
   }
 
@@ -230,7 +281,7 @@ export async function createCustomAccountAction(
 
   try {
     await organizationRepository.createCustomChartAccount({
-      organizationId: session.organizationId,
+      organizationId,
       code,
       name,
       type,
@@ -258,14 +309,15 @@ export async function deleteCustomAccountAction(
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
-  if (!session.organizationId) {
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
     return { ok: false, message: "No organization found." }
   }
 
   try {
     await organizationRepository.deleteCustomChartAccount({
       id,
-      organizationId: session.organizationId,
+      organizationId,
     })
   } catch (error) {
     return {
@@ -326,7 +378,7 @@ export async function selectXeroTenantAction(
   }
 
   // Auto-create org from Xero tenant name if admin hasn't set one yet
-  let organizationId = session.organizationId
+  let organizationId = session.activeOrganizationId ?? session.organizationId
   if (!organizationId) {
     const org = await organizationRepository.upsertAdminOrganization({
       adminUserId: session.userId,
@@ -344,6 +396,19 @@ export async function selectXeroTenantAction(
     return {
       status: "error",
       message: `"${tenant.tenantName}" is already connected to another organisation. Please select a different one.`,
+    }
+  }
+
+  const existingConnections = await organizationRepository.getXeroConnections(organizationId)
+  const hasDifferentExistingConnection = existingConnections.some(
+    (connection) => connection.tenantId !== tenant.tenantId
+  )
+
+  if (hasDifferentExistingConnection) {
+    return {
+      status: "error",
+      message:
+        "This company is already connected to a different Xero organization. Disconnect the current one before connecting a new one.",
     }
   }
 
@@ -375,6 +440,279 @@ export async function selectXeroTenantAction(
   return { status: "success", message: "Xero organisation connected successfully." }
 }
 
+export async function disconnectXeroAction(
+  connectionId: string
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
+    return { ok: false, message: "No organization found." }
+  }
+
+  const result = await disconnectXeroConnection({
+    connectionId,
+    organizationId,
+  })
+
+  if (result.ok) {
+    clearAdminStore(session.email)
+    revalidateAdminSurfaces()
+  }
+
+  return result
+}
+
+export async function createOrganizationAction(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const name = String(formData.get("name") ?? "").trim()
+  if (!name) {
+    return { status: "error", message: "Organization name is required." }
+  }
+
+  try {
+    const org = await organizationRepository.createAdminOrganization({
+      adminId: session.userId,
+      name,
+    })
+
+    // Switch to the newly created organization
+    await updateCurrentSession(
+      session.organizationId
+        ? { activeOrganizationId: org.id }
+        : {
+            organizationId: org.id,
+            organizationName: org.name,
+            activeOrganizationId: org.id,
+          }
+    )
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unable to create organization.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { status: "success", message: "Organization created." }
+}
+
+export async function switchOrganizationAction(organizationId: string): Promise<void> {
+  await updateCurrentSession({ activeOrganizationId: organizationId })
+  revalidatePath("/admin", "layout")
+}
+
+export async function saveSelectedBankAccountsAction(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = session.activeOrganizationId ?? session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
+    return { status: "error", message: "No organization selected." }
+  }
+
+  const connectionId = String(formData.get("connectionId") ?? "").trim() || undefined
+  const chartAccountIds = formData.getAll("bankAccountIds").map(String).filter(Boolean)
+
+  await organizationRepository.setSelectedBankAccounts({
+    organizationId,
+    xeroConnectionId: connectionId,
+    chartAccountIds,
+  })
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { status: "success", message: "Bank accounts updated." }
+}
+
+export async function createManualProjectAction(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
+    return { status: "error", message: "Create an organization first." }
+  }
+
+  const name = String(formData.get("name") ?? "").trim()
+  const rawPm = String(formData.get("projectManagerId") ?? "").trim()
+  const projectManagerId = rawPm && rawPm !== "__none" ? rawPm : undefined
+  const location = String(formData.get("location") ?? "").trim() || undefined
+
+  if (!name) {
+    return { status: "error", message: "Project name is required." }
+  }
+
+  try {
+    await organizationRepository.createManualProject({
+      organizationId,
+      name,
+      projectManagerId,
+      location,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unable to create project.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { status: "success", message: "Project created." }
+}
+
+export async function updateProjectAction(
+  projectId: string,
+  projectManagerId: string | undefined,
+  location: string | undefined
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
+    return { ok: false, message: "No organization found." }
+  }
+
+  try {
+    await organizationRepository.updateProjectDetails({
+      projectId,
+      organizationId,
+      projectManagerId: projectManagerId || undefined,
+      location: location || undefined,
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unable to update project.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { ok: true, message: "Project updated." }
+}
+
+export async function deleteManualProjectAction(
+  projectId: string
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
+    return { ok: false, message: "No organization found." }
+  }
+
+  try {
+    await organizationRepository.deleteManualProject({
+      projectId,
+      organizationId,
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unable to delete project.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { ok: true, message: "Project deleted." }
+}
+
+export async function saveBankAccountAction(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
+    return { status: "error", message: "Create an organization before adding a bank account." }
+  }
+
+  const bankAccount = String(formData.get("bankAccount") ?? "").trim()
+
+  try {
+    await organizationRepository.updateOrganizationBankAccount({
+      organizationId,
+      bankAccount,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unable to save bank account.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { status: "success", message: "Bank account saved." }
+}
+
+export async function deleteBankAccountAction(): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
+    return { ok: false, message: "No organization found." }
+  }
+
+  await organizationRepository.updateOrganizationBankAccount({ organizationId, bankAccount: "" })
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { ok: true, message: "Bank account cleared." }
+}
+
 export async function saveClaimRunSettingsAction(
   _previousState: SettingsActionState,
   formData: FormData
@@ -388,7 +726,8 @@ export async function saveClaimRunSettingsAction(
     }
   }
 
-  if (!session.organizationId) {
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
     return {
       status: "error",
       message: "Create or assign an organization before updating claim run settings.",
@@ -407,7 +746,7 @@ export async function saveClaimRunSettingsAction(
   }
 
   await organizationRepository.updateOrganizationClaimCutoff({
-    organizationId: session.organizationId,
+    organizationId,
     claimCutoffDay: parsed.data.claimCutoffDay,
   })
 
@@ -417,5 +756,67 @@ export async function saveClaimRunSettingsAction(
   return {
     status: "success",
     message: "Claim run cutoff updated.",
+  }
+}
+
+export async function saveOtRatesAction(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+  if (!organizationId) {
+    return {
+      status: "error",
+      message: "Create or assign an organization before updating OT rates.",
+    }
+  }
+
+  const parsed = otRatesSchema.safeParse({
+    otRateNormalDay: formData.get("otRateNormalDay"),
+    otRateRestDay: formData.get("otRateRestDay"),
+    otRatePublicHoliday: formData.get("otRatePublicHoliday"),
+    restDayInShiftRate: formData.get("restDayInShiftRate"),
+    publicHolidayInShiftRate: formData.get("publicHolidayInShiftRate"),
+    otSalaryThreshold: formData.get("otSalaryThreshold"),
+  })
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Unable to save OT rates.",
+    }
+  }
+
+  try {
+    await organizationRepository.updateOrganizationOtRates({
+      organizationId,
+      rates: {
+        normalDay: parsed.data.otRateNormalDay,
+        restDay: parsed.data.otRateRestDay,
+        publicHoliday: parsed.data.otRatePublicHoliday,
+        restDayInShift: parsed.data.restDayInShiftRate,
+        publicHolidayInShift: parsed.data.publicHolidayInShiftRate,
+        salaryThreshold: parsed.data.otSalaryThreshold,
+      },
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unable to save OT rates.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return {
+    status: "success",
+    message: "OT rates updated.",
   }
 }

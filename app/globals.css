@@ -4,68 +4,72 @@
 
 @layer base {
   :root {
-    --background: 180 13% 96%;
-    --foreground: 210 14% 13%;
-    --card: 210 20% 98%;
-    --card-foreground: 210 14% 13%;
-    --popover: 210 20% 98%;
-    --popover-foreground: 210 14% 13%;
-    --primary: 188 78% 24%;
-    --primary-foreground: 180 25% 98%;
-    --secondary: 176 37% 91%;
-    --secondary-foreground: 189 29% 25%;
-    --muted: 180 8% 90%;
-    --muted-foreground: 210 7% 46%;
-    --accent: 192 21% 34%;
-    --accent-foreground: 180 25% 98%;
+    /* ── Purple/Mint palette ──────────────────────────────────
+       Purple anchor : #4C1A86  → hsl(268 68% 31%)
+       Mint anchor   : #9AFAE3  → hsl(166 91% 79%)
+    ─────────────────────────────────────────────────────────── */
+    --background: 268 30% 97%;
+    --foreground: 268 50% 10%;
+    --card: 268 35% 99%;
+    --card-foreground: 268 50% 10%;
+    --popover: 268 35% 99%;
+    --popover-foreground: 268 50% 10%;
+    --primary: 268 68% 31%;           /* #4C1A86 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 166 55% 90%;         /* light mint wash */
+    --secondary-foreground: 168 50% 22%;
+    --muted: 268 15% 92%;
+    --muted-foreground: 268 12% 45%;
+    --accent: 166 91% 79%;            /* #9AFAE3 mint */
+    --accent-foreground: 168 65% 14%;
     --destructive: 0 72% 43%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 195 16% 79%;
-    --input: 195 16% 79%;
-    --ring: 188 78% 24%;
+    --destructive-foreground: 0 40% 98%;
+    --border: 268 22% 83%;
+    --input: 268 22% 83%;
+    --ring: 268 68% 31%;
     --radius: 1.5rem;
-    --surface: 180 13% 96%;
-    --surface-container: 180 10% 92%;
-    --surface-container-low: 180 9% 94%;
-    --surface-container-high: 180 8% 89%;
+    --surface: 268 30% 97%;
+    --surface-container: 268 18% 93%;
+    --surface-container-low: 268 16% 95%;
+    --surface-container-high: 268 14% 90%;
     --surface-container-lowest: 0 0% 100%;
     --tertiary: 20 100% 28%;
     --tertiary-foreground: 0 0% 100%;
     --tertiary-fixed: 20 100% 90%;
-    --success: 140 53% 34%;
+    --success: 166 68% 32%;           /* deep mint success */
     --success-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 218 23% 10%;
-    --foreground: 210 40% 96%;
-    --card: 220 21% 14%;
-    --card-foreground: 210 40% 96%;
-    --popover: 220 21% 14%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 213 72% 68%;
-    --primary-foreground: 220 50% 12%;
-    --secondary: 211 22% 24%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 218 19% 18%;
-    --muted-foreground: 215 20% 72%;
-    --accent: 213 45% 34%;
-    --accent-foreground: 210 40% 98%;
+    --background: 268 40% 7%;
+    --foreground: 268 20% 96%;
+    --card: 268 35% 11%;
+    --card-foreground: 268 20% 96%;
+    --popover: 268 35% 11%;
+    --popover-foreground: 268 20% 96%;
+    --primary: 268 62% 67%;           /* lightened purple for dark bg */
+    --primary-foreground: 268 55% 8%;
+    --secondary: 168 28% 20%;         /* dark mint-tinted surface */
+    --secondary-foreground: 166 75% 88%;
+    --muted: 268 22% 16%;
+    --muted-foreground: 268 16% 66%;
+    --accent: 166 80% 68%;            /* slightly dimmed mint */
+    --accent-foreground: 168 65% 11%;
     --destructive: 0 72% 48%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 218 19% 23%;
-    --input: 218 19% 23%;
-    --ring: 213 72% 68%;
-    --surface: 218 23% 10%;
-    --surface-container: 220 20% 13%;
-    --surface-container-low: 220 18% 16%;
-    --surface-container-high: 220 15% 18%;
-    --surface-container-lowest: 220 18% 21%;
+    --destructive-foreground: 0 40% 98%;
+    --border: 268 22% 20%;
+    --input: 268 22% 20%;
+    --ring: 268 62% 67%;
+    --surface: 268 40% 7%;
+    --surface-container: 268 32% 10%;
+    --surface-container-low: 268 28% 13%;
+    --surface-container-high: 268 22% 16%;
+    --surface-container-lowest: 268 25% 19%;
     --tertiary: 17 82% 71%;
     --tertiary-foreground: 24 67% 12%;
     --tertiary-fixed: 18 53% 24%;
-    --success: 141 44% 52%;
-    --success-foreground: 144 100% 6%;
+    --success: 166 72% 52%;
+    --success-foreground: 168 100% 6%;
   }
 
   * {
@@ -81,10 +85,10 @@
     @apply bg-background text-foreground antialiased;
     background-image: radial-gradient(
         circle at top left,
-        rgba(13, 94, 107, 0.14),
-        transparent 38%
+        rgba(76, 26, 134, 0.13),    /* #4C1A86 purple */
+        transparent 40%
       ),
-      radial-gradient(circle at top right, rgba(224, 242, 241, 0.9), transparent 28%),
+      radial-gradient(circle at top right, rgba(154, 250, 227, 0.38), transparent 32%),  /* #9AFAE3 mint */
       linear-gradient(rgba(255, 255, 255, 0.58) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.58) 1px, transparent 1px);
     background-size:

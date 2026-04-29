@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 type SubNavItem = {
-  href: string
+  href: Route
   label: string
   badge?: boolean
 }

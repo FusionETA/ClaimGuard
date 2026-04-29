@@ -8,48 +8,71 @@ datasource db {
 }
 
 model User {
-  id                                                   String              @id @default(cuid())
-  email                                                String              @unique
-  name                                                 String
-  role                                                 UserRole
-  organizationId                                       String?
-  passwordHash                                         String
-  avatarUrl                                            String?
-  createdAt                                            DateTime            @default(now())
-  updatedAt                                            DateTime            @updatedAt
-  AdminOrganization                                    AdminOrganization[]
-  ApprovalChainStep_ApprovalChainStep_approverIdToUser ApprovalChainStep[] @relation("ApprovalChainStep_approverIdToUser")
-  ApprovalChainStep_ApprovalChainStep_employeeIdToUser ApprovalChainStep[] @relation("ApprovalChainStep_employeeIdToUser")
-  approvals                                            ApprovalRequest[]   @relation("EmployeeApprovals")
-  approvalReviews                                      ApprovalRequest[]   @relation("ReviewerApprovals")
-  attendance                                           AttendanceRecord[]  @relation("EmployeeAttendance")
-  claims                                               Claim[]             @relation("EmployeeClaims")
-  reviews                                              Claim[]             @relation("AdminReviews")
-  supervisedProfiles                                   EmployeeProfile[]   @relation("SupervisorReports")
-  employeeProfile                                      EmployeeProfile?    @relation("EmployeeProfileUser")
-  pushSubscriptions                                    PushSubscription[]
-  organization                                         Organization?       @relation(fields: [organizationId], references: [id])
-  xeroConnections                                      XeroConnection[]    @relation("XeroConnectedBy")
-  XeroProject                                          XeroProject[]
+  id                 String             @id @default(cuid())
+  email              String             @unique
+  name               String
+  role               UserRole
+  organizationId     String?
+  passwordHash       String
+  avatarUrl          String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  approvals               ApprovalRequest[]   @relation("EmployeeApprovals")
+  approvalReviews         ApprovalRequest[]   @relation("ReviewerApprovals")
+  attendance              AttendanceRecord[]  @relation("EmployeeAttendance")
+  claims                  Claim[]             @relation("EmployeeClaims")
+  reviews                 Claim[]             @relation("AdminReviews")
+  supervisedProfiles      EmployeeProfile[]   @relation("SupervisorReports")
+  employeeProfile         EmployeeProfile?    @relation("EmployeeProfileUser")
+  pushSubscriptions       PushSubscription[]
+  organization            Organization?       @relation(fields: [organizationId], references: [id])
+  xeroConnections         XeroConnection[]    @relation("XeroConnectedBy")
+  approvalChainSteps      ApprovalChainStep[] @relation("EmployeeChain")
+  approvalChainApprovals  ApprovalChainStep[] @relation("ApproverChain")
+  managedProjects         XeroProject[]       @relation("ProjectManager")
+  adminOrganizations      AdminOrganization[] @relation("AdminOrganizations")
 
   @@index([organizationId])
 }
 
 model Organization {
-  id                String              @id @default(cuid())
-  name              String              @unique
-  claimCutoffDay    Int                 @default(25)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  workingHoursEnd   String              @default("18:00")
-  workingHoursStart String              @default("09:00")
-  bankAccount       String?
-  AdminOrganization AdminOrganization[]
-  chartAccounts     ChartOfAccount[]
-  claims            Claim[]
-  users             User[]
-  xeroConnections   XeroConnection[]
-  projects          XeroProject[]
+  id                       String              @id @default(cuid())
+  name                     String              @unique
+  claimCutoffDay           Int                 @default(25)
+  bankAccount              String?
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  workingHoursEnd          String              @default("18:00")
+  workingHoursStart        String              @default("09:00")
+  // Overtime rate configuration (Malaysian Employment Act defaults).
+  // OT multipliers apply to HRP for hours beyond the regular threshold;
+  // in-shift premiums apply to ORP for hours within the regular shift on
+  // rest days / public holidays.
+  otRateNormalDay          Decimal             @default(1.5) @db.Decimal(4, 2)
+  otRateRestDay            Decimal             @default(2.0) @db.Decimal(4, 2)
+  otRatePublicHoliday      Decimal             @default(3.0) @db.Decimal(4, 2)
+  restDayInShiftRate       Decimal             @default(1.0) @db.Decimal(4, 2)
+  publicHolidayInShiftRate Decimal             @default(2.0) @db.Decimal(4, 2)
+  otSalaryThreshold        Decimal             @default(4000) @db.Decimal(10, 2)
+  chartAccounts            ChartOfAccount[]
+  claims                   Claim[]
+  users                    User[]
+  xeroConnections          XeroConnection[]
+  projects                 XeroProject[]
+  adminMembers             AdminOrganization[]
+}
+
+model AdminOrganization {
+  id             String       @id @default(cuid())
+  adminId        String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  admin          User         @relation("AdminOrganizations", fields: [adminId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([adminId, organizationId])
+  @@index([adminId])
+  @@index([organizationId])
 }
 
 model PushSubscription {
@@ -134,11 +157,11 @@ model ChartOfAccount {
   type             String?
   status           String?
   isSelectable     Boolean         @default(false)
+  isBankAccount    Boolean         @default(false)
   isCustom         Boolean         @default(false)
+  isDisabled       Boolean         @default(false)
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  isBankAccount    Boolean         @default(false)
-  isDisabled       Boolean         @default(false)
   organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
   claims           Claim[]
@@ -184,15 +207,15 @@ model XeroProject {
   name             String
   status           String?
   contactId        String?
+  projectManagerId String?
+  location         String?
+  isManual         Boolean         @default(false)
+  isDisabled       Boolean         @default(false)
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  isManual         Boolean         @default(false)
-  location         String?
-  projectManagerId String?
-  isDisabled       Boolean         @default(false)
   organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  User             User?           @relation(fields: [projectManagerId], references: [id])
   xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
+  projectManager   User?           @relation("ProjectManager", fields: [projectManagerId], references: [id], onDelete: SetNull)
 
   @@unique([xeroConnectionId, xeroProjectId])
   @@index([xeroConnectionId, name])
@@ -250,32 +273,19 @@ model ApprovalRequest {
   @@index([reviewerId], map: "ApprovalRequest_reviewerId_fkey")
 }
 
-model AdminOrganization {
-  id             String       @id
-  adminId        String
-  organizationId String
-  createdAt      DateTime     @default(now())
-  User           User         @relation(fields: [adminId], references: [id], onDelete: Cascade)
-  Organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([adminId, organizationId])
-  @@index([adminId])
-  @@index([organizationId])
-}
-
 model ApprovalChainStep {
-  id                                      String   @id
-  employeeId                              String
-  step                                    Int
-  approverId                              String
-  createdAt                               DateTime @default(now())
-  updatedAt                               DateTime
-  User_ApprovalChainStep_approverIdToUser User     @relation("ApprovalChainStep_approverIdToUser", fields: [approverId], references: [id])
-  User_ApprovalChainStep_employeeIdToUser User     @relation("ApprovalChainStep_employeeIdToUser", fields: [employeeId], references: [id], onDelete: Cascade)
+  id         String @id @default(cuid())
+  employeeId String
+  step       Int
+  approverId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  employee   User   @relation("EmployeeChain", fields: [employeeId], references: [id], onDelete: Cascade)
+  approver   User   @relation("ApproverChain", fields: [approverId], references: [id])
 
   @@unique([employeeId, step])
-  @@index([approverId])
   @@index([employeeId])
+  @@index([approverId])
 }
 
 enum UserRole {
