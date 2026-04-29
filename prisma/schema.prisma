@@ -91,18 +91,32 @@ model User {
 }
 
 model Organization {
-  id                String           @id @default(cuid())
-  name              String           @unique
-  claimCutoffDay    Int              @default(25)
-  workingHoursStart String           @default("09:00")
-  workingHoursEnd   String           @default("18:00")
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  users             User[]
-  claims            Claim[]
-  xeroConnections   XeroConnection[]
-  chartAccounts     ChartOfAccount[]
-  projects          XeroProject[]
+  id                 String              @id @default(cuid())
+  name               String              @unique
+  claimCutoffDay     Int                 @default(25)
+  workingHoursStart  String              @default("09:00")
+  workingHoursEnd    String              @default("18:00")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  users              User[]
+  claims             Claim[]
+  xeroConnections    XeroConnection[]
+  chartAccounts      ChartOfAccount[]
+  projects           XeroProject[]
+  attendanceProjects AttendanceProject[]
+}
+
+model AttendanceProject {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  archived       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId, archived])
 }
 
 model PushSubscription {
@@ -274,6 +288,7 @@ model ApprovalRequest {
   title       String
   detail      String         @db.Text
   location    String?
+  project     String?
   // OT-specific
   otSubtype   OTSubtype?
   lateMinutes Int?

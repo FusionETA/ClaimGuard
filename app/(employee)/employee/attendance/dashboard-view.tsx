@@ -1,30 +1,27 @@
-import { AlertTriangle, CheckCircle2, Coffee, Fingerprint, LogOut } from "lucide-react"
+import { AlertTriangle, CheckCircle2 } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import type {
+  AttendanceProjectView,
   ClockEventLite,
   EmployeeAttendanceDashboard,
 } from "@/modules/attendance/domain/models"
 import { cn } from "@/lib/utils"
 
-import {
-  clockInAction,
-  clockOutAction,
-  confirmBreakAction,
-} from "./actions"
+import { ClockCard } from "./clock-card"
 
 type Props = {
   firstName: string
   dashboard: EmployeeAttendanceDashboard
   workingHours: { start: string; end: string }
+  projects: AttendanceProjectView[]
 }
 
-function fmtTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  })
+function fmtTime(iso: string | null) {
+  return iso
+    ? new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    : "—"
 }
 
 function fmtDate(d: Date) {
@@ -46,6 +43,7 @@ export function EmployeeAttendanceDashboardView({
   firstName,
   dashboard,
   workingHours,
+  projects,
 }: Props) {
   const state = deriveState(dashboard.todayEvents)
   const now = new Date()
@@ -77,64 +75,12 @@ export function EmployeeAttendanceDashboardView({
         </div>
       </Card>
 
-      <Card className="p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Right now
-            </p>
-            <p className="mt-0.5 text-3xl font-extrabold text-foreground">
-              {now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
-            </p>
-          </div>
-        </div>
-
-        {state === "OUT" ? (
-          <form action={clockInAction}>
-            <button
-              type="submit"
-              className="group flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-secondary bg-secondary/40 py-6 transition hover:bg-secondary/60 active:scale-95"
-            >
-              <div className="relative mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-primary shadow-panel">
-                <div className="absolute h-20 w-20 animate-ping2 rounded-full bg-primary opacity-20" />
-                <Fingerprint className="h-10 w-10 text-primary-foreground" />
-              </div>
-              <p className="text-sm font-bold text-primary">Tap to Clock In</p>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Pending supervisor approval after tap
-              </p>
-            </button>
-          </form>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <form action={confirmBreakAction}>
-              <button
-                type="submit"
-                className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-secondary bg-secondary/40 py-5 transition hover:bg-secondary/60 active:scale-95"
-              >
-                <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                  <Coffee className="h-6 w-6" />
-                </div>
-                <p className="text-sm font-bold text-foreground">Confirm Break</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">Still on site</p>
-              </button>
-            </form>
-
-            <form action={clockOutAction}>
-              <button
-                type="submit"
-                className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-destructive/40 bg-destructive/5 py-5 transition hover:bg-destructive/10 active:scale-95"
-              >
-                <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
-                  <LogOut className="h-6 w-6" />
-                </div>
-                <p className="text-sm font-bold text-destructive">Clock Out</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">End shift</p>
-              </button>
-            </form>
-          </div>
-        )}
-      </Card>
+      <ClockCard
+        state={state}
+        projects={projects}
+        activeProject={dashboard.today?.project ?? null}
+        now={now.toISOString()}
+      />
 
       {dashboard.todayEvents.length > 0 ? (
         <Card>
@@ -213,8 +159,9 @@ export function EmployeeAttendanceDashboardView({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-foreground">{r.date}</p>
                   <p className="text-xs text-muted-foreground">
-                    {r.timeIn ? fmtTime(r.timeIn) : "—"}{" "}
-                    {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}
+                    {fmtTime(r.timeIn)}{" "}
+                    {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}{" "}
+                    {r.project ? `• ${r.project}` : ""}
                   </p>
                 </div>
                 <span className="shrink-0 text-xs font-bold text-muted-foreground">

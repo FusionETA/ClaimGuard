@@ -237,6 +237,7 @@ export type OrganizationWhereInput = {
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
+  attendanceProjects?: Prisma.AttendanceProjectListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -252,6 +253,7 @@ export type OrganizationOrderByWithRelationInput = {
   xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
   projects?: Prisma.XeroProjectOrderByRelationAggregateInput
+  attendanceProjects?: Prisma.AttendanceProjectOrderByRelationAggregateInput
   _relevance?: Prisma.OrganizationOrderByRelevanceInput
 }
 
@@ -271,6 +273,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
+  attendanceProjects?: Prisma.AttendanceProjectListRelationFilter
 }, "id" | "name">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -314,6 +317,7 @@ export type OrganizationCreateInput = {
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -329,6 +333,7 @@ export type OrganizationUncheckedCreateInput = {
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -344,6 +349,7 @@ export type OrganizationUpdateInput = {
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -359,6 +365,7 @@ export type OrganizationUncheckedUpdateInput = {
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -469,6 +476,20 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type OrganizationCreateNestedOneWithoutAttendanceProjectsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAttendanceProjectsInput, Prisma.OrganizationUncheckedCreateWithoutAttendanceProjectsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAttendanceProjectsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutAttendanceProjectsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAttendanceProjectsInput, Prisma.OrganizationUncheckedCreateWithoutAttendanceProjectsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAttendanceProjectsInput
+  upsert?: Prisma.OrganizationUpsertWithoutAttendanceProjectsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutAttendanceProjectsInput, Prisma.OrganizationUpdateWithoutAttendanceProjectsInput>, Prisma.OrganizationUncheckedUpdateWithoutAttendanceProjectsInput>
+}
+
 export type OrganizationCreateNestedOneWithoutClaimsInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutClaimsInput, Prisma.OrganizationUncheckedCreateWithoutClaimsInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutClaimsInput
@@ -539,6 +560,7 @@ export type OrganizationCreateWithoutUsersInput = {
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -553,6 +575,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -583,6 +606,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -593,6 +617,83 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutAttendanceProjectsInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutAttendanceProjectsInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutAttendanceProjectsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAttendanceProjectsInput, Prisma.OrganizationUncheckedCreateWithoutAttendanceProjectsInput>
+}
+
+export type OrganizationUpsertWithoutAttendanceProjectsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutAttendanceProjectsInput, Prisma.OrganizationUncheckedUpdateWithoutAttendanceProjectsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAttendanceProjectsInput, Prisma.OrganizationUncheckedCreateWithoutAttendanceProjectsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutAttendanceProjectsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutAttendanceProjectsInput, Prisma.OrganizationUncheckedUpdateWithoutAttendanceProjectsInput>
+}
+
+export type OrganizationUpdateWithoutAttendanceProjectsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutAttendanceProjectsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -611,6 +712,7 @@ export type OrganizationCreateWithoutClaimsInput = {
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutClaimsInput = {
@@ -625,6 +727,7 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutClaimsInput = {
@@ -655,6 +758,7 @@ export type OrganizationUpdateWithoutClaimsInput = {
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutClaimsInput = {
@@ -669,6 +773,7 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutChartAccountsInput = {
@@ -683,6 +788,7 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
@@ -697,6 +803,7 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutChartAccountsInput = {
@@ -727,6 +834,7 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
@@ -741,6 +849,7 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutXeroConnectionsInput = {
@@ -755,6 +864,7 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
@@ -769,6 +879,7 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutXeroConnectionsInput = {
@@ -799,6 +910,7 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
@@ -813,6 +925,7 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProjectsInput = {
@@ -827,6 +940,7 @@ export type OrganizationCreateWithoutProjectsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProjectsInput = {
@@ -841,6 +955,7 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProjectsInput = {
@@ -871,6 +986,7 @@ export type OrganizationUpdateWithoutProjectsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProjectsInput = {
@@ -885,6 +1001,7 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  attendanceProjects?: Prisma.AttendanceProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -898,6 +1015,7 @@ export type OrganizationCountOutputType = {
   xeroConnections: number
   chartAccounts: number
   projects: number
+  attendanceProjects: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -906,6 +1024,7 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   xeroConnections?: boolean | OrganizationCountOutputTypeCountXeroConnectionsArgs
   chartAccounts?: boolean | OrganizationCountOutputTypeCountChartAccountsArgs
   projects?: boolean | OrganizationCountOutputTypeCountProjectsArgs
+  attendanceProjects?: boolean | OrganizationCountOutputTypeCountAttendanceProjectsArgs
 }
 
 /**
@@ -953,6 +1072,13 @@ export type OrganizationCountOutputTypeCountProjectsArgs<ExtArgs extends runtime
   where?: Prisma.XeroProjectWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountAttendanceProjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AttendanceProjectWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -967,6 +1093,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
+  attendanceProjects?: boolean | Prisma.Organization$attendanceProjectsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -989,6 +1116,7 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
+  attendanceProjects?: boolean | Prisma.Organization$attendanceProjectsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -1000,6 +1128,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
     chartAccounts: Prisma.$ChartOfAccountPayload<ExtArgs>[]
     projects: Prisma.$XeroProjectPayload<ExtArgs>[]
+    attendanceProjects: Prisma.$AttendanceProjectPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1354,6 +1483,7 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   xeroConnections<T extends Prisma.Organization$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chartAccounts<T extends Prisma.Organization$chartAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$chartAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.Organization$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  attendanceProjects<T extends Prisma.Organization$attendanceProjectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$attendanceProjectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1855,6 +1985,30 @@ export type Organization$projectsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.XeroProjectScalarFieldEnum | Prisma.XeroProjectScalarFieldEnum[]
+}
+
+/**
+ * Organization.attendanceProjects
+ */
+export type Organization$attendanceProjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AttendanceProject
+   */
+  select?: Prisma.AttendanceProjectSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AttendanceProject
+   */
+  omit?: Prisma.AttendanceProjectOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AttendanceProjectInclude<ExtArgs> | null
+  where?: Prisma.AttendanceProjectWhereInput
+  orderBy?: Prisma.AttendanceProjectOrderByWithRelationInput | Prisma.AttendanceProjectOrderByWithRelationInput[]
+  cursor?: Prisma.AttendanceProjectWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AttendanceProjectScalarFieldEnum | Prisma.AttendanceProjectScalarFieldEnum[]
 }
 
 /**

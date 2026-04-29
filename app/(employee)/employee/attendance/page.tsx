@@ -5,9 +5,10 @@ import { EmployeeAttendanceDashboardView } from "./dashboard-view"
 
 export default async function EmployeeAttendancePage() {
   const session = await requirePortalSession("EMPLOYEE")
-  const [dashboard, workingHours] = await Promise.all([
+  const [dashboard, workingHours, projects] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
     employeeAttendanceService.getWorkingHours(session.userId),
+    employeeAttendanceService.getAvailableProjects(session.userId),
   ])
 
   return (
@@ -15,6 +16,7 @@ export default async function EmployeeAttendancePage() {
       firstName={session.name.split(" ")[0] ?? session.name}
       dashboard={dashboard}
       workingHours={workingHours}
+      projects={projects}
     />
   )
 }

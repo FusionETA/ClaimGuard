@@ -156,7 +156,7 @@ export default async function EmployeeHistoryPage() {
                           <p className="text-xs text-muted-foreground">
                             {fmtTime(r.timeIn)}{" "}
                             {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}{" "}
-                            {r.location ? `• ${r.location}` : ""}
+                            {r.project ? `• ${r.project}` : r.location ? `• ${r.location}` : ""}
                           </p>
                         </div>
                         <Badge variant={STATUS_VARIANT[r.status] as never}>

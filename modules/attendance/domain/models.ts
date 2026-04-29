@@ -42,12 +42,18 @@ export type ApprovalRequestView = {
   title: string
   detail: string
   location: string | null
+  project: string | null
   otSubtype: OTSubtype | null
   lateMinutes: number | null
   offsetRef: string | null
   reviewNotes: string | null
   submittedAt: string
   reviewedAt: string | null
+}
+
+export type AttendanceProjectView = {
+  id: string
+  name: string
 }
 
 export type ClockEventLite = {

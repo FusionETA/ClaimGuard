@@ -6,6 +6,7 @@ import type {
   ApprovalKind,
   ApprovalRequestView,
   ApprovalStatus,
+  AttendanceProjectView,
   AttendanceRecordView,
   AttendanceStatus,
   ClockEventLite,
@@ -95,6 +96,7 @@ type PrismaApproval = {
   title: string
   detail: string
   location: string | null
+  project: string | null
   otSubtype: string | null
   lateMinutes: number | null
   offsetRef: string | null
@@ -117,6 +119,7 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
     title: r.title,
     detail: r.detail,
     location: r.location,
+    project: r.project,
     otSubtype: (r.otSubtype as OTSubtype | null) ?? null,
     lateMinutes: r.lateMinutes,
     offsetRef: r.offsetRef,
@@ -154,6 +157,28 @@ export const attendanceRepository = {
       where: { id: orgId },
       data: { workingHoursStart: start, workingHoursEnd: end },
     })
+  },
+
+  // ── Projects ──────────────────────────────────────────────────────────
+
+  async getActiveProjects(orgId: string | null): Promise<AttendanceProjectView[]> {
+    if (!orgId) return []
+    const prisma = getClient()
+    const projects = await prisma.attendanceProject.findMany({
+      where: { organizationId: orgId, archived: false },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    })
+    return projects
+  },
+
+  async getProjectById(projectId: string): Promise<AttendanceProjectView | null> {
+    const prisma = getClient()
+    const project = await prisma.attendanceProject.findUnique({
+      where: { id: projectId },
+      select: { id: true, name: true },
+    })
+    return project
   },
 
   // ── Employee dashboard ────────────────────────────────────────────────
@@ -228,13 +253,13 @@ export const attendanceRepository = {
 
   async clockIn(
     employeeId: string,
+    projectName: string,
     location?: string,
   ): Promise<{ recordId: string; approvalId: string }> {
     const prisma = getClient()
     const now = new Date()
     const today = startOfDay(now)
 
-    // Compute lateness against the employee's org working hours.
     const employee = await prisma.user.findUnique({
       where: { id: employeeId },
       select: { organizationId: true },
@@ -248,13 +273,20 @@ export const attendanceRepository = {
 
     const record = await prisma.attendanceRecord.upsert({
       where: { employeeId_date: { employeeId, date: today } },
-      update: { timeIn: now, lateByMin: lateMin || null, status, location: location ?? null },
+      update: {
+        timeIn: now,
+        lateByMin: lateMin || null,
+        status,
+        project: projectName,
+        location: location ?? null,
+      },
       create: {
         employeeId,
         date: today,
         timeIn: now,
         lateByMin: lateMin || null,
         status,
+        project: projectName,
         location: location ?? null,
       },
     })
@@ -267,8 +299,9 @@ export const attendanceRepository = {
         date: today,
         eventAt: now,
         title: `Clock-in ${now.toISOString().slice(11, 16)}`,
-        detail: location ? `On site at ${location}` : "Clocked in",
+        detail: `${projectName}${location ? ` • ${location}` : ""}`,
         location: location ?? null,
+        project: projectName,
       },
     })
 
@@ -317,6 +350,7 @@ export const attendanceRepository = {
           ? `Shift duration ${Math.floor(durationMin / 60)}h ${durationMin % 60}m`
           : "End of shift",
         location: location ?? null,
+        project: existing?.project ?? null,
       },
     })
 
@@ -330,6 +364,10 @@ export const attendanceRepository = {
     const prisma = getClient()
     const now = new Date()
     const today = startOfDay(now)
+    const existing = await prisma.attendanceRecord.findUnique({
+      where: { employeeId_date: { employeeId, date: today } },
+      select: { project: true },
+    })
     const approval = await prisma.approvalRequest.create({
       data: {
         employeeId,
@@ -340,6 +378,7 @@ export const attendanceRepository = {
         title: `Break check ${now.toISOString().slice(11, 16)}`,
         detail: location ? `Confirmed on site at ${location}` : "Confirmed on site",
         location: location ?? null,
+        project: existing?.project ?? null,
       },
     })
     return { approvalId: approval.id }

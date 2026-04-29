@@ -3,6 +3,7 @@ import "server-only"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type {
   ApprovalRequestView,
+  AttendanceProjectView,
   AttendanceRecordView,
   EmployeeAttendanceDashboard,
 } from "@/modules/attendance/domain/models"
@@ -41,8 +42,20 @@ export const employeeAttendanceService = {
     return attendanceRepository.getWorkingHours(user?.organizationId ?? null)
   },
 
-  async clockIn(employeeId: string) {
-    return attendanceRepository.clockIn(employeeId)
+  async getAvailableProjects(employeeId: string): Promise<AttendanceProjectView[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const user = await prisma.user.findUnique({
+      where: { id: employeeId },
+      select: { organizationId: true },
+    })
+    return attendanceRepository.getActiveProjects(user?.organizationId ?? null)
+  },
+
+  async clockIn(employeeId: string, projectId: string) {
+    const project = await attendanceRepository.getProjectById(projectId)
+    if (!project) throw new Error("Selected project does not exist")
+    return attendanceRepository.clockIn(employeeId, project.name)
   },
 
   async clockOut(employeeId: string) {

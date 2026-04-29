@@ -28,6 +28,11 @@ export type User = Prisma.UserModel
  */
 export type Organization = Prisma.OrganizationModel
 /**
+ * Model AttendanceProject
+ * 
+ */
+export type AttendanceProject = Prisma.AttendanceProjectModel
+/**
  * Model PushSubscription
  * 
  */

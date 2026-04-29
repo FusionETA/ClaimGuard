@@ -139,6 +139,11 @@ export function ApprovalsList({ items }: Props) {
                     <p className="mt-2 text-sm font-bold text-foreground">{r.employeeName}</p>
                     <p className="mt-0.5 text-sm font-semibold text-foreground">{r.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{r.detail}</p>
+                    {r.project ? (
+                      <p className="mt-0.5 text-[11px] font-semibold text-primary">
+                        🛠 {r.project}
+                      </p>
+                    ) : null}
                     {r.location ? (
                       <p className="mt-0.5 text-[11px] text-muted-foreground">📍 {r.location}</p>
                     ) : null}
