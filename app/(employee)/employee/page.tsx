@@ -5,7 +5,7 @@ import { ArrowRight, CircleDollarSign, Clock3, FileCheck2, Plus } from "lucide-r
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { MetricCard } from "@/components/claims/metric-card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/attendance/ui/card"
 import { getEmployeeDashboard } from "@/modules/claims/application/services/employee-portal.service"
 import { formatCurrency, formatShortDate } from "@/lib/utils"
 import { requirePortalSession } from "@/lib/auth/session"
@@ -62,7 +62,7 @@ export default async function EmployeeDashboardPage() {
       </section>
 
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-        <Card className="overflow-hidden bg-gradient-to-br from-primary to-[#2a5084] text-primary-foreground">
+        <Card className="overflow-hidden bg-gradient-to-br from-primary to-accent text-primary-foreground">
           <CardHeader className="p-5 sm:p-8 xl:p-6">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/70 sm:text-xs sm:tracking-[0.18em]">
@@ -145,7 +145,7 @@ export default async function EmployeeDashboardPage() {
             {data.recentClaims.slice(0, 4).map((claim) => (
               <div
                 key={claim.id}
-                className="flex flex-col gap-3 rounded-[20px] bg-surface-low p-3.5 sm:gap-4 sm:rounded-[24px] sm:p-4 md:flex-row md:items-center md:justify-between"
+                className="flex flex-col gap-3 rounded-[20px] border border-border/70 bg-card/94 p-3.5 shadow-ambient backdrop-blur-sm sm:gap-4 sm:rounded-[24px] sm:p-4 md:flex-row md:items-center md:justify-between"
               >
                 <div className="flex items-start gap-3 sm:gap-4">
                   <div>
@@ -176,15 +176,15 @@ export default async function EmployeeDashboardPage() {
             <CardDescription>Current employee profile used for claim routing.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-[24px] bg-surface-low p-4">
+            <div className="rounded-[24px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Employee ID</p>
               <p className="mt-2 text-xl font-black">{data.employee.employeeId}</p>
             </div>
-            <div className="rounded-[24px] bg-surface-low p-4">
+            <div className="rounded-[24px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Project</p>
               <p className="mt-2 text-xl font-black">{data.employee.project}</p>
             </div>
-            <div className="rounded-[24px] bg-surface-low p-4">
+            <div className="rounded-[24px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Role</p>
               <p className="mt-2 text-xl font-black">{data.employee.jobTitle}</p>
             </div>

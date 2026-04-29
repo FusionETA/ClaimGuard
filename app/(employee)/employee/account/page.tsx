@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/attendance/ui/card"
 import { getEmployeeAccount } from "@/modules/claims/application/services/employee-portal.service"
 
 export default async function EmployeeAccountPage() {
@@ -14,23 +14,23 @@ export default async function EmployeeAccountPage() {
           <CardTitle className="text-xl sm:text-lg">Account Information</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 p-5 pt-0 sm:gap-4 sm:p-6 sm:pt-0 md:grid-cols-2">
-          <div className="rounded-[20px] bg-surface-low p-4 sm:rounded-[24px] sm:p-5">
+          <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Name</p>
             <p className="mt-2 text-lg font-black sm:text-xl">{data.employee.name}</p>
           </div>
-          <div className="rounded-[20px] bg-surface-low p-4 sm:rounded-[24px] sm:p-5">
+          <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Email</p>
             <p className="mt-2 text-lg font-black sm:text-xl">{data.employee.email}</p>
           </div>
-          <div className="rounded-[20px] bg-surface-low p-4 sm:rounded-[24px] sm:p-5">
+          <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Employee ID</p>
             <p className="mt-2 text-lg font-black sm:text-xl">{data.employee.employeeId}</p>
           </div>
-          <div className="rounded-[20px] bg-surface-low p-4 sm:rounded-[24px] sm:p-5">
+          <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Job title</p>
             <p className="mt-2 text-lg font-black sm:text-xl">{data.employee.jobTitle}</p>
           </div>
-          <div className="rounded-[20px] bg-surface-low p-4 sm:rounded-[24px] sm:p-5">
+          <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Reports to</p>
             <p className="mt-2 text-lg font-black sm:text-xl">
               {data.employee.supervisorName ?? "No supervisor assigned"}
@@ -39,17 +39,17 @@ export default async function EmployeeAccountPage() {
               <p className="mt-1 text-sm text-muted-foreground">{data.employee.supervisorEmail}</p>
             ) : null}
           </div>
-          <div className="rounded-[20px] bg-surface-low p-4 sm:rounded-[24px] sm:p-5">
+          <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Preferred currency</p>
             <p className="mt-2 text-lg font-black sm:text-xl">{data.employee.preferredCurrency}</p>
           </div>
-          <div className="rounded-[20px] bg-surface-low p-4 sm:rounded-[24px] sm:p-5">
+          <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Organization</p>
             <p className="mt-2 text-lg font-black sm:text-xl">
               {data.organization?.name ?? "Not assigned"}
             </p>
           </div>
-          <div className="rounded-[20px] bg-surface-low p-4 sm:rounded-[24px] sm:p-5 md:col-span-2">
+          <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5 md:col-span-2">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Projects</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <span className="inline-flex rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground">
@@ -60,7 +60,7 @@ export default async function EmployeeAccountPage() {
               Multi-project assignment is not enabled yet, so your current primary project is shown here.
             </p>
           </div>
-          <div className="rounded-[20px] bg-surface-low p-4 sm:rounded-[24px] sm:p-5 md:col-span-2">
+          <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5 md:col-span-2">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Payout method</p>
             <p className="mt-2 text-lg font-black sm:text-xl">{data.employee.payoutMethod}</p>
           </div>

@@ -130,7 +130,7 @@ export function EmployeeShell({
   const hasPendingApprovals = pendingApprovals > 0
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
+    <div className="attendance-module !bg-transparent min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
       <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
         <Link href="/" className="block self-center text-center">
           <Image

@@ -31,7 +31,7 @@ function ClockInButton() {
     <button
       type="submit"
       disabled={pending}
-      className="group flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-secondary bg-secondary/40 py-6 transition hover:bg-secondary/60 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+      className="group flex w-full flex-col items-center justify-center rounded-[28px] border border-border/70 bg-card/94 py-6 shadow-ambient backdrop-blur-sm transition hover:bg-card active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div className="relative mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-primary shadow-panel">
         {!pending ? (
@@ -55,7 +55,7 @@ function ClockOutButton() {
     <button
       type="submit"
       disabled={pending}
-      className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-destructive/40 bg-destructive/5 py-5 transition hover:bg-destructive/10 active:scale-95 disabled:opacity-50"
+      className="flex w-full flex-col items-center justify-center rounded-[28px] border border-border/70 bg-card/94 py-5 shadow-ambient backdrop-blur-sm transition hover:bg-card active:scale-95 disabled:opacity-50"
     >
       <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
         <LogOut className="h-6 w-6" />
@@ -74,7 +74,7 @@ function BreakButton() {
     <button
       type="submit"
       disabled={pending}
-      className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-secondary bg-secondary/40 py-5 transition hover:bg-secondary/60 active:scale-95 disabled:opacity-50"
+      className="flex w-full flex-col items-center justify-center rounded-[28px] border border-border/70 bg-card/94 py-5 shadow-ambient backdrop-blur-sm transition hover:bg-card active:scale-95 disabled:opacity-50"
     >
       <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
         <Coffee className="h-6 w-6" />
@@ -133,7 +133,7 @@ export function ClockCard({ state, projects, activeProject, now }: Props) {
               value={selected}
               onChange={(e) => setSelected(e.target.value)}
               className={cn(
-                "mt-1 block h-10 w-full rounded-lg border border-input bg-surface-lowest px-3 text-sm font-semibold text-foreground",
+                "mt-1 block h-10 w-full rounded-[20px] border border-border/70 bg-card/94 px-3 text-sm font-semibold text-foreground shadow-ambient backdrop-blur-sm",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               )}
             >
