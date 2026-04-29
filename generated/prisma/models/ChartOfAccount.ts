@@ -562,6 +562,10 @@ export type ChartOfAccountUpdateOneWithoutClaimsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ChartOfAccountUpdateToOneWithWhereWithoutClaimsInput, Prisma.ChartOfAccountUpdateWithoutClaimsInput>, Prisma.ChartOfAccountUncheckedUpdateWithoutClaimsInput>
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type ChartOfAccountCreateNestedManyWithoutXeroConnectionInput = {
   create?: Prisma.XOR<Prisma.ChartOfAccountCreateWithoutXeroConnectionInput, Prisma.ChartOfAccountUncheckedCreateWithoutXeroConnectionInput> | Prisma.ChartOfAccountCreateWithoutXeroConnectionInput[] | Prisma.ChartOfAccountUncheckedCreateWithoutXeroConnectionInput[]
   connectOrCreate?: Prisma.ChartOfAccountCreateOrConnectWithoutXeroConnectionInput | Prisma.ChartOfAccountCreateOrConnectWithoutXeroConnectionInput[]

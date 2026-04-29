@@ -6,7 +6,6 @@ import type {
   ApprovalKind,
   ApprovalRequestView,
   ApprovalStatus,
-  AttendanceProjectView,
   AttendanceRecordView,
   AttendanceStatus,
   ClockEventLite,
@@ -157,28 +156,6 @@ export const attendanceRepository = {
       where: { id: orgId },
       data: { workingHoursStart: start, workingHoursEnd: end },
     })
-  },
-
-  // ── Projects ──────────────────────────────────────────────────────────
-
-  async getActiveProjects(orgId: string | null): Promise<AttendanceProjectView[]> {
-    if (!orgId) return []
-    const prisma = getClient()
-    const projects = await prisma.attendanceProject.findMany({
-      where: { organizationId: orgId, archived: false },
-      orderBy: { name: "asc" },
-      select: { id: true, name: true },
-    })
-    return projects
-  },
-
-  async getProjectById(projectId: string): Promise<AttendanceProjectView | null> {
-    const prisma = getClient()
-    const project = await prisma.attendanceProject.findUnique({
-      where: { id: projectId },
-      select: { id: true, name: true },
-    })
-    return project
   },
 
   // ── Employee dashboard ────────────────────────────────────────────────

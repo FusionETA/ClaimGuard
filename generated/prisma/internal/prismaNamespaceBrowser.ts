@@ -53,7 +53,6 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
-  AttendanceProject: 'AttendanceProject',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
   Claim: 'Claim',
@@ -106,18 +105,6 @@ export const OrganizationScalarFieldEnum = {
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
-
-
-export const AttendanceProjectScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  name: 'name',
-  archived: 'archived',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type AttendanceProjectScalarFieldEnum = (typeof AttendanceProjectScalarFieldEnum)[keyof typeof AttendanceProjectScalarFieldEnum]
 
 
 export const PushSubscriptionScalarFieldEnum = {
@@ -314,15 +301,6 @@ export const OrganizationOrderByRelevanceFieldEnum = {
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
-
-
-export const AttendanceProjectOrderByRelevanceFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  name: 'name'
-} as const
-
-export type AttendanceProjectOrderByRelevanceFieldEnum = (typeof AttendanceProjectOrderByRelevanceFieldEnum)[keyof typeof AttendanceProjectOrderByRelevanceFieldEnum]
 
 
 export const PushSubscriptionOrderByRelevanceFieldEnum = {

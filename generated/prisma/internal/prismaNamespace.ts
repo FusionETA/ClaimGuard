@@ -386,7 +386,6 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
-  AttendanceProject: 'AttendanceProject',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
   Claim: 'Claim',
@@ -410,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "attendanceProject" | "pushSubscription" | "employeeProfile" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "attendanceRecord" | "approvalRequest"
+    modelProps: "user" | "organization" | "pushSubscription" | "employeeProfile" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "attendanceRecord" | "approvalRequest"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -543,72 +542,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.OrganizationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.OrganizationCountAggregateOutputType> | number
-        }
-      }
-    }
-    AttendanceProject: {
-      payload: Prisma.$AttendanceProjectPayload<ExtArgs>
-      fields: Prisma.AttendanceProjectFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.AttendanceProjectFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceProjectPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.AttendanceProjectFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceProjectPayload>
-        }
-        findFirst: {
-          args: Prisma.AttendanceProjectFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceProjectPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.AttendanceProjectFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceProjectPayload>
-        }
-        findMany: {
-          args: Prisma.AttendanceProjectFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceProjectPayload>[]
-        }
-        create: {
-          args: Prisma.AttendanceProjectCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceProjectPayload>
-        }
-        createMany: {
-          args: Prisma.AttendanceProjectCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        delete: {
-          args: Prisma.AttendanceProjectDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceProjectPayload>
-        }
-        update: {
-          args: Prisma.AttendanceProjectUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceProjectPayload>
-        }
-        deleteMany: {
-          args: Prisma.AttendanceProjectDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.AttendanceProjectUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        upsert: {
-          args: Prisma.AttendanceProjectUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceProjectPayload>
-        }
-        aggregate: {
-          args: Prisma.AttendanceProjectAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateAttendanceProject>
-        }
-        groupBy: {
-          args: Prisma.AttendanceProjectGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AttendanceProjectGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.AttendanceProjectCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AttendanceProjectCountAggregateOutputType> | number
         }
       }
     }
@@ -1207,18 +1140,6 @@ export const OrganizationScalarFieldEnum = {
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
 
 
-export const AttendanceProjectScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  name: 'name',
-  archived: 'archived',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type AttendanceProjectScalarFieldEnum = (typeof AttendanceProjectScalarFieldEnum)[keyof typeof AttendanceProjectScalarFieldEnum]
-
-
 export const PushSubscriptionScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1415,15 +1336,6 @@ export const OrganizationOrderByRelevanceFieldEnum = {
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
 
 
-export const AttendanceProjectOrderByRelevanceFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  name: 'name'
-} as const
-
-export type AttendanceProjectOrderByRelevanceFieldEnum = (typeof AttendanceProjectOrderByRelevanceFieldEnum)[keyof typeof AttendanceProjectOrderByRelevanceFieldEnum]
-
-
 export const PushSubscriptionOrderByRelevanceFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1575,13 +1487,6 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
 
 
 /**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-/**
  * Reference to a field of type 'ClaimCategory'
  */
 export type EnumClaimCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimCategory'>
@@ -1606,6 +1511,13 @@ export type EnumClaimStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'XeroSyncStatus'
  */
 export type EnumXeroSyncStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'XeroSyncStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1740,7 +1652,6 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   organization?: Prisma.OrganizationOmit
-  attendanceProject?: Prisma.AttendanceProjectOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
   employeeProfile?: Prisma.EmployeeProfileOmit
   claim?: Prisma.ClaimOmit
