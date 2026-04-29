@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowRight, CircleDollarSign, Clock3, FileCheck2, Plus } from "lucide-react"
+import { ArrowRight, ClipboardCheck, CircleDollarSign, Clock3, FileCheck2, Plus } from "lucide-react"
 
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { MetricCard } from "@/components/claims/metric-card"
@@ -10,6 +10,7 @@ import { getEmployeeDashboard } from "@/modules/claims/application/services/empl
 import { formatCurrency, formatShortDate } from "@/lib/utils"
 import { requirePortalSession } from "@/lib/auth/session"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
+import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 import type { ClockEventLite } from "@/modules/attendance/domain/models"
 
 import { ClockCard } from "./attendance/clock-card"
@@ -26,9 +27,13 @@ export default async function EmployeeDashboardPage() {
   const data = await getEmployeeDashboard()
   if (!data) redirect("/login")
 
-  const [attendanceDashboard, projects] = await Promise.all([
+  const isSupervisor = session.role === "SUPERVISOR"
+  const [attendanceDashboard, projects, pendingApprovals] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
     employeeAttendanceService.getAvailableProjects(session.userId),
+    isSupervisor
+      ? supervisorAttendanceService.countPendingApprovalsForSupervisor(session.userId)
+      : Promise.resolve(0),
   ])
   const clockState = deriveClockState(attendanceDashboard.todayEvents)
   const activeProject = attendanceDashboard.today?.project ?? null
@@ -60,6 +65,33 @@ export default async function EmployeeDashboardPage() {
           now={nowIso}
         />
       </section>
+
+      {isSupervisor ? (
+        <Link
+          href="/employee/attendance/approvals"
+          className="attendance-module !bg-transparent block lg:hidden"
+        >
+          <Card className="flex items-center gap-3 p-4">
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <ClipboardCheck className="h-5 w-5" />
+              {pendingApprovals > 0 ? (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                  {pendingApprovals > 99 ? "99+" : pendingApprovals}
+                </span>
+              ) : null}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-foreground">Pending approvals</p>
+              <p className="text-xs text-muted-foreground">
+                {pendingApprovals === 0
+                  ? "All caught up"
+                  : `${pendingApprovals} waiting for your review`}
+              </p>
+            </div>
+            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+          </Card>
+        </Link>
+      ) : null}
 
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.25fr_0.75fr]">
         <Card className="overflow-hidden bg-gradient-to-br from-primary to-accent text-primary-foreground">
@@ -131,7 +163,7 @@ export default async function EmployeeDashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="hidden gap-4 sm:gap-6 lg:grid lg:grid-cols-[1fr_320px]">
         <Card>
           <CardHeader className="flex-col gap-3 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
             <div>
