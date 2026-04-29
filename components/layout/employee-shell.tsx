@@ -6,10 +6,12 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   CalendarClock,
+  CalendarDays,
   ClipboardCheck,
   FileText,
   Home,
   LogOut,
+  Receipt,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
@@ -54,6 +56,16 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     ],
   },
   {
+    href: "/employee/leave",
+    label: "Leave",
+    icon: CalendarDays,
+  },
+  {
+    href: "/employee/payslip",
+    label: "Payslip",
+    icon: Receipt,
+  },
+  {
     href: "/employee/review",
     label: "Review",
     icon: ClipboardCheck,
@@ -76,6 +88,14 @@ function getSectionTitle(pathname: string) {
 
   if (pathname.startsWith("/employee/review")) {
     return "Review Claims"
+  }
+
+  if (pathname.startsWith("/employee/leave")) {
+    return "Leave"
+  }
+
+  if (pathname.startsWith("/employee/payslip")) {
+    return "Payslip"
   }
 
   if (pathname.startsWith("/employee/attendance/history")) {
@@ -249,7 +269,7 @@ export function EmployeeShell({
           <div
             className={cn(
               "grid gap-1",
-              user.role === "SUPERVISOR" ? "grid-cols-4" : "grid-cols-3"
+              user.role === "SUPERVISOR" ? "grid-cols-6" : "grid-cols-5"
             )}
           >
             {visibleNav.map((item) => {
