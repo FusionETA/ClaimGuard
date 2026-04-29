@@ -212,7 +212,7 @@ export function AdminShell({ children, user, organizationName, xeroConnections =
         </main>
 
         <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-4 gap-1">
             {adminNav.map((item) => {
               const active = pathname === item.href
               const Icon = item.icon
@@ -222,12 +222,12 @@ export function AdminShell({ children, user, organizationName, xeroConnections =
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-[28px] px-2 py-3 text-[11px] font-semibold",
+                    "flex flex-col items-center gap-1 rounded-[28px] px-1.5 py-3 text-center text-[10px] font-semibold leading-tight",
                     active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="line-clamp-2">{item.label}</span>
                 </Link>
               )
             })}
