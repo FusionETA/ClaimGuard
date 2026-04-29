@@ -19,7 +19,15 @@ import { Button } from "@/components/ui/button"
 import type { AuthenticatedSession } from "@/lib/auth/types"
 import { cn } from "@/lib/utils"
 
-const employeeNav = [
+type EmployeeNavItem = {
+  href: string
+  label: string
+  icon: typeof Home
+  supervisorOnly?: boolean
+  children?: ReadonlyArray<{ href: string; label: string }>
+}
+
+const employeeNav: ReadonlyArray<EmployeeNavItem> = [
   {
     href: "/employee",
     label: "Dashboard",
@@ -39,6 +47,12 @@ const employeeNav = [
     href: "/employee/attendance",
     label: "Attendance",
     icon: CalendarClock,
+    children: [
+      { href: "/employee/attendance", label: "Dashboard" },
+      { href: "/employee/attendance/clock", label: "Clock In / Out" },
+      { href: "/employee/attendance/history", label: "History" },
+      { href: "/employee/attendance/ot", label: "OT & Replacements" },
+    ],
   },
   {
     href: "/employee/review",
@@ -46,7 +60,7 @@ const employeeNav = [
     icon: ClipboardCheck,
     supervisorOnly: true,
   },
-] as const
+]
 
 function getSectionTitle(pathname: string) {
   if (pathname.startsWith("/employee/account")) {
@@ -115,23 +129,48 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
 
         <nav className="mt-10 space-y-2">
           {visibleNav.map((item) => {
-            const active = pathname === item.href
             const Icon = item.icon
+            const parentActive =
+              pathname === item.href ||
+              (item.children !== undefined && pathname.startsWith(item.href + "/"))
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
-                  active
-                    ? "border-primary/40 bg-card text-primary shadow-ambient"
-                    : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
+              <div key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
+                    parentActive
+                      ? "border-primary/40 bg-card text-primary shadow-ambient"
+                      : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+
+                {item.children && parentActive ? (
+                  <div className="mt-1 space-y-0.5 border-l border-border/60 pl-4 ml-5">
+                    {item.children.map((child) => {
+                      const childActive = pathname === child.href
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={cn(
+                            "block rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                            childActive
+                              ? "text-primary"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          {child.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </div>
             )
           })}
         </nav>
