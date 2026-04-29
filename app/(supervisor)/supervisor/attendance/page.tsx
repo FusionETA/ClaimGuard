@@ -26,8 +26,7 @@ export default async function SupervisorAttendanceDashboard() {
   const overview = await supervisorAttendanceService.getTeamOverview(session.userId)
 
   return (
-    <div className="attendance-module -mx-6 -my-6 px-6 py-6 lg:-my-8 lg:py-8">
-      <div className="space-y-5">
+    <div className="space-y-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Real-time
@@ -141,7 +140,6 @@ export default async function SupervisorAttendanceDashboard() {
             </div>
           </Link>
         </div>
-      </div>
     </div>
   )
 }

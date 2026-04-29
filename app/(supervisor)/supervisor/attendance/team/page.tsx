@@ -10,8 +10,7 @@ export default async function SupervisorTeamPage() {
   const overview = await supervisorAttendanceService.getTeamOverview(session.userId)
 
   return (
-    <div className="attendance-module -mx-6 -my-6 px-6 py-6 lg:-my-8 lg:py-8">
-      <div className="space-y-4">
+    <div className="space-y-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {overview.teamSize} members
@@ -44,7 +43,6 @@ export default async function SupervisorTeamPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   )
 }

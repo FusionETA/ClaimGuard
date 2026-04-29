@@ -18,8 +18,7 @@ export default async function AdminAttendancePage() {
   const presentRate = Math.round((overview.presentToday / overview.headcount) * 100)
 
   return (
-    <div className="attendance-module -mx-6 -my-6 px-6 py-6 lg:-my-8 lg:py-8">
-      <div className="space-y-5">
+    <div className="space-y-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Organisation-wide
@@ -128,7 +127,6 @@ export default async function AdminAttendancePage() {
             </div>
           </CardContent>
         </Card>
-      </div>
     </div>
   )
 }

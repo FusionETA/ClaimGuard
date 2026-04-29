@@ -8,11 +8,9 @@ export default async function EmployeeAttendancePage() {
   const dashboard = await employeeAttendanceService.getEmployeeDashboard(session.userId)
 
   return (
-    <div className="attendance-module -mx-6 -my-6 px-6 py-6 lg:-my-8 lg:py-8">
-      <EmployeeAttendanceDashboardView
-        firstName={session.name.split(" ")[0] ?? session.name}
-        dashboard={dashboard}
-      />
-    </div>
+    <EmployeeAttendanceDashboardView
+      firstName={session.name.split(" ")[0] ?? session.name}
+      dashboard={dashboard}
+    />
   )
 }
