@@ -5,9 +5,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTransition } from "react"
 import {
-  Network,
+  CalendarClock,
   LayoutDashboard,
   LogOut,
+  Network,
   Settings2,
 } from "lucide-react"
 
@@ -31,6 +32,11 @@ const adminNav = [
     icon: Network,
   },
   {
+    href: "/admin/attendance",
+    label: "Attendance",
+    icon: CalendarClock,
+  },
+  {
     href: "/admin/settings",
     label: "Settings",
     icon: Settings2,
@@ -44,6 +50,14 @@ function getTitle(pathname: string) {
 
   if (pathname.startsWith("/admin/settings")) {
     return "Organization Settings"
+  }
+
+  if (pathname.startsWith("/admin/attendance/approvals")) {
+    return "Attendance Approvals"
+  }
+
+  if (pathname.startsWith("/admin/attendance")) {
+    return "Attendance"
   }
 
   return "Executive Overview"

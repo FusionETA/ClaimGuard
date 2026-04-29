@@ -5,10 +5,17 @@ import type {
   EmployeeAttendanceDashboard,
   OTRequestView,
 } from "@/modules/attendance/domain/models"
+import {
+  mockAttendanceHistory,
+  mockEmployeeDashboard,
+  mockOTRecords,
+} from "@/modules/attendance/infrastructure/mock-data"
+
+// TODO(step-4): replace mock returns with attendanceRepository calls.
 
 export const employeeAttendanceService = {
   async getEmployeeDashboard(_employeeId: string): Promise<EmployeeAttendanceDashboard> {
-    throw new Error("employeeAttendanceService.getEmployeeDashboard: not implemented")
+    return mockEmployeeDashboard
   },
 
   async getEmployeeHistory(
@@ -16,10 +23,10 @@ export const employeeAttendanceService = {
     _from: Date,
     _to: Date,
   ): Promise<AttendanceRecordView[]> {
-    throw new Error("employeeAttendanceService.getEmployeeHistory: not implemented")
+    return mockAttendanceHistory
   },
 
   async getEmployeeOTRecords(_employeeId: string): Promise<OTRequestView[]> {
-    throw new Error("employeeAttendanceService.getEmployeeOTRecords: not implemented")
+    return mockOTRecords
   },
 }

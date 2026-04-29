@@ -6,10 +6,9 @@ import { usePathname } from "next/navigation"
 import {
   CalendarClock,
   ClipboardCheck,
-  FileText,
-  Home,
+  LayoutDashboard,
   LogOut,
-  Plus,
+  Users,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
@@ -19,87 +18,54 @@ import { Button } from "@/components/ui/button"
 import type { AuthenticatedSession } from "@/lib/auth/types"
 import { cn } from "@/lib/utils"
 
-const employeeNav = [
+const supervisorNav = [
   {
-    href: "/employee",
-    label: "Dashboard",
-    icon: Home,
+    href: "/supervisor",
+    label: "Overview",
+    icon: LayoutDashboard,
   },
   {
-    href: "/employee/claims",
-    label: "Claims",
-    icon: FileText,
-  },
-  {
-    href: "/employee/claims/new",
-    label: "New Claim",
-    icon: Plus,
-  },
-  {
-    href: "/employee/attendance",
+    href: "/supervisor/attendance",
     label: "Attendance",
     icon: CalendarClock,
   },
   {
-    href: "/employee/review",
-    label: "Review",
+    href: "/supervisor/attendance/team",
+    label: "Team",
+    icon: Users,
+  },
+  {
+    href: "/supervisor/attendance/approvals",
+    label: "Approvals",
     icon: ClipboardCheck,
-    supervisorOnly: true,
   },
 ] as const
 
 function getSectionTitle(pathname: string) {
-  if (pathname.startsWith("/employee/account")) {
-    return "Account"
-  }
-
-  if (pathname.startsWith("/employee/claims/new")) {
-    return "Submit Claim"
-  }
-
-  if (pathname.startsWith("/employee/claims")) {
-    return "Claim History"
-  }
-
-  if (pathname.startsWith("/employee/review")) {
-    return "Review Claims"
-  }
-
-  if (pathname.startsWith("/employee/attendance/clock")) {
-    return "Clock In / Out"
-  }
-
-  if (pathname.startsWith("/employee/attendance/history")) {
-    return "Attendance History"
-  }
-
-  if (pathname.startsWith("/employee/attendance/ot")) {
-    return "OT & Replacements"
-  }
-
-  if (pathname.startsWith("/employee/attendance")) {
-    return "My Attendance"
-  }
-
-  return "Employee Portal"
+  if (pathname.startsWith("/supervisor/attendance/team")) return "Team Directory"
+  if (pathname.startsWith("/supervisor/attendance/approvals")) return "Approvals"
+  if (pathname.startsWith("/supervisor/attendance/employee")) return "Employee Profile"
+  if (pathname.startsWith("/supervisor/attendance")) return "Team Attendance"
+  return "Supervisor Portal"
 }
 
-type EmployeeShellProps = {
+type SupervisorShellProps = {
   children: React.ReactNode
   user: AuthenticatedSession
   organizationName?: string
 }
 
-export function EmployeeShell({ children, user, organizationName }: EmployeeShellProps) {
+export function SupervisorShell({
+  children,
+  user,
+  organizationName,
+}: SupervisorShellProps) {
   const pathname = usePathname()
-  const visibleNav = employeeNav.filter(
-    (item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR"
-  )
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
       <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
-        <Link href="/" className="block self-center text-center">
+        <Link href="/supervisor" className="block self-center text-center">
           <Image
             src="/brand-logo.png"
             alt="ClaimGuard logo"
@@ -109,13 +75,15 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
             priority
           />
           <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            Employee Portal
+            Supervisor Portal
           </p>
         </Link>
 
         <nav className="mt-10 space-y-2">
-          {visibleNav.map((item) => {
-            const active = pathname === item.href
+          {supervisorNav.map((item) => {
+            const active =
+              pathname === item.href ||
+              (item.href !== "/supervisor" && pathname.startsWith(item.href + "/"))
             const Icon = item.icon
 
             return (
@@ -126,7 +94,7 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
                   "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
                   active
                     ? "border-primary/40 bg-card text-primary shadow-ambient"
-                    : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground"
+                    : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground",
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -152,18 +120,13 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
               ) : null}
             </div>
             <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
-              <Link
-                href="/employee/account"
-                className="flex items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background"
-              >
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback>{user.initials}</AvatarFallback>
-                </Avatar>
-                <div className="hidden text-right sm:block">
-                  <p className="text-sm font-bold">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.subtitle}</p>
-                </div>
-              </Link>
+              <Avatar className="h-10 w-10">
+                <AvatarFallback>{user.initials}</AvatarFallback>
+              </Avatar>
+              <div className="hidden text-right sm:block">
+                <p className="text-sm font-bold">{user.name}</p>
+                <p className="text-xs text-muted-foreground">{user.subtitle}</p>
+              </div>
               <form action={logoutAction} suppressHydrationWarning>
                 <Button type="submit" variant="ghost" size="sm" className="rounded-full">
                   <LogOut className="h-4 w-4" />
@@ -181,14 +144,11 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
         </main>
 
         <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
-          <div
-            className={cn(
-              "grid gap-1",
-              user.role === "SUPERVISOR" ? "grid-cols-5" : "grid-cols-4"
-            )}
-          >
-            {visibleNav.map((item) => {
-              const active = pathname === item.href
+          <div className="grid grid-cols-4 gap-1">
+            {supervisorNav.map((item) => {
+              const active =
+                pathname === item.href ||
+                (item.href !== "/supervisor" && pathname.startsWith(item.href + "/"))
               const Icon = item.icon
 
               return (
@@ -197,7 +157,7 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
                   href={item.href}
                   className={cn(
                     "flex flex-col items-center gap-1 rounded-[28px] px-2 py-3 text-[11px] font-semibold",
-                    active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                    active ? "bg-primary text-primary-foreground" : "text-muted-foreground",
                   )}
                 >
                   <Icon className="h-4 w-4" />

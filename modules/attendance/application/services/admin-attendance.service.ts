@@ -4,14 +4,20 @@ import type {
   AdminOrgOverview,
   OTRequestView,
 } from "@/modules/attendance/domain/models"
+import {
+  mockOrgOverview,
+  mockPendingApprovals,
+} from "@/modules/attendance/infrastructure/mock-data"
+
+// TODO(step-4): replace mock returns with attendanceRepository calls.
 
 export const adminAttendanceService = {
   async getOrgOverview(): Promise<AdminOrgOverview> {
-    throw new Error("adminAttendanceService.getOrgOverview: not implemented")
+    return mockOrgOverview
   },
 
   async getAllPendingApprovals(): Promise<OTRequestView[]> {
-    throw new Error("adminAttendanceService.getAllPendingApprovals: not implemented")
+    return mockPendingApprovals
   },
 
   async getAggregateStats(_from: Date, _to: Date): Promise<{
@@ -21,6 +27,12 @@ export const adminAttendanceService = {
     totalOnLeave: number
     pendingOT: number
   }> {
-    throw new Error("adminAttendanceService.getAggregateStats: not implemented")
+    return {
+      totalAttendanceRecords: 4_280,
+      totalLate: 187,
+      totalMissing: 24,
+      totalOnLeave: 96,
+      pendingOT: mockPendingApprovals.length,
+    }
   },
 }

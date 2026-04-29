@@ -5,18 +5,24 @@ import type {
   OTRequestView,
   SupervisorTeamOverview,
 } from "@/modules/attendance/domain/models"
+import {
+  mockAttendanceHistory,
+  mockOTRecords,
+  mockPendingApprovals,
+  mockTeam,
+} from "@/modules/attendance/infrastructure/mock-data"
+
+// TODO(step-4): replace mock returns with attendanceRepository calls.
 
 export const supervisorAttendanceService = {
   async getTeamOverview(_supervisorId: string): Promise<SupervisorTeamOverview> {
-    throw new Error("supervisorAttendanceService.getTeamOverview: not implemented")
+    return mockTeam
   },
 
   async getPendingApprovalsForSupervisor(
     _supervisorId: string,
   ): Promise<OTRequestView[]> {
-    throw new Error(
-      "supervisorAttendanceService.getPendingApprovalsForSupervisor: not implemented",
-    )
+    return mockPendingApprovals
   },
 
   async getEmployeeDrilldown(
@@ -26,6 +32,9 @@ export const supervisorAttendanceService = {
     history: AttendanceRecordView[]
     otRecords: OTRequestView[]
   }> {
-    throw new Error("supervisorAttendanceService.getEmployeeDrilldown: not implemented")
+    return {
+      history: mockAttendanceHistory,
+      otRecords: mockOTRecords,
+    }
   },
 }
