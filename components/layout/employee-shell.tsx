@@ -102,13 +102,32 @@ type EmployeeShellProps = {
   children: React.ReactNode
   user: AuthenticatedSession
   organizationName?: string
+  pendingApprovals?: number
 }
 
-export function EmployeeShell({ children, user, organizationName }: EmployeeShellProps) {
+const APPROVALS_HREF = "/employee/attendance/approvals"
+const ATTENDANCE_HREF = "/employee/attendance"
+
+function NotificationDot() {
+  return (
+    <span
+      aria-label="pending approvals"
+      className="ml-auto inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-destructive shadow-[0_0_0_3px_rgba(255,255,255,0.6)]"
+    />
+  )
+}
+
+export function EmployeeShell({
+  children,
+  user,
+  organizationName,
+  pendingApprovals = 0,
+}: EmployeeShellProps) {
   const pathname = usePathname()
   const visibleNav = employeeNav.filter(
     (item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR"
   )
+  const hasPendingApprovals = pendingApprovals > 0
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
@@ -146,7 +165,10 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
                   )}
                 >
                   <Icon className="h-4 w-4" />
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.href === ATTENDANCE_HREF && hasPendingApprovals ? (
+                    <NotificationDot />
+                  ) : null}
                 </Link>
 
                 {item.children && parentActive ? (
@@ -160,13 +182,16 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
                             key={child.href}
                             href={child.href}
                             className={cn(
-                              "block rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                              "flex items-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
                               childActive
                                 ? "text-primary"
                                 : "text-muted-foreground hover:text-foreground"
                             )}
                           >
-                            {child.label}
+                            <span>{child.label}</span>
+                            {child.href === APPROVALS_HREF && hasPendingApprovals ? (
+                              <NotificationDot />
+                            ) : null}
                           </Link>
                         )
                       })}
@@ -232,17 +257,26 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
               const active = pathname === item.href
               const Icon = item.icon
 
+              const showDot =
+                item.href === ATTENDANCE_HREF && hasPendingApprovals
+
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-[28px] px-1.5 py-3 text-center text-[10px] font-semibold leading-tight",
+                    "relative flex flex-col items-center gap-1 rounded-[28px] px-1.5 py-3 text-center text-[10px] font-semibold leading-tight",
                     active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
                   <span className="line-clamp-2">{item.label}</span>
+                  {showDot ? (
+                    <span
+                      aria-label="pending approvals"
+                      className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive"
+                    />
+                  ) : null}
                 </Link>
               )
             })}

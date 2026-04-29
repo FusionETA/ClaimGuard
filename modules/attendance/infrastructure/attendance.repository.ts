@@ -239,7 +239,7 @@ export const attendanceRepository = {
 
     const employee = await prisma.user.findUnique({
       where: { id: employeeId },
-      select: { organizationId: true },
+      select: { organizationId: true, role: true },
     })
     const hours = await this.getWorkingHours(employee?.organizationId ?? null)
     const [hh, mm] = hours.start.split(":").map(Number)
@@ -268,17 +268,26 @@ export const attendanceRepository = {
       },
     })
 
+    const autoApprove =
+      employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
     const approval = await prisma.approvalRequest.create({
       data: {
         employeeId,
         kind: "CLOCK_IN",
-        status: "PENDING",
+        status: autoApprove ? "APPROVED" : "PENDING",
         date: today,
         eventAt: now,
         title: `Clock-in ${now.toISOString().slice(11, 16)}`,
         detail: `${projectName}${location ? ` • ${location}` : ""}`,
         location: location ?? null,
         project: projectName,
+        ...(autoApprove
+          ? {
+              reviewerId: employeeId,
+              reviewedAt: now,
+              reviewNotes: "Auto-approved (supervisor self-attendance)",
+            }
+          : {}),
       },
     })
 
@@ -293,10 +302,15 @@ export const attendanceRepository = {
     const now = new Date()
     const today = startOfDay(now)
 
-    const existing = await prisma.attendanceRecord.findUnique({
-      where: { employeeId_date: { employeeId, date: today } },
-    })
+    const [existing, employee] = await Promise.all([
+      prisma.attendanceRecord.findUnique({
+        where: { employeeId_date: { employeeId, date: today } },
+      }),
+      prisma.user.findUnique({ where: { id: employeeId }, select: { role: true } }),
+    ])
     const durationMin = existing?.timeIn ? diffMinutes(existing.timeIn, now) : null
+    const autoApprove =
+      employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
 
     const record = await prisma.attendanceRecord.upsert({
       where: { employeeId_date: { employeeId, date: today } },
@@ -319,7 +333,7 @@ export const attendanceRepository = {
       data: {
         employeeId,
         kind: "CLOCK_OUT",
-        status: "PENDING",
+        status: autoApprove ? "APPROVED" : "PENDING",
         date: today,
         eventAt: now,
         title: `Clock-out ${now.toISOString().slice(11, 16)}`,
@@ -328,6 +342,13 @@ export const attendanceRepository = {
           : "End of shift",
         location: location ?? null,
         project: existing?.project ?? null,
+        ...(autoApprove
+          ? {
+              reviewerId: employeeId,
+              reviewedAt: now,
+              reviewNotes: "Auto-approved (supervisor self-attendance)",
+            }
+          : {}),
       },
     })
 
@@ -341,21 +362,33 @@ export const attendanceRepository = {
     const prisma = getClient()
     const now = new Date()
     const today = startOfDay(now)
-    const existing = await prisma.attendanceRecord.findUnique({
-      where: { employeeId_date: { employeeId, date: today } },
-      select: { project: true },
-    })
+    const [existing, employee] = await Promise.all([
+      prisma.attendanceRecord.findUnique({
+        where: { employeeId_date: { employeeId, date: today } },
+        select: { project: true },
+      }),
+      prisma.user.findUnique({ where: { id: employeeId }, select: { role: true } }),
+    ])
+    const autoApprove =
+      employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
     const approval = await prisma.approvalRequest.create({
       data: {
         employeeId,
         kind: "BREAK",
-        status: "PENDING",
+        status: autoApprove ? "APPROVED" : "PENDING",
         date: today,
         eventAt: now,
         title: `Break check ${now.toISOString().slice(11, 16)}`,
         detail: location ? `Confirmed on site at ${location}` : "Confirmed on site",
         location: location ?? null,
         project: existing?.project ?? null,
+        ...(autoApprove
+          ? {
+              reviewerId: employeeId,
+              reviewedAt: now,
+              reviewNotes: "Auto-approved (supervisor self-attendance)",
+            }
+          : {}),
       },
     })
     return { approvalId: approval.id }
@@ -429,6 +462,15 @@ export const attendanceRepository = {
       take: 100,
     })
     return records.map(approvalToView)
+  },
+
+  async countPendingApprovalsForSupervisor(supervisorId: string): Promise<number> {
+    const prisma = getClient()
+    const memberIds = await this.getTeamMemberIds(supervisorId)
+    if (memberIds.length === 0) return 0
+    return prisma.approvalRequest.count({
+      where: { employeeId: { in: memberIds }, status: "PENDING" },
+    })
   },
 
   async reviewApproval(

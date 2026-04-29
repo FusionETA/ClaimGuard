@@ -18,6 +18,10 @@ export const supervisorAttendanceService = {
     return attendanceRepository.getPendingApprovalsForSupervisor(supervisorId)
   },
 
+  async countPendingApprovalsForSupervisor(supervisorId: string): Promise<number> {
+    return attendanceRepository.countPendingApprovalsForSupervisor(supervisorId)
+  },
+
   async getEmployeeDrilldown(
     _supervisorId: string,
     employeeId: string,
