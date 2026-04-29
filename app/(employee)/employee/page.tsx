@@ -8,13 +8,59 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getEmployeeDashboard } from "@/modules/claims/application/services/employee-portal.service"
 import { formatCurrency, formatShortDate } from "@/lib/utils"
+import { requirePortalSession } from "@/lib/auth/session"
+import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
+import type { ClockEventLite } from "@/modules/attendance/domain/models"
+
+import { ClockCard } from "./attendance/clock-card"
+
+function deriveClockState(events: ClockEventLite[]): "IN" | "OUT" {
+  const last = [...events]
+    .reverse()
+    .find((e) => e.kind === "CLOCK_IN" || e.kind === "CLOCK_OUT")
+  return last?.kind === "CLOCK_IN" ? "IN" : "OUT"
+}
 
 export default async function EmployeeDashboardPage() {
+  const session = await requirePortalSession("EMPLOYEE")
   const data = await getEmployeeDashboard()
   if (!data) redirect("/login")
 
+  const [attendanceDashboard, projects] = await Promise.all([
+    employeeAttendanceService.getEmployeeDashboard(session.userId),
+    employeeAttendanceService.getAvailableProjects(session.userId),
+  ])
+  const clockState = deriveClockState(attendanceDashboard.todayEvents)
+  const activeProject = attendanceDashboard.today?.project ?? null
+  const nowIso = new Date().toISOString()
+
   return (
     <div className="space-y-4 sm:space-y-6">
+      <section className="attendance-module rounded-[28px] -mx-1 px-1 -my-1 py-1">
+        <div className="mb-3 flex items-end justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+              Today&apos;s attendance
+            </p>
+            <h2 className="mt-0.5 font-headline text-lg font-extrabold text-foreground">
+              {clockState === "IN" ? "On the clock" : "Ready when you are"}
+            </h2>
+          </div>
+          <Link
+            href="/employee/attendance"
+            className="text-xs font-bold text-primary hover:underline"
+          >
+            View full
+          </Link>
+        </div>
+        <ClockCard
+          state={clockState}
+          projects={projects}
+          activeProject={activeProject}
+          now={nowIso}
+        />
+      </section>
+
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.25fr_0.75fr]">
         <Card className="overflow-hidden bg-gradient-to-br from-primary to-[#2a5084] text-primary-foreground">
           <CardHeader className="p-5 sm:p-8 xl:p-6">

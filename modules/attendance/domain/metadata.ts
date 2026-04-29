@@ -1,7 +1,8 @@
 import type {
+  ApprovalKind,
+  ApprovalStatus,
   AttendanceStatus,
-  OTRequestType,
-  OTStatus,
+  OTSubtype,
 } from "@/modules/attendance/domain/models"
 
 export const attendanceStatusMeta: Record<
@@ -40,8 +41,18 @@ export const attendanceStatusMeta: Record<
   },
 }
 
-export const otTypeMeta: Record<
-  OTRequestType,
+export const approvalKindMeta: Record<
+  ApprovalKind,
+  { label: string; description: string }
+> = {
+  CLOCK_IN: { label: "Clock in", description: "Start of shift" },
+  CLOCK_OUT: { label: "Clock out", description: "End of shift" },
+  BREAK: { label: "Break check", description: "On-site confirmation" },
+  OT: { label: "Overtime", description: "Overtime / replacement request" },
+}
+
+export const otSubtypeMeta: Record<
+  OTSubtype,
   { label: string; description: string }
 > = {
   LATE_REPLACEMENT: {
@@ -58,13 +69,11 @@ export const otTypeMeta: Record<
   },
 }
 
-export const otStatusMeta: Record<
-  OTStatus,
+export const approvalStatusMeta: Record<
+  ApprovalStatus,
   { label: string; tone: string }
 > = {
   PENDING: { label: "Pending", tone: "info" },
   APPROVED: { label: "Approved", tone: "success" },
   REJECTED: { label: "Rejected", tone: "danger" },
-  OFFSET: { label: "Offset", tone: "neutral" },
-  UNRESOLVED: { label: "Unresolved", tone: "warning" },
 }

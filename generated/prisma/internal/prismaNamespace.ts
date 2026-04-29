@@ -391,7 +391,9 @@ export const ModelName = {
   Claim: 'Claim',
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
-  XeroProject: 'XeroProject'
+  XeroProject: 'XeroProject',
+  AttendanceRecord: 'AttendanceRecord',
+  ApprovalRequest: 'ApprovalRequest'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -407,7 +409,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "pushSubscription" | "employeeProfile" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject"
+    modelProps: "user" | "organization" | "pushSubscription" | "employeeProfile" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "attendanceRecord" | "approvalRequest"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -939,6 +941,138 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AttendanceRecord: {
+      payload: Prisma.$AttendanceRecordPayload<ExtArgs>
+      fields: Prisma.AttendanceRecordFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AttendanceRecordFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceRecordPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AttendanceRecordFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceRecordPayload>
+        }
+        findFirst: {
+          args: Prisma.AttendanceRecordFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceRecordPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AttendanceRecordFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceRecordPayload>
+        }
+        findMany: {
+          args: Prisma.AttendanceRecordFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceRecordPayload>[]
+        }
+        create: {
+          args: Prisma.AttendanceRecordCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceRecordPayload>
+        }
+        createMany: {
+          args: Prisma.AttendanceRecordCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AttendanceRecordDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceRecordPayload>
+        }
+        update: {
+          args: Prisma.AttendanceRecordUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceRecordPayload>
+        }
+        deleteMany: {
+          args: Prisma.AttendanceRecordDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AttendanceRecordUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AttendanceRecordUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceRecordPayload>
+        }
+        aggregate: {
+          args: Prisma.AttendanceRecordAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAttendanceRecord>
+        }
+        groupBy: {
+          args: Prisma.AttendanceRecordGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendanceRecordGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AttendanceRecordCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendanceRecordCountAggregateOutputType> | number
+        }
+      }
+    }
+    ApprovalRequest: {
+      payload: Prisma.$ApprovalRequestPayload<ExtArgs>
+      fields: Prisma.ApprovalRequestFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ApprovalRequestFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalRequestPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ApprovalRequestFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalRequestPayload>
+        }
+        findFirst: {
+          args: Prisma.ApprovalRequestFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalRequestPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ApprovalRequestFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalRequestPayload>
+        }
+        findMany: {
+          args: Prisma.ApprovalRequestFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalRequestPayload>[]
+        }
+        create: {
+          args: Prisma.ApprovalRequestCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalRequestPayload>
+        }
+        createMany: {
+          args: Prisma.ApprovalRequestCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ApprovalRequestDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalRequestPayload>
+        }
+        update: {
+          args: Prisma.ApprovalRequestUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalRequestPayload>
+        }
+        deleteMany: {
+          args: Prisma.ApprovalRequestDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ApprovalRequestUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ApprovalRequestUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApprovalRequestPayload>
+        }
+        aggregate: {
+          args: Prisma.ApprovalRequestAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateApprovalRequest>
+        }
+        groupBy: {
+          args: Prisma.ApprovalRequestGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApprovalRequestGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ApprovalRequestCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApprovalRequestCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -997,6 +1131,8 @@ export const OrganizationScalarFieldEnum = {
   id: 'id',
   name: 'name',
   claimCutoffDay: 'claimCutoffDay',
+  workingHoursStart: 'workingHoursStart',
+  workingHoursEnd: 'workingHoursEnd',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1118,6 +1254,50 @@ export const XeroProjectScalarFieldEnum = {
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
 
 
+export const AttendanceRecordScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  date: 'date',
+  timeIn: 'timeIn',
+  timeOut: 'timeOut',
+  durationMin: 'durationMin',
+  lateByMin: 'lateByMin',
+  location: 'location',
+  project: 'project',
+  status: 'status',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
+
+
+export const ApprovalRequestScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  reviewerId: 'reviewerId',
+  kind: 'kind',
+  status: 'status',
+  date: 'date',
+  eventAt: 'eventAt',
+  title: 'title',
+  detail: 'detail',
+  location: 'location',
+  project: 'project',
+  otSubtype: 'otSubtype',
+  lateMinutes: 'lateMinutes',
+  offsetRef: 'offsetRef',
+  reviewNotes: 'reviewNotes',
+  submittedAt: 'submittedAt',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1148,7 +1328,9 @@ export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnu
 
 export const OrganizationOrderByRelevanceFieldEnum = {
   id: 'id',
-  name: 'name'
+  name: 'name',
+  workingHoursStart: 'workingHoursStart',
+  workingHoursEnd: 'workingHoursEnd'
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
@@ -1244,6 +1426,32 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
 
 
+export const AttendanceRecordOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  location: 'location',
+  project: 'project',
+  notes: 'notes'
+} as const
+
+export type AttendanceRecordOrderByRelevanceFieldEnum = (typeof AttendanceRecordOrderByRelevanceFieldEnum)[keyof typeof AttendanceRecordOrderByRelevanceFieldEnum]
+
+
+export const ApprovalRequestOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  reviewerId: 'reviewerId',
+  title: 'title',
+  detail: 'detail',
+  location: 'location',
+  project: 'project',
+  offsetRef: 'offsetRef',
+  reviewNotes: 'reviewNotes'
+} as const
+
+export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOrderByRelevanceFieldEnum)[keyof typeof ApprovalRequestOrderByRelevanceFieldEnum]
+
+
 
 /**
  * Field references
@@ -1310,6 +1518,34 @@ export type EnumXeroSyncStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'AttendanceStatus'
+ */
+export type EnumAttendanceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttendanceStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ApprovalKind'
+ */
+export type EnumApprovalKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ApprovalKind'>
+    
+
+
+/**
+ * Reference to a field of type 'ApprovalStatus'
+ */
+export type EnumApprovalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ApprovalStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'OTSubtype'
+ */
+export type EnumOTSubtypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OTSubtype'>
     
 
 
@@ -1422,6 +1658,8 @@ export type GlobalOmitConfig = {
   chartOfAccount?: Prisma.ChartOfAccountOmit
   xeroConnection?: Prisma.XeroConnectionOmit
   xeroProject?: Prisma.XeroProjectOmit
+  attendanceRecord?: Prisma.AttendanceRecordOmit
+  approvalRequest?: Prisma.ApprovalRequestOmit
 }
 
 /* Types for Logging */

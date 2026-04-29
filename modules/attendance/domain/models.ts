@@ -7,23 +7,14 @@ export const attendanceStatuses = [
   "ON_LEAVE",
 ] as const
 
-export const otRequestTypes = [
-  "LATE_REPLACEMENT",
-  "OT_OFFSET",
-  "UNRESOLVED",
-] as const
-
-export const otStatuses = [
-  "PENDING",
-  "APPROVED",
-  "REJECTED",
-  "OFFSET",
-  "UNRESOLVED",
-] as const
+export const approvalKinds = ["CLOCK_IN", "CLOCK_OUT", "BREAK", "OT"] as const
+export const approvalStatuses = ["PENDING", "APPROVED", "REJECTED"] as const
+export const otSubtypes = ["LATE_REPLACEMENT", "OT_OFFSET", "UNRESOLVED"] as const
 
 export type AttendanceStatus = (typeof attendanceStatuses)[number]
-export type OTRequestType = (typeof otRequestTypes)[number]
-export type OTStatus = (typeof otStatuses)[number]
+export type ApprovalKind = (typeof approvalKinds)[number]
+export type ApprovalStatus = (typeof approvalStatuses)[number]
+export type OTSubtype = (typeof otSubtypes)[number]
 
 export type AttendanceRecordView = {
   id: string
@@ -39,28 +30,44 @@ export type AttendanceRecordView = {
   notes: string | null
 }
 
-export type OTRequestView = {
+export type ApprovalRequestView = {
   id: string
+  kind: ApprovalKind
+  status: ApprovalStatus
   employeeId: string
-  employeeName?: string
+  employeeName: string
   reviewerId: string | null
-  type: OTRequestType
-  date: string
+  date: string // ISO yyyy-mm-dd
+  eventAt: string | null
   title: string
   detail: string
+  location: string | null
+  project: string | null
+  otSubtype: OTSubtype | null
   lateMinutes: number | null
   offsetRef: string | null
-  status: OTStatus
   reviewNotes: string | null
   submittedAt: string
   reviewedAt: string | null
 }
 
+export type AttendanceProjectView = {
+  id: string
+  name: string
+}
+
+export type ClockEventLite = {
+  id: string
+  kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK"
+  status: ApprovalStatus
+  eventAt: string
+}
+
 export type EmployeeAttendanceDashboard = {
   today: AttendanceRecordView | null
   weekToDate: AttendanceRecordView[]
-  pendingOT: OTRequestView[]
-  recentOT: OTRequestView[]
+  todayEvents: ClockEventLite[]
+  recentOT: ApprovalRequestView[]
 }
 
 export type SupervisorTeamOverview = {

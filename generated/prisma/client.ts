@@ -81,3 +81,13 @@ export type XeroConnection = Prisma.XeroConnectionModel
  * 
  */
 export type XeroProject = Prisma.XeroProjectModel
+/**
+ * Model AttendanceRecord
+ * 
+ */
+export type AttendanceRecord = Prisma.AttendanceRecordModel
+/**
+ * Model ApprovalRequest
+ * 
+ */
+export type ApprovalRequest = Prisma.ApprovalRequestModel

@@ -38,6 +38,8 @@ export type OrganizationMinAggregateOutputType = {
   id: string | null
   name: string | null
   claimCutoffDay: number | null
+  workingHoursStart: string | null
+  workingHoursEnd: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -46,6 +48,8 @@ export type OrganizationMaxAggregateOutputType = {
   id: string | null
   name: string | null
   claimCutoffDay: number | null
+  workingHoursStart: string | null
+  workingHoursEnd: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +58,8 @@ export type OrganizationCountAggregateOutputType = {
   id: number
   name: number
   claimCutoffDay: number
+  workingHoursStart: number
+  workingHoursEnd: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -72,6 +78,8 @@ export type OrganizationMinAggregateInputType = {
   id?: true
   name?: true
   claimCutoffDay?: true
+  workingHoursStart?: true
+  workingHoursEnd?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -80,6 +88,8 @@ export type OrganizationMaxAggregateInputType = {
   id?: true
   name?: true
   claimCutoffDay?: true
+  workingHoursStart?: true
+  workingHoursEnd?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -88,6 +98,8 @@ export type OrganizationCountAggregateInputType = {
   id?: true
   name?: true
   claimCutoffDay?: true
+  workingHoursStart?: true
+  workingHoursEnd?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -183,6 +195,8 @@ export type OrganizationGroupByOutputType = {
   id: string
   name: string
   claimCutoffDay: number
+  workingHoursStart: string
+  workingHoursEnd: string
   createdAt: Date
   updatedAt: Date
   _count: OrganizationCountAggregateOutputType | null
@@ -214,6 +228,8 @@ export type OrganizationWhereInput = {
   id?: Prisma.StringFilter<"Organization"> | string
   name?: Prisma.StringFilter<"Organization"> | string
   claimCutoffDay?: Prisma.IntFilter<"Organization"> | number
+  workingHoursStart?: Prisma.StringFilter<"Organization"> | string
+  workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   users?: Prisma.UserListRelationFilter
@@ -227,6 +243,8 @@ export type OrganizationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   users?: Prisma.UserOrderByRelationAggregateInput
@@ -244,6 +262,8 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.OrganizationWhereInput[]
   NOT?: Prisma.OrganizationWhereInput | Prisma.OrganizationWhereInput[]
   claimCutoffDay?: Prisma.IntFilter<"Organization"> | number
+  workingHoursStart?: Prisma.StringFilter<"Organization"> | string
+  workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   users?: Prisma.UserListRelationFilter
@@ -257,6 +277,8 @@ export type OrganizationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
@@ -273,6 +295,8 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   name?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   claimCutoffDay?: Prisma.IntWithAggregatesFilter<"Organization"> | number
+  workingHoursStart?: Prisma.StringWithAggregatesFilter<"Organization"> | string
+  workingHoursEnd?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
 }
@@ -281,6 +305,8 @@ export type OrganizationCreateInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -294,6 +320,8 @@ export type OrganizationUncheckedCreateInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -307,6 +335,8 @@ export type OrganizationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -320,6 +350,8 @@ export type OrganizationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -333,6 +365,8 @@ export type OrganizationCreateManyInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -341,6 +375,8 @@ export type OrganizationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -349,6 +385,8 @@ export type OrganizationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -368,6 +406,8 @@ export type OrganizationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -380,6 +420,8 @@ export type OrganizationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -388,6 +430,8 @@ export type OrganizationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -487,6 +531,8 @@ export type OrganizationCreateWithoutUsersInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -499,6 +545,8 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -527,6 +575,8 @@ export type OrganizationUpdateWithoutUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -539,6 +589,8 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -551,6 +603,8 @@ export type OrganizationCreateWithoutClaimsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -563,6 +617,8 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -591,6 +647,8 @@ export type OrganizationUpdateWithoutClaimsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -603,6 +661,8 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -615,6 +675,8 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -627,6 +689,8 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -655,6 +719,8 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -667,6 +733,8 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -679,6 +747,8 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -691,6 +761,8 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -719,6 +791,8 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -731,6 +805,8 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -743,6 +819,8 @@ export type OrganizationCreateWithoutProjectsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -755,6 +833,8 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  workingHoursStart?: string
+  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -783,6 +863,8 @@ export type OrganizationUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -795,6 +877,8 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -874,6 +958,8 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   id?: boolean
   name?: boolean
   claimCutoffDay?: boolean
+  workingHoursStart?: boolean
+  workingHoursEnd?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
@@ -890,11 +976,13 @@ export type OrganizationSelectScalar = {
   id?: boolean
   name?: boolean
   claimCutoffDay?: boolean
+  workingHoursStart?: boolean
+  workingHoursEnd?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "workingHoursStart" | "workingHoursEnd" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
@@ -917,6 +1005,8 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     id: string
     name: string
     claimCutoffDay: number
+    workingHoursStart: string
+    workingHoursEnd: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["organization"]>
@@ -1296,6 +1386,8 @@ export interface OrganizationFieldRefs {
   readonly id: Prisma.FieldRef<"Organization", 'String'>
   readonly name: Prisma.FieldRef<"Organization", 'String'>
   readonly claimCutoffDay: Prisma.FieldRef<"Organization", 'Int'>
+  readonly workingHoursStart: Prisma.FieldRef<"Organization", 'String'>
+  readonly workingHoursEnd: Prisma.FieldRef<"Organization", 'String'>
   readonly createdAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Organization", 'DateTime'>
 }
