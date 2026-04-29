@@ -17,11 +17,11 @@ export type ChartOfAccountOption = {
 
 export type OrganizationProjectOption = {
   id: string
-  xeroProjectId: string
+  xeroProjectId: string | null
   name: string
   status?: string
   contactId?: string
-  xeroConnectionId?: string
+  xeroConnectionId: string | null
 }
 
 export type XeroConnectionInfo = {

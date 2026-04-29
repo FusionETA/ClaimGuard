@@ -10,7 +10,6 @@ import {
   FileText,
   Home,
   LogOut,
-  Plus,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
@@ -38,11 +37,10 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     href: "/employee/claims",
     label: "Claims",
     icon: FileText,
-  },
-  {
-    href: "/employee/claims/new",
-    label: "New Claim",
-    icon: Plus,
+    children: [
+      { href: "/employee/claims", label: "All claims" },
+      { href: "/employee/claims/new", label: "New claim" },
+    ],
   },
   {
     href: "/employee/attendance",
@@ -251,7 +249,7 @@ export function EmployeeShell({
           <div
             className={cn(
               "grid gap-1",
-              user.role === "SUPERVISOR" ? "grid-cols-5" : "grid-cols-4"
+              user.role === "SUPERVISOR" ? "grid-cols-4" : "grid-cols-3"
             )}
           >
             {visibleNav.map((item) => {
