@@ -69,7 +69,7 @@ export default async function EmployeeDashboardPage() {
       {isSupervisor ? (
         <Link
           href="/employee/attendance/approvals"
-          className="attendance-module !bg-transparent block lg:hidden"
+          className="attendance-module !bg-transparent block"
         >
           <Card className="flex items-center gap-3 p-4">
             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
