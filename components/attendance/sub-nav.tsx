@@ -1,5 +1,6 @@
 "use client"
 
+import type { Route } from "next"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -25,7 +26,7 @@ export function AttendanceSubNav({ items }: Props) {
           return (
             <Link
               key={item.href}
-              href={item.href}
+              href={item.href as Route}
               className={cn(
                 "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
                 active
