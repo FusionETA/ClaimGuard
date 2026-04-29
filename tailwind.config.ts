@@ -67,6 +67,24 @@ const config: Config = {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
+        late: {
+          DEFAULT: "hsl(var(--tertiary))",
+          foreground: "hsl(var(--tertiary-foreground))",
+        },
+      },
+      keyframes: {
+        "geo-pulse": {
+          "0%, 100%": { transform: "scale(1)", opacity: "0.6" },
+          "50%": { transform: "scale(1.15)", opacity: "0.3" },
+        },
+        ping2: {
+          "0%": { transform: "scale(1)", opacity: "0.8" },
+          "100%": { transform: "scale(2.2)", opacity: "0" },
+        },
+      },
+      animation: {
+        "geo-pulse": "geo-pulse 3s ease-in-out infinite",
+        ping2: "ping2 1.8s cubic-bezier(0,0,0.2,1) infinite",
       },
       borderRadius: {
         lg: "var(--radius)",

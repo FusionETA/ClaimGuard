@@ -7,6 +7,7 @@ import { ToasterProvider } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
+import "./attendance.css"
 
 const manrope = Manrope({
   subsets: ["latin"],

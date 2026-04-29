@@ -4,11 +4,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
+  CalendarClock,
+  ClipboardCheck,
   FileText,
   Home,
   LogOut,
   Plus,
-  ClipboardCheck,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
@@ -18,7 +19,15 @@ import { Button } from "@/components/ui/button"
 import type { AuthenticatedSession } from "@/lib/auth/types"
 import { cn } from "@/lib/utils"
 
-const employeeNav = [
+type EmployeeNavItem = {
+  href: string
+  label: string
+  icon: typeof Home
+  supervisorOnly?: boolean
+  children?: ReadonlyArray<{ href: string; label: string; supervisorOnly?: boolean }>
+}
+
+const employeeNav: ReadonlyArray<EmployeeNavItem> = [
   {
     href: "/employee",
     label: "Dashboard",
@@ -35,12 +44,25 @@ const employeeNav = [
     icon: Plus,
   },
   {
+    href: "/employee/attendance",
+    label: "Attendance",
+    icon: CalendarClock,
+    children: [
+      { href: "/employee/attendance", label: "Dashboard" },
+      { href: "/employee/attendance/clock", label: "Clock In / Out" },
+      { href: "/employee/attendance/history", label: "History" },
+      { href: "/employee/attendance/ot", label: "OT & Replacements" },
+      { href: "/employee/attendance/team", label: "Team", supervisorOnly: true },
+      { href: "/employee/attendance/approvals", label: "Approvals", supervisorOnly: true },
+    ],
+  },
+  {
     href: "/employee/review",
     label: "Review",
     icon: ClipboardCheck,
     supervisorOnly: true,
   },
-] as const
+]
 
 function getSectionTitle(pathname: string) {
   if (pathname.startsWith("/employee/account")) {
@@ -57,6 +79,22 @@ function getSectionTitle(pathname: string) {
 
   if (pathname.startsWith("/employee/review")) {
     return "Review Claims"
+  }
+
+  if (pathname.startsWith("/employee/attendance/clock")) {
+    return "Clock In / Out"
+  }
+
+  if (pathname.startsWith("/employee/attendance/history")) {
+    return "Attendance History"
+  }
+
+  if (pathname.startsWith("/employee/attendance/ot")) {
+    return "OT & Replacements"
+  }
+
+  if (pathname.startsWith("/employee/attendance")) {
+    return "My Attendance"
   }
 
   return "Employee Portal"
@@ -93,23 +131,50 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
 
         <nav className="mt-10 space-y-2">
           {visibleNav.map((item) => {
-            const active = pathname === item.href
             const Icon = item.icon
+            const parentActive =
+              pathname === item.href ||
+              (item.children !== undefined && pathname.startsWith(item.href + "/"))
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
-                  active
-                    ? "border-primary/40 bg-card text-primary shadow-ambient"
-                    : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
+              <div key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
+                    parentActive
+                      ? "border-primary/40 bg-card text-primary shadow-ambient"
+                      : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+
+                {item.children && parentActive ? (
+                  <div className="mt-1 space-y-0.5 border-l border-border/60 pl-4 ml-5">
+                    {item.children
+                      .filter((c) => !c.supervisorOnly || user.role === "SUPERVISOR")
+                      .map((child) => {
+                        const childActive = pathname === child.href
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={cn(
+                              "block rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                              childActive
+                                ? "text-primary"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            {child.label}
+                          </Link>
+                        )
+                      })}
+                  </div>
+                ) : null}
+              </div>
             )
           })}
         </nav>
@@ -162,7 +227,7 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
           <div
             className={cn(
               "grid gap-1",
-              user.role === "SUPERVISOR" ? "grid-cols-4" : "grid-cols-3"
+              user.role === "SUPERVISOR" ? "grid-cols-5" : "grid-cols-4"
             )}
           >
             {visibleNav.map((item) => {
@@ -174,12 +239,12 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-[28px] px-2 py-3 text-[11px] font-semibold",
+                    "flex flex-col items-center gap-1 rounded-[28px] px-1.5 py-3 text-center text-[10px] font-semibold leading-tight",
                     active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="line-clamp-2">{item.label}</span>
                 </Link>
               )
             })}

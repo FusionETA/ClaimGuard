@@ -5,9 +5,10 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTransition } from "react"
 import {
-  Network,
+  CalendarClock,
   LayoutDashboard,
   LogOut,
+  Network,
   Settings2,
 } from "lucide-react"
 
@@ -19,7 +20,14 @@ import type { AuthenticatedSession } from "@/lib/auth/types"
 import type { XeroConnectionInfo } from "@/modules/organization/domain/models"
 import { cn } from "@/lib/utils"
 
-const adminNav = [
+type AdminNavItem = {
+  href: string
+  label: string
+  icon: typeof LayoutDashboard
+  children?: ReadonlyArray<{ href: string; label: string }>
+}
+
+const adminNav: ReadonlyArray<AdminNavItem> = [
   {
     href: "/admin",
     label: "Executive Overview",
@@ -31,11 +39,16 @@ const adminNav = [
     icon: Network,
   },
   {
+    href: "/admin/attendance",
+    label: "Attendance",
+    icon: CalendarClock,
+  },
+  {
     href: "/admin/settings",
     label: "Settings",
     icon: Settings2,
   },
-] as const
+]
 
 function getTitle(pathname: string) {
   if (pathname.startsWith("/admin/hierarchy")) {
@@ -44,6 +57,10 @@ function getTitle(pathname: string) {
 
   if (pathname.startsWith("/admin/settings")) {
     return "Organization Settings"
+  }
+
+  if (pathname.startsWith("/admin/attendance")) {
+    return "Attendance"
   }
 
   return "Executive Overview"
@@ -88,23 +105,48 @@ export function AdminShell({ children, user, organizationName, xeroConnections =
 
         <nav className="mt-10 space-y-2">
           {adminNav.map((item) => {
-            const active = pathname === item.href
             const Icon = item.icon
+            const parentActive =
+              pathname === item.href ||
+              (item.children !== undefined && pathname.startsWith(item.href + "/"))
 
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
-                  active
-                    ? "border-primary/40 bg-card text-primary shadow-ambient"
-                    : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground"
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
+              <div key={item.href}>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
+                    parentActive
+                      ? "border-primary/40 bg-card text-primary shadow-ambient"
+                      : "border-transparent text-muted-foreground hover:bg-surface-low hover:text-foreground"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+
+                {item.children && parentActive ? (
+                  <div className="mt-1 space-y-0.5 border-l border-border/60 pl-4 ml-5">
+                    {item.children.map((child) => {
+                      const childActive = pathname === child.href
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={cn(
+                            "block rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                            childActive
+                              ? "text-primary"
+                              : "text-muted-foreground hover:text-foreground"
+                          )}
+                        >
+                          {child.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ) : null}
+              </div>
             )
           })}
         </nav>
@@ -162,7 +204,7 @@ export function AdminShell({ children, user, organizationName, xeroConnections =
         </main>
 
         <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
-          <div className="grid grid-cols-3 gap-1">
+          <div className="grid grid-cols-4 gap-1">
             {adminNav.map((item) => {
               const active = pathname === item.href
               const Icon = item.icon
@@ -172,12 +214,12 @@ export function AdminShell({ children, user, organizationName, xeroConnections =
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-[28px] px-2 py-3 text-[11px] font-semibold",
+                    "flex flex-col items-center gap-1 rounded-[28px] px-1.5 py-3 text-center text-[10px] font-semibold leading-tight",
                     active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span className="line-clamp-2">{item.label}</span>
                 </Link>
               )
             })}

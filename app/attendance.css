@@ -1,0 +1,78 @@
+/*
+ * Scoped design tokens for the Attendance module.
+ *
+ * Wrap any attendance-portal page tree in <div className="attendance-module">.
+ * Inside that scope these CSS variables override the global ClaimGuard palette,
+ * so all Tailwind utilities (bg-primary, text-secondary-foreground, etc.) pick
+ * up the attendance-next purple/mint look without affecting the rest of the app.
+ *
+ * Source: attendance-next/app/globals.css
+ */
+
+.attendance-module {
+  --background: 268 25% 97%;
+  --foreground: 268 50% 10%;
+  --card: 268 40% 99%;
+  --card-foreground: 268 50% 10%;
+  --popover: 268 40% 99%;
+  --popover-foreground: 268 50% 10%;
+  --primary: 268 67% 31%; /* #4C1A86 */
+  --primary-foreground: 270 100% 97%;
+  --secondary: 166 80% 88%; /* #9AFAE3 */
+  --secondary-foreground: 268 60% 20%;
+  --muted: 268 18% 91%;
+  --muted-foreground: 268 10% 45%;
+  --accent: 272 54% 47%; /* #7D37B9 */
+  --accent-foreground: 270 100% 97%;
+  --destructive: 0 72% 43%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 268 22% 84%;
+  --input: 268 22% 84%;
+  --ring: 268 67% 31%;
+  --surface: 268 25% 97%;
+  --surface-container: 268 22% 93%;
+  --surface-container-low: 268 20% 95%;
+  --surface-container-high: 268 16% 90%;
+  --surface-container-lowest: 0 0% 100%;
+  --tertiary: 20 100% 28%;
+  --tertiary-foreground: 0 0% 100%;
+  --tertiary-fixed: 20 100% 90%;
+  --success: 140 53% 34%;
+  --success-foreground: 0 0% 100%;
+
+  background-image:
+    radial-gradient(circle at top left, rgba(76, 26, 134, 0.13), transparent 38%),
+    radial-gradient(circle at top right, rgba(154, 250, 227, 0.35), transparent 28%);
+}
+
+.dark .attendance-module {
+  --background: 268 40% 7%;
+  --foreground: 270 20% 95%;
+  --card: 268 36% 11%;
+  --card-foreground: 270 20% 95%;
+  --popover: 268 36% 11%;
+  --popover-foreground: 270 20% 95%;
+  --primary: 166 82% 72%;
+  --primary-foreground: 268 60% 10%;
+  --secondary: 268 35% 18%;
+  --secondary-foreground: 270 20% 90%;
+  --muted: 268 28% 16%;
+  --muted-foreground: 268 14% 68%;
+  --accent: 272 44% 58%;
+  --accent-foreground: 270 100% 97%;
+  --destructive: 0 72% 48%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 268 24% 20%;
+  --input: 268 24% 20%;
+  --ring: 166 82% 72%;
+  --surface: 268 40% 7%;
+  --surface-container: 268 36% 10%;
+  --surface-container-low: 268 30% 13%;
+  --surface-container-high: 268 24% 16%;
+  --surface-container-lowest: 268 30% 19%;
+  --tertiary: 17 82% 71%;
+  --tertiary-foreground: 24 67% 12%;
+  --tertiary-fixed: 18 53% 24%;
+  --success: 141 44% 52%;
+  --success-foreground: 144 100% 6%;
+}
