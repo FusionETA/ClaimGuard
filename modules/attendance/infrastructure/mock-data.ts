@@ -1,7 +1,8 @@
 import type {
+  AdminOrgOverview,
+  ApprovalRequestView,
   AttendanceRecordView,
   EmployeeAttendanceDashboard,
-  AdminOrgOverview,
   OTRequestView,
   SupervisorTeamOverview,
 } from "@/modules/attendance/domain/models"
@@ -11,6 +12,9 @@ import type {
 // Replace with real Prisma queries as part of step 4.
 // Source: attendance-next/data/mockData.ts
 // ---------------------------------------------------------------------------
+
+// Org-wide working window. TODO(step-4): pull per-organisation from settings.
+export const mockWorkingHours = { start: "09:00", end: "18:00" } as const
 
 export const mockProjects = [
   { id: "1", name: "Main Office HQ", address: "450 Serra Mall, Stanford", radius: 300 },
@@ -124,54 +128,81 @@ export const mockOTRecords: OTRequestView[] = [
   },
 ]
 
-export const mockPendingApprovals: OTRequestView[] = [
+export const mockPendingApprovals: ApprovalRequestView[] = [
   {
-    id: "ot-p-1",
+    id: "ap-1",
+    kind: "OT",
+    otType: "OT_OFFSET",
     employeeId: "emp-2",
     employeeName: "Marcus Holloway",
-    reviewerId: null,
-    type: "OT_OFFSET",
     date: "Oct 24, 2023",
     title: "3.5 hours overtime",
     detail: "Urgent server maintenance required due to legacy API issues affecting production.",
-    lateMinutes: null,
-    offsetRef: null,
     status: "PENDING",
-    reviewNotes: null,
     submittedAt: "2023-10-24T18:00:00Z",
-    reviewedAt: null,
   },
   {
-    id: "ot-p-2",
+    id: "ap-2",
+    kind: "OT",
+    otType: "OT_OFFSET",
     employeeId: "emp-3",
     employeeName: "David Chen",
-    reviewerId: null,
-    type: "OT_OFFSET",
     date: "Oct 22, 2023",
     title: "2 hours overtime",
     detail: "QA regression testing needed before product release.",
-    lateMinutes: null,
-    offsetRef: null,
     status: "PENDING",
-    reviewNotes: null,
     submittedAt: "2023-10-22T17:00:00Z",
-    reviewedAt: null,
   },
   {
-    id: "ot-p-3",
+    id: "ap-3",
+    kind: "OT",
+    otType: "LATE_REPLACEMENT",
     employeeId: "emp-4",
     employeeName: "Sarah Jenkins",
-    reviewerId: null,
-    type: "LATE_REPLACEMENT",
     date: "Oct 23, 2023",
     title: "Missing clock-out correction",
     detail: "Mobile app crashed while clocking out. GPS data confirms I was at the location.",
-    lateMinutes: null,
-    offsetRef: null,
     status: "PENDING",
-    reviewNotes: null,
     submittedAt: "2023-10-23T17:15:00Z",
-    reviewedAt: null,
+  },
+  {
+    id: "ap-4",
+    kind: "CLOCK",
+    clockEvent: "CLOCK_IN",
+    employeeId: "emp-5",
+    employeeName: "Priya Nair",
+    date: "Oct 25, 2023",
+    title: "Clock-in 09:02",
+    detail: "GPS within 30m of HQ Main",
+    location: "HQ Main",
+    status: "PENDING",
+    submittedAt: "2023-10-25T09:02:00Z",
+  },
+  {
+    id: "ap-5",
+    kind: "CLOCK",
+    clockEvent: "BREAK",
+    employeeId: "emp-5",
+    employeeName: "Priya Nair",
+    date: "Oct 25, 2023",
+    title: "Break check 12:31",
+    detail: "Confirmed on-site",
+    location: "HQ Main",
+    status: "PENDING",
+    submittedAt: "2023-10-25T12:31:00Z",
+  },
+  {
+    id: "ap-6",
+    kind: "CLOCK",
+    clockEvent: "CLOCK_OUT",
+    employeeId: "emp-2",
+    employeeName: "Marcus Holloway",
+    date: "Oct 24, 2023",
+    title: "Clock-out 19:45",
+    detail: "End of overtime shift",
+    location: "HQ Main",
+    status: "PENDING",
+    submittedAt: "2023-10-24T19:45:00Z",
   },
 ]
 

@@ -10,7 +10,7 @@
  */
 
 .attendance-module {
-  --background: 268 25% 97%;
+  --background: 0 0% 100%;
   --foreground: 268 50% 10%;
   --card: 268 40% 99%;
   --card-foreground: 268 50% 10%;
@@ -40,9 +40,8 @@
   --success: 140 53% 34%;
   --success-foreground: 0 0% 100%;
 
-  background-image:
-    radial-gradient(circle at top left, rgba(76, 26, 134, 0.13), transparent 38%),
-    radial-gradient(circle at top right, rgba(154, 250, 227, 0.35), transparent 28%);
+  background-image: none;
+  background-color: white;
 }
 
 .dark .attendance-module {

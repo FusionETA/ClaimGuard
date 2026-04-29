@@ -56,6 +56,29 @@ export type OTRequestView = {
   reviewedAt: string | null
 }
 
+export const approvalKinds = ["OT", "CLOCK"] as const
+export type ApprovalKind = (typeof approvalKinds)[number]
+
+export const clockEventTypes = ["CLOCK_IN", "CLOCK_OUT", "BREAK"] as const
+export type ClockEventType = (typeof clockEventTypes)[number]
+
+export type ApprovalRequestView = {
+  id: string
+  kind: ApprovalKind
+  employeeId: string
+  employeeName: string
+  date: string
+  title: string
+  detail: string
+  status: "PENDING" | "APPROVED" | "REJECTED"
+  // OT-specific
+  otType?: OTRequestType
+  // Clock-specific
+  clockEvent?: ClockEventType
+  location?: string
+  submittedAt: string
+}
+
 export type EmployeeAttendanceDashboard = {
   today: AttendanceRecordView | null
   weekToDate: AttendanceRecordView[]

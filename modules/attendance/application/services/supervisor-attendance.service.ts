@@ -1,6 +1,7 @@
 import "server-only"
 
 import type {
+  ApprovalRequestView,
   AttendanceRecordView,
   OTRequestView,
   SupervisorTeamOverview,
@@ -21,7 +22,7 @@ export const supervisorAttendanceService = {
 
   async getPendingApprovalsForSupervisor(
     _supervisorId: string,
-  ): Promise<OTRequestView[]> {
+  ): Promise<ApprovalRequestView[]> {
     return mockPendingApprovals
   },
 

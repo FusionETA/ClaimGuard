@@ -49,9 +49,7 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     icon: CalendarClock,
     children: [
       { href: "/employee/attendance", label: "Dashboard" },
-      { href: "/employee/attendance/clock", label: "Clock In / Out" },
       { href: "/employee/attendance/history", label: "History" },
-      { href: "/employee/attendance/ot", label: "OT & Replacements" },
       { href: "/employee/attendance/team", label: "Team", supervisorOnly: true },
       { href: "/employee/attendance/approvals", label: "Approvals", supervisorOnly: true },
     ],
@@ -81,16 +79,16 @@ function getSectionTitle(pathname: string) {
     return "Review Claims"
   }
 
-  if (pathname.startsWith("/employee/attendance/clock")) {
-    return "Clock In / Out"
-  }
-
   if (pathname.startsWith("/employee/attendance/history")) {
     return "Attendance History"
   }
 
-  if (pathname.startsWith("/employee/attendance/ot")) {
-    return "OT & Replacements"
+  if (pathname.startsWith("/employee/attendance/team")) {
+    return "Team Attendance"
+  }
+
+  if (pathname.startsWith("/employee/attendance/approvals")) {
+    return "Approvals"
   }
 
   if (pathname.startsWith("/employee/attendance")) {

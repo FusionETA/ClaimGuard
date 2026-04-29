@@ -3,9 +3,7 @@ import { requirePortalSession } from "@/lib/auth/session"
 
 const baseItems = [
   { href: "/employee/attendance", label: "Dashboard" },
-  { href: "/employee/attendance/clock", label: "Clock" },
   { href: "/employee/attendance/history", label: "History" },
-  { href: "/employee/attendance/ot", label: "OT" },
 ]
 
 const supervisorItems = [

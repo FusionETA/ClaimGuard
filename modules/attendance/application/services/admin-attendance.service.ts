@@ -2,7 +2,7 @@ import "server-only"
 
 import type {
   AdminOrgOverview,
-  OTRequestView,
+  ApprovalRequestView,
 } from "@/modules/attendance/domain/models"
 import {
   mockOrgOverview,
@@ -16,7 +16,7 @@ export const adminAttendanceService = {
     return mockOrgOverview
   },
 
-  async getAllPendingApprovals(): Promise<OTRequestView[]> {
+  async getAllPendingApprovals(): Promise<ApprovalRequestView[]> {
     return mockPendingApprovals
   },
 
