@@ -1,5 +1,6 @@
 "use client"
 
+import type { Route } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -121,7 +122,7 @@ export function AdminShell({ children, user, organizationName, xeroConnections =
             return (
               <div key={item.href}>
                 <Link
-                  href={item.href}
+                  href={item.href as Route}
                   className={cn(
                     "flex items-center gap-3 rounded-[22px] border px-4 py-3 text-sm font-semibold transition-all",
                     parentActive
@@ -140,7 +141,7 @@ export function AdminShell({ children, user, organizationName, xeroConnections =
                       return (
                         <Link
                           key={child.href}
-                          href={child.href}
+                          href={child.href as Route}
                           className={cn(
                             "block rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
                             childActive
@@ -220,7 +221,7 @@ export function AdminShell({ children, user, organizationName, xeroConnections =
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={item.href as Route}
                   className={cn(
                     "flex flex-col items-center gap-1 rounded-[28px] px-1.5 py-3 text-center text-[10px] font-semibold leading-tight",
                     active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
