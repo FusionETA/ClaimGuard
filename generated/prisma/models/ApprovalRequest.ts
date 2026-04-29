@@ -45,7 +45,6 @@ export type ApprovalRequestMinAggregateOutputType = {
   title: string | null
   detail: string | null
   location: string | null
-  project: string | null
   otSubtype: $Enums.OTSubtype | null
   lateMinutes: number | null
   offsetRef: string | null
@@ -54,6 +53,7 @@ export type ApprovalRequestMinAggregateOutputType = {
   reviewedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  project: string | null
 }
 
 export type ApprovalRequestMaxAggregateOutputType = {
@@ -67,7 +67,6 @@ export type ApprovalRequestMaxAggregateOutputType = {
   title: string | null
   detail: string | null
   location: string | null
-  project: string | null
   otSubtype: $Enums.OTSubtype | null
   lateMinutes: number | null
   offsetRef: string | null
@@ -76,6 +75,7 @@ export type ApprovalRequestMaxAggregateOutputType = {
   reviewedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
+  project: string | null
 }
 
 export type ApprovalRequestCountAggregateOutputType = {
@@ -89,7 +89,6 @@ export type ApprovalRequestCountAggregateOutputType = {
   title: number
   detail: number
   location: number
-  project: number
   otSubtype: number
   lateMinutes: number
   offsetRef: number
@@ -98,6 +97,7 @@ export type ApprovalRequestCountAggregateOutputType = {
   reviewedAt: number
   createdAt: number
   updatedAt: number
+  project: number
   _all: number
 }
 
@@ -121,7 +121,6 @@ export type ApprovalRequestMinAggregateInputType = {
   title?: true
   detail?: true
   location?: true
-  project?: true
   otSubtype?: true
   lateMinutes?: true
   offsetRef?: true
@@ -130,6 +129,7 @@ export type ApprovalRequestMinAggregateInputType = {
   reviewedAt?: true
   createdAt?: true
   updatedAt?: true
+  project?: true
 }
 
 export type ApprovalRequestMaxAggregateInputType = {
@@ -143,7 +143,6 @@ export type ApprovalRequestMaxAggregateInputType = {
   title?: true
   detail?: true
   location?: true
-  project?: true
   otSubtype?: true
   lateMinutes?: true
   offsetRef?: true
@@ -152,6 +151,7 @@ export type ApprovalRequestMaxAggregateInputType = {
   reviewedAt?: true
   createdAt?: true
   updatedAt?: true
+  project?: true
 }
 
 export type ApprovalRequestCountAggregateInputType = {
@@ -165,7 +165,6 @@ export type ApprovalRequestCountAggregateInputType = {
   title?: true
   detail?: true
   location?: true
-  project?: true
   otSubtype?: true
   lateMinutes?: true
   offsetRef?: true
@@ -174,6 +173,7 @@ export type ApprovalRequestCountAggregateInputType = {
   reviewedAt?: true
   createdAt?: true
   updatedAt?: true
+  project?: true
   _all?: true
 }
 
@@ -274,7 +274,6 @@ export type ApprovalRequestGroupByOutputType = {
   title: string
   detail: string
   location: string | null
-  project: string | null
   otSubtype: $Enums.OTSubtype | null
   lateMinutes: number | null
   offsetRef: string | null
@@ -283,6 +282,7 @@ export type ApprovalRequestGroupByOutputType = {
   reviewedAt: Date | null
   createdAt: Date
   updatedAt: Date
+  project: string | null
   _count: ApprovalRequestCountAggregateOutputType | null
   _avg: ApprovalRequestAvgAggregateOutputType | null
   _sum: ApprovalRequestSumAggregateOutputType | null
@@ -319,7 +319,6 @@ export type ApprovalRequestWhereInput = {
   title?: Prisma.StringFilter<"ApprovalRequest"> | string
   detail?: Prisma.StringFilter<"ApprovalRequest"> | string
   location?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
-  project?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
   otSubtype?: Prisma.EnumOTSubtypeNullableFilter<"ApprovalRequest"> | $Enums.OTSubtype | null
   lateMinutes?: Prisma.IntNullableFilter<"ApprovalRequest"> | number | null
   offsetRef?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
@@ -328,6 +327,7 @@ export type ApprovalRequestWhereInput = {
   reviewedAt?: Prisma.DateTimeNullableFilter<"ApprovalRequest"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
+  project?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -343,7 +343,6 @@ export type ApprovalRequestOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
-  project?: Prisma.SortOrderInput | Prisma.SortOrder
   otSubtype?: Prisma.SortOrderInput | Prisma.SortOrder
   lateMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
   offsetRef?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -352,6 +351,7 @@ export type ApprovalRequestOrderByWithRelationInput = {
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  project?: Prisma.SortOrderInput | Prisma.SortOrder
   employee?: Prisma.UserOrderByWithRelationInput
   reviewer?: Prisma.UserOrderByWithRelationInput
   _relevance?: Prisma.ApprovalRequestOrderByRelevanceInput
@@ -371,7 +371,6 @@ export type ApprovalRequestWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"ApprovalRequest"> | string
   detail?: Prisma.StringFilter<"ApprovalRequest"> | string
   location?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
-  project?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
   otSubtype?: Prisma.EnumOTSubtypeNullableFilter<"ApprovalRequest"> | $Enums.OTSubtype | null
   lateMinutes?: Prisma.IntNullableFilter<"ApprovalRequest"> | number | null
   offsetRef?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
@@ -380,6 +379,7 @@ export type ApprovalRequestWhereUniqueInput = Prisma.AtLeast<{
   reviewedAt?: Prisma.DateTimeNullableFilter<"ApprovalRequest"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
+  project?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
@@ -395,7 +395,6 @@ export type ApprovalRequestOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
-  project?: Prisma.SortOrderInput | Prisma.SortOrder
   otSubtype?: Prisma.SortOrderInput | Prisma.SortOrder
   lateMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
   offsetRef?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -404,6 +403,7 @@ export type ApprovalRequestOrderByWithAggregationInput = {
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  project?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ApprovalRequestCountOrderByAggregateInput
   _avg?: Prisma.ApprovalRequestAvgOrderByAggregateInput
   _max?: Prisma.ApprovalRequestMaxOrderByAggregateInput
@@ -425,7 +425,6 @@ export type ApprovalRequestScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"ApprovalRequest"> | string
   detail?: Prisma.StringWithAggregatesFilter<"ApprovalRequest"> | string
   location?: Prisma.StringNullableWithAggregatesFilter<"ApprovalRequest"> | string | null
-  project?: Prisma.StringNullableWithAggregatesFilter<"ApprovalRequest"> | string | null
   otSubtype?: Prisma.EnumOTSubtypeNullableWithAggregatesFilter<"ApprovalRequest"> | $Enums.OTSubtype | null
   lateMinutes?: Prisma.IntNullableWithAggregatesFilter<"ApprovalRequest"> | number | null
   offsetRef?: Prisma.StringNullableWithAggregatesFilter<"ApprovalRequest"> | string | null
@@ -434,6 +433,7 @@ export type ApprovalRequestScalarWhereWithAggregatesInput = {
   reviewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"ApprovalRequest"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ApprovalRequest"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ApprovalRequest"> | Date | string
+  project?: Prisma.StringNullableWithAggregatesFilter<"ApprovalRequest"> | string | null
 }
 
 export type ApprovalRequestCreateInput = {
@@ -445,7 +445,6 @@ export type ApprovalRequestCreateInput = {
   title: string
   detail: string
   location?: string | null
-  project?: string | null
   otSubtype?: $Enums.OTSubtype | null
   lateMinutes?: number | null
   offsetRef?: string | null
@@ -454,6 +453,7 @@ export type ApprovalRequestCreateInput = {
   reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: string | null
   employee: Prisma.UserCreateNestedOneWithoutApprovalsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutApprovalReviewsInput
 }
@@ -469,7 +469,6 @@ export type ApprovalRequestUncheckedCreateInput = {
   title: string
   detail: string
   location?: string | null
-  project?: string | null
   otSubtype?: $Enums.OTSubtype | null
   lateMinutes?: number | null
   offsetRef?: string | null
@@ -478,6 +477,7 @@ export type ApprovalRequestUncheckedCreateInput = {
   reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: string | null
 }
 
 export type ApprovalRequestUpdateInput = {
@@ -489,7 +489,6 @@ export type ApprovalRequestUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -498,6 +497,7 @@ export type ApprovalRequestUpdateInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employee?: Prisma.UserUpdateOneRequiredWithoutApprovalsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutApprovalReviewsNestedInput
 }
@@ -513,7 +513,6 @@ export type ApprovalRequestUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -522,6 +521,7 @@ export type ApprovalRequestUncheckedUpdateInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalRequestCreateManyInput = {
@@ -535,7 +535,6 @@ export type ApprovalRequestCreateManyInput = {
   title: string
   detail: string
   location?: string | null
-  project?: string | null
   otSubtype?: $Enums.OTSubtype | null
   lateMinutes?: number | null
   offsetRef?: string | null
@@ -544,6 +543,7 @@ export type ApprovalRequestCreateManyInput = {
   reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: string | null
 }
 
 export type ApprovalRequestUpdateManyMutationInput = {
@@ -555,7 +555,6 @@ export type ApprovalRequestUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -564,6 +563,7 @@ export type ApprovalRequestUpdateManyMutationInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalRequestUncheckedUpdateManyInput = {
@@ -577,7 +577,6 @@ export type ApprovalRequestUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -586,6 +585,7 @@ export type ApprovalRequestUncheckedUpdateManyInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalRequestListRelationFilter = {
@@ -615,7 +615,6 @@ export type ApprovalRequestCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrder
-  project?: Prisma.SortOrder
   otSubtype?: Prisma.SortOrder
   lateMinutes?: Prisma.SortOrder
   offsetRef?: Prisma.SortOrder
@@ -624,6 +623,7 @@ export type ApprovalRequestCountOrderByAggregateInput = {
   reviewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  project?: Prisma.SortOrder
 }
 
 export type ApprovalRequestAvgOrderByAggregateInput = {
@@ -641,7 +641,6 @@ export type ApprovalRequestMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrder
-  project?: Prisma.SortOrder
   otSubtype?: Prisma.SortOrder
   lateMinutes?: Prisma.SortOrder
   offsetRef?: Prisma.SortOrder
@@ -650,6 +649,7 @@ export type ApprovalRequestMaxOrderByAggregateInput = {
   reviewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  project?: Prisma.SortOrder
 }
 
 export type ApprovalRequestMinOrderByAggregateInput = {
@@ -663,7 +663,6 @@ export type ApprovalRequestMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   detail?: Prisma.SortOrder
   location?: Prisma.SortOrder
-  project?: Prisma.SortOrder
   otSubtype?: Prisma.SortOrder
   lateMinutes?: Prisma.SortOrder
   offsetRef?: Prisma.SortOrder
@@ -672,6 +671,7 @@ export type ApprovalRequestMinOrderByAggregateInput = {
   reviewedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  project?: Prisma.SortOrder
 }
 
 export type ApprovalRequestSumOrderByAggregateInput = {
@@ -783,7 +783,6 @@ export type ApprovalRequestCreateWithoutEmployeeInput = {
   title: string
   detail: string
   location?: string | null
-  project?: string | null
   otSubtype?: $Enums.OTSubtype | null
   lateMinutes?: number | null
   offsetRef?: string | null
@@ -792,6 +791,7 @@ export type ApprovalRequestCreateWithoutEmployeeInput = {
   reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: string | null
   reviewer?: Prisma.UserCreateNestedOneWithoutApprovalReviewsInput
 }
 
@@ -805,7 +805,6 @@ export type ApprovalRequestUncheckedCreateWithoutEmployeeInput = {
   title: string
   detail: string
   location?: string | null
-  project?: string | null
   otSubtype?: $Enums.OTSubtype | null
   lateMinutes?: number | null
   offsetRef?: string | null
@@ -814,6 +813,7 @@ export type ApprovalRequestUncheckedCreateWithoutEmployeeInput = {
   reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: string | null
 }
 
 export type ApprovalRequestCreateOrConnectWithoutEmployeeInput = {
@@ -835,7 +835,6 @@ export type ApprovalRequestCreateWithoutReviewerInput = {
   title: string
   detail: string
   location?: string | null
-  project?: string | null
   otSubtype?: $Enums.OTSubtype | null
   lateMinutes?: number | null
   offsetRef?: string | null
@@ -844,6 +843,7 @@ export type ApprovalRequestCreateWithoutReviewerInput = {
   reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: string | null
   employee: Prisma.UserCreateNestedOneWithoutApprovalsInput
 }
 
@@ -857,7 +857,6 @@ export type ApprovalRequestUncheckedCreateWithoutReviewerInput = {
   title: string
   detail: string
   location?: string | null
-  project?: string | null
   otSubtype?: $Enums.OTSubtype | null
   lateMinutes?: number | null
   offsetRef?: string | null
@@ -866,6 +865,7 @@ export type ApprovalRequestUncheckedCreateWithoutReviewerInput = {
   reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: string | null
 }
 
 export type ApprovalRequestCreateOrConnectWithoutReviewerInput = {
@@ -908,7 +908,6 @@ export type ApprovalRequestScalarWhereInput = {
   title?: Prisma.StringFilter<"ApprovalRequest"> | string
   detail?: Prisma.StringFilter<"ApprovalRequest"> | string
   location?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
-  project?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
   otSubtype?: Prisma.EnumOTSubtypeNullableFilter<"ApprovalRequest"> | $Enums.OTSubtype | null
   lateMinutes?: Prisma.IntNullableFilter<"ApprovalRequest"> | number | null
   offsetRef?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
@@ -917,6 +916,7 @@ export type ApprovalRequestScalarWhereInput = {
   reviewedAt?: Prisma.DateTimeNullableFilter<"ApprovalRequest"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
+  project?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
 }
 
 export type ApprovalRequestUpsertWithWhereUniqueWithoutReviewerInput = {
@@ -945,7 +945,6 @@ export type ApprovalRequestCreateManyEmployeeInput = {
   title: string
   detail: string
   location?: string | null
-  project?: string | null
   otSubtype?: $Enums.OTSubtype | null
   lateMinutes?: number | null
   offsetRef?: string | null
@@ -954,6 +953,7 @@ export type ApprovalRequestCreateManyEmployeeInput = {
   reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: string | null
 }
 
 export type ApprovalRequestCreateManyReviewerInput = {
@@ -966,7 +966,6 @@ export type ApprovalRequestCreateManyReviewerInput = {
   title: string
   detail: string
   location?: string | null
-  project?: string | null
   otSubtype?: $Enums.OTSubtype | null
   lateMinutes?: number | null
   offsetRef?: string | null
@@ -975,6 +974,7 @@ export type ApprovalRequestCreateManyReviewerInput = {
   reviewedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: string | null
 }
 
 export type ApprovalRequestUpdateWithoutEmployeeInput = {
@@ -986,7 +986,6 @@ export type ApprovalRequestUpdateWithoutEmployeeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -995,6 +994,7 @@ export type ApprovalRequestUpdateWithoutEmployeeInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewer?: Prisma.UserUpdateOneWithoutApprovalReviewsNestedInput
 }
 
@@ -1008,7 +1008,6 @@ export type ApprovalRequestUncheckedUpdateWithoutEmployeeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1017,6 +1016,7 @@ export type ApprovalRequestUncheckedUpdateWithoutEmployeeInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalRequestUncheckedUpdateManyWithoutEmployeeInput = {
@@ -1029,7 +1029,6 @@ export type ApprovalRequestUncheckedUpdateManyWithoutEmployeeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1038,6 +1037,7 @@ export type ApprovalRequestUncheckedUpdateManyWithoutEmployeeInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalRequestUpdateWithoutReviewerInput = {
@@ -1049,7 +1049,6 @@ export type ApprovalRequestUpdateWithoutReviewerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1058,6 +1057,7 @@ export type ApprovalRequestUpdateWithoutReviewerInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employee?: Prisma.UserUpdateOneRequiredWithoutApprovalsNestedInput
 }
 
@@ -1071,7 +1071,6 @@ export type ApprovalRequestUncheckedUpdateWithoutReviewerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1080,6 +1079,7 @@ export type ApprovalRequestUncheckedUpdateWithoutReviewerInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalRequestUncheckedUpdateManyWithoutReviewerInput = {
@@ -1092,7 +1092,6 @@ export type ApprovalRequestUncheckedUpdateManyWithoutReviewerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   detail?: Prisma.StringFieldUpdateOperationsInput | string
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otSubtype?: Prisma.NullableEnumOTSubtypeFieldUpdateOperationsInput | $Enums.OTSubtype | null
   lateMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   offsetRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1101,6 +1100,7 @@ export type ApprovalRequestUncheckedUpdateManyWithoutReviewerInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1116,7 +1116,6 @@ export type ApprovalRequestSelect<ExtArgs extends runtime.Types.Extensions.Inter
   title?: boolean
   detail?: boolean
   location?: boolean
-  project?: boolean
   otSubtype?: boolean
   lateMinutes?: boolean
   offsetRef?: boolean
@@ -1125,6 +1124,7 @@ export type ApprovalRequestSelect<ExtArgs extends runtime.Types.Extensions.Inter
   reviewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  project?: boolean
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.ApprovalRequest$reviewerArgs<ExtArgs>
 }, ExtArgs["result"]["approvalRequest"]>
@@ -1142,7 +1142,6 @@ export type ApprovalRequestSelectScalar = {
   title?: boolean
   detail?: boolean
   location?: boolean
-  project?: boolean
   otSubtype?: boolean
   lateMinutes?: boolean
   offsetRef?: boolean
@@ -1151,9 +1150,10 @@ export type ApprovalRequestSelectScalar = {
   reviewedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  project?: boolean
 }
 
-export type ApprovalRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "reviewerId" | "kind" | "status" | "date" | "eventAt" | "title" | "detail" | "location" | "project" | "otSubtype" | "lateMinutes" | "offsetRef" | "reviewNotes" | "submittedAt" | "reviewedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["approvalRequest"]>
+export type ApprovalRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "reviewerId" | "kind" | "status" | "date" | "eventAt" | "title" | "detail" | "location" | "otSubtype" | "lateMinutes" | "offsetRef" | "reviewNotes" | "submittedAt" | "reviewedAt" | "createdAt" | "updatedAt" | "project", ExtArgs["result"]["approvalRequest"]>
 export type ApprovalRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.ApprovalRequest$reviewerArgs<ExtArgs>
@@ -1176,7 +1176,6 @@ export type $ApprovalRequestPayload<ExtArgs extends runtime.Types.Extensions.Int
     title: string
     detail: string
     location: string | null
-    project: string | null
     otSubtype: $Enums.OTSubtype | null
     lateMinutes: number | null
     offsetRef: string | null
@@ -1185,6 +1184,7 @@ export type $ApprovalRequestPayload<ExtArgs extends runtime.Types.Extensions.Int
     reviewedAt: Date | null
     createdAt: Date
     updatedAt: Date
+    project: string | null
   }, ExtArgs["result"]["approvalRequest"]>
   composites: {}
 }
@@ -1566,7 +1566,6 @@ export interface ApprovalRequestFieldRefs {
   readonly title: Prisma.FieldRef<"ApprovalRequest", 'String'>
   readonly detail: Prisma.FieldRef<"ApprovalRequest", 'String'>
   readonly location: Prisma.FieldRef<"ApprovalRequest", 'String'>
-  readonly project: Prisma.FieldRef<"ApprovalRequest", 'String'>
   readonly otSubtype: Prisma.FieldRef<"ApprovalRequest", 'OTSubtype'>
   readonly lateMinutes: Prisma.FieldRef<"ApprovalRequest", 'Int'>
   readonly offsetRef: Prisma.FieldRef<"ApprovalRequest", 'String'>
@@ -1575,6 +1574,7 @@ export interface ApprovalRequestFieldRefs {
   readonly reviewedAt: Prisma.FieldRef<"ApprovalRequest", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"ApprovalRequest", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ApprovalRequest", 'DateTime'>
+  readonly project: Prisma.FieldRef<"ApprovalRequest", 'String'>
 }
     
 

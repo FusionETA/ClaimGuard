@@ -67,3 +67,13 @@ export type AttendanceRecord = Prisma.AttendanceRecordModel
  * 
  */
 export type ApprovalRequest = Prisma.ApprovalRequestModel
+/**
+ * Model AdminOrganization
+ * 
+ */
+export type AdminOrganization = Prisma.AdminOrganizationModel
+/**
+ * Model ApprovalChainStep
+ * 
+ */
+export type ApprovalChainStep = Prisma.ApprovalChainStepModel

@@ -230,8 +230,8 @@ export type EmployeeProfileWhereInput = {
   xeroConnectionId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   supervisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
 }
 
@@ -247,8 +247,8 @@ export type EmployeeProfileOrderByWithRelationInput = {
   xeroConnectionId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  user?: Prisma.UserOrderByWithRelationInput
   supervisor?: Prisma.UserOrderByWithRelationInput
+  user?: Prisma.UserOrderByWithRelationInput
   xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
   _relevance?: Prisma.EmployeeProfileOrderByRelevanceInput
 }
@@ -268,8 +268,8 @@ export type EmployeeProfileWhereUniqueInput = Prisma.AtLeast<{
   xeroConnectionId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   supervisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
 }, "id" | "userId" | "employeeId">
 
@@ -316,8 +316,8 @@ export type EmployeeProfileCreateInput = {
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedProfilesInput
+  user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
 }
 
@@ -344,8 +344,8 @@ export type EmployeeProfileUpdateInput = {
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedProfilesNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
 }
 
@@ -402,15 +402,15 @@ export type EmployeeProfileUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type EmployeeProfileNullableScalarRelationFilter = {
-  is?: Prisma.EmployeeProfileWhereInput | null
-  isNot?: Prisma.EmployeeProfileWhereInput | null
-}
-
 export type EmployeeProfileListRelationFilter = {
   every?: Prisma.EmployeeProfileWhereInput
   some?: Prisma.EmployeeProfileWhereInput
   none?: Prisma.EmployeeProfileWhereInput
+}
+
+export type EmployeeProfileNullableScalarRelationFilter = {
+  is?: Prisma.EmployeeProfileWhereInput | null
+  isNot?: Prisma.EmployeeProfileWhereInput | null
 }
 
 export type EmployeeProfileOrderByRelationAggregateInput = {
@@ -465,12 +465,6 @@ export type EmployeeProfileMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
-export type EmployeeProfileCreateNestedOneWithoutUserInput = {
-  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutUserInput, Prisma.EmployeeProfileUncheckedCreateWithoutUserInput>
-  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutUserInput
-  connect?: Prisma.EmployeeProfileWhereUniqueInput
-}
-
 export type EmployeeProfileCreateNestedManyWithoutSupervisorInput = {
   create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutSupervisorInput, Prisma.EmployeeProfileUncheckedCreateWithoutSupervisorInput> | Prisma.EmployeeProfileCreateWithoutSupervisorInput[] | Prisma.EmployeeProfileUncheckedCreateWithoutSupervisorInput[]
   connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutSupervisorInput | Prisma.EmployeeProfileCreateOrConnectWithoutSupervisorInput[]
@@ -478,7 +472,7 @@ export type EmployeeProfileCreateNestedManyWithoutSupervisorInput = {
   connect?: Prisma.EmployeeProfileWhereUniqueInput | Prisma.EmployeeProfileWhereUniqueInput[]
 }
 
-export type EmployeeProfileUncheckedCreateNestedOneWithoutUserInput = {
+export type EmployeeProfileCreateNestedOneWithoutUserInput = {
   create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutUserInput, Prisma.EmployeeProfileUncheckedCreateWithoutUserInput>
   connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutUserInput
   connect?: Prisma.EmployeeProfileWhereUniqueInput
@@ -491,14 +485,10 @@ export type EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput = {
   connect?: Prisma.EmployeeProfileWhereUniqueInput | Prisma.EmployeeProfileWhereUniqueInput[]
 }
 
-export type EmployeeProfileUpdateOneWithoutUserNestedInput = {
+export type EmployeeProfileUncheckedCreateNestedOneWithoutUserInput = {
   create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutUserInput, Prisma.EmployeeProfileUncheckedCreateWithoutUserInput>
   connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutUserInput
-  upsert?: Prisma.EmployeeProfileUpsertWithoutUserInput
-  disconnect?: Prisma.EmployeeProfileWhereInput | boolean
-  delete?: Prisma.EmployeeProfileWhereInput | boolean
   connect?: Prisma.EmployeeProfileWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeProfileUpdateToOneWithWhereWithoutUserInput, Prisma.EmployeeProfileUpdateWithoutUserInput>, Prisma.EmployeeProfileUncheckedUpdateWithoutUserInput>
 }
 
 export type EmployeeProfileUpdateManyWithoutSupervisorNestedInput = {
@@ -515,7 +505,7 @@ export type EmployeeProfileUpdateManyWithoutSupervisorNestedInput = {
   deleteMany?: Prisma.EmployeeProfileScalarWhereInput | Prisma.EmployeeProfileScalarWhereInput[]
 }
 
-export type EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput = {
+export type EmployeeProfileUpdateOneWithoutUserNestedInput = {
   create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutUserInput, Prisma.EmployeeProfileUncheckedCreateWithoutUserInput>
   connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutUserInput
   upsert?: Prisma.EmployeeProfileUpsertWithoutUserInput
@@ -537,6 +527,16 @@ export type EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput = {
   update?: Prisma.EmployeeProfileUpdateWithWhereUniqueWithoutSupervisorInput | Prisma.EmployeeProfileUpdateWithWhereUniqueWithoutSupervisorInput[]
   updateMany?: Prisma.EmployeeProfileUpdateManyWithWhereWithoutSupervisorInput | Prisma.EmployeeProfileUpdateManyWithWhereWithoutSupervisorInput[]
   deleteMany?: Prisma.EmployeeProfileScalarWhereInput | Prisma.EmployeeProfileScalarWhereInput[]
+}
+
+export type EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutUserInput, Prisma.EmployeeProfileUncheckedCreateWithoutUserInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutUserInput
+  upsert?: Prisma.EmployeeProfileUpsertWithoutUserInput
+  disconnect?: Prisma.EmployeeProfileWhereInput | boolean
+  delete?: Prisma.EmployeeProfileWhereInput | boolean
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeProfileUpdateToOneWithWhereWithoutUserInput, Prisma.EmployeeProfileUpdateWithoutUserInput>, Prisma.EmployeeProfileUncheckedUpdateWithoutUserInput>
 }
 
 export type EmployeeProfileCreateNestedManyWithoutXeroConnectionInput = {
@@ -581,37 +581,6 @@ export type EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionNestedInput =
   deleteMany?: Prisma.EmployeeProfileScalarWhereInput | Prisma.EmployeeProfileScalarWhereInput[]
 }
 
-export type EmployeeProfileCreateWithoutUserInput = {
-  id?: string
-  employeeId: string
-  project: string
-  jobTitle: string
-  payoutMethod?: string | null
-  preferredCurrency?: string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedProfilesInput
-  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
-}
-
-export type EmployeeProfileUncheckedCreateWithoutUserInput = {
-  id?: string
-  employeeId: string
-  project: string
-  jobTitle: string
-  supervisorId?: string | null
-  payoutMethod?: string | null
-  preferredCurrency?: string
-  xeroConnectionId?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-}
-
-export type EmployeeProfileCreateOrConnectWithoutUserInput = {
-  where: Prisma.EmployeeProfileWhereUniqueInput
-  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutUserInput, Prisma.EmployeeProfileUncheckedCreateWithoutUserInput>
-}
-
 export type EmployeeProfileCreateWithoutSupervisorInput = {
   id?: string
   employeeId: string
@@ -646,6 +615,70 @@ export type EmployeeProfileCreateOrConnectWithoutSupervisorInput = {
 export type EmployeeProfileCreateManySupervisorInputEnvelope = {
   data: Prisma.EmployeeProfileCreateManySupervisorInput | Prisma.EmployeeProfileCreateManySupervisorInput[]
   skipDuplicates?: boolean
+}
+
+export type EmployeeProfileCreateWithoutUserInput = {
+  id?: string
+  employeeId: string
+  project: string
+  jobTitle: string
+  payoutMethod?: string | null
+  preferredCurrency?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedProfilesInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
+}
+
+export type EmployeeProfileUncheckedCreateWithoutUserInput = {
+  id?: string
+  employeeId: string
+  project: string
+  jobTitle: string
+  supervisorId?: string | null
+  payoutMethod?: string | null
+  preferredCurrency?: string
+  xeroConnectionId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type EmployeeProfileCreateOrConnectWithoutUserInput = {
+  where: Prisma.EmployeeProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutUserInput, Prisma.EmployeeProfileUncheckedCreateWithoutUserInput>
+}
+
+export type EmployeeProfileUpsertWithWhereUniqueWithoutSupervisorInput = {
+  where: Prisma.EmployeeProfileWhereUniqueInput
+  update: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutSupervisorInput, Prisma.EmployeeProfileUncheckedUpdateWithoutSupervisorInput>
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutSupervisorInput, Prisma.EmployeeProfileUncheckedCreateWithoutSupervisorInput>
+}
+
+export type EmployeeProfileUpdateWithWhereUniqueWithoutSupervisorInput = {
+  where: Prisma.EmployeeProfileWhereUniqueInput
+  data: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutSupervisorInput, Prisma.EmployeeProfileUncheckedUpdateWithoutSupervisorInput>
+}
+
+export type EmployeeProfileUpdateManyWithWhereWithoutSupervisorInput = {
+  where: Prisma.EmployeeProfileScalarWhereInput
+  data: Prisma.XOR<Prisma.EmployeeProfileUpdateManyMutationInput, Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorInput>
+}
+
+export type EmployeeProfileScalarWhereInput = {
+  AND?: Prisma.EmployeeProfileScalarWhereInput | Prisma.EmployeeProfileScalarWhereInput[]
+  OR?: Prisma.EmployeeProfileScalarWhereInput[]
+  NOT?: Prisma.EmployeeProfileScalarWhereInput | Prisma.EmployeeProfileScalarWhereInput[]
+  id?: Prisma.StringFilter<"EmployeeProfile"> | string
+  userId?: Prisma.StringFilter<"EmployeeProfile"> | string
+  employeeId?: Prisma.StringFilter<"EmployeeProfile"> | string
+  project?: Prisma.StringFilter<"EmployeeProfile"> | string
+  jobTitle?: Prisma.StringFilter<"EmployeeProfile"> | string
+  supervisorId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
+  payoutMethod?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
+  preferredCurrency?: Prisma.StringFilter<"EmployeeProfile"> | string
+  xeroConnectionId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
 }
 
 export type EmployeeProfileUpsertWithoutUserInput = {
@@ -685,39 +718,6 @@ export type EmployeeProfileUncheckedUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type EmployeeProfileUpsertWithWhereUniqueWithoutSupervisorInput = {
-  where: Prisma.EmployeeProfileWhereUniqueInput
-  update: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutSupervisorInput, Prisma.EmployeeProfileUncheckedUpdateWithoutSupervisorInput>
-  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutSupervisorInput, Prisma.EmployeeProfileUncheckedCreateWithoutSupervisorInput>
-}
-
-export type EmployeeProfileUpdateWithWhereUniqueWithoutSupervisorInput = {
-  where: Prisma.EmployeeProfileWhereUniqueInput
-  data: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutSupervisorInput, Prisma.EmployeeProfileUncheckedUpdateWithoutSupervisorInput>
-}
-
-export type EmployeeProfileUpdateManyWithWhereWithoutSupervisorInput = {
-  where: Prisma.EmployeeProfileScalarWhereInput
-  data: Prisma.XOR<Prisma.EmployeeProfileUpdateManyMutationInput, Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorInput>
-}
-
-export type EmployeeProfileScalarWhereInput = {
-  AND?: Prisma.EmployeeProfileScalarWhereInput | Prisma.EmployeeProfileScalarWhereInput[]
-  OR?: Prisma.EmployeeProfileScalarWhereInput[]
-  NOT?: Prisma.EmployeeProfileScalarWhereInput | Prisma.EmployeeProfileScalarWhereInput[]
-  id?: Prisma.StringFilter<"EmployeeProfile"> | string
-  userId?: Prisma.StringFilter<"EmployeeProfile"> | string
-  employeeId?: Prisma.StringFilter<"EmployeeProfile"> | string
-  project?: Prisma.StringFilter<"EmployeeProfile"> | string
-  jobTitle?: Prisma.StringFilter<"EmployeeProfile"> | string
-  supervisorId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
-  payoutMethod?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
-  preferredCurrency?: Prisma.StringFilter<"EmployeeProfile"> | string
-  xeroConnectionId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
-  createdAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
-}
-
 export type EmployeeProfileCreateWithoutXeroConnectionInput = {
   id?: string
   employeeId: string
@@ -727,8 +727,8 @@ export type EmployeeProfileCreateWithoutXeroConnectionInput = {
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedProfilesInput
+  user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutXeroConnectionInput = {
@@ -844,8 +844,8 @@ export type EmployeeProfileUpdateWithoutXeroConnectionInput = {
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedProfilesNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutXeroConnectionInput = {
@@ -888,8 +888,8 @@ export type EmployeeProfileSelect<ExtArgs extends runtime.Types.Extensions.Inter
   xeroConnectionId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   supervisor?: boolean | Prisma.EmployeeProfile$supervisorArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.EmployeeProfile$xeroConnectionArgs<ExtArgs>
 }, ExtArgs["result"]["employeeProfile"]>
 
@@ -911,16 +911,16 @@ export type EmployeeProfileSelectScalar = {
 
 export type EmployeeProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "employeeId" | "project" | "jobTitle" | "supervisorId" | "payoutMethod" | "preferredCurrency" | "xeroConnectionId" | "createdAt" | "updatedAt", ExtArgs["result"]["employeeProfile"]>
 export type EmployeeProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   supervisor?: boolean | Prisma.EmployeeProfile$supervisorArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.EmployeeProfile$xeroConnectionArgs<ExtArgs>
 }
 
 export type $EmployeeProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EmployeeProfile"
   objects: {
-    user: Prisma.$UserPayload<ExtArgs>
     supervisor: Prisma.$UserPayload<ExtArgs> | null
+    user: Prisma.$UserPayload<ExtArgs>
     xeroConnection: Prisma.$XeroConnectionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1275,8 +1275,8 @@ readonly fields: EmployeeProfileFieldRefs;
  */
 export interface Prisma__EmployeeProfileClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   supervisor<T extends Prisma.EmployeeProfile$supervisorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$supervisorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   xeroConnection<T extends Prisma.EmployeeProfile$xeroConnectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$xeroConnectionArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.

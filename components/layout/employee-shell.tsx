@@ -6,11 +6,12 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   CalendarClock,
+  CalendarDays,
   ClipboardCheck,
   FileText,
   Home,
   LogOut,
-  Plus,
+  Receipt,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
@@ -38,11 +39,10 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     href: "/employee/claims",
     label: "Claims",
     icon: FileText,
-  },
-  {
-    href: "/employee/claims/new",
-    label: "New Claim",
-    icon: Plus,
+    children: [
+      { href: "/employee/claims", label: "All claims" },
+      { href: "/employee/claims/new", label: "New claim" },
+    ],
   },
   {
     href: "/employee/attendance",
@@ -54,6 +54,16 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
       { href: "/employee/attendance/team", label: "Team", supervisorOnly: true },
       { href: "/employee/attendance/approvals", label: "Approvals", supervisorOnly: true },
     ],
+  },
+  {
+    href: "/employee/leave",
+    label: "Leave",
+    icon: CalendarDays,
+  },
+  {
+    href: "/employee/payslip",
+    label: "Payslip",
+    icon: Receipt,
   },
   {
     href: "/employee/review",
@@ -78,6 +88,14 @@ function getSectionTitle(pathname: string) {
 
   if (pathname.startsWith("/employee/review")) {
     return "Review Claims"
+  }
+
+  if (pathname.startsWith("/employee/leave")) {
+    return "Leave"
+  }
+
+  if (pathname.startsWith("/employee/payslip")) {
+    return "Payslip"
   }
 
   if (pathname.startsWith("/employee/attendance/history")) {
@@ -251,7 +269,7 @@ export function EmployeeShell({
           <div
             className={cn(
               "grid gap-1",
-              user.role === "SUPERVISOR" ? "grid-cols-5" : "grid-cols-4"
+              user.role === "SUPERVISOR" ? "grid-cols-6" : "grid-cols-5"
             )}
           >
             {visibleNav.map((item) => {

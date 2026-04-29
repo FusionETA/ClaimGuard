@@ -38,30 +38,33 @@ export type OrganizationMinAggregateOutputType = {
   id: string | null
   name: string | null
   claimCutoffDay: number | null
-  workingHoursStart: string | null
-  workingHoursEnd: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  workingHoursEnd: string | null
+  workingHoursStart: string | null
+  bankAccount: string | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
   id: string | null
   name: string | null
   claimCutoffDay: number | null
-  workingHoursStart: string | null
-  workingHoursEnd: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  workingHoursEnd: string | null
+  workingHoursStart: string | null
+  bankAccount: string | null
 }
 
 export type OrganizationCountAggregateOutputType = {
   id: number
   name: number
   claimCutoffDay: number
-  workingHoursStart: number
-  workingHoursEnd: number
   createdAt: number
   updatedAt: number
+  workingHoursEnd: number
+  workingHoursStart: number
+  bankAccount: number
   _all: number
 }
 
@@ -78,30 +81,33 @@ export type OrganizationMinAggregateInputType = {
   id?: true
   name?: true
   claimCutoffDay?: true
-  workingHoursStart?: true
-  workingHoursEnd?: true
   createdAt?: true
   updatedAt?: true
+  workingHoursEnd?: true
+  workingHoursStart?: true
+  bankAccount?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
   id?: true
   name?: true
   claimCutoffDay?: true
-  workingHoursStart?: true
-  workingHoursEnd?: true
   createdAt?: true
   updatedAt?: true
+  workingHoursEnd?: true
+  workingHoursStart?: true
+  bankAccount?: true
 }
 
 export type OrganizationCountAggregateInputType = {
   id?: true
   name?: true
   claimCutoffDay?: true
-  workingHoursStart?: true
-  workingHoursEnd?: true
   createdAt?: true
   updatedAt?: true
+  workingHoursEnd?: true
+  workingHoursStart?: true
+  bankAccount?: true
   _all?: true
 }
 
@@ -195,10 +201,11 @@ export type OrganizationGroupByOutputType = {
   id: string
   name: string
   claimCutoffDay: number
-  workingHoursStart: string
-  workingHoursEnd: string
   createdAt: Date
   updatedAt: Date
+  workingHoursEnd: string
+  workingHoursStart: string
+  bankAccount: string | null
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -228,14 +235,16 @@ export type OrganizationWhereInput = {
   id?: Prisma.StringFilter<"Organization"> | string
   name?: Prisma.StringFilter<"Organization"> | string
   claimCutoffDay?: Prisma.IntFilter<"Organization"> | number
-  workingHoursStart?: Prisma.StringFilter<"Organization"> | string
-  workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
-  users?: Prisma.UserListRelationFilter
-  claims?: Prisma.ClaimListRelationFilter
-  xeroConnections?: Prisma.XeroConnectionListRelationFilter
+  workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
+  workingHoursStart?: Prisma.StringFilter<"Organization"> | string
+  bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
+  AdminOrganization?: Prisma.AdminOrganizationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
+  claims?: Prisma.ClaimListRelationFilter
+  users?: Prisma.UserListRelationFilter
+  xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
 }
 
@@ -243,14 +252,16 @@ export type OrganizationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
-  workingHoursStart?: Prisma.SortOrder
-  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  users?: Prisma.UserOrderByRelationAggregateInput
-  claims?: Prisma.ClaimOrderByRelationAggregateInput
-  xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
+  workingHoursEnd?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
+  AdminOrganization?: Prisma.AdminOrganizationOrderByRelationAggregateInput
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
+  claims?: Prisma.ClaimOrderByRelationAggregateInput
+  users?: Prisma.UserOrderByRelationAggregateInput
+  xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
   projects?: Prisma.XeroProjectOrderByRelationAggregateInput
   _relevance?: Prisma.OrganizationOrderByRelevanceInput
 }
@@ -262,14 +273,16 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.OrganizationWhereInput[]
   NOT?: Prisma.OrganizationWhereInput | Prisma.OrganizationWhereInput[]
   claimCutoffDay?: Prisma.IntFilter<"Organization"> | number
-  workingHoursStart?: Prisma.StringFilter<"Organization"> | string
-  workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
-  users?: Prisma.UserListRelationFilter
-  claims?: Prisma.ClaimListRelationFilter
-  xeroConnections?: Prisma.XeroConnectionListRelationFilter
+  workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
+  workingHoursStart?: Prisma.StringFilter<"Organization"> | string
+  bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
+  AdminOrganization?: Prisma.AdminOrganizationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
+  claims?: Prisma.ClaimListRelationFilter
+  users?: Prisma.UserListRelationFilter
+  xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
 }, "id" | "name">
 
@@ -277,10 +290,11 @@ export type OrganizationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
-  workingHoursStart?: Prisma.SortOrder
-  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -295,24 +309,27 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   name?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   claimCutoffDay?: Prisma.IntWithAggregatesFilter<"Organization"> | number
-  workingHoursStart?: Prisma.StringWithAggregatesFilter<"Organization"> | string
-  workingHoursEnd?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
+  workingHoursEnd?: Prisma.StringWithAggregatesFilter<"Organization"> | string
+  workingHoursStart?: Prisma.StringWithAggregatesFilter<"Organization"> | string
+  bankAccount?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
 }
 
 export type OrganizationCreateInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
 }
 
@@ -320,14 +337,16 @@ export type OrganizationUncheckedCreateInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -335,14 +354,16 @@ export type OrganizationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -350,14 +371,16 @@ export type OrganizationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -365,30 +388,33 @@ export type OrganizationCreateManyInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
 }
 
 export type OrganizationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrganizationNullableScalarRelationFilter = {
@@ -406,10 +432,11 @@ export type OrganizationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
-  workingHoursStart?: Prisma.SortOrder
-  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
@@ -420,20 +447,22 @@ export type OrganizationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
-  workingHoursStart?: Prisma.SortOrder
-  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
-  workingHoursStart?: Prisma.SortOrder
-  workingHoursEnd?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
@@ -527,17 +556,33 @@ export type OrganizationUpdateOneRequiredWithoutProjectsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutProjectsInput, Prisma.OrganizationUpdateWithoutProjectsInput>, Prisma.OrganizationUncheckedUpdateWithoutProjectsInput>
 }
 
+export type OrganizationCreateNestedOneWithoutAdminOrganizationInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedCreateWithoutAdminOrganizationInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAdminOrganizationInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutAdminOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedCreateWithoutAdminOrganizationInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAdminOrganizationInput
+  upsert?: Prisma.OrganizationUpsertWithoutAdminOrganizationInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutAdminOrganizationInput, Prisma.OrganizationUpdateWithoutAdminOrganizationInput>, Prisma.OrganizationUncheckedUpdateWithoutAdminOrganizationInput>
+}
+
 export type OrganizationCreateWithoutUsersInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
-  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
 }
 
@@ -545,13 +590,15 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
-  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -575,13 +622,15 @@ export type OrganizationUpdateWithoutUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
-  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -589,13 +638,15 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
-  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -603,13 +654,15 @@ export type OrganizationCreateWithoutClaimsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
-  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
 }
 
@@ -617,13 +670,15 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
-  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -647,13 +702,15 @@ export type OrganizationUpdateWithoutClaimsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
-  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -661,13 +718,15 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
-  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -675,12 +734,14 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
 }
@@ -689,12 +750,14 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -719,12 +782,14 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
 }
@@ -733,12 +798,14 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -747,13 +814,15 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
 }
 
@@ -761,13 +830,15 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -791,13 +862,15 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -805,13 +878,15 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -819,28 +894,32 @@ export type OrganizationCreateWithoutProjectsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProjectsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
-  workingHoursStart?: string
-  workingHoursEnd?: string
   createdAt?: Date | string
   updatedAt?: Date | string
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProjectsInput = {
@@ -863,28 +942,112 @@ export type OrganizationUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutAdminOrganizationInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutAdminOrganizationInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  bankAccount?: string | null
+  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutAdminOrganizationInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedCreateWithoutAdminOrganizationInput>
+}
+
+export type OrganizationUpsertWithoutAdminOrganizationInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedUpdateWithoutAdminOrganizationInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedCreateWithoutAdminOrganizationInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutAdminOrganizationInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedUpdateWithoutAdminOrganizationInput>
+}
+
+export type OrganizationUpdateWithoutAdminOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutAdminOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -893,18 +1056,20 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
  */
 
 export type OrganizationCountOutputType = {
-  users: number
-  claims: number
-  xeroConnections: number
+  AdminOrganization: number
   chartAccounts: number
+  claims: number
+  users: number
+  xeroConnections: number
   projects: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  users?: boolean | OrganizationCountOutputTypeCountUsersArgs
-  claims?: boolean | OrganizationCountOutputTypeCountClaimsArgs
-  xeroConnections?: boolean | OrganizationCountOutputTypeCountXeroConnectionsArgs
+  AdminOrganization?: boolean | OrganizationCountOutputTypeCountAdminOrganizationArgs
   chartAccounts?: boolean | OrganizationCountOutputTypeCountChartAccountsArgs
+  claims?: boolean | OrganizationCountOutputTypeCountClaimsArgs
+  users?: boolean | OrganizationCountOutputTypeCountUsersArgs
+  xeroConnections?: boolean | OrganizationCountOutputTypeCountXeroConnectionsArgs
   projects?: boolean | OrganizationCountOutputTypeCountProjectsArgs
 }
 
@@ -921,8 +1086,15 @@ export type OrganizationCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types
 /**
  * OrganizationCountOutputType without action
  */
-export type OrganizationCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.UserWhereInput
+export type OrganizationCountOutputTypeCountAdminOrganizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AdminOrganizationWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountChartAccountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ChartOfAccountWhereInput
 }
 
 /**
@@ -935,15 +1107,15 @@ export type OrganizationCountOutputTypeCountClaimsArgs<ExtArgs extends runtime.T
 /**
  * OrganizationCountOutputType without action
  */
-export type OrganizationCountOutputTypeCountXeroConnectionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.XeroConnectionWhereInput
+export type OrganizationCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserWhereInput
 }
 
 /**
  * OrganizationCountOutputType without action
  */
-export type OrganizationCountOutputTypeCountChartAccountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ChartOfAccountWhereInput
+export type OrganizationCountOutputTypeCountXeroConnectionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.XeroConnectionWhereInput
 }
 
 /**
@@ -958,14 +1130,16 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   id?: boolean
   name?: boolean
   claimCutoffDay?: boolean
-  workingHoursStart?: boolean
-  workingHoursEnd?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
-  claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
-  xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
+  workingHoursEnd?: boolean
+  workingHoursStart?: boolean
+  bankAccount?: boolean
+  AdminOrganization?: boolean | Prisma.Organization$AdminOrganizationArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
+  claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
+  users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
+  xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
@@ -976,18 +1150,20 @@ export type OrganizationSelectScalar = {
   id?: boolean
   name?: boolean
   claimCutoffDay?: boolean
-  workingHoursStart?: boolean
-  workingHoursEnd?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  workingHoursEnd?: boolean
+  workingHoursStart?: boolean
+  bankAccount?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "workingHoursStart" | "workingHoursEnd" | "createdAt" | "updatedAt", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "bankAccount", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
-  claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
-  xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
+  AdminOrganization?: boolean | Prisma.Organization$AdminOrganizationArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
+  claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
+  users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
+  xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -995,20 +1171,22 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
 export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Organization"
   objects: {
-    users: Prisma.$UserPayload<ExtArgs>[]
-    claims: Prisma.$ClaimPayload<ExtArgs>[]
-    xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
+    AdminOrganization: Prisma.$AdminOrganizationPayload<ExtArgs>[]
     chartAccounts: Prisma.$ChartOfAccountPayload<ExtArgs>[]
+    claims: Prisma.$ClaimPayload<ExtArgs>[]
+    users: Prisma.$UserPayload<ExtArgs>[]
+    xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
     projects: Prisma.$XeroProjectPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
     claimCutoffDay: number
-    workingHoursStart: string
-    workingHoursEnd: string
     createdAt: Date
     updatedAt: Date
+    workingHoursEnd: string
+    workingHoursStart: string
+    bankAccount: string | null
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -1349,10 +1527,11 @@ readonly fields: OrganizationFieldRefs;
  */
 export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  users<T extends Prisma.Organization$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  claims<T extends Prisma.Organization$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  xeroConnections<T extends Prisma.Organization$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  AdminOrganization<T extends Prisma.Organization$AdminOrganizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$AdminOrganizationArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chartAccounts<T extends Prisma.Organization$chartAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$chartAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  claims<T extends Prisma.Organization$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  users<T extends Prisma.Organization$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  xeroConnections<T extends Prisma.Organization$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.Organization$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1386,10 +1565,11 @@ export interface OrganizationFieldRefs {
   readonly id: Prisma.FieldRef<"Organization", 'String'>
   readonly name: Prisma.FieldRef<"Organization", 'String'>
   readonly claimCutoffDay: Prisma.FieldRef<"Organization", 'Int'>
-  readonly workingHoursStart: Prisma.FieldRef<"Organization", 'String'>
-  readonly workingHoursEnd: Prisma.FieldRef<"Organization", 'String'>
   readonly createdAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Organization", 'DateTime'>
+  readonly workingHoursEnd: Prisma.FieldRef<"Organization", 'String'>
+  readonly workingHoursStart: Prisma.FieldRef<"Organization", 'String'>
+  readonly bankAccount: Prisma.FieldRef<"Organization", 'String'>
 }
     
 
@@ -1738,27 +1918,51 @@ export type OrganizationDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
- * Organization.users
+ * Organization.AdminOrganization
  */
-export type Organization$usersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Organization$AdminOrganizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the User
+   * Select specific fields to fetch from the AdminOrganization
    */
-  select?: Prisma.UserSelect<ExtArgs> | null
+  select?: Prisma.AdminOrganizationSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the User
+   * Omit specific fields from the AdminOrganization
    */
-  omit?: Prisma.UserOmit<ExtArgs> | null
+  omit?: Prisma.AdminOrganizationOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.UserInclude<ExtArgs> | null
-  where?: Prisma.UserWhereInput
-  orderBy?: Prisma.UserOrderByWithRelationInput | Prisma.UserOrderByWithRelationInput[]
-  cursor?: Prisma.UserWhereUniqueInput
+  include?: Prisma.AdminOrganizationInclude<ExtArgs> | null
+  where?: Prisma.AdminOrganizationWhereInput
+  orderBy?: Prisma.AdminOrganizationOrderByWithRelationInput | Prisma.AdminOrganizationOrderByWithRelationInput[]
+  cursor?: Prisma.AdminOrganizationWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
+  distinct?: Prisma.AdminOrganizationScalarFieldEnum | Prisma.AdminOrganizationScalarFieldEnum[]
+}
+
+/**
+ * Organization.chartAccounts
+ */
+export type Organization$chartAccountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ChartOfAccount
+   */
+  select?: Prisma.ChartOfAccountSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ChartOfAccount
+   */
+  omit?: Prisma.ChartOfAccountOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ChartOfAccountInclude<ExtArgs> | null
+  where?: Prisma.ChartOfAccountWhereInput
+  orderBy?: Prisma.ChartOfAccountOrderByWithRelationInput | Prisma.ChartOfAccountOrderByWithRelationInput[]
+  cursor?: Prisma.ChartOfAccountWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ChartOfAccountScalarFieldEnum | Prisma.ChartOfAccountScalarFieldEnum[]
 }
 
 /**
@@ -1786,6 +1990,30 @@ export type Organization$claimsArgs<ExtArgs extends runtime.Types.Extensions.Int
 }
 
 /**
+ * Organization.users
+ */
+export type Organization$usersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+  orderBy?: Prisma.UserOrderByWithRelationInput | Prisma.UserOrderByWithRelationInput[]
+  cursor?: Prisma.UserWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
+}
+
+/**
  * Organization.xeroConnections
  */
 export type Organization$xeroConnectionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1807,30 +2035,6 @@ export type Organization$xeroConnectionsArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.XeroConnectionScalarFieldEnum | Prisma.XeroConnectionScalarFieldEnum[]
-}
-
-/**
- * Organization.chartAccounts
- */
-export type Organization$chartAccountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the ChartOfAccount
-   */
-  select?: Prisma.ChartOfAccountSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the ChartOfAccount
-   */
-  omit?: Prisma.ChartOfAccountOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ChartOfAccountInclude<ExtArgs> | null
-  where?: Prisma.ChartOfAccountWhereInput
-  orderBy?: Prisma.ChartOfAccountOrderByWithRelationInput | Prisma.ChartOfAccountOrderByWithRelationInput[]
-  cursor?: Prisma.ChartOfAccountWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.ChartOfAccountScalarFieldEnum | Prisma.ChartOfAccountScalarFieldEnum[]
 }
 
 /**

@@ -214,16 +214,20 @@ export type UserWhereInput = {
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
-  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileNullableScalarRelationFilter, Prisma.EmployeeProfileWhereInput> | null
-  supervisedProfiles?: Prisma.EmployeeProfileListRelationFilter
-  claims?: Prisma.ClaimListRelationFilter
-  reviews?: Prisma.ClaimListRelationFilter
-  pushSubscriptions?: Prisma.PushSubscriptionListRelationFilter
-  xeroConnections?: Prisma.XeroConnectionListRelationFilter
-  attendance?: Prisma.AttendanceRecordListRelationFilter
+  AdminOrganization?: Prisma.AdminOrganizationListRelationFilter
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepListRelationFilter
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepListRelationFilter
   approvals?: Prisma.ApprovalRequestListRelationFilter
   approvalReviews?: Prisma.ApprovalRequestListRelationFilter
+  attendance?: Prisma.AttendanceRecordListRelationFilter
+  claims?: Prisma.ClaimListRelationFilter
+  reviews?: Prisma.ClaimListRelationFilter
+  supervisedProfiles?: Prisma.EmployeeProfileListRelationFilter
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileNullableScalarRelationFilter, Prisma.EmployeeProfileWhereInput> | null
+  pushSubscriptions?: Prisma.PushSubscriptionListRelationFilter
+  organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
+  xeroConnections?: Prisma.XeroConnectionListRelationFilter
+  XeroProject?: Prisma.XeroProjectListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -236,16 +240,20 @@ export type UserOrderByWithRelationInput = {
   avatarUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  organization?: Prisma.OrganizationOrderByWithRelationInput
-  employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
-  supervisedProfiles?: Prisma.EmployeeProfileOrderByRelationAggregateInput
-  claims?: Prisma.ClaimOrderByRelationAggregateInput
-  reviews?: Prisma.ClaimOrderByRelationAggregateInput
-  pushSubscriptions?: Prisma.PushSubscriptionOrderByRelationAggregateInput
-  xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
-  attendance?: Prisma.AttendanceRecordOrderByRelationAggregateInput
+  AdminOrganization?: Prisma.AdminOrganizationOrderByRelationAggregateInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepOrderByRelationAggregateInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepOrderByRelationAggregateInput
   approvals?: Prisma.ApprovalRequestOrderByRelationAggregateInput
   approvalReviews?: Prisma.ApprovalRequestOrderByRelationAggregateInput
+  attendance?: Prisma.AttendanceRecordOrderByRelationAggregateInput
+  claims?: Prisma.ClaimOrderByRelationAggregateInput
+  reviews?: Prisma.ClaimOrderByRelationAggregateInput
+  supervisedProfiles?: Prisma.EmployeeProfileOrderByRelationAggregateInput
+  employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
+  pushSubscriptions?: Prisma.PushSubscriptionOrderByRelationAggregateInput
+  organization?: Prisma.OrganizationOrderByWithRelationInput
+  xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
+  XeroProject?: Prisma.XeroProjectOrderByRelationAggregateInput
   _relevance?: Prisma.UserOrderByRelevanceInput
 }
 
@@ -262,16 +270,20 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   avatarUrl?: Prisma.StringNullableFilter<"User"> | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
-  organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
-  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileNullableScalarRelationFilter, Prisma.EmployeeProfileWhereInput> | null
-  supervisedProfiles?: Prisma.EmployeeProfileListRelationFilter
-  claims?: Prisma.ClaimListRelationFilter
-  reviews?: Prisma.ClaimListRelationFilter
-  pushSubscriptions?: Prisma.PushSubscriptionListRelationFilter
-  xeroConnections?: Prisma.XeroConnectionListRelationFilter
-  attendance?: Prisma.AttendanceRecordListRelationFilter
+  AdminOrganization?: Prisma.AdminOrganizationListRelationFilter
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepListRelationFilter
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepListRelationFilter
   approvals?: Prisma.ApprovalRequestListRelationFilter
   approvalReviews?: Prisma.ApprovalRequestListRelationFilter
+  attendance?: Prisma.AttendanceRecordListRelationFilter
+  claims?: Prisma.ClaimListRelationFilter
+  reviews?: Prisma.ClaimListRelationFilter
+  supervisedProfiles?: Prisma.EmployeeProfileListRelationFilter
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileNullableScalarRelationFilter, Prisma.EmployeeProfileWhereInput> | null
+  pushSubscriptions?: Prisma.PushSubscriptionListRelationFilter
+  organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
+  xeroConnections?: Prisma.XeroConnectionListRelationFilter
+  XeroProject?: Prisma.XeroProjectListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -313,16 +325,20 @@ export type UserCreateInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -335,15 +351,19 @@ export type UserUncheckedCreateInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -355,16 +375,20 @@ export type UserUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -377,15 +401,19 @@ export type UserUncheckedUpdateInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -557,24 +585,16 @@ export type UserUpdateOneRequiredWithoutPushSubscriptionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPushSubscriptionsInput, Prisma.UserUpdateWithoutPushSubscriptionsInput>, Prisma.UserUncheckedUpdateWithoutPushSubscriptionsInput>
 }
 
-export type UserCreateNestedOneWithoutEmployeeProfileInput = {
-  create?: Prisma.XOR<Prisma.UserCreateWithoutEmployeeProfileInput, Prisma.UserUncheckedCreateWithoutEmployeeProfileInput>
-  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmployeeProfileInput
-  connect?: Prisma.UserWhereUniqueInput
-}
-
 export type UserCreateNestedOneWithoutSupervisedProfilesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutSupervisedProfilesInput, Prisma.UserUncheckedCreateWithoutSupervisedProfilesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutSupervisedProfilesInput
   connect?: Prisma.UserWhereUniqueInput
 }
 
-export type UserUpdateOneRequiredWithoutEmployeeProfileNestedInput = {
+export type UserCreateNestedOneWithoutEmployeeProfileInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutEmployeeProfileInput, Prisma.UserUncheckedCreateWithoutEmployeeProfileInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmployeeProfileInput
-  upsert?: Prisma.UserUpsertWithoutEmployeeProfileInput
   connect?: Prisma.UserWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmployeeProfileInput, Prisma.UserUpdateWithoutEmployeeProfileInput>, Prisma.UserUncheckedUpdateWithoutEmployeeProfileInput>
 }
 
 export type UserUpdateOneWithoutSupervisedProfilesNestedInput = {
@@ -585,6 +605,14 @@ export type UserUpdateOneWithoutSupervisedProfilesNestedInput = {
   delete?: Prisma.UserWhereInput | boolean
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSupervisedProfilesInput, Prisma.UserUpdateWithoutSupervisedProfilesInput>, Prisma.UserUncheckedUpdateWithoutSupervisedProfilesInput>
+}
+
+export type UserUpdateOneRequiredWithoutEmployeeProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutEmployeeProfileInput, Prisma.UserUncheckedCreateWithoutEmployeeProfileInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutEmployeeProfileInput
+  upsert?: Prisma.UserUpsertWithoutEmployeeProfileInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmployeeProfileInput, Prisma.UserUpdateWithoutEmployeeProfileInput>, Prisma.UserUncheckedUpdateWithoutEmployeeProfileInput>
 }
 
 export type UserCreateNestedOneWithoutClaimsInput = {
@@ -633,6 +661,22 @@ export type UserUpdateOneWithoutXeroConnectionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutXeroConnectionsInput, Prisma.UserUpdateWithoutXeroConnectionsInput>, Prisma.UserUncheckedUpdateWithoutXeroConnectionsInput>
 }
 
+export type UserCreateNestedOneWithoutXeroProjectInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutXeroProjectInput, Prisma.UserUncheckedCreateWithoutXeroProjectInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutXeroProjectInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutXeroProjectNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutXeroProjectInput, Prisma.UserUncheckedCreateWithoutXeroProjectInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutXeroProjectInput
+  upsert?: Prisma.UserUpsertWithoutXeroProjectInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutXeroProjectInput, Prisma.UserUpdateWithoutXeroProjectInput>, Prisma.UserUncheckedUpdateWithoutXeroProjectInput>
+}
+
 export type UserCreateNestedOneWithoutAttendanceInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutAttendanceInput, Prisma.UserUncheckedCreateWithoutAttendanceInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutAttendanceInput
@@ -677,6 +721,48 @@ export type UserUpdateOneWithoutApprovalReviewsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutApprovalReviewsInput, Prisma.UserUpdateWithoutApprovalReviewsInput>, Prisma.UserUncheckedUpdateWithoutApprovalReviewsInput>
 }
 
+export type UserCreateNestedOneWithoutAdminOrganizationInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAdminOrganizationInput, Prisma.UserUncheckedCreateWithoutAdminOrganizationInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAdminOrganizationInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAdminOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAdminOrganizationInput, Prisma.UserUncheckedCreateWithoutAdminOrganizationInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAdminOrganizationInput
+  upsert?: Prisma.UserUpsertWithoutAdminOrganizationInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAdminOrganizationInput, Prisma.UserUpdateWithoutAdminOrganizationInput>, Prisma.UserUncheckedUpdateWithoutAdminOrganizationInput>
+}
+
+export type UserCreateNestedOneWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput, Prisma.UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput, Prisma.UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput, Prisma.UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput
+  upsert?: Prisma.UserUpsertWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput, Prisma.UserUpdateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput>, Prisma.UserUncheckedUpdateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput>
+}
+
+export type UserUpdateOneRequiredWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput, Prisma.UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput
+  upsert?: Prisma.UserUpsertWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput, Prisma.UserUpdateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput>, Prisma.UserUncheckedUpdateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput>
+}
+
 export type UserCreateWithoutOrganizationInput = {
   id?: string
   email: string
@@ -686,15 +772,19 @@ export type UserCreateWithoutOrganizationInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrganizationInput = {
@@ -706,15 +796,19 @@ export type UserUncheckedCreateWithoutOrganizationInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrganizationInput = {
@@ -767,15 +861,19 @@ export type UserCreateWithoutPushSubscriptionsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
@@ -788,14 +886,18 @@ export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPushSubscriptionsInput = {
@@ -823,15 +925,19 @@ export type UserUpdateWithoutPushSubscriptionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
@@ -844,59 +950,18 @@ export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
-}
-
-export type UserCreateWithoutEmployeeProfileInput = {
-  id?: string
-  email: string
-  name: string
-  role: $Enums.UserRole
-  passwordHash: string
-  avatarUrl?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
-  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
-  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
-}
-
-export type UserUncheckedCreateWithoutEmployeeProfileInput = {
-  id?: string
-  email: string
-  name: string
-  role: $Enums.UserRole
-  organizationId?: string | null
-  passwordHash: string
-  avatarUrl?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
-  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
-  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
-}
-
-export type UserCreateOrConnectWithoutEmployeeProfileInput = {
-  where: Prisma.UserWhereUniqueInput
-  create: Prisma.XOR<Prisma.UserCreateWithoutEmployeeProfileInput, Prisma.UserUncheckedCreateWithoutEmployeeProfileInput>
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSupervisedProfilesInput = {
@@ -908,15 +973,19 @@ export type UserCreateWithoutSupervisedProfilesInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSupervisedProfilesInput = {
@@ -929,14 +998,18 @@ export type UserUncheckedCreateWithoutSupervisedProfilesInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSupervisedProfilesInput = {
@@ -944,55 +1017,57 @@ export type UserCreateOrConnectWithoutSupervisedProfilesInput = {
   create: Prisma.XOR<Prisma.UserCreateWithoutSupervisedProfilesInput, Prisma.UserUncheckedCreateWithoutSupervisedProfilesInput>
 }
 
-export type UserUpsertWithoutEmployeeProfileInput = {
-  update: Prisma.XOR<Prisma.UserUpdateWithoutEmployeeProfileInput, Prisma.UserUncheckedUpdateWithoutEmployeeProfileInput>
+export type UserCreateWithoutEmployeeProfileInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutEmployeeProfileInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutEmployeeProfileInput = {
+  where: Prisma.UserWhereUniqueInput
   create: Prisma.XOR<Prisma.UserCreateWithoutEmployeeProfileInput, Prisma.UserUncheckedCreateWithoutEmployeeProfileInput>
-  where?: Prisma.UserWhereInput
-}
-
-export type UserUpdateToOneWithWhereWithoutEmployeeProfileInput = {
-  where?: Prisma.UserWhereInput
-  data: Prisma.XOR<Prisma.UserUpdateWithoutEmployeeProfileInput, Prisma.UserUncheckedUpdateWithoutEmployeeProfileInput>
-}
-
-export type UserUpdateWithoutEmployeeProfileInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
-  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
-  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
-  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
-}
-
-export type UserUncheckedUpdateWithoutEmployeeProfileInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
-  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
-  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
-  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
-  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
 }
 
 export type UserUpsertWithoutSupervisedProfilesInput = {
@@ -1015,15 +1090,19 @@ export type UserUpdateWithoutSupervisedProfilesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSupervisedProfilesInput = {
@@ -1036,14 +1115,77 @@ export type UserUncheckedUpdateWithoutSupervisedProfilesInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserUpsertWithoutEmployeeProfileInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutEmployeeProfileInput, Prisma.UserUncheckedUpdateWithoutEmployeeProfileInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutEmployeeProfileInput, Prisma.UserUncheckedCreateWithoutEmployeeProfileInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutEmployeeProfileInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutEmployeeProfileInput, Prisma.UserUncheckedUpdateWithoutEmployeeProfileInput>
+}
+
+export type UserUpdateWithoutEmployeeProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutEmployeeProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutClaimsInput = {
@@ -1055,15 +1197,19 @@ export type UserCreateWithoutClaimsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
-  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutClaimsInput = {
@@ -1076,14 +1222,18 @@ export type UserUncheckedCreateWithoutClaimsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
-  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutClaimsInput = {
@@ -1100,15 +1250,19 @@ export type UserCreateWithoutReviewsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
-  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutReviewsInput = {
@@ -1121,14 +1275,18 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutReviewsInput = {
@@ -1156,15 +1314,19 @@ export type UserUpdateWithoutClaimsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
-  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutClaimsInput = {
@@ -1177,14 +1339,18 @@ export type UserUncheckedUpdateWithoutClaimsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
-  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutReviewsInput = {
@@ -1207,15 +1373,19 @@ export type UserUpdateWithoutReviewsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReviewsInput = {
@@ -1228,14 +1398,18 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutXeroConnectionsInput = {
@@ -1247,15 +1421,19 @@ export type UserCreateWithoutXeroConnectionsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutXeroConnectionsInput = {
@@ -1268,14 +1446,18 @@ export type UserUncheckedCreateWithoutXeroConnectionsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutXeroConnectionsInput = {
@@ -1303,15 +1485,19 @@ export type UserUpdateWithoutXeroConnectionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutXeroConnectionsInput = {
@@ -1324,14 +1510,130 @@ export type UserUncheckedUpdateWithoutXeroConnectionsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutXeroProjectInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+}
+
+export type UserUncheckedCreateWithoutXeroProjectInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+}
+
+export type UserCreateOrConnectWithoutXeroProjectInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutXeroProjectInput, Prisma.UserUncheckedCreateWithoutXeroProjectInput>
+}
+
+export type UserUpsertWithoutXeroProjectInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutXeroProjectInput, Prisma.UserUncheckedUpdateWithoutXeroProjectInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutXeroProjectInput, Prisma.UserUncheckedCreateWithoutXeroProjectInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutXeroProjectInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutXeroProjectInput, Prisma.UserUncheckedUpdateWithoutXeroProjectInput>
+}
+
+export type UserUpdateWithoutXeroProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+}
+
+export type UserUncheckedUpdateWithoutXeroProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
 }
 
 export type UserCreateWithoutAttendanceInput = {
@@ -1343,15 +1645,19 @@ export type UserCreateWithoutAttendanceInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAttendanceInput = {
@@ -1364,14 +1670,18 @@ export type UserUncheckedCreateWithoutAttendanceInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
-  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAttendanceInput = {
@@ -1399,15 +1709,19 @@ export type UserUpdateWithoutAttendanceInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAttendanceInput = {
@@ -1420,14 +1734,18 @@ export type UserUncheckedUpdateWithoutAttendanceInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutApprovalsInput = {
@@ -1439,15 +1757,19 @@ export type UserCreateWithoutApprovalsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
   pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
-  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutApprovalsInput = {
@@ -1460,14 +1782,18 @@ export type UserUncheckedCreateWithoutApprovalsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
-  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutApprovalsInput = {
@@ -1484,15 +1810,19 @@ export type UserCreateWithoutApprovalReviewsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
-  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
   pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
-  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutApprovalReviewsInput = {
@@ -1505,14 +1835,18 @@ export type UserUncheckedCreateWithoutApprovalReviewsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
-  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
-  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutApprovalReviewsInput = {
@@ -1540,15 +1874,19 @@ export type UserUpdateWithoutApprovalsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
-  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApprovalsInput = {
@@ -1561,14 +1899,18 @@ export type UserUncheckedUpdateWithoutApprovalsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
-  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutApprovalReviewsInput = {
@@ -1591,15 +1933,19 @@ export type UserUpdateWithoutApprovalReviewsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
-  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApprovalReviewsInput = {
@@ -1612,14 +1958,354 @@ export type UserUncheckedUpdateWithoutApprovalReviewsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutAdminOrganizationInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAdminOrganizationInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAdminOrganizationInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAdminOrganizationInput, Prisma.UserUncheckedCreateWithoutAdminOrganizationInput>
+}
+
+export type UserUpsertWithoutAdminOrganizationInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAdminOrganizationInput, Prisma.UserUncheckedUpdateWithoutAdminOrganizationInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAdminOrganizationInput, Prisma.UserUncheckedCreateWithoutAdminOrganizationInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAdminOrganizationInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAdminOrganizationInput, Prisma.UserUncheckedUpdateWithoutAdminOrganizationInput>
+}
+
+export type UserUpdateWithoutAdminOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAdminOrganizationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_employeeIdToUserInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput, Prisma.UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput>
+}
+
+export type UserCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutUserInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutUser_ApprovalChainStep_approverIdToUserInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutSupervisorInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  XeroProject?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput, Prisma.UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput>
+}
+
+export type UserUpsertWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput, Prisma.UserUncheckedUpdateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput, Prisma.UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput, Prisma.UserUncheckedUpdateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput>
+}
+
+export type UserUpdateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutApprovalChainStep_ApprovalChainStep_approverIdToUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserUpsertWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput, Prisma.UserUncheckedUpdateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput, Prisma.UserUncheckedCreateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput, Prisma.UserUncheckedUpdateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput>
+}
+
+export type UserUpdateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutApprovalChainStep_ApprovalChainStep_employeeIdToUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyOrganizationInput = {
@@ -1642,15 +2328,19 @@ export type UserUpdateWithoutOrganizationInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrganizationInput = {
@@ -1662,15 +2352,19 @@ export type UserUncheckedUpdateWithoutOrganizationInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
-  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
-  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
-  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
-  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_approverIdToUserNestedInput
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutUser_ApprovalChainStep_employeeIdToUserNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  supervisedProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutSupervisorNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  XeroProject?: Prisma.XeroProjectUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1690,25 +2384,33 @@ export type UserUncheckedUpdateManyWithoutOrganizationInput = {
  */
 
 export type UserCountOutputType = {
-  supervisedProfiles: number
-  claims: number
-  reviews: number
-  pushSubscriptions: number
-  xeroConnections: number
-  attendance: number
+  AdminOrganization: number
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser: number
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser: number
   approvals: number
   approvalReviews: number
+  attendance: number
+  claims: number
+  reviews: number
+  supervisedProfiles: number
+  pushSubscriptions: number
+  xeroConnections: number
+  XeroProject: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  supervisedProfiles?: boolean | UserCountOutputTypeCountSupervisedProfilesArgs
-  claims?: boolean | UserCountOutputTypeCountClaimsArgs
-  reviews?: boolean | UserCountOutputTypeCountReviewsArgs
-  pushSubscriptions?: boolean | UserCountOutputTypeCountPushSubscriptionsArgs
-  xeroConnections?: boolean | UserCountOutputTypeCountXeroConnectionsArgs
-  attendance?: boolean | UserCountOutputTypeCountAttendanceArgs
+  AdminOrganization?: boolean | UserCountOutputTypeCountAdminOrganizationArgs
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: boolean | UserCountOutputTypeCountApprovalChainStep_ApprovalChainStep_approverIdToUserArgs
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: boolean | UserCountOutputTypeCountApprovalChainStep_ApprovalChainStep_employeeIdToUserArgs
   approvals?: boolean | UserCountOutputTypeCountApprovalsArgs
   approvalReviews?: boolean | UserCountOutputTypeCountApprovalReviewsArgs
+  attendance?: boolean | UserCountOutputTypeCountAttendanceArgs
+  claims?: boolean | UserCountOutputTypeCountClaimsArgs
+  reviews?: boolean | UserCountOutputTypeCountReviewsArgs
+  supervisedProfiles?: boolean | UserCountOutputTypeCountSupervisedProfilesArgs
+  pushSubscriptions?: boolean | UserCountOutputTypeCountPushSubscriptionsArgs
+  xeroConnections?: boolean | UserCountOutputTypeCountXeroConnectionsArgs
+  XeroProject?: boolean | UserCountOutputTypeCountXeroProjectArgs
 }
 
 /**
@@ -1724,8 +2426,43 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountSupervisedProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.EmployeeProfileWhereInput
+export type UserCountOutputTypeCountAdminOrganizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AdminOrganizationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountApprovalChainStep_ApprovalChainStep_approverIdToUserArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalChainStepWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountApprovalChainStep_ApprovalChainStep_employeeIdToUserArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalChainStepWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountApprovalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalRequestWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountApprovalReviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalRequestWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAttendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AttendanceRecordWhereInput
 }
 
 /**
@@ -1745,6 +2482,13 @@ export type UserCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Types.Ex
 /**
  * UserCountOutputType without action
  */
+export type UserCountOutputTypeCountSupervisedProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeProfileWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
 export type UserCountOutputTypeCountPushSubscriptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.PushSubscriptionWhereInput
 }
@@ -1759,22 +2503,8 @@ export type UserCountOutputTypeCountXeroConnectionsArgs<ExtArgs extends runtime.
 /**
  * UserCountOutputType without action
  */
-export type UserCountOutputTypeCountAttendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.AttendanceRecordWhereInput
-}
-
-/**
- * UserCountOutputType without action
- */
-export type UserCountOutputTypeCountApprovalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ApprovalRequestWhereInput
-}
-
-/**
- * UserCountOutputType without action
- */
-export type UserCountOutputTypeCountApprovalReviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ApprovalRequestWhereInput
+export type UserCountOutputTypeCountXeroProjectArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.XeroProjectWhereInput
 }
 
 
@@ -1788,16 +2518,20 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   avatarUrl?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  organization?: boolean | Prisma.User$organizationArgs<ExtArgs>
-  employeeProfile?: boolean | Prisma.User$employeeProfileArgs<ExtArgs>
-  supervisedProfiles?: boolean | Prisma.User$supervisedProfilesArgs<ExtArgs>
-  claims?: boolean | Prisma.User$claimsArgs<ExtArgs>
-  reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
-  pushSubscriptions?: boolean | Prisma.User$pushSubscriptionsArgs<ExtArgs>
-  xeroConnections?: boolean | Prisma.User$xeroConnectionsArgs<ExtArgs>
-  attendance?: boolean | Prisma.User$attendanceArgs<ExtArgs>
+  AdminOrganization?: boolean | Prisma.User$AdminOrganizationArgs<ExtArgs>
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: boolean | Prisma.User$ApprovalChainStep_ApprovalChainStep_approverIdToUserArgs<ExtArgs>
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: boolean | Prisma.User$ApprovalChainStep_ApprovalChainStep_employeeIdToUserArgs<ExtArgs>
   approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
   approvalReviews?: boolean | Prisma.User$approvalReviewsArgs<ExtArgs>
+  attendance?: boolean | Prisma.User$attendanceArgs<ExtArgs>
+  claims?: boolean | Prisma.User$claimsArgs<ExtArgs>
+  reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
+  supervisedProfiles?: boolean | Prisma.User$supervisedProfilesArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.User$employeeProfileArgs<ExtArgs>
+  pushSubscriptions?: boolean | Prisma.User$pushSubscriptionsArgs<ExtArgs>
+  organization?: boolean | Prisma.User$organizationArgs<ExtArgs>
+  xeroConnections?: boolean | Prisma.User$xeroConnectionsArgs<ExtArgs>
+  XeroProject?: boolean | Prisma.User$XeroProjectArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1817,32 +2551,40 @@ export type UserSelectScalar = {
 
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "role" | "organizationId" | "passwordHash" | "avatarUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organization?: boolean | Prisma.User$organizationArgs<ExtArgs>
-  employeeProfile?: boolean | Prisma.User$employeeProfileArgs<ExtArgs>
-  supervisedProfiles?: boolean | Prisma.User$supervisedProfilesArgs<ExtArgs>
-  claims?: boolean | Prisma.User$claimsArgs<ExtArgs>
-  reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
-  pushSubscriptions?: boolean | Prisma.User$pushSubscriptionsArgs<ExtArgs>
-  xeroConnections?: boolean | Prisma.User$xeroConnectionsArgs<ExtArgs>
-  attendance?: boolean | Prisma.User$attendanceArgs<ExtArgs>
+  AdminOrganization?: boolean | Prisma.User$AdminOrganizationArgs<ExtArgs>
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser?: boolean | Prisma.User$ApprovalChainStep_ApprovalChainStep_approverIdToUserArgs<ExtArgs>
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser?: boolean | Prisma.User$ApprovalChainStep_ApprovalChainStep_employeeIdToUserArgs<ExtArgs>
   approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
   approvalReviews?: boolean | Prisma.User$approvalReviewsArgs<ExtArgs>
+  attendance?: boolean | Prisma.User$attendanceArgs<ExtArgs>
+  claims?: boolean | Prisma.User$claimsArgs<ExtArgs>
+  reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
+  supervisedProfiles?: boolean | Prisma.User$supervisedProfilesArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.User$employeeProfileArgs<ExtArgs>
+  pushSubscriptions?: boolean | Prisma.User$pushSubscriptionsArgs<ExtArgs>
+  organization?: boolean | Prisma.User$organizationArgs<ExtArgs>
+  xeroConnections?: boolean | Prisma.User$xeroConnectionsArgs<ExtArgs>
+  XeroProject?: boolean | Prisma.User$XeroProjectArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
-    organization: Prisma.$OrganizationPayload<ExtArgs> | null
-    employeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs> | null
-    supervisedProfiles: Prisma.$EmployeeProfilePayload<ExtArgs>[]
-    claims: Prisma.$ClaimPayload<ExtArgs>[]
-    reviews: Prisma.$ClaimPayload<ExtArgs>[]
-    pushSubscriptions: Prisma.$PushSubscriptionPayload<ExtArgs>[]
-    xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
-    attendance: Prisma.$AttendanceRecordPayload<ExtArgs>[]
+    AdminOrganization: Prisma.$AdminOrganizationPayload<ExtArgs>[]
+    ApprovalChainStep_ApprovalChainStep_approverIdToUser: Prisma.$ApprovalChainStepPayload<ExtArgs>[]
+    ApprovalChainStep_ApprovalChainStep_employeeIdToUser: Prisma.$ApprovalChainStepPayload<ExtArgs>[]
     approvals: Prisma.$ApprovalRequestPayload<ExtArgs>[]
     approvalReviews: Prisma.$ApprovalRequestPayload<ExtArgs>[]
+    attendance: Prisma.$AttendanceRecordPayload<ExtArgs>[]
+    claims: Prisma.$ClaimPayload<ExtArgs>[]
+    reviews: Prisma.$ClaimPayload<ExtArgs>[]
+    supervisedProfiles: Prisma.$EmployeeProfilePayload<ExtArgs>[]
+    employeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs> | null
+    pushSubscriptions: Prisma.$PushSubscriptionPayload<ExtArgs>[]
+    organization: Prisma.$OrganizationPayload<ExtArgs> | null
+    xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
+    XeroProject: Prisma.$XeroProjectPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2194,16 +2936,20 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  organization<T extends Prisma.User$organizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$organizationArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  employeeProfile<T extends Prisma.User$employeeProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$employeeProfileArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  supervisedProfiles<T extends Prisma.User$supervisedProfilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$supervisedProfilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  claims<T extends Prisma.User$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  reviews<T extends Prisma.User$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  pushSubscriptions<T extends Prisma.User$pushSubscriptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pushSubscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PushSubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  xeroConnections<T extends Prisma.User$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  attendance<T extends Prisma.User$attendanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$attendanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  AdminOrganization<T extends Prisma.User$AdminOrganizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$AdminOrganizationArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser<T extends Prisma.User$ApprovalChainStep_ApprovalChainStep_approverIdToUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ApprovalChainStep_ApprovalChainStep_approverIdToUserArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalChainStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser<T extends Prisma.User$ApprovalChainStep_ApprovalChainStep_employeeIdToUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ApprovalChainStep_ApprovalChainStep_employeeIdToUserArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalChainStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvals<T extends Prisma.User$approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvalReviews<T extends Prisma.User$approvalReviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalReviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  attendance<T extends Prisma.User$attendanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$attendanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  claims<T extends Prisma.User$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reviews<T extends Prisma.User$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  supervisedProfiles<T extends Prisma.User$supervisedProfilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$supervisedProfilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  employeeProfile<T extends Prisma.User$employeeProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$employeeProfileArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  pushSubscriptions<T extends Prisma.User$pushSubscriptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pushSubscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PushSubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  organization<T extends Prisma.User$organizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$organizationArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  xeroConnections<T extends Prisma.User$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  XeroProject<T extends Prisma.User$XeroProjectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$XeroProjectArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2590,65 +3336,147 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * User.organization
+ * User.AdminOrganization
  */
-export type User$organizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$AdminOrganizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the Organization
+   * Select specific fields to fetch from the AdminOrganization
    */
-  select?: Prisma.OrganizationSelect<ExtArgs> | null
+  select?: Prisma.AdminOrganizationSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the Organization
+   * Omit specific fields from the AdminOrganization
    */
-  omit?: Prisma.OrganizationOmit<ExtArgs> | null
+  omit?: Prisma.AdminOrganizationOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.OrganizationInclude<ExtArgs> | null
-  where?: Prisma.OrganizationWhereInput
-}
-
-/**
- * User.employeeProfile
- */
-export type User$employeeProfileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the EmployeeProfile
-   */
-  select?: Prisma.EmployeeProfileSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the EmployeeProfile
-   */
-  omit?: Prisma.EmployeeProfileOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EmployeeProfileInclude<ExtArgs> | null
-  where?: Prisma.EmployeeProfileWhereInput
-}
-
-/**
- * User.supervisedProfiles
- */
-export type User$supervisedProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the EmployeeProfile
-   */
-  select?: Prisma.EmployeeProfileSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the EmployeeProfile
-   */
-  omit?: Prisma.EmployeeProfileOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EmployeeProfileInclude<ExtArgs> | null
-  where?: Prisma.EmployeeProfileWhereInput
-  orderBy?: Prisma.EmployeeProfileOrderByWithRelationInput | Prisma.EmployeeProfileOrderByWithRelationInput[]
-  cursor?: Prisma.EmployeeProfileWhereUniqueInput
+  include?: Prisma.AdminOrganizationInclude<ExtArgs> | null
+  where?: Prisma.AdminOrganizationWhereInput
+  orderBy?: Prisma.AdminOrganizationOrderByWithRelationInput | Prisma.AdminOrganizationOrderByWithRelationInput[]
+  cursor?: Prisma.AdminOrganizationWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.EmployeeProfileScalarFieldEnum | Prisma.EmployeeProfileScalarFieldEnum[]
+  distinct?: Prisma.AdminOrganizationScalarFieldEnum | Prisma.AdminOrganizationScalarFieldEnum[]
+}
+
+/**
+ * User.ApprovalChainStep_ApprovalChainStep_approverIdToUser
+ */
+export type User$ApprovalChainStep_ApprovalChainStep_approverIdToUserArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ApprovalChainStep
+   */
+  select?: Prisma.ApprovalChainStepSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ApprovalChainStep
+   */
+  omit?: Prisma.ApprovalChainStepOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApprovalChainStepInclude<ExtArgs> | null
+  where?: Prisma.ApprovalChainStepWhereInput
+  orderBy?: Prisma.ApprovalChainStepOrderByWithRelationInput | Prisma.ApprovalChainStepOrderByWithRelationInput[]
+  cursor?: Prisma.ApprovalChainStepWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApprovalChainStepScalarFieldEnum | Prisma.ApprovalChainStepScalarFieldEnum[]
+}
+
+/**
+ * User.ApprovalChainStep_ApprovalChainStep_employeeIdToUser
+ */
+export type User$ApprovalChainStep_ApprovalChainStep_employeeIdToUserArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ApprovalChainStep
+   */
+  select?: Prisma.ApprovalChainStepSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ApprovalChainStep
+   */
+  omit?: Prisma.ApprovalChainStepOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApprovalChainStepInclude<ExtArgs> | null
+  where?: Prisma.ApprovalChainStepWhereInput
+  orderBy?: Prisma.ApprovalChainStepOrderByWithRelationInput | Prisma.ApprovalChainStepOrderByWithRelationInput[]
+  cursor?: Prisma.ApprovalChainStepWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApprovalChainStepScalarFieldEnum | Prisma.ApprovalChainStepScalarFieldEnum[]
+}
+
+/**
+ * User.approvals
+ */
+export type User$approvalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ApprovalRequest
+   */
+  select?: Prisma.ApprovalRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ApprovalRequest
+   */
+  omit?: Prisma.ApprovalRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApprovalRequestInclude<ExtArgs> | null
+  where?: Prisma.ApprovalRequestWhereInput
+  orderBy?: Prisma.ApprovalRequestOrderByWithRelationInput | Prisma.ApprovalRequestOrderByWithRelationInput[]
+  cursor?: Prisma.ApprovalRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApprovalRequestScalarFieldEnum | Prisma.ApprovalRequestScalarFieldEnum[]
+}
+
+/**
+ * User.approvalReviews
+ */
+export type User$approvalReviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ApprovalRequest
+   */
+  select?: Prisma.ApprovalRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ApprovalRequest
+   */
+  omit?: Prisma.ApprovalRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApprovalRequestInclude<ExtArgs> | null
+  where?: Prisma.ApprovalRequestWhereInput
+  orderBy?: Prisma.ApprovalRequestOrderByWithRelationInput | Prisma.ApprovalRequestOrderByWithRelationInput[]
+  cursor?: Prisma.ApprovalRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApprovalRequestScalarFieldEnum | Prisma.ApprovalRequestScalarFieldEnum[]
+}
+
+/**
+ * User.attendance
+ */
+export type User$attendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AttendanceRecord
+   */
+  select?: Prisma.AttendanceRecordSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AttendanceRecord
+   */
+  omit?: Prisma.AttendanceRecordOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AttendanceRecordInclude<ExtArgs> | null
+  where?: Prisma.AttendanceRecordWhereInput
+  orderBy?: Prisma.AttendanceRecordOrderByWithRelationInput | Prisma.AttendanceRecordOrderByWithRelationInput[]
+  cursor?: Prisma.AttendanceRecordWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AttendanceRecordScalarFieldEnum | Prisma.AttendanceRecordScalarFieldEnum[]
 }
 
 /**
@@ -2700,6 +3528,49 @@ export type User$reviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
 }
 
 /**
+ * User.supervisedProfiles
+ */
+export type User$supervisedProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeProfile
+   */
+  select?: Prisma.EmployeeProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeProfile
+   */
+  omit?: Prisma.EmployeeProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeProfileInclude<ExtArgs> | null
+  where?: Prisma.EmployeeProfileWhereInput
+  orderBy?: Prisma.EmployeeProfileOrderByWithRelationInput | Prisma.EmployeeProfileOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeProfileWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeProfileScalarFieldEnum | Prisma.EmployeeProfileScalarFieldEnum[]
+}
+
+/**
+ * User.employeeProfile
+ */
+export type User$employeeProfileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeProfile
+   */
+  select?: Prisma.EmployeeProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeProfile
+   */
+  omit?: Prisma.EmployeeProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeProfileInclude<ExtArgs> | null
+  where?: Prisma.EmployeeProfileWhereInput
+}
+
+/**
  * User.pushSubscriptions
  */
 export type User$pushSubscriptionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2721,6 +3592,25 @@ export type User$pushSubscriptionsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.PushSubscriptionScalarFieldEnum | Prisma.PushSubscriptionScalarFieldEnum[]
+}
+
+/**
+ * User.organization
+ */
+export type User$organizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Organization
+   */
+  select?: Prisma.OrganizationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Organization
+   */
+  omit?: Prisma.OrganizationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganizationInclude<ExtArgs> | null
+  where?: Prisma.OrganizationWhereInput
 }
 
 /**
@@ -2748,75 +3638,27 @@ export type User$xeroConnectionsArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 /**
- * User.attendance
+ * User.XeroProject
  */
-export type User$attendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type User$XeroProjectArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the AttendanceRecord
+   * Select specific fields to fetch from the XeroProject
    */
-  select?: Prisma.AttendanceRecordSelect<ExtArgs> | null
+  select?: Prisma.XeroProjectSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the AttendanceRecord
+   * Omit specific fields from the XeroProject
    */
-  omit?: Prisma.AttendanceRecordOmit<ExtArgs> | null
+  omit?: Prisma.XeroProjectOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.AttendanceRecordInclude<ExtArgs> | null
-  where?: Prisma.AttendanceRecordWhereInput
-  orderBy?: Prisma.AttendanceRecordOrderByWithRelationInput | Prisma.AttendanceRecordOrderByWithRelationInput[]
-  cursor?: Prisma.AttendanceRecordWhereUniqueInput
+  include?: Prisma.XeroProjectInclude<ExtArgs> | null
+  where?: Prisma.XeroProjectWhereInput
+  orderBy?: Prisma.XeroProjectOrderByWithRelationInput | Prisma.XeroProjectOrderByWithRelationInput[]
+  cursor?: Prisma.XeroProjectWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.AttendanceRecordScalarFieldEnum | Prisma.AttendanceRecordScalarFieldEnum[]
-}
-
-/**
- * User.approvals
- */
-export type User$approvalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the ApprovalRequest
-   */
-  select?: Prisma.ApprovalRequestSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the ApprovalRequest
-   */
-  omit?: Prisma.ApprovalRequestOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ApprovalRequestInclude<ExtArgs> | null
-  where?: Prisma.ApprovalRequestWhereInput
-  orderBy?: Prisma.ApprovalRequestOrderByWithRelationInput | Prisma.ApprovalRequestOrderByWithRelationInput[]
-  cursor?: Prisma.ApprovalRequestWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.ApprovalRequestScalarFieldEnum | Prisma.ApprovalRequestScalarFieldEnum[]
-}
-
-/**
- * User.approvalReviews
- */
-export type User$approvalReviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the ApprovalRequest
-   */
-  select?: Prisma.ApprovalRequestSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the ApprovalRequest
-   */
-  omit?: Prisma.ApprovalRequestOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ApprovalRequestInclude<ExtArgs> | null
-  where?: Prisma.ApprovalRequestWhereInput
-  orderBy?: Prisma.ApprovalRequestOrderByWithRelationInput | Prisma.ApprovalRequestOrderByWithRelationInput[]
-  cursor?: Prisma.ApprovalRequestWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.ApprovalRequestScalarFieldEnum | Prisma.ApprovalRequestScalarFieldEnum[]
+  distinct?: Prisma.XeroProjectScalarFieldEnum | Prisma.XeroProjectScalarFieldEnum[]
 }
 
 /**

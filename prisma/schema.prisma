@@ -7,6 +7,277 @@ datasource db {
   provider = "mysql"
 }
 
+model User {
+  id                                                   String              @id @default(cuid())
+  email                                                String              @unique
+  name                                                 String
+  role                                                 UserRole
+  organizationId                                       String?
+  passwordHash                                         String
+  avatarUrl                                            String?
+  createdAt                                            DateTime            @default(now())
+  updatedAt                                            DateTime            @updatedAt
+  AdminOrganization                                    AdminOrganization[]
+  ApprovalChainStep_ApprovalChainStep_approverIdToUser ApprovalChainStep[] @relation("ApprovalChainStep_approverIdToUser")
+  ApprovalChainStep_ApprovalChainStep_employeeIdToUser ApprovalChainStep[] @relation("ApprovalChainStep_employeeIdToUser")
+  approvals                                            ApprovalRequest[]   @relation("EmployeeApprovals")
+  approvalReviews                                      ApprovalRequest[]   @relation("ReviewerApprovals")
+  attendance                                           AttendanceRecord[]  @relation("EmployeeAttendance")
+  claims                                               Claim[]             @relation("EmployeeClaims")
+  reviews                                              Claim[]             @relation("AdminReviews")
+  supervisedProfiles                                   EmployeeProfile[]   @relation("SupervisorReports")
+  employeeProfile                                      EmployeeProfile?    @relation("EmployeeProfileUser")
+  pushSubscriptions                                    PushSubscription[]
+  organization                                         Organization?       @relation(fields: [organizationId], references: [id])
+  xeroConnections                                      XeroConnection[]    @relation("XeroConnectedBy")
+  XeroProject                                          XeroProject[]
+
+  @@index([organizationId])
+}
+
+model Organization {
+  id                String              @id @default(cuid())
+  name              String              @unique
+  claimCutoffDay    Int                 @default(25)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  workingHoursEnd   String              @default("18:00")
+  workingHoursStart String              @default("09:00")
+  bankAccount       String?
+  AdminOrganization AdminOrganization[]
+  chartAccounts     ChartOfAccount[]
+  claims            Claim[]
+  users             User[]
+  xeroConnections   XeroConnection[]
+  projects          XeroProject[]
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique @db.VarChar(500)
+  p256dh    String   @db.VarChar(255)
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EmployeeProfile {
+  id                String          @id @default(cuid())
+  userId            String          @unique
+  employeeId        String          @unique
+  project           String          @map("department")
+  jobTitle          String
+  supervisorId      String?
+  payoutMethod      String?
+  preferredCurrency String          @default("USD")
+  xeroConnectionId  String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  supervisor        User?           @relation("SupervisorReports", fields: [supervisorId], references: [id])
+  user              User            @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  xeroConnection    XeroConnection? @relation(fields: [xeroConnectionId], references: [id])
+
+  @@index([supervisorId])
+  @@index([xeroConnectionId])
+}
+
+model Claim {
+  id               String          @id @default(cuid())
+  claimNumber      String          @unique
+  title            String
+  description      String          @db.Text
+  category         ClaimCategory
+  organizationId   String?
+  chartOfAccountId String?
+  amount           Decimal         @db.Decimal(10, 2)
+  currency         String          @default("USD")
+  spentAt          DateTime
+  submittedAt      DateTime        @default(now())
+  claimRunMonth    DateTime?
+  reviewedAt       DateTime?
+  payoutAt         DateTime?
+  status           ClaimStatus     @default(PENDING)
+  receiptUrl       String?
+  reviewNotes      String?         @db.Text
+  employeeId       String
+  reviewerId       String?
+  xeroBillId       String?         @unique
+  xeroBillRef      String?
+  xeroSyncStatus   XeroSyncStatus  @default(NOT_SYNCED)
+  xeroSyncError    String?         @db.Text
+  xeroSyncedAt     DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  chartOfAccount   ChartOfAccount? @relation(fields: [chartOfAccountId], references: [id])
+  employee         User            @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
+  organization     Organization?   @relation(fields: [organizationId], references: [id])
+  reviewer         User?           @relation("AdminReviews", fields: [reviewerId], references: [id])
+
+  @@index([organizationId, submittedAt])
+  @@index([chartOfAccountId])
+  @@index([employeeId, submittedAt])
+  @@index([status, submittedAt])
+  @@index([xeroSyncStatus])
+  @@index([reviewerId], map: "Claim_reviewerId_fkey")
+}
+
+model ChartOfAccount {
+  id               String          @id @default(cuid())
+  organizationId   String
+  xeroConnectionId String?
+  xeroAccountId    String?
+  code             String
+  name             String
+  type             String?
+  status           String?
+  isSelectable     Boolean         @default(false)
+  isCustom         Boolean         @default(false)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  isBankAccount    Boolean         @default(false)
+  isDisabled       Boolean         @default(false)
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
+  claims           Claim[]
+
+  @@unique([xeroConnectionId, xeroAccountId])
+  @@unique([organizationId, code])
+  @@index([organizationId, xeroConnectionId, isSelectable])
+  @@index([organizationId, isBankAccount])
+}
+
+model XeroConnection {
+  id                   String            @id @default(cuid())
+  provider             String            @default("xero")
+  organizationId       String
+  tenantId             String            @unique
+  tenantName           String
+  tenantType           String?
+  accessToken          String            @db.Text
+  refreshToken         String            @db.Text
+  scope                String            @db.Text
+  tokenType            String
+  accessTokenExpiresAt DateTime
+  connectedByAdminId   String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  chartAccounts        ChartOfAccount[]
+  employeeProfiles     EmployeeProfile[]
+  connectedByAdmin     User?             @relation("XeroConnectedBy", fields: [connectedByAdminId], references: [id])
+  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  xeroProjects         XeroProject[]
+
+  @@unique([organizationId, tenantId])
+  @@index([organizationId])
+  @@index([provider])
+  @@index([connectedByAdminId])
+}
+
+model XeroProject {
+  id               String          @id @default(cuid())
+  organizationId   String
+  xeroConnectionId String?
+  xeroProjectId    String?
+  name             String
+  status           String?
+  contactId        String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  isManual         Boolean         @default(false)
+  location         String?
+  projectManagerId String?
+  isDisabled       Boolean         @default(false)
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  User             User?           @relation(fields: [projectManagerId], references: [id])
+  xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
+
+  @@unique([xeroConnectionId, xeroProjectId])
+  @@index([xeroConnectionId, name])
+  @@index([organizationId], map: "XeroProject_organizationId_fkey")
+  @@index([projectManagerId])
+}
+
+model AttendanceRecord {
+  id          String           @id @default(cuid())
+  employeeId  String
+  date        DateTime
+  timeIn      DateTime?
+  timeOut     DateTime?
+  durationMin Int?
+  lateByMin   Int?
+  location    String?
+  project     String?
+  status      AttendanceStatus @default(MISSING)
+  notes       String?          @db.Text
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  employee    User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@index([employeeId, date])
+  @@index([status, date])
+}
+
+model ApprovalRequest {
+  id          String         @id @default(cuid())
+  employeeId  String
+  reviewerId  String?
+  kind        ApprovalKind
+  status      ApprovalStatus @default(PENDING)
+  date        DateTime
+  eventAt     DateTime?
+  title       String
+  detail      String         @db.Text
+  location    String?
+  otSubtype   OTSubtype?
+  lateMinutes Int?
+  offsetRef   String?
+  reviewNotes String?        @db.Text
+  submittedAt DateTime       @default(now())
+  reviewedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  project     String?
+  employee    User           @relation("EmployeeApprovals", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer    User?          @relation("ReviewerApprovals", fields: [reviewerId], references: [id])
+
+  @@index([employeeId, date])
+  @@index([status, date])
+  @@index([kind, status])
+  @@index([reviewerId], map: "ApprovalRequest_reviewerId_fkey")
+}
+
+model AdminOrganization {
+  id             String       @id
+  adminId        String
+  organizationId String
+  createdAt      DateTime     @default(now())
+  User           User         @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  Organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([adminId, organizationId])
+  @@index([adminId])
+  @@index([organizationId])
+}
+
+model ApprovalChainStep {
+  id                                      String   @id
+  employeeId                              String
+  step                                    Int
+  approverId                              String
+  createdAt                               DateTime @default(now())
+  updatedAt                               DateTime
+  User_ApprovalChainStep_approverIdToUser User     @relation("ApprovalChainStep_approverIdToUser", fields: [approverId], references: [id])
+  User_ApprovalChainStep_employeeIdToUser User     @relation("ApprovalChainStep_employeeIdToUser", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, step])
+  @@index([approverId])
+  @@index([employeeId])
+}
+
 enum UserRole {
   ADMIN
   EMPLOYEE
@@ -64,231 +335,4 @@ enum OTSubtype {
   LATE_REPLACEMENT
   OT_OFFSET
   UNRESOLVED
-}
-
-model User {
-  id                 String             @id @default(cuid())
-  email              String             @unique
-  name               String
-  role               UserRole
-  organizationId     String?
-  passwordHash       String
-  avatarUrl          String?
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-  organization       Organization?      @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  employeeProfile    EmployeeProfile?   @relation("EmployeeProfileUser")
-  supervisedProfiles EmployeeProfile[]  @relation("SupervisorReports")
-  claims             Claim[]            @relation("EmployeeClaims")
-  reviews            Claim[]            @relation("AdminReviews")
-  pushSubscriptions  PushSubscription[]
-  xeroConnections    XeroConnection[]   @relation("XeroConnectedBy")
-  attendance         AttendanceRecord[] @relation("EmployeeAttendance")
-  approvals          ApprovalRequest[]  @relation("EmployeeApprovals")
-  approvalReviews    ApprovalRequest[]  @relation("ReviewerApprovals")
-
-  @@index([organizationId])
-}
-
-model Organization {
-  id                String           @id @default(cuid())
-  name              String           @unique
-  claimCutoffDay    Int              @default(25)
-  workingHoursStart String           @default("09:00")
-  workingHoursEnd   String           @default("18:00")
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  users             User[]
-  claims            Claim[]
-  xeroConnections   XeroConnection[]
-  chartAccounts     ChartOfAccount[]
-  projects          XeroProject[]
-}
-
-model PushSubscription {
-  id        String   @id @default(cuid())
-  userId    String
-  endpoint  String   @unique @db.VarChar(500)
-  p256dh    String   @db.VarChar(255)
-  auth      String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model EmployeeProfile {
-  id                String          @id @default(cuid())
-  userId            String          @unique
-  employeeId        String          @unique
-  project           String          @map("department")
-  jobTitle          String
-  supervisorId      String?
-  payoutMethod      String?
-  preferredCurrency String          @default("USD")
-  xeroConnectionId  String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  user              User            @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
-  supervisor        User?           @relation("SupervisorReports", fields: [supervisorId], references: [id], onDelete: SetNull)
-  xeroConnection    XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: SetNull)
-
-  @@index([supervisorId])
-  @@index([xeroConnectionId])
-}
-
-model Claim {
-  id               String         @id @default(cuid())
-  claimNumber      String         @unique
-  title            String
-  description      String         @db.Text
-  category         ClaimCategory
-  organizationId   String?
-  chartOfAccountId String?
-  amount           Decimal        @db.Decimal(10, 2)
-  currency         String         @default("USD")
-  spentAt          DateTime
-  submittedAt      DateTime       @default(now())
-  claimRunMonth    DateTime?
-  reviewedAt       DateTime?
-  payoutAt         DateTime?
-  status           ClaimStatus    @default(PENDING)
-  receiptUrl       String?
-  reviewNotes      String?        @db.Text
-  employeeId       String
-  reviewerId       String?
-  xeroBillId       String?        @unique
-  xeroBillRef      String?
-  xeroSyncStatus   XeroSyncStatus @default(NOT_SYNCED)
-  xeroSyncError    String?        @db.Text
-  xeroSyncedAt     DateTime?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  organization     Organization?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  chartOfAccount   ChartOfAccount? @relation(fields: [chartOfAccountId], references: [id], onDelete: SetNull)
-  employee         User           @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
-  reviewer         User?          @relation("AdminReviews", fields: [reviewerId], references: [id], onDelete: SetNull)
-
-  @@index([organizationId, submittedAt])
-  @@index([chartOfAccountId])
-  @@index([employeeId, submittedAt])
-  @@index([status, submittedAt])
-  @@index([xeroSyncStatus])
-}
-
-model ChartOfAccount {
-  id               String          @id @default(cuid())
-  organizationId   String
-  xeroConnectionId String?
-  xeroAccountId    String?
-  code             String
-  name             String
-  type             String?
-  status           String?
-  isSelectable     Boolean         @default(false)
-  isCustom         Boolean         @default(false)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
-  claims           Claim[]
-
-  @@unique([xeroConnectionId, xeroAccountId])
-  @@unique([organizationId, code])
-  @@index([organizationId, xeroConnectionId, isSelectable])
-}
-
-model XeroConnection {
-  id                   String           @id @default(cuid())
-  provider             String           @default("xero")
-  organizationId       String
-  tenantId             String           @unique
-  tenantName           String
-  tenantType           String?
-  accessToken          String           @db.Text
-  refreshToken         String           @db.Text
-  scope                String           @db.Text
-  tokenType            String
-  accessTokenExpiresAt DateTime
-  connectedByAdminId   String?
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @updatedAt
-  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  connectedByAdmin     User?            @relation("XeroConnectedBy", fields: [connectedByAdminId], references: [id], onDelete: SetNull)
-  chartAccounts        ChartOfAccount[]
-  xeroProjects         XeroProject[]
-  employeeProfiles     EmployeeProfile[]
-
-  @@unique([organizationId, tenantId])
-  @@index([organizationId])
-  @@index([provider])
-  @@index([connectedByAdminId])
-}
-
-model XeroProject {
-  id               String         @id @default(cuid())
-  organizationId   String
-  xeroConnectionId String
-  xeroProjectId    String
-  name             String
-  status           String?
-  contactId        String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  xeroConnection   XeroConnection @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
-
-  @@unique([xeroConnectionId, xeroProjectId])
-  @@index([xeroConnectionId, name])
-}
-
-model AttendanceRecord {
-  id          String           @id @default(cuid())
-  employeeId  String
-  date        DateTime
-  timeIn      DateTime?
-  timeOut     DateTime?
-  durationMin Int?
-  lateByMin   Int?
-  location    String?
-  project     String?
-  status      AttendanceStatus @default(MISSING)
-  notes       String?          @db.Text
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  employee    User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
-
-  @@unique([employeeId, date])
-  @@index([employeeId, date])
-  @@index([status, date])
-}
-
-model ApprovalRequest {
-  id          String         @id @default(cuid())
-  employeeId  String
-  reviewerId  String?
-  kind        ApprovalKind
-  status      ApprovalStatus @default(PENDING)
-  date        DateTime       // event day
-  eventAt     DateTime?      // exact timestamp for clock events
-  title       String
-  detail      String         @db.Text
-  location    String?
-  project     String?
-  // OT-specific
-  otSubtype   OTSubtype?
-  lateMinutes Int?
-  offsetRef   String?
-  // review lifecycle
-  reviewNotes String?        @db.Text
-  submittedAt DateTime       @default(now())
-  reviewedAt  DateTime?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  employee    User           @relation("EmployeeApprovals", fields: [employeeId], references: [id], onDelete: Cascade)
-  reviewer    User?          @relation("ReviewerApprovals", fields: [reviewerId], references: [id], onDelete: SetNull)
-
-  @@index([employeeId, date])
-  @@index([status, date])
-  @@index([kind, status])
 }
