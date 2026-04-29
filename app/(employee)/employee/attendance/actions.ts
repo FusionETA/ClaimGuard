@@ -8,6 +8,7 @@ import { employeeAttendanceService } from "@/modules/attendance/application/serv
 export type ClockInState = { error?: string }
 
 function revalidateAll() {
+  revalidatePath("/employee")
   revalidatePath("/employee/attendance")
   revalidatePath("/employee/attendance/team")
   revalidatePath("/employee/attendance/approvals")
