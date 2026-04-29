@@ -31,6 +31,8 @@ async function getStore() {
   if (
     store &&
     (isStoreExpired(store.cachedAt) ||
+      store.activeOrganizationId !==
+        (session.activeOrganizationId ?? session.organizationId) ||
       store.activeXeroConnectionId !== session.activeXeroConnectionId)
   ) {
     clearAdminStore(session.email)
@@ -40,7 +42,11 @@ async function getStore() {
   if (!store) {
     // Server restart cleared memory or connection switched — reload from DB transparently.
     try {
-      await loadAdminData(session.email, session.activeXeroConnectionId)
+      await loadAdminData(
+        session.email,
+        session.activeOrganizationId ?? session.organizationId,
+        session.activeXeroConnectionId
+      )
     } catch {
       return null
     }

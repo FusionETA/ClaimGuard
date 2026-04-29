@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
+  AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
   Claim: 'Claim',
@@ -60,7 +61,8 @@ export const ModelName = {
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
   AttendanceRecord: 'AttendanceRecord',
-  ApprovalRequest: 'ApprovalRequest'
+  ApprovalRequest: 'ApprovalRequest',
+  ApprovalChainStep: 'ApprovalChainStep'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -98,13 +100,30 @@ export const OrganizationScalarFieldEnum = {
   id: 'id',
   name: 'name',
   claimCutoffDay: 'claimCutoffDay',
-  workingHoursStart: 'workingHoursStart',
-  workingHoursEnd: 'workingHoursEnd',
+  bankAccount: 'bankAccount',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  workingHoursEnd: 'workingHoursEnd',
+  workingHoursStart: 'workingHoursStart',
+  otRateNormalDay: 'otRateNormalDay',
+  otRateRestDay: 'otRateRestDay',
+  otRatePublicHoliday: 'otRatePublicHoliday',
+  restDayInShiftRate: 'restDayInShiftRate',
+  publicHolidayInShiftRate: 'publicHolidayInShiftRate',
+  otSalaryThreshold: 'otSalaryThreshold'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const AdminOrganizationScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  organizationId: 'organizationId',
+  createdAt: 'createdAt'
+} as const
+
+export type AdminOrganizationScalarFieldEnum = (typeof AdminOrganizationScalarFieldEnum)[keyof typeof AdminOrganizationScalarFieldEnum]
 
 
 export const PushSubscriptionScalarFieldEnum = {
@@ -178,7 +197,9 @@ export const ChartOfAccountScalarFieldEnum = {
   type: 'type',
   status: 'status',
   isSelectable: 'isSelectable',
+  isBankAccount: 'isBankAccount',
   isCustom: 'isCustom',
+  isDisabled: 'isDisabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -214,6 +235,10 @@ export const XeroProjectScalarFieldEnum = {
   name: 'name',
   status: 'status',
   contactId: 'contactId',
+  projectManagerId: 'projectManagerId',
+  location: 'location',
+  isManual: 'isManual',
+  isDisabled: 'isDisabled',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -251,7 +276,6 @@ export const ApprovalRequestScalarFieldEnum = {
   title: 'title',
   detail: 'detail',
   location: 'location',
-  project: 'project',
   otSubtype: 'otSubtype',
   lateMinutes: 'lateMinutes',
   offsetRef: 'offsetRef',
@@ -259,10 +283,23 @@ export const ApprovalRequestScalarFieldEnum = {
   submittedAt: 'submittedAt',
   reviewedAt: 'reviewedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  project: 'project'
 } as const
 
 export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
+
+
+export const ApprovalChainStepScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  step: 'step',
+  approverId: 'approverId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ApprovalChainStepScalarFieldEnum = (typeof ApprovalChainStepScalarFieldEnum)[keyof typeof ApprovalChainStepScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -296,11 +333,21 @@ export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnu
 export const OrganizationOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
-  workingHoursStart: 'workingHoursStart',
-  workingHoursEnd: 'workingHoursEnd'
+  bankAccount: 'bankAccount',
+  workingHoursEnd: 'workingHoursEnd',
+  workingHoursStart: 'workingHoursStart'
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
+
+
+export const AdminOrganizationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  organizationId: 'organizationId'
+} as const
+
+export type AdminOrganizationOrderByRelevanceFieldEnum = (typeof AdminOrganizationOrderByRelevanceFieldEnum)[keyof typeof AdminOrganizationOrderByRelevanceFieldEnum]
 
 
 export const PushSubscriptionOrderByRelevanceFieldEnum = {
@@ -387,7 +434,9 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   xeroProjectId: 'xeroProjectId',
   name: 'name',
   status: 'status',
-  contactId: 'contactId'
+  contactId: 'contactId',
+  projectManagerId: 'projectManagerId',
+  location: 'location'
 } as const
 
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
@@ -411,10 +460,19 @@ export const ApprovalRequestOrderByRelevanceFieldEnum = {
   title: 'title',
   detail: 'detail',
   location: 'location',
-  project: 'project',
   offsetRef: 'offsetRef',
-  reviewNotes: 'reviewNotes'
+  reviewNotes: 'reviewNotes',
+  project: 'project'
 } as const
 
 export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOrderByRelevanceFieldEnum)[keyof typeof ApprovalRequestOrderByRelevanceFieldEnum]
+
+
+export const ApprovalChainStepOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  approverId: 'approverId'
+} as const
+
+export type ApprovalChainStepOrderByRelevanceFieldEnum = (typeof ApprovalChainStepOrderByRelevanceFieldEnum)[keyof typeof ApprovalChainStepOrderByRelevanceFieldEnum]
 

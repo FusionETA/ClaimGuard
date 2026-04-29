@@ -18,7 +18,6 @@ const hierarchySchema = z.object({
   role: z.enum(["EMPLOYEE", "SUPERVISOR"]),
   project: z.string().optional(),
   jobTitle: z.string().min(1, "Job title is required."),
-  supervisorId: z.string().optional(),
   email: z.string().email(),
 })
 
@@ -30,7 +29,6 @@ const createMemberSchema = z.object({
   role: z.enum(["EMPLOYEE", "SUPERVISOR"]),
   project: z.string().optional(),
   jobTitle: z.string().min(1, "Job title is required."),
-  supervisorId: z.string().optional(),
 })
 
 export async function updateHierarchyAction(
@@ -43,7 +41,7 @@ export async function updateHierarchyAction(
     organizationId: "",
     project: String(formData.get("project") ?? "").trim(),
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
-    supervisorId: String(formData.get("supervisorId") ?? ""),
+    supervisorId: "",
     xeroConnectionId: xeroConnectionId ?? "",
   }
   const session = await getCurrentSession()
@@ -56,7 +54,9 @@ export async function updateHierarchyAction(
     }
   }
 
-  if (!session.organizationId) {
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+
+  if (!organizationId) {
     return {
       ...createInitialHierarchyFormState(values),
       status: "error",
@@ -69,7 +69,6 @@ export async function updateHierarchyAction(
     role: values.role,
     project: values.project || undefined,
     jobTitle: values.jobTitle,
-    supervisorId: values.supervisorId || undefined,
     email: String(formData.get("email") ?? ""),
   })
 
@@ -84,10 +83,9 @@ export async function updateHierarchyAction(
   await organizationRepository.updateOrganizationMember({
     userId: parsed.data.userId,
     role: parsed.data.role,
-    organizationId: session.organizationId,
+    organizationId,
     project: parsed.data.project || undefined,
     jobTitle: parsed.data.jobTitle,
-    supervisorId: parsed.data.supervisorId || undefined,
     xeroConnectionId,
   })
 
@@ -101,10 +99,9 @@ export async function updateHierarchyAction(
   return {
     ...createInitialHierarchyFormState({
       role: parsed.data.role,
-      organizationId: session.organizationId,
+      organizationId,
       project: parsed.data.project ?? "",
       jobTitle: parsed.data.jobTitle,
-      supervisorId: parsed.data.supervisorId ?? "",
       xeroConnectionId: xeroConnectionId ?? "",
     }),
     status: "success",
@@ -126,7 +123,7 @@ export async function createHierarchyMemberAction(
     organizationId: "",
     project: String(formData.get("project") ?? "").trim(),
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
-    supervisorId: String(formData.get("supervisorId") ?? ""),
+    supervisorId: "",
     xeroConnectionId: xeroConnectionId ?? "",
   }
   const session = await getCurrentSession()
@@ -139,7 +136,9 @@ export async function createHierarchyMemberAction(
     }
   }
 
-  if (!session.organizationId) {
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+
+  if (!organizationId) {
     return {
       ...createInitialAddHierarchyMemberFormState(values),
       status: "error",
@@ -150,7 +149,6 @@ export async function createHierarchyMemberAction(
   const parsed = createMemberSchema.safeParse({
     ...values,
     project: values.project || undefined,
-    supervisorId: values.supervisorId || undefined,
   })
 
   if (!parsed.success) {
@@ -161,25 +159,43 @@ export async function createHierarchyMemberAction(
     }
   }
 
+  const approverIds = formData.getAll("approverIds").map(String).filter(Boolean)
+  // First approver in the chain is the direct supervisor
+  const supervisorId = approverIds[0] || undefined
+
+  let createdUserId: string
   try {
-    await organizationRepository.createOrganizationMember({
+    const created = await organizationRepository.createOrganizationMember({
       name: parsed.data.name,
       email: parsed.data.email,
       password: parsed.data.password,
       employeeId: parsed.data.employeeId,
       role: parsed.data.role,
-      organizationId: session.organizationId,
+      organizationId,
       project: parsed.data.project || undefined,
       jobTitle: parsed.data.jobTitle,
-      supervisorId: parsed.data.supervisorId || undefined,
+      supervisorId,
       xeroConnectionId,
     })
+    createdUserId = created.id
   } catch (error) {
     return {
       ...createInitialAddHierarchyMemberFormState(values),
       status: "error",
       message:
         error instanceof Error ? error.message : "Unable to create employee right now.",
+    }
+  }
+
+  if (approverIds.length > 0) {
+    try {
+      await organizationRepository.setApprovalChain({
+        employeeId: createdUserId,
+        organizationId,
+        approverIds,
+      })
+    } catch {
+      // Chain save failure is non-fatal — employee was created, chain can be set later
     }
   }
 
@@ -192,4 +208,40 @@ export async function createHierarchyMemberAction(
     status: "success",
     message: "Employee added successfully.",
   }
+}
+
+export async function saveApprovalChainAction(
+  employeeId: string,
+  approverIds: string[]
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+
+  if (!organizationId) {
+    return { ok: false, message: "Set up your organization in settings before managing hierarchy." }
+  }
+
+  try {
+    await organizationRepository.setApprovalChain({
+      employeeId,
+      organizationId,
+      approverIds,
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unable to save approval chain.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidatePath("/admin")
+  revalidatePath("/admin/hierarchy")
+
+  return { ok: true, message: "Approval chain saved." }
 }

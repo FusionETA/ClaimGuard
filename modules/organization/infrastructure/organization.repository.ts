@@ -3,13 +3,24 @@ import "server-only"
 import { hashPassword } from "@/lib/auth/password"
 import { getPrismaClient } from "@/lib/prisma"
 import type {
+  AdminOrganizationOption,
   ChartOfAccountOption,
   OrganizationMember,
   OrganizationProjectOption,
   OrganizationSummary,
+  OtRates,
   XeroConnectionInfo,
   XeroConnectionSummary,
 } from "@/modules/organization/domain/models"
+
+const DEFAULT_OT_RATES: OtRates = {
+  normalDay: 1.5,
+  restDay: 2.0,
+  publicHoliday: 3.0,
+  restDayInShift: 1.0,
+  publicHolidayInShift: 2.0,
+  salaryThreshold: 4000,
+}
 
 export type XeroConnectionRecord = {
   id: string
@@ -26,8 +37,29 @@ export type XeroConnectionRecord = {
   updatedAt: Date
 }
 
+function toNumberOr(value: unknown, fallback: number): number {
+  if (value == null) return fallback
+  if (typeof value === "number") return value
+  // Prisma returns Decimal as a wrapper with toString(); Number(...) handles both.
+  const n = Number(value as { toString(): string })
+  return Number.isFinite(n) ? n : fallback
+}
+
 function mapOrganizationSummary(
-  org?: { id: string; name: string; claimCutoffDay: number } | null
+  org?:
+    | {
+        id: string
+        name: string
+        claimCutoffDay: number
+        bankAccount?: string | null
+        otRateNormalDay?: unknown
+        otRateRestDay?: unknown
+        otRatePublicHoliday?: unknown
+        restDayInShiftRate?: unknown
+        publicHolidayInShiftRate?: unknown
+        otSalaryThreshold?: unknown
+      }
+    | null
 ): OrganizationSummary | undefined {
   if (!org) return undefined
 
@@ -35,6 +67,18 @@ function mapOrganizationSummary(
     id: org.id,
     name: org.name,
     claimCutoffDay: org.claimCutoffDay,
+    bankAccount: org.bankAccount ?? undefined,
+    otRates: {
+      normalDay: toNumberOr(org.otRateNormalDay, DEFAULT_OT_RATES.normalDay),
+      restDay: toNumberOr(org.otRateRestDay, DEFAULT_OT_RATES.restDay),
+      publicHoliday: toNumberOr(org.otRatePublicHoliday, DEFAULT_OT_RATES.publicHoliday),
+      restDayInShift: toNumberOr(org.restDayInShiftRate, DEFAULT_OT_RATES.restDayInShift),
+      publicHolidayInShift: toNumberOr(
+        org.publicHolidayInShiftRate,
+        DEFAULT_OT_RATES.publicHolidayInShift
+      ),
+      salaryThreshold: toNumberOr(org.otSalaryThreshold, DEFAULT_OT_RATES.salaryThreshold),
+    },
   }
 }
 
@@ -45,7 +89,9 @@ function mapChartAccount(account?: {
   type: string | null
   status: string | null
   isSelectable: boolean
+  isBankAccount: boolean
   isCustom: boolean
+  isDisabled: boolean
   xeroConnectionId: string | null
 } | null): ChartOfAccountOption | undefined {
   if (!account) return undefined
@@ -57,7 +103,9 @@ function mapChartAccount(account?: {
     type: account.type ?? undefined,
     status: account.status ?? undefined,
     isSelectable: account.isSelectable,
+    isBankAccount: account.isBankAccount,
     isCustom: account.isCustom,
+    isDisabled: account.isDisabled,
     xeroConnectionId: account.xeroConnectionId ?? undefined,
   }
 }
@@ -72,6 +120,189 @@ export const organizationRepository = {
     })
 
     return mapOrganizationSummary(row) ?? null
+  },
+
+  // ---------------------------------------------------------------------------
+  // Admin multi-company
+  // ---------------------------------------------------------------------------
+
+  async getAdminOrganizations(adminId: string): Promise<AdminOrganizationOption[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const [admin, rows, xeroConnectedRows] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: adminId },
+        select: {
+          organization: {
+            select: { id: true, name: true },
+          },
+        },
+      }),
+      prisma.adminOrganization.findMany({
+        where: { adminId },
+        include: { organization: { select: { id: true, name: true } } },
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.xeroConnection.findMany({
+        where: { connectedByAdminId: adminId },
+        select: {
+          organization: {
+            select: { id: true, name: true },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      }),
+    ])
+
+    const options: AdminOrganizationOption[] = []
+    const seenOrganizationIds = new Set<string>()
+    const recoveredOrganizationIds = new Set<string>()
+
+    if (admin?.organization) {
+      options.push({
+        id: admin.organization.id,
+        name: admin.organization.name,
+      })
+      seenOrganizationIds.add(admin.organization.id)
+    }
+
+    for (const row of rows) {
+      if (seenOrganizationIds.has(row.organization.id)) continue
+
+      options.push({
+        id: row.organization.id,
+        name: row.organization.name,
+      })
+      seenOrganizationIds.add(row.organization.id)
+    }
+
+    for (const row of xeroConnectedRows) {
+      const organization = row.organization
+      if (!organization || seenOrganizationIds.has(organization.id)) continue
+
+      options.push({
+        id: organization.id,
+        name: organization.name,
+      })
+      seenOrganizationIds.add(organization.id)
+      recoveredOrganizationIds.add(organization.id)
+    }
+
+    if (recoveredOrganizationIds.size > 0) {
+      await Promise.all(
+        Array.from(recoveredOrganizationIds).map((organizationId) =>
+          prisma.adminOrganization.upsert({
+            where: {
+              adminId_organizationId: {
+                adminId,
+                organizationId,
+              },
+            },
+            create: { adminId, organizationId },
+            update: {},
+          })
+        )
+      )
+    }
+
+    return options
+  },
+
+  async createAdminOrganization(data: {
+    adminId: string
+    name: string
+  }): Promise<AdminOrganizationOption> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const admin = await prisma.user.findUnique({
+      where: { id: data.adminId },
+      select: { role: true, organizationId: true },
+    })
+
+    if (!admin || admin.role !== "ADMIN") {
+      throw new Error("Admin account not found.")
+    }
+
+    const existing = await prisma.organization.findUnique({
+      where: { name: data.name.trim() },
+      select: { id: true },
+    })
+
+    if (existing) {
+      throw new Error("An organization with that name already exists.")
+    }
+
+    const org = await prisma.organization.create({
+      data: { name: data.name.trim() },
+    })
+
+    await prisma.adminOrganization.create({
+      data: { adminId: data.adminId, organizationId: org.id },
+    })
+
+    if (!admin.organizationId) {
+      await prisma.user.update({
+        where: { id: data.adminId },
+        data: { organizationId: org.id },
+      })
+    }
+
+    return { id: org.id, name: org.name }
+  },
+
+  async linkAdminToOrganization(adminId: string, organizationId: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    await prisma.adminOrganization.upsert({
+      where: { adminId_organizationId: { adminId, organizationId } },
+      create: { adminId, organizationId },
+      update: {},
+    })
+  },
+
+  async isAdminOfOrganization(adminId: string, organizationId: string): Promise<boolean> {
+    const prisma = getPrismaClient()
+    if (!prisma) return false
+
+    const row = await prisma.adminOrganization.findUnique({
+      where: { adminId_organizationId: { adminId, organizationId } },
+    })
+
+    if (row) {
+      return true
+    }
+
+    const admin = await prisma.user.findUnique({
+      where: { id: adminId },
+      select: { role: true, organizationId: true },
+    })
+
+    if (admin?.role === "ADMIN" && admin.organizationId === organizationId) {
+      return true
+    }
+
+    const xeroConnection = await prisma.xeroConnection.findFirst({
+      where: {
+        organizationId,
+        connectedByAdminId: adminId,
+      },
+      select: { id: true },
+    })
+
+    if (!xeroConnection) {
+      return false
+    }
+
+    await prisma.adminOrganization.upsert({
+      where: { adminId_organizationId: { adminId, organizationId } },
+      create: { adminId, organizationId },
+      update: {},
+    })
+
+    return true
   },
 
   async upsertAdminOrganization(data: {
@@ -108,11 +339,21 @@ export const organizationRepository = {
         data: { name: organizationName },
       })
 
-      return {
-        id: organization.id,
-        name: organization.name,
-        claimCutoffDay: organization.claimCutoffDay,
-      }
+      await prisma.adminOrganization.upsert({
+        where: {
+          adminId_organizationId: {
+            adminId: data.adminUserId,
+            organizationId: organization.id,
+          },
+        },
+        create: {
+          adminId: data.adminUserId,
+          organizationId: organization.id,
+        },
+        update: {},
+      })
+
+      return mapOrganizationSummary(organization)!
     }
 
     const existing = await prisma.organization.findUnique({
@@ -135,11 +376,91 @@ export const organizationRepository = {
       data: { organizationId: organization.id },
     })
 
-    return {
-      id: organization.id,
-      name: organization.name,
-      claimCutoffDay: organization.claimCutoffDay,
+    await prisma.adminOrganization.upsert({
+      where: {
+        adminId_organizationId: {
+          adminId: data.adminUserId,
+          organizationId: organization.id,
+        },
+      },
+      create: {
+        adminId: data.adminUserId,
+        organizationId: organization.id,
+      },
+      update: {},
+    })
+
+    return mapOrganizationSummary(organization)!
+  },
+
+  async updateOrganizationName(data: {
+    adminId: string
+    organizationId: string
+    organizationName: string
+  }): Promise<OrganizationSummary> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
     }
+
+    const isAdmin = await this.isAdminOfOrganization(data.adminId, data.organizationId)
+    if (!isAdmin) {
+      throw new Error("You do not have access to update this organization.")
+    }
+
+    const organizationName = data.organizationName.trim()
+    const existingWithName = await prisma.organization.findUnique({
+      where: { name: organizationName },
+      select: { id: true },
+    })
+
+    if (existingWithName && existingWithName.id !== data.organizationId) {
+      throw new Error("That organization name is already being used by another organization.")
+    }
+
+    const organization = await prisma.organization.update({
+      where: { id: data.organizationId },
+      data: { name: organizationName },
+    })
+
+    return mapOrganizationSummary(organization)!
+  },
+
+  async updateOrganizationBankAccount(data: {
+    organizationId: string
+    bankAccount: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await prisma.organization.update({
+      where: { id: data.organizationId },
+      data: { bankAccount: data.bankAccount },
+    })
+  },
+
+  async updateOrganizationOtRates(data: {
+    organizationId: string
+    rates: OtRates
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await prisma.organization.update({
+      where: { id: data.organizationId },
+      data: {
+        otRateNormalDay: data.rates.normalDay,
+        otRateRestDay: data.rates.restDay,
+        otRatePublicHoliday: data.rates.publicHoliday,
+        restDayInShiftRate: data.rates.restDayInShift,
+        publicHolidayInShiftRate: data.rates.publicHolidayInShift,
+        otSalaryThreshold: data.rates.salaryThreshold,
+      },
+    })
   },
 
   async updateOrganizationClaimCutoff(data: {
@@ -180,25 +501,47 @@ export const organizationRepository = {
             xeroConnection: { select: { id: true, tenantName: true } },
           },
         },
+        approvalChainSteps: {
+          include: { approver: { select: { id: true, name: true } } },
+          orderBy: { step: "asc" },
+        },
       },
       orderBy: { name: "asc" },
     })
 
-    return rows.map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role as OrganizationMember["role"],
-      organizationId: user.organizationId ?? undefined,
-      organizationName: user.organization?.name ?? undefined,
-      employeeId: user.employeeProfile?.employeeId ?? "N/A",
-      project: user.employeeProfile?.project ?? "Unknown",
-      jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
-      supervisorId: user.employeeProfile?.supervisorId ?? undefined,
-      supervisorName: user.employeeProfile?.supervisor?.name ?? undefined,
-      xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
-      xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
-    }))
+    return rows.map((user) => {
+      // If there's no chain row yet but a legacy supervisorId is set, surface
+      // it as a synthetic 1-step chain so the UI can treat supervisor and the
+      // chain as the same thing. Saving the chain will persist it to the DB.
+      const persistedChain = user.approvalChainSteps.map((s) => ({
+        step: s.step,
+        approverId: s.approverId,
+        approverName: s.approver.name,
+      }))
+      const supervisorId = user.employeeProfile?.supervisorId ?? undefined
+      const supervisorName = user.employeeProfile?.supervisor?.name ?? undefined
+      const approvalChain =
+        persistedChain.length === 0 && supervisorId && supervisorName
+          ? [{ step: 1, approverId: supervisorId, approverName: supervisorName }]
+          : persistedChain
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role as OrganizationMember["role"],
+        organizationId: user.organizationId ?? undefined,
+        organizationName: user.organization?.name ?? undefined,
+        employeeId: user.employeeProfile?.employeeId ?? "N/A",
+        project: user.employeeProfile?.project ?? "Unknown",
+        jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
+        supervisorId,
+        supervisorName,
+        xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
+        xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
+        approvalChain,
+      }
+    })
   },
 
   async updateOrganizationMember(data: {
@@ -207,7 +550,6 @@ export const organizationRepository = {
     organizationId: string
     project?: string
     jobTitle: string
-    supervisorId?: string
     xeroConnectionId?: string
   }): Promise<boolean> {
     const prisma = getPrismaClient()
@@ -226,18 +568,14 @@ export const organizationRepository = {
       throw new Error("You can only manage members inside your own organization.")
     }
 
-    if (data.supervisorId) {
-      const supervisor = await prisma.user.findUnique({
-        where: { id: data.supervisorId },
-        select: { organizationId: true, role: true },
+    if (data.xeroConnectionId) {
+      const xeroConnection = await prisma.xeroConnection.findUnique({
+        where: { id: data.xeroConnectionId },
+        select: { organizationId: true },
       })
 
-      if (
-        !supervisor ||
-        supervisor.organizationId !== data.organizationId ||
-        supervisor.role !== "SUPERVISOR"
-      ) {
-        throw new Error("Supervisor must belong to your organization.")
+      if (!xeroConnection || xeroConnection.organizationId !== data.organizationId) {
+        throw new Error("Xero connection must belong to this organization.")
       }
     }
 
@@ -254,7 +592,6 @@ export const organizationRepository = {
         data: {
           project: data.project ?? "",
           jobTitle: data.jobTitle,
-          supervisorId: data.supervisorId || null,
           xeroConnectionId: data.xeroConnectionId || null,
         },
       }),
@@ -274,9 +611,9 @@ export const organizationRepository = {
     jobTitle: string
     supervisorId?: string
     xeroConnectionId?: string
-  }): Promise<boolean> {
+  }): Promise<{ id: string }> {
     const prisma = getPrismaClient()
-    if (!prisma) return false
+    if (!prisma) throw new Error("Database is not configured.")
 
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
@@ -311,7 +648,18 @@ export const organizationRepository = {
       }
     }
 
-    await prisma.user.create({
+    if (data.xeroConnectionId) {
+      const xeroConnection = await prisma.xeroConnection.findUnique({
+        where: { id: data.xeroConnectionId },
+        select: { organizationId: true },
+      })
+
+      if (!xeroConnection || xeroConnection.organizationId !== data.organizationId) {
+        throw new Error("Xero connection must belong to this organization.")
+      }
+    }
+
+    const user = await prisma.user.create({
       data: {
         name: data.name,
         email: data.email,
@@ -329,9 +677,71 @@ export const organizationRepository = {
           },
         },
       },
+      select: { id: true },
     })
 
-    return true
+    return { id: user.id }
+  },
+
+  async setApprovalChain(data: {
+    employeeId: string
+    organizationId: string
+    approverIds: string[]
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    // Verify the employee belongs to this org
+    const employee = await prisma.user.findUnique({
+      where: { id: data.employeeId },
+      select: { organizationId: true, role: true },
+    })
+
+    if (!employee || employee.organizationId !== data.organizationId) {
+      throw new Error("Employee not found in this organization.")
+    }
+
+    // Validate all proposed approvers belong to the org and are SUPERVISOR role
+    if (data.approverIds.length > 0) {
+      const approvers = await prisma.user.findMany({
+        where: { id: { in: data.approverIds } },
+        select: { id: true, organizationId: true, role: true },
+      })
+
+      for (const approver of approvers) {
+        if (approver.organizationId !== data.organizationId) {
+          throw new Error("All approvers must belong to the same organization.")
+        }
+        if (approver.role !== "SUPERVISOR" && approver.role !== "ADMIN") {
+          throw new Error("Approvers must be supervisors or admins.")
+        }
+      }
+
+      if (approvers.length !== data.approverIds.length) {
+        throw new Error("One or more approvers could not be found.")
+      }
+    }
+
+    // First approver in the chain is also the direct supervisor — keep
+    // employeeProfile.supervisorId in sync so callers reading it stay correct.
+    const newSupervisorId = data.approverIds[0] ?? null
+
+    await prisma.$transaction([
+      prisma.approvalChainStep.deleteMany({ where: { employeeId: data.employeeId } }),
+      ...data.approverIds.map((approverId, index) =>
+        prisma.approvalChainStep.create({
+          data: {
+            employeeId: data.employeeId,
+            approverId,
+            step: index + 1,
+          },
+        })
+      ),
+      prisma.employeeProfile.update({
+        where: { userId: data.employeeId },
+        data: { supervisorId: newSupervisorId },
+      }),
+    ])
   },
 
   // ---------------------------------------------------------------------------
@@ -422,6 +832,20 @@ export const organizationRepository = {
       throw new Error("Database is not configured.")
     }
 
+    await prisma.adminOrganization.upsert({
+      where: {
+        adminId_organizationId: {
+          adminId: data.connectedByAdminId,
+          organizationId: data.organizationId,
+        },
+      },
+      create: {
+        adminId: data.connectedByAdminId,
+        organizationId: data.organizationId,
+      },
+      update: {},
+    })
+
     await prisma.xeroConnection.upsert({
       where: {
         organizationId_tenantId: {
@@ -491,6 +915,23 @@ export const organizationRepository = {
     return result.count > 0
   },
 
+  async deleteXeroConnection(data: {
+    connectionId: string
+    organizationId: string
+  }): Promise<boolean> {
+    const prisma = getPrismaClient()
+    if (!prisma) return false
+
+    const result = await prisma.xeroConnection.deleteMany({
+      where: {
+        id: data.connectionId,
+        organizationId: data.organizationId,
+      },
+    })
+
+    return result.count > 0
+  },
+
   // ---------------------------------------------------------------------------
   // Chart of Accounts
   // ---------------------------------------------------------------------------
@@ -500,7 +941,7 @@ export const organizationRepository = {
     if (!prisma) return []
 
     const rows = await prisma.chartOfAccount.findMany({
-      where: { xeroConnectionId },
+      where: { xeroConnectionId, isDisabled: false },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
 
@@ -520,6 +961,7 @@ export const organizationRepository = {
         where: {
           xeroConnectionId: data.xeroConnectionId,
           isSelectable: true,
+          isDisabled: false,
         },
         orderBy: [{ code: "asc" }, { name: "asc" }],
       })
@@ -532,6 +974,7 @@ export const organizationRepository = {
         organizationId: data.organizationId,
         xeroConnectionId: null,
         isSelectable: true,
+        isDisabled: false,
       },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
@@ -549,6 +992,7 @@ export const organizationRepository = {
       where: {
         organizationId,
         isSelectable: true,
+        isDisabled: false,
       },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
@@ -561,7 +1005,7 @@ export const organizationRepository = {
     if (!prisma) return []
 
     const rows = await prisma.chartOfAccount.findMany({
-      where: { organizationId },
+      where: { organizationId, isDisabled: false },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
 
@@ -575,7 +1019,7 @@ export const organizationRepository = {
     if (!prisma) return []
 
     const rows = await prisma.chartOfAccount.findMany({
-      where: { organizationId, xeroConnectionId: null },
+      where: { organizationId, xeroConnectionId: null, isDisabled: false },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
 
@@ -594,6 +1038,7 @@ export const organizationRepository = {
         id: data.chartOfAccountId,
         organizationId: data.organizationId,
         isSelectable: true,
+        isDisabled: false,
       },
     })
 
@@ -682,18 +1127,10 @@ export const organizationRepository = {
       throw new Error("Database is not configured.")
     }
 
-    const incomingIds = data.accounts.map((account) => account.xeroAccountId)
-
-    await prisma.$transaction([
-      prisma.chartOfAccount.deleteMany({
-        where: {
-          xeroConnectionId: data.xeroConnectionId,
-          ...(incomingIds.length > 0
-            ? { xeroAccountId: { notIn: incomingIds } }
-            : {}),
-        },
-      }),
-      ...data.accounts.map((account) =>
+    // Additive sync — never delete, just upsert. Removed accounts stay in DB
+    // so historical claim data (which references chartOfAccountId) stays intact.
+    await Promise.all(
+      data.accounts.map((account) =>
         prisma.chartOfAccount.upsert({
           where: {
             xeroConnectionId_xeroAccountId: {
@@ -710,6 +1147,7 @@ export const organizationRepository = {
             type: account.type,
             status: account.status,
             isCustom: false,
+            isDisabled: false,
           },
           update: {
             code: account.code,
@@ -718,8 +1156,8 @@ export const organizationRepository = {
             status: account.status,
           },
         })
-      ),
-    ])
+      )
+    )
   },
 
   async setSelectableChartAccounts(data: {
@@ -756,6 +1194,77 @@ export const organizationRepository = {
   },
 
   // ---------------------------------------------------------------------------
+  // Bank accounts
+  // ---------------------------------------------------------------------------
+
+  async getBankAccountsForOrganization(data: {
+    organizationId: string
+    xeroConnectionId?: string
+  }): Promise<ChartOfAccountOption[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const rows = await prisma.chartOfAccount.findMany({
+      where: {
+        organizationId: data.organizationId,
+        type: "BANK",
+        isDisabled: false,
+        ...(data.xeroConnectionId
+          ? { xeroConnectionId: data.xeroConnectionId }
+          : { xeroConnectionId: null }),
+      },
+      orderBy: [{ code: "asc" }, { name: "asc" }],
+    })
+
+    return rows.map((row) => mapChartAccount(row)!)
+  },
+
+  async setSelectedBankAccounts(data: {
+    organizationId: string
+    xeroConnectionId?: string
+    chartAccountIds: string[]
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const scopeWhere = data.xeroConnectionId
+      ? { organizationId: data.organizationId, xeroConnectionId: data.xeroConnectionId, type: "BANK" }
+      : { organizationId: data.organizationId, xeroConnectionId: null, type: "BANK" }
+
+    await prisma.$transaction([
+      prisma.chartOfAccount.updateMany({
+        where: scopeWhere,
+        data: { isBankAccount: false },
+      }),
+      ...(data.chartAccountIds.length > 0
+        ? [
+            prisma.chartOfAccount.updateMany({
+              where: { ...scopeWhere, id: { in: data.chartAccountIds } },
+              data: { isBankAccount: true },
+            }),
+          ]
+        : []),
+    ])
+  },
+
+  // Disable all custom COA and projects when Xero is first connected
+  async disableCustomRecordsOnXeroConnect(organizationId: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    await prisma.$transaction([
+      prisma.chartOfAccount.updateMany({
+        where: { organizationId, isCustom: true, isDisabled: false },
+        data: { isDisabled: true },
+      }),
+      prisma.xeroProject.updateMany({
+        where: { organizationId, isManual: true, isDisabled: false },
+        data: { isDisabled: true },
+      }),
+    ])
+  },
+
+  // ---------------------------------------------------------------------------
   // Projects
   // ---------------------------------------------------------------------------
 
@@ -764,17 +1273,22 @@ export const organizationRepository = {
     if (!prisma) return []
 
     const rows = await prisma.xeroProject.findMany({
-      where: { xeroConnectionId },
+      where: { xeroConnectionId, isDisabled: false },
+      include: { projectManager: { select: { id: true, name: true } } },
       orderBy: [{ name: "asc" }],
     })
 
     return rows.map((row) => ({
       id: row.id,
-      xeroProjectId: row.xeroProjectId,
+      xeroProjectId: row.xeroProjectId ?? undefined,
       name: row.name,
       status: row.status ?? undefined,
       contactId: row.contactId ?? undefined,
-      xeroConnectionId: row.xeroConnectionId,
+      xeroConnectionId: row.xeroConnectionId ?? undefined,
+      projectManagerId: row.projectManagerId ?? undefined,
+      projectManagerName: row.projectManager?.name ?? undefined,
+      location: row.location ?? undefined,
+      isManual: row.isManual,
     }))
   },
 
@@ -783,18 +1297,113 @@ export const organizationRepository = {
     if (!prisma) return []
 
     const rows = await prisma.xeroProject.findMany({
-      where: { organizationId },
+      where: { organizationId, isDisabled: false },
+      include: { projectManager: { select: { id: true, name: true } } },
       orderBy: [{ name: "asc" }],
     })
 
     return rows.map((row) => ({
       id: row.id,
-      xeroProjectId: row.xeroProjectId,
+      xeroProjectId: row.xeroProjectId ?? undefined,
       name: row.name,
       status: row.status ?? undefined,
       contactId: row.contactId ?? undefined,
-      xeroConnectionId: row.xeroConnectionId,
+      xeroConnectionId: row.xeroConnectionId ?? undefined,
+      projectManagerId: row.projectManagerId ?? undefined,
+      projectManagerName: row.projectManager?.name ?? undefined,
+      location: row.location ?? undefined,
+      isManual: row.isManual,
     }))
+  },
+
+  async createManualProject(data: {
+    organizationId: string
+    name: string
+    projectManagerId?: string
+    location?: string
+  }): Promise<OrganizationProjectOption> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    if (data.projectManagerId) {
+      const pm = await prisma.user.findUnique({
+        where: { id: data.projectManagerId },
+        select: { organizationId: true, role: true },
+      })
+
+      if (
+        !pm ||
+        pm.organizationId !== data.organizationId ||
+        pm.role !== "SUPERVISOR"
+      ) {
+        throw new Error("Project manager must be a supervisor in this organization.")
+      }
+    }
+
+    const row = await prisma.xeroProject.create({
+      data: {
+        organizationId: data.organizationId,
+        name: data.name,
+        projectManagerId: data.projectManagerId || null,
+        location: data.location || null,
+        isManual: true,
+      },
+      include: { projectManager: { select: { id: true, name: true } } },
+    })
+
+    return {
+      id: row.id,
+      name: row.name,
+      projectManagerId: row.projectManagerId ?? undefined,
+      projectManagerName: row.projectManager?.name ?? undefined,
+      location: row.location ?? undefined,
+      isManual: true,
+    }
+  },
+
+  async updateProjectDetails(data: {
+    projectId: string
+    organizationId: string
+    projectManagerId?: string
+    location?: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    if (data.projectManagerId) {
+      const pm = await prisma.user.findUnique({
+        where: { id: data.projectManagerId },
+        select: { organizationId: true, role: true },
+      })
+
+      if (
+        !pm ||
+        pm.organizationId !== data.organizationId ||
+        pm.role !== "SUPERVISOR"
+      ) {
+        throw new Error("Project manager must be a supervisor in this organization.")
+      }
+    }
+
+    await prisma.xeroProject.updateMany({
+      where: { id: data.projectId, organizationId: data.organizationId },
+      data: {
+        projectManagerId: data.projectManagerId || null,
+        location: data.location || null,
+      },
+    })
+  },
+
+  async deleteManualProject(data: {
+    projectId: string
+    organizationId: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    await prisma.xeroProject.deleteMany({
+      where: { id: data.projectId, organizationId: data.organizationId, isManual: true },
+    })
   },
 
   async upsertProjectsFromXero(data: {
@@ -828,6 +1437,7 @@ export const organizationRepository = {
             name: project.name,
             status: project.status,
             contactId: project.contactId,
+            isManual: false,
           },
           update: {
             name: project.name,

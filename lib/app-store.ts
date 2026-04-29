@@ -35,6 +35,7 @@ export type AdminStore = {
   admin: AdminProfile
   allClaims: ClaimRecord[]
   cachedAt: number
+  activeOrganizationId?: string
   activeXeroConnectionId?: string
 }
 

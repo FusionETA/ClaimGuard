@@ -52,6 +52,11 @@ export type User = Prisma.UserModel
  */
 export type Organization = Prisma.OrganizationModel
 /**
+ * Model AdminOrganization
+ * 
+ */
+export type AdminOrganization = Prisma.AdminOrganizationModel
+/**
  * Model PushSubscription
  * 
  */
@@ -91,3 +96,8 @@ export type AttendanceRecord = Prisma.AttendanceRecordModel
  * 
  */
 export type ApprovalRequest = Prisma.ApprovalRequestModel
+/**
+ * Model ApprovalChainStep
+ * 
+ */
+export type ApprovalChainStep = Prisma.ApprovalChainStepModel

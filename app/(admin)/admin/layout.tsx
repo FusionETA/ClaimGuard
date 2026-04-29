@@ -11,14 +11,26 @@ export default async function AdminLayout({
   const session = await requirePortalSession("ADMIN")
   const profile = await claimRepository.getAdminProfile(session.email)
 
-  const xeroConnections = session.organizationId
-    ? await organizationRepository.getXeroConnections(session.organizationId)
+  // Fetch all organizations this admin manages
+  const adminOrganizations = session.userId
+    ? await organizationRepository.getAdminOrganizations(session.userId)
+    : []
+
+  // Active org: prefer session selection, fall back to primary org
+  const activeOrganizationId =
+    session.activeOrganizationId ?? session.organizationId
+
+  // Fetch Xero connections scoped to the currently active organization
+  const xeroConnections = activeOrganizationId
+    ? await organizationRepository.getXeroConnections(activeOrganizationId)
     : []
 
   return (
     <AdminShell
       user={session}
       organizationName={profile?.organizationName}
+      adminOrganizations={adminOrganizations}
+      activeOrganizationId={activeOrganizationId}
       xeroConnections={xeroConnections}
       activeXeroConnectionId={session.activeXeroConnectionId}
     >

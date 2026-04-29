@@ -278,7 +278,8 @@ export async function getXeroAccounts({
         return false
       }
 
-      return account.Type === "EXPENSE"
+      // EXPENSE → Claim accounts tab. BANK → Bank accounts tab.
+      return account.Type === "EXPENSE" || account.Type === "BANK"
     })
     .map((account) => ({
       xeroAccountId: account.AccountID as string,

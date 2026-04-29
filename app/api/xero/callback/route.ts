@@ -85,8 +85,10 @@ export async function GET(request: NextRequest) {
 
     const tenant = tenants[0]
 
-    // Auto-create org from Xero tenant name if admin hasn't set one yet
-    let organizationId = session.organizationId
+    // Auto-create org from Xero tenant name if admin hasn't set one yet.
+    // Respect activeOrganizationId so the connection attaches to whichever
+    // company is currently selected in the org dropdown.
+    let organizationId = session.activeOrganizationId ?? session.organizationId
     if (!organizationId) {
       const org = await organizationRepository.upsertAdminOrganization({
         adminUserId: session.userId,
@@ -108,6 +110,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Check if this org had no Xero connections before (first connect)
+    const existingConnections = await organizationRepository.getXeroConnections(organizationId)
+    const hasDifferentExistingConnection = existingConnections.some(
+      (connection) => connection.tenantId !== tenant.tenantId
+    )
+
+    if (hasDifferentExistingConnection) {
+      return finish(
+        `/admin/settings?xero=error&reason=${encodeURIComponent(
+          "This company is already connected to a different Xero organization. Disconnect the current one before connecting a new one."
+        )}`
+      )
+    }
+
+    const isFirstXeroConnect = existingConnections.length === 0
+
     await organizationRepository.upsertXeroConnection({
       organizationId,
       tenantId: tenant.tenantId,
@@ -120,6 +138,11 @@ export async function GET(request: NextRequest) {
       accessTokenExpiresAt: tokenSet.expiresAt,
       connectedByAdminId: session.userId,
     })
+
+    // On first Xero connect, disable any custom COA and projects so Xero takes over
+    if (isFirstXeroConnect) {
+      await organizationRepository.disableCustomRecordsOnXeroConnect(organizationId)
+    }
 
     return finish("/admin/settings?xero=connected")
   } catch (callbackError) {

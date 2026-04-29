@@ -24,15 +24,18 @@ export async function loadEmployeeData(email: string): Promise<void> {
  */
 export async function loadAdminData(
   email: string,
+  activeOrganizationId?: string,
   activeXeroConnectionId?: string
 ): Promise<void> {
   const admin = await claimRepository.getAdminProfile(email)
 
   if (!admin) throw new Error(`Admin not found: ${email}`)
 
-  const allClaims = admin.organizationId
+  const organizationId = activeOrganizationId ?? admin.organizationId
+
+  const allClaims = organizationId
     ? await claimRepository.getClaimsForOrganization(
-        admin.organizationId,
+        organizationId,
         activeXeroConnectionId
       )
     : []
@@ -41,6 +44,7 @@ export async function loadAdminData(
     admin,
     allClaims,
     cachedAt: Date.now(),
+    activeOrganizationId: organizationId,
     activeXeroConnectionId,
   })
 }

@@ -97,11 +97,11 @@ const config: Config = {
       },
       backgroundImage: {
         "hero-glow":
-          "radial-gradient(circle at top left, rgba(13,94,107,0.18), transparent 45%), radial-gradient(circle at top right, rgba(224,242,241,0.9), transparent 32%)",
+          "radial-gradient(circle at top left, rgba(76,26,134,0.18), transparent 45%), radial-gradient(circle at top right, rgba(154,250,227,0.35), transparent 32%)",
       },
       boxShadow: {
-        ambient: "0 12px 30px rgba(21, 31, 36, 0.06)",
-        panel: "0 18px 48px rgba(13, 94, 107, 0.08)",
+        ambient: "0 12px 30px rgba(76, 26, 134, 0.07)",
+        panel: "0 18px 48px rgba(76, 26, 134, 0.10)",
       },
     },
   },

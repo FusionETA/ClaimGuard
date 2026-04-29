@@ -1,14 +1,16 @@
-import { Building2, CircleAlert, Link2 } from "lucide-react"
+"use client"
 
+import { useState } from "react"
+import { Building2, CircleAlert, Link2, Loader2, Unplug } from "lucide-react"
+
+import { disconnectXeroAction } from "@/app/(admin)/admin/settings/actions"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/components/ui/toaster"
 import type { XeroConnectionInfo, XeroConnectionSummary } from "@/modules/organization/domain/models"
 
 function formatTimestamp(value?: string) {
-  if (!value) {
-    return null
-  }
-
+  if (!value) return null
   return new Intl.DateTimeFormat("en-MY", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -16,7 +18,21 @@ function formatTimestamp(value?: string) {
 }
 
 function ConnectionRow({ connection }: { connection: XeroConnectionInfo }) {
+  const { toast } = useToast()
+  const [disconnecting, setDisconnecting] = useState(false)
   const connectedAt = formatTimestamp(connection.connectedAt)
+
+  async function handleDisconnect() {
+    if (!confirm(`Disconnect "${connection.tenantName}"? This cannot be undone.`)) return
+    setDisconnecting(true)
+    const result = await disconnectXeroAction(connection.id)
+    setDisconnecting(false)
+    if (result.ok) {
+      toast({ title: result.message, variant: "success" })
+    } else {
+      toast({ title: result.message, variant: "error" })
+    }
+  }
 
   return (
     <div className="flex items-start justify-between gap-4 rounded-[20px] border border-border/70 bg-surface-low p-4">
@@ -32,6 +48,23 @@ function ConnectionRow({ connection }: { connection: XeroConnectionInfo }) {
           <p className="mt-0.5 text-xs text-muted-foreground">Connected: {connectedAt}</p>
         ) : null}
       </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="shrink-0 text-muted-foreground hover:text-destructive"
+        onClick={handleDisconnect}
+        disabled={disconnecting}
+      >
+        {disconnecting ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <>
+            <Unplug className="mr-1.5 h-4 w-4" />
+            Disconnect
+          </>
+        )}
+      </Button>
     </div>
   )
 }
@@ -53,20 +86,20 @@ export function XeroConnectionCard({
         <div>
           <CardTitle className="flex items-center gap-2 text-xl">
             <Link2 className="h-5 w-5 text-primary" />
-            Xero organizations
+            Xero connection
           </CardTitle>
           {hasConnections ? (
             <p className="mt-1 text-sm text-muted-foreground">
-              {connection.connections.length} organisation{connection.connections.length !== 1 ? "s" : ""} connected
+              Connected for this company
             </p>
           ) : null}
         </div>
 
-        <Button asChild className="shrink-0 rounded-2xl">
-          <a href="/api/xero/connect">
-            {hasConnections ? "Add Xero organization" : "Connect to your Xero organization"}
-          </a>
-        </Button>
+        {!hasConnections ? (
+          <Button asChild className="shrink-0 rounded-2xl">
+            <a href="/api/xero/connect">Connect this company to Xero</a>
+          </Button>
+        ) : null}
       </CardHeader>
 
       <CardContent className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
@@ -81,7 +114,7 @@ export function XeroConnectionCard({
                 Connection status
               </p>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                No Xero organization is connected yet.
+                This company is not connected to Xero yet.
               </p>
             </div>
           )}
@@ -99,15 +132,13 @@ export function XeroConnectionCard({
           ) : (
             <div className="mt-3 flex gap-3 rounded-2xl border border-amber-300/50 bg-amber-50/70 p-4 text-sm text-amber-900">
               <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-              <p>
-                Missing environment variables: {connection.missingConfig.join(", ")}.
-              </p>
+              <p>Missing environment variables: {connection.missingConfig.join(", ")}.</p>
             </div>
           )}
 
           {status === "connected" ? (
             <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-              Xero organization connected successfully.
+              Xero connected successfully for this company.
             </p>
           ) : null}
 

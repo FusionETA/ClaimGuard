@@ -1,5 +1,6 @@
 "use client"
 
+import type { Route } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -20,11 +21,11 @@ import type { AuthenticatedSession } from "@/lib/auth/types"
 import { cn } from "@/lib/utils"
 
 type EmployeeNavItem = {
-  href: string
+  href: Route
   label: string
   icon: typeof Home
   supervisorOnly?: boolean
-  children?: ReadonlyArray<{ href: string; label: string; supervisorOnly?: boolean }>
+  children?: ReadonlyArray<{ href: Route; label: string; supervisorOnly?: boolean }>
 }
 
 const employeeNav: ReadonlyArray<EmployeeNavItem> = [

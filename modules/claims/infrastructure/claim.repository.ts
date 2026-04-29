@@ -67,7 +67,10 @@ type PrismaClaim = {
     type: string | null
     status: string | null
     isSelectable: boolean
+    isBankAccount: boolean
     isCustom: boolean
+    isDisabled: boolean
+    xeroConnectionId: string | null
   } | null
   employee: PrismaUser
 }
@@ -134,7 +137,10 @@ function mapChartAccount(account?: {
   type: string | null
   status: string | null
   isSelectable: boolean
+  isBankAccount: boolean
   isCustom: boolean
+  isDisabled: boolean
+  xeroConnectionId?: string | null
 } | null): ChartOfAccountOption | undefined {
   if (!account) return undefined
 
@@ -145,7 +151,10 @@ function mapChartAccount(account?: {
     type: account.type ?? undefined,
     status: account.status ?? undefined,
     isSelectable: account.isSelectable,
+    isBankAccount: account.isBankAccount,
     isCustom: account.isCustom,
+    isDisabled: account.isDisabled,
+    xeroConnectionId: account.xeroConnectionId ?? undefined,
   }
 }
 

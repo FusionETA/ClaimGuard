@@ -10,7 +10,7 @@
  */
 
 .attendance-module {
-  --background: 0 0% 100%;
+  --background: 268 30% 97%;   /* matches global surface — no white override */
   --foreground: 268 50% 10%;
   --card: 268 40% 99%;
   --card-foreground: 268 50% 10%;
@@ -41,10 +41,11 @@
   --success-foreground: 0 0% 100%;
 
   background-image: none;
-  background-color: white;
+  background-color: transparent;
 }
 
 .dark .attendance-module {
+  background-color: transparent;
   --background: 268 40% 7%;
   --foreground: 270 20% 95%;
   --card: 268 36% 11%;

@@ -10,12 +10,17 @@ export default async function AdminHierarchyPage() {
   const members = await getOrganizationHierarchy()
   if (!session || members === null) redirect("/login")
 
-  const [projects, xeroConnections] = await Promise.all([
-    session.organizationId
-      ? organizationRepository.getProjectsForOrganization(session.organizationId)
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+
+  const [organization, projects, xeroConnections] = await Promise.all([
+    organizationId
+      ? organizationRepository.getOrganizationById(organizationId)
+      : Promise.resolve(null),
+    organizationId
+      ? organizationRepository.getProjectsForOrganization(organizationId)
       : Promise.resolve([]),
-    session.organizationId
-      ? organizationRepository.getXeroConnections(session.organizationId)
+    organizationId
+      ? organizationRepository.getXeroConnections(organizationId)
       : Promise.resolve([]),
   ])
 
@@ -24,6 +29,7 @@ export default async function AdminHierarchyPage() {
       members={members}
       projects={projects}
       xeroConnections={xeroConnections}
+      organizationName={organization?.name ?? ""}
     />
   )
 }

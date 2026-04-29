@@ -25,8 +25,9 @@ export async function setWorkingHoursAction(
   formData: FormData,
 ): Promise<SetWorkingHoursState> {
   const session = await requirePortalSession("ADMIN")
+  const organizationId = session.activeOrganizationId ?? session.organizationId
 
-  if (!session.organizationId) {
+  if (!organizationId) {
     return { error: "Admin account is not assigned to an organisation." }
   }
 
@@ -44,7 +45,7 @@ export async function setWorkingHoursAction(
   }
 
   await adminAttendanceService.setWorkingHours(
-    session.organizationId,
+    organizationId,
     parsed.data.start,
     parsed.data.end,
   )

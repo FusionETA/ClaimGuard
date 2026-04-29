@@ -1,7 +1,28 @@
+export type OtRates = {
+  // OT multipliers (× HRP) applied to hours beyond the regular shift.
+  normalDay: number
+  restDay: number
+  publicHoliday: number
+  // In-shift premiums (× ORP) applied to hours within the regular shift on
+  // rest days / public holidays.
+  restDayInShift: number
+  publicHolidayInShift: number
+  // Salary cap (RM, basic + fixed allowance) above which OT requires
+  // management approval.
+  salaryThreshold: number
+}
+
 export type OrganizationSummary = {
   id: string
   name: string
   claimCutoffDay: number
+  bankAccount?: string
+  otRates: OtRates
+}
+
+export type AdminOrganizationOption = {
+  id: string
+  name: string
 }
 
 export type ChartOfAccountOption = {
@@ -11,17 +32,23 @@ export type ChartOfAccountOption = {
   type?: string
   status?: string
   isSelectable: boolean
+  isBankAccount: boolean
   isCustom: boolean
+  isDisabled: boolean
   xeroConnectionId?: string
 }
 
 export type OrganizationProjectOption = {
   id: string
-  xeroProjectId: string
+  xeroProjectId?: string
   name: string
   status?: string
   contactId?: string
   xeroConnectionId?: string
+  projectManagerId?: string
+  projectManagerName?: string
+  location?: string
+  isManual: boolean
 }
 
 export type XeroConnectionInfo = {
@@ -39,6 +66,12 @@ export type XeroConnectionSummary = {
   connections: XeroConnectionInfo[]
 }
 
+export type ApprovalChainStep = {
+  step: number
+  approverId: string
+  approverName: string
+}
+
 export type OrganizationMember = {
   id: string
   name: string
@@ -53,4 +86,5 @@ export type OrganizationMember = {
   supervisorName?: string
   xeroConnectionId?: string
   xeroConnectionName?: string
+  approvalChain: ApprovalChainStep[]
 }
