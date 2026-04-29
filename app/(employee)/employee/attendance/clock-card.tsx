@@ -25,16 +25,16 @@ type Props = {
   now: string
 }
 
-function ClockInButton({ disabled }: { disabled: boolean }) {
+function ClockInButton() {
   const { pending } = useFormStatus()
   return (
     <button
       type="submit"
-      disabled={disabled || pending}
+      disabled={pending}
       className="group flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-secondary bg-secondary/40 py-6 transition hover:bg-secondary/60 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div className="relative mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-primary shadow-panel">
-        {!disabled && !pending ? (
+        {!pending ? (
           <div className="absolute h-20 w-20 animate-ping2 rounded-full bg-primary opacity-20" />
         ) : null}
         <Fingerprint className="h-10 w-10 text-primary-foreground" />
@@ -88,7 +88,7 @@ function BreakButton() {
 }
 
 export function ClockCard({ state, projects, activeProject, now }: Props) {
-  const [selected, setSelected] = useState(projects[0]?.id ?? "")
+  const [selected, setSelected] = useState("")
   const [result, formAction] = useActionState<ClockInState, FormData>(
     clockInAction,
     {},
@@ -119,45 +119,44 @@ export function ClockCard({ state, projects, activeProject, now }: Props) {
       </div>
 
       {state === "OUT" ? (
-        projects.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-border/60 bg-muted/40 py-6 text-center">
-            <p className="text-sm font-semibold text-foreground">No projects available</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Ask your admin to add at least one project before clocking in.
-            </p>
-          </div>
-        ) : (
-          <form action={formAction} className="space-y-3">
-            <div>
-              <label
-                htmlFor="projectId"
-                className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
-              >
-                Project
-              </label>
-              <select
-                id="projectId"
-                name="projectId"
-                value={selected}
-                onChange={(e) => setSelected(e.target.value)}
-                className={cn(
-                  "mt-1 block h-10 w-full rounded-lg border border-input bg-surface-lowest px-3 text-sm font-semibold text-foreground",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                )}
-              >
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <ClockInButton disabled={!selected} />
-            {result.error ? (
-              <p className="text-xs font-semibold text-destructive">{result.error}</p>
+        <form action={formAction} className="space-y-3">
+          <div>
+            <label
+              htmlFor="projectId"
+              className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+            >
+              Project
+            </label>
+            <select
+              id="projectId"
+              name="projectId"
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+              className={cn(
+                "mt-1 block h-10 w-full rounded-lg border border-input bg-surface-lowest px-3 text-sm font-semibold text-foreground",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              )}
+            >
+              <option value="">
+                {projects.length === 0 ? "No projects available" : "Select a project…"}
+              </option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            {projects.length === 0 ? (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Ask your admin to sync projects from Xero.
+              </p>
             ) : null}
-          </form>
-        )
+          </div>
+          <ClockInButton />
+          {result.error ? (
+            <p className="text-xs font-semibold text-destructive">{result.error}</p>
+          ) : null}
+        </form>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           <form action={confirmBreakAction}>
