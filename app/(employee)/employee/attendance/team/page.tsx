@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ClipboardCheck, Clock, UmbrellaOff, Users } from "lucide-react"
+import { ChevronRight, ClipboardCheck, Clock, UmbrellaOff, Users } from "lucide-react"
 
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
@@ -95,11 +95,12 @@ export default async function TeamOverviewPage() {
               <span className="font-semibold">Hierarchy</span> to see them here.
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {overview.team.map((m) => (
-                <div
+                <Link
                   key={m.employeeId}
-                  className="flex items-center gap-3 border-b border-border/50 py-2 last:border-0"
+                  href={`/employee/attendance/team/${m.employeeId}`}
+                  className="flex items-center gap-3 rounded-xl border border-transparent px-2 py-2 transition hover:border-border/60 hover:bg-secondary/30"
                 >
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-secondary-foreground">
                     {m.initials}
@@ -114,7 +115,8 @@ export default async function TeamOverviewPage() {
                         : "No clock-in yet today"}
                     </p>
                   </div>
-                </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
               ))}
             </div>
           )}

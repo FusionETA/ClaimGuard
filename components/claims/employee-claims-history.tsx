@@ -5,7 +5,7 @@ import { Search } from "lucide-react"
 
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/ui/input"
 import { PaginationControls } from "@/components/ui/pagination-controls"
 import {
@@ -252,7 +252,7 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
                   </div>
                 ) : null}
                 {claim.reviewNotes ? (
-                  <div className="rounded-[20px] bg-surface-low p-3.5 sm:rounded-2xl sm:p-4">
+                  <div className="rounded-[20px] border border-border/70 bg-card/94 p-3.5 shadow-ambient backdrop-blur-sm sm:rounded-2xl sm:p-4">
                     <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
                       Reviewer note
                     </p>
