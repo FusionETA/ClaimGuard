@@ -36,21 +36,21 @@ export default async function EmployeeDashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <section className="attendance-module rounded-[28px] -mx-1 px-1 -my-1 py-1">
-        <div className="mb-3 flex items-end justify-between">
-          <div>
+      <section className="attendance-module !bg-transparent">
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               Today&apos;s attendance
             </p>
-            <h2 className="mt-0.5 font-headline text-lg font-extrabold text-foreground">
+            <h2 className="mt-0.5 font-headline text-lg font-extrabold text-foreground sm:text-xl">
               {clockState === "IN" ? "On the clock" : "Ready when you are"}
             </h2>
           </div>
           <Link
             href="/employee/attendance"
-            className="text-xs font-bold text-primary hover:underline"
+            className="shrink-0 text-xs font-bold text-primary hover:underline"
           >
-            View full
+            View full →
           </Link>
         </div>
         <ClockCard
