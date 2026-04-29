@@ -42,10 +42,6 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/attendance",
     label: "Attendance",
     icon: CalendarClock,
-    children: [
-      { href: "/admin/attendance", label: "Overview" },
-      { href: "/admin/attendance/approvals", label: "Approvals" },
-    ],
   },
   {
     href: "/admin/settings",
@@ -61,10 +57,6 @@ function getTitle(pathname: string) {
 
   if (pathname.startsWith("/admin/settings")) {
     return "Organization Settings"
-  }
-
-  if (pathname.startsWith("/admin/attendance/approvals")) {
-    return "Attendance Approvals"
   }
 
   if (pathname.startsWith("/admin/attendance")) {

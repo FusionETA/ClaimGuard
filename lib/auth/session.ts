@@ -42,9 +42,7 @@ function getAuthSecret() {
 }
 
 function getHomePath(role: AppRole) {
-  if (role === "ADMIN") return "/admin" as Route
-  if (role === "SUPERVISOR") return "/supervisor" as Route
-  return "/employee" as Route
+  return (role === "ADMIN" ? "/admin" : "/employee") as Route
 }
 
 function signValue(value: string) {

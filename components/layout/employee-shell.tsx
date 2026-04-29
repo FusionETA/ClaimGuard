@@ -24,7 +24,7 @@ type EmployeeNavItem = {
   label: string
   icon: typeof Home
   supervisorOnly?: boolean
-  children?: ReadonlyArray<{ href: string; label: string }>
+  children?: ReadonlyArray<{ href: string; label: string; supervisorOnly?: boolean }>
 }
 
 const employeeNav: ReadonlyArray<EmployeeNavItem> = [
@@ -52,6 +52,8 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
       { href: "/employee/attendance/clock", label: "Clock In / Out" },
       { href: "/employee/attendance/history", label: "History" },
       { href: "/employee/attendance/ot", label: "OT & Replacements" },
+      { href: "/employee/attendance/team", label: "Team", supervisorOnly: true },
+      { href: "/employee/attendance/approvals", label: "Approvals", supervisorOnly: true },
     ],
   },
   {
@@ -151,23 +153,25 @@ export function EmployeeShell({ children, user, organizationName }: EmployeeShel
 
                 {item.children && parentActive ? (
                   <div className="mt-1 space-y-0.5 border-l border-border/60 pl-4 ml-5">
-                    {item.children.map((child) => {
-                      const childActive = pathname === child.href
-                      return (
-                        <Link
-                          key={child.href}
-                          href={child.href}
-                          className={cn(
-                            "block rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
-                            childActive
-                              ? "text-primary"
-                              : "text-muted-foreground hover:text-foreground"
-                          )}
-                        >
-                          {child.label}
-                        </Link>
-                      )
-                    })}
+                    {item.children
+                      .filter((c) => !c.supervisorOnly || user.role === "SUPERVISOR")
+                      .map((child) => {
+                        const childActive = pathname === child.href
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={cn(
+                              "block rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                              childActive
+                                ? "text-primary"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            {child.label}
+                          </Link>
+                        )
+                      })}
                   </div>
                 ) : null}
               </div>
