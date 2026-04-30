@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useState, useTransition } from "react"
-import { Loader2, Plus, Search, Trash2 } from "lucide-react"
+import { Loader2, MapPin, Plus, Search, Trash2 } from "lucide-react"
 
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import {
@@ -45,6 +45,107 @@ import type {
 } from "@/modules/organization/domain/models"
 
 type TabKey = "organization" | "accounts" | "banks" | "projects" | "runs" | "attendance"
+
+/** Controlled geolocation input — use inside components with their own state */
+function GeoLocationInput({
+  value,
+  onChange,
+  placeholder = "Address or coordinates",
+  className,
+}: {
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  className?: string
+}) {
+  const [locating, setLocating] = useState(false)
+
+  function handleGeoLocate() {
+    if (!navigator.geolocation) return
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(6)
+        const lng = pos.coords.longitude.toFixed(6)
+        onChange(`${lat}, ${lng}`)
+        setLocating(false)
+      },
+      () => setLocating(false)
+    )
+  }
+
+  return (
+    <div className={`relative ${className ?? ""}`}>
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="pr-10 h-9 text-sm"
+      />
+      <button
+        type="button"
+        onClick={handleGeoLocate}
+        disabled={locating}
+        title="Use my current location"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+      >
+        {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+      </button>
+    </div>
+  )
+}
+
+/** Self-contained geolocation input for use inside server-action forms (manages its own state, submits via hidden input) */
+function GeoLocationFormField({
+  name,
+  defaultValue = "",
+  placeholder = "Address or coordinates",
+  className,
+}: {
+  name: string
+  defaultValue?: string
+  placeholder?: string
+  className?: string
+}) {
+  const [value, setValue] = useState(defaultValue)
+  const [locating, setLocating] = useState(false)
+
+  function handleGeoLocate() {
+    if (!navigator.geolocation) return
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(6)
+        const lng = pos.coords.longitude.toFixed(6)
+        setValue(`${lat}, ${lng}`)
+        setLocating(false)
+      },
+      () => setLocating(false)
+    )
+  }
+
+  return (
+    <div className={`relative ${className ?? ""}`}>
+      {/* Hidden input carries the value for server action form submission */}
+      <input type="hidden" name={name} value={value} />
+      <Input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder={placeholder}
+        className="pr-10 h-9 text-sm"
+      />
+      <button
+        type="button"
+        onClick={handleGeoLocate}
+        disabled={locating}
+        title="Use my current location"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
+      >
+        {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+      </button>
+    </div>
+  )
+}
 
 function ProjectCard({
   project,
@@ -104,11 +205,10 @@ function ProjectCard({
             ))}
         </SelectContent>
       </Select>
-      <Input
+      <GeoLocationInput
         value={location}
-        onChange={(e) => setLocation(e.target.value)}
-        placeholder="Location (optional)"
-        className="h-9 text-sm"
+        onChange={setLocation}
+        placeholder="Address or coordinates (optional)"
       />
       <Button
         type="button"
@@ -867,9 +967,9 @@ export function AdminSettingsPanel({
                         </SelectContent>
                       </Select>
                     </div>
-                    <Input
+                    <GeoLocationFormField
                       name="location"
-                      placeholder="Location (optional)"
+                      placeholder="Address or coordinates"
                       className="w-48"
                     />
                   </div>

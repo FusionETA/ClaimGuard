@@ -68,6 +68,7 @@ type AdminHierarchyTableProps = {
 }
 
 type RoleFilter = "ALL" | "EMPLOYEE" | "SUPERVISOR"
+type ProjectFilter = "ALL" | "UNASSIGNED" | string
 
 const PAGE_SIZE = 10
 
@@ -217,6 +218,7 @@ export function AdminHierarchyTable({
   const supervisors = members.filter((member) => member.role === "SUPERVISOR")
   const [page, setPage] = useState(1)
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL")
+  const [projectFilter, setProjectFilter] = useState<ProjectFilter>("ALL")
   const [searchTerm, setSearchTerm] = useState("")
 
   // One company connects to at most one Xero tenant. Use the first connection if any.
@@ -228,6 +230,13 @@ export function AdminHierarchyTable({
 
     return members.filter((member) => {
       const matchesRole = roleFilter === "ALL" ? true : member.role === roleFilter
+
+      const matchesProject =
+        projectFilter === "ALL"
+          ? true
+          : projectFilter === "UNASSIGNED"
+          ? member.projects.length === 0
+          : member.projects.some((p) => p.id === projectFilter)
 
       const matchesQuery =
         normalizedQuery.length === 0
@@ -245,13 +254,13 @@ export function AdminHierarchyTable({
               .toLowerCase()
               .includes(normalizedQuery)
 
-      return matchesRole && matchesQuery
+      return matchesRole && matchesProject && matchesQuery
     })
-  }, [members, roleFilter, searchTerm])
+  }, [members, roleFilter, projectFilter, searchTerm])
 
   useEffect(() => {
     setPage(1)
-  }, [roleFilter, searchTerm])
+  }, [roleFilter, projectFilter, searchTerm])
 
   const totalPages = Math.max(1, Math.ceil(filteredMembers.length / PAGE_SIZE))
 
@@ -266,7 +275,7 @@ export function AdminHierarchyTable({
     return filteredMembers.slice(startIndex, startIndex + PAGE_SIZE)
   }, [filteredMembers, page])
 
-  const hasActiveFilters = roleFilter !== "ALL" || searchTerm.trim().length > 0
+  const hasActiveFilters = roleFilter !== "ALL" || projectFilter !== "ALL" || searchTerm.trim().length > 0
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -283,7 +292,7 @@ export function AdminHierarchyTable({
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
                 size="sm"
@@ -313,6 +322,25 @@ export function AdminHierarchyTable({
                   {roleLabels[role]}
                 </Button>
               ))}
+              {projects.length > 0 && (
+                <Select
+                  value={projectFilter}
+                  onValueChange={(v) => setProjectFilter(v as ProjectFilter)}
+                >
+                  <SelectTrigger className="h-8 rounded-full border-border/70 bg-surface-low text-sm font-semibold text-muted-foreground shadow-none w-auto min-w-[140px]">
+                    <SelectValue placeholder="All projects" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All projects</SelectItem>
+                    <SelectItem value="UNASSIGNED">Unassigned</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
@@ -356,6 +384,27 @@ export function AdminHierarchyTable({
                 className="pl-10"
               />
             </div>
+            {projects.length > 0 && (
+              <div className="mt-2">
+                <Select
+                  value={projectFilter}
+                  onValueChange={(v) => setProjectFilter(v as ProjectFilter)}
+                >
+                  <SelectTrigger className="h-10 rounded-2xl border-border/70 text-sm font-semibold text-muted-foreground w-full">
+                    <SelectValue placeholder="All projects" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All projects</SelectItem>
+                    <SelectItem value="UNASSIGNED">Unassigned</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <div className="hidden flex-col gap-2 text-sm text-muted-foreground md:flex md:flex-row md:items-center md:justify-between">
@@ -371,6 +420,7 @@ export function AdminHierarchyTable({
                 className="w-fit rounded-full"
                 onClick={() => {
                   setRoleFilter("ALL")
+                  setProjectFilter("ALL")
                   setSearchTerm("")
                 }}
               >
