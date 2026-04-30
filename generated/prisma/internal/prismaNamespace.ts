@@ -1414,6 +1414,8 @@ export const ClaimScalarFieldEnum = {
   claimRunMonth: 'claimRunMonth',
   reviewedAt: 'reviewedAt',
   payoutAt: 'payoutAt',
+  payViaAccountId: 'payViaAccountId',
+  paymentType: 'paymentType',
   status: 'status',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
@@ -1640,6 +1642,7 @@ export const ClaimOrderByRelevanceFieldEnum = {
   organizationId: 'organizationId',
   chartOfAccountId: 'chartOfAccountId',
   currency: 'currency',
+  payViaAccountId: 'payViaAccountId',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
@@ -1779,6 +1782,13 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'ClaimCategory'
  */
 export type EnumClaimCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimCategory'>
+    
+
+
+/**
+ * Reference to a field of type 'PaymentType'
+ */
+export type EnumPaymentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentType'>
     
 
 

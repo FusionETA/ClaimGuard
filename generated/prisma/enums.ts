@@ -37,10 +37,19 @@ export const ClaimStatus = {
   PENDING: 'PENDING',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
-  PAID: 'PAID'
+  PAID: 'PAID',
+  SETTLED: 'SETTLED'
 } as const
 
 export type ClaimStatus = (typeof ClaimStatus)[keyof typeof ClaimStatus]
+
+
+export const PaymentType = {
+  PERSONAL: 'PERSONAL',
+  COMPANY: 'COMPANY'
+} as const
+
+export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]
 
 
 export const XeroSyncStatus = {

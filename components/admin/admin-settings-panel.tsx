@@ -1,6 +1,7 @@
 "use client"
 
-import { startTransition, useActionState, useEffect, useRef, useState, useTransition } from "react"
+import { useActionState, useEffect, useState, useTransition } from "react"
+import Link from "next/link"
 import { Loader2, MapPin, Plus, Search, Trash2 } from "lucide-react"
 
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
@@ -34,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/components/ui/toaster"
+import { cn } from "@/lib/utils"
 import type { XeroTenant } from "@/lib/xero"
 import type { AdminProfile } from "@/modules/claims/domain/models"
 import type {
@@ -57,7 +59,7 @@ function GeoLocationInput({
 }: {
   value: string
   onChange: (value: string) => void
-  onCoords?: (lat: number, lng: number) => void
+  onCoords?: (lat: number | null, lng: number | null) => void
   placeholder?: string
   className?: string
 }) {
@@ -82,7 +84,10 @@ function GeoLocationInput({
     <div className={`relative ${className ?? ""}`}>
       <Input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(event) => {
+          onChange(event.target.value)
+          onCoords?.(null, null)
+        }}
         placeholder={placeholder}
         className="pr-10 h-9 text-sm"
       />
@@ -131,9 +136,8 @@ function GeoLocationFormField({
     )
   }
 
-  // When user edits manually, clear the stored coords (they're no longer valid)
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setValue(e.target.value)
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setValue(event.target.value)
     setLat(null)
     setLng(null)
   }
@@ -187,30 +191,11 @@ function ProjectCard({
       : null
   )
   const [saving, setSaving] = useState(false)
-  const { toast } = useToast()
 
   async function handleSave() {
     setSaving(true)
-    let lat = coords?.lat ?? null
-    let lng = coords?.lng ?? null
-
-    // Auto-capture GPS if not already set via the 📍 icon
-    if (lat === null || lng === null) {
-      try {
-        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-          if (!navigator.geolocation) reject(new Error("Geolocation not supported by your browser."))
-          else navigator.geolocation.getCurrentPosition(resolve, reject)
-        })
-        lat = pos.coords.latitude
-        lng = pos.coords.longitude
-        setCoords({ lat, lng })
-      } catch {
-        toast({ title: "Could not get your location. Please allow location access and try again.", variant: "error" })
-        setSaving(false)
-        return
-      }
-    }
-
+    const lat = coords?.lat ?? null
+    const lng = coords?.lng ?? null
     await onUpdate(project.id, pmId || undefined, location || undefined, lat, lng)
     setSaving(false)
   }
@@ -255,7 +240,7 @@ function ProjectCard({
       <GeoLocationInput
         value={location}
         onChange={(v) => { setLocation(v); setCoords(null) }}
-        onCoords={(lat, lng) => setCoords({ lat, lng })}
+        onCoords={(lat, lng) => setCoords(lat !== null && lng !== null ? { lat, lng } : null)}
         placeholder="Address or coordinates (optional)"
       />
       <Button
@@ -286,6 +271,7 @@ export function AdminSettingsPanel({
   pendingTenants,
   takenTenantIds = [],
   workingHours,
+  initialTab,
 }: {
   admin: AdminProfile
   organization?: OrganizationSummary
@@ -300,15 +286,21 @@ export function AdminSettingsPanel({
   pendingTenants?: XeroTenant[]
   takenTenantIds?: string[]
   workingHours: { start: string; end: string }
+  initialTab?: string
 }) {
   const { toast } = useToast()
-  const [activeTab, setActiveTab] = useState<TabKey>("organization")
+  const [activeTab, setActiveTab] = useState<TabKey>((initialTab as TabKey) ?? "organization")
+
+  useEffect(() => {
+    if (initialTab && initialTab !== activeTab) {
+      setActiveTab(initialTab as TabKey)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTab])
   const [accountTypeFilter, setAccountTypeFilter] = useState<string>("all")
   const [accountSearch, setAccountSearch] = useState("")
   const [projectSearch, setProjectSearch] = useState("")
   const [switchPending, startSwitch] = useTransition()
-  const addProjectFormRef = useRef<HTMLFormElement>(null)
-  const [addProjectLocating, setAddProjectLocating] = useState(false)
 
   // Custom mode = no Xero connections exist at all
   const isCustomMode = xeroConnection.connections.length === 0
@@ -457,48 +449,40 @@ export function AdminSettingsPanel({
     }
   }
 
-  async function handleAddProjectSubmit() {
-    if (!addProjectFormRef.current) return
-    setAddProjectLocating(true)
-    try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-        if (!navigator.geolocation) reject(new Error("Geolocation not supported by your browser."))
-        else navigator.geolocation.getCurrentPosition(resolve, reject)
-      })
-      const fd = new FormData(addProjectFormRef.current)
-      fd.set("latitude", String(pos.coords.latitude))
-      fd.set("longitude", String(pos.coords.longitude))
-      startTransition(() => createProjectAction(fd as any))
-    } catch {
-      toast({ title: "Could not get your location. Please allow location access and try again.", variant: "error" })
-    } finally {
-      setAddProjectLocating(false)
-    }
-  }
+  const settingsTabs = [
+    ["organization", "Organization"],
+    ["accounts", "Claim accounts"],
+    ["banks", "Bank accounts"],
+    ["projects", "Projects"],
+    ["runs", "Claim runs"],
+    ["attendance", "Attendance"],
+  ] as const
 
   return (
-    <div className="space-y-6">
-      {/* Main tab bar */}
-      <div className="flex flex-wrap gap-2">
-        {[
-          ["organization", "Organization"],
-          ["accounts", "Claim accounts"],
-          ["banks", "Bank accounts"],
-          ["projects", "Projects"],
-          ["runs", "Claim runs"],
-          ["attendance", "Attendance settings"],
-        ].map(([value, label]) => (
-          <Button
-            key={value}
-            type="button"
-            variant={activeTab === value ? "default" : "ghost"}
-            className="rounded-full"
-            onClick={() => setActiveTab(value as TabKey)}
-          >
-            {label}
-          </Button>
-        ))}
-      </div>
+    <div className="flex flex-col gap-6">
+      {/* Mobile: scrollable pill sub-nav (desktop handled by sidebar).
+          Using flex+gap rather than space-y-* on the wrapper so that
+          when this nav is display:none on desktop it doesn't push the
+          first content card down with an unwanted margin-top. */}
+      <nav className="-mx-6 overflow-x-auto px-6 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="flex gap-2 pb-0.5">
+          {settingsTabs.map(([value, label]) => (
+            <Link
+              key={value}
+              href={`/admin/settings?tab=${value}`}
+              onClick={() => setActiveTab(value as TabKey)}
+              className={cn(
+                "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                activeTab === value
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+      </nav>
 
       {activeTab === "organization" ? (
         <div className="space-y-6">
@@ -609,11 +593,13 @@ export function AdminSettingsPanel({
 
               <form action={organizationAction} className="space-y-4">
                 <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                  Organization name
-                  <span className="ml-1.5 text-xs font-normal text-muted-foreground/70">
-                    {xeroConnection.connections.length > 0
-                      ? "(optional override for this company)"
-                      : "(optional)"}
+                  <span>
+                    Organization name
+                    <span className="ml-1.5 text-xs font-normal text-muted-foreground/70">
+                      {xeroConnection.connections.length > 0
+                        ? "(optional override for this company)"
+                        : "(optional)"}
+                    </span>
                   </span>
                   <Input
                     name="organizationName"
@@ -1012,7 +998,7 @@ export function AdminSettingsPanel({
             <CardContent className="space-y-4">
               {/* Manual project creation — only when no Xero connected */}
               {isCustomMode ? (
-                <form ref={addProjectFormRef} className="space-y-3">
+                <form action={createProjectAction} className="space-y-3">
                   <p className="text-sm font-semibold text-muted-foreground">Add project</p>
                   <div className="flex flex-wrap gap-3">
                     <Input
@@ -1038,22 +1024,18 @@ export function AdminSettingsPanel({
                         </SelectContent>
                       </Select>
                     </div>
-                    <Input
-                      name="location"
+                    <GeoLocationFormField
                       placeholder="Address (optional)"
-                      className="w-48 h-9 text-sm"
+                      className="w-48 flex-1"
                     />
                   </div>
                   <Button
-                    type="button"
+                    type="submit"
                     variant="outline"
                     className="rounded-xl"
-                    disabled={createProjectPending || addProjectLocating}
-                    onClick={handleAddProjectSubmit}
+                    disabled={createProjectPending}
                   >
-                    {addProjectLocating ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Getting location…</>
-                    ) : createProjectPending ? (
+                    {createProjectPending ? (
                       <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding…</>
                     ) : (
                       <><Plus className="mr-2 h-4 w-4" />Add project</>
@@ -1116,7 +1098,7 @@ export function AdminSettingsPanel({
 
             <form action={claimRunAction} className="space-y-4">
               <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                Cutoff day of month
+                <span>Cutoff day of month</span>
                 <Input
                   name="claimCutoffDay"
                   type="number"
@@ -1163,7 +1145,7 @@ function WorkingHoursCard({ initial }: { initial: { start: string; end: string }
       <CardContent>
         <form action={formAction} className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-            Start
+            <span>Start</span>
             <Input
               name="start"
               type="time"
@@ -1174,7 +1156,7 @@ function WorkingHoursCard({ initial }: { initial: { start: string; end: string }
           </label>
 
           <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-            End
+            <span>End</span>
             <Input
               name="end"
               type="time"
@@ -1289,7 +1271,7 @@ function OtRatesCard({ organization }: { organization?: OrganizationSummary }) {
             </p>
             <div className="mt-3 max-w-xs">
               <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                Salary threshold (RM)
+                <span>Salary threshold (RM)</span>
                 <Input
                   name="otSalaryThreshold"
                   type="number"
@@ -1335,7 +1317,7 @@ function RateInput({
 }) {
   return (
     <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-      {label}
+      <span>{label}</span>
       <div className="relative">
         <Input
           name={name}

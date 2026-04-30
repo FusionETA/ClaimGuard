@@ -46,14 +46,13 @@ export type UpcomingClaimRun = {
   totalAmountInRun: number
 }
 
-export type FailedXeroSync = {
-  id: string
-  claimNumber: string
-  title: string
-  amount: number
-  employeeName: string
-  errorMessage?: string
-  syncedAt?: string
+export type OverturnedSupervisor = {
+  supervisorId: string
+  supervisorName: string
+  /** # of times this layer-1 approver had a claim later rejected by a higher layer. */
+  overturnedCount: number
+  /** Distinct employees whose claim came back rejected. */
+  affectedEmployees: number
 }
 
 export type AdminExecutiveOverview = {
@@ -62,9 +61,9 @@ export type AdminExecutiveOverview = {
   slowOtApprovers: SlowOtApprover[]
   stalePendingClaims: StalePendingClaim[]
   upcomingClaimRun: UpcomingClaimRun | null
-  failedXeroSyncs: {
+  overturnedSupervisors: {
     total: number
-    samples: FailedXeroSync[]
+    samples: OverturnedSupervisor[]
   }
 }
 
@@ -114,7 +113,7 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
       slowOtApprovers: [],
       stalePendingClaims: [],
       upcomingClaimRun: null,
-      failedXeroSyncs: { total: 0, samples: [] },
+      overturnedSupervisors: { total: 0, samples: [] },
     }
   }
 
@@ -124,6 +123,7 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
   const last30Days = new Date(now.getTime() - 30 * 86_400_000)
   const staleCutoff = new Date(now.getTime() - STALE_PENDING_DAYS * 86_400_000)
   const otLookback = new Date(now.getTime() - SLOW_OT_LOOKBACK_DAYS * 86_400_000)
+  const overturnLookback = new Date(now.getTime() - 90 * 86_400_000)
 
   const [
     monthClaims,
@@ -133,8 +133,8 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
     pendingClaims,
     org,
     runClaims,
-    failedSyncCount,
-    failedSyncSamples,
+    rejectedClaims,
+    chainStepRows,
   ] = await Promise.all([
     // 1. Monthly project claim spend — claims submitted this month, group by employee.project
     prisma.claim.findMany({
@@ -235,25 +235,30 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
       select: { amount: true, status: true },
     }),
 
-    // 6a. Failed Xero syncs total
-    prisma.claim.count({
-      where: { organizationId: orgId, xeroSyncStatus: "ERROR" },
-    }),
-
-    // 6b. Failed Xero syncs sample
+    // 6a. Rejected claims in lookback — used to compute "overturned at layer 1"
     prisma.claim.findMany({
-      where: { organizationId: orgId, xeroSyncStatus: "ERROR" },
-      orderBy: { xeroSyncedAt: "desc" },
-      take: 5,
+      where: {
+        organizationId: orgId,
+        status: "REJECTED",
+        reviewedAt: { gte: overturnLookback },
+      },
       select: {
         id: true,
-        claimNumber: true,
-        title: true,
-        amount: true,
-        xeroSyncError: true,
-        xeroSyncedAt: true,
-        employee: { select: { name: true } },
+        employeeId: true,
+        reviewerId: true,
       },
+    }),
+
+    // 6b. Approval chain steps for the org (small table — fetch all once and group in memory)
+    prisma.approvalChainStep.findMany({
+      where: { employee: { organizationId: orgId } },
+      select: {
+        employeeId: true,
+        step: true,
+        approverId: true,
+        approver: { select: { id: true, name: true } },
+      },
+      orderBy: [{ employeeId: "asc" }, { step: "asc" }],
     }),
   ])
 
@@ -376,18 +381,66 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
     }
   }
 
-  // ── 6. Failed Xero syncs ───────────────────────────────────────────────────
-  const failedXeroSyncs = {
-    total: failedSyncCount,
-    samples: failedSyncSamples.map((c) => ({
-      id: c.id,
-      claimNumber: c.claimNumber,
-      title: c.title,
-      amount: num(c.amount),
-      employeeName: c.employee?.name ?? "Unknown",
-      errorMessage: c.xeroSyncError ?? undefined,
-      syncedAt: c.xeroSyncedAt?.toISOString(),
-    })),
+  // ── 6. Layer-1 supervisors most often overturned by a higher layer ─────────
+  // Group chain steps by employee for O(1) lookup.
+  type ChainEntry = (typeof chainStepRows)[number]
+  const chainsByEmployee = new Map<string, ChainEntry[]>()
+  for (const row of chainStepRows) {
+    const list = chainsByEmployee.get(row.employeeId) ?? []
+    list.push(row)
+    chainsByEmployee.set(row.employeeId, list)
+  }
+
+  // For each REJECTED claim: if the rejecter sits at step ≥ 2 in the chain,
+  // the layer-1 (step 1) supervisor for that employee gets one overturn tally.
+  // (Their step-1 approval was overruled further up the chain.)
+  const overturnStats = new Map<
+    string,
+    {
+      supervisorId: string
+      supervisorName: string
+      overturnedCount: number
+      affectedEmployees: Set<string>
+    }
+  >()
+  for (const claim of rejectedClaims) {
+    if (!claim.reviewerId) continue
+    const chain = chainsByEmployee.get(claim.employeeId)
+    if (!chain || chain.length < 2) continue // need at least 2 layers to "overturn"
+
+    const rejecterStep = chain.find((s) => s.approverId === claim.reviewerId)
+    if (!rejecterStep || rejecterStep.step < 2) continue
+
+    const layer1 = chain.find((s) => s.step === chain[0]!.step) // step 1 (lowest step number)
+    if (!layer1) continue
+
+    const stats = overturnStats.get(layer1.approverId) ?? {
+      supervisorId: layer1.approverId,
+      supervisorName: layer1.approver.name,
+      overturnedCount: 0,
+      affectedEmployees: new Set<string>(),
+    }
+    stats.overturnedCount += 1
+    stats.affectedEmployees.add(claim.employeeId)
+    overturnStats.set(layer1.approverId, stats)
+  }
+
+  const overturnedSamples: OverturnedSupervisor[] = Array.from(overturnStats.values())
+    .map((s) => ({
+      supervisorId: s.supervisorId,
+      supervisorName: s.supervisorName,
+      overturnedCount: s.overturnedCount,
+      affectedEmployees: s.affectedEmployees.size,
+    }))
+    .sort((a, b) => b.overturnedCount - a.overturnedCount)
+    .slice(0, 3)
+
+  const overturnedSupervisors = {
+    total: Array.from(overturnStats.values()).reduce(
+      (sum, s) => sum + s.overturnedCount,
+      0
+    ),
+    samples: overturnedSamples,
   }
 
   return {
@@ -396,6 +449,6 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
     slowOtApprovers,
     stalePendingClaims,
     upcomingClaimRun,
-    failedXeroSyncs,
+    overturnedSupervisors,
   }
 }

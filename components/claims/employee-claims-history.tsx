@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react"
 import { Search } from "lucide-react"
 
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/ui/input"
 import { PaginationControls } from "@/components/ui/pagination-controls"
@@ -34,6 +33,7 @@ const statusLabels: Record<ClaimStatus, string> = {
   APPROVED: "Approved",
   REJECTED: "Rejected",
   PAID: "Paid",
+  SETTLED: "Settled",
 }
 
 const visibleStatusOptions = claimStatuses.filter(
@@ -90,61 +90,19 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <Card>
-        <CardContent className="space-y-4 px-5 pb-5 pt-3 sm:space-y-5 sm:p-6">
-          <div className="hidden items-center justify-between gap-4 md:flex">
-            <div className="relative w-full max-w-sm">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search by claim, title, or account"
-                className="pl-10"
-              />
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant={status === "ALL" ? "default" : "ghost"}
-                onClick={() => setStatus("ALL")}
-                className={cn(
-                  "rounded-full",
-                  status !== "ALL" &&
-                    "bg-surface-low text-muted-foreground hover:bg-surface-high hover:text-foreground"
-                )}
-              >
-                All
-              </Button>
-              {visibleStatusOptions.map((claimStatus) => (
-                <Button
-                  key={claimStatus}
-                  type="button"
-                  size="sm"
-                  variant={status === claimStatus ? "default" : "ghost"}
-                  onClick={() => setStatus(claimStatus)}
-                  className={cn(
-                    "rounded-full",
-                    status !== claimStatus &&
-                      "bg-surface-low text-muted-foreground hover:bg-surface-high hover:text-foreground"
-                  )}
-                >
-                  {statusLabels[claimStatus]}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 md:hidden">
+      {/* Filter area — one DOM node so space-y doesn't add phantom top margin from the hidden mobile div */}
+      <div>
+        {/* Mobile: bare scrollable pill row, no card wrapper */}
+        <div className="-mx-6 overflow-x-auto px-6 pb-0.5 md:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setStatus("ALL")}
               className={cn(
-                "relative z-10 touch-manipulation rounded-[20px] px-4 py-3 text-sm font-semibold transition-all sm:text-base",
+                "shrink-0 touch-manipulation rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
                 status === "ALL"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
               )}
             >
               All
@@ -155,41 +113,85 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
                 type="button"
                 onClick={() => setStatus(claimStatus)}
                 className={cn(
-                  "relative z-10 touch-manipulation rounded-[20px] px-4 py-3 text-sm font-semibold transition-all sm:text-base",
+                  "shrink-0 touch-manipulation rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
                   status === claimStatus
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
                 )}
               >
                 {statusLabels[claimStatus]}
               </button>
             ))}
           </div>
+        </div>
 
-          <div className="hidden flex-col gap-2 text-sm text-muted-foreground md:flex md:flex-row md:items-center md:justify-between">
+        {/* Desktop: Card with search + filter pills + count */}
+        <Card className="hidden md:block">
+        <CardContent className="space-y-4 px-5 pb-5 pt-3 sm:space-y-5 sm:p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative w-full max-w-sm">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search by claim, title, or account"
+                className="pl-10"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setStatus("ALL")}
+                className={cn(
+                  "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                  status === "ALL"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+                )}
+              >
+                All
+              </button>
+              {visibleStatusOptions.map((claimStatus) => (
+                <button
+                  key={claimStatus}
+                  type="button"
+                  onClick={() => setStatus(claimStatus)}
+                  className={cn(
+                    "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                    status === claimStatus
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {statusLabels[claimStatus]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <p>
               Showing <span className="font-semibold text-foreground">{filteredClaims.length}</span>{" "}
               of <span className="font-semibold text-foreground">{claims.length}</span> claims
             </p>
             {hasActiveFilters && (
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
-                className="w-fit rounded-full"
+                className="w-fit rounded-full border border-border/60 bg-card px-4 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
                 onClick={() => {
                   setStatus("ALL")
                   setSearchTerm("")
                 }}
               >
                 Clear filters
-              </Button>
+              </button>
             )}
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
 
-      <div className="px-1 text-sm text-muted-foreground md:hidden">
+      {/* Mobile: showing count */}
+      <div className="text-sm text-muted-foreground md:hidden">
         <p>
           Showing <span className="font-semibold text-foreground">{filteredClaims.length}</span> of{" "}
           <span className="font-semibold text-foreground">{claims.length}</span> claims

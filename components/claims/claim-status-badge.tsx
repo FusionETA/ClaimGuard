@@ -8,6 +8,7 @@ const labelMap: Record<ClaimStatus, string> = {
   APPROVED: "Approved",
   REJECTED: "Rejected",
   PAID: "Paid",
+  SETTLED: "Settled",
 }
 
 const variantMap: Record<
@@ -19,6 +20,8 @@ const variantMap: Record<
   APPROVED: "approved",
   REJECTED: "rejected",
   PAID: "paid",
+  // Settled = company-money fully approved (no payout step). Reuse the "paid" variant.
+  SETTLED: "paid",
 }
 
 export function ClaimStatusBadge({ status }: { status: ClaimStatus }) {

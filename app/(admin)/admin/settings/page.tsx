@@ -112,6 +112,7 @@ export default async function AdminSettingsPage({
       pendingTenants={pendingTenants}
       takenTenantIds={takenTenantIds}
       workingHours={workingHours}
+      initialTab={typeof params.tab === "string" ? params.tab : "organization"}
     />
   )
 }

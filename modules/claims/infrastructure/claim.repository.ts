@@ -9,8 +9,12 @@ import {
 } from "@/modules/organization/domain/models"
 import type {
   AdminProfile,
+  ApprovalStepInfo,
+  ApprovalStepState,
   ClaimRecord,
   ClaimStatus,
+  PaymentType,
+  PendingApproverInfo,
   PortalUser,
 } from "@/modules/claims/domain/models"
 
@@ -56,6 +60,19 @@ type PrismaUser = {
   } | null
 }
 
+type PrismaChartAccount = {
+  id: string
+  code: string
+  name: string
+  type: string | null
+  status: string | null
+  isSelectable: boolean
+  isBankAccount: boolean
+  isCustom: boolean
+  isDisabled: boolean
+  xeroConnectionId: string | null
+}
+
 type PrismaClaim = {
   id: string
   claimNumber: string
@@ -67,23 +84,107 @@ type PrismaClaim = {
   submittedAt: Date
   claimRunMonth: Date | null
   status: string
+  paymentType: string
   receiptUrl: string | null
   reviewNotes: string | null
+  reviewedAt: Date | null
+  reviewerId: string | null
+  employeeId: string
   reviewer: { name: string } | null
   organization: { name: string } | null
-  chartOfAccount: {
-    id: string
-    code: string
-    name: string
-    type: string | null
-    status: string | null
-    isSelectable: boolean
-    isBankAccount: boolean
-    isCustom: boolean
-    isDisabled: boolean
-    xeroConnectionId: string | null
-  } | null
+  chartOfAccount: PrismaChartAccount | null
+  payViaAccount: PrismaChartAccount | null
   employee: PrismaUser
+}
+
+type ApprovalChainRow = {
+  step: number
+  approverId: string
+  approver: {
+    id: string
+    name: string
+    email: string
+    role: string
+  }
+}
+
+/**
+ * Compute the approval chain display state for a single claim.
+ * Returns undefined if the employee has no chain configured (legacy path).
+ *
+ * Chain state semantics:
+ * - SUBMITTED               → step 1 is "current", later steps "upcoming"
+ * - PENDING (no reviewedAt) → step 1 is "current" (legacy)
+ * - PENDING (reviewedAt set)→ step 1 "approved", step 2 "current", later "upcoming"
+ * - APPROVED / PAID         → all steps "approved"
+ * - REJECTED                → reviewer's step "rejected", earlier "approved",
+ *                              later "skipped"
+ */
+function buildApprovalChainState(
+  steps: ApprovalChainRow[],
+  claim: {
+    status: string
+    reviewedAt: Date | null
+    reviewerId: string | null
+  }
+): { chain: ApprovalStepInfo[]; pending?: PendingApproverInfo } | undefined {
+  if (steps.length === 0) return undefined
+
+  const sorted = [...steps].sort((a, b) => a.step - b.step)
+  const totalSteps = sorted.length
+
+  // Determine the "current" step number.
+  let currentStep: number
+  if (claim.status === "SUBMITTED") {
+    currentStep = sorted[0]!.step
+  } else if (claim.status === "PENDING") {
+    currentStep =
+      claim.reviewedAt && sorted[1] ? sorted[1].step : sorted[0]!.step
+  } else if (claim.status === "APPROVED" || claim.status === "PAID") {
+    currentStep = sorted[totalSteps - 1]!.step + 1 // past the last step
+  } else if (claim.status === "REJECTED") {
+    const rejectedAt = sorted.find((s) => s.approverId === claim.reviewerId)
+    currentStep = rejectedAt?.step ?? sorted[0]!.step
+  } else {
+    currentStep = sorted[0]!.step
+  }
+
+  const chain: ApprovalStepInfo[] = sorted.map((row) => {
+    let state: ApprovalStepState
+    if (claim.status === "REJECTED") {
+      if (row.step < currentStep) state = "approved"
+      else if (row.step === currentStep) state = "rejected"
+      else state = "skipped"
+    } else if (row.step < currentStep) {
+      state = "approved"
+    } else if (row.step === currentStep) {
+      state = "current"
+    } else {
+      state = "upcoming"
+    }
+
+    return {
+      step: row.step,
+      approverId: row.approverId,
+      name: row.approver.name,
+      email: row.approver.email,
+      role: row.approver.role as ApprovalStepInfo["role"],
+      state,
+    }
+  })
+
+  const currentEntry = chain.find((c) => c.state === "current")
+  const pending: PendingApproverInfo | undefined = currentEntry
+    ? {
+        approverId: currentEntry.approverId,
+        name: currentEntry.name,
+        email: currentEntry.email,
+        step: currentEntry.step,
+        totalSteps,
+      }
+    : undefined
+
+  return { chain, pending }
 }
 
 export type CreateClaimData = {
@@ -99,6 +200,8 @@ export type CreateClaimData = {
   claimRunMonth: Date
   employeeId: string
   reviewerId: string | null
+  paymentType: PaymentType
+  payViaAccountId?: string
 }
 
 export type ReviewClaimData = {
@@ -201,7 +304,17 @@ function mapUser(user: PrismaUser): PortalUser {
   }
 }
 
-function mapClaim(claim: PrismaClaim): ClaimRecord {
+function mapClaim(
+  claim: PrismaClaim,
+  chainsByEmployee?: Map<string, ApprovalChainRow[]>
+): ClaimRecord {
+  const chainRows = chainsByEmployee?.get(claim.employeeId) ?? []
+  const chainState = buildApprovalChainState(chainRows, {
+    status: claim.status,
+    reviewedAt: claim.reviewedAt,
+    reviewerId: claim.reviewerId,
+  })
+
   return {
     id: claim.id,
     claimNumber: claim.claimNumber,
@@ -209,22 +322,28 @@ function mapClaim(claim: PrismaClaim): ClaimRecord {
     description: claim.description,
     organizationName: claim.organization?.name ?? undefined,
     chartOfAccount: mapChartAccount(claim.chartOfAccount),
+    payViaAccount: mapChartAccount(claim.payViaAccount),
     amount: Number(claim.amount),
     currency: claim.currency,
     spentAt: claim.spentAt.toISOString(),
     submittedAt: claim.submittedAt.toISOString(),
     claimRunMonth: claim.claimRunMonth?.toISOString(),
     status: claim.status as ClaimStatus,
+    paymentType: claim.paymentType as PaymentType,
     receiptUrl: claim.receiptUrl ?? undefined,
     reviewNotes: claim.reviewNotes ?? undefined,
     reviewerName: claim.reviewer?.name ?? undefined,
+    reviewedAt: claim.reviewedAt?.toISOString(),
     employee: mapUser(claim.employee),
+    pendingApprover: chainState?.pending,
+    approvalChain: chainState?.chain,
   }
 }
 
 const claimInclude = {
   organization: true,
   chartOfAccount: true,
+  payViaAccount: true,
   employee: {
     include: {
       organization: true,
@@ -315,7 +434,7 @@ export const claimRepository = {
       orderBy: { submittedAt: "desc" },
     })
 
-    return rows.map(mapClaim)
+    return rows.map((row) => mapClaim(row))
   },
 
   async getClaimsForSupervisor(email: string): Promise<ClaimRecord[]> {
@@ -329,8 +448,54 @@ export const claimRepository = {
 
     if (!supervisor) return []
 
+    // Look up the approval chain steps where this supervisor is an approver.
+    // Step 1 → they see SUBMITTED claims (freshly submitted, awaiting first review).
+    // Step 2+ → they see PENDING claims (already passed the previous layer).
+    const chainSteps = await prisma.approvalChainStep.findMany({
+      where: { approverId: supervisor.id },
+      select: { employeeId: true, step: true },
+    })
+
+    if (chainSteps.length > 0) {
+      // Build per-employee OR conditions: match the claim's employeeId and the
+      // correct status for this supervisor's layer in that employee's chain.
+      // Step 1 → SUBMITTED or PENDING with no prior review (legacy claims
+      //           created before status was explicitly SUBMITTED on creation).
+      // Step 2+ → PENDING that has already been reviewed once (reviewedAt set),
+      //           meaning the previous layer signed off.
+      // Build typed OR conditions. Explicit ClaimStatus[] cast is required
+      // because Prisma's generated type expects a mutable array, not readonly.
+      const conditions = chainSteps.map(
+        ({ employeeId, step }) =>
+          step === 1
+            ? {
+                employeeId,
+                status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
+                reviewedAt: null as null,
+              }
+            : {
+                employeeId,
+                status: { in: ["PENDING"] as ClaimStatus[] },
+                reviewedAt: { not: null },
+              }
+      )
+
+      const rows = await prisma.claim.findMany({
+        where: { OR: conditions },
+        include: claimInclude,
+        orderBy: { submittedAt: "desc" },
+      })
+
+      return rows.map((row) => mapClaim(row))
+    }
+
+    // ── Legacy fallback ──────────────────────────────────────────────────────
+    // Employees that pre-date ApprovalChainStep still have supervisorId set.
+    // Treat them as a 1-step chain: show SUBMITTED or unreviewed PENDING claims.
     const rows = await prisma.claim.findMany({
       where: {
+        status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
+        reviewedAt: null,
         organizationId: supervisor.organizationId ?? undefined,
         employee: {
           employeeProfile: {
@@ -342,7 +507,7 @@ export const claimRepository = {
       orderBy: { submittedAt: "desc" },
     })
 
-    return rows.map(mapClaim)
+    return rows.map((row) => mapClaim(row))
   },
 
   async getClaimsForOrganization(
@@ -363,7 +528,34 @@ export const claimRepository = {
       orderBy: { submittedAt: "desc" },
     })
 
-    return rows.map(mapClaim)
+    // Batch-load approval chains for every distinct employee in one query so
+    // the admin queue can render "Awaiting <approver>" without N+1 lookups.
+    const employeeIds = Array.from(new Set(rows.map((r) => r.employeeId)))
+    const chainRows =
+      employeeIds.length === 0
+        ? []
+        : await prisma.approvalChainStep.findMany({
+            where: { employeeId: { in: employeeIds } },
+            include: {
+              approver: {
+                select: { id: true, name: true, email: true, role: true },
+              },
+            },
+            orderBy: [{ employeeId: "asc" }, { step: "asc" }],
+          })
+
+    const chainsByEmployee = new Map<string, ApprovalChainRow[]>()
+    for (const row of chainRows) {
+      const list = chainsByEmployee.get(row.employeeId) ?? []
+      list.push({
+        step: row.step,
+        approverId: row.approverId,
+        approver: row.approver,
+      })
+      chainsByEmployee.set(row.employeeId, list)
+    }
+
+    return rows.map((row) => mapClaim(row, chainsByEmployee))
   },
 
   async getFirstAdminId(organizationId?: string): Promise<string | null> {
@@ -418,6 +610,7 @@ export const claimRepository = {
         title: data.title,
         description: data.description,
         category: "OTHER",
+        status: "SUBMITTED",
         organizationId: data.organizationId,
         chartOfAccountId: data.chartOfAccountId,
         amount: data.amount,
@@ -427,6 +620,8 @@ export const claimRepository = {
         receiptUrl: data.receiptUrl,
         employeeId: data.employeeId,
         reviewerId: data.reviewerId,
+        paymentType: data.paymentType,
+        payViaAccountId: data.payViaAccountId,
       },
     })
     return true
@@ -444,7 +639,9 @@ export const claimRepository = {
         id: true,
         title: true,
         status: true,
+        reviewedAt: true,
         employeeId: true,
+        paymentType: true,
         employee: {
           select: {
             email: true,
@@ -466,22 +663,106 @@ export const claimRepository = {
       return { ok: false, error: "NOT_ACTIONABLE" }
     }
 
-    if (
-      data.supervisorOnly &&
-      existingClaim.employee.employeeProfile?.supervisorId !== data.reviewerId
-    ) {
-      return { ok: false, error: "NOT_FOUND" }
-    }
+    // For COMPANY-money claims, full approval flips straight to SETTLED — the
+    // company already paid out of its bank account, so there's no
+    // "Mark as paid" step for the admin to perform.
+    const isCompanyMoney = existingClaim.paymentType === "COMPANY"
 
-    await prisma.claim.update({
-      where: { id: data.claimId },
-      data: {
-        status: data.status,
-        reviewNotes: data.reviewNotes || null,
-        reviewedAt: new Date(),
-        reviewerId: data.reviewerId,
-      },
-    })
+    if (data.supervisorOnly) {
+      // Load the employee's approval chain to verify the reviewer is the correct
+      // layer for the claim's current status.
+      const chain = await prisma.approvalChainStep.findMany({
+        where: { employeeId: existingClaim.employeeId },
+        orderBy: { step: "asc" },
+      })
+
+      if (chain.length > 0) {
+        // Determine which step is expected:
+        // - SUBMITTED, or PENDING with no prior review (legacy) → step 1
+        // - PENDING with a prior review → step 2+ (already passed layer 1)
+        const alreadyReviewedOnce =
+          existingClaim.status === "PENDING" && existingClaim.reviewedAt !== null
+        const expectedStep = alreadyReviewedOnce ? 2 : 1
+        const reviewerStep = chain.find(
+          (s) => s.approverId === data.reviewerId && s.step >= expectedStep
+        )
+
+        if (!reviewerStep) {
+          return { ok: false, error: "NOT_FOUND" }
+        }
+
+        // Determine the next status for an approval decision:
+        // If there are more chain steps after this reviewer → PENDING
+        // If this is the last step:
+        //   - PERSONAL → APPROVED (admin still needs to mark as paid)
+        //   - COMPANY  → SETTLED  (company already paid; no payout step)
+        const isFinalStep = !chain.some((s) => s.step > reviewerStep.step)
+        const nextStatus:
+          | "SUBMITTED"
+          | "PENDING"
+          | "APPROVED"
+          | "REJECTED"
+          | "SETTLED" =
+          data.status === "REJECTED"
+            ? "REJECTED"
+            : isFinalStep
+              ? isCompanyMoney
+                ? "SETTLED"
+                : "APPROVED"
+              : "PENDING"
+
+        await prisma.claim.update({
+          where: { id: data.claimId },
+          data: {
+            status: nextStatus,
+            reviewNotes: data.reviewNotes || null,
+            reviewedAt: new Date(),
+            reviewerId: data.reviewerId,
+            // Stamp the settlement timestamp when company-money claims auto-settle
+            payoutAt: nextStatus === "SETTLED" ? new Date() : undefined,
+          },
+        })
+      } else {
+        // Legacy path: no chain steps — fall back to supervisorId check (1-step approval)
+        if (existingClaim.employee.employeeProfile?.supervisorId !== data.reviewerId) {
+          return { ok: false, error: "NOT_FOUND" }
+        }
+
+        const finalStatus: "APPROVED" | "REJECTED" | "SETTLED" =
+          data.status === "REJECTED"
+            ? "REJECTED"
+            : isCompanyMoney
+              ? "SETTLED"
+              : "APPROVED"
+
+        await prisma.claim.update({
+          where: { id: data.claimId },
+          data: {
+            status: finalStatus,
+            reviewNotes: data.reviewNotes || null,
+            reviewedAt: new Date(),
+            reviewerId: data.reviewerId,
+            payoutAt: finalStatus === "SETTLED" ? new Date() : undefined,
+          },
+        })
+      }
+    } else {
+      // Admin review — use the requested status, but auto-promote APPROVED on
+      // COMPANY-money claims to SETTLED (admin doesn't need to pay them out).
+      const finalStatus =
+        data.status === "APPROVED" && isCompanyMoney ? "SETTLED" : data.status
+
+      await prisma.claim.update({
+        where: { id: data.claimId },
+        data: {
+          status: finalStatus,
+          reviewNotes: data.reviewNotes || null,
+          reviewedAt: new Date(),
+          reviewerId: data.reviewerId,
+          payoutAt: finalStatus === "SETTLED" ? new Date() : undefined,
+        },
+      })
+    }
 
     return {
       ok: true,
@@ -490,6 +771,35 @@ export const claimRepository = {
       employeeUserId: existingClaim.employeeId,
       claimTitle: existingClaim.title,
     }
+  },
+
+  async markClaimAsPaid(data: {
+    claimId: string
+    payViaAccountId: string
+    paidById: string
+  }): Promise<"OK" | "NOT_FOUND" | "NOT_ACTIONABLE" | "DB_UNAVAILABLE"> {
+    const prisma = getPrismaClient()
+    if (!prisma) return "DB_UNAVAILABLE"
+
+    const existing = await prisma.claim.findUnique({
+      where: { id: data.claimId },
+      select: { status: true },
+    })
+
+    if (!existing) return "NOT_FOUND"
+    if (existing.status !== "APPROVED") return "NOT_ACTIONABLE"
+
+    await prisma.claim.update({
+      where: { id: data.claimId },
+      data: {
+        status: "PAID",
+        payViaAccountId: data.payViaAccountId,
+        payoutAt: new Date(),
+        reviewerId: data.paidById,
+      },
+    })
+
+    return "OK"
   },
 
   async getClaimForXeroSync(claimId: string): Promise<ClaimForXeroSync | null> {

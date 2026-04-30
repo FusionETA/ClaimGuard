@@ -15,14 +15,26 @@ import type {
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
-export const createClaimSchema = z.object({
-  title: z.string().min(3, "Give the claim a short title."),
-  chartOfAccountId: z.string().min(1, "Select the chart of account for this claim."),
-  amount: z.coerce.number().positive("Amount must be greater than zero."),
-  spentAt: z.string().min(1, "Select the expense date."),
-  description: z.string().min(12, "Add enough detail for the reviewer."),
-  receiptUrl: z.string().optional(),
-})
+export const createClaimSchema = z
+  .object({
+    title: z.string().min(3, "Give the claim a short title."),
+    chartOfAccountId: z.string().min(1, "Select the chart of account for this claim."),
+    amount: z.coerce.number().positive("Amount must be greater than zero."),
+    spentAt: z.string().min(1, "Select the expense date."),
+    description: z.string().min(12, "Add enough detail for the reviewer."),
+    receiptUrl: z.string().optional(),
+    paymentType: z.enum(["PERSONAL", "COMPANY"]).default("PERSONAL"),
+    payViaAccountId: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.paymentType === "COMPANY" && !data.payViaAccountId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["payViaAccountId"],
+        message: "Choose which company bank account paid for this expense.",
+      })
+    }
+  })
 
 export const reviewClaimSchema = z
   .object({
@@ -56,6 +68,8 @@ export type CreateClaimInput = {
   spentAt: string
   description: string
   receiptUrl?: string
+  paymentType?: "PERSONAL" | "COMPANY"
+  payViaAccountId?: string
 }
 
 export type CreateClaimServiceResult =
@@ -74,6 +88,8 @@ export type CreateClaimServiceResult =
         spentAt?: string
         description?: string
         receiptUrl?: string
+        paymentType?: string
+        payViaAccountId?: string
       }
     }
 
@@ -143,6 +159,15 @@ export async function listClaimsForSupervisorReview({
   )
 }
 
+export async function countPendingClaimsForSupervisor(
+  supervisorEmail: string
+): Promise<number> {
+  const claims = await claimRepository.getClaimsForSupervisor(supervisorEmail)
+  return claims.filter(
+    (c) => c.status === "PENDING" || c.status === "SUBMITTED"
+  ).length
+}
+
 export async function createClaimForEmployee({
   session,
   input,
@@ -176,6 +201,8 @@ export async function createClaimForEmployee({
         spentAt: fieldErrors.spentAt?.[0],
         description: fieldErrors.description?.[0],
         receiptUrl: fieldErrors.receiptUrl?.[0],
+        paymentType: fieldErrors.paymentType?.[0],
+        payViaAccountId: fieldErrors.payViaAccountId?.[0],
       },
     }
   }
@@ -232,6 +259,29 @@ export async function createClaimForEmployee({
     }
   }
 
+  // For COMPANY-money claims, validate that the chosen bank account exists and
+  // belongs to the same organization (and Xero connection scope, if any).
+  let validatedPayViaAccountId: string | undefined
+  if (parsed.data.paymentType === "COMPANY") {
+    const bankAccounts = await organizationRepository.getBankAccountsForOrganization({
+      organizationId: session.organizationId,
+      xeroConnectionId: session.activeXeroConnectionId ?? undefined,
+    })
+    const match = bankAccounts.find((b) => b.id === parsed.data.payViaAccountId)
+    if (!match) {
+      return {
+        ok: false,
+        status: 400,
+        message: "Choose one of your organization's bank accounts.",
+        values: input,
+        fieldErrors: {
+          payViaAccountId: "Select a configured bank account.",
+        },
+      }
+    }
+    validatedPayViaAccountId = match.id
+  }
+
   const claimRunMonth = calculateClaimRunMonth({
     submittedAt: new Date(),
     claimCutoffDay: organization.claimCutoffDay,
@@ -250,6 +300,8 @@ export async function createClaimForEmployee({
     receiptUrl: parsed.data.receiptUrl || undefined,
     employeeId,
     reviewerId,
+    paymentType: parsed.data.paymentType,
+    payViaAccountId: validatedPayViaAccountId,
   })
 
   if (!ok) {

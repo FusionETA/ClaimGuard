@@ -103,11 +103,17 @@ export function AppResumeIndicator({ children }: { children: React.ReactNode }) 
 
   return (
     <>
-      <div aria-hidden={visible} className={visible ? "invisible" : "visible"}>
+      {/*
+        Use display:none rather than visibility:hidden while the splash is up.
+        visibility:hidden leaves descendants in flow and lets fixed/sticky
+        children (like the admin header's logout button) bleed through the
+        overlay on mobile. display:none takes the entire shell out of layout.
+      */}
+      <div aria-hidden={visible} className={visible ? "hidden" : ""}>
         {children}
       </div>
       {visible ? (
-        <div className="fixed inset-0 z-[100]">
+        <div className="fixed inset-0 z-[100] bg-background">
           <AppSplash label={SPLASH_LABEL} />
         </div>
       ) : null}

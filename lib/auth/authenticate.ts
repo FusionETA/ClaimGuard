@@ -66,6 +66,19 @@ export async function authenticateUser({
     }
   }
 
+  // Pre-populate the active Xero connection so every downstream query that
+  // reads session.activeXeroConnectionId can trust it without re-resolving.
+  // Picks the first connection on the user's organization at login time.
+  let activeXeroConnectionId: string | undefined
+  if (user.organizationId) {
+    const firstConnection = await prisma.xeroConnection.findFirst({
+      where: { organizationId: user.organizationId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    })
+    activeXeroConnectionId = firstConnection?.id ?? undefined
+  }
+
   return {
     success: true as const,
     user: {
@@ -77,6 +90,8 @@ export async function authenticateUser({
       subtitle: buildSubtitle(user.role, user.employeeProfile),
       organizationId: user.organizationId ?? undefined,
       organizationName: user.organization?.name ?? undefined,
+      activeOrganizationId: user.organizationId ?? undefined,
+      activeXeroConnectionId,
     } satisfies SessionUser,
   }
 }
