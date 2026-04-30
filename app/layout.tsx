@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Manrope } from "next/font/google"
 
+import { AppResumeIndicator } from "@/components/pwa/app-resume-indicator"
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ToasterProvider } from "@/components/ui/toaster"
@@ -66,8 +67,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ToasterProvider>
-            <ServiceWorkerRegister />
-            {children}
+            <AppResumeIndicator>
+              <ServiceWorkerRegister />
+              {children}
+            </AppResumeIndicator>
           </ToasterProvider>
         </ThemeProvider>
       </body>

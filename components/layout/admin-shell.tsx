@@ -4,7 +4,7 @@ import type { Route } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 import {
   CalendarClock,
   LayoutDashboard,
@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import type { AuthenticatedSession } from "@/lib/auth/types"
-import type { AdminOrganizationOption, XeroConnectionInfo } from "@/modules/organization/domain/models"
+import type { AdminOrganizationOption } from "@/modules/organization/domain/models"
 import { cn } from "@/lib/utils"
 
 type AdminNavItem = {
@@ -43,6 +43,15 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     icon: LayoutDashboard,
   },
   {
+    href: "/admin/attendance",
+    label: "Attendance",
+    icon: CalendarClock,
+    children: [
+      { href: "/admin/attendance", label: "Overview" },
+      { href: "/admin/attendance/employees", label: "Employees" },
+    ],
+  },
+  {
     href: "/admin/claims",
     label: "Claims",
     icon: Receipt,
@@ -51,15 +60,6 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/hierarchy",
     label: "Hierarchy",
     icon: Network,
-  },
-  {
-    href: "/admin/attendance",
-    label: "Attendance",
-    icon: CalendarClock,
-    children: [
-      { href: "/admin/attendance", label: "Overview" },
-      { href: "/admin/attendance/employees", label: "Employees" },
-    ],
   },
   {
     href: "/admin/settings",
@@ -96,32 +96,63 @@ type AdminShellProps = {
   children: React.ReactNode
   user: AuthenticatedSession
   organizationName?: string
-  adminOrganizations?: AdminOrganizationOption[]
   activeOrganizationId?: string
-  xeroConnections?: XeroConnectionInfo[]
-  activeXeroConnectionId?: string
 }
 
 export function AdminShell({
   children,
   user,
   organizationName,
-  adminOrganizations = [],
   activeOrganizationId,
-  xeroConnections = [],
-  activeXeroConnectionId,
 }: AdminShellProps) {
   const pathname = usePathname()
   const [switchPending, startSwitch] = useTransition()
+  const [adminOrganizations, setAdminOrganizations] = useState<
+    AdminOrganizationOption[]
+  >([])
+  const [resolvedActiveOrganizationId, setResolvedActiveOrganizationId] = useState(
+    activeOrganizationId,
+  )
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    void fetch("/api/admin/context", {
+      cache: "no-store",
+      credentials: "include",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          return null
+        }
+
+        return response.json() as Promise<{
+          adminOrganizations?: AdminOrganizationOption[]
+          activeOrganizationId?: string | null
+        }>
+      })
+      .then((data) => {
+        setAdminOrganizations(data?.adminOrganizations ?? [])
+        setResolvedActiveOrganizationId(
+          data?.activeOrganizationId ?? activeOrganizationId,
+        )
+      })
+      .catch(() => null)
+
+    return () => controller.abort()
+  }, [activeOrganizationId])
 
   const hasMultipleOrgs = adminOrganizations.length > 1
-  const activeOrg = adminOrganizations.find((o) => o.id === activeOrganizationId) ?? adminOrganizations[0]
+  const activeOrg =
+    adminOrganizations.find((o) => o.id === resolvedActiveOrganizationId) ??
+    adminOrganizations[0]
   const displayName = activeOrg?.name ?? organizationName
 
   function handleOrgSwitch(orgId: string) {
+    setResolvedActiveOrganizationId(orgId)
     startSwitch(() => switchActiveOrganizationAction(orgId))
   }
-
 
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[300px_1fr]">
@@ -202,7 +233,7 @@ export function AdminShell({
               {hasMultipleOrgs ? (
                 <div className="mt-1 inline-block">
                   <Select
-                    value={activeOrganizationId ?? undefined}
+                    value={resolvedActiveOrganizationId ?? undefined}
                     onValueChange={(v) => handleOrgSwitch(v)}
                     disabled={switchPending}
                   >

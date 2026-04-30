@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useMemo, useState, useTransition } from "react"
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react"
 
 import {
   createInitialAddHierarchyMemberFormState,
@@ -11,7 +11,7 @@ import {
   saveApprovalChainAction,
   updateHierarchyAction,
 } from "@/app/(admin)/admin/hierarchy/actions"
-import { Loader2, Plus, Search, X } from "lucide-react"
+import { CheckSquare, ChevronDown, Loader2, Plus, Search, Square, X } from "lucide-react"
 
 function ordinalLabel(n: number) {
   const s = ["th", "st", "nd", "rd"]
@@ -49,9 +49,15 @@ import {
 } from "@/components/ui/table"
 import { useToast } from "@/components/ui/toaster"
 import type {
+  EmployeePayoutMethod,
   OrganizationMember,
   OrganizationProjectOption,
   XeroConnectionInfo,
+} from "@/modules/organization/domain/models"
+import {
+  employeePayoutMethodLabels,
+  employeePayoutMethods,
+  resolveEmployeePayoutMethod,
 } from "@/modules/organization/domain/models"
 
 type AdminHierarchyTableProps = {
@@ -71,9 +77,135 @@ const roleLabels: Record<Exclude<RoleFilter, "ALL">, string> = {
 }
 
 const roleOptions: Exclude<RoleFilter, "ALL">[] = ["EMPLOYEE", "SUPERVISOR"]
+const payoutMethodOptions = employeePayoutMethods
 
 function getDirectSupervisor(member: OrganizationMember) {
   return member.approvalChain[0]?.approverName ?? member.supervisorName ?? null
+}
+
+function formatAssignedProjects(member: OrganizationMember) {
+  return member.projects.map((project) => project.name).join(", ")
+}
+
+function resolveSelectedProjectIds(
+  memberProjects: OrganizationMember["projects"],
+  availableProjects: OrganizationProjectOption[],
+) {
+  const availableById = new Set(availableProjects.map((project) => project.id))
+  const availableByName = new Map(availableProjects.map((project) => [project.name, project.id]))
+
+  return memberProjects
+    .map((project) => {
+      if (availableById.has(project.id)) {
+        return project.id
+      }
+
+      return availableByName.get(project.name) ?? null
+    })
+    .filter((projectId): projectId is string => Boolean(projectId))
+}
+
+function ProjectMultiSelect({
+  inputName,
+  projects,
+  selectedProjectIds,
+  onToggle,
+  disabled,
+  helperText,
+  legacyProjectName,
+}: {
+  inputName: string
+  projects: OrganizationProjectOption[]
+  selectedProjectIds: string[]
+  onToggle: (projectId: string) => void
+  disabled?: boolean
+  helperText?: string
+  legacyProjectName?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const selectedProjects = projects.filter((project) => selectedProjectIds.includes(project.id))
+  const triggerLabel =
+    selectedProjects.length > 0
+      ? selectedProjects.map((project) => project.name).join(", ")
+      : "Select project(s)"
+
+  useEffect(() => {
+    function handlePointerDown(event: MouseEvent) {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", handlePointerDown)
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown)
+    }
+  }, [open])
+
+  return (
+    <div ref={containerRef} className="relative space-y-2 text-sm font-semibold text-muted-foreground">
+      {selectedProjectIds.map((projectId) => (
+        <input key={projectId} type="hidden" name={inputName} value={projectId} />
+      ))}
+      {projects.length > 0 ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setOpen((current) => !current)}
+            disabled={disabled}
+            className="flex min-h-12 w-full items-center justify-between rounded-2xl border border-border/80 bg-card px-4 py-3 text-left text-sm text-foreground shadow-sm transition hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span className="pr-3">{triggerLabel}</span>
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 shrink-0 text-muted-foreground transition",
+                open && "rotate-180",
+              )}
+            />
+          </button>
+          {open ? (
+            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 rounded-2xl border border-border/80 bg-card p-2 shadow-panel">
+              <div className="max-h-64 space-y-1 overflow-y-auto">
+              {projects.map((project) => {
+                const isSelected = selectedProjectIds.includes(project.id)
+                return (
+                  <button
+                    key={project.id}
+                    type="button"
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm text-foreground transition hover:bg-surface-low disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={disabled}
+                    onClick={() => onToggle(project.id)}
+                  >
+                    {isSelected ? (
+                      <CheckSquare className="h-4 w-4 shrink-0 text-primary" />
+                    ) : (
+                      <Square className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span>{project.name}</span>
+                  </button>
+                )
+              })}
+              </div>
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <div className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 text-sm text-muted-foreground shadow-sm">
+          No projects available yet
+        </div>
+      )}
+      {helperText ? <p className="text-xs font-medium text-muted-foreground">{helperText}</p> : null}
+      {legacyProjectName ? (
+        <p className="text-xs font-medium text-muted-foreground">
+          Current legacy project: {legacyProjectName}
+        </p>
+      ) : null}
+    </div>
+  )
 }
 
 export function AdminHierarchyTable({
@@ -105,7 +237,7 @@ export function AdminHierarchyTable({
               member.email,
               member.employeeId,
               member.jobTitle,
-              member.project,
+              formatAssignedProjects(member),
               getDirectSupervisor(member),
             ]
               .filter(Boolean)
@@ -272,6 +404,7 @@ export function AdminHierarchyTable({
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Employee type</TableHead>
                 <TableHead>Xero org</TableHead>
                 <TableHead>Project</TableHead>
                 <TableHead>Job title</TableHead>
@@ -282,7 +415,7 @@ export function AdminHierarchyTable({
             <TableBody>
               {paginatedMembers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={8} className="py-12 text-center text-sm text-muted-foreground">
                     {hasActiveFilters
                       ? "No employees match the selected filters."
                       : "No employees yet. Click “Add employee” to get started."}
@@ -302,8 +435,9 @@ export function AdminHierarchyTable({
                         </div>
                       </TableCell>
                       <TableCell>{member.role === "SUPERVISOR" ? "Supervisor Employee" : "Basic Employee"}</TableCell>
+                      <TableCell>{employeePayoutMethodLabels[member.payoutMethod]}</TableCell>
                       <TableCell>{member.xeroConnectionName ?? "—"}</TableCell>
-                      <TableCell>{member.project || "—"}</TableCell>
+                      <TableCell>{formatAssignedProjects(member) || "—"}</TableCell>
                       <TableCell>{member.jobTitle}</TableCell>
                       <TableCell>
                         <div>
@@ -359,7 +493,10 @@ function AddHierarchyMemberDialog({
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
   const [chainApproverIds, setChainApproverIds] = useState<string[]>([])
-  const [addProjectValue, setAddProjectValue] = useState("")
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([])
+  const [addRoleValue, setAddRoleValue] = useState<"EMPLOYEE" | "SUPERVISOR">("EMPLOYEE")
+  const [addPayoutMethodValue, setAddPayoutMethodValue] =
+    useState<EmployeePayoutMethod>("HOURLY")
   const [state, formAction, pending] = useActionState(
     createHierarchyMemberAction,
     createInitialAddHierarchyMemberFormState()
@@ -369,18 +506,34 @@ function AddHierarchyMemberDialog({
   const filteredProjects = xeroConnectionId
     ? projects.filter((p) => p.xeroConnectionId === xeroConnectionId)
     : projects
+  const resolvedAddPayoutMethod = resolveEmployeePayoutMethod(
+    addRoleValue,
+    addPayoutMethodValue
+  )
 
   useEffect(() => {
     if (state.status === "success") {
       toast({ title: state.message, variant: "success" })
       setOpen(false)
       setChainApproverIds([])
+      setSelectedProjectIds([])
+      setAddRoleValue("EMPLOYEE")
+      setAddPayoutMethodValue("HOURLY")
     }
 
     if (state.status === "error" && state.message) {
       toast({ title: state.message, variant: "error" })
     }
   }, [state.status, state.message, toast])
+
+  useEffect(() => {
+    if (open) {
+      setSelectedProjectIds([])
+      setChainApproverIds([])
+      setAddRoleValue("EMPLOYEE")
+      setAddPayoutMethodValue("HOURLY")
+    }
+  }, [open])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -434,7 +587,12 @@ function AddHierarchyMemberDialog({
 
             <div className="space-y-2 text-sm font-semibold text-muted-foreground">
               <label htmlFor="add-role">Role</label>
-              <Select name="role" defaultValue={state.values.role || "EMPLOYEE"} disabled={pending}>
+              <Select
+                name="role"
+                value={addRoleValue}
+                onValueChange={(value) => setAddRoleValue(value as "EMPLOYEE" | "SUPERVISOR")}
+                disabled={pending}
+              >
                 <SelectTrigger id="add-role">
                   <SelectValue />
                 </SelectTrigger>
@@ -450,6 +608,32 @@ function AddHierarchyMemberDialog({
               <Input name="jobTitle" defaultValue={state.values.jobTitle} disabled={pending} />
             </label>
 
+            <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+              <label htmlFor="add-payout-method">Employee type</label>
+              <input type="hidden" name="payoutMethod" value={resolvedAddPayoutMethod} />
+              <Select
+                value={resolvedAddPayoutMethod}
+                onValueChange={(value) => setAddPayoutMethodValue(value as EmployeePayoutMethod)}
+                disabled={pending || addRoleValue === "SUPERVISOR"}
+              >
+                <SelectTrigger id="add-payout-method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {payoutMethodOptions.map((method) => (
+                    <SelectItem key={method} value={method}>
+                      {employeePayoutMethodLabels[method]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {addRoleValue === "SUPERVISOR" ? (
+                <p className="text-xs font-medium text-muted-foreground">
+                  Supervisors are always daily-based paid.
+                </p>
+              ) : null}
+            </div>
+
             <div className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
               Xero organization
               <input type="hidden" name="xeroConnectionId" value={xeroConnectionId} />
@@ -458,31 +642,23 @@ function AddHierarchyMemberDialog({
               </div>
             </div>
 
-            {xeroConnectionId ? (
-              <div className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
-                <label htmlFor="add-project">Xero project</label>
-                <input type="hidden" name="project" value={addProjectValue} />
-                <Select
-                  value={addProjectValue || "__none"}
-                  onValueChange={(v) => setAddProjectValue(v === "__none" ? "" : v)}
-                  disabled={pending || filteredProjects.length === 0}
-                >
-                  <SelectTrigger id="add-project">
-                    <SelectValue
-                      placeholder={filteredProjects.length > 0 ? "No project" : "Sync Xero projects first"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none">No project</SelectItem>
-                    {filteredProjects.map((project) => (
-                      <SelectItem key={project.id} value={project.name}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
+            <div className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
+              <label>Projects</label>
+              <ProjectMultiSelect
+                inputName="projectIds"
+                projects={filteredProjects}
+                selectedProjectIds={selectedProjectIds}
+                disabled={pending}
+                helperText="Select one or more projects for this employee."
+                onToggle={(projectId) =>
+                  setSelectedProjectIds((current) =>
+                    current.includes(projectId)
+                      ? current.filter((id) => id !== projectId)
+                      : [...current, projectId]
+                  )
+                }
+              />
+            </div>
 
             {/* Hidden inputs carry the chain approver IDs to the server action */}
             {chainApproverIds.map((id, i) => (
@@ -593,6 +769,7 @@ function HierarchyEditDialog({
         organizationId: member.organizationId ?? "",
         project: member.project,
         jobTitle: member.jobTitle,
+        payoutMethod: member.payoutMethod,
         supervisorId: member.supervisorId ?? "",
         xeroConnectionId,
       }),
@@ -600,28 +777,29 @@ function HierarchyEditDialog({
   )
   const [state, formAction, pending] = useActionState(updateHierarchyAction, initialState)
   const [open, setOpen] = useState(false)
-  const [editProjectValue, setEditProjectValue] = useState(member.project ?? "")
+  const [editRoleValue, setEditRoleValue] = useState<"EMPLOYEE" | "SUPERVISOR">(member.role)
+  const [editPayoutMethodValue, setEditPayoutMethodValue] = useState<EmployeePayoutMethod>(
+    member.payoutMethod
+  )
+  const [selectedEditProjectIds, setSelectedEditProjectIds] = useState<string[]>(
+    member.projects.filter((project) => !project.id.startsWith("legacy:")).map((project) => project.id)
+  )
 
   // Approval chain state — initialised from the member's existing chain
   const [chainApproverIds, setChainApproverIds] = useState<string[]>(
     () => member.approvalChain.map((s) => s.approverId)
   )
   const [chainPending, startChainTransition] = useTransition()
+  const resolvedEditPayoutMethod = resolveEmployeePayoutMethod(
+    editRoleValue,
+    editPayoutMethodValue
+  )
 
   const filteredProjects = useMemo(() => {
-    const baseProjects = xeroConnectionId
+    return xeroConnectionId
       ? projects.filter((p) => p.xeroConnectionId === xeroConnectionId)
       : projects
-
-    if (member.project && !baseProjects.some((p) => p.name === member.project)) {
-      return [
-        { id: `current-${member.id}`, xeroProjectId: "current", name: member.project },
-        ...baseProjects,
-      ]
-    }
-
-    return baseProjects
-  }, [member.id, member.project, projects, xeroConnectionId])
+  }, [projects, xeroConnectionId])
 
   useEffect(() => {
     if (state.status === "success") {
@@ -638,8 +816,18 @@ function HierarchyEditDialog({
   useEffect(() => {
     if (open) {
       setChainApproverIds(member.approvalChain.map((s) => s.approverId))
+      setEditRoleValue(member.role)
+      setEditPayoutMethodValue(member.payoutMethod)
+      setSelectedEditProjectIds(resolveSelectedProjectIds(member.projects, filteredProjects))
     }
-  }, [open, member.approvalChain])
+  }, [
+    open,
+    member.approvalChain,
+    member.payoutMethod,
+    member.projects,
+    member.role,
+    filteredProjects,
+  ])
 
   function handleAddChainStep() {
     setChainApproverIds((prev) => [...prev, ""])
@@ -703,7 +891,12 @@ function HierarchyEditDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2 text-sm font-semibold text-muted-foreground">
               <label htmlFor={`edit-role-${member.id}`}>Role</label>
-              <Select name="role" defaultValue={state.values.role || "EMPLOYEE"} disabled={pending}>
+              <Select
+                name="role"
+                value={editRoleValue}
+                onValueChange={(value) => setEditRoleValue(value as "EMPLOYEE" | "SUPERVISOR")}
+                disabled={pending}
+              >
                 <SelectTrigger id={`edit-role-${member.id}`}>
                   <SelectValue />
                 </SelectTrigger>
@@ -718,6 +911,32 @@ function HierarchyEditDialog({
               Job title
               <Input name="jobTitle" defaultValue={state.values.jobTitle} disabled={pending} />
             </label>
+
+            <div className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
+              <label htmlFor={`edit-payout-method-${member.id}`}>Employee type</label>
+              <input type="hidden" name="payoutMethod" value={resolvedEditPayoutMethod} />
+              <Select
+                value={resolvedEditPayoutMethod}
+                onValueChange={(value) => setEditPayoutMethodValue(value as EmployeePayoutMethod)}
+                disabled={pending || editRoleValue === "SUPERVISOR"}
+              >
+                <SelectTrigger id={`edit-payout-method-${member.id}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {payoutMethodOptions.map((method) => (
+                    <SelectItem key={method} value={method}>
+                      {employeePayoutMethodLabels[method]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {editRoleValue === "SUPERVISOR" ? (
+                <p className="text-xs font-medium text-muted-foreground">
+                  Supervisors are always daily-based paid.
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -728,31 +947,25 @@ function HierarchyEditDialog({
               </div>
             </div>
 
-            {xeroConnectionId ? (
-              <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-                <label htmlFor={`edit-project-${member.id}`}>Xero project</label>
-                <input type="hidden" name="project" value={editProjectValue} />
-                <Select
-                  value={editProjectValue || "__none"}
-                  onValueChange={(v) => setEditProjectValue(v === "__none" ? "" : v)}
-                  disabled={pending || filteredProjects.length === 0}
-                >
-                  <SelectTrigger id={`edit-project-${member.id}`}>
-                    <SelectValue
-                      placeholder={filteredProjects.length > 0 ? "No project" : "Sync Xero projects first"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none">No project</SelectItem>
-                    {filteredProjects.map((project) => (
-                      <SelectItem key={project.id} value={project.name}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
+            <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+              <label>Projects</label>
+              <ProjectMultiSelect
+                inputName="projectIds"
+                projects={filteredProjects}
+                selectedProjectIds={selectedEditProjectIds}
+                disabled={pending}
+                legacyProjectName={
+                  member.projects.find((project) => project.id.startsWith("legacy:"))?.name
+                }
+                onToggle={(projectId) =>
+                  setSelectedEditProjectIds((current) =>
+                    current.includes(projectId)
+                      ? current.filter((id) => id !== projectId)
+                      : [...current, projectId]
+                  )
+                }
+              />
+            </div>
           </div>
 
           <div className="flex justify-end">

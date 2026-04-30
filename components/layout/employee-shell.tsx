@@ -4,6 +4,7 @@ import type { Route } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 import {
   CalendarClock,
   CalendarDays,
@@ -121,7 +122,6 @@ type EmployeeShellProps = {
   children: React.ReactNode
   user: AuthenticatedSession
   organizationName?: string
-  pendingApprovals?: number
 }
 
 const APPROVALS_HREF = "/employee/attendance/approvals"
@@ -140,9 +140,47 @@ export function EmployeeShell({
   children,
   user,
   organizationName,
-  pendingApprovals = 0,
 }: EmployeeShellProps) {
   const pathname = usePathname()
+  const [displayOrganizationName, setDisplayOrganizationName] = useState(
+    organizationName,
+  )
+  const [pendingApprovals, setPendingApprovals] = useState(0)
+
+  useEffect(() => {
+    if (user.role !== "SUPERVISOR" && organizationName) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    void fetch("/api/employee/context", {
+      cache: "no-store",
+      credentials: "include",
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          return null
+        }
+
+        return response.json() as Promise<{
+          organizationName?: string | null
+          pendingApprovals?: number
+        }>
+      })
+      .then((data) => {
+        if (data?.organizationName) {
+          setDisplayOrganizationName(data.organizationName)
+        }
+
+        setPendingApprovals(data?.pendingApprovals ?? 0)
+      })
+      .catch(() => null)
+
+    return () => controller.abort()
+  }, [organizationName, user.role])
+
   const visibleNav = employeeNav.filter(
     (item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR"
   )
@@ -232,8 +270,8 @@ export function EmployeeShell({
               <h1 className="font-headline text-2xl font-black tracking-tight">
                 {getSectionTitle(pathname)}
               </h1>
-              {organizationName ? (
-                <p className="mt-1 text-sm text-muted-foreground">{organizationName}</p>
+              {displayOrganizationName ? (
+                <p className="mt-1 text-sm text-muted-foreground">{displayOrganizationName}</p>
               ) : null}
             </div>
             <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
