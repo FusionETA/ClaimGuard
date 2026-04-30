@@ -5,31 +5,124 @@ import { Loader2, Plus, Search, Trash2 } from "lucide-react"
 
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import {
+  createOrganizationAction,
   createCustomAccountAction,
+  createManualProjectAction,
   deleteCustomAccountAction,
+  deleteManualProjectAction,
   saveClaimRunSettingsAction,
   saveOrganizationSettingsAction,
+  saveOtRatesAction,
   saveSelectableAccountsAction,
+  saveSelectedBankAccountsAction,
   selectXeroTenantAction,
   switchActiveXeroConnectionAction,
   syncXeroAccountsAction,
   syncXeroProjectsAction,
+  updateProjectAction,
 } from "@/app/(admin)/admin/settings/actions"
+import { setWorkingHoursAction, type SetWorkingHoursState } from "@/app/(admin)/admin/attendance/actions"
 import { XeroConnectionCard } from "@/components/admin/xero-connection-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useToast } from "@/components/ui/toaster"
 import type { XeroTenant } from "@/lib/xero"
 import type { AdminProfile } from "@/modules/claims/domain/models"
 import type {
   ChartOfAccountOption,
+  OrganizationMember,
   OrganizationProjectOption,
   OrganizationSummary,
   XeroConnectionSummary,
 } from "@/modules/organization/domain/models"
 
-type TabKey = "organization" | "accounts" | "projects" | "runs"
+type TabKey = "organization" | "accounts" | "banks" | "projects" | "runs" | "attendance"
+
+function ProjectCard({
+  project,
+  members,
+  onUpdate,
+  onDelete,
+}: {
+  project: OrganizationProjectOption
+  members: OrganizationMember[]
+  onUpdate: (id: string, projectManagerId: string | undefined, location: string | undefined) => void
+  onDelete?: (id: string) => void
+}) {
+  const [pmId, setPmId] = useState(project.projectManagerId ?? "")
+  const [location, setLocation] = useState(project.location ?? "")
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    setSaving(true)
+    await onUpdate(project.id, pmId || undefined, location || undefined)
+    setSaving(false)
+  }
+
+  return (
+    <div className="rounded-[20px] border border-border/70 bg-surface-low p-4 space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="font-bold text-foreground">{project.name}</p>
+          {project.status ? (
+            <p className="mt-0.5 text-xs text-muted-foreground">{project.status}</p>
+          ) : null}
+        </div>
+        {onDelete ? (
+          <button
+            type="button"
+            onClick={() => onDelete(project.id)}
+            className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        ) : null}
+      </div>
+      <Select
+        value={pmId || "__none"}
+        onValueChange={(v) => setPmId(v === "__none" ? "" : v)}
+      >
+        <SelectTrigger className="h-10 text-sm">
+          <SelectValue placeholder="No project manager" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__none">No project manager</SelectItem>
+          {members
+            .filter((m) => m.role === "SUPERVISOR")
+            .map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.name}
+              </SelectItem>
+            ))}
+        </SelectContent>
+      </Select>
+      <Input
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        placeholder="Location (optional)"
+        className="h-9 text-sm"
+      />
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="rounded-xl w-full"
+        onClick={handleSave}
+        disabled={saving}
+      >
+        {saving ? <><Loader2 className="mr-2 h-3 w-3 animate-spin" />Saving…</> : "Save"}
+      </Button>
+    </div>
+  )
+}
 
 export function AdminSettingsPanel({
   admin,
@@ -38,11 +131,13 @@ export function AdminSettingsPanel({
   chartAccounts,
   customAccounts,
   projects,
+  members,
   activeXeroConnectionId,
   xeroStatus,
   xeroReason,
   pendingTenants,
   takenTenantIds = [],
+  workingHours,
 }: {
   admin: AdminProfile
   organization?: OrganizationSummary
@@ -50,11 +145,13 @@ export function AdminSettingsPanel({
   chartAccounts: ChartOfAccountOption[]
   customAccounts: ChartOfAccountOption[]
   projects: OrganizationProjectOption[]
+  members: OrganizationMember[]
   activeXeroConnectionId?: string
   xeroStatus?: string
   xeroReason?: string
   pendingTenants?: XeroTenant[]
   takenTenantIds?: string[]
+  workingHours: { start: string; end: string }
 }) {
   const { toast } = useToast()
   const [activeTab, setActiveTab] = useState<TabKey>("organization")
@@ -67,7 +164,12 @@ export function AdminSettingsPanel({
   const isCustomMode = xeroConnection.connections.length === 0
   const activeConnection = xeroConnection.connections.find((c) => c.id === activeXeroConnectionId)
 
-  const displayAccounts = isCustomMode ? customAccounts : chartAccounts
+  // In Xero mode BANK-type accounts live on the Bank accounts tab — keep this
+  // list expense-only. In custom mode users still see their BANK rows here so
+  // they can manage/delete them.
+  const displayAccounts = isCustomMode
+    ? customAccounts
+    : chartAccounts.filter((a) => a.type !== "BANK")
   const accountTypes = Array.from(
     new Set(displayAccounts.map((a) => a.type).filter(Boolean) as string[])
   ).sort()
@@ -101,6 +203,16 @@ export function AdminSettingsPanel({
   )
   const [createAccountState, createAccountAction, createAccountPending] = useActionState(
     createCustomAccountAction,
+    initialSettingsActionState
+  )
+  const [createOrganizationState, createOrganizationFormAction, createOrganizationPending] =
+    useActionState(createOrganizationAction, initialSettingsActionState)
+  const [selectedBankState, selectedBankAction, selectedBankPending] = useActionState(
+    saveSelectedBankAccountsAction,
+    initialSettingsActionState
+  )
+  const [createProjectState, createProjectAction, createProjectPending] = useActionState(
+    createManualProjectAction,
     initialSettingsActionState
   )
 
@@ -139,12 +251,53 @@ export function AdminSettingsPanel({
     if (createAccountState.status === "error") toast({ title: createAccountState.message, variant: "error" })
   }, [createAccountState.status, createAccountState.message, toast])
 
+  useEffect(() => {
+    if (createOrganizationState.status === "success") {
+      toast({ title: createOrganizationState.message, variant: "success" })
+    }
+    if (createOrganizationState.status === "error") {
+      toast({ title: createOrganizationState.message, variant: "error" })
+    }
+  }, [createOrganizationState.status, createOrganizationState.message, toast])
+
+  useEffect(() => {
+    if (selectedBankState.status === "success") toast({ title: selectedBankState.message, variant: "success" })
+    if (selectedBankState.status === "error") toast({ title: selectedBankState.message, variant: "error" })
+  }, [selectedBankState.status, selectedBankState.message, toast])
+
+  useEffect(() => {
+    if (createProjectState.status === "success") toast({ title: createProjectState.message, variant: "success" })
+    if (createProjectState.status === "error") toast({ title: createProjectState.message, variant: "error" })
+  }, [createProjectState.status, createProjectState.message, toast])
+
   function handleSwitchConnection(connectionId: string) {
     startSwitch(() => switchActiveXeroConnectionAction(connectionId))
   }
 
   async function handleDeleteCustomAccount(id: string) {
     const result = await deleteCustomAccountAction(id)
+    if (result.ok) {
+      toast({ title: result.message, variant: "success" })
+    } else {
+      toast({ title: result.message, variant: "error" })
+    }
+  }
+
+  async function handleDeleteProject(id: string) {
+    const result = await deleteManualProjectAction(id)
+    if (result.ok) {
+      toast({ title: result.message, variant: "success" })
+    } else {
+      toast({ title: result.message, variant: "error" })
+    }
+  }
+
+  async function handleUpdateProject(
+    projectId: string,
+    projectManagerId: string | undefined,
+    location: string | undefined
+  ) {
+    const result = await updateProjectAction(projectId, projectManagerId, location)
     if (result.ok) {
       toast({ title: result.message, variant: "success" })
     } else {
@@ -159,8 +312,10 @@ export function AdminSettingsPanel({
         {[
           ["organization", "Organization"],
           ["accounts", "Claim accounts"],
+          ["banks", "Bank accounts"],
           ["projects", "Projects"],
           ["runs", "Claim runs"],
+          ["attendance", "Attendance settings"],
         ].map(([value, label]) => (
           <Button
             key={value}
@@ -254,16 +409,30 @@ export function AdminSettingsPanel({
             <CardContent className="space-y-6">
               <div className="rounded-[24px] bg-surface-low p-5">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Current company
+                </p>
+                <p className="mt-2 text-lg font-black text-foreground">
+                  {organization?.name ?? activeConnection?.tenantName ?? "No company selected"}
+                </p>
+                {activeConnection?.tenantName ? (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Linked Xero organization: {activeConnection.tenantName}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    This company is currently using custom accounts and projects.
+                  </p>
+                )}
+              </div>
+
+              <div className="rounded-[24px] bg-surface-low p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Current admin
                 </p>
                 <p className="mt-2 text-lg font-black">{admin.name}</p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {admin.email}
-                  {activeConnection?.tenantName
-                    ? ` · ${activeConnection.tenantName}`
-                    : organization?.name
-                    ? ` · ${organization.name}`
-                    : ""}
+                  {organization?.name ? ` · ${organization.name}` : ""}
                 </p>
               </div>
 
@@ -272,7 +441,7 @@ export function AdminSettingsPanel({
                   Organization name
                   <span className="ml-1.5 text-xs font-normal text-muted-foreground/70">
                     {xeroConnection.connections.length > 0
-                      ? "(optional — name comes from Xero)"
+                      ? "(optional override for this company)"
                       : "(optional)"}
                   </span>
                   <Input
@@ -291,8 +460,46 @@ export function AdminSettingsPanel({
                   Save organization
                 </Button>
               </form>
+
+              <form action={createOrganizationFormAction} className="space-y-4 rounded-[24px] border border-dashed border-border/70 p-5">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-foreground">Add another company</p>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    Create a separate company workspace. You can switch companies from the dropdown in the header.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Input
+                    name="name"
+                    disabled={createOrganizationPending}
+                    className="min-w-[220px] flex-1"
+                  />
+                  <Button type="submit" variant="outline" className="rounded-xl" disabled={createOrganizationPending}>
+                    {createOrganizationPending ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating…</>
+                    ) : (
+                      <><Plus className="mr-2 h-4 w-4" />Add company</>
+                    )}
+                  </Button>
+                </div>
+              </form>
+
+              {/* Connect to Xero prompt — shown only when org exists but no Xero connected */}
+              {organization && isCustomMode ? (
+                <div className="rounded-[20px] border border-dashed border-border p-5 space-y-3">
+                  <p className="text-sm font-semibold text-muted-foreground">Connect to Xero?</p>
+                  <p className="text-sm leading-6 text-muted-foreground">
+                    Link this company to Xero to sync chart of accounts, bank accounts, and projects.
+                    Existing custom accounts and manual projects will be hidden, not deleted, once Xero takes over.
+                  </p>
+                  <Button asChild variant="outline" className="rounded-xl">
+                    <a href="/api/xero/connect">Connect to Xero</a>
+                  </Button>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
+
         </div>
       ) : null}
 
@@ -487,30 +694,143 @@ export function AdminSettingsPanel({
         </div>
       ) : null}
 
+      {activeTab === "banks" ? (() => {
+        const bankAccounts = isCustomMode
+          ? customAccounts.filter((a) => a.type === "BANK")
+          : chartAccounts.filter((a) => a.type === "BANK")
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Bank accounts</CardTitle>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {isCustomMode
+                    ? "Mark which custom BANK accounts employees can use for reimbursements."
+                    : "Select which Xero bank accounts employees can use for reimbursements. Accounts are scoped to the active Xero connection."}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+
+                {isCustomMode ? (
+                  bankAccounts.length === 0 ? (
+                    <div className="rounded-[24px] bg-surface-low p-5 text-sm leading-6 text-muted-foreground">
+                      No custom BANK accounts yet. Add one from the Claim accounts tab using type <span className="font-semibold text-foreground">BANK</span>, then select it here.
+                    </div>
+                  ) : (
+                    <form action={selectedBankAction} className="space-y-4">
+                      <div className="grid gap-3 md:grid-cols-2">
+                        {bankAccounts.map((account) => (
+                          <label
+                            key={account.id}
+                            className="flex items-start gap-3 rounded-[20px] border border-border/70 bg-surface-low p-4 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                          >
+                            <input
+                              type="checkbox"
+                              name="bankAccountIds"
+                              value={account.id}
+                              defaultChecked={account.isBankAccount}
+                              className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                            />
+                            <div>
+                              <p className="font-bold text-foreground">
+                                {account.code} · {account.name}
+                              </p>
+                              <p className="mt-1 text-sm text-muted-foreground">
+                                Custom BANK account
+                              </p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+
+                      {selectedBankState.status === "error" ? (
+                        <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                          {selectedBankState.message}
+                        </p>
+                      ) : null}
+
+                      <Button type="submit" className="rounded-xl" disabled={selectedBankPending}>
+                        {selectedBankPending ? (
+                          <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</>
+                        ) : (
+                          "Save bank accounts"
+                        )}
+                      </Button>
+                    </form>
+                  )
+                ) : bankAccounts.length === 0 ? (
+                  <div className="rounded-[24px] bg-surface-low p-5 text-sm leading-6 text-muted-foreground">
+                    No bank accounts found for this Xero connection. Sync your chart of accounts first from the Claim accounts tab.
+                  </div>
+                ) : (
+                  <form action={selectedBankAction} className="space-y-4">
+                    <input type="hidden" name="connectionId" value={activeXeroConnectionId ?? ""} />
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {bankAccounts.map((account) => (
+                        <label
+                          key={account.id}
+                          className="flex items-start gap-3 rounded-[20px] border border-border/70 bg-surface-low p-4 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                        >
+                          <input
+                            type="checkbox"
+                            name="bankAccountIds"
+                            value={account.id}
+                            defaultChecked={account.isBankAccount}
+                            className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                          />
+                          <div>
+                            <p className="font-bold text-foreground">
+                              {account.code} · {account.name}
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {[account.type, account.status].filter(Boolean).join(" · ") || "Bank account"}
+                            </p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+
+                    {selectedBankState.status === "error" ? (
+                      <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                        {selectedBankState.message}
+                      </p>
+                    ) : null}
+
+                    <Button type="submit" className="rounded-xl" disabled={selectedBankPending}>
+                      {selectedBankPending ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</>
+                      ) : (
+                        "Save bank accounts"
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )
+      })() : null}
+
       {activeTab === "projects" ? (
         <div className="space-y-6">
-
           <Card>
             <CardHeader className="flex-row items-start justify-between gap-4">
               <div>
                 <CardTitle>
-                  {activeConnection
-                    ? `Xero projects — ${activeConnection.tenantName}`
-                    : "Available Xero projects"}
+                  {isCustomMode ? "Projects" : `Xero projects — ${activeConnection?.tenantName ?? "Xero"}`}
                 </CardTitle>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Sync projects from Xero so they can be assigned to employees in the hierarchy tab.
+                  {isCustomMode
+                    ? "Create and manage projects. Assign a project manager and location to each."
+                    : "Sync projects from Xero. You can assign a project manager and location to each."}
                 </p>
               </div>
-              {activeXeroConnectionId ? (
+              {!isCustomMode && activeXeroConnectionId ? (
                 <form action={projectsAction}>
                   <input type="hidden" name="connectionId" value={activeXeroConnectionId} />
                   <Button type="submit" variant="outline" className="rounded-xl" disabled={projectsPending}>
                     {projectsPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Syncing…
-                      </>
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Syncing…</>
                     ) : (
                       "Sync Xero projects"
                     )}
@@ -519,11 +839,55 @@ export function AdminSettingsPanel({
               ) : null}
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Manual project creation — only when no Xero connected */}
+              {isCustomMode ? (
+                <form action={createProjectAction} className="space-y-3">
+                  <p className="text-sm font-semibold text-muted-foreground">Add project</p>
+                  <div className="flex flex-wrap gap-3">
+                    <Input
+                      name="name"
+                      placeholder="Project name"
+                      className="flex-1 min-w-[180px]"
+                      required
+                    />
+                    <div className="min-w-[200px] flex-1">
+                      <Select name="projectManagerId" defaultValue="__none">
+                        <SelectTrigger className="text-sm">
+                          <SelectValue placeholder="No project manager" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none">No project manager</SelectItem>
+                          {members
+                            .filter((m) => m.role === "SUPERVISOR")
+                            .map((m) => (
+                              <SelectItem key={m.id} value={m.id}>
+                                {m.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Input
+                      name="location"
+                      placeholder="Location (optional)"
+                      className="w-48"
+                    />
+                  </div>
+                  <Button type="submit" variant="outline" className="rounded-xl" disabled={createProjectPending}>
+                    {createProjectPending ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding…</>
+                    ) : (
+                      <><Plus className="mr-2 h-4 w-4" />Add project</>
+                    )}
+                  </Button>
+                </form>
+              ) : null}
+
               {projects.length === 0 ? (
                 <div className="rounded-[24px] bg-surface-low p-5 text-sm leading-6 text-muted-foreground">
-                  {activeXeroConnectionId
-                    ? "No Xero projects have been imported yet. Use the Sync button."
-                    : "Select a Xero connection above to see its projects."}
+                  {isCustomMode
+                    ? "No projects yet. Add one above."
+                    : "No Xero projects imported yet. Use the Sync button."}
                 </div>
               ) : (
                 <>
@@ -539,21 +903,18 @@ export function AdminSettingsPanel({
 
                   <div className="grid gap-3 md:grid-cols-2">
                     {projects
-                      .filter(
-                        (p) =>
-                          projectSearchLower === "" ||
-                          p.name.toLowerCase().includes(projectSearchLower)
+                      .filter((p) =>
+                        projectSearchLower === "" ||
+                        p.name.toLowerCase().includes(projectSearchLower)
                       )
                       .map((project) => (
-                        <div
+                        <ProjectCard
                           key={project.id}
-                          className="rounded-[20px] border border-border/70 bg-surface-low p-4"
-                        >
-                          <p className="font-bold text-foreground">{project.name}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {[project.status, project.xeroProjectId].filter(Boolean).join(" · ")}
-                          </p>
-                        </div>
+                          project={project}
+                          members={members}
+                          onUpdate={handleUpdateProject}
+                          onDelete={project.isManual ? handleDeleteProject : undefined}
+                        />
                       ))}
                   </div>
                 </>
@@ -594,6 +955,223 @@ export function AdminSettingsPanel({
           </CardContent>
         </Card>
       ) : null}
+
+      {activeTab === "attendance" ? (
+        <div className="space-y-6">
+          <WorkingHoursCard initial={workingHours} />
+          <OtRatesCard organization={organization} />
+        </div>
+      ) : null}
     </div>
+  )
+}
+
+function WorkingHoursCard({ initial }: { initial: { start: string; end: string } }) {
+  const [state, formAction, pending] = useActionState<SetWorkingHoursState, FormData>(
+    setWorkingHoursAction,
+    {}
+  )
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Working hours</CardTitle>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          The standard daily start and end time used to flag late check-ins and missing
+          attendance for everyone in this organization.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <form action={formAction} className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+          <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+            Start
+            <Input
+              name="start"
+              type="time"
+              defaultValue={initial.start}
+              required
+              disabled={pending}
+            />
+          </label>
+
+          <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+            End
+            <Input
+              name="end"
+              type="time"
+              defaultValue={initial.end}
+              required
+              disabled={pending}
+            />
+          </label>
+
+          <Button type="submit" className="rounded-xl sm:w-auto" disabled={pending}>
+            {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save"}
+          </Button>
+        </form>
+
+        {state.error ? (
+          <p className="mt-3 text-sm font-semibold text-destructive">{state.error}</p>
+        ) : null}
+        {state.ok ? (
+          <p className="mt-3 text-sm font-semibold text-success">Saved.</p>
+        ) : null}
+      </CardContent>
+    </Card>
+  )
+}
+
+function OtRatesCard({ organization }: { organization?: OrganizationSummary }) {
+  const rates = organization?.otRates ?? {
+    normalDay: 1.5,
+    restDay: 2.0,
+    publicHoliday: 3.0,
+    restDayInShift: 1.0,
+    publicHolidayInShift: 2.0,
+    salaryThreshold: 4000,
+  }
+
+  const [state, formAction, pending] = useActionState(
+    saveOtRatesAction,
+    initialSettingsActionState
+  )
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Overtime rates</CardTitle>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          Multipliers used when computing overtime pay. ORP = monthly salary ÷ 26.
+          HRP = ORP ÷ 8. Defaults follow the Malaysian Employment Act.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <form action={formAction} className="space-y-6">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Overtime multiplier</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Applied to HRP for hours worked beyond the regular shift (after 8 hours
+              for monthly-paid; after 8 total for daily-paid).
+            </p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-3">
+              <RateInput
+                name="otRateNormalDay"
+                label="Normal day (Mon–Sat)"
+                suffix="× HRP"
+                defaultValue={rates.normalDay}
+                disabled={pending}
+              />
+              <RateInput
+                name="otRateRestDay"
+                label="Rest day (Sun)"
+                suffix="× HRP"
+                defaultValue={rates.restDay}
+                disabled={pending}
+              />
+              <RateInput
+                name="otRatePublicHoliday"
+                label="Public holiday"
+                suffix="× HRP"
+                defaultValue={rates.publicHoliday}
+                disabled={pending}
+              />
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-foreground">Special-day premium</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Applied to ORP for hours worked within the regular shift on rest days
+              or public holidays.
+            </p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <RateInput
+                name="restDayInShiftRate"
+                label="Rest day work"
+                suffix="× ORP"
+                defaultValue={rates.restDayInShift}
+                disabled={pending}
+              />
+              <RateInput
+                name="publicHolidayInShiftRate"
+                label="Public holiday work"
+                suffix="× ORP"
+                defaultValue={rates.publicHolidayInShift}
+                disabled={pending}
+              />
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-foreground">OT eligibility</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              For staff above this monthly salary cap (basic + fixed allowance), OT
+              requires management approval and is limited to operational/technical roles.
+            </p>
+            <div className="mt-3 max-w-xs">
+              <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+                Salary threshold (RM)
+                <Input
+                  name="otSalaryThreshold"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  defaultValue={rates.salaryThreshold}
+                  disabled={pending}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm">
+              {state.status === "error" ? (
+                <span className="font-semibold text-destructive">{state.message}</span>
+              ) : state.status === "success" ? (
+                <span className="font-semibold text-success">{state.message}</span>
+              ) : null}
+            </div>
+            <Button type="submit" className="rounded-xl" disabled={pending}>
+              {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save OT rates"}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  )
+}
+
+function RateInput({
+  name,
+  label,
+  suffix,
+  defaultValue,
+  disabled,
+}: {
+  name: string
+  label: string
+  suffix: string
+  defaultValue: number
+  disabled?: boolean
+}) {
+  return (
+    <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+      {label}
+      <div className="relative">
+        <Input
+          name={name}
+          type="number"
+          step="0.1"
+          min="1"
+          max="10"
+          defaultValue={defaultValue}
+          disabled={disabled}
+          className="pr-16"
+        />
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+          {suffix}
+        </span>
+      </div>
+    </label>
   )
 }

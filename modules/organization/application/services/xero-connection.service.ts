@@ -228,6 +228,36 @@ export async function syncOrganizationProjects(
   }
 }
 
+export async function disconnectXeroConnection(data: {
+  connectionId: string
+  organizationId: string
+}): Promise<{ ok: boolean; message: string }> {
+  const connection = await organizationRepository.getXeroConnectionById(data.connectionId)
+
+  if (!connection || connection.organizationId !== data.organizationId) {
+    return { ok: false, message: "Xero connection not found." }
+  }
+
+  // Best-effort: revoke on Xero's side so the token is invalidated
+  try {
+    const { deleteXeroConnection: revokeOnXero } = await import("@/lib/xero")
+    await revokeOnXero(connection.accessToken, connection.tenantId)
+  } catch {
+    // Non-fatal — continue to delete locally even if Xero revocation fails
+  }
+
+  const deleted = await organizationRepository.deleteXeroConnection({
+    connectionId: data.connectionId,
+    organizationId: data.organizationId,
+  })
+
+  if (!deleted) {
+    return { ok: false, message: "Failed to disconnect Xero." }
+  }
+
+  return { ok: true, message: "Xero connection disconnected." }
+}
+
 export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSyncResult> {
   const runtime = getXeroRuntimeConfigStatus()
 

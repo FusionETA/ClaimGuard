@@ -4,6 +4,7 @@ import { attendanceRepository } from "@/modules/attendance/infrastructure/attend
 import type {
   AdminOrgOverview,
   ApprovalRequestView,
+  TodayRollCall,
 } from "@/modules/attendance/domain/models"
 import {
   loadEmployeeDetailForAdmin,
@@ -13,6 +14,10 @@ import {
 export const adminAttendanceService = {
   async getOrgOverview(orgId: string | null): Promise<AdminOrgOverview> {
     return attendanceRepository.getOrgOverview(orgId)
+  },
+
+  async getTodayRollCall(orgId: string | null): Promise<TodayRollCall> {
+    return attendanceRepository.getTodayRollCall(orgId)
   },
 
   async getAllPendingApprovals(orgId: string | null): Promise<ApprovalRequestView[]> {

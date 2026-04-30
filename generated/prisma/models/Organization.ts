@@ -29,72 +29,72 @@ export type AggregateOrganization = {
 export type OrganizationAvgAggregateOutputType = {
   claimCutoffDay: number | null
   otRateNormalDay: runtime.Decimal | null
-  otRatePublicHoliday: runtime.Decimal | null
   otRateRestDay: runtime.Decimal | null
-  otSalaryThreshold: runtime.Decimal | null
-  publicHolidayInShiftRate: runtime.Decimal | null
+  otRatePublicHoliday: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
+  publicHolidayInShiftRate: runtime.Decimal | null
+  otSalaryThreshold: runtime.Decimal | null
 }
 
 export type OrganizationSumAggregateOutputType = {
   claimCutoffDay: number | null
   otRateNormalDay: runtime.Decimal | null
-  otRatePublicHoliday: runtime.Decimal | null
   otRateRestDay: runtime.Decimal | null
-  otSalaryThreshold: runtime.Decimal | null
-  publicHolidayInShiftRate: runtime.Decimal | null
+  otRatePublicHoliday: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
+  publicHolidayInShiftRate: runtime.Decimal | null
+  otSalaryThreshold: runtime.Decimal | null
 }
 
 export type OrganizationMinAggregateOutputType = {
   id: string | null
   name: string | null
   claimCutoffDay: number | null
+  bankAccount: string | null
   createdAt: Date | null
   updatedAt: Date | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
-  bankAccount: string | null
   otRateNormalDay: runtime.Decimal | null
-  otRatePublicHoliday: runtime.Decimal | null
   otRateRestDay: runtime.Decimal | null
-  otSalaryThreshold: runtime.Decimal | null
-  publicHolidayInShiftRate: runtime.Decimal | null
+  otRatePublicHoliday: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
+  publicHolidayInShiftRate: runtime.Decimal | null
+  otSalaryThreshold: runtime.Decimal | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
   id: string | null
   name: string | null
   claimCutoffDay: number | null
+  bankAccount: string | null
   createdAt: Date | null
   updatedAt: Date | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
-  bankAccount: string | null
   otRateNormalDay: runtime.Decimal | null
-  otRatePublicHoliday: runtime.Decimal | null
   otRateRestDay: runtime.Decimal | null
-  otSalaryThreshold: runtime.Decimal | null
-  publicHolidayInShiftRate: runtime.Decimal | null
+  otRatePublicHoliday: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
+  publicHolidayInShiftRate: runtime.Decimal | null
+  otSalaryThreshold: runtime.Decimal | null
 }
 
 export type OrganizationCountAggregateOutputType = {
   id: number
   name: number
   claimCutoffDay: number
+  bankAccount: number
   createdAt: number
   updatedAt: number
   workingHoursEnd: number
   workingHoursStart: number
-  bankAccount: number
   otRateNormalDay: number
-  otRatePublicHoliday: number
   otRateRestDay: number
-  otSalaryThreshold: number
-  publicHolidayInShiftRate: number
+  otRatePublicHoliday: number
   restDayInShiftRate: number
+  publicHolidayInShiftRate: number
+  otSalaryThreshold: number
   _all: number
 }
 
@@ -102,72 +102,72 @@ export type OrganizationCountAggregateOutputType = {
 export type OrganizationAvgAggregateInputType = {
   claimCutoffDay?: true
   otRateNormalDay?: true
-  otRatePublicHoliday?: true
   otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
+  otRatePublicHoliday?: true
   restDayInShiftRate?: true
+  publicHolidayInShiftRate?: true
+  otSalaryThreshold?: true
 }
 
 export type OrganizationSumAggregateInputType = {
   claimCutoffDay?: true
   otRateNormalDay?: true
-  otRatePublicHoliday?: true
   otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
+  otRatePublicHoliday?: true
   restDayInShiftRate?: true
+  publicHolidayInShiftRate?: true
+  otSalaryThreshold?: true
 }
 
 export type OrganizationMinAggregateInputType = {
   id?: true
   name?: true
   claimCutoffDay?: true
+  bankAccount?: true
   createdAt?: true
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
-  bankAccount?: true
   otRateNormalDay?: true
-  otRatePublicHoliday?: true
   otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
+  otRatePublicHoliday?: true
   restDayInShiftRate?: true
+  publicHolidayInShiftRate?: true
+  otSalaryThreshold?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
   id?: true
   name?: true
   claimCutoffDay?: true
+  bankAccount?: true
   createdAt?: true
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
-  bankAccount?: true
   otRateNormalDay?: true
-  otRatePublicHoliday?: true
   otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
+  otRatePublicHoliday?: true
   restDayInShiftRate?: true
+  publicHolidayInShiftRate?: true
+  otSalaryThreshold?: true
 }
 
 export type OrganizationCountAggregateInputType = {
   id?: true
   name?: true
   claimCutoffDay?: true
+  bankAccount?: true
   createdAt?: true
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
-  bankAccount?: true
   otRateNormalDay?: true
-  otRatePublicHoliday?: true
   otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
+  otRatePublicHoliday?: true
   restDayInShiftRate?: true
+  publicHolidayInShiftRate?: true
+  otSalaryThreshold?: true
   _all?: true
 }
 
@@ -261,17 +261,17 @@ export type OrganizationGroupByOutputType = {
   id: string
   name: string
   claimCutoffDay: number
+  bankAccount: string | null
   createdAt: Date
   updatedAt: Date
   workingHoursEnd: string
   workingHoursStart: string
-  bankAccount: string | null
   otRateNormalDay: runtime.Decimal
-  otRatePublicHoliday: runtime.Decimal
   otRateRestDay: runtime.Decimal
-  otSalaryThreshold: runtime.Decimal
-  publicHolidayInShiftRate: runtime.Decimal
+  otRatePublicHoliday: runtime.Decimal
   restDayInShiftRate: runtime.Decimal
+  publicHolidayInShiftRate: runtime.Decimal
+  otSalaryThreshold: runtime.Decimal
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -301,46 +301,46 @@ export type OrganizationWhereInput = {
   id?: Prisma.StringFilter<"Organization"> | string
   name?: Prisma.StringFilter<"Organization"> | string
   claimCutoffDay?: Prisma.IntFilter<"Organization"> | number
+  bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
-  bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
   otRateNormalDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationListRelationFilter
+  publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
+  adminMembers?: Prisma.AdminOrganizationListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
   otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
-  AdminOrganization?: Prisma.AdminOrganizationOrderByRelationAggregateInput
+  publicHolidayInShiftRate?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
   users?: Prisma.UserOrderByRelationAggregateInput
   xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
   projects?: Prisma.XeroProjectOrderByRelationAggregateInput
+  adminMembers?: Prisma.AdminOrganizationOrderByRelationAggregateInput
   _relevance?: Prisma.OrganizationOrderByRelevanceInput
 }
 
@@ -351,40 +351,40 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.OrganizationWhereInput[]
   NOT?: Prisma.OrganizationWhereInput | Prisma.OrganizationWhereInput[]
   claimCutoffDay?: Prisma.IntFilter<"Organization"> | number
+  bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
-  bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
   otRateNormalDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationListRelationFilter
+  publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
+  adminMembers?: Prisma.AdminOrganizationListRelationFilter
 }, "id" | "name">
 
 export type OrganizationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
   otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  publicHolidayInShiftRate?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -399,160 +399,160 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   name?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   claimCutoffDay?: Prisma.IntWithAggregatesFilter<"Organization"> | number
+  bankAccount?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringWithAggregatesFilter<"Organization"> | string
-  bankAccount?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   otRateNormalDay?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrganizationCreateInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrganizationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type OrganizationNullableScalarRelationFilter = {
@@ -570,71 +570,71 @@ export type OrganizationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  bankAccount?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
   otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  publicHolidayInShiftRate?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
   claimCutoffDay?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
   otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  publicHolidayInShiftRate?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
 }
 
 export type OrganizationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  bankAccount?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
   otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  publicHolidayInShiftRate?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   claimCutoffDay?: Prisma.SortOrder
+  bankAccount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  bankAccount?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
   otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  publicHolidayInShiftRate?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
   claimCutoffDay?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
   otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  publicHolidayInShiftRate?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
 }
 
 export type OrganizationScalarRelationFilter = {
@@ -672,6 +672,20 @@ export type DecimalFieldUpdateOperationsInput = {
   decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
   multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type OrganizationCreateNestedOneWithoutAdminMembersInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminMembersInput, Prisma.OrganizationUncheckedCreateWithoutAdminMembersInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAdminMembersInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutAdminMembersNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminMembersInput, Prisma.OrganizationUncheckedCreateWithoutAdminMembersInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAdminMembersInput
+  upsert?: Prisma.OrganizationUpsertWithoutAdminMembersInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutAdminMembersInput, Prisma.OrganizationUpdateWithoutAdminMembersInput>, Prisma.OrganizationUncheckedUpdateWithoutAdminMembersInput>
 }
 
 export type OrganizationCreateNestedOneWithoutClaimsInput = {
@@ -732,62 +746,48 @@ export type OrganizationUpdateOneRequiredWithoutProjectsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutProjectsInput, Prisma.OrganizationUpdateWithoutProjectsInput>, Prisma.OrganizationUncheckedUpdateWithoutProjectsInput>
 }
 
-export type OrganizationCreateNestedOneWithoutAdminOrganizationInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedCreateWithoutAdminOrganizationInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAdminOrganizationInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-}
-
-export type OrganizationUpdateOneRequiredWithoutAdminOrganizationNestedInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedCreateWithoutAdminOrganizationInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAdminOrganizationInput
-  upsert?: Prisma.OrganizationUpsertWithoutAdminOrganizationInput
-  connect?: Prisma.OrganizationWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutAdminOrganizationInput, Prisma.OrganizationUpdateWithoutAdminOrganizationInput>, Prisma.OrganizationUncheckedUpdateWithoutAdminOrganizationInput>
-}
-
 export type OrganizationCreateWithoutUsersInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutUsersInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -810,42 +810,146 @@ export type OrganizationUpdateWithoutUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutUsersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutAdminMembersInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  bankAccount?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  bankAccount?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutAdminMembersInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminMembersInput, Prisma.OrganizationUncheckedCreateWithoutAdminMembersInput>
+}
+
+export type OrganizationUpsertWithoutAdminMembersInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutAdminMembersInput, Prisma.OrganizationUncheckedUpdateWithoutAdminMembersInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminMembersInput, Prisma.OrganizationUncheckedCreateWithoutAdminMembersInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutAdminMembersInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutAdminMembersInput, Prisma.OrganizationUncheckedUpdateWithoutAdminMembersInput>
+}
+
+export type OrganizationUpdateWithoutAdminMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -854,44 +958,44 @@ export type OrganizationCreateWithoutClaimsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutClaimsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutClaimsInput = {
@@ -914,88 +1018,88 @@ export type OrganizationUpdateWithoutClaimsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutChartAccountsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutChartAccountsInput = {
@@ -1018,88 +1122,88 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutXeroConnectionsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutXeroConnectionsInput = {
@@ -1122,88 +1226,88 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProjectsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProjectsInput = {
   id?: string
   name: string
   claimCutoffDay?: number
+  bankAccount?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProjectsInput = {
@@ -1226,148 +1330,44 @@ export type OrganizationUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  AdminOrganization?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
-}
-
-export type OrganizationCreateWithoutAdminOrganizationInput = {
-  id?: string
-  name: string
-  claimCutoffDay?: number
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  workingHoursEnd?: string
-  workingHoursStart?: string
-  bankAccount?: string | null
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
-  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
-  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
-  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-}
-
-export type OrganizationUncheckedCreateWithoutAdminOrganizationInput = {
-  id?: string
-  name: string
-  claimCutoffDay?: number
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  workingHoursEnd?: string
-  workingHoursStart?: string
-  bankAccount?: string | null
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
-  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
-  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-}
-
-export type OrganizationCreateOrConnectWithoutAdminOrganizationInput = {
-  where: Prisma.OrganizationWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedCreateWithoutAdminOrganizationInput>
-}
-
-export type OrganizationUpsertWithoutAdminOrganizationInput = {
-  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedUpdateWithoutAdminOrganizationInput>
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedCreateWithoutAdminOrganizationInput>
-  where?: Prisma.OrganizationWhereInput
-}
-
-export type OrganizationUpdateToOneWithWhereWithoutAdminOrganizationInput = {
-  where?: Prisma.OrganizationWhereInput
-  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutAdminOrganizationInput, Prisma.OrganizationUncheckedUpdateWithoutAdminOrganizationInput>
-}
-
-export type OrganizationUpdateWithoutAdminOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
-  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
-  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
-  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-}
-
-export type OrganizationUncheckedUpdateWithoutAdminOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  name?: Prisma.StringFieldUpdateOperationsInput | string
-  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
-  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
-  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
-  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -1376,21 +1376,21 @@ export type OrganizationUncheckedUpdateWithoutAdminOrganizationInput = {
  */
 
 export type OrganizationCountOutputType = {
-  AdminOrganization: number
   chartAccounts: number
   claims: number
   users: number
   xeroConnections: number
   projects: number
+  adminMembers: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  AdminOrganization?: boolean | OrganizationCountOutputTypeCountAdminOrganizationArgs
   chartAccounts?: boolean | OrganizationCountOutputTypeCountChartAccountsArgs
   claims?: boolean | OrganizationCountOutputTypeCountClaimsArgs
   users?: boolean | OrganizationCountOutputTypeCountUsersArgs
   xeroConnections?: boolean | OrganizationCountOutputTypeCountXeroConnectionsArgs
   projects?: boolean | OrganizationCountOutputTypeCountProjectsArgs
+  adminMembers?: boolean | OrganizationCountOutputTypeCountAdminMembersArgs
 }
 
 /**
@@ -1401,13 +1401,6 @@ export type OrganizationCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types
    * Select specific fields to fetch from the OrganizationCountOutputType
    */
   select?: Prisma.OrganizationCountOutputTypeSelect<ExtArgs> | null
-}
-
-/**
- * OrganizationCountOutputType without action
- */
-export type OrganizationCountOutputTypeCountAdminOrganizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.AdminOrganizationWhereInput
 }
 
 /**
@@ -1445,28 +1438,35 @@ export type OrganizationCountOutputTypeCountProjectsArgs<ExtArgs extends runtime
   where?: Prisma.XeroProjectWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountAdminMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AdminOrganizationWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
   claimCutoffDay?: boolean
+  bankAccount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
-  bankAccount?: boolean
   otRateNormalDay?: boolean
-  otRatePublicHoliday?: boolean
   otRateRestDay?: boolean
-  otSalaryThreshold?: boolean
-  publicHolidayInShiftRate?: boolean
+  otRatePublicHoliday?: boolean
   restDayInShiftRate?: boolean
-  AdminOrganization?: boolean | Prisma.Organization$AdminOrganizationArgs<ExtArgs>
+  publicHolidayInShiftRate?: boolean
+  otSalaryThreshold?: boolean
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
+  adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -1476,55 +1476,55 @@ export type OrganizationSelectScalar = {
   id?: boolean
   name?: boolean
   claimCutoffDay?: boolean
+  bankAccount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
-  bankAccount?: boolean
   otRateNormalDay?: boolean
-  otRatePublicHoliday?: boolean
   otRateRestDay?: boolean
-  otSalaryThreshold?: boolean
-  publicHolidayInShiftRate?: boolean
+  otRatePublicHoliday?: boolean
   restDayInShiftRate?: boolean
+  publicHolidayInShiftRate?: boolean
+  otSalaryThreshold?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "bankAccount" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "otRateNormalDay" | "otRateRestDay" | "otRatePublicHoliday" | "restDayInShiftRate" | "publicHolidayInShiftRate" | "otSalaryThreshold", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  AdminOrganization?: boolean | Prisma.Organization$AdminOrganizationArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
+  adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Organization"
   objects: {
-    AdminOrganization: Prisma.$AdminOrganizationPayload<ExtArgs>[]
     chartAccounts: Prisma.$ChartOfAccountPayload<ExtArgs>[]
     claims: Prisma.$ClaimPayload<ExtArgs>[]
     users: Prisma.$UserPayload<ExtArgs>[]
     xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
     projects: Prisma.$XeroProjectPayload<ExtArgs>[]
+    adminMembers: Prisma.$AdminOrganizationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
     claimCutoffDay: number
+    bankAccount: string | null
     createdAt: Date
     updatedAt: Date
     workingHoursEnd: string
     workingHoursStart: string
-    bankAccount: string | null
     otRateNormalDay: runtime.Decimal
-    otRatePublicHoliday: runtime.Decimal
     otRateRestDay: runtime.Decimal
-    otSalaryThreshold: runtime.Decimal
-    publicHolidayInShiftRate: runtime.Decimal
+    otRatePublicHoliday: runtime.Decimal
     restDayInShiftRate: runtime.Decimal
+    publicHolidayInShiftRate: runtime.Decimal
+    otSalaryThreshold: runtime.Decimal
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -1865,12 +1865,12 @@ readonly fields: OrganizationFieldRefs;
  */
 export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  AdminOrganization<T extends Prisma.Organization$AdminOrganizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$AdminOrganizationArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chartAccounts<T extends Prisma.Organization$chartAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$chartAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claims<T extends Prisma.Organization$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   users<T extends Prisma.Organization$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   xeroConnections<T extends Prisma.Organization$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.Organization$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  adminMembers<T extends Prisma.Organization$adminMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$adminMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1903,17 +1903,17 @@ export interface OrganizationFieldRefs {
   readonly id: Prisma.FieldRef<"Organization", 'String'>
   readonly name: Prisma.FieldRef<"Organization", 'String'>
   readonly claimCutoffDay: Prisma.FieldRef<"Organization", 'Int'>
+  readonly bankAccount: Prisma.FieldRef<"Organization", 'String'>
   readonly createdAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly workingHoursEnd: Prisma.FieldRef<"Organization", 'String'>
   readonly workingHoursStart: Prisma.FieldRef<"Organization", 'String'>
-  readonly bankAccount: Prisma.FieldRef<"Organization", 'String'>
   readonly otRateNormalDay: Prisma.FieldRef<"Organization", 'Decimal'>
-  readonly otRatePublicHoliday: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly otRateRestDay: Prisma.FieldRef<"Organization", 'Decimal'>
-  readonly otSalaryThreshold: Prisma.FieldRef<"Organization", 'Decimal'>
-  readonly publicHolidayInShiftRate: Prisma.FieldRef<"Organization", 'Decimal'>
+  readonly otRatePublicHoliday: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly restDayInShiftRate: Prisma.FieldRef<"Organization", 'Decimal'>
+  readonly publicHolidayInShiftRate: Prisma.FieldRef<"Organization", 'Decimal'>
+  readonly otSalaryThreshold: Prisma.FieldRef<"Organization", 'Decimal'>
 }
     
 
@@ -2262,30 +2262,6 @@ export type OrganizationDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
- * Organization.AdminOrganization
- */
-export type Organization$AdminOrganizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the AdminOrganization
-   */
-  select?: Prisma.AdminOrganizationSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the AdminOrganization
-   */
-  omit?: Prisma.AdminOrganizationOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.AdminOrganizationInclude<ExtArgs> | null
-  where?: Prisma.AdminOrganizationWhereInput
-  orderBy?: Prisma.AdminOrganizationOrderByWithRelationInput | Prisma.AdminOrganizationOrderByWithRelationInput[]
-  cursor?: Prisma.AdminOrganizationWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.AdminOrganizationScalarFieldEnum | Prisma.AdminOrganizationScalarFieldEnum[]
-}
-
-/**
  * Organization.chartAccounts
  */
 export type Organization$chartAccountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2403,6 +2379,30 @@ export type Organization$projectsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.XeroProjectScalarFieldEnum | Prisma.XeroProjectScalarFieldEnum[]
+}
+
+/**
+ * Organization.adminMembers
+ */
+export type Organization$adminMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AdminOrganization
+   */
+  select?: Prisma.AdminOrganizationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AdminOrganization
+   */
+  omit?: Prisma.AdminOrganizationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AdminOrganizationInclude<ExtArgs> | null
+  where?: Prisma.AdminOrganizationWhereInput
+  orderBy?: Prisma.AdminOrganizationOrderByWithRelationInput | Prisma.AdminOrganizationOrderByWithRelationInput[]
+  cursor?: Prisma.AdminOrganizationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AdminOrganizationScalarFieldEnum | Prisma.AdminOrganizationScalarFieldEnum[]
 }
 
 /**

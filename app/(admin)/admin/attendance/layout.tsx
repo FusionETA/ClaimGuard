@@ -1,6 +1,8 @@
+import type { Route } from "next"
+
 import { AttendanceSubNav } from "@/components/attendance/sub-nav"
 
-const items = [
+const items: ReadonlyArray<{ href: Route; label: string }> = [
   { href: "/admin/attendance", label: "Overview" },
   { href: "/admin/attendance/employees", label: "Employees" },
 ]

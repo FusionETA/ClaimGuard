@@ -97,3 +97,20 @@ export type AdminOrgOverview = {
     lateToday: number
   }>
 }
+
+export type RollCallPerson = {
+  id: string
+  name: string
+  employeeId: string
+  jobTitle: string
+  project: string
+  // Late-only metadata.
+  lateByMin?: number
+  timeIn?: string
+}
+
+export type TodayRollCall = {
+  late: RollCallPerson[]
+  onLeave: RollCallPerson[]
+  notClockedIn: RollCallPerson[]
+}

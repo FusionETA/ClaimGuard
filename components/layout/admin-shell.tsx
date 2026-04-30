@@ -10,22 +10,30 @@ import {
   LayoutDashboard,
   LogOut,
   Network,
+  Receipt,
   Settings2,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
-import { switchActiveXeroConnectionAction } from "@/app/(admin)/admin/settings/actions"
+import { switchActiveOrganizationAction } from "@/app/(admin)/admin/settings/actions"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type { AuthenticatedSession } from "@/lib/auth/types"
-import type { XeroConnectionInfo } from "@/modules/organization/domain/models"
+import type { AdminOrganizationOption, XeroConnectionInfo } from "@/modules/organization/domain/models"
 import { cn } from "@/lib/utils"
 
 type AdminNavItem = {
-  href: string
+  href: Route
   label: string
   icon: typeof LayoutDashboard
-  children?: ReadonlyArray<{ href: string; label: string }>
+  children?: ReadonlyArray<{ href: Route; label: string }>
 }
 
 const adminNav: ReadonlyArray<AdminNavItem> = [
@@ -33,6 +41,11 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin",
     label: "Executive Overview",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/admin/claims",
+    label: "Claims",
+    icon: Receipt,
   },
   {
     href: "/admin/hierarchy",
@@ -56,6 +69,10 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
 ]
 
 function getTitle(pathname: string) {
+  if (pathname.startsWith("/admin/claims")) {
+    return "Claims"
+  }
+
   if (pathname.startsWith("/admin/hierarchy")) {
     return "Organization Hierarchy"
   }
@@ -79,21 +96,32 @@ type AdminShellProps = {
   children: React.ReactNode
   user: AuthenticatedSession
   organizationName?: string
+  adminOrganizations?: AdminOrganizationOption[]
+  activeOrganizationId?: string
   xeroConnections?: XeroConnectionInfo[]
   activeXeroConnectionId?: string
 }
 
-export function AdminShell({ children, user, organizationName, xeroConnections = [], activeXeroConnectionId }: AdminShellProps) {
+export function AdminShell({
+  children,
+  user,
+  organizationName,
+  adminOrganizations = [],
+  activeOrganizationId,
+  xeroConnections = [],
+  activeXeroConnectionId,
+}: AdminShellProps) {
   const pathname = usePathname()
   const [switchPending, startSwitch] = useTransition()
 
-  const hasMultipleConnections = xeroConnections.length > 1
-  const activeConnection = xeroConnections.find((c) => c.id === activeXeroConnectionId) ?? xeroConnections[0]
-  const displayName = activeConnection?.tenantName ?? organizationName
+  const hasMultipleOrgs = adminOrganizations.length > 1
+  const activeOrg = adminOrganizations.find((o) => o.id === activeOrganizationId) ?? adminOrganizations[0]
+  const displayName = activeOrg?.name ?? organizationName
 
-  function handleSwitch(connectionId: string) {
-    startSwitch(() => switchActiveXeroConnectionAction(connectionId))
+  function handleOrgSwitch(orgId: string) {
+    startSwitch(() => switchActiveOrganizationAction(orgId))
   }
+
 
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[300px_1fr]">
@@ -171,19 +199,25 @@ export function AdminShell({ children, user, organizationName, xeroConnections =
               <h1 className="font-headline text-2xl font-black tracking-tight">
                 {getTitle(pathname)}
               </h1>
-              {hasMultipleConnections ? (
-                <select
-                  value={activeXeroConnectionId ?? ""}
-                  disabled={switchPending}
-                  onChange={(e) => handleSwitch(e.target.value)}
-                  className="mt-1 h-8 rounded-lg border border-transparent bg-transparent px-0 text-sm text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50 cursor-pointer"
-                >
-                  {xeroConnections.map((conn) => (
-                    <option key={conn.id} value={conn.id}>
-                      {conn.tenantName}
-                    </option>
-                  ))}
-                </select>
+              {hasMultipleOrgs ? (
+                <div className="mt-1 inline-block">
+                  <Select
+                    value={activeOrganizationId ?? undefined}
+                    onValueChange={(v) => handleOrgSwitch(v)}
+                    disabled={switchPending}
+                  >
+                    <SelectTrigger className="h-8 w-auto min-w-[200px] gap-1.5 rounded-lg border-transparent bg-transparent px-2 text-sm text-muted-foreground shadow-none hover:border-border/60 hover:bg-card/60 sm:h-8 sm:text-sm">
+                      <SelectValue placeholder="Select company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {adminOrganizations.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               ) : displayName ? (
                 <p className="mt-1 text-sm text-muted-foreground">{displayName}</p>
               ) : null}

@@ -10,7 +10,9 @@ import type {
   AttendanceStatus,
   ClockEventLite,
   OTSubtype,
+  RollCallPerson,
   SupervisorTeamOverview,
+  TodayRollCall,
 } from "@/modules/attendance/domain/models"
 
 // ---------------------------------------------------------------------------
@@ -721,5 +723,89 @@ export const attendanceRepository = {
       totalOnLeave,
       pendingOT,
     }
+  },
+
+  /**
+   * Roll-call snapshot for today. Splits the active workforce into:
+   *   - late      → AttendanceRecord.status = LATE
+   *   - onLeave   → AttendanceRecord.status = ON_LEAVE
+   *   - notClockedIn → no record OR record.status = MISSING (and not on leave)
+   */
+  async getTodayRollCall(orgId: string | null): Promise<TodayRollCall> {
+    const prisma = getClient()
+    const today = startOfDay(new Date())
+
+    const userWhere = orgId ? { organizationId: orgId } : {}
+
+    const [employees, todayRecords] = await Promise.all([
+      prisma.user.findMany({
+        where: { ...userWhere, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
+        select: {
+          id: true,
+          name: true,
+          employeeProfile: {
+            select: { employeeId: true, project: true, jobTitle: true },
+          },
+        },
+        orderBy: { name: "asc" },
+      }),
+      prisma.attendanceRecord.findMany({
+        where: orgId
+          ? { date: today, employee: { organizationId: orgId } }
+          : { date: today },
+        select: {
+          employeeId: true,
+          status: true,
+          lateByMin: true,
+          timeIn: true,
+        },
+      }),
+    ])
+
+    const recordByEmployee = new Map<string, (typeof todayRecords)[number]>()
+    for (const r of todayRecords) {
+      recordByEmployee.set(r.employeeId, r)
+    }
+
+    const toPerson = (
+      e: (typeof employees)[number],
+      record?: (typeof todayRecords)[number]
+    ): RollCallPerson => ({
+      id: e.id,
+      name: e.name,
+      employeeId: e.employeeProfile?.employeeId ?? "",
+      jobTitle: e.employeeProfile?.jobTitle ?? "",
+      project: e.employeeProfile?.project ?? "",
+      lateByMin: record?.lateByMin ?? undefined,
+      timeIn: record?.timeIn?.toISOString() ?? undefined,
+    })
+
+    const late: RollCallPerson[] = []
+    const onLeave: RollCallPerson[] = []
+    const notClockedIn: RollCallPerson[] = []
+
+    for (const e of employees) {
+      const record = recordByEmployee.get(e.id)
+      if (!record) {
+        notClockedIn.push(toPerson(e))
+        continue
+      }
+      switch (record.status) {
+        case "LATE":
+          late.push(toPerson(e, record))
+          break
+        case "ON_LEAVE":
+          onLeave.push(toPerson(e))
+          break
+        case "MISSING":
+          notClockedIn.push(toPerson(e))
+          break
+        // ON_TIME / CLOCKED_IN / CLOCKED_OUT → present, not surfaced here.
+        default:
+          break
+      }
+    }
+
+    return { late, onLeave, notClockedIn }
   },
 }

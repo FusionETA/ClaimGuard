@@ -11,12 +11,14 @@ export async function getOrganizationHierarchy(): Promise<OrganizationMember[] |
     return null
   }
 
-  if (!session.organizationId) {
+  const organizationId = session.activeOrganizationId ?? session.organizationId
+
+  if (!organizationId) {
     return []
   }
 
   return organizationRepository.getOrganizationMembers(
-    session.organizationId,
+    organizationId,
     session.activeXeroConnectionId
   )
 }

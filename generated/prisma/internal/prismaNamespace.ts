@@ -386,6 +386,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
+  AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
   Claim: 'Claim',
@@ -394,7 +395,6 @@ export const ModelName = {
   XeroProject: 'XeroProject',
   AttendanceRecord: 'AttendanceRecord',
   ApprovalRequest: 'ApprovalRequest',
-  AdminOrganization: 'AdminOrganization',
   ApprovalChainStep: 'ApprovalChainStep'
 } as const
 
@@ -411,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "pushSubscription" | "employeeProfile" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "attendanceRecord" | "approvalRequest" | "adminOrganization" | "approvalChainStep"
+    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "attendanceRecord" | "approvalRequest" | "approvalChainStep"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -544,6 +544,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.OrganizationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.OrganizationCountAggregateOutputType> | number
+        }
+      }
+    }
+    AdminOrganization: {
+      payload: Prisma.$AdminOrganizationPayload<ExtArgs>
+      fields: Prisma.AdminOrganizationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AdminOrganizationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AdminOrganizationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
+        }
+        findFirst: {
+          args: Prisma.AdminOrganizationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AdminOrganizationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
+        }
+        findMany: {
+          args: Prisma.AdminOrganizationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>[]
+        }
+        create: {
+          args: Prisma.AdminOrganizationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
+        }
+        createMany: {
+          args: Prisma.AdminOrganizationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AdminOrganizationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
+        }
+        update: {
+          args: Prisma.AdminOrganizationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
+        }
+        deleteMany: {
+          args: Prisma.AdminOrganizationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AdminOrganizationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AdminOrganizationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
+        }
+        aggregate: {
+          args: Prisma.AdminOrganizationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAdminOrganization>
+        }
+        groupBy: {
+          args: Prisma.AdminOrganizationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdminOrganizationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AdminOrganizationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdminOrganizationCountAggregateOutputType> | number
         }
       }
     }
@@ -1075,72 +1141,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    AdminOrganization: {
-      payload: Prisma.$AdminOrganizationPayload<ExtArgs>
-      fields: Prisma.AdminOrganizationFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.AdminOrganizationFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.AdminOrganizationFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
-        }
-        findFirst: {
-          args: Prisma.AdminOrganizationFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.AdminOrganizationFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
-        }
-        findMany: {
-          args: Prisma.AdminOrganizationFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>[]
-        }
-        create: {
-          args: Prisma.AdminOrganizationCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
-        }
-        createMany: {
-          args: Prisma.AdminOrganizationCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        delete: {
-          args: Prisma.AdminOrganizationDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
-        }
-        update: {
-          args: Prisma.AdminOrganizationUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
-        }
-        deleteMany: {
-          args: Prisma.AdminOrganizationDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.AdminOrganizationUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        upsert: {
-          args: Prisma.AdminOrganizationUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminOrganizationPayload>
-        }
-        aggregate: {
-          args: Prisma.AdminOrganizationAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateAdminOrganization>
-        }
-        groupBy: {
-          args: Prisma.AdminOrganizationGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AdminOrganizationGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.AdminOrganizationCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AdminOrganizationCountAggregateOutputType> | number
-        }
-      }
-    }
     ApprovalChainStep: {
       payload: Prisma.$ApprovalChainStepPayload<ExtArgs>
       fields: Prisma.ApprovalChainStepFieldRefs
@@ -1265,20 +1265,30 @@ export const OrganizationScalarFieldEnum = {
   id: 'id',
   name: 'name',
   claimCutoffDay: 'claimCutoffDay',
+  bankAccount: 'bankAccount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  bankAccount: 'bankAccount',
   otRateNormalDay: 'otRateNormalDay',
-  otRatePublicHoliday: 'otRatePublicHoliday',
   otRateRestDay: 'otRateRestDay',
-  otSalaryThreshold: 'otSalaryThreshold',
+  otRatePublicHoliday: 'otRatePublicHoliday',
+  restDayInShiftRate: 'restDayInShiftRate',
   publicHolidayInShiftRate: 'publicHolidayInShiftRate',
-  restDayInShiftRate: 'restDayInShiftRate'
+  otSalaryThreshold: 'otSalaryThreshold'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const AdminOrganizationScalarFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  organizationId: 'organizationId',
+  createdAt: 'createdAt'
+} as const
+
+export type AdminOrganizationScalarFieldEnum = (typeof AdminOrganizationScalarFieldEnum)[keyof typeof AdminOrganizationScalarFieldEnum]
 
 
 export const PushSubscriptionScalarFieldEnum = {
@@ -1352,11 +1362,11 @@ export const ChartOfAccountScalarFieldEnum = {
   type: 'type',
   status: 'status',
   isSelectable: 'isSelectable',
-  isCustom: 'isCustom',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
   isBankAccount: 'isBankAccount',
-  isDisabled: 'isDisabled'
+  isCustom: 'isCustom',
+  isDisabled: 'isDisabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type ChartOfAccountScalarFieldEnum = (typeof ChartOfAccountScalarFieldEnum)[keyof typeof ChartOfAccountScalarFieldEnum]
@@ -1390,12 +1400,12 @@ export const XeroProjectScalarFieldEnum = {
   name: 'name',
   status: 'status',
   contactId: 'contactId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  isManual: 'isManual',
-  location: 'location',
   projectManagerId: 'projectManagerId',
-  isDisabled: 'isDisabled'
+  location: 'location',
+  isManual: 'isManual',
+  isDisabled: 'isDisabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
@@ -1445,16 +1455,6 @@ export const ApprovalRequestScalarFieldEnum = {
 export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
 
 
-export const AdminOrganizationScalarFieldEnum = {
-  id: 'id',
-  adminId: 'adminId',
-  organizationId: 'organizationId',
-  createdAt: 'createdAt'
-} as const
-
-export type AdminOrganizationScalarFieldEnum = (typeof AdminOrganizationScalarFieldEnum)[keyof typeof AdminOrganizationScalarFieldEnum]
-
-
 export const ApprovalChainStepScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -1498,12 +1498,21 @@ export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnu
 export const OrganizationOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
+  bankAccount: 'bankAccount',
   workingHoursEnd: 'workingHoursEnd',
-  workingHoursStart: 'workingHoursStart',
-  bankAccount: 'bankAccount'
+  workingHoursStart: 'workingHoursStart'
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
+
+
+export const AdminOrganizationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  adminId: 'adminId',
+  organizationId: 'organizationId'
+} as const
+
+export type AdminOrganizationOrderByRelevanceFieldEnum = (typeof AdminOrganizationOrderByRelevanceFieldEnum)[keyof typeof AdminOrganizationOrderByRelevanceFieldEnum]
 
 
 export const PushSubscriptionOrderByRelevanceFieldEnum = {
@@ -1591,8 +1600,8 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   name: 'name',
   status: 'status',
   contactId: 'contactId',
-  location: 'location',
-  projectManagerId: 'projectManagerId'
+  projectManagerId: 'projectManagerId',
+  location: 'location'
 } as const
 
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
@@ -1622,15 +1631,6 @@ export const ApprovalRequestOrderByRelevanceFieldEnum = {
 } as const
 
 export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOrderByRelevanceFieldEnum)[keyof typeof ApprovalRequestOrderByRelevanceFieldEnum]
-
-
-export const AdminOrganizationOrderByRelevanceFieldEnum = {
-  id: 'id',
-  adminId: 'adminId',
-  organizationId: 'organizationId'
-} as const
-
-export type AdminOrganizationOrderByRelevanceFieldEnum = (typeof AdminOrganizationOrderByRelevanceFieldEnum)[keyof typeof AdminOrganizationOrderByRelevanceFieldEnum]
 
 
 export const ApprovalChainStepOrderByRelevanceFieldEnum = {
@@ -1842,6 +1842,7 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   organization?: Prisma.OrganizationOmit
+  adminOrganization?: Prisma.AdminOrganizationOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
   employeeProfile?: Prisma.EmployeeProfileOmit
   claim?: Prisma.ClaimOmit
@@ -1850,7 +1851,6 @@ export type GlobalOmitConfig = {
   xeroProject?: Prisma.XeroProjectOmit
   attendanceRecord?: Prisma.AttendanceRecordOmit
   approvalRequest?: Prisma.ApprovalRequestOmit
-  adminOrganization?: Prisma.AdminOrganizationOmit
   approvalChainStep?: Prisma.ApprovalChainStepOmit
 }
 
