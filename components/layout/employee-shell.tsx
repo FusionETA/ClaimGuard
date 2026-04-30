@@ -40,10 +40,6 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     href: "/employee/claims",
     label: "Claims",
     icon: FileText,
-    children: [
-      { href: "/employee/claims", label: "All claims" },
-      { href: "/employee/claims/new", label: "New claim" },
-    ],
   },
   {
     href: "/employee/attendance",

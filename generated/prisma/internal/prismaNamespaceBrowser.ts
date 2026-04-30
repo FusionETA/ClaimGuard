@@ -101,17 +101,17 @@ export const OrganizationScalarFieldEnum = {
   id: 'id',
   name: 'name',
   claimCutoffDay: 'claimCutoffDay',
-  bankAccount: 'bankAccount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
+  bankAccount: 'bankAccount',
   otRateNormalDay: 'otRateNormalDay',
-  otRateRestDay: 'otRateRestDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
-  restDayInShiftRate: 'restDayInShiftRate',
+  otRateRestDay: 'otRateRestDay',
+  otSalaryThreshold: 'otSalaryThreshold',
   publicHolidayInShiftRate: 'publicHolidayInShiftRate',
-  otSalaryThreshold: 'otSalaryThreshold'
+  restDayInShiftRate: 'restDayInShiftRate'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -209,11 +209,11 @@ export const ChartOfAccountScalarFieldEnum = {
   type: 'type',
   status: 'status',
   isSelectable: 'isSelectable',
-  isBankAccount: 'isBankAccount',
   isCustom: 'isCustom',
-  isDisabled: 'isDisabled',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  isBankAccount: 'isBankAccount',
+  isDisabled: 'isDisabled'
 } as const
 
 export type ChartOfAccountScalarFieldEnum = (typeof ChartOfAccountScalarFieldEnum)[keyof typeof ChartOfAccountScalarFieldEnum]
@@ -247,12 +247,12 @@ export const XeroProjectScalarFieldEnum = {
   name: 'name',
   status: 'status',
   contactId: 'contactId',
-  projectManagerId: 'projectManagerId',
-  location: 'location',
-  isManual: 'isManual',
-  isDisabled: 'isDisabled',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  isManual: 'isManual',
+  location: 'location',
+  projectManagerId: 'projectManagerId',
+  isDisabled: 'isDisabled'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
@@ -345,9 +345,9 @@ export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnu
 export const OrganizationOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
-  bankAccount: 'bankAccount',
   workingHoursEnd: 'workingHoursEnd',
-  workingHoursStart: 'workingHoursStart'
+  workingHoursStart: 'workingHoursStart',
+  bankAccount: 'bankAccount'
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
@@ -456,8 +456,8 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   name: 'name',
   status: 'status',
   contactId: 'contactId',
-  projectManagerId: 'projectManagerId',
-  location: 'location'
+  location: 'location',
+  projectManagerId: 'projectManagerId'
 } as const
 
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
