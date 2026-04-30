@@ -34,23 +34,33 @@
       }
 
       main {
-        width: min(100%, 460px);
+        width: min(100%, 448px);
         border: 1px solid rgba(10, 57, 108, 0.08);
         background: var(--surface);
         backdrop-filter: blur(18px);
         border-radius: 28px;
-        padding: 32px;
+        padding: 36px 32px;
         box-shadow: 0 20px 60px rgba(10, 57, 108, 0.1);
         text-align: center;
       }
 
-      img {
-        width: 164px;
+      .brand-icon {
+        width: 86px;
         height: auto;
       }
 
+      .brand-wordmark {
+        margin: 22px 0 0;
+        font-size: 2rem;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #116372;
+      }
+
       .spinner-wrap {
-        margin-top: 28px;
+        margin-top: 20px;
         display: inline-flex;
         height: 44px;
         width: 44px;
@@ -71,7 +81,7 @@
       }
 
       h1 {
-        margin: 18px 0 0;
+        margin: 20px 0 0;
         font-size: 1.05rem;
       }
 
@@ -91,7 +101,8 @@
   </head>
   <body>
     <main>
-      <img src="/brand-logo.png" alt="ClaimGuard logo" />
+      <img class="brand-icon" src="/brand-icon.png" alt="ClaimGuard logo" />
+      <div class="brand-wordmark">ClaimGuard</div>
       <div class="spinner-wrap" aria-hidden="true">
         <div class="spinner"></div>
       </div>
