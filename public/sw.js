@@ -1,7 +1,11 @@
-const CACHE_NAME = "claimguard-shell-v9"
+const CACHE_NAME = "claimguard-shell-v10"
 const OFFLINE_FALLBACK = "/offline.html"
 const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
 const APP_SHELL = ["/", OFFLINE_FALLBACK, BRAND_ICON_URL]
+// On iOS PWA cold-resume, fetch() can hang indefinitely without erroring.
+// Cap navigation requests at this many ms before falling back to cache so the
+// app never gets stuck on a black screen waiting for a half-suspended network.
+const NAV_TIMEOUT_MS = 4000
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -61,17 +65,37 @@ self.addEventListener("fetch", (event) => {
 })
 
 async function handleNavigationRequest(event) {
-  // Network-first: try preload response first (fastest), then a real fetch.
-  // Only fall back to the offline page if the network actually fails — never
-  // timeout and serve an intermediate splash, since AppResumeIndicator already
-  // handles the loading UX once Next.js is on screen.
-  try {
-    const response = await getNavigationNetworkResponse(event)
-    if (response) {
+  // Race the network against a hard timeout. iOS PWAs woken from a long idle
+  // can have a half-suspended network where fetch() neither resolves nor
+  // rejects — without this guard the user sees a black screen forever.
+  //
+  // If the network wins, we also refresh the cached "/" so subsequent slow
+  // resumes have a fresher fallback to serve.
+  const networkPromise = getNavigationNetworkResponse(event)
+    .then((response) => {
+      if (response && response.ok) {
+        const cloned = response.clone()
+        void caches.open(CACHE_NAME).then((cache) => cache.put("/", cloned))
+      }
       return response
-    }
-  } catch {
-    // Network error (true offline) — serve the offline page.
+    })
+    .catch(() => null)
+
+  const timeoutPromise = new Promise((resolve) =>
+    setTimeout(() => resolve(null), NAV_TIMEOUT_MS),
+  )
+
+  const winner = await Promise.race([networkPromise, timeoutPromise])
+  if (winner) {
+    return winner
+  }
+
+  // Network too slow or failed — serve cached "/" first (always installed),
+  // then offline page as last resort. The slow networkPromise keeps running
+  // in the background so the cache refreshes for next launch.
+  const cachedHome = await caches.match("/")
+  if (cachedHome) {
+    return cachedHome
   }
 
   return (await caches.match(OFFLINE_FALLBACK)) || Response.error()

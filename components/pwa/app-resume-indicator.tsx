@@ -4,8 +4,16 @@ import { useEffect, useRef, useState } from "react"
 
 import { AppSplash } from "@/components/pwa/app-splash"
 
-const BOOT_OVERLAY_MS = 300
+// useEffect itself signals that React has hydrated this subtree, so we just
+// need a small minimum visible time so the splash doesn't flicker on fast
+// launches.
+const BOOT_OVERLAY_MS = 600
 const RESUME_OVERLAY_MS = 600
+const RECOVERY_RELOAD_OVERLAY_MS = 3_000
+// If the splash is still up this long, something is genuinely stuck — surface
+// a manual "Tap to reload" button so the user has an escape hatch instead of
+// being trapped on the splash forever.
+const MANUAL_RECOVERY_AT_MS = 6_000
 // 5 minutes — switching apps briefly or locking the screen should never force a reload.
 const RESUME_THRESHOLD_MS = 300_000
 const RECOVERY_RELOAD_GUARD_MS = 15_000
@@ -15,7 +23,9 @@ const SPLASH_LABEL = "Opening ClaimGuard..."
 
 export function AppResumeIndicator({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(true)
-  const timerRef = useRef<number | null>(null)
+  const [showManualRecovery, setShowManualRecovery] = useState(false)
+  const hideTimerRef = useRef<number | null>(null)
+  const manualRecoveryTimerRef = useRef<number | null>(null)
   const hiddenAtRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -42,7 +52,7 @@ export function AppResumeIndicator({ children }: { children: React.ReactNode }) 
         // Ignore storage failures — reload is still safe.
       }
 
-      showOverlay(3_000)
+      showOverlay(RECOVERY_RELOAD_OVERLAY_MS)
       window.setTimeout(() => {
         window.location.reload()
       }, 120)
@@ -83,22 +93,49 @@ export function AppResumeIndicator({ children }: { children: React.ReactNode }) 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       window.removeEventListener("pageshow", handlePageShow)
-      if (timerRef.current !== null) {
-        window.clearTimeout(timerRef.current)
-      }
+      clearTimers()
     }
   }, [])
 
-  function showOverlay(durationMs: number) {
-    if (timerRef.current !== null) {
-      window.clearTimeout(timerRef.current)
+  function clearTimers() {
+    if (hideTimerRef.current !== null) {
+      window.clearTimeout(hideTimerRef.current)
+      hideTimerRef.current = null
     }
+    if (manualRecoveryTimerRef.current !== null) {
+      window.clearTimeout(manualRecoveryTimerRef.current)
+      manualRecoveryTimerRef.current = null
+    }
+  }
+
+  function showOverlay(durationMs: number) {
+    clearTimers()
 
     setVisible(true)
-    timerRef.current = window.setTimeout(() => {
+    setShowManualRecovery(false)
+
+    hideTimerRef.current = window.setTimeout(() => {
       setVisible(false)
-      timerRef.current = null
+      setShowManualRecovery(false)
+      hideTimerRef.current = null
     }, durationMs)
+
+    // If we're still on the splash after MANUAL_RECOVERY_AT_MS something is
+    // genuinely stuck — show the manual reload button as an escape hatch.
+    manualRecoveryTimerRef.current = window.setTimeout(() => {
+      setShowManualRecovery(true)
+      manualRecoveryTimerRef.current = null
+    }, MANUAL_RECOVERY_AT_MS)
+  }
+
+  function handleManualReload() {
+    try {
+      // Clear the recent-reload guard so the manual reload is not skipped.
+      window.sessionStorage.removeItem(RECOVERY_RELOAD_KEY)
+    } catch {
+      // Ignore storage failures — reload is still safe.
+    }
+    window.location.reload()
   }
 
   return (
@@ -114,7 +151,10 @@ export function AppResumeIndicator({ children }: { children: React.ReactNode }) 
       </div>
       {visible ? (
         <div className="fixed inset-0 z-[100] bg-background">
-          <AppSplash label={SPLASH_LABEL} />
+          <AppSplash
+            label={SPLASH_LABEL}
+            onManualReload={showManualRecovery ? handleManualReload : undefined}
+          />
         </div>
       ) : null}
     </>
