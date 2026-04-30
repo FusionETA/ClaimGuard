@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useState, useTransition } from "react"
+import { startTransition, useActionState, useEffect, useRef, useState, useTransition } from "react"
 import { Loader2, MapPin, Plus, Search, Trash2 } from "lucide-react"
 
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
@@ -46,15 +46,18 @@ import type {
 
 type TabKey = "organization" | "accounts" | "banks" | "projects" | "runs" | "attendance"
 
-/** Controlled geolocation input — use inside components with their own state */
+/** Controlled geolocation input — use inside components with their own state.
+ *  onCoords fires with numeric lat/lng when the 📍 button is used. */
 function GeoLocationInput({
   value,
   onChange,
+  onCoords,
   placeholder = "Address or coordinates",
   className,
 }: {
   value: string
   onChange: (value: string) => void
+  onCoords?: (lat: number, lng: number) => void
   placeholder?: string
   className?: string
 }) {
@@ -65,9 +68,10 @@ function GeoLocationInput({
     setLocating(true)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const lat = pos.coords.latitude.toFixed(6)
-        const lng = pos.coords.longitude.toFixed(6)
-        onChange(`${lat}, ${lng}`)
+        const lat = pos.coords.latitude
+        const lng = pos.coords.longitude
+        onChange(`${lat.toFixed(6)}, ${lng.toFixed(6)}`)
+        onCoords?.(lat, lng)
         setLocating(false)
       },
       () => setLocating(false)
@@ -95,19 +99,20 @@ function GeoLocationInput({
   )
 }
 
-/** Self-contained geolocation input for use inside server-action forms (manages its own state, submits via hidden input) */
+/** Self-contained geolocation input for use inside server-action forms.
+ *  Submits location text via name="location", lat via name="latitude", lng via name="longitude". */
 function GeoLocationFormField({
-  name,
   defaultValue = "",
   placeholder = "Address or coordinates",
   className,
 }: {
-  name: string
   defaultValue?: string
   placeholder?: string
   className?: string
 }) {
   const [value, setValue] = useState(defaultValue)
+  const [lat, setLat] = useState<number | null>(null)
+  const [lng, setLng] = useState<number | null>(null)
   const [locating, setLocating] = useState(false)
 
   function handleGeoLocate() {
@@ -115,22 +120,32 @@ function GeoLocationFormField({
     setLocating(true)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const lat = pos.coords.latitude.toFixed(6)
-        const lng = pos.coords.longitude.toFixed(6)
-        setValue(`${lat}, ${lng}`)
+        const la = pos.coords.latitude
+        const lo = pos.coords.longitude
+        setValue(`${la.toFixed(6)}, ${lo.toFixed(6)}`)
+        setLat(la)
+        setLng(lo)
         setLocating(false)
       },
       () => setLocating(false)
     )
   }
 
+  // When user edits manually, clear the stored coords (they're no longer valid)
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setValue(e.target.value)
+    setLat(null)
+    setLng(null)
+  }
+
   return (
     <div className={`relative ${className ?? ""}`}>
-      {/* Hidden input carries the value for server action form submission */}
-      <input type="hidden" name={name} value={value} />
+      <input type="hidden" name="location" value={value} />
+      {lat !== null && <input type="hidden" name="latitude" value={lat} />}
+      {lng !== null && <input type="hidden" name="longitude" value={lng} />}
       <Input
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={handleChange}
         placeholder={placeholder}
         className="pr-10 h-9 text-sm"
       />
@@ -155,16 +170,48 @@ function ProjectCard({
 }: {
   project: OrganizationProjectOption
   members: OrganizationMember[]
-  onUpdate: (id: string, projectManagerId: string | undefined, location: string | undefined) => void
+  onUpdate: (
+    id: string,
+    projectManagerId: string | undefined,
+    location: string | undefined,
+    latitude: number | null,
+    longitude: number | null
+  ) => void
   onDelete?: (id: string) => void
 }) {
   const [pmId, setPmId] = useState(project.projectManagerId ?? "")
   const [location, setLocation] = useState(project.location ?? "")
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    project.latitude != null && project.longitude != null
+      ? { lat: project.latitude, lng: project.longitude }
+      : null
+  )
   const [saving, setSaving] = useState(false)
+  const { toast } = useToast()
 
   async function handleSave() {
     setSaving(true)
-    await onUpdate(project.id, pmId || undefined, location || undefined)
+    let lat = coords?.lat ?? null
+    let lng = coords?.lng ?? null
+
+    // Auto-capture GPS if not already set via the 📍 icon
+    if (lat === null || lng === null) {
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+          if (!navigator.geolocation) reject(new Error("Geolocation not supported by your browser."))
+          else navigator.geolocation.getCurrentPosition(resolve, reject)
+        })
+        lat = pos.coords.latitude
+        lng = pos.coords.longitude
+        setCoords({ lat, lng })
+      } catch {
+        toast({ title: "Could not get your location. Please allow location access and try again.", variant: "error" })
+        setSaving(false)
+        return
+      }
+    }
+
+    await onUpdate(project.id, pmId || undefined, location || undefined, lat, lng)
     setSaving(false)
   }
 
@@ -207,7 +254,8 @@ function ProjectCard({
       </Select>
       <GeoLocationInput
         value={location}
-        onChange={setLocation}
+        onChange={(v) => { setLocation(v); setCoords(null) }}
+        onCoords={(lat, lng) => setCoords({ lat, lng })}
         placeholder="Address or coordinates (optional)"
       />
       <Button
@@ -259,6 +307,8 @@ export function AdminSettingsPanel({
   const [accountSearch, setAccountSearch] = useState("")
   const [projectSearch, setProjectSearch] = useState("")
   const [switchPending, startSwitch] = useTransition()
+  const addProjectFormRef = useRef<HTMLFormElement>(null)
+  const [addProjectLocating, setAddProjectLocating] = useState(false)
 
   // Custom mode = no Xero connections exist at all
   const isCustomMode = xeroConnection.connections.length === 0
@@ -395,13 +445,34 @@ export function AdminSettingsPanel({
   async function handleUpdateProject(
     projectId: string,
     projectManagerId: string | undefined,
-    location: string | undefined
+    location: string | undefined,
+    latitude: number | null,
+    longitude: number | null
   ) {
-    const result = await updateProjectAction(projectId, projectManagerId, location)
+    const result = await updateProjectAction(projectId, projectManagerId, location, latitude, longitude)
     if (result.ok) {
       toast({ title: result.message, variant: "success" })
     } else {
       toast({ title: result.message, variant: "error" })
+    }
+  }
+
+  async function handleAddProjectSubmit() {
+    if (!addProjectFormRef.current) return
+    setAddProjectLocating(true)
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        if (!navigator.geolocation) reject(new Error("Geolocation not supported by your browser."))
+        else navigator.geolocation.getCurrentPosition(resolve, reject)
+      })
+      const fd = new FormData(addProjectFormRef.current)
+      fd.set("latitude", String(pos.coords.latitude))
+      fd.set("longitude", String(pos.coords.longitude))
+      startTransition(() => createProjectAction(fd as any))
+    } catch {
+      toast({ title: "Could not get your location. Please allow location access and try again.", variant: "error" })
+    } finally {
+      setAddProjectLocating(false)
     }
   }
 
@@ -941,7 +1012,7 @@ export function AdminSettingsPanel({
             <CardContent className="space-y-4">
               {/* Manual project creation — only when no Xero connected */}
               {isCustomMode ? (
-                <form action={createProjectAction} className="space-y-3">
+                <form ref={addProjectFormRef} className="space-y-3">
                   <p className="text-sm font-semibold text-muted-foreground">Add project</p>
                   <div className="flex flex-wrap gap-3">
                     <Input
@@ -967,14 +1038,22 @@ export function AdminSettingsPanel({
                         </SelectContent>
                       </Select>
                     </div>
-                    <GeoLocationFormField
+                    <Input
                       name="location"
-                      placeholder="Address or coordinates"
-                      className="w-48"
+                      placeholder="Address (optional)"
+                      className="w-48 h-9 text-sm"
                     />
                   </div>
-                  <Button type="submit" variant="outline" className="rounded-xl" disabled={createProjectPending}>
-                    {createProjectPending ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-xl"
+                    disabled={createProjectPending || addProjectLocating}
+                    onClick={handleAddProjectSubmit}
+                  >
+                    {addProjectLocating ? (
+                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Getting location…</>
+                    ) : createProjectPending ? (
                       <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding…</>
                     ) : (
                       <><Plus className="mr-2 h-4 w-4" />Add project</>

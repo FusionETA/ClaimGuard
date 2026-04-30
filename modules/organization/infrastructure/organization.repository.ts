@@ -1406,6 +1406,8 @@ export const organizationRepository = {
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
       location: row.location ?? undefined,
+      latitude: row.latitude ?? undefined,
+      longitude: row.longitude ?? undefined,
       isManual: row.isManual,
     }))
   },
@@ -1430,6 +1432,8 @@ export const organizationRepository = {
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
       location: row.location ?? undefined,
+      latitude: row.latitude ?? undefined,
+      longitude: row.longitude ?? undefined,
       isManual: row.isManual,
     }))
   },
@@ -1439,6 +1443,8 @@ export const organizationRepository = {
     name: string
     projectManagerId?: string
     location?: string
+    latitude?: number
+    longitude?: number
   }): Promise<OrganizationProjectOption> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -1464,6 +1470,8 @@ export const organizationRepository = {
         name: data.name,
         projectManagerId: data.projectManagerId || null,
         location: data.location || null,
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
         isManual: true,
       },
       include: { projectManager: { select: { id: true, name: true } } },
@@ -1475,6 +1483,8 @@ export const organizationRepository = {
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
       location: row.location ?? undefined,
+      latitude: row.latitude ?? undefined,
+      longitude: row.longitude ?? undefined,
       isManual: true,
     }
   },
@@ -1484,6 +1494,8 @@ export const organizationRepository = {
     organizationId: string
     projectManagerId?: string
     location?: string
+    latitude?: number | null
+    longitude?: number | null
   }): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -1508,6 +1520,8 @@ export const organizationRepository = {
       data: {
         projectManagerId: data.projectManagerId || null,
         location: data.location || null,
+        latitude: data.latitude ?? null,
+        longitude: data.longitude ?? null,
       },
     })
   },
