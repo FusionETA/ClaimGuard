@@ -1,8 +1,8 @@
 import {
-  AlertTriangle,
   Building2,
   CalendarClock,
   Clock,
+  ShieldAlert,
   TimerReset,
   TrendingUp,
 } from "lucide-react"
@@ -12,6 +12,7 @@ import { formatCurrency, formatShortDate } from "@/lib/utils"
 import type {
   AdminExecutiveOverview,
   AttendanceProjectHealth,
+  OverturnedSupervisor,
   ProjectClaimSpend,
   SlowOtApprover,
   StalePendingClaim,
@@ -31,9 +32,9 @@ export function ExecutiveOverview({ data }: { data: AdminExecutiveOverview }) {
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <UpcomingClaimRunCard run={data.upcomingClaimRun} />
-        <FailedXeroSyncsCard
-          total={data.failedXeroSyncs.total}
-          samples={data.failedXeroSyncs.samples}
+        <OverturnedSupervisorsCard
+          total={data.overturnedSupervisors.total}
+          samples={data.overturnedSupervisors.samples}
         />
       </div>
     </div>
@@ -293,54 +294,69 @@ function UpcomingClaimRunCard({ run }: { run: UpcomingClaimRun | null }) {
   )
 }
 
-// ─── Card 6: Failed Xero syncs ───────────────────────────────────────────────
+// ─── Card 6: Most-overturned layer-1 supervisors ─────────────────────────────
 
-function FailedXeroSyncsCard({
+function OverturnedSupervisorsCard({
   total,
   samples,
 }: {
   total: number
-  samples: AdminExecutiveOverview["failedXeroSyncs"]["samples"]
+  samples: OverturnedSupervisor[]
 }) {
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-destructive/10 p-2.5 text-destructive">
-            <AlertTriangle className="h-[18px] w-[18px]" />
+            <ShieldAlert className="h-[18px] w-[18px]" />
           </div>
-          <CardTitle>Failed Xero syncs</CardTitle>
+          <CardTitle>Most-overturned approvers</CardTitle>
         </div>
         <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          {total} total
+          Last 90 days
         </span>
       </CardHeader>
       <CardContent className="space-y-3">
         {samples.length === 0 ? (
-          <EmptyState text="All claims are syncing cleanly to Xero." />
+          <EmptyState text="No layer-1 approvals have been overturned recently." />
         ) : (
-          samples.map((s) => (
-            <div
-              key={s.id}
-              className="rounded-2xl border border-destructive/20 bg-destructive/5 p-4"
-            >
-              <div className="flex items-baseline justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                    {s.claimNumber}
+          <>
+            <p className="px-1 text-xs text-muted-foreground">
+              Layer-1 supervisors whose approvals were rejected by a higher
+              layer.
+            </p>
+            {samples.map((s, idx) => (
+              <div
+                key={s.supervisorId}
+                className="flex items-center gap-3 rounded-2xl border border-destructive/20 bg-destructive/5 p-4"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-destructive/15 font-headline text-sm font-extrabold text-destructive">
+                  {idx + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold">{s.supervisorName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {s.affectedEmployees}{" "}
+                    {s.affectedEmployees === 1 ? "employee" : "employees"} affected
                   </p>
-                  <p className="truncate text-sm font-bold">{s.title}</p>
-                  <p className="text-xs text-muted-foreground">{s.employeeName}</p>
                 </div>
-                <p className="font-headline text-base font-extrabold text-foreground">
-                  {formatCurrency(s.amount)}
-                </p>
+                <div className="text-right">
+                  <p className="font-headline text-2xl font-extrabold text-destructive">
+                    {s.overturnedCount}
+                  </p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    overturned
+                  </p>
+                </div>
               </div>
-              {s.errorMessage ? (
-                <p className="mt-2 line-clamp-2 text-xs text-destructive">{s.errorMessage}</p>
-              ) : null}
-            </div>
-          ))
+            ))}
+            {total > 0 ? (
+              <p className="px-1 pt-1 text-xs text-muted-foreground">
+                {total} total layer-1 approval{total === 1 ? "" : "s"} overturned
+                in the last 90 days.
+              </p>
+            ) : null}
+          </>
         )}
       </CardContent>
     </Card>

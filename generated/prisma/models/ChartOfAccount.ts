@@ -257,6 +257,7 @@ export type ChartOfAccountWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   claims?: Prisma.ClaimListRelationFilter
+  payViaClaims?: Prisma.ClaimListRelationFilter
 }
 
 export type ChartOfAccountOrderByWithRelationInput = {
@@ -277,6 +278,7 @@ export type ChartOfAccountOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
+  payViaClaims?: Prisma.ClaimOrderByRelationAggregateInput
   _relevance?: Prisma.ChartOfAccountOrderByRelevanceInput
 }
 
@@ -303,6 +305,7 @@ export type ChartOfAccountWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   claims?: Prisma.ClaimListRelationFilter
+  payViaClaims?: Prisma.ClaimListRelationFilter
 }, "id" | "xeroConnectionId_xeroAccountId" | "organizationId_code">
 
 export type ChartOfAccountOrderByWithAggregationInput = {
@@ -361,6 +364,7 @@ export type ChartOfAccountCreateInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutChartAccountsInput
   claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
+  payViaClaims?: Prisma.ClaimCreateNestedManyWithoutPayViaAccountInput
 }
 
 export type ChartOfAccountUncheckedCreateInput = {
@@ -379,6 +383,7 @@ export type ChartOfAccountUncheckedCreateInput = {
   isBankAccount?: boolean
   isDisabled?: boolean
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
+  payViaClaims?: Prisma.ClaimUncheckedCreateNestedManyWithoutPayViaAccountInput
 }
 
 export type ChartOfAccountUpdateInput = {
@@ -397,6 +402,7 @@ export type ChartOfAccountUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutChartAccountsNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
+  payViaClaims?: Prisma.ClaimUpdateManyWithoutPayViaAccountNestedInput
 }
 
 export type ChartOfAccountUncheckedUpdateInput = {
@@ -415,6 +421,7 @@ export type ChartOfAccountUncheckedUpdateInput = {
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
+  payViaClaims?: Prisma.ClaimUncheckedUpdateManyWithoutPayViaAccountNestedInput
 }
 
 export type ChartOfAccountCreateManyInput = {
@@ -596,6 +603,12 @@ export type ChartOfAccountCreateNestedOneWithoutClaimsInput = {
   connect?: Prisma.ChartOfAccountWhereUniqueInput
 }
 
+export type ChartOfAccountCreateNestedOneWithoutPayViaClaimsInput = {
+  create?: Prisma.XOR<Prisma.ChartOfAccountCreateWithoutPayViaClaimsInput, Prisma.ChartOfAccountUncheckedCreateWithoutPayViaClaimsInput>
+  connectOrCreate?: Prisma.ChartOfAccountCreateOrConnectWithoutPayViaClaimsInput
+  connect?: Prisma.ChartOfAccountWhereUniqueInput
+}
+
 export type ChartOfAccountUpdateOneWithoutClaimsNestedInput = {
   create?: Prisma.XOR<Prisma.ChartOfAccountCreateWithoutClaimsInput, Prisma.ChartOfAccountUncheckedCreateWithoutClaimsInput>
   connectOrCreate?: Prisma.ChartOfAccountCreateOrConnectWithoutClaimsInput
@@ -604,6 +617,16 @@ export type ChartOfAccountUpdateOneWithoutClaimsNestedInput = {
   delete?: Prisma.ChartOfAccountWhereInput | boolean
   connect?: Prisma.ChartOfAccountWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ChartOfAccountUpdateToOneWithWhereWithoutClaimsInput, Prisma.ChartOfAccountUpdateWithoutClaimsInput>, Prisma.ChartOfAccountUncheckedUpdateWithoutClaimsInput>
+}
+
+export type ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput = {
+  create?: Prisma.XOR<Prisma.ChartOfAccountCreateWithoutPayViaClaimsInput, Prisma.ChartOfAccountUncheckedCreateWithoutPayViaClaimsInput>
+  connectOrCreate?: Prisma.ChartOfAccountCreateOrConnectWithoutPayViaClaimsInput
+  upsert?: Prisma.ChartOfAccountUpsertWithoutPayViaClaimsInput
+  disconnect?: Prisma.ChartOfAccountWhereInput | boolean
+  delete?: Prisma.ChartOfAccountWhereInput | boolean
+  connect?: Prisma.ChartOfAccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ChartOfAccountUpdateToOneWithWhereWithoutPayViaClaimsInput, Prisma.ChartOfAccountUpdateWithoutPayViaClaimsInput>, Prisma.ChartOfAccountUncheckedUpdateWithoutPayViaClaimsInput>
 }
 
 export type BoolFieldUpdateOperationsInput = {
@@ -667,6 +690,7 @@ export type ChartOfAccountCreateWithoutOrganizationInput = {
   isDisabled?: boolean
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutChartAccountsInput
   claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
+  payViaClaims?: Prisma.ClaimCreateNestedManyWithoutPayViaAccountInput
 }
 
 export type ChartOfAccountUncheckedCreateWithoutOrganizationInput = {
@@ -684,6 +708,7 @@ export type ChartOfAccountUncheckedCreateWithoutOrganizationInput = {
   isBankAccount?: boolean
   isDisabled?: boolean
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
+  payViaClaims?: Prisma.ClaimUncheckedCreateNestedManyWithoutPayViaAccountInput
 }
 
 export type ChartOfAccountCreateOrConnectWithoutOrganizationInput = {
@@ -747,6 +772,7 @@ export type ChartOfAccountCreateWithoutClaimsInput = {
   isDisabled?: boolean
   organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutChartAccountsInput
+  payViaClaims?: Prisma.ClaimCreateNestedManyWithoutPayViaAccountInput
 }
 
 export type ChartOfAccountUncheckedCreateWithoutClaimsInput = {
@@ -764,11 +790,53 @@ export type ChartOfAccountUncheckedCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
+  payViaClaims?: Prisma.ClaimUncheckedCreateNestedManyWithoutPayViaAccountInput
 }
 
 export type ChartOfAccountCreateOrConnectWithoutClaimsInput = {
   where: Prisma.ChartOfAccountWhereUniqueInput
   create: Prisma.XOR<Prisma.ChartOfAccountCreateWithoutClaimsInput, Prisma.ChartOfAccountUncheckedCreateWithoutClaimsInput>
+}
+
+export type ChartOfAccountCreateWithoutPayViaClaimsInput = {
+  id?: string
+  xeroAccountId?: string | null
+  code: string
+  name: string
+  type?: string | null
+  status?: string | null
+  isSelectable?: boolean
+  isCustom?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
+  organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutChartAccountsInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
+}
+
+export type ChartOfAccountUncheckedCreateWithoutPayViaClaimsInput = {
+  id?: string
+  organizationId: string
+  xeroConnectionId?: string | null
+  xeroAccountId?: string | null
+  code: string
+  name: string
+  type?: string | null
+  status?: string | null
+  isSelectable?: boolean
+  isCustom?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
+}
+
+export type ChartOfAccountCreateOrConnectWithoutPayViaClaimsInput = {
+  where: Prisma.ChartOfAccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.ChartOfAccountCreateWithoutPayViaClaimsInput, Prisma.ChartOfAccountUncheckedCreateWithoutPayViaClaimsInput>
 }
 
 export type ChartOfAccountUpsertWithoutClaimsInput = {
@@ -797,6 +865,7 @@ export type ChartOfAccountUpdateWithoutClaimsInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutChartAccountsNestedInput
+  payViaClaims?: Prisma.ClaimUpdateManyWithoutPayViaAccountNestedInput
 }
 
 export type ChartOfAccountUncheckedUpdateWithoutClaimsInput = {
@@ -814,6 +883,54 @@ export type ChartOfAccountUncheckedUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  payViaClaims?: Prisma.ClaimUncheckedUpdateManyWithoutPayViaAccountNestedInput
+}
+
+export type ChartOfAccountUpsertWithoutPayViaClaimsInput = {
+  update: Prisma.XOR<Prisma.ChartOfAccountUpdateWithoutPayViaClaimsInput, Prisma.ChartOfAccountUncheckedUpdateWithoutPayViaClaimsInput>
+  create: Prisma.XOR<Prisma.ChartOfAccountCreateWithoutPayViaClaimsInput, Prisma.ChartOfAccountUncheckedCreateWithoutPayViaClaimsInput>
+  where?: Prisma.ChartOfAccountWhereInput
+}
+
+export type ChartOfAccountUpdateToOneWithWhereWithoutPayViaClaimsInput = {
+  where?: Prisma.ChartOfAccountWhereInput
+  data: Prisma.XOR<Prisma.ChartOfAccountUpdateWithoutPayViaClaimsInput, Prisma.ChartOfAccountUncheckedUpdateWithoutPayViaClaimsInput>
+}
+
+export type ChartOfAccountUpdateWithoutPayViaClaimsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutChartAccountsNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
+}
+
+export type ChartOfAccountUncheckedUpdateWithoutPayViaClaimsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
 }
 
 export type ChartOfAccountCreateWithoutXeroConnectionInput = {
@@ -831,6 +948,7 @@ export type ChartOfAccountCreateWithoutXeroConnectionInput = {
   isDisabled?: boolean
   organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
   claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
+  payViaClaims?: Prisma.ClaimCreateNestedManyWithoutPayViaAccountInput
 }
 
 export type ChartOfAccountUncheckedCreateWithoutXeroConnectionInput = {
@@ -848,6 +966,7 @@ export type ChartOfAccountUncheckedCreateWithoutXeroConnectionInput = {
   isBankAccount?: boolean
   isDisabled?: boolean
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
+  payViaClaims?: Prisma.ClaimUncheckedCreateNestedManyWithoutPayViaAccountInput
 }
 
 export type ChartOfAccountCreateOrConnectWithoutXeroConnectionInput = {
@@ -907,6 +1026,7 @@ export type ChartOfAccountUpdateWithoutOrganizationInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutChartAccountsNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
+  payViaClaims?: Prisma.ClaimUpdateManyWithoutPayViaAccountNestedInput
 }
 
 export type ChartOfAccountUncheckedUpdateWithoutOrganizationInput = {
@@ -924,6 +1044,7 @@ export type ChartOfAccountUncheckedUpdateWithoutOrganizationInput = {
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
+  payViaClaims?: Prisma.ClaimUncheckedUpdateManyWithoutPayViaAccountNestedInput
 }
 
 export type ChartOfAccountUncheckedUpdateManyWithoutOrganizationInput = {
@@ -973,6 +1094,7 @@ export type ChartOfAccountUpdateWithoutXeroConnectionInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
+  payViaClaims?: Prisma.ClaimUpdateManyWithoutPayViaAccountNestedInput
 }
 
 export type ChartOfAccountUncheckedUpdateWithoutXeroConnectionInput = {
@@ -990,6 +1112,7 @@ export type ChartOfAccountUncheckedUpdateWithoutXeroConnectionInput = {
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
+  payViaClaims?: Prisma.ClaimUncheckedUpdateManyWithoutPayViaAccountNestedInput
 }
 
 export type ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionInput = {
@@ -1015,10 +1138,12 @@ export type ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionInput = {
 
 export type ChartOfAccountCountOutputType = {
   claims: number
+  payViaClaims: number
 }
 
 export type ChartOfAccountCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   claims?: boolean | ChartOfAccountCountOutputTypeCountClaimsArgs
+  payViaClaims?: boolean | ChartOfAccountCountOutputTypeCountPayViaClaimsArgs
 }
 
 /**
@@ -1035,6 +1160,13 @@ export type ChartOfAccountCountOutputTypeDefaultArgs<ExtArgs extends runtime.Typ
  * ChartOfAccountCountOutputType without action
  */
 export type ChartOfAccountCountOutputTypeCountClaimsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ClaimWhereInput
+}
+
+/**
+ * ChartOfAccountCountOutputType without action
+ */
+export type ChartOfAccountCountOutputTypeCountPayViaClaimsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ClaimWhereInput
 }
 
@@ -1057,6 +1189,7 @@ export type ChartOfAccountSelect<ExtArgs extends runtime.Types.Extensions.Intern
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.ChartOfAccount$xeroConnectionArgs<ExtArgs>
   claims?: boolean | Prisma.ChartOfAccount$claimsArgs<ExtArgs>
+  payViaClaims?: boolean | Prisma.ChartOfAccount$payViaClaimsArgs<ExtArgs>
   _count?: boolean | Prisma.ChartOfAccountCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["chartOfAccount"]>
 
@@ -1084,6 +1217,7 @@ export type ChartOfAccountInclude<ExtArgs extends runtime.Types.Extensions.Inter
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.ChartOfAccount$xeroConnectionArgs<ExtArgs>
   claims?: boolean | Prisma.ChartOfAccount$claimsArgs<ExtArgs>
+  payViaClaims?: boolean | Prisma.ChartOfAccount$payViaClaimsArgs<ExtArgs>
   _count?: boolean | Prisma.ChartOfAccountCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -1093,6 +1227,7 @@ export type $ChartOfAccountPayload<ExtArgs extends runtime.Types.Extensions.Inte
     organization: Prisma.$OrganizationPayload<ExtArgs>
     xeroConnection: Prisma.$XeroConnectionPayload<ExtArgs> | null
     claims: Prisma.$ClaimPayload<ExtArgs>[]
+    payViaClaims: Prisma.$ClaimPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1452,6 +1587,7 @@ export interface Prisma__ChartOfAccountClient<T, Null = never, ExtArgs extends r
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   xeroConnection<T extends Prisma.ChartOfAccount$xeroConnectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChartOfAccount$xeroConnectionArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   claims<T extends Prisma.ChartOfAccount$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChartOfAccount$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  payViaClaims<T extends Prisma.ChartOfAccount$payViaClaimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChartOfAccount$payViaClaimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1865,6 +2001,30 @@ export type ChartOfAccount$xeroConnectionArgs<ExtArgs extends runtime.Types.Exte
  * ChartOfAccount.claims
  */
 export type ChartOfAccount$claimsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Claim
+   */
+  select?: Prisma.ClaimSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Claim
+   */
+  omit?: Prisma.ClaimOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClaimInclude<ExtArgs> | null
+  where?: Prisma.ClaimWhereInput
+  orderBy?: Prisma.ClaimOrderByWithRelationInput | Prisma.ClaimOrderByWithRelationInput[]
+  cursor?: Prisma.ClaimWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ClaimScalarFieldEnum | Prisma.ClaimScalarFieldEnum[]
+}
+
+/**
+ * ChartOfAccount.payViaClaims
+ */
+export type ChartOfAccount$payViaClaimsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Claim
    */

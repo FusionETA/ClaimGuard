@@ -44,6 +44,10 @@ export async function submitClaimAction(
 ): Promise<ClaimFormState> {
   const receiptFile = formData.get("receiptFile")
 
+  const rawPaymentType = String(formData.get("paymentType") ?? "PERSONAL")
+  const paymentType: "PERSONAL" | "COMPANY" =
+    rawPaymentType === "COMPANY" ? "COMPANY" : "PERSONAL"
+
   const values: ClaimFormValues = {
     title: String(formData.get("title") ?? ""),
     chartOfAccountId: String(formData.get("chartOfAccountId") ?? ""),
@@ -51,6 +55,8 @@ export async function submitClaimAction(
     spentAt: String(formData.get("spentAt") ?? ""),
     description: String(formData.get("description") ?? ""),
     receiptUrl: String(formData.get("receiptUrl") ?? ""),
+    paymentType,
+    payViaAccountId: String(formData.get("payViaAccountId") ?? ""),
   }
 
   // Validate form fields.
@@ -77,6 +83,8 @@ export async function submitClaimAction(
         spentAt: fieldErrors.spentAt?.[0],
         description: fieldErrors.description?.[0],
         receiptUrl: receiptError ?? fieldErrors.receiptUrl?.[0],
+        paymentType: fieldErrors.paymentType?.[0],
+        payViaAccountId: fieldErrors.payViaAccountId?.[0],
       },
     }
   }
@@ -125,6 +133,11 @@ export async function submitClaimAction(
       spentAt: parsed.data.spentAt,
       description: parsed.data.description,
       receiptUrl,
+      paymentType: parsed.data.paymentType,
+      payViaAccountId:
+        parsed.data.paymentType === "COMPANY"
+          ? parsed.data.payViaAccountId
+          : undefined,
     },
   })
 

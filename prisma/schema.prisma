@@ -134,6 +134,8 @@ model Claim {
   claimRunMonth    DateTime?
   reviewedAt       DateTime?
   payoutAt         DateTime?
+  payViaAccountId  String?
+  paymentType      PaymentType     @default(PERSONAL)
   status           ClaimStatus     @default(PENDING)
   receiptUrl       String?
   reviewNotes      String?         @db.Text
@@ -146,13 +148,15 @@ model Claim {
   xeroSyncedAt     DateTime?
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
-  chartOfAccount   ChartOfAccount? @relation(fields: [chartOfAccountId], references: [id])
+  chartOfAccount   ChartOfAccount? @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
+  payViaAccount    ChartOfAccount? @relation("ClaimPayVia", fields: [payViaAccountId], references: [id])
   employee         User            @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
   organization     Organization?   @relation(fields: [organizationId], references: [id])
   reviewer         User?           @relation("AdminReviews", fields: [reviewerId], references: [id])
 
   @@index([organizationId, submittedAt])
   @@index([chartOfAccountId])
+  @@index([payViaAccountId])
   @@index([employeeId, submittedAt])
   @@index([status, submittedAt])
   @@index([xeroSyncStatus])
@@ -176,7 +180,8 @@ model ChartOfAccount {
   isDisabled       Boolean         @default(false)
   organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
-  claims           Claim[]
+  claims           Claim[]         @relation("ClaimAccount")
+  payViaClaims     Claim[]         @relation("ClaimPayVia")
 
   @@unique([xeroConnectionId, xeroAccountId])
   @@unique([organizationId, code])
@@ -330,6 +335,12 @@ enum ClaimStatus {
   APPROVED
   REJECTED
   PAID
+  SETTLED
+}
+
+enum PaymentType {
+  PERSONAL
+  COMPANY
 }
 
 enum XeroSyncStatus {

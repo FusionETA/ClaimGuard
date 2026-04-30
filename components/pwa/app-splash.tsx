@@ -8,7 +8,11 @@ export function AppSplash({
   label = "Opening ClaimGuard...",
 }: AppSplashProps) {
   return (
-    <div className="attendance-module flex min-h-[100svh] items-center justify-center bg-background px-6 py-10">
+    // NOTE: do NOT include `attendance-module` here. That class applies its
+    // theme tokens AND `background-color: transparent`, which would let the
+    // underlying app shell (e.g. the admin header / logout icon) bleed
+    // through this overlay on mobile.
+    <div className="flex min-h-[100svh] w-full items-center justify-center bg-background px-6 py-10">
       <div className="w-full max-w-sm rounded-[32px] border border-border/60 bg-card/92 p-8 text-center shadow-panel backdrop-blur-xl">
         <div className="flex justify-center">
           <Image

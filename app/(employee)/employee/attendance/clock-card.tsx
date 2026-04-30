@@ -4,10 +4,16 @@ import { useActionState, useEffect, useState, useTransition } from "react"
 import { Coffee, Fingerprint, LogOut } from "lucide-react"
 
 import { Card } from "@/components/attendance/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type {
   AttendanceProjectView,
 } from "@/modules/attendance/domain/models"
-import { cn } from "@/lib/utils"
 import { checkGeofence, type GeofenceCheck } from "@/lib/geo"
 
 import {
@@ -331,25 +337,25 @@ export function ClockCard({
             >
               Project
             </label>
-            <select
-              id="projectId"
-              name="projectId"
-              value={selected}
-              onChange={(e) => setSelected(e.target.value)}
-              className={cn(
-                "mt-1 block h-10 w-full rounded-[20px] border border-border/70 bg-card/94 px-3 text-sm font-semibold text-foreground shadow-ambient backdrop-blur-sm",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              )}
-            >
-              <option value="">
-                {projects.length === 0 ? "No projects available" : "Select a project…"}
-              </option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+            <div className="mt-1">
+              <Select
+                name="projectId"
+                value={selected}
+                onValueChange={setSelected}
+                disabled={projects.length === 0}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={projects.length === 0 ? "No projects available" : "Select a project…"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             {projects.length === 0 ? (
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Ask your admin to assign you to a project.

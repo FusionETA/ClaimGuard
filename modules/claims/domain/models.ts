@@ -12,9 +12,13 @@ export const claimStatuses = [
   "APPROVED",
   "REJECTED",
   "PAID",
+  "SETTLED",
 ] as const
 
 export type ClaimStatus = (typeof claimStatuses)[number]
+
+export const paymentTypes = ["PERSONAL", "COMPANY"] as const
+export type PaymentType = (typeof paymentTypes)[number]
 
 export type ClaimRunPreview = {
   claimCutoffDay: number
@@ -52,6 +56,32 @@ export type AdminProfile = {
   organizationName?: string
 }
 
+export type ApprovalStepState =
+  | "approved"
+  | "current"
+  | "upcoming"
+  | "rejected"
+  | "skipped"
+
+export type ApprovalStepInfo = {
+  step: number
+  approverId: string
+  name: string
+  email: string
+  role: "EMPLOYEE" | "SUPERVISOR" | "ADMIN"
+  state: ApprovalStepState
+  reviewedAt?: string
+  reviewNotes?: string
+}
+
+export type PendingApproverInfo = {
+  approverId: string
+  name: string
+  email: string
+  step: number
+  totalSteps: number
+}
+
 export type ClaimRecord = {
   id: string
   claimNumber: string
@@ -59,16 +89,21 @@ export type ClaimRecord = {
   description: string
   organizationName?: string
   chartOfAccount?: ChartOfAccountOption
+  payViaAccount?: ChartOfAccountOption
   amount: number
   currency: string
   spentAt: string
   submittedAt: string
   claimRunMonth?: string
   status: ClaimStatus
+  paymentType: PaymentType
   receiptUrl?: string
   reviewNotes?: string
   reviewerName?: string
+  reviewedAt?: string
   employee: PortalUser
+  pendingApprover?: PendingApproverInfo
+  approvalChain?: ApprovalStepInfo[]
 }
 
 export type CreateClaimInput = {
@@ -111,6 +146,7 @@ export type EmployeeClaimSubmissionData = {
   employee: PortalUser
   organization?: OrganizationSummary
   chartAccounts: ChartOfAccountOption[]
+  bankAccounts: ChartOfAccountOption[]
   claimRunPreview?: ClaimRunPreview
 }
 

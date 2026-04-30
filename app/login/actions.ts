@@ -15,7 +15,6 @@ import {
   getHomePathForRole,
 } from "@/lib/auth/session"
 import { clearAdminStore, clearEmployeeStore } from "@/lib/app-store"
-import { loadAdminData, loadEmployeeData } from "@/lib/load-user-data"
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address."),
@@ -61,19 +60,12 @@ export async function loginAction(
   // 2. Create the session cookie.
   await createUserSession(result.user)
 
-  // 3. Pre-fetch all data for this user so every page loads instantly.
-  try {
-    if (result.user.role === "EMPLOYEE" || result.user.role === "SUPERVISOR") {
-      await loadEmployeeData(result.user.email)
-    } else {
-      await loadAdminData(result.user.email, result.user.organizationId)
-    }
-  } catch {
-    // If pre-fetch fails, pages will lazy-load from DB on first visit.
-    // Don't block the login.
-  }
-
-  // 4. Redirect to the correct portal.
+  // 3. Redirect to the correct portal.
+  // NOTE: We intentionally do NOT prefetch data here. The prefetch was
+  // blocking DB connections during login (causing pool exhaustion / 504s
+  // under concurrent logins), and the in-memory store is per-Vercel-instance
+  // so it was unreliable in multi-instance deployments anyway.
+  // Pages lazy-load their own data from the DB on first visit.
   redirect(getHomePathForRole(result.user.role))
 }
 

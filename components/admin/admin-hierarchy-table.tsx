@@ -610,17 +610,17 @@ function AddHierarchyMemberDialog({
             <div className="space-y-5 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                  Full name
+                  <span>Full name</span>
                   <Input name="name" defaultValue={state.values.name} disabled={pending} />
                 </label>
 
                 <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                  Employee ID
+                  <span>Employee ID</span>
                   <Input name="employeeId" defaultValue={state.values.employeeId} disabled={pending} />
                 </label>
 
                 <label className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
-                  Email
+                  <span>Email</span>
                   <Input
                     name="email"
                     type="email"
@@ -630,7 +630,7 @@ function AddHierarchyMemberDialog({
                 </label>
 
                 <label className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
-                  Temporary password
+                  <span>Temporary password</span>
                   <Input
                     name="password"
                     type="password"
@@ -662,7 +662,7 @@ function AddHierarchyMemberDialog({
                 </div>
 
                 <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                  Job title
+                  <span>Job title</span>
                   <Input name="jobTitle" defaultValue={state.values.jobTitle} disabled={pending} />
                 </label>
               </div>
@@ -694,9 +694,9 @@ function AddHierarchyMemberDialog({
               </div>
 
               <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-                Xero organization
+                <span>Xero organization</span>
                 <input type="hidden" name="xeroConnectionId" value={xeroConnectionId} />
-                <div className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 text-base text-foreground shadow-sm sm:h-11 sm:text-sm">
+                <div className="flex min-h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 py-3 text-sm text-foreground shadow-sm">
                   {xeroDisplayName || "—"}
                 </div>
               </div>
@@ -985,7 +985,7 @@ function HierarchyEditDialog({
                 </div>
 
                 <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                  Job title
+                  <span>Job title</span>
                   <Input name="jobTitle" defaultValue={state.values.jobTitle} disabled={pending} />
                 </label>
               </div>
@@ -1018,8 +1018,8 @@ function HierarchyEditDialog({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-                  Xero organization
-                  <div className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 text-base text-foreground shadow-sm sm:h-11 sm:text-sm">
+                  <span>Xero organization</span>
+                  <div className="flex min-h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 py-3 text-sm text-foreground shadow-sm">
                     {xeroDisplayName || "—"}
                   </div>
                 </div>

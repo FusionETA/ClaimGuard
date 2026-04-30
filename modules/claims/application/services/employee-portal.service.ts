@@ -90,12 +90,17 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
     return {
       employee: store.employee,
       chartAccounts: [],
+      bankAccounts: [],
     }
   }
 
-  const [organization, chartAccounts] = await Promise.all([
+  const [organization, chartAccounts, bankAccounts] = await Promise.all([
     organizationRepository.getOrganizationById(store.employee.organizationId),
     organizationRepository.getSelectableChartAccountsForEmployee({
+      organizationId: store.employee.organizationId,
+      xeroConnectionId: store.employee.xeroConnectionId,
+    }),
+    organizationRepository.getBankAccountsForOrganization({
       organizationId: store.employee.organizationId,
       xeroConnectionId: store.employee.xeroConnectionId,
     }),
@@ -105,6 +110,7 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
     employee: store.employee,
     organization: organization ?? undefined,
     chartAccounts,
+    bankAccounts,
     claimRunPreview: organization
       ? buildClaimRunPreview({
           submittedAt: new Date(),

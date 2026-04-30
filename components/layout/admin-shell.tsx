@@ -3,7 +3,7 @@
 import type { Route } from "next"
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
 import {
   CalendarClock,
@@ -65,6 +65,14 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/settings",
     label: "Settings",
     icon: Settings2,
+    children: [
+      { href: "/admin/settings?tab=organization", label: "Organization" },
+      { href: "/admin/settings?tab=accounts", label: "Claim accounts" },
+      { href: "/admin/settings?tab=banks", label: "Bank accounts" },
+      { href: "/admin/settings?tab=projects", label: "Projects" },
+      { href: "/admin/settings?tab=runs", label: "Claim runs" },
+      { href: "/admin/settings?tab=attendance", label: "Attendance" },
+    ],
   },
 ]
 
@@ -106,6 +114,7 @@ export function AdminShell({
   activeOrganizationId,
 }: AdminShellProps) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [switchPending, startSwitch] = useTransition()
   const [adminOrganizations, setAdminOrganizations] = useState<
     AdminOrganizationOption[]
@@ -196,7 +205,13 @@ export function AdminShell({
                 {item.children && parentActive ? (
                   <div className="mt-1 space-y-0.5 border-l border-border/60 pl-4 ml-5">
                     {item.children.map((child) => {
-                      const childActive = pathname === child.href
+                      // Support both path-based and ?tab= query-param-based children
+                      const childTabMatch = child.href.match(/[?&]tab=([^&]+)/)
+                      const childTab = childTabMatch?.[1] ?? null
+                      const currentTab = searchParams.get("tab") ?? "organization"
+                      const childActive = childTab
+                        ? pathname === item.href && currentTab === childTab
+                        : pathname === child.href
                       return (
                         <Link
                           key={child.href}

@@ -1,19 +1,19 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowRight, ClipboardCheck, CircleDollarSign, Clock3, FileCheck2, Plus } from "lucide-react"
+import { ArrowRight, ClipboardCheck, CircleDollarSign, Clock3, FileCheck2 } from "lucide-react"
 
-import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { MetricCard } from "@/components/claims/metric-card"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/attendance/ui/card"
-import { getEmployeeDashboard } from "@/modules/claims/application/services/employee-portal.service"
-import { formatCurrency, formatShortDate } from "@/lib/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/attendance/ui/card"
+import { getEmployeeDashboard, getEmployeeClaimSubmissionData } from "@/modules/claims/application/services/employee-portal.service"
+import { formatCurrency } from "@/lib/utils"
 import { requirePortalSession } from "@/lib/auth/session"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
+import { countPendingClaimsForSupervisor } from "@/modules/claims/application/services/claim-workflow.service"
 import type { ClockEventLite } from "@/modules/attendance/domain/models"
 
 import { ClockCard } from "./attendance/clock-card"
+import { DashboardQuickActions } from "./dashboard-quick-actions"
 
 function deriveClockState(events: ClockEventLite[]): "IN" | "OUT" {
   const last = [...events]
@@ -28,12 +28,16 @@ export default async function EmployeeDashboardPage() {
   if (!data) redirect("/login")
 
   const isSupervisor = session.role === "SUPERVISOR"
-  const [attendanceDashboard, projects, pendingApprovals] = await Promise.all([
+  const [attendanceDashboard, projects, pendingApprovals, pendingClaimApprovals, claimSubmissionData] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
     employeeAttendanceService.getAvailableProjects(session.userId),
     isSupervisor
       ? supervisorAttendanceService.countPendingApprovalsForSupervisor(session.userId)
       : Promise.resolve(0),
+    isSupervisor
+      ? countPendingClaimsForSupervisor(session.email)
+      : Promise.resolve(0),
+    getEmployeeClaimSubmissionData(),
   ])
   const clockState = deriveClockState(attendanceDashboard.todayEvents)
   const activeProject = attendanceDashboard.today?.project ?? null
@@ -72,37 +76,64 @@ export default async function EmployeeDashboardPage() {
       </section>
 
       {isSupervisor ? (
-        <Link
-          href="/employee/attendance/approvals"
-          className="attendance-module !bg-transparent block"
-        >
-          <Card className="flex items-center gap-3 p-4">
-            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <ClipboardCheck className="h-5 w-5" />
-              {pendingApprovals > 0 ? (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
-                  {pendingApprovals > 99 ? "99+" : pendingApprovals}
-                </span>
-              ) : null}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-foreground">Pending approvals</p>
-              <p className="text-xs text-muted-foreground">
-                {pendingApprovals === 0
-                  ? "All caught up"
-                  : `${pendingApprovals} waiting for your review`}
-              </p>
-            </div>
-            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-          </Card>
-        </Link>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Link
+            href="/employee/attendance/approvals"
+            className="attendance-module !bg-transparent block"
+          >
+            <Card className="flex items-center gap-3 p-4">
+              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <ClipboardCheck className="h-5 w-5" />
+                {pendingApprovals > 0 ? (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                    {pendingApprovals > 99 ? "99+" : pendingApprovals}
+                  </span>
+                ) : null}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-foreground">Attendance approvals</p>
+                <p className="text-xs text-muted-foreground">
+                  {pendingApprovals === 0
+                    ? "All caught up"
+                    : `${pendingApprovals} waiting for your review`}
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </Card>
+          </Link>
+
+          <Link
+            href="/employee/review"
+            className="attendance-module !bg-transparent block"
+          >
+            <Card className="flex items-center gap-3 p-4">
+              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <CircleDollarSign className="h-5 w-5" />
+                {pendingClaimApprovals > 0 ? (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                    {pendingClaimApprovals > 99 ? "99+" : pendingClaimApprovals}
+                  </span>
+                ) : null}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-foreground">Claims queue</p>
+                <p className="text-xs text-muted-foreground">
+                  {pendingClaimApprovals === 0
+                    ? "All caught up"
+                    : `${pendingClaimApprovals} waiting for your review`}
+                </p>
+              </div>
+              <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </Card>
+          </Link>
+        </div>
       ) : null}
 
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-        <Card className="overflow-hidden bg-gradient-to-br from-primary to-accent text-primary-foreground">
+        <Card className="overflow-hidden border border-border/70 bg-card/94 text-foreground shadow-ambient backdrop-blur-sm">
           <CardHeader className="p-5 sm:p-8 xl:p-6">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-primary-foreground/70 sm:text-xs sm:tracking-[0.18em]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
                 Welcome back
               </p>
               <CardTitle className="text-2xl font-black sm:text-4xl xl:text-[2.25rem]">
@@ -111,37 +142,24 @@ export default async function EmployeeDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="grid gap-3 p-5 pt-0 sm:grid-cols-2 sm:gap-4 sm:p-8 sm:pt-0 xl:p-6 xl:pt-0">
-            <div className="hidden rounded-[24px] bg-white/12 p-5 backdrop-blur-sm sm:block xl:p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground/70">
+            <div className="hidden rounded-[24px] border border-border/70 bg-surface-low p-5 sm:block xl:p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Total reimbursed
               </p>
               <p className="mt-3 text-4xl font-black tracking-tight xl:text-[2.5rem]">
                 {formatCurrency(data.totals.reimbursed)}
               </p>
-              <p className="mt-2 text-sm text-primary-foreground/70 xl:text-[0.95rem]">
+              <p className="mt-2 text-sm text-muted-foreground xl:text-[0.95rem]">
                 YTD across approved and paid claims
               </p>
             </div>
             <div className="grid gap-3 sm:gap-4 xl:content-start">
-              <Button
-                asChild
-                className="h-11 justify-between rounded-2xl bg-white px-4 text-sm text-primary hover:bg-white/90 sm:h-12 sm:rounded-xl sm:px-6 sm:text-base xl:h-10 xl:px-5 xl:text-[0.95rem]"
-              >
-                <Link href="/employee/claims/new">
-                  Submit new claim
-                  <Plus className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="secondary"
-                className="h-11 justify-between rounded-2xl border-white/20 bg-white/10 px-4 text-sm text-white hover:bg-white/15 sm:h-12 sm:rounded-xl sm:px-6 sm:text-base xl:h-10 xl:px-5 xl:text-[0.95rem]"
-              >
-                <Link href="/employee/claims">
-                  Review claim history
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
+              <DashboardQuickActions
+                chartAccounts={claimSubmissionData?.chartAccounts ?? []}
+                bankAccounts={claimSubmissionData?.bankAccounts ?? []}
+                claimRunPreview={claimSubmissionData?.claimRunPreview}
+                organizationName={claimSubmissionData?.organization?.name}
+              />
             </div>
           </CardContent>
         </Card>
@@ -168,79 +186,6 @@ export default async function EmployeeDashboardPage() {
         </div>
       </div>
 
-      <div className="hidden gap-4 sm:gap-6 lg:grid lg:grid-cols-[1fr_320px]">
-        <Card>
-          <CardHeader className="flex-col gap-3 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
-            <div>
-              <CardTitle className="text-xl sm:text-lg">Recent claims</CardTitle>
-            </div>
-            <Button asChild variant="ghost" className="h-9 w-full rounded-2xl text-sm sm:w-auto sm:rounded-lg">
-              <Link href="/employee/claims">View all</Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3 p-5 pt-0 sm:p-6 sm:pt-0">
-            {data.recentClaims.slice(0, 4).map((claim) => (
-              <div
-                key={claim.id}
-                className="flex flex-col gap-3 rounded-[20px] border border-border/70 bg-card/94 p-3.5 shadow-ambient backdrop-blur-sm sm:gap-4 sm:rounded-[24px] sm:p-4 md:flex-row md:items-center md:justify-between"
-              >
-                <div className="flex items-start gap-3 sm:gap-4">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
-                      {claim.claimNumber}
-                    </p>
-                    <p className="mt-1 text-base font-black sm:text-lg">{claim.title}</p>
-                    <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                      {formatShortDate(claim.submittedAt)} ·{" "}
-                      {claim.chartOfAccount
-                        ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
-                        : "Account not assigned"}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between gap-3 md:flex-col md:items-end">
-                  <p className="text-base font-black sm:text-lg">{formatCurrency(claim.amount)}</p>
-                  <ClaimStatusBadge status={claim.status} />
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        <Card className="hidden lg:block">
-          <CardHeader>
-            <CardTitle>Profile snapshot</CardTitle>
-            <CardDescription>Current employee profile used for claim routing.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-[24px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Employee ID</p>
-              <p className="mt-2 text-xl font-black">{data.employee.employeeId}</p>
-            </div>
-            <div className="rounded-[24px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Projects</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {data.employee.projects.length > 0 ? (
-                  data.employee.projects.map((project) => (
-                    <span
-                      key={project}
-                      className="inline-flex rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground"
-                    >
-                      {project}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-xl font-black">{data.employee.project}</p>
-                )}
-              </div>
-            </div>
-            <div className="rounded-[24px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Role</p>
-              <p className="mt-2 text-xl font-black">{data.employee.jobTitle}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }

@@ -8,7 +8,6 @@ import { useEffect, useState } from "react"
 import {
   CalendarClock,
   CalendarDays,
-  ClipboardCheck,
   FileText,
   Home,
   LogOut,
@@ -40,6 +39,10 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     href: "/employee/claims",
     label: "Claims",
     icon: FileText,
+    children: [
+      { href: "/employee/claims", label: "My claims" },
+      { href: "/employee/review", label: "Claims queue", supervisorOnly: true },
+    ],
   },
   {
     href: "/employee/attendance",
@@ -62,12 +65,6 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     label: "Payslip",
     icon: Receipt,
   },
-  {
-    href: "/employee/review",
-    label: "Review",
-    icon: ClipboardCheck,
-    supervisorOnly: true,
-  },
 ]
 
 function getSectionTitle(pathname: string) {
@@ -84,7 +81,7 @@ function getSectionTitle(pathname: string) {
   }
 
   if (pathname.startsWith("/employee/review")) {
-    return "Review Claims"
+    return "Claims Queue"
   }
 
   if (pathname.startsWith("/employee/leave")) {
@@ -122,6 +119,8 @@ type EmployeeShellProps = {
 
 const APPROVALS_HREF = "/employee/attendance/approvals"
 const ATTENDANCE_HREF = "/employee/attendance"
+const CLAIMS_HREF = "/employee/claims"
+const CLAIMS_QUEUE_HREF = "/employee/review"
 
 function NotificationDot() {
   return (
@@ -142,6 +141,7 @@ export function EmployeeShell({
     organizationName,
   )
   const [pendingApprovals, setPendingApprovals] = useState(0)
+  const [pendingClaimApprovals, setPendingClaimApprovals] = useState(0)
 
   useEffect(() => {
     if (user.role !== "SUPERVISOR" && organizationName) {
@@ -163,6 +163,7 @@ export function EmployeeShell({
         return response.json() as Promise<{
           organizationName?: string | null
           pendingApprovals?: number
+          pendingClaimApprovals?: number
         }>
       })
       .then((data) => {
@@ -171,6 +172,7 @@ export function EmployeeShell({
         }
 
         setPendingApprovals(data?.pendingApprovals ?? 0)
+        setPendingClaimApprovals(data?.pendingClaimApprovals ?? 0)
       })
       .catch(() => null)
 
@@ -181,9 +183,10 @@ export function EmployeeShell({
     (item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR"
   )
   const hasPendingApprovals = pendingApprovals > 0
+  const hasPendingClaimApprovals = pendingClaimApprovals > 0
 
   return (
-    <div className="attendance-module !bg-transparent min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
+    <div className="attendance-module min-h-screen bg-background [background-image:none] lg:grid lg:grid-cols-[280px_1fr]">
       <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
         <Link href="/" className="block self-center text-center">
           <Image
@@ -204,7 +207,10 @@ export function EmployeeShell({
             const Icon = item.icon
             const parentActive =
               pathname === item.href ||
-              (item.children !== undefined && pathname.startsWith(item.href + "/"))
+              (item.children !== undefined && (
+                pathname.startsWith(item.href + "/") ||
+                item.children.some((c) => pathname === c.href || pathname.startsWith(c.href + "/"))
+              ))
 
             return (
               <div key={item.href}>
@@ -220,6 +226,8 @@ export function EmployeeShell({
                   <Icon className="h-4 w-4" />
                   <span>{item.label}</span>
                   {item.href === ATTENDANCE_HREF && hasPendingApprovals ? (
+                    <NotificationDot />
+                  ) : item.href === CLAIMS_HREF && hasPendingClaimApprovals ? (
                     <NotificationDot />
                   ) : null}
                 </Link>
@@ -243,6 +251,8 @@ export function EmployeeShell({
                           >
                             <span>{child.label}</span>
                             {child.href === APPROVALS_HREF && hasPendingApprovals ? (
+                              <NotificationDot />
+                            ) : child.href === CLAIMS_QUEUE_HREF && hasPendingClaimApprovals ? (
                               <NotificationDot />
                             ) : null}
                           </Link>
@@ -301,17 +311,15 @@ export function EmployeeShell({
 
         <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
           <div
-            className={cn(
-              "grid gap-1",
-              user.role === "SUPERVISOR" ? "grid-cols-6" : "grid-cols-5"
-            )}
+            className="grid grid-cols-5 gap-1"
           >
             {visibleNav.map((item) => {
               const active = pathname === item.href
               const Icon = item.icon
 
               const showDot =
-                item.href === ATTENDANCE_HREF && hasPendingApprovals
+                (item.href === ATTENDANCE_HREF && hasPendingApprovals) ||
+                (item.href === CLAIMS_HREF && hasPendingClaimApprovals)
 
               return (
                 <Link
