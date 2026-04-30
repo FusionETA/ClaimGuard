@@ -68,6 +68,7 @@ type AdminHierarchyTableProps = {
 }
 
 type RoleFilter = "ALL" | "EMPLOYEE" | "SUPERVISOR"
+type ProjectFilter = "ALL" | "UNASSIGNED" | string
 
 const PAGE_SIZE = 10
 
@@ -217,6 +218,7 @@ export function AdminHierarchyTable({
   const supervisors = members.filter((member) => member.role === "SUPERVISOR")
   const [page, setPage] = useState(1)
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL")
+  const [projectFilter, setProjectFilter] = useState<ProjectFilter>("ALL")
   const [searchTerm, setSearchTerm] = useState("")
 
   // One company connects to at most one Xero tenant. Use the first connection if any.
@@ -228,6 +230,13 @@ export function AdminHierarchyTable({
 
     return members.filter((member) => {
       const matchesRole = roleFilter === "ALL" ? true : member.role === roleFilter
+
+      const matchesProject =
+        projectFilter === "ALL"
+          ? true
+          : projectFilter === "UNASSIGNED"
+          ? member.projects.length === 0
+          : member.projects.some((p) => p.id === projectFilter)
 
       const matchesQuery =
         normalizedQuery.length === 0
@@ -245,13 +254,13 @@ export function AdminHierarchyTable({
               .toLowerCase()
               .includes(normalizedQuery)
 
-      return matchesRole && matchesQuery
+      return matchesRole && matchesProject && matchesQuery
     })
-  }, [members, roleFilter, searchTerm])
+  }, [members, roleFilter, projectFilter, searchTerm])
 
   useEffect(() => {
     setPage(1)
-  }, [roleFilter, searchTerm])
+  }, [roleFilter, projectFilter, searchTerm])
 
   const totalPages = Math.max(1, Math.ceil(filteredMembers.length / PAGE_SIZE))
 
@@ -266,7 +275,7 @@ export function AdminHierarchyTable({
     return filteredMembers.slice(startIndex, startIndex + PAGE_SIZE)
   }, [filteredMembers, page])
 
-  const hasActiveFilters = roleFilter !== "ALL" || searchTerm.trim().length > 0
+  const hasActiveFilters = roleFilter !== "ALL" || projectFilter !== "ALL" || searchTerm.trim().length > 0
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -283,7 +292,7 @@ export function AdminHierarchyTable({
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 type="button"
                 size="sm"
@@ -313,6 +322,25 @@ export function AdminHierarchyTable({
                   {roleLabels[role]}
                 </Button>
               ))}
+              {projects.length > 0 && (
+                <Select
+                  value={projectFilter}
+                  onValueChange={(v) => setProjectFilter(v as ProjectFilter)}
+                >
+                  <SelectTrigger className="h-8 rounded-full border-border/70 bg-surface-low text-sm font-semibold text-muted-foreground shadow-none w-auto min-w-[140px]">
+                    <SelectValue placeholder="All projects" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All projects</SelectItem>
+                    <SelectItem value="UNASSIGNED">Unassigned</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
@@ -356,6 +384,27 @@ export function AdminHierarchyTable({
                 className="pl-10"
               />
             </div>
+            {projects.length > 0 && (
+              <div className="mt-2">
+                <Select
+                  value={projectFilter}
+                  onValueChange={(v) => setProjectFilter(v as ProjectFilter)}
+                >
+                  <SelectTrigger className="h-10 rounded-2xl border-border/70 text-sm font-semibold text-muted-foreground w-full">
+                    <SelectValue placeholder="All projects" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All projects</SelectItem>
+                    <SelectItem value="UNASSIGNED">Unassigned</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <div className="hidden flex-col gap-2 text-sm text-muted-foreground md:flex md:flex-row md:items-center md:justify-between">
@@ -371,6 +420,7 @@ export function AdminHierarchyTable({
                 className="w-fit rounded-full"
                 onClick={() => {
                   setRoleFilter("ALL")
+                  setProjectFilter("ALL")
                   setSearchTerm("")
                 }}
               >
@@ -543,139 +593,155 @@ function AddHierarchyMemberDialog({
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:w-[min(92vw,760px)]"
+        className="flex max-h-[90vh] w-[min(92vw,760px)] flex-col overflow-hidden px-6 pb-6 pt-6 sm:max-w-[760px]"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="shrink-0 pr-8">
           <DialogTitle>Add employee</DialogTitle>
           <DialogDescription>
             Create a new employee or supervisor account inside your organization and assign their reporting details.
           </DialogDescription>
         </DialogHeader>
+        <div
+          className="flex-1 overflow-y-auto pr-3"
+          style={{ scrollbarGutter: "stable both-edges" }}
+        >
+          <form action={formAction} className="space-y-5 pb-2">
+            <div className="space-y-5 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  Full name
+                  <Input name="name" defaultValue={state.values.name} disabled={pending} />
+                </label>
 
-        <form action={formAction} className="grid gap-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-              Full name
-              <Input name="name" defaultValue={state.values.name} disabled={pending} />
-            </label>
+                <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  Employee ID
+                  <Input name="employeeId" defaultValue={state.values.employeeId} disabled={pending} />
+                </label>
 
-            <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-              Employee ID
-              <Input name="employeeId" defaultValue={state.values.employeeId} disabled={pending} />
-            </label>
+                <label className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
+                  Email
+                  <Input
+                    name="email"
+                    type="email"
+                    defaultValue={state.values.email}
+                    disabled={pending}
+                  />
+                </label>
 
-            <label className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
-              Email
-              <Input
-                name="email"
-                type="email"
-                defaultValue={state.values.email}
-                disabled={pending}
-              />
-            </label>
-
-            <label className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
-              Temporary password
-              <Input
-                name="password"
-                type="password"
-                defaultValue={state.values.password}
-                disabled={pending}
-              />
-            </label>
-
-            <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-              <label htmlFor="add-role">Role</label>
-              <Select
-                name="role"
-                value={addRoleValue}
-                onValueChange={(value) => setAddRoleValue(value as "EMPLOYEE" | "SUPERVISOR")}
-                disabled={pending}
-              >
-                <SelectTrigger id="add-role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="EMPLOYEE">Basic Employee</SelectItem>
-                  <SelectItem value="SUPERVISOR">Supervisor Employee</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-              Job title
-              <Input name="jobTitle" defaultValue={state.values.jobTitle} disabled={pending} />
-            </label>
-
-            <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-              <label htmlFor="add-payout-method">Employee type</label>
-              <input type="hidden" name="payoutMethod" value={resolvedAddPayoutMethod} />
-              <Select
-                value={resolvedAddPayoutMethod}
-                onValueChange={(value) => setAddPayoutMethodValue(value as EmployeePayoutMethod)}
-                disabled={pending || addRoleValue === "SUPERVISOR"}
-              >
-                <SelectTrigger id="add-payout-method">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {payoutMethodOptions.map((method) => (
-                    <SelectItem key={method} value={method}>
-                      {employeePayoutMethodLabels[method]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {addRoleValue === "SUPERVISOR" ? (
-                <p className="text-xs font-medium text-muted-foreground">
-                  Supervisors are always daily-based paid.
-                </p>
-              ) : null}
-            </div>
-
-            <div className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
-              Xero organization
-              <input type="hidden" name="xeroConnectionId" value={xeroConnectionId} />
-              <div className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 text-base text-foreground shadow-sm sm:h-11 sm:text-sm">
-                {xeroDisplayName || "—"}
+                <label className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
+                  Temporary password
+                  <Input
+                    name="password"
+                    type="password"
+                    defaultValue={state.values.password}
+                    disabled={pending}
+                  />
+                </label>
               </div>
             </div>
 
-            <div className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
-              <label>Projects</label>
-              <ProjectMultiSelect
-                inputName="projectIds"
-                projects={filteredProjects}
-                selectedProjectIds={selectedProjectIds}
-                disabled={pending}
-                helperText="Select one or more projects for this employee."
-                onToggle={(projectId) =>
-                  setSelectedProjectIds((current) =>
-                    current.includes(projectId)
-                      ? current.filter((id) => id !== projectId)
-                      : [...current, projectId]
-                  )
-                }
-              />
+            <div className="space-y-5 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor="add-role">Role</label>
+                  <Select
+                    name="role"
+                    value={addRoleValue}
+                    onValueChange={(value) => setAddRoleValue(value as "EMPLOYEE" | "SUPERVISOR")}
+                    disabled={pending}
+                  >
+                    <SelectTrigger id="add-role">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EMPLOYEE">Basic Employee</SelectItem>
+                      <SelectItem value="SUPERVISOR">Supervisor Employee</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  Job title
+                  <Input name="jobTitle" defaultValue={state.values.jobTitle} disabled={pending} />
+                </label>
+              </div>
+
+              <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                <label htmlFor="add-payout-method">Employee type</label>
+                <input type="hidden" name="payoutMethod" value={resolvedAddPayoutMethod} />
+                <Select
+                  value={resolvedAddPayoutMethod}
+                  onValueChange={(value) => setAddPayoutMethodValue(value as EmployeePayoutMethod)}
+                  disabled={pending || addRoleValue === "SUPERVISOR"}
+                >
+                  <SelectTrigger id="add-payout-method">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {payoutMethodOptions.map((method) => (
+                      <SelectItem key={method} value={method}>
+                        {employeePayoutMethodLabels[method]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {addRoleValue === "SUPERVISOR" ? (
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Supervisors are always daily-based paid.
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                Xero organization
+                <input type="hidden" name="xeroConnectionId" value={xeroConnectionId} />
+                <div className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 text-base text-foreground shadow-sm sm:h-11 sm:text-sm">
+                  {xeroDisplayName || "—"}
+                </div>
+              </div>
+
+              <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                <label>Projects</label>
+                <ProjectMultiSelect
+                  inputName="projectIds"
+                  projects={filteredProjects}
+                  selectedProjectIds={selectedProjectIds}
+                  disabled={pending}
+                  helperText="Select one or more projects for this employee."
+                  onToggle={(projectId) =>
+                    setSelectedProjectIds((current) =>
+                      current.includes(projectId)
+                        ? current.filter((id) => id !== projectId)
+                        : [...current, projectId]
+                    )
+                  }
+                />
+              </div>
             </div>
 
-            {/* Hidden inputs carry the chain approver IDs to the server action */}
-            {chainApproverIds.map((id, i) => (
-              <input key={i} type="hidden" name="approverIds" value={id} />
-            ))}
+            <div className="space-y-4 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
+              {/* Hidden inputs carry the chain approver IDs to the server action */}
+              {chainApproverIds.map((id, i) => (
+                <input key={i} type="hidden" name="approverIds" value={id} />
+              ))}
 
-            <div className="space-y-2 sm:col-span-2">
-              <p className="text-sm font-semibold text-muted-foreground">Approval chain</p>
+              <div>
+                <p className="text-sm font-semibold text-muted-foreground">Approval chain</p>
+                <p className="mt-0.5 text-xs text-muted-foreground/70">
+                  Add supervisors in the order this employee should get approval from.
+                </p>
+              </div>
+
               {supervisors.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   No supervisors yet — add supervisors first to build an approval chain.
                 </p>
               ) : (
-                <>
+                <div className="space-y-3">
                   {chainApproverIds.map((approverId, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <span className="shrink-0 w-28 text-xs font-semibold text-muted-foreground">
+                      <span className="w-28 shrink-0 text-xs font-semibold text-muted-foreground">
                         {ordinalLabel(index + 1)}
                       </span>
                       <div className="flex-1">
@@ -710,38 +776,41 @@ function AddHierarchyMemberDialog({
                           setChainApproverIds((prev) => prev.filter((_, i) => i !== index))
                         }
                         disabled={pending}
-                        className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+                        className="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
                       >
                         <X className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="rounded-xl"
-                    onClick={() => setChainApproverIds((prev) => [...prev, ""])}
-                    disabled={pending || chainApproverIds.length >= supervisors.length}
-                  >
-                    <Plus className="mr-1.5 h-3.5 w-3.5" />
-                    Add supervisor
-                  </Button>
-                </>
+
+                  <div className="border-t border-border/60 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl"
+                      onClick={() => setChainApproverIds((prev) => [...prev, ""])}
+                      disabled={pending || chainApproverIds.length >= supervisors.length}
+                    >
+                      <Plus className="mr-1.5 h-3.5 w-3.5" />
+                      Add supervisor
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
-          </div>
 
-          <div className="flex justify-end">
-            <Button
-              type="submit"
-              className="rounded-xl"
-              disabled={pending || chainApproverIds.some((id) => !id)}
-            >
-              {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating…</> : "Create employee"}
-            </Button>
-          </div>
-        </form>
+            <div className="flex justify-end border-t border-border/60 pt-4">
+              <Button
+                type="submit"
+                className="rounded-xl"
+                disabled={pending || chainApproverIds.some((id) => !id)}
+              >
+                {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating…</> : "Create employee"}
+              </Button>
+            </div>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   )
@@ -864,199 +933,210 @@ function HierarchyEditDialog({
         </Button>
       </DialogTrigger>
       <DialogContent
-        className="sm:w-[min(92vw,720px)] max-h-[90vh] overflow-y-auto"
+        className="flex max-h-[90vh] w-[min(92vw,760px)] flex-col overflow-hidden px-6 pb-6 pt-6 sm:max-w-[760px]"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
-        <DialogHeader>
+        <DialogHeader className="shrink-0 pr-8">
           <DialogTitle>Edit hierarchy</DialogTitle>
           <DialogDescription>
             Update {member.name}&apos;s role, project, title, and approval chain.
           </DialogDescription>
         </DialogHeader>
+        <div
+          className="flex-1 overflow-y-auto pr-3"
+          style={{ scrollbarGutter: "stable both-edges" }}
+        >
 
         {/* ── Role / project / title form ─────────────────────────────────── */}
-        <form action={formAction} className="grid gap-4">
-          <input type="hidden" name="userId" value={member.id} />
-          <input type="hidden" name="email" value={member.email} />
+        <div className="space-y-5 pb-2">
+          <form
+            action={formAction}
+            className="space-y-5 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm"
+          >
+            <input type="hidden" name="userId" value={member.id} />
+            <input type="hidden" name="email" value={member.email} />
+            <input type="hidden" name="xeroConnectionId" value={xeroConnectionId} />
 
-          <div className="rounded-3xl bg-surface-low p-4">
-            <p className="font-bold text-foreground">{member.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {member.email} · {member.employeeId}
-            </p>
-          </div>
-
-          <input type="hidden" name="xeroConnectionId" value={xeroConnectionId} />
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-              <label htmlFor={`edit-role-${member.id}`}>Role</label>
-              <Select
-                name="role"
-                value={editRoleValue}
-                onValueChange={(value) => setEditRoleValue(value as "EMPLOYEE" | "SUPERVISOR")}
-                disabled={pending}
-              >
-                <SelectTrigger id={`edit-role-${member.id}`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="EMPLOYEE">Basic Employee</SelectItem>
-                  <SelectItem value="SUPERVISOR">Supervisor Employee</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="rounded-3xl bg-surface-low p-4">
+              <p className="font-bold text-foreground">{member.name}</p>
+              <p className="text-sm text-muted-foreground">
+                {member.email} · {member.employeeId}
+              </p>
             </div>
 
-            <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-              Job title
-              <Input name="jobTitle" defaultValue={state.values.jobTitle} disabled={pending} />
-            </label>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor={`edit-role-${member.id}`}>Role</label>
+                  <Select
+                    name="role"
+                    value={editRoleValue}
+                    onValueChange={(value) => setEditRoleValue(value as "EMPLOYEE" | "SUPERVISOR")}
+                    disabled={pending}
+                  >
+                    <SelectTrigger id={`edit-role-${member.id}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EMPLOYEE">Basic Employee</SelectItem>
+                      <SelectItem value="SUPERVISOR">Supervisor Employee</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2 text-sm font-semibold text-muted-foreground sm:col-span-2">
-              <label htmlFor={`edit-payout-method-${member.id}`}>Employee type</label>
-              <input type="hidden" name="payoutMethod" value={resolvedEditPayoutMethod} />
-              <Select
-                value={resolvedEditPayoutMethod}
-                onValueChange={(value) => setEditPayoutMethodValue(value as EmployeePayoutMethod)}
-                disabled={pending || editRoleValue === "SUPERVISOR"}
-              >
-                <SelectTrigger id={`edit-payout-method-${member.id}`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {payoutMethodOptions.map((method) => (
-                    <SelectItem key={method} value={method}>
-                      {employeePayoutMethodLabels[method]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {editRoleValue === "SUPERVISOR" ? (
-                <p className="text-xs font-medium text-muted-foreground">
-                  Supervisors are always daily-based paid.
-                </p>
-              ) : null}
-            </div>
-          </div>
+                <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  Job title
+                  <Input name="jobTitle" defaultValue={state.values.jobTitle} disabled={pending} />
+                </label>
+              </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-              Xero organization
-              <div className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 text-base text-foreground shadow-sm sm:h-11 sm:text-sm">
-                {xeroDisplayName || "—"}
+              <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                <label htmlFor={`edit-payout-method-${member.id}`}>Employee type</label>
+                <input type="hidden" name="payoutMethod" value={resolvedEditPayoutMethod} />
+                <Select
+                  value={resolvedEditPayoutMethod}
+                  onValueChange={(value) => setEditPayoutMethodValue(value as EmployeePayoutMethod)}
+                  disabled={pending || editRoleValue === "SUPERVISOR"}
+                >
+                  <SelectTrigger id={`edit-payout-method-${member.id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {payoutMethodOptions.map((method) => (
+                      <SelectItem key={method} value={method}>
+                        {employeePayoutMethodLabels[method]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {editRoleValue === "SUPERVISOR" ? (
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Supervisors are always daily-based paid.
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  Xero organization
+                  <div className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 text-base text-foreground shadow-sm sm:h-11 sm:text-sm">
+                    {xeroDisplayName || "—"}
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label>Projects</label>
+                  <ProjectMultiSelect
+                    inputName="projectIds"
+                    projects={filteredProjects}
+                    selectedProjectIds={selectedEditProjectIds}
+                    disabled={pending}
+                    legacyProjectName={
+                      member.projects.find((project) => project.id.startsWith("legacy:"))?.name
+                    }
+                    onToggle={(projectId) =>
+                      setSelectedEditProjectIds((current) =>
+                        current.includes(projectId)
+                          ? current.filter((id) => id !== projectId)
+                          : [...current, projectId]
+                      )
+                    }
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-              <label>Projects</label>
-              <ProjectMultiSelect
-                inputName="projectIds"
-                projects={filteredProjects}
-                selectedProjectIds={selectedEditProjectIds}
-                disabled={pending}
-                legacyProjectName={
-                  member.projects.find((project) => project.id.startsWith("legacy:"))?.name
-                }
-                onToggle={(projectId) =>
-                  setSelectedEditProjectIds((current) =>
-                    current.includes(projectId)
-                      ? current.filter((id) => id !== projectId)
-                      : [...current, projectId]
-                  )
-                }
-              />
+            <div className="flex justify-end border-t border-border/60 pt-4">
+              <Button type="submit" className="rounded-xl" disabled={pending}>
+                Save changes
+              </Button>
             </div>
-          </div>
-
-          <div className="flex justify-end">
-            <Button type="submit" className="rounded-xl" disabled={pending}>
-              Save changes
-            </Button>
-          </div>
-        </form>
+          </form>
 
         {/* ── Approval chain ──────────────────────────────────────────────── */}
-        <div className="border-t border-border/60 pt-4 space-y-3">
-          <div>
-            <p className="text-sm font-semibold text-muted-foreground">Approval chain</p>
-            <p className="mt-0.5 text-xs text-muted-foreground/70">
-              Claims from {member.name} will require sign-off from each approver in order before reaching admin.
-            </p>
-          </div>
-
-          {approverOptions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No supervisors available. Add supervisors to your team first.
-            </p>
-          ) : (
-            <div className="space-y-2">
-              {chainApproverIds.map((approverId, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <span className="shrink-0 w-28 text-xs font-semibold text-muted-foreground">
-                    {ordinalLabel(index + 1)}
-                  </span>
-                  <div className="flex-1">
-                    <Select
-                      value={approverId || undefined}
-                      onValueChange={(v) => handleChainApproverChange(index, v)}
-                      disabled={chainPending}
-                    >
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Select approver…" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {approverOptions.map((s) => (
-                          <SelectItem
-                            key={s.id}
-                            value={s.id}
-                            disabled={chainApproverIds.some((id, i) => id === s.id && i !== index)}
-                          >
-                            {s.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveChainStep(index)}
-                    disabled={chainPending}
-                    className="shrink-0 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-50"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-
-              <div className="flex items-center justify-between pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={handleAddChainStep}
-                  disabled={chainPending || chainApproverIds.length >= approverOptions.length}
-                >
-                  <Plus className="mr-1.5 h-3.5 w-3.5" />
-                  Add supervisor
-                </Button>
-
-                <Button
-                  type="button"
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={handleSaveChain}
-                  disabled={chainPending || chainApproverIds.some((id) => !id)}
-                >
-                  {chainPending ? (
-                    <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Saving…</>
-                  ) : (
-                    "Save chain"
-                  )}
-                </Button>
-              </div>
+          <div className="space-y-4 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground">Approval chain</p>
+              <p className="mt-0.5 text-xs text-muted-foreground/70">
+                Claims from {member.name} will require sign-off from each approver in order before reaching admin.
+              </p>
             </div>
-          )}
+
+            {approverOptions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No supervisors available. Add supervisors to your team first.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {chainApproverIds.map((approverId, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <span className="w-28 shrink-0 text-xs font-semibold text-muted-foreground">
+                      {ordinalLabel(index + 1)}
+                    </span>
+                    <div className="flex-1">
+                      <Select
+                        value={approverId || undefined}
+                        onValueChange={(v) => handleChainApproverChange(index, v)}
+                        disabled={chainPending}
+                      >
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Select approver…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {approverOptions.map((s) => (
+                            <SelectItem
+                              key={s.id}
+                              value={s.id}
+                              disabled={chainApproverIds.some((id, i) => id === s.id && i !== index)}
+                            >
+                              {s.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveChainStep(index)}
+                      disabled={chainPending}
+                      className="shrink-0 text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+
+                <div className="flex items-center justify-between border-t border-border/60 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={handleAddChainStep}
+                    disabled={chainPending || chainApproverIds.length >= approverOptions.length}
+                  >
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    Add supervisor
+                  </Button>
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={handleSaveChain}
+                    disabled={chainPending || chainApproverIds.some((id) => !id)}
+                  >
+                    {chainPending ? (
+                      <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Saving…</>
+                    ) : (
+                      "Save chain"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
         </div>
       </DialogContent>
     </Dialog>

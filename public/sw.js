@@ -1,7 +1,9 @@
-const CACHE_NAME = "claimguard-shell-v6"
+const CACHE_NAME = "claimguard-shell-v7"
 const OFFLINE_FALLBACK = "/offline.html"
+const LAUNCH_FALLBACK = "/launch.html"
 const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
-const APP_SHELL = ["/", OFFLINE_FALLBACK, BRAND_ICON_URL]
+const NAVIGATION_TIMEOUT_MS = 1200
+const APP_SHELL = ["/", OFFLINE_FALLBACK, LAUNCH_FALLBACK, BRAND_ICON_URL]
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -11,12 +13,15 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
-      )
-      .then(() => self.clients.claim())
+    (async () => {
+      if ("navigationPreload" in self.registration) {
+        await self.registration.navigationPreload.enable().catch(() => undefined)
+      }
+
+      const keys = await caches.keys()
+      await Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+      await self.clients.claim()
+    })()
   )
 })
 
@@ -28,7 +33,7 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url)
 
   if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE_FALLBACK)))
+    event.respondWith(handleNavigationRequest(event))
     return
   }
 
@@ -56,6 +61,42 @@ self.addEventListener("fetch", (event) => {
     })
   )
 })
+
+async function handleNavigationRequest(event) {
+  try {
+    const response = await Promise.race([
+      getNavigationNetworkResponse(event),
+      wait(NAVIGATION_TIMEOUT_MS),
+    ])
+
+    if (response) {
+      return response
+    }
+
+    return (
+      (await caches.match(LAUNCH_FALLBACK)) ||
+      (await caches.match(OFFLINE_FALLBACK)) ||
+      Response.error()
+    )
+  } catch {
+    return (await caches.match(OFFLINE_FALLBACK)) || Response.error()
+  }
+}
+
+async function getNavigationNetworkResponse(event) {
+  const preloadResponse = await event.preloadResponse
+  if (preloadResponse) {
+    return preloadResponse
+  }
+
+  return fetch(event.request)
+}
+
+function wait(durationMs) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(null), durationMs)
+  })
+}
 
 self.addEventListener("push", (event) => {
   if (!event.data) {

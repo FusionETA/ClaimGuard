@@ -68,6 +68,8 @@ export type OrganizationProjectOption = {
   projectManagerId?: string
   projectManagerName?: string
   location?: string
+  latitude?: number
+  longitude?: number
   isManual: boolean
 }
 

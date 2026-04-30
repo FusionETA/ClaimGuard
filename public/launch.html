@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Opening ClaimGuard</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --background: #f7f9fb;
+        --surface: rgba(255, 255, 255, 0.92);
+        --foreground: #191c1e;
+        --muted: #5d6470;
+        --primary: #0a396c;
+        --primary-soft: rgba(10, 57, 108, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at top left, rgba(42, 80, 132, 0.16), transparent 42%),
+          radial-gradient(circle at top right, rgba(203, 231, 245, 0.4), transparent 28%),
+          var(--background);
+        font-family: Manrope, Inter, system-ui, sans-serif;
+        color: var(--foreground);
+        padding: 24px;
+      }
+
+      main {
+        width: min(100%, 460px);
+        border: 1px solid rgba(10, 57, 108, 0.08);
+        background: var(--surface);
+        backdrop-filter: blur(18px);
+        border-radius: 28px;
+        padding: 32px;
+        box-shadow: 0 20px 60px rgba(10, 57, 108, 0.1);
+        text-align: center;
+      }
+
+      img {
+        width: 164px;
+        height: auto;
+      }
+
+      .spinner-wrap {
+        margin-top: 28px;
+        display: inline-flex;
+        height: 44px;
+        width: 44px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        border: 1px solid rgba(10, 57, 108, 0.15);
+        background: var(--primary-soft);
+      }
+
+      .spinner {
+        height: 20px;
+        width: 20px;
+        border-radius: 999px;
+        border: 2px solid rgba(10, 57, 108, 0.18);
+        border-top-color: var(--primary);
+        animation: spin 0.9s linear infinite;
+      }
+
+      h1 {
+        margin: 18px 0 0;
+        font-size: 1.05rem;
+      }
+
+      p {
+        margin: 8px 0 0;
+        line-height: 1.6;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/brand-logo.png" alt="ClaimGuard logo" />
+      <div class="spinner-wrap" aria-hidden="true">
+        <div class="spinner"></div>
+      </div>
+      <h1>Resuming ClaimGuard...</h1>
+      <p id="status">Reconnecting to your workspace.</p>
+    </main>
+
+    <script>
+      const status = document.getElementById("status")
+      const targetUrl = window.location.href
+      let attempts = 0
+
+      async function probeAndResume() {
+        attempts += 1
+
+        try {
+          const response = await fetch(targetUrl, {
+            method: "GET",
+            cache: "no-store",
+            credentials: "include",
+            headers: {
+              "x-claimguard-resume-probe": "1",
+            },
+          })
+
+          if (response.ok || response.redirected) {
+            window.location.reload()
+            return
+          }
+
+          status.textContent = "Still reconnecting. Opening your last page shortly."
+        } catch {
+          status.textContent =
+            attempts > 2
+              ? "Still waiting for a connection. ClaimGuard will continue once the app is reachable."
+              : "Reconnecting to your workspace."
+        }
+
+        window.setTimeout(probeAndResume, attempts > 2 ? 1800 : 1200)
+      }
+
+      window.setTimeout(probeAndResume, 300)
+    </script>
+  </body>
+</html>

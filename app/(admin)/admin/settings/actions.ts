@@ -565,6 +565,10 @@ export async function createManualProjectAction(
   const rawPm = String(formData.get("projectManagerId") ?? "").trim()
   const projectManagerId = rawPm && rawPm !== "__none" ? rawPm : undefined
   const location = String(formData.get("location") ?? "").trim() || undefined
+  const rawLat = parseFloat(String(formData.get("latitude") ?? ""))
+  const rawLng = parseFloat(String(formData.get("longitude") ?? ""))
+  const latitude = isNaN(rawLat) ? undefined : rawLat
+  const longitude = isNaN(rawLng) ? undefined : rawLng
 
   if (!name) {
     return { status: "error", message: "Project name is required." }
@@ -576,6 +580,8 @@ export async function createManualProjectAction(
       name,
       projectManagerId,
       location,
+      latitude,
+      longitude,
     })
   } catch (error) {
     return {
@@ -593,7 +599,9 @@ export async function createManualProjectAction(
 export async function updateProjectAction(
   projectId: string,
   projectManagerId: string | undefined,
-  location: string | undefined
+  location: string | undefined,
+  latitude: number | null | undefined,
+  longitude: number | null | undefined
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
 
@@ -612,6 +620,8 @@ export async function updateProjectAction(
       organizationId,
       projectManagerId: projectManagerId || undefined,
       location: location || undefined,
+      latitude: latitude ?? null,
+      longitude: longitude ?? null,
     })
   } catch (error) {
     return {

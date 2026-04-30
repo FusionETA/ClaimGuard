@@ -222,6 +222,8 @@ model XeroProject {
   updatedAt         DateTime                    @updatedAt
   isManual          Boolean                     @default(false)
   location          String?
+  latitude          Float?
+  longitude         Float?
   projectManagerId  String?
   isDisabled        Boolean                     @default(false)
   assignedEmployees EmployeeProjectAssignment[]
