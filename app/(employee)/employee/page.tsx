@@ -64,6 +64,9 @@ export default async function EmployeeDashboardPage() {
           projects={projects}
           activeProject={activeProject}
           activeLocation={activeLocation}
+          activeProjectLat={attendanceDashboard.activeProjectCoords?.latitude ?? null}
+          activeProjectLng={attendanceDashboard.activeProjectCoords?.longitude ?? null}
+          geofenceRadiusMeters={attendanceDashboard.geofenceRadiusMeters}
           now={nowIso}
         />
       </section>

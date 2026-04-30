@@ -111,7 +111,8 @@ export const OrganizationScalarFieldEnum = {
   otRateRestDay: 'otRateRestDay',
   otSalaryThreshold: 'otSalaryThreshold',
   publicHolidayInShiftRate: 'publicHolidayInShiftRate',
-  restDayInShiftRate: 'restDayInShiftRate'
+  restDayInShiftRate: 'restDayInShiftRate',
+  geofenceRadiusMeters: 'geofenceRadiusMeters'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -270,6 +271,7 @@ export const AttendanceRecordScalarFieldEnum = {
   lateByMin: 'lateByMin',
   location: 'location',
   project: 'project',
+  projectId: 'projectId',
   status: 'status',
   notes: 'notes',
   createdAt: 'createdAt',
@@ -470,6 +472,7 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
   employeeId: 'employeeId',
   location: 'location',
   project: 'project',
+  projectId: 'projectId',
   notes: 'notes'
 } as const
 

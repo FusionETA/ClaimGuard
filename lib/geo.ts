@@ -1,3 +1,5 @@
+export const DEFAULT_GEOFENCE_RADIUS_METERS = 200
+
 export function haversineMeters(
   lat1: number,
   lng1: number,
@@ -12,4 +14,33 @@ export function haversineMeters(
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
   return 2 * R * Math.asin(Math.sqrt(a))
+}
+
+export type GeofenceCheck = {
+  withinRadius: boolean
+  distanceMeters: number | null
+  reason: "ok" | "no_gps" | "no_project_coords" | "outside_radius"
+}
+
+export function checkGeofence(
+  employee: { lat: number; lng: number } | null,
+  project: { latitude: number | null; longitude: number | null },
+  radiusMeters: number,
+): GeofenceCheck {
+  if (!employee) {
+    return { withinRadius: false, distanceMeters: null, reason: "no_gps" }
+  }
+  if (project.latitude == null || project.longitude == null) {
+    return { withinRadius: false, distanceMeters: null, reason: "no_project_coords" }
+  }
+  const distance = haversineMeters(
+    employee.lat,
+    employee.lng,
+    project.latitude,
+    project.longitude,
+  )
+  if (distance <= radiusMeters) {
+    return { withinRadius: true, distanceMeters: distance, reason: "ok" }
+  }
+  return { withinRadius: false, distanceMeters: distance, reason: "outside_radius" }
 }

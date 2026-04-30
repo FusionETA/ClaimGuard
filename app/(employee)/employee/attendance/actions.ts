@@ -26,6 +26,14 @@ function parseCoords(
   return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : undefined
 }
 
+function parseNotes(formData: FormData | undefined): string | undefined {
+  if (!formData) return undefined
+  const raw = formData.get("notes")
+  if (typeof raw !== "string") return undefined
+  const trimmed = raw.trim()
+  return trimmed ? trimmed : undefined
+}
+
 export async function clockInAction(
   _prev: ClockInState,
   formData: FormData,
@@ -34,14 +42,9 @@ export async function clockInAction(
   const projectId = String(formData.get("projectId") ?? "")
   if (!projectId) return { error: "Pick a project before clocking in." }
   const coords = parseCoords(formData)
-  console.log(
-    "[clockInAction] employee=%s project=%s coords=%o",
-    session.userId,
-    projectId,
-    coords,
-  )
+  const notes = parseNotes(formData)
   try {
-    await employeeAttendanceService.clockIn(session.userId, projectId, coords)
+    await employeeAttendanceService.clockIn(session.userId, projectId, coords, notes)
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Could not clock in" }
   }
@@ -52,13 +55,15 @@ export async function clockInAction(
 export async function clockOutAction(formData?: FormData) {
   const session = await requirePortalSession("EMPLOYEE")
   const coords = parseCoords(formData)
-  await employeeAttendanceService.clockOut(session.userId, coords)
+  const notes = parseNotes(formData)
+  await employeeAttendanceService.clockOut(session.userId, coords, notes)
   revalidateAll()
 }
 
 export async function confirmBreakAction(formData?: FormData) {
   const session = await requirePortalSession("EMPLOYEE")
   const coords = parseCoords(formData)
-  await employeeAttendanceService.confirmBreak(session.userId, coords)
+  const notes = parseNotes(formData)
+  await employeeAttendanceService.confirmBreak(session.userId, coords, notes)
   revalidateAll()
 }

@@ -80,6 +80,9 @@ export function EmployeeAttendanceDashboardView({
         projects={projects}
         activeProject={dashboard.today?.project ?? null}
         activeLocation={dashboard.today?.location ?? null}
+        activeProjectLat={dashboard.activeProjectCoords?.latitude ?? null}
+        activeProjectLng={dashboard.activeProjectCoords?.longitude ?? null}
+        geofenceRadiusMeters={dashboard.geofenceRadiusMeters}
         now={now.toISOString()}
       />
 

@@ -34,6 +34,7 @@ export type OrganizationAvgAggregateOutputType = {
   otSalaryThreshold: runtime.Decimal | null
   publicHolidayInShiftRate: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
+  geofenceRadiusMeters: number | null
 }
 
 export type OrganizationSumAggregateOutputType = {
@@ -44,6 +45,7 @@ export type OrganizationSumAggregateOutputType = {
   otSalaryThreshold: runtime.Decimal | null
   publicHolidayInShiftRate: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
+  geofenceRadiusMeters: number | null
 }
 
 export type OrganizationMinAggregateOutputType = {
@@ -61,6 +63,7 @@ export type OrganizationMinAggregateOutputType = {
   otSalaryThreshold: runtime.Decimal | null
   publicHolidayInShiftRate: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
+  geofenceRadiusMeters: number | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -78,6 +81,7 @@ export type OrganizationMaxAggregateOutputType = {
   otSalaryThreshold: runtime.Decimal | null
   publicHolidayInShiftRate: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
+  geofenceRadiusMeters: number | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -95,6 +99,7 @@ export type OrganizationCountAggregateOutputType = {
   otSalaryThreshold: number
   publicHolidayInShiftRate: number
   restDayInShiftRate: number
+  geofenceRadiusMeters: number
   _all: number
 }
 
@@ -107,6 +112,7 @@ export type OrganizationAvgAggregateInputType = {
   otSalaryThreshold?: true
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
+  geofenceRadiusMeters?: true
 }
 
 export type OrganizationSumAggregateInputType = {
@@ -117,6 +123,7 @@ export type OrganizationSumAggregateInputType = {
   otSalaryThreshold?: true
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
+  geofenceRadiusMeters?: true
 }
 
 export type OrganizationMinAggregateInputType = {
@@ -134,6 +141,7 @@ export type OrganizationMinAggregateInputType = {
   otSalaryThreshold?: true
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
+  geofenceRadiusMeters?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -151,6 +159,7 @@ export type OrganizationMaxAggregateInputType = {
   otSalaryThreshold?: true
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
+  geofenceRadiusMeters?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -168,6 +177,7 @@ export type OrganizationCountAggregateInputType = {
   otSalaryThreshold?: true
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
+  geofenceRadiusMeters?: true
   _all?: true
 }
 
@@ -272,6 +282,7 @@ export type OrganizationGroupByOutputType = {
   otSalaryThreshold: runtime.Decimal
   publicHolidayInShiftRate: runtime.Decimal
   restDayInShiftRate: runtime.Decimal
+  geofenceRadiusMeters: number
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -312,6 +323,7 @@ export type OrganizationWhereInput = {
   otSalaryThreshold?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFilter<"Organization"> | number
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
@@ -335,6 +347,7 @@ export type OrganizationOrderByWithRelationInput = {
   otSalaryThreshold?: Prisma.SortOrder
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  geofenceRadiusMeters?: Prisma.SortOrder
   adminMembers?: Prisma.AdminOrganizationOrderByRelationAggregateInput
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
@@ -362,6 +375,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   otSalaryThreshold?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFilter<"Organization"> | number
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
@@ -385,6 +399,7 @@ export type OrganizationOrderByWithAggregationInput = {
   otSalaryThreshold?: Prisma.SortOrder
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  geofenceRadiusMeters?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -410,6 +425,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   otSalaryThreshold?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntWithAggregatesFilter<"Organization"> | number
 }
 
 export type OrganizationCreateInput = {
@@ -427,6 +443,7 @@ export type OrganizationCreateInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -450,6 +467,7 @@ export type OrganizationUncheckedCreateInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -473,6 +491,7 @@ export type OrganizationUpdateInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -496,6 +515,7 @@ export type OrganizationUncheckedUpdateInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -519,6 +539,7 @@ export type OrganizationCreateManyInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -536,6 +557,7 @@ export type OrganizationUpdateManyMutationInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -553,6 +575,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type OrganizationNullableScalarRelationFilter = {
@@ -581,6 +604,7 @@ export type OrganizationCountOrderByAggregateInput = {
   otSalaryThreshold?: Prisma.SortOrder
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  geofenceRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
@@ -591,6 +615,7 @@ export type OrganizationAvgOrderByAggregateInput = {
   otSalaryThreshold?: Prisma.SortOrder
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  geofenceRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationMaxOrderByAggregateInput = {
@@ -608,6 +633,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   otSalaryThreshold?: Prisma.SortOrder
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  geofenceRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -625,6 +651,7 @@ export type OrganizationMinOrderByAggregateInput = {
   otSalaryThreshold?: Prisma.SortOrder
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  geofenceRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
@@ -635,6 +662,7 @@ export type OrganizationSumOrderByAggregateInput = {
   otSalaryThreshold?: Prisma.SortOrder
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
+  geofenceRadiusMeters?: Prisma.SortOrder
 }
 
 export type OrganizationScalarRelationFilter = {
@@ -761,6 +789,7 @@ export type OrganizationCreateWithoutUsersInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -783,6 +812,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -821,6 +851,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -843,6 +874,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -865,6 +897,7 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -887,6 +920,7 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -925,6 +959,7 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -947,6 +982,7 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -969,6 +1005,7 @@ export type OrganizationCreateWithoutClaimsInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -991,6 +1028,7 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1029,6 +1067,7 @@ export type OrganizationUpdateWithoutClaimsInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -1051,6 +1090,7 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1073,6 +1113,7 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -1095,6 +1136,7 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1133,6 +1175,7 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -1155,6 +1198,7 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1177,6 +1221,7 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1199,6 +1244,7 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1237,6 +1283,7 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1259,6 +1306,7 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1281,6 +1329,7 @@ export type OrganizationCreateWithoutProjectsInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1303,6 +1352,7 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1341,6 +1391,7 @@ export type OrganizationUpdateWithoutProjectsInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1363,6 +1414,7 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1461,6 +1513,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   otSalaryThreshold?: boolean
   publicHolidayInShiftRate?: boolean
   restDayInShiftRate?: boolean
+  geofenceRadiusMeters?: boolean
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
@@ -1487,9 +1540,10 @@ export type OrganizationSelectScalar = {
   otSalaryThreshold?: boolean
   publicHolidayInShiftRate?: boolean
   restDayInShiftRate?: boolean
+  geofenceRadiusMeters?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
@@ -1525,6 +1579,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     otSalaryThreshold: runtime.Decimal
     publicHolidayInShiftRate: runtime.Decimal
     restDayInShiftRate: runtime.Decimal
+    geofenceRadiusMeters: number
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -1914,6 +1969,7 @@ export interface OrganizationFieldRefs {
   readonly otSalaryThreshold: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly publicHolidayInShiftRate: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly restDayInShiftRate: Prisma.FieldRef<"Organization", 'Decimal'>
+  readonly geofenceRadiusMeters: Prisma.FieldRef<"Organization", 'Int'>
 }
     
 
