@@ -15,6 +15,17 @@ function revalidateAll() {
   revalidatePath("/admin/attendance")
 }
 
+function parseCoords(
+  formData: FormData | undefined,
+): { lat: number; lng: number } | undefined {
+  if (!formData) return undefined
+  const latRaw = formData.get("lat")
+  const lngRaw = formData.get("lng")
+  const lat = typeof latRaw === "string" ? parseFloat(latRaw) : NaN
+  const lng = typeof lngRaw === "string" ? parseFloat(lngRaw) : NaN
+  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : undefined
+}
+
 export async function clockInAction(
   _prev: ClockInState,
   formData: FormData,
@@ -22,12 +33,7 @@ export async function clockInAction(
   const session = await requirePortalSession("EMPLOYEE")
   const projectId = String(formData.get("projectId") ?? "")
   if (!projectId) return { error: "Pick a project before clocking in." }
-  const latRaw = formData.get("lat")
-  const lngRaw = formData.get("lng")
-  const lat = typeof latRaw === "string" ? parseFloat(latRaw) : NaN
-  const lng = typeof lngRaw === "string" ? parseFloat(lngRaw) : NaN
-  const coords =
-    Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : undefined
+  const coords = parseCoords(formData)
   console.log(
     "[clockInAction] employee=%s project=%s coords=%o",
     session.userId,
@@ -43,14 +49,16 @@ export async function clockInAction(
   return {}
 }
 
-export async function clockOutAction() {
+export async function clockOutAction(formData?: FormData) {
   const session = await requirePortalSession("EMPLOYEE")
-  await employeeAttendanceService.clockOut(session.userId)
+  const coords = parseCoords(formData)
+  await employeeAttendanceService.clockOut(session.userId, coords)
   revalidateAll()
 }
 
-export async function confirmBreakAction() {
+export async function confirmBreakAction(formData?: FormData) {
   const session = await requirePortalSession("EMPLOYEE")
-  await employeeAttendanceService.confirmBreak(session.userId)
+  const coords = parseCoords(formData)
+  await employeeAttendanceService.confirmBreak(session.userId, coords)
   revalidateAll()
 }
