@@ -251,6 +251,8 @@ export const XeroProjectScalarFieldEnum = {
   updatedAt: 'updatedAt',
   isManual: 'isManual',
   location: 'location',
+  latitude: 'latitude',
+  longitude: 'longitude',
   projectManagerId: 'projectManagerId',
   isDisabled: 'isDisabled'
 } as const
