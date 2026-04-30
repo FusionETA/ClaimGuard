@@ -1,12 +1,7 @@
-const CACHE_NAME = "claimguard-shell-v8"
+const CACHE_NAME = "claimguard-shell-v9"
 const OFFLINE_FALLBACK = "/offline.html"
-const LAUNCH_FALLBACK = "/launch.html"
 const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
-// Only fall back to the launch splash if the network is truly hung.
-// A short race (e.g. 1.2s) caused infinite splash loops on mobile cold-starts:
-// SW served launch.html → launch.html reloaded → SW raced again → launch.html again.
-const NAVIGATION_TIMEOUT_MS = 10_000
-const APP_SHELL = ["/", OFFLINE_FALLBACK, LAUNCH_FALLBACK, BRAND_ICON_URL]
+const APP_SHELL = ["/", OFFLINE_FALLBACK, BRAND_ICON_URL]
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -66,29 +61,20 @@ self.addEventListener("fetch", (event) => {
 })
 
 async function handleNavigationRequest(event) {
-  // If launch.html just reloaded into us, never serve launch.html again — wait for the
-  // real network response no matter how long it takes. Breaks the cold-start splash loop.
-  const url = new URL(event.request.url)
-  const skipLaunch = url.searchParams.get("__cgresume") === "1"
-
+  // Network-first: try preload response first (fastest), then a real fetch.
+  // Only fall back to the offline page if the network actually fails — never
+  // timeout and serve an intermediate splash, since AppResumeIndicator already
+  // handles the loading UX once Next.js is on screen.
   try {
-    const response = await Promise.race([
-      getNavigationNetworkResponse(event),
-      skipLaunch ? new Promise(() => {}) : wait(NAVIGATION_TIMEOUT_MS),
-    ])
-
+    const response = await getNavigationNetworkResponse(event)
     if (response) {
       return response
     }
-
-    return (
-      (await caches.match(LAUNCH_FALLBACK)) ||
-      (await caches.match(OFFLINE_FALLBACK)) ||
-      Response.error()
-    )
   } catch {
-    return (await caches.match(OFFLINE_FALLBACK)) || Response.error()
+    // Network error (true offline) — serve the offline page.
   }
+
+  return (await caches.match(OFFLINE_FALLBACK)) || Response.error()
 }
 
 async function getNavigationNetworkResponse(event) {
@@ -98,12 +84,6 @@ async function getNavigationNetworkResponse(event) {
   }
 
   return fetch(event.request)
-}
-
-function wait(durationMs) {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(null), durationMs)
-  })
 }
 
 self.addEventListener("push", (event) => {
