@@ -50,12 +50,46 @@ export const employeeAttendanceService = {
     if (!prisma) return []
     const user = await prisma.user.findUnique({
       where: { id: employeeId },
-      select: { organizationId: true },
+      select: {
+        organizationId: true,
+        employeeProfile: {
+          select: {
+            project: true,
+            projectAssignments: {
+              select: {
+                project: {
+                  select: {
+                    id: true,
+                    name: true,
+                    status: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        },
+      },
     })
     if (!user?.organizationId) return []
-    const projects = await organizationRepository.getProjectsForOrganization(
-      user.organizationId,
-    )
+
+    const assignedProjects = user.employeeProfile?.projectAssignments ?? []
+    if (assignedProjects.length > 0) {
+      return assignedProjects
+        .map((assignment) => assignment.project)
+        .filter((project) => !project.status || !ARCHIVED_XERO_STATUSES.has(project.status.toUpperCase()))
+        .map((project) => ({ id: project.id, name: project.name }))
+    }
+
+    const projects = await organizationRepository.getProjectsForOrganization(user.organizationId)
+    const legacyProject = user.employeeProfile?.project?.trim()
+    if (legacyProject) {
+      return projects
+        .filter((project) => project.name === legacyProject)
+        .filter((project) => !project.status || !ARCHIVED_XERO_STATUSES.has(project.status.toUpperCase()))
+        .map((project) => ({ id: project.id, name: project.name }))
+    }
+
     return projects
       .filter((p) => !p.status || !ARCHIVED_XERO_STATUSES.has(p.status.toUpperCase()))
       .map((p) => ({ id: p.id, name: p.name }))

@@ -2,6 +2,11 @@ import "server-only"
 
 import { getPrismaClient } from "@/lib/prisma"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
+import {
+  resolveAssignedProjects,
+  resolveEmployeePayoutMethod,
+  resolvePrimaryProjectName,
+} from "@/modules/organization/domain/models"
 import type {
   AdminProfile,
   ClaimRecord,
@@ -34,6 +39,12 @@ type PrismaUser = {
     project: string
     jobTitle: string
     supervisorId: string | null
+    projectAssignments?: Array<{
+      project: {
+        id: string
+        name: string
+      }
+    }>
     supervisor?: {
       name: string
       email: string
@@ -159,6 +170,11 @@ function mapChartAccount(account?: {
 }
 
 function mapUser(user: PrismaUser): PortalUser {
+  const assignedProjects = resolveAssignedProjects(
+    user.employeeProfile?.project,
+    user.employeeProfile?.projectAssignments?.map((assignment) => assignment.project) ?? [],
+  )
+
   return {
     name: user.name,
     email: user.email,
@@ -166,12 +182,19 @@ function mapUser(user: PrismaUser): PortalUser {
     role: user.role as PortalUser["role"],
     organizationId: user.organizationId ?? undefined,
     organizationName: user.organization?.name ?? undefined,
-    project: user.employeeProfile?.project ?? "Unknown",
+    project: resolvePrimaryProjectName(
+      user.employeeProfile?.project,
+      user.employeeProfile?.projectAssignments?.map((assignment) => assignment.project) ?? [],
+    ),
+    projects: assignedProjects.map((project) => project.name),
     jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
     initials: buildInitials(user.name),
     supervisorEmail: user.employeeProfile?.supervisor?.email ?? undefined,
     supervisorName: user.employeeProfile?.supervisor?.name ?? undefined,
-    payoutMethod: user.employeeProfile?.payoutMethod ?? undefined,
+    payoutMethod: resolveEmployeePayoutMethod(
+      user.role === "SUPERVISOR" ? "SUPERVISOR" : "EMPLOYEE",
+      user.employeeProfile?.payoutMethod,
+    ),
     preferredCurrency: user.employeeProfile?.preferredCurrency ?? "USD",
     xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
     xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
@@ -207,6 +230,17 @@ const claimInclude = {
       organization: true,
       employeeProfile: {
         include: {
+          projectAssignments: {
+            include: {
+              project: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+            orderBy: { createdAt: "asc" },
+          },
           supervisor: true,
           xeroConnection: { select: { tenantName: true } },
         },
@@ -227,6 +261,17 @@ export const claimRepository = {
         organization: true,
         employeeProfile: {
           include: {
+            projectAssignments: {
+              include: {
+                project: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+            },
             supervisor: true,
             xeroConnection: { select: { tenantName: true } },
           },

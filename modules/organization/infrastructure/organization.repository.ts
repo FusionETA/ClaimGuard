@@ -4,13 +4,20 @@ import { hashPassword } from "@/lib/auth/password"
 import { getPrismaClient } from "@/lib/prisma"
 import type {
   AdminOrganizationOption,
+  AssignedProject,
   ChartOfAccountOption,
+  EmployeePayoutMethod,
   OrganizationMember,
   OrganizationProjectOption,
   OrganizationSummary,
   OtRates,
   XeroConnectionInfo,
   XeroConnectionSummary,
+} from "@/modules/organization/domain/models"
+import {
+  resolveAssignedProjects,
+  resolveEmployeePayoutMethod,
+  resolvePrimaryProjectName,
 } from "@/modules/organization/domain/models"
 
 const DEFAULT_OT_RATES: OtRates = {
@@ -108,6 +115,16 @@ function mapChartAccount(account?: {
     isDisabled: account.isDisabled,
     xeroConnectionId: account.xeroConnectionId ?? undefined,
   }
+}
+
+function mapAssignedProjects(
+  legacyProject: string | null | undefined,
+  assignments: Array<{ project: { id: string; name: string } }> = [],
+): AssignedProject[] {
+  return resolveAssignedProjects(
+    legacyProject,
+    assignments.map((assignment) => assignment.project),
+  )
 }
 
 export const organizationRepository = {
@@ -497,6 +514,17 @@ export const organizationRepository = {
         organization: true,
         employeeProfile: {
           include: {
+            projectAssignments: {
+              include: {
+                project: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+            },
             supervisor: true,
             xeroConnection: { select: { id: true, tenantName: true } },
           },
@@ -524,6 +552,10 @@ export const organizationRepository = {
         persistedChain.length === 0 && supervisorId && supervisorName
           ? [{ step: 1, approverId: supervisorId, approverName: supervisorName }]
           : persistedChain
+      const assignedProjects = mapAssignedProjects(
+        user.employeeProfile?.project,
+        user.employeeProfile?.projectAssignments ?? [],
+      )
 
       return {
         id: user.id,
@@ -533,8 +565,16 @@ export const organizationRepository = {
         organizationId: user.organizationId ?? undefined,
         organizationName: user.organization?.name ?? undefined,
         employeeId: user.employeeProfile?.employeeId ?? "N/A",
-        project: user.employeeProfile?.project ?? "Unknown",
+        project: resolvePrimaryProjectName(
+          user.employeeProfile?.project,
+          user.employeeProfile?.projectAssignments?.map((assignment) => assignment.project) ?? [],
+        ),
+        projects: assignedProjects,
         jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
+        payoutMethod: resolveEmployeePayoutMethod(
+          user.role as OrganizationMember["role"],
+          user.employeeProfile?.payoutMethod,
+        ),
         supervisorId,
         supervisorName,
         xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
@@ -548,8 +588,9 @@ export const organizationRepository = {
     userId: string
     role: "EMPLOYEE" | "SUPERVISOR"
     organizationId: string
-    project?: string
+    projectIds: string[]
     jobTitle: string
+    payoutMethod: EmployeePayoutMethod
     xeroConnectionId?: string
   }): Promise<boolean> {
     const prisma = getPrismaClient()
@@ -579,6 +620,33 @@ export const organizationRepository = {
       }
     }
 
+    const assignedProjects = data.projectIds.length
+      ? await prisma.xeroProject.findMany({
+          where: {
+            id: { in: data.projectIds },
+            organizationId: data.organizationId,
+            ...(data.xeroConnectionId
+              ? {
+                  OR: [
+                    { xeroConnectionId: data.xeroConnectionId },
+                    { xeroConnectionId: null },
+                  ],
+                }
+              : {}),
+          },
+          select: { id: true, name: true },
+        })
+      : []
+
+    if (assignedProjects.length !== data.projectIds.length) {
+      throw new Error("Selected projects must belong to this organization.")
+    }
+
+    const assignedProjectById = new Map(assignedProjects.map((project) => [project.id, project]))
+    const primaryProjectName = data.projectIds
+      .map((projectId) => assignedProjectById.get(projectId)?.name)
+      .find(Boolean) ?? ""
+
     await prisma.$transaction([
       prisma.user.update({
         where: { id: data.userId },
@@ -590,11 +658,27 @@ export const organizationRepository = {
       prisma.employeeProfile.update({
         where: { userId: data.userId },
         data: {
-          project: data.project ?? "",
+          project: primaryProjectName,
           jobTitle: data.jobTitle,
+          payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
           xeroConnectionId: data.xeroConnectionId || null,
         },
       }),
+      prisma.employeeProjectAssignment.deleteMany({
+        where: {
+          employeeProfile: {
+            userId: data.userId,
+          },
+        },
+      }),
+      ...data.projectIds.map((projectId) =>
+        prisma.employeeProjectAssignment.create({
+          data: {
+            employeeProfile: { connect: { userId: data.userId } },
+            project: { connect: { id: projectId } },
+          },
+        })
+      ),
     ])
 
     return true
@@ -607,8 +691,9 @@ export const organizationRepository = {
     employeeId: string
     role: "EMPLOYEE" | "SUPERVISOR"
     organizationId: string
-    project?: string
+    projectIds: string[]
     jobTitle: string
+    payoutMethod: EmployeePayoutMethod
     supervisorId?: string
     xeroConnectionId?: string
   }): Promise<{ id: string }> {
@@ -659,6 +744,33 @@ export const organizationRepository = {
       }
     }
 
+    const assignedProjects = data.projectIds.length
+      ? await prisma.xeroProject.findMany({
+          where: {
+            id: { in: data.projectIds },
+            organizationId: data.organizationId,
+            ...(data.xeroConnectionId
+              ? {
+                  OR: [
+                    { xeroConnectionId: data.xeroConnectionId },
+                    { xeroConnectionId: null },
+                  ],
+                }
+              : {}),
+          },
+          select: { id: true, name: true },
+        })
+      : []
+
+    if (assignedProjects.length !== data.projectIds.length) {
+      throw new Error("Selected projects must belong to this organization.")
+    }
+
+    const assignedProjectById = new Map(assignedProjects.map((project) => [project.id, project]))
+    const primaryProjectName = data.projectIds
+      .map((projectId) => assignedProjectById.get(projectId)?.name)
+      .find(Boolean) ?? ""
+
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -669,11 +781,17 @@ export const organizationRepository = {
         employeeProfile: {
           create: {
             employeeId: data.employeeId,
-            project: data.project ?? "",
+            project: primaryProjectName,
             jobTitle: data.jobTitle,
             supervisorId: data.supervisorId || null,
+            payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
             preferredCurrency: "USD",
             xeroConnectionId: data.xeroConnectionId || null,
+            projectAssignments: {
+              create: data.projectIds.map((projectId) => ({
+                project: { connect: { id: projectId } },
+              })),
+            },
           },
         },
       },

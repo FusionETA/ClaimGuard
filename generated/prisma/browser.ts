@@ -43,6 +43,11 @@ export type PushSubscription = Prisma.PushSubscriptionModel
  */
 export type EmployeeProfile = Prisma.EmployeeProfileModel
 /**
+ * Model EmployeeProjectAssignment
+ * 
+ */
+export type EmployeeProjectAssignment = Prisma.EmployeeProjectAssignmentModel
+/**
  * Model Claim
  * 
  */
