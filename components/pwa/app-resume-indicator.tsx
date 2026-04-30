@@ -16,6 +16,20 @@ export function AppResumeIndicator({ children }: { children: React.ReactNode }) 
   const hiddenAtRef = useRef<number | null>(null)
 
   useEffect(() => {
+    // Strip the launch-splash escape marker from the URL so it doesn't linger in
+    // history / share links. The marker tells the service worker to skip the
+    // launch.html fallback for one navigation; it has no use after boot.
+    try {
+      const currentUrl = new URL(window.location.href)
+      if (currentUrl.searchParams.has("__cgresume")) {
+        currentUrl.searchParams.delete("__cgresume")
+        const cleaned = currentUrl.pathname + (currentUrl.search ? currentUrl.search : "") + currentUrl.hash
+        window.history.replaceState(window.history.state, "", cleaned)
+      }
+    } catch {
+      // Non-fatal — marker just stays in the URL.
+    }
+
     showOverlay("Opening ClaimGuard...", BOOT_OVERLAY_MS)
 
     function shouldSkipRecoveryReload() {
