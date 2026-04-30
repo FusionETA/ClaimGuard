@@ -1,5 +1,6 @@
 import type {
   ChartOfAccountOption,
+  EmployeePayoutMethod,
   OrganizationProjectOption,
   OrganizationSummary,
   XeroConnectionSummary,
@@ -31,11 +32,12 @@ export type PortalUser = {
   organizationId?: string
   organizationName?: string
   project: string
+  projects: string[]
   jobTitle: string
   initials: string
   supervisorEmail?: string
   supervisorName?: string
-  payoutMethod?: string
+  payoutMethod?: EmployeePayoutMethod
   preferredCurrency?: string
   xeroConnectionId?: string
   xeroConnectionName?: string

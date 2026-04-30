@@ -213,8 +213,21 @@ export default async function EmployeeDashboardPage() {
               <p className="mt-2 text-xl font-black">{data.employee.employeeId}</p>
             </div>
             <div className="rounded-[24px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Project</p>
-              <p className="mt-2 text-xl font-black">{data.employee.project}</p>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Projects</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {data.employee.projects.length > 0 ? (
+                  data.employee.projects.map((project) => (
+                    <span
+                      key={project}
+                      className="inline-flex rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground"
+                    >
+                      {project}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-xl font-black">{data.employee.project}</p>
+                )}
+              </div>
             </div>
             <div className="rounded-[24px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Role</p>

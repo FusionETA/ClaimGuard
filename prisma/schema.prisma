@@ -101,10 +101,25 @@ model EmployeeProfile {
   updatedAt         DateTime        @updatedAt
   supervisor        User?           @relation("SupervisorReports", fields: [supervisorId], references: [id])
   user              User            @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  projectAssignments EmployeeProjectAssignment[]
   xeroConnection    XeroConnection? @relation(fields: [xeroConnectionId], references: [id])
 
   @@index([supervisorId])
   @@index([xeroConnectionId])
+}
+
+model EmployeeProjectAssignment {
+  id                String          @id @default(cuid())
+  employeeProfileId String
+  projectId         String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  project           XeroProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeProfileId, projectId])
+  @@index([employeeProfileId])
+  @@index([projectId])
 }
 
 model Claim {
@@ -216,6 +231,7 @@ model XeroProject {
   organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
   projectManager   User?           @relation("ProjectManager", fields: [projectManagerId], references: [id], onDelete: SetNull)
+  assignedEmployees EmployeeProjectAssignment[]
 
   @@unique([xeroConnectionId, xeroProjectId])
   @@index([xeroConnectionId, name])

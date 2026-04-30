@@ -1,8 +1,11 @@
+import type { EmployeePayoutMethod } from "@/modules/organization/domain/models"
+
 export type HierarchyFormValues = {
   role: "EMPLOYEE" | "SUPERVISOR"
   organizationId: string
   project: string
   jobTitle: string
+  payoutMethod: EmployeePayoutMethod
   supervisorId: string
   xeroConnectionId: string
 }
@@ -31,6 +34,7 @@ export function createInitialHierarchyFormState(
       organizationId: values.organizationId ?? "",
       project: values.project ?? "",
       jobTitle: values.jobTitle ?? "",
+      payoutMethod: values.payoutMethod ?? "HOURLY",
       supervisorId: values.supervisorId ?? "",
       xeroConnectionId: values.xeroConnectionId ?? "",
     },
@@ -58,6 +62,7 @@ export function createInitialAddHierarchyMemberFormState(
       organizationId: values?.organizationId ?? "",
       project: values?.project ?? "",
       jobTitle: values?.jobTitle ?? "",
+      payoutMethod: values?.payoutMethod ?? "HOURLY",
       supervisorId: values?.supervisorId ?? "",
       xeroConnectionId: values?.xeroConnectionId ?? "",
     },

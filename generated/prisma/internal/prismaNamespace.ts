@@ -389,6 +389,7 @@ export const ModelName = {
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
+  EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
@@ -411,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "attendanceRecord" | "approvalRequest" | "approvalChainStep"
+    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "attendanceRecord" | "approvalRequest" | "approvalChainStep"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -742,6 +743,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.EmployeeProfileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.EmployeeProfileCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeProjectAssignment: {
+      payload: Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>
+      fields: Prisma.EmployeeProjectAssignmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeProjectAssignmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeProjectAssignmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeProjectAssignmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeProjectAssignmentPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeProjectAssignmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeProjectAssignmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeProjectAssignmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeProjectAssignmentPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeProjectAssignmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeProjectAssignmentPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeProjectAssignmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeProjectAssignmentPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeProjectAssignmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeProjectAssignmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeProjectAssignmentPayload>
+        }
+        update: {
+          args: Prisma.EmployeeProjectAssignmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeProjectAssignmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeProjectAssignmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeProjectAssignmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeProjectAssignmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeProjectAssignmentPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeProjectAssignmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeProjectAssignment>
+        }
+        groupBy: {
+          args: Prisma.EmployeeProjectAssignmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeProjectAssignmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeProjectAssignmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeProjectAssignmentCountAggregateOutputType> | number
         }
       }
     }
@@ -1320,6 +1387,17 @@ export const EmployeeProfileScalarFieldEnum = {
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
 
 
+export const EmployeeProjectAssignmentScalarFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  projectId: 'projectId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeProjectAssignmentScalarFieldEnum = (typeof EmployeeProjectAssignmentScalarFieldEnum)[keyof typeof EmployeeProjectAssignmentScalarFieldEnum]
+
+
 export const ClaimScalarFieldEnum = {
   id: 'id',
   claimNumber: 'claimNumber',
@@ -1539,6 +1617,15 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
 } as const
 
 export type EmployeeProfileOrderByRelevanceFieldEnum = (typeof EmployeeProfileOrderByRelevanceFieldEnum)[keyof typeof EmployeeProfileOrderByRelevanceFieldEnum]
+
+
+export const EmployeeProjectAssignmentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  projectId: 'projectId'
+} as const
+
+export type EmployeeProjectAssignmentOrderByRelevanceFieldEnum = (typeof EmployeeProjectAssignmentOrderByRelevanceFieldEnum)[keyof typeof EmployeeProjectAssignmentOrderByRelevanceFieldEnum]
 
 
 export const ClaimOrderByRelevanceFieldEnum = {
@@ -1845,6 +1932,7 @@ export type GlobalOmitConfig = {
   adminOrganization?: Prisma.AdminOrganizationOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
   employeeProfile?: Prisma.EmployeeProfileOmit
+  employeeProjectAssignment?: Prisma.EmployeeProjectAssignmentOmit
   claim?: Prisma.ClaimOmit
   chartOfAccount?: Prisma.ChartOfAccountOmit
   xeroConnection?: Prisma.XeroConnectionOmit

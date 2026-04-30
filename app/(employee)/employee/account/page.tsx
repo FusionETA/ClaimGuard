@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/attendance/ui/card"
 import { getEmployeeAccount } from "@/modules/claims/application/services/employee-portal.service"
+import { employeePayoutMethodLabels } from "@/modules/organization/domain/models"
 
 export default async function EmployeeAccountPage() {
   const data = await getEmployeeAccount()
@@ -52,17 +53,29 @@ export default async function EmployeeAccountPage() {
           <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5 md:col-span-2">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Projects</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground">
-                {data.employee.project}
-              </span>
+              {data.employee.projects.length > 0 ? (
+                data.employee.projects.map((project) => (
+                  <span
+                    key={project}
+                    className="inline-flex rounded-full bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground"
+                  >
+                    {project}
+                  </span>
+                ))
+              ) : (
+                <span className="inline-flex rounded-full bg-muted px-3 py-1.5 text-sm font-semibold text-muted-foreground">
+                  No projects assigned
+                </span>
+              )}
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Multi-project assignment is not enabled yet, so your current primary project is shown here.
-            </p>
           </div>
           <div className="rounded-[20px] border border-border/70 bg-card/94 p-4 shadow-ambient backdrop-blur-sm sm:rounded-[24px] sm:p-5 md:col-span-2">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">Payout method</p>
-            <p className="mt-2 text-lg font-black sm:text-xl">{data.employee.payoutMethod}</p>
+            <p className="mt-2 text-lg font-black sm:text-xl">
+              {data.employee.payoutMethod
+                ? employeePayoutMethodLabels[data.employee.payoutMethod]
+                : "Not assigned"}
+            </p>
           </div>
         </CardContent>
       </Card>

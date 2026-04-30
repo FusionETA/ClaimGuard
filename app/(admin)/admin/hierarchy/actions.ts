@@ -11,13 +11,18 @@ import {
 } from "@/app/(admin)/admin/hierarchy/form-state"
 import { clearAdminStore, clearEmployeeStore } from "@/lib/app-store"
 import { getCurrentSession } from "@/lib/auth/session"
+import {
+  employeePayoutMethods,
+  resolveEmployeePayoutMethod,
+} from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 const hierarchySchema = z.object({
   userId: z.string().min(1),
   role: z.enum(["EMPLOYEE", "SUPERVISOR"]),
-  project: z.string().optional(),
+  projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
+  payoutMethod: z.enum(employeePayoutMethods),
   email: z.string().email(),
 })
 
@@ -27,8 +32,9 @@ const createMemberSchema = z.object({
   password: z.string().min(8, "Temporary password must be at least 8 characters."),
   employeeId: z.string().min(2, "Employee ID is required."),
   role: z.enum(["EMPLOYEE", "SUPERVISOR"]),
-  project: z.string().optional(),
+  projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
+  payoutMethod: z.enum(employeePayoutMethods),
 })
 
 export async function updateHierarchyAction(
@@ -36,11 +42,16 @@ export async function updateHierarchyAction(
   formData: FormData
 ): Promise<HierarchyFormState> {
   const xeroConnectionId = String(formData.get("xeroConnectionId") ?? "").trim() || undefined
+  const role = String(formData.get("role") ?? "EMPLOYEE") as "EMPLOYEE" | "SUPERVISOR"
   const values = {
-    role: String(formData.get("role") ?? "EMPLOYEE") as "EMPLOYEE" | "SUPERVISOR",
+    role,
     organizationId: "",
     project: String(formData.get("project") ?? "").trim(),
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
+    payoutMethod: resolveEmployeePayoutMethod(
+      role,
+      String(formData.get("payoutMethod") ?? "").trim()
+    ),
     supervisorId: "",
     xeroConnectionId: xeroConnectionId ?? "",
   }
@@ -67,8 +78,9 @@ export async function updateHierarchyAction(
   const parsed = hierarchySchema.safeParse({
     userId: String(formData.get("userId") ?? ""),
     role: values.role,
-    project: values.project || undefined,
+    projectIds: formData.getAll("projectIds").map(String).filter(Boolean),
     jobTitle: values.jobTitle,
+    payoutMethod: values.payoutMethod,
     email: String(formData.get("email") ?? ""),
   })
 
@@ -84,8 +96,9 @@ export async function updateHierarchyAction(
     userId: parsed.data.userId,
     role: parsed.data.role,
     organizationId,
-    project: parsed.data.project || undefined,
+    projectIds: parsed.data.projectIds,
     jobTitle: parsed.data.jobTitle,
+    payoutMethod: parsed.data.payoutMethod,
     xeroConnectionId,
   })
 
@@ -94,14 +107,16 @@ export async function updateHierarchyAction(
   revalidatePath("/admin")
   revalidatePath("/admin/hierarchy")
   revalidatePath("/employee")
+  revalidatePath("/employee/account")
   revalidatePath("/employee/review")
 
   return {
     ...createInitialHierarchyFormState({
       role: parsed.data.role,
       organizationId,
-      project: parsed.data.project ?? "",
+      project: values.project,
       jobTitle: parsed.data.jobTitle,
+      payoutMethod: parsed.data.payoutMethod,
       xeroConnectionId: xeroConnectionId ?? "",
     }),
     status: "success",
@@ -114,15 +129,20 @@ export async function createHierarchyMemberAction(
   formData: FormData
 ): Promise<AddHierarchyMemberFormState> {
   const xeroConnectionId = String(formData.get("xeroConnectionId") ?? "").trim() || undefined
+  const role = String(formData.get("role") ?? "EMPLOYEE") as "EMPLOYEE" | "SUPERVISOR"
   const values = {
     name: String(formData.get("name") ?? "").trim(),
     email: String(formData.get("email") ?? "").trim(),
     password: String(formData.get("password") ?? ""),
     employeeId: String(formData.get("employeeId") ?? "").trim(),
-    role: String(formData.get("role") ?? "EMPLOYEE") as "EMPLOYEE" | "SUPERVISOR",
+    role,
     organizationId: "",
     project: String(formData.get("project") ?? "").trim(),
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
+    payoutMethod: resolveEmployeePayoutMethod(
+      role,
+      String(formData.get("payoutMethod") ?? "").trim()
+    ),
     supervisorId: "",
     xeroConnectionId: xeroConnectionId ?? "",
   }
@@ -148,7 +168,8 @@ export async function createHierarchyMemberAction(
 
   const parsed = createMemberSchema.safeParse({
     ...values,
-    project: values.project || undefined,
+    projectIds: formData.getAll("projectIds").map(String).filter(Boolean),
+    payoutMethod: values.payoutMethod,
   })
 
   if (!parsed.success) {
@@ -172,8 +193,9 @@ export async function createHierarchyMemberAction(
       employeeId: parsed.data.employeeId,
       role: parsed.data.role,
       organizationId,
-      project: parsed.data.project || undefined,
+      projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
+      payoutMethod: parsed.data.payoutMethod,
       supervisorId,
       xeroConnectionId,
     })

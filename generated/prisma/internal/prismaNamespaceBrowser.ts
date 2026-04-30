@@ -56,6 +56,7 @@ export const ModelName = {
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
+  EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
@@ -153,6 +154,17 @@ export const EmployeeProfileScalarFieldEnum = {
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
+
+
+export const EmployeeProjectAssignmentScalarFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  projectId: 'projectId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeProjectAssignmentScalarFieldEnum = (typeof EmployeeProjectAssignmentScalarFieldEnum)[keyof typeof EmployeeProjectAssignmentScalarFieldEnum]
 
 
 export const ClaimScalarFieldEnum = {
@@ -374,6 +386,15 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
 } as const
 
 export type EmployeeProfileOrderByRelevanceFieldEnum = (typeof EmployeeProfileOrderByRelevanceFieldEnum)[keyof typeof EmployeeProfileOrderByRelevanceFieldEnum]
+
+
+export const EmployeeProjectAssignmentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  projectId: 'projectId'
+} as const
+
+export type EmployeeProjectAssignmentOrderByRelevanceFieldEnum = (typeof EmployeeProjectAssignmentOrderByRelevanceFieldEnum)[keyof typeof EmployeeProjectAssignmentOrderByRelevanceFieldEnum]
 
 
 export const ClaimOrderByRelevanceFieldEnum = {
