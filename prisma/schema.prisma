@@ -50,6 +50,7 @@ model Organization {
   otSalaryThreshold        Decimal             @default(4000.00) @db.Decimal(10, 2)
   publicHolidayInShiftRate Decimal             @default(2.00) @db.Decimal(4, 2)
   restDayInShiftRate       Decimal             @default(1.00) @db.Decimal(4, 2)
+  geofenceRadiusMeters     Int                 @default(200)
   adminMembers             AdminOrganization[]
   chartAccounts            ChartOfAccount[]
   claims                   Claim[]
@@ -227,6 +228,7 @@ model XeroProject {
   projectManagerId  String?
   isDisabled        Boolean                     @default(false)
   assignedEmployees EmployeeProjectAssignment[]
+  attendanceRecords AttendanceRecord[]          @relation("AttendanceRecordProject")
   organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   projectManager    User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
   xeroConnection    XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
@@ -247,15 +249,18 @@ model AttendanceRecord {
   lateByMin   Int?
   location    String?
   project     String?
+  projectId   String?
   status      AttendanceStatus @default(MISSING)
   notes       String?          @db.Text
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   employee    User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
+  projectRef  XeroProject?     @relation("AttendanceRecordProject", fields: [projectId], references: [id])
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
   @@index([status, date])
+  @@index([projectId])
 }
 
 model ApprovalRequest {

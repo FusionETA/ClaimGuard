@@ -54,6 +54,8 @@ export type ApprovalRequestView = {
 export type AttendanceProjectView = {
   id: string
   name: string
+  latitude: number | null
+  longitude: number | null
 }
 
 export type ClockEventLite = {
@@ -68,6 +70,8 @@ export type EmployeeAttendanceDashboard = {
   weekToDate: AttendanceRecordView[]
   todayEvents: ClockEventLite[]
   recentOT: ApprovalRequestView[]
+  geofenceRadiusMeters: number
+  activeProjectCoords: { latitude: number | null; longitude: number | null } | null
 }
 
 export type SupervisorTeamOverview = {
