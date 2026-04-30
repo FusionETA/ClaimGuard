@@ -135,8 +135,17 @@ export function EmployeeDetailView({ data }: { data: EmployeeDetailData }) {
               {todayRecord.project ? (
                 <p className="text-xs text-muted-foreground">🛠 {todayRecord.project}</p>
               ) : null}
+              {todayRecord.location ? (
+                <p className="text-xs text-muted-foreground">📍 {todayRecord.location}</p>
+              ) : null}
               {todayRecord.lateByMin ? (
                 <p className="text-xs text-tertiary">Late by {todayRecord.lateByMin}m</p>
+              ) : null}
+              {todayRecord.notes ? (
+                <div className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+                  <p className="font-bold">⚠ Off-site events</p>
+                  <pre className="mt-1 whitespace-pre-wrap font-sans">{todayRecord.notes}</pre>
+                </div>
               ) : null}
             </div>
           ) : (
@@ -252,6 +261,12 @@ export function EmployeeDetailView({ data }: { data: EmployeeDetailData }) {
                       {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}{" "}
                       {r.project ? `• ${r.project}` : ""}
                     </p>
+                    {r.notes ? (
+                      <p className="mt-1 text-[11px] font-semibold text-amber-700">
+                        ⚠ {r.notes.split("\n").length} off-site remark
+                        {r.notes.split("\n").length > 1 ? "s" : ""}
+                      </p>
+                    ) : null}
                   </div>
                   <Badge variant={STATUS_VARIANT[r.status] as never}>
                     {attendanceStatusMeta[r.status].label}

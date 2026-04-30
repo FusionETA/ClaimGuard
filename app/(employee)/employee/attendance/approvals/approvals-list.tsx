@@ -19,6 +19,26 @@ const CLOCK_LABEL: Record<string, string> = {
   BREAK: "Break check",
 }
 
+const OFF_SITE_PREFIX = "⚠ OFF-SITE — "
+
+function parseApprovalDetail(detail: string): {
+  offSite: boolean
+  base: string
+  remark: string | null
+} {
+  const offSite = detail.startsWith(OFF_SITE_PREFIX)
+  const body = offSite ? detail.slice(OFF_SITE_PREFIX.length) : detail
+  const remarkIdx = body.indexOf("\nRemark: ")
+  if (remarkIdx === -1) {
+    return { offSite, base: body, remark: null }
+  }
+  return {
+    offSite,
+    base: body.slice(0, remarkIdx),
+    remark: body.slice(remarkIdx + "\nRemark: ".length),
+  }
+}
+
 type Filter = "ALL" | "OT" | "CLOCK"
 
 type Props = {
@@ -138,7 +158,24 @@ export function ApprovalsList({ items }: Props) {
                     </div>
                     <p className="mt-2 text-sm font-bold text-foreground">{r.employeeName}</p>
                     <p className="mt-0.5 text-sm font-semibold text-foreground">{r.title}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{r.detail}</p>
+                    {(() => {
+                      const parsed = parseApprovalDetail(r.detail)
+                      return (
+                        <>
+                          {parsed.offSite ? (
+                            <Badge variant="overtime" className="mt-1">
+                              ⚠ Off-site
+                            </Badge>
+                          ) : null}
+                          <p className="mt-1 text-xs text-muted-foreground">{parsed.base}</p>
+                          {parsed.remark ? (
+                            <p className="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-900">
+                              <span className="font-semibold">Remark:</span> {parsed.remark}
+                            </p>
+                          ) : null}
+                        </>
+                      )
+                    })()}
                     {r.project ? (
                       <p className="mt-0.5 text-[11px] font-semibold text-primary">
                         🛠 {r.project}

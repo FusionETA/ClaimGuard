@@ -52,6 +52,13 @@ function diffMinutes(a: Date, b: Date) {
   return Math.round((b.getTime() - a.getTime()) / 60000)
 }
 
+export const OFF_SITE_PREFIX = "⚠ OFF-SITE — "
+
+function buildApprovalDetail(base: string, notes: string | undefined): string {
+  if (!notes) return base
+  return `${OFF_SITE_PREFIX}${base}\nRemark: ${notes}`
+}
+
 // ---------------------------------------------------------------------------
 // Mappers
 // ---------------------------------------------------------------------------
@@ -234,6 +241,8 @@ export const attendanceRepository = {
     employeeId: string,
     projectName: string,
     location?: string,
+    projectId?: string,
+    notes?: string,
   ): Promise<{ recordId: string; approvalId: string }> {
     const prisma = getClient()
     const now = new Date()
@@ -257,7 +266,9 @@ export const attendanceRepository = {
         lateByMin: lateMin || null,
         status,
         project: projectName,
+        projectId: projectId ?? null,
         location: location ?? null,
+        ...(notes ? { notes: `CLOCK_IN: ${notes}` } : {}),
       },
       create: {
         employeeId,
@@ -266,7 +277,9 @@ export const attendanceRepository = {
         lateByMin: lateMin || null,
         status,
         project: projectName,
+        projectId: projectId ?? null,
         location: location ?? null,
+        notes: notes ? `CLOCK_IN: ${notes}` : null,
       },
     })
 
@@ -280,7 +293,10 @@ export const attendanceRepository = {
         date: today,
         eventAt: now,
         title: `Clock-in ${now.toISOString().slice(11, 16)}`,
-        detail: `${projectName}${location ? ` • ${location}` : ""}`,
+        detail: buildApprovalDetail(
+          `${projectName}${location ? ` • ${location}` : ""}`,
+          notes,
+        ),
         location: location ?? null,
         project: projectName,
         ...(autoApprove
@@ -299,6 +315,7 @@ export const attendanceRepository = {
   async clockOut(
     employeeId: string,
     location?: string,
+    notes?: string,
   ): Promise<{ recordId: string; approvalId: string }> {
     const prisma = getClient()
     const now = new Date()
@@ -314,6 +331,9 @@ export const attendanceRepository = {
     const autoApprove =
       employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
 
+    const appendedNotes = notes
+      ? [existing?.notes, `CLOCK_OUT: ${notes}`].filter(Boolean).join("\n")
+      : undefined
     const record = await prisma.attendanceRecord.upsert({
       where: { employeeId_date: { employeeId, date: today } },
       update: {
@@ -321,6 +341,7 @@ export const attendanceRepository = {
         durationMin,
         status: "CLOCKED_OUT",
         location: location ?? existing?.location ?? null,
+        ...(appendedNotes !== undefined ? { notes: appendedNotes } : {}),
       },
       create: {
         employeeId,
@@ -328,6 +349,7 @@ export const attendanceRepository = {
         timeOut: now,
         status: "CLOCKED_OUT",
         location: location ?? null,
+        notes: notes ? `CLOCK_OUT: ${notes}` : null,
       },
     })
 
@@ -339,9 +361,12 @@ export const attendanceRepository = {
         date: today,
         eventAt: now,
         title: `Clock-out ${now.toISOString().slice(11, 16)}`,
-        detail: durationMin
-          ? `Shift duration ${Math.floor(durationMin / 60)}h ${durationMin % 60}m`
-          : "End of shift",
+        detail: buildApprovalDetail(
+          durationMin
+            ? `Shift duration ${Math.floor(durationMin / 60)}h ${durationMin % 60}m`
+            : "End of shift",
+          notes,
+        ),
         location: location ?? null,
         project: existing?.project ?? null,
         ...(autoApprove
@@ -360,6 +385,7 @@ export const attendanceRepository = {
   async confirmBreak(
     employeeId: string,
     location?: string,
+    notes?: string,
   ): Promise<{ approvalId: string }> {
     const prisma = getClient()
     const now = new Date()
@@ -367,10 +393,18 @@ export const attendanceRepository = {
     const [existing, employee] = await Promise.all([
       prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
-        select: { project: true },
+        select: { project: true, notes: true },
       }),
       prisma.user.findUnique({ where: { id: employeeId }, select: { role: true } }),
     ])
+    if (notes) {
+      await prisma.attendanceRecord.update({
+        where: { employeeId_date: { employeeId, date: today } },
+        data: {
+          notes: [existing?.notes, `BREAK: ${notes}`].filter(Boolean).join("\n"),
+        },
+      })
+    }
     const autoApprove =
       employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
     const approval = await prisma.approvalRequest.create({
@@ -381,7 +415,10 @@ export const attendanceRepository = {
         date: today,
         eventAt: now,
         title: `Break check ${now.toISOString().slice(11, 16)}`,
-        detail: location ? `Confirmed on site at ${location}` : "Confirmed on site",
+        detail: buildApprovalDetail(
+          location ? `Confirmed on site at ${location}` : "Confirmed on site",
+          notes,
+        ),
         location: location ?? null,
         project: existing?.project ?? null,
         ...(autoApprove

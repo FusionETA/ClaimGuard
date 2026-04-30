@@ -20,7 +20,7 @@ export default async function LoginPage() {
   const copy = loginCopy
 
   return (
-    <main className="flex h-[100svh] items-center overflow-hidden px-4 py-4 sm:min-h-screen sm:px-6 sm:py-10 lg:px-8">
+    <main className="flex min-h-[100svh] items-center px-4 py-4 sm:min-h-screen sm:px-6 sm:py-10 lg:px-8">
       <div className="mx-auto w-full max-w-xl">
         <Card className="border-white/60">
           <CardHeader className="space-y-6 p-5 pb-3 sm:p-8 sm:pb-0">

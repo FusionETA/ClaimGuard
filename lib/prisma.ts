@@ -53,6 +53,10 @@ export function getPrismaClient() {
 
   if (client) {
     globalThis.prismaClientSingleton = client
+    // Eagerly open a DB connection in the background so the TCP handshake to
+    // DigitalOcean is already done by the time the first query arrives.
+    // This runs fire-and-forget — it never blocks the calling request.
+    void client.$connect().catch(() => undefined)
   }
 
   return client
