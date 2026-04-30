@@ -2,10 +2,12 @@ import Image from "next/image"
 
 type AppSplashProps = {
   label?: string
+  onManualReload?: () => void
 }
 
 export function AppSplash({
   label = "Opening ClaimGuard...",
+  onManualReload,
 }: AppSplashProps) {
   return (
     // NOTE: do NOT include `attendance-module` here. That class applies its
@@ -33,6 +35,15 @@ export function AppSplash({
         <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
           Please wait
         </p>
+        {onManualReload ? (
+          <button
+            type="button"
+            onClick={onManualReload}
+            className="mt-6 inline-flex w-full items-center justify-center rounded-full border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10 active:bg-primary/15"
+          >
+            Still loading? Tap to reload
+          </button>
+        ) : null}
       </div>
     </div>
   )
