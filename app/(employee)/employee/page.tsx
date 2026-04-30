@@ -37,6 +37,7 @@ export default async function EmployeeDashboardPage() {
   ])
   const clockState = deriveClockState(attendanceDashboard.todayEvents)
   const activeProject = attendanceDashboard.today?.project ?? null
+  const activeLocation = attendanceDashboard.today?.location ?? null
   const nowIso = new Date().toISOString()
 
   return (
@@ -62,6 +63,7 @@ export default async function EmployeeDashboardPage() {
           state={clockState}
           projects={projects}
           activeProject={activeProject}
+          activeLocation={activeLocation}
           now={nowIso}
         />
       </section>
