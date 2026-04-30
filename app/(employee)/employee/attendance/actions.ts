@@ -22,8 +22,20 @@ export async function clockInAction(
   const session = await requirePortalSession("EMPLOYEE")
   const projectId = String(formData.get("projectId") ?? "")
   if (!projectId) return { error: "Pick a project before clocking in." }
+  const latRaw = formData.get("lat")
+  const lngRaw = formData.get("lng")
+  const lat = typeof latRaw === "string" ? parseFloat(latRaw) : NaN
+  const lng = typeof lngRaw === "string" ? parseFloat(lngRaw) : NaN
+  const coords =
+    Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : undefined
+  console.log(
+    "[clockInAction] employee=%s project=%s coords=%o",
+    session.userId,
+    projectId,
+    coords,
+  )
   try {
-    await employeeAttendanceService.clockIn(session.userId, projectId)
+    await employeeAttendanceService.clockIn(session.userId, projectId, coords)
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Could not clock in" }
   }
