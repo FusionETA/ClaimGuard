@@ -113,11 +113,23 @@ export const employeeAttendanceService = {
     return attendanceRepository.clockIn(employeeId, project.name, location)
   },
 
-  async clockOut(employeeId: string) {
-    return attendanceRepository.clockOut(employeeId)
+  async clockOut(
+    employeeId: string,
+    coords?: { lat: number; lng: number },
+  ) {
+    const location = coords
+      ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
+      : undefined
+    return attendanceRepository.clockOut(employeeId, location)
   },
 
-  async confirmBreak(employeeId: string) {
-    return attendanceRepository.confirmBreak(employeeId)
+  async confirmBreak(
+    employeeId: string,
+    coords?: { lat: number; lng: number },
+  ) {
+    const location = coords
+      ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
+      : undefined
+    return attendanceRepository.confirmBreak(employeeId, location)
   },
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import { useActionState, useState, useTransition } from "react"
-import { useFormStatus } from "react-dom"
 import { Coffee, Fingerprint, LogOut } from "lucide-react"
 
 import { Card } from "@/components/attendance/ui/card"
@@ -17,6 +16,22 @@ import {
   confirmBreakAction,
   type ClockInState,
 } from "./actions"
+
+async function attachCoords(formData: FormData): Promise<void> {
+  if (typeof navigator === "undefined" || !navigator.geolocation) return
+  try {
+    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        timeout: 8000,
+        maximumAge: 0,
+      })
+    })
+    formData.set("lat", String(position.coords.latitude))
+    formData.set("lng", String(position.coords.longitude))
+  } catch {
+    // GPS denied/unavailable/timed out — proceed without coords
+  }
+}
 
 type Props = {
   state: "IN" | "OUT"
@@ -49,8 +64,7 @@ function ClockInButton({ pending }: { pending: boolean }) {
   )
 }
 
-function ClockOutButton() {
-  const { pending } = useFormStatus()
+function ClockOutButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -68,8 +82,7 @@ function ClockOutButton() {
   )
 }
 
-function BreakButton() {
-  const { pending } = useFormStatus()
+function BreakButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -94,28 +107,33 @@ export function ClockCard({ state, projects, activeProject, activeLocation, now 
     {},
   )
   const [isPending, startTransition] = useTransition()
+  const [isClockOutPending, startClockOutTransition] = useTransition()
+  const [isBreakPending, startBreakTransition] = useTransition()
 
   async function handleClockIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-
-    if (typeof navigator !== "undefined" && navigator.geolocation) {
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            timeout: 8000,
-            maximumAge: 0,
-          })
-        })
-        formData.set("lat", String(position.coords.latitude))
-        formData.set("lng", String(position.coords.longitude))
-      } catch {
-        // GPS denied/unavailable/timed out — proceed without coords
-      }
-    }
-
+    await attachCoords(formData)
     startTransition(() => {
       formAction(formData)
+    })
+  }
+
+  async function handleClockOut(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    await attachCoords(formData)
+    startClockOutTransition(() => {
+      clockOutAction(formData)
+    })
+  }
+
+  async function handleBreak(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    await attachCoords(formData)
+    startBreakTransition(() => {
+      confirmBreakAction(formData)
     })
   }
 
@@ -194,11 +212,11 @@ export function ClockCard({ state, projects, activeProject, activeLocation, now 
         </form>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          <form action={confirmBreakAction}>
-            <BreakButton />
+          <form onSubmit={handleBreak}>
+            <BreakButton pending={isBreakPending} />
           </form>
-          <form action={clockOutAction}>
-            <ClockOutButton />
+          <form onSubmit={handleClockOut}>
+            <ClockOutButton pending={isClockOutPending} />
           </form>
         </div>
       )}
