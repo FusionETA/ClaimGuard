@@ -1269,7 +1269,13 @@ export const OrganizationScalarFieldEnum = {
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  bankAccount: 'bankAccount'
+  bankAccount: 'bankAccount',
+  otRateNormalDay: 'otRateNormalDay',
+  otRatePublicHoliday: 'otRatePublicHoliday',
+  otRateRestDay: 'otRateRestDay',
+  otSalaryThreshold: 'otSalaryThreshold',
+  publicHolidayInShiftRate: 'publicHolidayInShiftRate',
+  restDayInShiftRate: 'restDayInShiftRate'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -1671,16 +1677,16 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
 
 
 /**
- * Reference to a field of type 'ClaimCategory'
+ * Reference to a field of type 'Decimal'
  */
-export type EnumClaimCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimCategory'>
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
     
 
 
 /**
- * Reference to a field of type 'Decimal'
+ * Reference to a field of type 'ClaimCategory'
  */
-export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
+export type EnumClaimCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimCategory'>
     
 
 

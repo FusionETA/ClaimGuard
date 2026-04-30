@@ -36,20 +36,26 @@ model User {
 }
 
 model Organization {
-  id                String              @id @default(cuid())
-  name              String              @unique
-  claimCutoffDay    Int                 @default(25)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  workingHoursEnd   String              @default("18:00")
-  workingHoursStart String              @default("09:00")
-  bankAccount       String?
-  AdminOrganization AdminOrganization[]
-  chartAccounts     ChartOfAccount[]
-  claims            Claim[]
-  users             User[]
-  xeroConnections   XeroConnection[]
-  projects          XeroProject[]
+  id                       String              @id @default(cuid())
+  name                     String              @unique
+  claimCutoffDay           Int                 @default(25)
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  workingHoursEnd          String              @default("18:00")
+  workingHoursStart        String              @default("09:00")
+  bankAccount              String?
+  otRateNormalDay          Decimal             @default(1.50) @db.Decimal(4, 2)
+  otRatePublicHoliday      Decimal             @default(3.00) @db.Decimal(4, 2)
+  otRateRestDay            Decimal             @default(2.00) @db.Decimal(4, 2)
+  otSalaryThreshold        Decimal             @default(4000.00) @db.Decimal(10, 2)
+  publicHolidayInShiftRate Decimal             @default(2.00) @db.Decimal(4, 2)
+  restDayInShiftRate       Decimal             @default(1.00) @db.Decimal(4, 2)
+  AdminOrganization        AdminOrganization[]
+  chartAccounts            ChartOfAccount[]
+  claims                   Claim[]
+  users                    User[]
+  xeroConnections          XeroConnection[]
+  projects                 XeroProject[]
 }
 
 model PushSubscription {
