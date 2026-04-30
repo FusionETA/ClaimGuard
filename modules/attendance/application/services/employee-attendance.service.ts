@@ -95,7 +95,11 @@ export const employeeAttendanceService = {
       .map((p) => ({ id: p.id, name: p.name }))
   },
 
-  async clockIn(employeeId: string, projectId: string) {
+  async clockIn(
+    employeeId: string,
+    projectId: string,
+    coords?: { lat: number; lng: number },
+  ) {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured")
     const project = await prisma.xeroProject.findUnique({
@@ -103,7 +107,10 @@ export const employeeAttendanceService = {
       select: { name: true },
     })
     if (!project) throw new Error("Selected project does not exist")
-    return attendanceRepository.clockIn(employeeId, project.name)
+    const location = coords
+      ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
+      : undefined
+    return attendanceRepository.clockIn(employeeId, project.name, location)
   },
 
   async clockOut(employeeId: string) {

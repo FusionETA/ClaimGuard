@@ -79,6 +79,7 @@ export function EmployeeAttendanceDashboardView({
         state={state}
         projects={projects}
         activeProject={dashboard.today?.project ?? null}
+        activeLocation={dashboard.today?.location ?? null}
         now={now.toISOString()}
       />
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useState, useTransition } from "react"
 import { useFormStatus } from "react-dom"
 import { Coffee, Fingerprint, LogOut } from "lucide-react"
 
@@ -22,11 +22,11 @@ type Props = {
   state: "IN" | "OUT"
   projects: AttendanceProjectView[]
   activeProject: string | null
+  activeLocation: string | null
   now: string
 }
 
-function ClockInButton() {
-  const { pending } = useFormStatus()
+function ClockInButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -87,12 +87,37 @@ function BreakButton() {
   )
 }
 
-export function ClockCard({ state, projects, activeProject, now }: Props) {
+export function ClockCard({ state, projects, activeProject, activeLocation, now }: Props) {
   const [selected, setSelected] = useState("")
   const [result, formAction] = useActionState<ClockInState, FormData>(
     clockInAction,
     {},
   )
+  const [isPending, startTransition] = useTransition()
+
+  async function handleClockIn(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+
+    if (typeof navigator !== "undefined" && navigator.geolocation) {
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 8000,
+            maximumAge: 0,
+          })
+        })
+        formData.set("lat", String(position.coords.latitude))
+        formData.set("lng", String(position.coords.longitude))
+      } catch {
+        // GPS denied/unavailable/timed out — proceed without coords
+      }
+    }
+
+    startTransition(() => {
+      formAction(formData)
+    })
+  }
 
   const formattedTime = new Date(now).toLocaleTimeString("en-US", {
     hour: "2-digit",
@@ -114,12 +139,22 @@ export function ClockCard({ state, projects, activeProject, now }: Props) {
               Project
             </p>
             <p className="mt-0.5 text-sm font-bold text-foreground">{activeProject}</p>
+            {activeLocation ? (
+              <a
+                href={`https://www.google.com/maps?q=${encodeURIComponent(activeLocation)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 block text-[11px] font-semibold text-primary underline-offset-2 hover:underline"
+              >
+                📍 {activeLocation}
+              </a>
+            ) : null}
           </div>
         ) : null}
       </div>
 
       {state === "OUT" ? (
-        <form action={formAction} className="space-y-3">
+        <form onSubmit={handleClockIn} className="space-y-3">
           <div>
             <label
               htmlFor="projectId"
@@ -152,7 +187,7 @@ export function ClockCard({ state, projects, activeProject, now }: Props) {
               </p>
             ) : null}
           </div>
-          <ClockInButton />
+          <ClockInButton pending={isPending} />
           {result.error ? (
             <p className="text-xs font-semibold text-destructive">{result.error}</p>
           ) : null}

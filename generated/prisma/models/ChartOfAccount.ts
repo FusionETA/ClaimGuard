@@ -34,11 +34,11 @@ export type ChartOfAccountMinAggregateOutputType = {
   type: string | null
   status: string | null
   isSelectable: boolean | null
-  isBankAccount: boolean | null
   isCustom: boolean | null
-  isDisabled: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  isBankAccount: boolean | null
+  isDisabled: boolean | null
 }
 
 export type ChartOfAccountMaxAggregateOutputType = {
@@ -51,11 +51,11 @@ export type ChartOfAccountMaxAggregateOutputType = {
   type: string | null
   status: string | null
   isSelectable: boolean | null
-  isBankAccount: boolean | null
   isCustom: boolean | null
-  isDisabled: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
+  isBankAccount: boolean | null
+  isDisabled: boolean | null
 }
 
 export type ChartOfAccountCountAggregateOutputType = {
@@ -68,11 +68,11 @@ export type ChartOfAccountCountAggregateOutputType = {
   type: number
   status: number
   isSelectable: number
-  isBankAccount: number
   isCustom: number
-  isDisabled: number
   createdAt: number
   updatedAt: number
+  isBankAccount: number
+  isDisabled: number
   _all: number
 }
 
@@ -87,11 +87,11 @@ export type ChartOfAccountMinAggregateInputType = {
   type?: true
   status?: true
   isSelectable?: true
-  isBankAccount?: true
   isCustom?: true
-  isDisabled?: true
   createdAt?: true
   updatedAt?: true
+  isBankAccount?: true
+  isDisabled?: true
 }
 
 export type ChartOfAccountMaxAggregateInputType = {
@@ -104,11 +104,11 @@ export type ChartOfAccountMaxAggregateInputType = {
   type?: true
   status?: true
   isSelectable?: true
-  isBankAccount?: true
   isCustom?: true
-  isDisabled?: true
   createdAt?: true
   updatedAt?: true
+  isBankAccount?: true
+  isDisabled?: true
 }
 
 export type ChartOfAccountCountAggregateInputType = {
@@ -121,11 +121,11 @@ export type ChartOfAccountCountAggregateInputType = {
   type?: true
   status?: true
   isSelectable?: true
-  isBankAccount?: true
   isCustom?: true
-  isDisabled?: true
   createdAt?: true
   updatedAt?: true
+  isBankAccount?: true
+  isDisabled?: true
   _all?: true
 }
 
@@ -211,11 +211,11 @@ export type ChartOfAccountGroupByOutputType = {
   type: string | null
   status: string | null
   isSelectable: boolean
-  isBankAccount: boolean
   isCustom: boolean
-  isDisabled: boolean
   createdAt: Date
   updatedAt: Date
+  isBankAccount: boolean
+  isDisabled: boolean
   _count: ChartOfAccountCountAggregateOutputType | null
   _min: ChartOfAccountMinAggregateOutputType | null
   _max: ChartOfAccountMaxAggregateOutputType | null
@@ -249,11 +249,11 @@ export type ChartOfAccountWhereInput = {
   type?: Prisma.StringNullableFilter<"ChartOfAccount"> | string | null
   status?: Prisma.StringNullableFilter<"ChartOfAccount"> | string | null
   isSelectable?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
-  isBankAccount?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   isCustom?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
-  isDisabled?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ChartOfAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChartOfAccount"> | Date | string
+  isBankAccount?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
+  isDisabled?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   claims?: Prisma.ClaimListRelationFilter
@@ -269,11 +269,11 @@ export type ChartOfAccountOrderByWithRelationInput = {
   type?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
   isSelectable?: Prisma.SortOrder
-  isBankAccount?: Prisma.SortOrder
   isCustom?: Prisma.SortOrder
-  isDisabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isBankAccount?: Prisma.SortOrder
+  isDisabled?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
@@ -295,11 +295,11 @@ export type ChartOfAccountWhereUniqueInput = Prisma.AtLeast<{
   type?: Prisma.StringNullableFilter<"ChartOfAccount"> | string | null
   status?: Prisma.StringNullableFilter<"ChartOfAccount"> | string | null
   isSelectable?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
-  isBankAccount?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   isCustom?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
-  isDisabled?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ChartOfAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChartOfAccount"> | Date | string
+  isBankAccount?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
+  isDisabled?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   claims?: Prisma.ClaimListRelationFilter
@@ -315,11 +315,11 @@ export type ChartOfAccountOrderByWithAggregationInput = {
   type?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
   isSelectable?: Prisma.SortOrder
-  isBankAccount?: Prisma.SortOrder
   isCustom?: Prisma.SortOrder
-  isDisabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isBankAccount?: Prisma.SortOrder
+  isDisabled?: Prisma.SortOrder
   _count?: Prisma.ChartOfAccountCountOrderByAggregateInput
   _max?: Prisma.ChartOfAccountMaxOrderByAggregateInput
   _min?: Prisma.ChartOfAccountMinOrderByAggregateInput
@@ -338,11 +338,11 @@ export type ChartOfAccountScalarWhereWithAggregatesInput = {
   type?: Prisma.StringNullableWithAggregatesFilter<"ChartOfAccount"> | string | null
   status?: Prisma.StringNullableWithAggregatesFilter<"ChartOfAccount"> | string | null
   isSelectable?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
-  isBankAccount?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
   isCustom?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
-  isDisabled?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ChartOfAccount"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ChartOfAccount"> | Date | string
+  isBankAccount?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
+  isDisabled?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
 }
 
 export type ChartOfAccountCreateInput = {
@@ -353,11 +353,11 @@ export type ChartOfAccountCreateInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
   organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutChartAccountsInput
   claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
@@ -373,11 +373,11 @@ export type ChartOfAccountUncheckedCreateInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
 }
 
@@ -389,11 +389,11 @@ export type ChartOfAccountUpdateInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutChartAccountsNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
@@ -409,11 +409,11 @@ export type ChartOfAccountUncheckedUpdateInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
 }
 
@@ -427,11 +427,11 @@ export type ChartOfAccountCreateManyInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
 }
 
 export type ChartOfAccountUpdateManyMutationInput = {
@@ -442,11 +442,11 @@ export type ChartOfAccountUpdateManyMutationInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ChartOfAccountUncheckedUpdateManyInput = {
@@ -459,11 +459,11 @@ export type ChartOfAccountUncheckedUpdateManyInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ChartOfAccountListRelationFilter = {
@@ -507,11 +507,11 @@ export type ChartOfAccountCountOrderByAggregateInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isSelectable?: Prisma.SortOrder
-  isBankAccount?: Prisma.SortOrder
   isCustom?: Prisma.SortOrder
-  isDisabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isBankAccount?: Prisma.SortOrder
+  isDisabled?: Prisma.SortOrder
 }
 
 export type ChartOfAccountMaxOrderByAggregateInput = {
@@ -524,11 +524,11 @@ export type ChartOfAccountMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isSelectable?: Prisma.SortOrder
-  isBankAccount?: Prisma.SortOrder
   isCustom?: Prisma.SortOrder
-  isDisabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isBankAccount?: Prisma.SortOrder
+  isDisabled?: Prisma.SortOrder
 }
 
 export type ChartOfAccountMinOrderByAggregateInput = {
@@ -541,11 +541,11 @@ export type ChartOfAccountMinOrderByAggregateInput = {
   type?: Prisma.SortOrder
   status?: Prisma.SortOrder
   isSelectable?: Prisma.SortOrder
-  isBankAccount?: Prisma.SortOrder
   isCustom?: Prisma.SortOrder
-  isDisabled?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  isBankAccount?: Prisma.SortOrder
+  isDisabled?: Prisma.SortOrder
 }
 
 export type ChartOfAccountCreateNestedManyWithoutOrganizationInput = {
@@ -660,11 +660,11 @@ export type ChartOfAccountCreateWithoutOrganizationInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutChartAccountsInput
   claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
 }
@@ -678,11 +678,11 @@ export type ChartOfAccountUncheckedCreateWithoutOrganizationInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
 }
 
@@ -725,11 +725,11 @@ export type ChartOfAccountScalarWhereInput = {
   type?: Prisma.StringNullableFilter<"ChartOfAccount"> | string | null
   status?: Prisma.StringNullableFilter<"ChartOfAccount"> | string | null
   isSelectable?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
-  isBankAccount?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   isCustom?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
-  isDisabled?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ChartOfAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChartOfAccount"> | Date | string
+  isBankAccount?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
+  isDisabled?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
 }
 
 export type ChartOfAccountCreateWithoutClaimsInput = {
@@ -740,11 +740,11 @@ export type ChartOfAccountCreateWithoutClaimsInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
   organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutChartAccountsInput
 }
@@ -759,11 +759,11 @@ export type ChartOfAccountUncheckedCreateWithoutClaimsInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
 }
 
 export type ChartOfAccountCreateOrConnectWithoutClaimsInput = {
@@ -790,11 +790,11 @@ export type ChartOfAccountUpdateWithoutClaimsInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutChartAccountsNestedInput
 }
@@ -809,11 +809,11 @@ export type ChartOfAccountUncheckedUpdateWithoutClaimsInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ChartOfAccountCreateWithoutXeroConnectionInput = {
@@ -824,11 +824,11 @@ export type ChartOfAccountCreateWithoutXeroConnectionInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
   organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
   claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
 }
@@ -842,11 +842,11 @@ export type ChartOfAccountUncheckedCreateWithoutXeroConnectionInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
 }
 
@@ -885,11 +885,11 @@ export type ChartOfAccountCreateManyOrganizationInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
 }
 
 export type ChartOfAccountUpdateWithoutOrganizationInput = {
@@ -900,11 +900,11 @@ export type ChartOfAccountUpdateWithoutOrganizationInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutChartAccountsNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
 }
@@ -918,11 +918,11 @@ export type ChartOfAccountUncheckedUpdateWithoutOrganizationInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
 }
 
@@ -935,11 +935,11 @@ export type ChartOfAccountUncheckedUpdateManyWithoutOrganizationInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ChartOfAccountCreateManyXeroConnectionInput = {
@@ -951,11 +951,11 @@ export type ChartOfAccountCreateManyXeroConnectionInput = {
   type?: string | null
   status?: string | null
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  isBankAccount?: boolean
+  isDisabled?: boolean
 }
 
 export type ChartOfAccountUpdateWithoutXeroConnectionInput = {
@@ -966,11 +966,11 @@ export type ChartOfAccountUpdateWithoutXeroConnectionInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
 }
@@ -984,11 +984,11 @@ export type ChartOfAccountUncheckedUpdateWithoutXeroConnectionInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
 }
 
@@ -1001,11 +1001,11 @@ export type ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionInput = {
   type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isSelectable?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isCustom?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -1049,11 +1049,11 @@ export type ChartOfAccountSelect<ExtArgs extends runtime.Types.Extensions.Intern
   type?: boolean
   status?: boolean
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  isBankAccount?: boolean
+  isDisabled?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.ChartOfAccount$xeroConnectionArgs<ExtArgs>
   claims?: boolean | Prisma.ChartOfAccount$claimsArgs<ExtArgs>
@@ -1072,14 +1072,14 @@ export type ChartOfAccountSelectScalar = {
   type?: boolean
   status?: boolean
   isSelectable?: boolean
-  isBankAccount?: boolean
   isCustom?: boolean
-  isDisabled?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  isBankAccount?: boolean
+  isDisabled?: boolean
 }
 
-export type ChartOfAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroAccountId" | "code" | "name" | "type" | "status" | "isSelectable" | "isBankAccount" | "isCustom" | "isDisabled" | "createdAt" | "updatedAt", ExtArgs["result"]["chartOfAccount"]>
+export type ChartOfAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroAccountId" | "code" | "name" | "type" | "status" | "isSelectable" | "isCustom" | "createdAt" | "updatedAt" | "isBankAccount" | "isDisabled", ExtArgs["result"]["chartOfAccount"]>
 export type ChartOfAccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.ChartOfAccount$xeroConnectionArgs<ExtArgs>
@@ -1104,11 +1104,11 @@ export type $ChartOfAccountPayload<ExtArgs extends runtime.Types.Extensions.Inte
     type: string | null
     status: string | null
     isSelectable: boolean
-    isBankAccount: boolean
     isCustom: boolean
-    isDisabled: boolean
     createdAt: Date
     updatedAt: Date
+    isBankAccount: boolean
+    isDisabled: boolean
   }, ExtArgs["result"]["chartOfAccount"]>
   composites: {}
 }
@@ -1490,11 +1490,11 @@ export interface ChartOfAccountFieldRefs {
   readonly type: Prisma.FieldRef<"ChartOfAccount", 'String'>
   readonly status: Prisma.FieldRef<"ChartOfAccount", 'String'>
   readonly isSelectable: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
-  readonly isBankAccount: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
   readonly isCustom: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
-  readonly isDisabled: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"ChartOfAccount", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ChartOfAccount", 'DateTime'>
+  readonly isBankAccount: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
+  readonly isDisabled: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
 }
     
 
