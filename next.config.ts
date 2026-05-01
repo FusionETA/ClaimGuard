@@ -28,6 +28,19 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // iOS Safari needs to cache the apple-touch-startup-image PNGs at
+        // install time, otherwise the splash silently fails to appear. The
+        // Vercel default of "max-age=0, must-revalidate" was forcing iOS to
+        // refetch on every launch and effectively skip the splash.
+        source: "/splash/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
     ]
   },
 }
