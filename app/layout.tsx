@@ -122,14 +122,27 @@ export default function RootLayout({
             `,
           }}
         />
+        {/*
+          The "screen and" prefix is required — Safari silently ignores
+          apple-touch-startup-image links whose media query starts with the
+          bare parenthesised form. This caught us with iPhone 16 in PWA mode.
+        */}
         {APPLE_SPLASH_SCREENS.map((splash) => (
           <link
             key={splash.url}
             rel="apple-touch-startup-image"
             href={splash.url}
-            media={`(device-width: ${splash.cssWidth}px) and (device-height: ${splash.cssHeight}px) and (-webkit-device-pixel-ratio: ${splash.pixelRatio}) and (orientation: portrait)`}
+            media={`screen and (device-width: ${splash.cssWidth}px) and (device-height: ${splash.cssHeight}px) and (-webkit-device-pixel-ratio: ${splash.pixelRatio}) and (orientation: portrait)`}
           />
         ))}
+        {/*
+          Next.js 15 emits only the new "mobile-web-app-capable" meta tag for
+          appleWebApp.capable: true. iOS Safari's PWA splash pipeline still
+          checks for the apple-prefixed legacy tag, so we add it manually here.
+          Without this, iOS may refuse to render apple-touch-startup-image
+          even when a link's media query matches the device exactly.
+        */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body className={cn(manropeBody.variable, manrope.variable, "font-body")}>
         <ThemeProvider
