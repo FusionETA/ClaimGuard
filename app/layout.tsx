@@ -59,6 +59,32 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/*
+          Paint the brand background on the very first frame.
+
+          On iOS PWA cold-launch (especially in dark mode), the WebView
+          shows its default background — black — between the OS splash
+          ending and the first CSS rule applying. That gap can be 1+
+          seconds on a slow/cold network and is the source of the
+          "black screen on open" reports.
+
+          Inline <style> in <head> is applied before any external CSS,
+          so the background goes straight from iOS splash → cream →
+          ClaimGuard splash overlay, with no black flash in between.
+          Values mirror --background in globals.css.
+        */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html, body { background-color: hsl(268 30% 97%); }
+              @media (prefers-color-scheme: dark) {
+                html.dark, html.dark body { background-color: hsl(268 40% 7%); }
+              }
+            `,
+          }}
+        />
+      </head>
       <body className={cn(manropeBody.variable, manrope.variable, "font-body")}>
         <ThemeProvider
           attribute="class"
