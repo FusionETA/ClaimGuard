@@ -61,6 +61,7 @@ export async function submitClaimAction(
     receiptUrl: String(formData.get("receiptUrl") ?? ""),
     paymentType,
     payViaAccountId: String(formData.get("payViaAccountId") ?? ""),
+    projectId: String(formData.get("projectId") ?? ""),
     claimType,
     distance: String(formData.get("distance") ?? ""),
     mileageOriginAddress: String(formData.get("mileageOriginAddress") ?? ""),
@@ -82,6 +83,7 @@ export async function submitClaimAction(
           receiptUrl: values.receiptUrl || undefined,
           paymentType: values.paymentType,
           payViaAccountId: values.payViaAccountId || undefined,
+          projectId: values.projectId || undefined,
           distance: values.distance,
           mileageOriginAddress: values.mileageOriginAddress,
           mileageDestinationAddress: values.mileageDestinationAddress,
@@ -96,6 +98,7 @@ export async function submitClaimAction(
           receiptUrl: values.receiptUrl || undefined,
           paymentType: values.paymentType,
           payViaAccountId: values.payViaAccountId || undefined,
+          projectId: values.projectId || undefined,
         }
 
   // Validate form fields.
@@ -126,6 +129,7 @@ export async function submitClaimAction(
         receiptUrl: receiptError ?? fieldErrors.receiptUrl?.[0],
         paymentType: fieldErrors.paymentType?.[0],
         payViaAccountId: fieldErrors.payViaAccountId?.[0],
+        projectId: fieldErrors.projectId?.[0],
         claimType: fieldErrors.claimType?.[0],
         distance: fieldErrors.distance?.[0],
         mileageOriginAddress: fieldErrors.mileageOriginAddress?.[0],
@@ -181,6 +185,7 @@ export async function submitClaimAction(
             receiptUrl,
             paymentType: parsed.data.paymentType,
             payViaAccountId: parsed.data.payViaAccountId,
+            projectId: parsed.data.projectId,
             claimType: "MILEAGE",
             distance: parsed.data.distance,
             mileageOriginAddress: parsed.data.mileageOriginAddress,
@@ -195,6 +200,7 @@ export async function submitClaimAction(
             receiptUrl,
             paymentType: parsed.data.paymentType,
             payViaAccountId: parsed.data.payViaAccountId,
+            projectId: parsed.data.projectId,
             claimType: "EXPENSE",
           },
   })

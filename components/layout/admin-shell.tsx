@@ -93,6 +93,10 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/hierarchy",
     label: "Hierarchy",
     icon: Network,
+    children: [
+      { href: "/admin/hierarchy", label: "Employees" },
+      { href: "/admin/company-structure" as Route, label: "Company Structure" },
+    ],
   },
   {
     href: "/admin/settings",
@@ -118,7 +122,11 @@ function getTitle(pathname: string) {
   }
 
   if (pathname.startsWith("/admin/hierarchy")) {
-    return "Organization Hierarchy"
+    return "Employees"
+  }
+
+  if (pathname.startsWith("/admin/company-structure")) {
+    return "Company Structure"
   }
 
   if (pathname.startsWith("/admin/settings")) {
@@ -244,7 +252,17 @@ export function AdminShell({
             const Icon = item.icon
             const parentActive =
               pathname === item.href ||
-              (item.children !== undefined && pathname.startsWith(item.href + "/"))
+              (item.children !== undefined &&
+                (pathname.startsWith(item.href + "/") ||
+                  item.children.some((c) => {
+                    // Strip query string from child href when matching path —
+                    // child.href may be "/x?tab=y" but pathname is just "/x".
+                    const childPath = c.href.split("?")[0]
+                    return (
+                      pathname === childPath ||
+                      pathname.startsWith(childPath + "/")
+                    )
+                  })))
 
             return (
               <div key={item.href}>

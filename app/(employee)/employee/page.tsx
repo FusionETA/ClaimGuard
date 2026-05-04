@@ -163,6 +163,7 @@ export default async function EmployeeDashboardPage() {
                 mileageUnit={claimSubmissionData?.organization?.mileageUnit ?? "KM"}
                 claimRunPreview={claimSubmissionData?.claimRunPreview}
                 organizationName={claimSubmissionData?.organization?.name}
+                employeeProjects={claimSubmissionData?.employeeProjects ?? []}
               />
             </div>
           </CardContent>

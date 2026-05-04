@@ -37,6 +37,52 @@ const createMemberSchema = z.object({
   payoutMethod: z.enum(employeePayoutMethods),
 })
 
+/// Pull the per-project routing config out of FormData. Each project section
+/// emits hidden inputs `proj.{pid}.teamId`, `proj.{pid}.layer`, and one
+/// `proj.{pid}.chainApprover.{N}` per layer above the employee. Empty values
+/// are dropped. Only project ids in `selectedProjectIds` are kept.
+function parseProjectAssignments(
+  formData: FormData,
+  selectedProjectIds: string[],
+): Array<{
+  projectId: string
+  teamId: string
+  layer: number
+  chainApprovers: Array<{ layer: number; userId: string }>
+}> {
+  const out: Array<{
+    projectId: string
+    teamId: string
+    layer: number
+    chainApprovers: Array<{ layer: number; userId: string }>
+  }> = []
+  for (const projectId of selectedProjectIds) {
+    const teamId = String(formData.get(`proj.${projectId}.teamId`) ?? "").trim()
+    const layerRaw = Number(formData.get(`proj.${projectId}.layer`) ?? 1)
+    if (!teamId) continue
+    const chainApprovers: Array<{ layer: number; userId: string }> = []
+    for (const [key, value] of formData.entries()) {
+      const prefix = `proj.${projectId}.chainApprover.`
+      if (!key.startsWith(prefix)) continue
+      const layer = Number(key.slice(prefix.length))
+      if (!Number.isInteger(layer) || layer < 1) continue
+      const userId = String(value).trim()
+      if (!userId) continue
+      chainApprovers.push({ layer, userId })
+    }
+    out.push({
+      projectId,
+      teamId,
+      layer:
+        Number.isFinite(layerRaw) && Number.isInteger(layerRaw) && layerRaw >= 1
+          ? layerRaw
+          : 1,
+      chainApprovers,
+    })
+  }
+  return out
+}
+
 export async function updateHierarchyAction(
   _previousState: HierarchyFormState,
   formData: FormData
@@ -75,10 +121,13 @@ export async function updateHierarchyAction(
     }
   }
 
+  const projectIds = formData.getAll("projectIds").map(String).filter(Boolean)
+  const projectAssignments = parseProjectAssignments(formData, projectIds)
+
   const parsed = hierarchySchema.safeParse({
     userId: String(formData.get("userId") ?? ""),
     role: values.role,
-    projectIds: formData.getAll("projectIds").map(String).filter(Boolean),
+    projectIds,
     jobTitle: values.jobTitle,
     payoutMethod: values.payoutMethod,
     email: String(formData.get("email") ?? ""),
@@ -92,20 +141,31 @@ export async function updateHierarchyAction(
     }
   }
 
-  await organizationRepository.updateOrganizationMember({
-    userId: parsed.data.userId,
-    role: parsed.data.role,
-    organizationId,
-    projectIds: parsed.data.projectIds,
-    jobTitle: parsed.data.jobTitle,
-    payoutMethod: parsed.data.payoutMethod,
-    xeroConnectionId,
-  })
+  try {
+    await organizationRepository.updateOrganizationMember({
+      userId: parsed.data.userId,
+      role: parsed.data.role,
+      organizationId,
+      projectIds: parsed.data.projectIds,
+      jobTitle: parsed.data.jobTitle,
+      payoutMethod: parsed.data.payoutMethod,
+      xeroConnectionId,
+      projectAssignments,
+    })
+  } catch (error) {
+    return {
+      ...createInitialHierarchyFormState(values),
+      status: "error",
+      message:
+        error instanceof Error ? error.message : "Unable to save hierarchy changes.",
+    }
+  }
 
   clearEmployeeStore(parsed.data.email)
   clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/hierarchy")
+  revalidatePath("/admin/company-structure")
   revalidatePath("/employee")
   revalidatePath("/employee/account")
   revalidatePath("/employee/review")
@@ -117,6 +177,7 @@ export async function updateHierarchyAction(
       project: values.project,
       jobTitle: parsed.data.jobTitle,
       payoutMethod: parsed.data.payoutMethod,
+      supervisorId: "",
       xeroConnectionId: xeroConnectionId ?? "",
     }),
     status: "success",
@@ -166,9 +227,12 @@ export async function createHierarchyMemberAction(
     }
   }
 
+  const projectIds = formData.getAll("projectIds").map(String).filter(Boolean)
+  const projectAssignments = parseProjectAssignments(formData, projectIds)
+
   const parsed = createMemberSchema.safeParse({
     ...values,
-    projectIds: formData.getAll("projectIds").map(String).filter(Boolean),
+    projectIds,
     payoutMethod: values.payoutMethod,
   })
 
@@ -180,13 +244,8 @@ export async function createHierarchyMemberAction(
     }
   }
 
-  const approverIds = formData.getAll("approverIds").map(String).filter(Boolean)
-  // First approver in the chain is the direct supervisor
-  const supervisorId = approverIds[0] || undefined
-
-  let createdUserId: string
   try {
-    const created = await organizationRepository.createOrganizationMember({
+    await organizationRepository.createOrganizationMember({
       name: parsed.data.name,
       email: parsed.data.email,
       password: parsed.data.password,
@@ -196,10 +255,9 @@ export async function createHierarchyMemberAction(
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
       payoutMethod: parsed.data.payoutMethod,
-      supervisorId,
       xeroConnectionId,
+      projectAssignments,
     })
-    createdUserId = created.id
   } catch (error) {
     return {
       ...createInitialAddHierarchyMemberFormState(values),
@@ -209,61 +267,14 @@ export async function createHierarchyMemberAction(
     }
   }
 
-  if (approverIds.length > 0) {
-    try {
-      await organizationRepository.setApprovalChain({
-        employeeId: createdUserId,
-        organizationId,
-        approverIds,
-      })
-    } catch {
-      // Chain save failure is non-fatal — employee was created, chain can be set later
-    }
-  }
-
   clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/hierarchy")
+  revalidatePath("/admin/company-structure")
 
   return {
     ...createInitialAddHierarchyMemberFormState(),
     status: "success",
     message: "Employee added successfully.",
   }
-}
-
-export async function saveApprovalChainAction(
-  employeeId: string,
-  approverIds: string[]
-): Promise<{ ok: boolean; message: string }> {
-  const session = await getCurrentSession()
-
-  if (!session || session.role !== "ADMIN") {
-    return { ok: false, message: "Session expired. Please log in again." }
-  }
-
-  const organizationId = resolveActiveOrgId(session)
-
-  if (!organizationId) {
-    return { ok: false, message: "Set up your organization in settings before managing hierarchy." }
-  }
-
-  try {
-    await organizationRepository.setApprovalChain({
-      employeeId,
-      organizationId,
-      approverIds,
-    })
-  } catch (error) {
-    return {
-      ok: false,
-      message: error instanceof Error ? error.message : "Unable to save approval chain.",
-    }
-  }
-
-  clearAdminStore(session.email)
-  revalidatePath("/admin")
-  revalidatePath("/admin/hierarchy")
-
-  return { ok: true, message: "Approval chain saved." }
 }

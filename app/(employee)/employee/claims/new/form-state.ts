@@ -7,6 +7,7 @@ export type ClaimFormValues = {
   receiptUrl: string
   paymentType: "PERSONAL" | "COMPANY"
   payViaAccountId: string
+  projectId: string
   claimType: "EXPENSE" | "MILEAGE"
   distance: string
   mileageOriginAddress: string
@@ -32,6 +33,7 @@ export const initialClaimFormState: ClaimFormState = {
     receiptUrl: "",
     paymentType: "PERSONAL",
     payViaAccountId: "",
+    projectId: "",
     claimType: "EXPENSE",
     distance: "",
     mileageOriginAddress: "",

@@ -397,7 +397,9 @@ export const ModelName = {
   ProjectHoliday: 'ProjectHoliday',
   AttendanceRecord: 'AttendanceRecord',
   ApprovalRequest: 'ApprovalRequest',
-  ApprovalChainStep: 'ApprovalChainStep'
+  ApprovalChainStep: 'ApprovalChainStep',
+  Team: 'Team',
+  EmployeeTeamMembership: 'EmployeeTeamMembership'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -413,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "attendanceRecord" | "approvalRequest" | "approvalChainStep"
+    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "attendanceRecord" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1341,6 +1343,138 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Team: {
+      payload: Prisma.$TeamPayload<ExtArgs>
+      fields: Prisma.TeamFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TeamFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TeamFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPayload>
+        }
+        findFirst: {
+          args: Prisma.TeamFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TeamFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPayload>
+        }
+        findMany: {
+          args: Prisma.TeamFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPayload>[]
+        }
+        create: {
+          args: Prisma.TeamCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPayload>
+        }
+        createMany: {
+          args: Prisma.TeamCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.TeamDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPayload>
+        }
+        update: {
+          args: Prisma.TeamUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPayload>
+        }
+        deleteMany: {
+          args: Prisma.TeamDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TeamUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.TeamUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamPayload>
+        }
+        aggregate: {
+          args: Prisma.TeamAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTeam>
+        }
+        groupBy: {
+          args: Prisma.TeamGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeamGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TeamCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeamCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeTeamMembership: {
+      payload: Prisma.$EmployeeTeamMembershipPayload<ExtArgs>
+      fields: Prisma.EmployeeTeamMembershipFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeTeamMembershipFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTeamMembershipPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeTeamMembershipFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTeamMembershipPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeTeamMembershipFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTeamMembershipPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeTeamMembershipFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTeamMembershipPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeTeamMembershipFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTeamMembershipPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeTeamMembershipCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTeamMembershipPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeTeamMembershipCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeTeamMembershipDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTeamMembershipPayload>
+        }
+        update: {
+          args: Prisma.EmployeeTeamMembershipUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTeamMembershipPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeTeamMembershipDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeTeamMembershipUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeTeamMembershipUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeTeamMembershipPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeTeamMembershipAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeTeamMembership>
+        }
+        groupBy: {
+          args: Prisma.EmployeeTeamMembershipGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeTeamMembershipGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeTeamMembershipCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeTeamMembershipCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1477,6 +1611,7 @@ export const ClaimScalarFieldEnum = {
   category: 'category',
   claimType: 'claimType',
   organizationId: 'organizationId',
+  projectId: 'projectId',
   chartOfAccountId: 'chartOfAccountId',
   amount: 'amount',
   currency: 'currency',
@@ -1637,6 +1772,7 @@ export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldE
 export const ApprovalChainStepScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
+  teamId: 'teamId',
   step: 'step',
   approverId: 'approverId',
   createdAt: 'createdAt',
@@ -1646,12 +1782,53 @@ export const ApprovalChainStepScalarFieldEnum = {
 export type ApprovalChainStepScalarFieldEnum = (typeof ApprovalChainStepScalarFieldEnum)[keyof typeof ApprovalChainStepScalarFieldEnum]
 
 
+export const TeamScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name',
+  layerCount: 'layerCount',
+  layerLabels: 'layerLabels',
+  moduleConfig: 'moduleConfig',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const EmployeeTeamMembershipScalarFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  teamId: 'teamId',
+  layer: 'layer',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeTeamMembershipScalarFieldEnum = (typeof EmployeeTeamMembershipScalarFieldEnum)[keyof typeof EmployeeTeamMembershipScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullsOrder = {
@@ -1734,6 +1911,7 @@ export const ClaimOrderByRelevanceFieldEnum = {
   title: 'title',
   description: 'description',
   organizationId: 'organizationId',
+  projectId: 'projectId',
   chartOfAccountId: 'chartOfAccountId',
   currency: 'currency',
   payViaAccountId: 'payViaAccountId',
@@ -1839,10 +2017,46 @@ export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOr
 export const ApprovalChainStepOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
+  teamId: 'teamId',
   approverId: 'approverId'
 } as const
 
 export type ApprovalChainStepOrderByRelevanceFieldEnum = (typeof ApprovalChainStepOrderByRelevanceFieldEnum)[keyof typeof ApprovalChainStepOrderByRelevanceFieldEnum]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const TeamOrderByRelevanceFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name'
+} as const
+
+export type TeamOrderByRelevanceFieldEnum = (typeof TeamOrderByRelevanceFieldEnum)[keyof typeof TeamOrderByRelevanceFieldEnum]
+
+
+export const EmployeeTeamMembershipOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  teamId: 'teamId'
+} as const
+
+export type EmployeeTeamMembershipOrderByRelevanceFieldEnum = (typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum)[keyof typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum]
 
 
 
@@ -1990,6 +2204,20 @@ export type EnumApprovalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 export type EnumOTSubtypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OTSubtype'>
     
 
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -2099,6 +2327,8 @@ export type GlobalOmitConfig = {
   attendanceRecord?: Prisma.AttendanceRecordOmit
   approvalRequest?: Prisma.ApprovalRequestOmit
   approvalChainStep?: Prisma.ApprovalChainStepOmit
+  team?: Prisma.TeamOmit
+  employeeTeamMembership?: Prisma.EmployeeTeamMembershipOmit
 }
 
 /* Types for Logging */

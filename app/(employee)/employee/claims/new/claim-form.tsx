@@ -33,6 +33,7 @@ export function ClaimForm({
   mileageUnit,
   claimRunPreview,
   organizationName,
+  employeeProjects = [],
   onSuccess,
   compact = false,
 }: {
@@ -43,6 +44,10 @@ export function ClaimForm({
   mileageUnit: "KM" | "MILE"
   claimRunPreview?: ClaimRunPreview
   organizationName?: string
+  /// Projects the employee is assigned to. The picker is required when the
+  /// list is non-empty; if it's empty (legacy / unassigned employee) the
+  /// project field is hidden.
+  employeeProjects?: Array<{ id: string; name: string }>
   onSuccess?: () => void
   compact?: boolean
 }) {
@@ -62,6 +67,9 @@ export function ClaimForm({
   )
   const [payViaAccountId, setPayViaAccountId] = useState(
     state?.values?.payViaAccountId ?? ""
+  )
+  const [projectId, setProjectId] = useState(
+    state?.values?.projectId ?? (employeeProjects.length === 1 ? employeeProjects[0]!.id : ""),
   )
   const [distance, setDistance] = useState(state?.values?.distance ?? "")
   // Track amount as state so we can run live limit validation while the user
@@ -242,6 +250,32 @@ export function ClaimForm({
         />
         <FieldError message={state.errors?.title} />
       </div>
+
+      {employeeProjects.length > 0 ? (
+        <div className="space-y-2">
+          <Label htmlFor="projectId">Project</Label>
+          <input type="hidden" name="projectId" value={projectId} />
+          <Select value={projectId || undefined} onValueChange={setProjectId}>
+            <SelectTrigger
+              id="projectId"
+              aria-invalid={Boolean(state.errors?.projectId)}
+            >
+              <SelectValue placeholder="Select project" />
+            </SelectTrigger>
+            <SelectContent>
+              {employeeProjects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FieldError message={state.errors?.projectId} />
+          <p className="text-xs text-muted-foreground">
+            Routing follows your team in this project.
+          </p>
+        </div>
+      ) : null}
 
       <div className="space-y-2">
         <Label htmlFor="chartOfAccountId">
