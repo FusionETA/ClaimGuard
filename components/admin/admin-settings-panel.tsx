@@ -2501,6 +2501,7 @@ function ProjectHolidaysCard({ project }: { project: OrganizationProjectOption }
   const [name, setName] = useState("")
   const [importYear, setImportYear] = useState<string>(String(new Date().getFullYear()))
   const [importCountry, setImportCountry] = useState<string>("MY")
+  const [showList, setShowList] = useState(false)
   const holidays = project.holidays ?? []
 
   function handleImport() {
@@ -2635,28 +2636,40 @@ function ProjectHolidaysCard({ project }: { project: OrganizationProjectOption }
         {holidays.length === 0 ? (
           <p className="text-sm text-muted-foreground">No holidays configured.</p>
         ) : (
-          <ul className="divide-y divide-border/60">
-            {holidays.map((h) => (
-              <li
-                key={h.id}
-                className="flex items-center justify-between gap-4 py-2"
-              >
-                <div className="flex items-baseline gap-3">
-                  <span className="text-sm font-semibold text-foreground">{h.date}</span>
-                  <span className="text-sm text-muted-foreground">{h.name}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(h.id)}
-                  disabled={pending}
-                  className="text-muted-foreground hover:text-destructive transition-colors"
-                  aria-label={`Delete ${h.name}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowList((v) => !v)}
+              className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              <span>{showList ? "Hide" : "Show"} holiday list ({holidays.length})</span>
+              <span className="text-[10px]">{showList ? "▲" : "▼"}</span>
+            </button>
+            {showList ? (
+              <ul className="mt-2 divide-y divide-border/60">
+                {holidays.map((h) => (
+                  <li
+                    key={h.id}
+                    className="flex items-center justify-between gap-4 py-2"
+                  >
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-sm font-semibold text-foreground">{h.date}</span>
+                      <span className="text-sm text-muted-foreground">{h.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(h.id)}
+                      disabled={pending}
+                      className="text-muted-foreground hover:text-destructive transition-colors"
+                      aria-label={`Delete ${h.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
         )}
       </CardContent>
     </Card>
