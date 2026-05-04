@@ -7,6 +7,7 @@ import { usePathname, useSearchParams } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
 import {
   CalendarClock,
+  CalendarDays,
   LayoutDashboard,
   LogOut,
   Network,
@@ -57,6 +58,14 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     icon: Receipt,
   },
   {
+    // Cast to Route — next/types regenerates the Route union from app/**/page
+    // on dev/build, but the static tsc pass against the cached .next/types
+    // doesn't see new routes until the next regeneration.
+    href: "/admin/leave" as Route,
+    label: "Leave",
+    icon: CalendarDays,
+  },
+  {
     href: "/admin/hierarchy",
     label: "Hierarchy",
     icon: Network,
@@ -67,11 +76,10 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     icon: Settings2,
     children: [
       { href: "/admin/settings?tab=organization", label: "Organization" },
-      { href: "/admin/settings?tab=accounts", label: "Claim accounts" },
-      { href: "/admin/settings?tab=banks", label: "Bank accounts" },
+      { href: "/admin/settings?tab=accounts", label: "Accounts" },
       { href: "/admin/settings?tab=projects", label: "Projects" },
-      { href: "/admin/settings?tab=runs", label: "Claim runs" },
       { href: "/admin/settings?tab=attendance", label: "Attendance" },
+      { href: "/admin/settings?tab=leave", label: "Leave" },
     ],
   },
 ]
@@ -79,6 +87,10 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
 function getTitle(pathname: string) {
   if (pathname.startsWith("/admin/claims")) {
     return "Claims"
+  }
+
+  if (pathname.startsWith("/admin/leave")) {
+    return "Leave"
   }
 
   if (pathname.startsWith("/admin/hierarchy")) {

@@ -176,6 +176,7 @@ export const ClaimScalarFieldEnum = {
   title: 'title',
   description: 'description',
   category: 'category',
+  claimType: 'claimType',
   organizationId: 'organizationId',
   chartOfAccountId: 'chartOfAccountId',
   amount: 'amount',
@@ -185,9 +186,16 @@ export const ClaimScalarFieldEnum = {
   claimRunMonth: 'claimRunMonth',
   reviewedAt: 'reviewedAt',
   payoutAt: 'payoutAt',
+  payViaAccountId: 'payViaAccountId',
+  paymentType: 'paymentType',
   status: 'status',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
+  distance: 'distance',
+  mileageOriginAddress: 'mileageOriginAddress',
+  mileageDestinationAddress: 'mileageDestinationAddress',
+  mileageRateUsed: 'mileageRateUsed',
+  mileageUnitUsed: 'mileageUnitUsed',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
@@ -196,15 +204,7 @@ export const ClaimScalarFieldEnum = {
   xeroSyncError: 'xeroSyncError',
   xeroSyncedAt: 'xeroSyncedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  payViaAccountId: 'payViaAccountId',
-  paymentType: 'paymentType',
-  claimType: 'claimType',
-  distance: 'distance',
-  mileageDestinationAddress: 'mileageDestinationAddress',
-  mileageOriginAddress: 'mileageOriginAddress',
-  mileageRateUsed: 'mileageRateUsed',
-  mileageUnitUsed: 'mileageUnitUsed'
+  updatedAt: 'updatedAt'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
@@ -225,10 +225,10 @@ export const ChartOfAccountScalarFieldEnum = {
   updatedAt: 'updatedAt',
   isBankAccount: 'isBankAccount',
   isDisabled: 'isDisabled',
-  allowMileageClaim: 'allowMileageClaim',
   limitAmount: 'limitAmount',
   limitPeriod: 'limitPeriod',
   limitScope: 'limitScope',
+  allowMileageClaim: 'allowMileageClaim',
   mileageRate: 'mileageRate'
 } as const
 
@@ -423,16 +423,16 @@ export const ClaimOrderByRelevanceFieldEnum = {
   organizationId: 'organizationId',
   chartOfAccountId: 'chartOfAccountId',
   currency: 'currency',
+  payViaAccountId: 'payViaAccountId',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
+  mileageOriginAddress: 'mileageOriginAddress',
+  mileageDestinationAddress: 'mileageDestinationAddress',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
-  xeroSyncError: 'xeroSyncError',
-  payViaAccountId: 'payViaAccountId',
-  mileageDestinationAddress: 'mileageDestinationAddress',
-  mileageOriginAddress: 'mileageOriginAddress'
+  xeroSyncError: 'xeroSyncError'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]

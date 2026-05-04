@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { ArrowRight, ClipboardCheck, CircleDollarSign, Clock3, FileCheck2 } from "lucide-react"
 
 import { MetricCard } from "@/components/claims/metric-card"
+import { SpendLimitsCard } from "@/components/claims/spend-limits-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/attendance/ui/card"
 import { getEmployeeDashboard, getEmployeeClaimSubmissionData } from "@/modules/claims/application/services/employee-portal.service"
 import { formatCurrency } from "@/lib/utils"
@@ -156,7 +157,10 @@ export default async function EmployeeDashboardPage() {
             <div className="grid gap-3 sm:gap-4 xl:content-start">
               <DashboardQuickActions
                 chartAccounts={claimSubmissionData?.chartAccounts ?? []}
+                mileageAccounts={claimSubmissionData?.mileageAccounts ?? []}
                 bankAccounts={claimSubmissionData?.bankAccounts ?? []}
+                defaultMileageRate={claimSubmissionData?.organization?.defaultMileageRate}
+                mileageUnit={claimSubmissionData?.organization?.mileageUnit ?? "KM"}
                 claimRunPreview={claimSubmissionData?.claimRunPreview}
                 organizationName={claimSubmissionData?.organization?.name}
               />
@@ -186,6 +190,15 @@ export default async function EmployeeDashboardPage() {
         </div>
       </div>
 
+      {/* Spend limits — visible only when at least one account has a configured
+          MONTHLY/YEARLY cap. Renders nothing when no policy is set so the
+          dashboard stays uncluttered for orgs without spend governance. */}
+      <SpendLimitsCard
+        accounts={[
+          ...(claimSubmissionData?.chartAccounts ?? []),
+          ...(claimSubmissionData?.mileageAccounts ?? []),
+        ]}
+      />
     </div>
   )
 }

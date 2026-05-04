@@ -44,6 +44,7 @@ export type ClaimMinAggregateOutputType = {
   title: string | null
   description: string | null
   category: $Enums.ClaimCategory | null
+  claimType: $Enums.ClaimType | null
   organizationId: string | null
   chartOfAccountId: string | null
   amount: runtime.Decimal | null
@@ -53,9 +54,16 @@ export type ClaimMinAggregateOutputType = {
   claimRunMonth: Date | null
   reviewedAt: Date | null
   payoutAt: Date | null
+  payViaAccountId: string | null
+  paymentType: $Enums.PaymentType | null
   status: $Enums.ClaimStatus | null
   receiptUrl: string | null
   reviewNotes: string | null
+  distance: runtime.Decimal | null
+  mileageOriginAddress: string | null
+  mileageDestinationAddress: string | null
+  mileageRateUsed: runtime.Decimal | null
+  mileageUnitUsed: $Enums.MileageUnit | null
   employeeId: string | null
   reviewerId: string | null
   xeroBillId: string | null
@@ -65,14 +73,6 @@ export type ClaimMinAggregateOutputType = {
   xeroSyncedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
-  payViaAccountId: string | null
-  paymentType: $Enums.PaymentType | null
-  claimType: $Enums.Claim_claimType | null
-  distance: runtime.Decimal | null
-  mileageDestinationAddress: string | null
-  mileageOriginAddress: string | null
-  mileageRateUsed: runtime.Decimal | null
-  mileageUnitUsed: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimMaxAggregateOutputType = {
@@ -81,6 +81,7 @@ export type ClaimMaxAggregateOutputType = {
   title: string | null
   description: string | null
   category: $Enums.ClaimCategory | null
+  claimType: $Enums.ClaimType | null
   organizationId: string | null
   chartOfAccountId: string | null
   amount: runtime.Decimal | null
@@ -90,9 +91,16 @@ export type ClaimMaxAggregateOutputType = {
   claimRunMonth: Date | null
   reviewedAt: Date | null
   payoutAt: Date | null
+  payViaAccountId: string | null
+  paymentType: $Enums.PaymentType | null
   status: $Enums.ClaimStatus | null
   receiptUrl: string | null
   reviewNotes: string | null
+  distance: runtime.Decimal | null
+  mileageOriginAddress: string | null
+  mileageDestinationAddress: string | null
+  mileageRateUsed: runtime.Decimal | null
+  mileageUnitUsed: $Enums.MileageUnit | null
   employeeId: string | null
   reviewerId: string | null
   xeroBillId: string | null
@@ -102,14 +110,6 @@ export type ClaimMaxAggregateOutputType = {
   xeroSyncedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
-  payViaAccountId: string | null
-  paymentType: $Enums.PaymentType | null
-  claimType: $Enums.Claim_claimType | null
-  distance: runtime.Decimal | null
-  mileageDestinationAddress: string | null
-  mileageOriginAddress: string | null
-  mileageRateUsed: runtime.Decimal | null
-  mileageUnitUsed: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCountAggregateOutputType = {
@@ -118,6 +118,7 @@ export type ClaimCountAggregateOutputType = {
   title: number
   description: number
   category: number
+  claimType: number
   organizationId: number
   chartOfAccountId: number
   amount: number
@@ -127,9 +128,16 @@ export type ClaimCountAggregateOutputType = {
   claimRunMonth: number
   reviewedAt: number
   payoutAt: number
+  payViaAccountId: number
+  paymentType: number
   status: number
   receiptUrl: number
   reviewNotes: number
+  distance: number
+  mileageOriginAddress: number
+  mileageDestinationAddress: number
+  mileageRateUsed: number
+  mileageUnitUsed: number
   employeeId: number
   reviewerId: number
   xeroBillId: number
@@ -139,14 +147,6 @@ export type ClaimCountAggregateOutputType = {
   xeroSyncedAt: number
   createdAt: number
   updatedAt: number
-  payViaAccountId: number
-  paymentType: number
-  claimType: number
-  distance: number
-  mileageDestinationAddress: number
-  mileageOriginAddress: number
-  mileageRateUsed: number
-  mileageUnitUsed: number
   _all: number
 }
 
@@ -169,6 +169,7 @@ export type ClaimMinAggregateInputType = {
   title?: true
   description?: true
   category?: true
+  claimType?: true
   organizationId?: true
   chartOfAccountId?: true
   amount?: true
@@ -178,9 +179,16 @@ export type ClaimMinAggregateInputType = {
   claimRunMonth?: true
   reviewedAt?: true
   payoutAt?: true
+  payViaAccountId?: true
+  paymentType?: true
   status?: true
   receiptUrl?: true
   reviewNotes?: true
+  distance?: true
+  mileageOriginAddress?: true
+  mileageDestinationAddress?: true
+  mileageRateUsed?: true
+  mileageUnitUsed?: true
   employeeId?: true
   reviewerId?: true
   xeroBillId?: true
@@ -190,14 +198,6 @@ export type ClaimMinAggregateInputType = {
   xeroSyncedAt?: true
   createdAt?: true
   updatedAt?: true
-  payViaAccountId?: true
-  paymentType?: true
-  claimType?: true
-  distance?: true
-  mileageDestinationAddress?: true
-  mileageOriginAddress?: true
-  mileageRateUsed?: true
-  mileageUnitUsed?: true
 }
 
 export type ClaimMaxAggregateInputType = {
@@ -206,6 +206,7 @@ export type ClaimMaxAggregateInputType = {
   title?: true
   description?: true
   category?: true
+  claimType?: true
   organizationId?: true
   chartOfAccountId?: true
   amount?: true
@@ -215,9 +216,16 @@ export type ClaimMaxAggregateInputType = {
   claimRunMonth?: true
   reviewedAt?: true
   payoutAt?: true
+  payViaAccountId?: true
+  paymentType?: true
   status?: true
   receiptUrl?: true
   reviewNotes?: true
+  distance?: true
+  mileageOriginAddress?: true
+  mileageDestinationAddress?: true
+  mileageRateUsed?: true
+  mileageUnitUsed?: true
   employeeId?: true
   reviewerId?: true
   xeroBillId?: true
@@ -227,14 +235,6 @@ export type ClaimMaxAggregateInputType = {
   xeroSyncedAt?: true
   createdAt?: true
   updatedAt?: true
-  payViaAccountId?: true
-  paymentType?: true
-  claimType?: true
-  distance?: true
-  mileageDestinationAddress?: true
-  mileageOriginAddress?: true
-  mileageRateUsed?: true
-  mileageUnitUsed?: true
 }
 
 export type ClaimCountAggregateInputType = {
@@ -243,6 +243,7 @@ export type ClaimCountAggregateInputType = {
   title?: true
   description?: true
   category?: true
+  claimType?: true
   organizationId?: true
   chartOfAccountId?: true
   amount?: true
@@ -252,9 +253,16 @@ export type ClaimCountAggregateInputType = {
   claimRunMonth?: true
   reviewedAt?: true
   payoutAt?: true
+  payViaAccountId?: true
+  paymentType?: true
   status?: true
   receiptUrl?: true
   reviewNotes?: true
+  distance?: true
+  mileageOriginAddress?: true
+  mileageDestinationAddress?: true
+  mileageRateUsed?: true
+  mileageUnitUsed?: true
   employeeId?: true
   reviewerId?: true
   xeroBillId?: true
@@ -264,14 +272,6 @@ export type ClaimCountAggregateInputType = {
   xeroSyncedAt?: true
   createdAt?: true
   updatedAt?: true
-  payViaAccountId?: true
-  paymentType?: true
-  claimType?: true
-  distance?: true
-  mileageDestinationAddress?: true
-  mileageOriginAddress?: true
-  mileageRateUsed?: true
-  mileageUnitUsed?: true
   _all?: true
 }
 
@@ -367,6 +367,7 @@ export type ClaimGroupByOutputType = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType: $Enums.ClaimType
   organizationId: string | null
   chartOfAccountId: string | null
   amount: runtime.Decimal
@@ -376,9 +377,16 @@ export type ClaimGroupByOutputType = {
   claimRunMonth: Date | null
   reviewedAt: Date | null
   payoutAt: Date | null
+  payViaAccountId: string | null
+  paymentType: $Enums.PaymentType
   status: $Enums.ClaimStatus
   receiptUrl: string | null
   reviewNotes: string | null
+  distance: runtime.Decimal | null
+  mileageOriginAddress: string | null
+  mileageDestinationAddress: string | null
+  mileageRateUsed: runtime.Decimal | null
+  mileageUnitUsed: $Enums.MileageUnit | null
   employeeId: string
   reviewerId: string | null
   xeroBillId: string | null
@@ -388,14 +396,6 @@ export type ClaimGroupByOutputType = {
   xeroSyncedAt: Date | null
   createdAt: Date
   updatedAt: Date
-  payViaAccountId: string | null
-  paymentType: $Enums.PaymentType
-  claimType: $Enums.Claim_claimType
-  distance: runtime.Decimal | null
-  mileageDestinationAddress: string | null
-  mileageOriginAddress: string | null
-  mileageRateUsed: runtime.Decimal | null
-  mileageUnitUsed: $Enums.Claim_mileageUnitUsed | null
   _count: ClaimCountAggregateOutputType | null
   _avg: ClaimAvgAggregateOutputType | null
   _sum: ClaimSumAggregateOutputType | null
@@ -427,6 +427,7 @@ export type ClaimWhereInput = {
   title?: Prisma.StringFilter<"Claim"> | string
   description?: Prisma.StringFilter<"Claim"> | string
   category?: Prisma.EnumClaimCategoryFilter<"Claim"> | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFilter<"Claim"> | $Enums.ClaimType
   organizationId?: Prisma.StringNullableFilter<"Claim"> | string | null
   chartOfAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
   amount?: Prisma.DecimalFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -436,9 +437,16 @@ export type ClaimWhereInput = {
   claimRunMonth?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   payoutAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
+  payViaAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  paymentType?: Prisma.EnumPaymentTypeFilter<"Claim"> | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFilter<"Claim"> | $Enums.ClaimStatus
   receiptUrl?: Prisma.StringNullableFilter<"Claim"> | string | null
   reviewNotes?: Prisma.StringNullableFilter<"Claim"> | string | null
+  distance?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
+  mileageDestinationAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
+  mileageRateUsed?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.EnumMileageUnitNullableFilter<"Claim"> | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFilter<"Claim"> | string
   reviewerId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroBillId?: Prisma.StringNullableFilter<"Claim"> | string | null
@@ -448,18 +456,10 @@ export type ClaimWhereInput = {
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
-  payViaAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
-  paymentType?: Prisma.EnumPaymentTypeFilter<"Claim"> | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFilter<"Claim"> | $Enums.Claim_claimType
-  distance?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
-  mileageOriginAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
-  mileageRateUsed?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.EnumClaim_mileageUnitUsedNullableFilter<"Claim"> | $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
+  payViaAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
-  payViaAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
@@ -469,6 +469,7 @@ export type ClaimOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  claimType?: Prisma.SortOrder
   organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
   chartOfAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -478,9 +479,16 @@ export type ClaimOrderByWithRelationInput = {
   claimRunMonth?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   payoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  payViaAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  distance?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageOriginAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageDestinationAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageRateUsed?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageUnitUsed?: Prisma.SortOrderInput | Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroBillId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -490,18 +498,10 @@ export type ClaimOrderByWithRelationInput = {
   xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  payViaAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
-  paymentType?: Prisma.SortOrder
-  claimType?: Prisma.SortOrder
-  distance?: Prisma.SortOrderInput | Prisma.SortOrder
-  mileageDestinationAddress?: Prisma.SortOrderInput | Prisma.SortOrder
-  mileageOriginAddress?: Prisma.SortOrderInput | Prisma.SortOrder
-  mileageRateUsed?: Prisma.SortOrderInput | Prisma.SortOrder
-  mileageUnitUsed?: Prisma.SortOrderInput | Prisma.SortOrder
   chartOfAccount?: Prisma.ChartOfAccountOrderByWithRelationInput
+  payViaAccount?: Prisma.ChartOfAccountOrderByWithRelationInput
   employee?: Prisma.UserOrderByWithRelationInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
-  payViaAccount?: Prisma.ChartOfAccountOrderByWithRelationInput
   reviewer?: Prisma.UserOrderByWithRelationInput
   _relevance?: Prisma.ClaimOrderByRelevanceInput
 }
@@ -516,6 +516,7 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"Claim"> | string
   description?: Prisma.StringFilter<"Claim"> | string
   category?: Prisma.EnumClaimCategoryFilter<"Claim"> | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFilter<"Claim"> | $Enums.ClaimType
   organizationId?: Prisma.StringNullableFilter<"Claim"> | string | null
   chartOfAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
   amount?: Prisma.DecimalFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -525,9 +526,16 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   claimRunMonth?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   payoutAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
+  payViaAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  paymentType?: Prisma.EnumPaymentTypeFilter<"Claim"> | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFilter<"Claim"> | $Enums.ClaimStatus
   receiptUrl?: Prisma.StringNullableFilter<"Claim"> | string | null
   reviewNotes?: Prisma.StringNullableFilter<"Claim"> | string | null
+  distance?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
+  mileageDestinationAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
+  mileageRateUsed?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.EnumMileageUnitNullableFilter<"Claim"> | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFilter<"Claim"> | string
   reviewerId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroBillRef?: Prisma.StringNullableFilter<"Claim"> | string | null
@@ -536,18 +544,10 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
-  payViaAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
-  paymentType?: Prisma.EnumPaymentTypeFilter<"Claim"> | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFilter<"Claim"> | $Enums.Claim_claimType
-  distance?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
-  mileageOriginAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
-  mileageRateUsed?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.EnumClaim_mileageUnitUsedNullableFilter<"Claim"> | $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
+  payViaAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
-  payViaAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id" | "claimNumber" | "xeroBillId">
 
@@ -557,6 +557,7 @@ export type ClaimOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  claimType?: Prisma.SortOrder
   organizationId?: Prisma.SortOrderInput | Prisma.SortOrder
   chartOfAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -566,9 +567,16 @@ export type ClaimOrderByWithAggregationInput = {
   claimRunMonth?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   payoutAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  payViaAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewNotes?: Prisma.SortOrderInput | Prisma.SortOrder
+  distance?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageOriginAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageDestinationAddress?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageRateUsed?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageUnitUsed?: Prisma.SortOrderInput | Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroBillId?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -578,14 +586,6 @@ export type ClaimOrderByWithAggregationInput = {
   xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  payViaAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
-  paymentType?: Prisma.SortOrder
-  claimType?: Prisma.SortOrder
-  distance?: Prisma.SortOrderInput | Prisma.SortOrder
-  mileageDestinationAddress?: Prisma.SortOrderInput | Prisma.SortOrder
-  mileageOriginAddress?: Prisma.SortOrderInput | Prisma.SortOrder
-  mileageRateUsed?: Prisma.SortOrderInput | Prisma.SortOrder
-  mileageUnitUsed?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ClaimCountOrderByAggregateInput
   _avg?: Prisma.ClaimAvgOrderByAggregateInput
   _max?: Prisma.ClaimMaxOrderByAggregateInput
@@ -602,6 +602,7 @@ export type ClaimScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Claim"> | string
   description?: Prisma.StringWithAggregatesFilter<"Claim"> | string
   category?: Prisma.EnumClaimCategoryWithAggregatesFilter<"Claim"> | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeWithAggregatesFilter<"Claim"> | $Enums.ClaimType
   organizationId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   chartOfAccountId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   amount?: Prisma.DecimalWithAggregatesFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -611,9 +612,16 @@ export type ClaimScalarWhereWithAggregatesInput = {
   claimRunMonth?: Prisma.DateTimeNullableWithAggregatesFilter<"Claim"> | Date | string | null
   reviewedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Claim"> | Date | string | null
   payoutAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Claim"> | Date | string | null
+  payViaAccountId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  paymentType?: Prisma.EnumPaymentTypeWithAggregatesFilter<"Claim"> | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusWithAggregatesFilter<"Claim"> | $Enums.ClaimStatus
   receiptUrl?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   reviewNotes?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  distance?: Prisma.DecimalNullableWithAggregatesFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  mileageDestinationAddress?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  mileageRateUsed?: Prisma.DecimalNullableWithAggregatesFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.EnumMileageUnitNullableWithAggregatesFilter<"Claim"> | $Enums.MileageUnit | null
   employeeId?: Prisma.StringWithAggregatesFilter<"Claim"> | string
   reviewerId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   xeroBillId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
@@ -623,14 +631,6 @@ export type ClaimScalarWhereWithAggregatesInput = {
   xeroSyncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Claim"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Claim"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Claim"> | Date | string
-  payViaAccountId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
-  paymentType?: Prisma.EnumPaymentTypeWithAggregatesFilter<"Claim"> | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeWithAggregatesFilter<"Claim"> | $Enums.Claim_claimType
-  distance?: Prisma.DecimalNullableWithAggregatesFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
-  mileageOriginAddress?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
-  mileageRateUsed?: Prisma.DecimalNullableWithAggregatesFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.EnumClaim_mileageUnitUsedNullableWithAggregatesFilter<"Claim"> | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateInput = {
@@ -639,6 +639,7 @@ export type ClaimCreateInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
@@ -646,9 +647,15 @@ export type ClaimCreateInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
@@ -656,17 +663,10 @@ export type ClaimCreateInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
+  payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPayViaClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
-  payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPayViaClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
 }
 
@@ -676,6 +676,7 @@ export type ClaimUncheckedCreateInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -685,9 +686,16 @@ export type ClaimUncheckedCreateInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   reviewerId?: string | null
   xeroBillId?: string | null
@@ -697,14 +705,6 @@ export type ClaimUncheckedCreateInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUpdateInput = {
@@ -713,6 +713,7 @@ export type ClaimUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -720,9 +721,15 @@ export type ClaimUpdateInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
@@ -730,17 +737,10 @@ export type ClaimUpdateInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
+  payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
-  payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
 }
 
@@ -750,6 +750,7 @@ export type ClaimUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -759,9 +760,16 @@ export type ClaimUncheckedUpdateInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -771,14 +779,6 @@ export type ClaimUncheckedUpdateInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateManyInput = {
@@ -787,6 +787,7 @@ export type ClaimCreateManyInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -796,9 +797,16 @@ export type ClaimCreateManyInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   reviewerId?: string | null
   xeroBillId?: string | null
@@ -808,14 +816,6 @@ export type ClaimCreateManyInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUpdateManyMutationInput = {
@@ -824,6 +824,7 @@ export type ClaimUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -831,9 +832,15 @@ export type ClaimUpdateManyMutationInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
@@ -841,13 +848,6 @@ export type ClaimUpdateManyMutationInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUncheckedUpdateManyInput = {
@@ -856,6 +856,7 @@ export type ClaimUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -865,9 +866,16 @@ export type ClaimUncheckedUpdateManyInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -877,14 +885,6 @@ export type ClaimUncheckedUpdateManyInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimListRelationFilter = {
@@ -909,6 +909,7 @@ export type ClaimCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  claimType?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   chartOfAccountId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -918,9 +919,16 @@ export type ClaimCountOrderByAggregateInput = {
   claimRunMonth?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
   payoutAt?: Prisma.SortOrder
+  payViaAccountId?: Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrder
   reviewNotes?: Prisma.SortOrder
+  distance?: Prisma.SortOrder
+  mileageOriginAddress?: Prisma.SortOrder
+  mileageDestinationAddress?: Prisma.SortOrder
+  mileageRateUsed?: Prisma.SortOrder
+  mileageUnitUsed?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   xeroBillId?: Prisma.SortOrder
@@ -930,14 +938,6 @@ export type ClaimCountOrderByAggregateInput = {
   xeroSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  payViaAccountId?: Prisma.SortOrder
-  paymentType?: Prisma.SortOrder
-  claimType?: Prisma.SortOrder
-  distance?: Prisma.SortOrder
-  mileageDestinationAddress?: Prisma.SortOrder
-  mileageOriginAddress?: Prisma.SortOrder
-  mileageRateUsed?: Prisma.SortOrder
-  mileageUnitUsed?: Prisma.SortOrder
 }
 
 export type ClaimAvgOrderByAggregateInput = {
@@ -952,6 +952,7 @@ export type ClaimMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  claimType?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   chartOfAccountId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -961,9 +962,16 @@ export type ClaimMaxOrderByAggregateInput = {
   claimRunMonth?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
   payoutAt?: Prisma.SortOrder
+  payViaAccountId?: Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrder
   reviewNotes?: Prisma.SortOrder
+  distance?: Prisma.SortOrder
+  mileageOriginAddress?: Prisma.SortOrder
+  mileageDestinationAddress?: Prisma.SortOrder
+  mileageRateUsed?: Prisma.SortOrder
+  mileageUnitUsed?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   xeroBillId?: Prisma.SortOrder
@@ -973,14 +981,6 @@ export type ClaimMaxOrderByAggregateInput = {
   xeroSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  payViaAccountId?: Prisma.SortOrder
-  paymentType?: Prisma.SortOrder
-  claimType?: Prisma.SortOrder
-  distance?: Prisma.SortOrder
-  mileageDestinationAddress?: Prisma.SortOrder
-  mileageOriginAddress?: Prisma.SortOrder
-  mileageRateUsed?: Prisma.SortOrder
-  mileageUnitUsed?: Prisma.SortOrder
 }
 
 export type ClaimMinOrderByAggregateInput = {
@@ -989,6 +989,7 @@ export type ClaimMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   description?: Prisma.SortOrder
   category?: Prisma.SortOrder
+  claimType?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   chartOfAccountId?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -998,9 +999,16 @@ export type ClaimMinOrderByAggregateInput = {
   claimRunMonth?: Prisma.SortOrder
   reviewedAt?: Prisma.SortOrder
   payoutAt?: Prisma.SortOrder
+  payViaAccountId?: Prisma.SortOrder
+  paymentType?: Prisma.SortOrder
   status?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrder
   reviewNotes?: Prisma.SortOrder
+  distance?: Prisma.SortOrder
+  mileageOriginAddress?: Prisma.SortOrder
+  mileageDestinationAddress?: Prisma.SortOrder
+  mileageRateUsed?: Prisma.SortOrder
+  mileageUnitUsed?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   xeroBillId?: Prisma.SortOrder
@@ -1010,14 +1018,6 @@ export type ClaimMinOrderByAggregateInput = {
   xeroSyncedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  payViaAccountId?: Prisma.SortOrder
-  paymentType?: Prisma.SortOrder
-  claimType?: Prisma.SortOrder
-  distance?: Prisma.SortOrder
-  mileageDestinationAddress?: Prisma.SortOrder
-  mileageOriginAddress?: Prisma.SortOrder
-  mileageRateUsed?: Prisma.SortOrder
-  mileageUnitUsed?: Prisma.SortOrder
 }
 
 export type ClaimSumOrderByAggregateInput = {
@@ -1156,28 +1156,28 @@ export type EnumClaimCategoryFieldUpdateOperationsInput = {
   set?: $Enums.ClaimCategory
 }
 
+export type EnumClaimTypeFieldUpdateOperationsInput = {
+  set?: $Enums.ClaimType
+}
+
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
-}
-
-export type EnumClaimStatusFieldUpdateOperationsInput = {
-  set?: $Enums.ClaimStatus
-}
-
-export type EnumXeroSyncStatusFieldUpdateOperationsInput = {
-  set?: $Enums.XeroSyncStatus
 }
 
 export type EnumPaymentTypeFieldUpdateOperationsInput = {
   set?: $Enums.PaymentType
 }
 
-export type EnumClaim_claimTypeFieldUpdateOperationsInput = {
-  set?: $Enums.Claim_claimType
+export type EnumClaimStatusFieldUpdateOperationsInput = {
+  set?: $Enums.ClaimStatus
 }
 
-export type NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput = {
-  set?: $Enums.Claim_mileageUnitUsed | null
+export type NullableEnumMileageUnitFieldUpdateOperationsInput = {
+  set?: $Enums.MileageUnit | null
+}
+
+export type EnumXeroSyncStatusFieldUpdateOperationsInput = {
+  set?: $Enums.XeroSyncStatus
 }
 
 export type ClaimCreateNestedManyWithoutChartOfAccountInput = {
@@ -1270,6 +1270,7 @@ export type ClaimCreateWithoutEmployeeInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
@@ -1277,9 +1278,15 @@ export type ClaimCreateWithoutEmployeeInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
@@ -1287,16 +1294,9 @@ export type ClaimCreateWithoutEmployeeInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
-  organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
   payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPayViaClaimsInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
 }
 
@@ -1306,6 +1306,7 @@ export type ClaimUncheckedCreateWithoutEmployeeInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1315,9 +1316,16 @@ export type ClaimUncheckedCreateWithoutEmployeeInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   reviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
@@ -1326,14 +1334,6 @@ export type ClaimUncheckedCreateWithoutEmployeeInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateOrConnectWithoutEmployeeInput = {
@@ -1352,6 +1352,7 @@ export type ClaimCreateWithoutReviewerInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
@@ -1359,9 +1360,15 @@ export type ClaimCreateWithoutReviewerInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
@@ -1369,17 +1376,10 @@ export type ClaimCreateWithoutReviewerInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
+  payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPayViaClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
-  payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPayViaClaimsInput
 }
 
 export type ClaimUncheckedCreateWithoutReviewerInput = {
@@ -1388,6 +1388,7 @@ export type ClaimUncheckedCreateWithoutReviewerInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1397,9 +1398,16 @@ export type ClaimUncheckedCreateWithoutReviewerInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   xeroBillId?: string | null
   xeroBillRef?: string | null
@@ -1408,14 +1416,6 @@ export type ClaimUncheckedCreateWithoutReviewerInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateOrConnectWithoutReviewerInput = {
@@ -1453,6 +1453,7 @@ export type ClaimScalarWhereInput = {
   title?: Prisma.StringFilter<"Claim"> | string
   description?: Prisma.StringFilter<"Claim"> | string
   category?: Prisma.EnumClaimCategoryFilter<"Claim"> | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFilter<"Claim"> | $Enums.ClaimType
   organizationId?: Prisma.StringNullableFilter<"Claim"> | string | null
   chartOfAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
   amount?: Prisma.DecimalFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1462,9 +1463,16 @@ export type ClaimScalarWhereInput = {
   claimRunMonth?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   reviewedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   payoutAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
+  payViaAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  paymentType?: Prisma.EnumPaymentTypeFilter<"Claim"> | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFilter<"Claim"> | $Enums.ClaimStatus
   receiptUrl?: Prisma.StringNullableFilter<"Claim"> | string | null
   reviewNotes?: Prisma.StringNullableFilter<"Claim"> | string | null
+  distance?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
+  mileageDestinationAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
+  mileageRateUsed?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.EnumMileageUnitNullableFilter<"Claim"> | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFilter<"Claim"> | string
   reviewerId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroBillId?: Prisma.StringNullableFilter<"Claim"> | string | null
@@ -1474,14 +1482,6 @@ export type ClaimScalarWhereInput = {
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Claim"> | Date | string
-  payViaAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
-  paymentType?: Prisma.EnumPaymentTypeFilter<"Claim"> | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFilter<"Claim"> | $Enums.Claim_claimType
-  distance?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
-  mileageOriginAddress?: Prisma.StringNullableFilter<"Claim"> | string | null
-  mileageRateUsed?: Prisma.DecimalNullableFilter<"Claim"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.EnumClaim_mileageUnitUsedNullableFilter<"Claim"> | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUpsertWithWhereUniqueWithoutReviewerInput = {
@@ -1506,6 +1506,7 @@ export type ClaimCreateWithoutOrganizationInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
@@ -1513,9 +1514,15 @@ export type ClaimCreateWithoutOrganizationInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
@@ -1523,16 +1530,9 @@ export type ClaimCreateWithoutOrganizationInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
-  employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPayViaClaimsInput
+  employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
 }
 
@@ -1542,6 +1542,7 @@ export type ClaimUncheckedCreateWithoutOrganizationInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
@@ -1550,9 +1551,16 @@ export type ClaimUncheckedCreateWithoutOrganizationInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   reviewerId?: string | null
   xeroBillId?: string | null
@@ -1562,14 +1570,6 @@ export type ClaimUncheckedCreateWithoutOrganizationInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateOrConnectWithoutOrganizationInput = {
@@ -1604,6 +1604,7 @@ export type ClaimCreateWithoutChartOfAccountInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
@@ -1611,9 +1612,15 @@ export type ClaimCreateWithoutChartOfAccountInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
@@ -1621,16 +1628,9 @@ export type ClaimCreateWithoutChartOfAccountInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
+  payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPayViaClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
-  payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPayViaClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
 }
 
@@ -1640,6 +1640,7 @@ export type ClaimUncheckedCreateWithoutChartOfAccountInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
@@ -1648,9 +1649,16 @@ export type ClaimUncheckedCreateWithoutChartOfAccountInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   reviewerId?: string | null
   xeroBillId?: string | null
@@ -1660,14 +1668,6 @@ export type ClaimUncheckedCreateWithoutChartOfAccountInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateOrConnectWithoutChartOfAccountInput = {
@@ -1686,6 +1686,7 @@ export type ClaimCreateWithoutPayViaAccountInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
   spentAt: Date | string
@@ -1693,9 +1694,15 @@ export type ClaimCreateWithoutPayViaAccountInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
@@ -1703,13 +1710,6 @@ export type ClaimCreateWithoutPayViaAccountInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
@@ -1722,6 +1722,7 @@ export type ClaimUncheckedCreateWithoutPayViaAccountInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1731,9 +1732,15 @@ export type ClaimUncheckedCreateWithoutPayViaAccountInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   reviewerId?: string | null
   xeroBillId?: string | null
@@ -1743,13 +1750,6 @@ export type ClaimUncheckedCreateWithoutPayViaAccountInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateOrConnectWithoutPayViaAccountInput = {
@@ -1800,6 +1800,7 @@ export type ClaimCreateManyEmployeeInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1809,9 +1810,16 @@ export type ClaimCreateManyEmployeeInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   reviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
@@ -1820,14 +1828,6 @@ export type ClaimCreateManyEmployeeInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateManyReviewerInput = {
@@ -1836,6 +1836,7 @@ export type ClaimCreateManyReviewerInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1845,9 +1846,16 @@ export type ClaimCreateManyReviewerInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   xeroBillId?: string | null
   xeroBillRef?: string | null
@@ -1856,14 +1864,6 @@ export type ClaimCreateManyReviewerInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUpdateWithoutEmployeeInput = {
@@ -1872,6 +1872,7 @@ export type ClaimUpdateWithoutEmployeeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1879,9 +1880,15 @@ export type ClaimUpdateWithoutEmployeeInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
@@ -1889,16 +1896,9 @@ export type ClaimUpdateWithoutEmployeeInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
-  organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
   payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
 }
 
@@ -1908,6 +1908,7 @@ export type ClaimUncheckedUpdateWithoutEmployeeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1917,9 +1918,16 @@ export type ClaimUncheckedUpdateWithoutEmployeeInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1928,14 +1936,6 @@ export type ClaimUncheckedUpdateWithoutEmployeeInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUncheckedUpdateManyWithoutEmployeeInput = {
@@ -1944,6 +1944,7 @@ export type ClaimUncheckedUpdateManyWithoutEmployeeInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1953,9 +1954,16 @@ export type ClaimUncheckedUpdateManyWithoutEmployeeInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1964,14 +1972,6 @@ export type ClaimUncheckedUpdateManyWithoutEmployeeInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUpdateWithoutReviewerInput = {
@@ -1980,6 +1980,7 @@ export type ClaimUpdateWithoutReviewerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1987,9 +1988,15 @@ export type ClaimUpdateWithoutReviewerInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
@@ -1997,17 +2004,10 @@ export type ClaimUpdateWithoutReviewerInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
+  payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
-  payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput
 }
 
 export type ClaimUncheckedUpdateWithoutReviewerInput = {
@@ -2016,6 +2016,7 @@ export type ClaimUncheckedUpdateWithoutReviewerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2025,9 +2026,16 @@ export type ClaimUncheckedUpdateWithoutReviewerInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2036,14 +2044,6 @@ export type ClaimUncheckedUpdateWithoutReviewerInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUncheckedUpdateManyWithoutReviewerInput = {
@@ -2052,6 +2052,7 @@ export type ClaimUncheckedUpdateManyWithoutReviewerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2061,9 +2062,16 @@ export type ClaimUncheckedUpdateManyWithoutReviewerInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2072,14 +2080,6 @@ export type ClaimUncheckedUpdateManyWithoutReviewerInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateManyOrganizationInput = {
@@ -2088,6 +2088,7 @@ export type ClaimCreateManyOrganizationInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
@@ -2096,9 +2097,16 @@ export type ClaimCreateManyOrganizationInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   reviewerId?: string | null
   xeroBillId?: string | null
@@ -2108,14 +2116,6 @@ export type ClaimCreateManyOrganizationInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUpdateWithoutOrganizationInput = {
@@ -2124,6 +2124,7 @@ export type ClaimUpdateWithoutOrganizationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2131,9 +2132,15 @@ export type ClaimUpdateWithoutOrganizationInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
@@ -2141,16 +2148,9 @@ export type ClaimUpdateWithoutOrganizationInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
-  employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput
+  employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
 }
 
@@ -2160,6 +2160,7 @@ export type ClaimUncheckedUpdateWithoutOrganizationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2168,9 +2169,16 @@ export type ClaimUncheckedUpdateWithoutOrganizationInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2180,14 +2188,6 @@ export type ClaimUncheckedUpdateWithoutOrganizationInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUncheckedUpdateManyWithoutOrganizationInput = {
@@ -2196,6 +2196,7 @@ export type ClaimUncheckedUpdateManyWithoutOrganizationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2204,9 +2205,16 @@ export type ClaimUncheckedUpdateManyWithoutOrganizationInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2216,14 +2224,6 @@ export type ClaimUncheckedUpdateManyWithoutOrganizationInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateManyChartOfAccountInput = {
@@ -2232,6 +2232,7 @@ export type ClaimCreateManyChartOfAccountInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: string
@@ -2240,9 +2241,16 @@ export type ClaimCreateManyChartOfAccountInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  payViaAccountId?: string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   reviewerId?: string | null
   xeroBillId?: string | null
@@ -2252,14 +2260,6 @@ export type ClaimCreateManyChartOfAccountInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payViaAccountId?: string | null
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimCreateManyPayViaAccountInput = {
@@ -2268,6 +2268,7 @@ export type ClaimCreateManyPayViaAccountInput = {
   title: string
   description: string
   category: $Enums.ClaimCategory
+  claimType?: $Enums.ClaimType
   organizationId?: string | null
   chartOfAccountId?: string | null
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2277,9 +2278,15 @@ export type ClaimCreateManyPayViaAccountInput = {
   claimRunMonth?: Date | string | null
   reviewedAt?: Date | string | null
   payoutAt?: Date | string | null
+  paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
   receiptUrl?: string | null
   reviewNotes?: string | null
+  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: $Enums.MileageUnit | null
   employeeId: string
   reviewerId?: string | null
   xeroBillId?: string | null
@@ -2289,13 +2296,6 @@ export type ClaimCreateManyPayViaAccountInput = {
   xeroSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  paymentType?: $Enums.PaymentType
-  claimType?: $Enums.Claim_claimType
-  distance?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: string | null
-  mileageOriginAddress?: string | null
-  mileageRateUsed?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUpdateWithoutChartOfAccountInput = {
@@ -2304,6 +2304,7 @@ export type ClaimUpdateWithoutChartOfAccountInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2311,9 +2312,15 @@ export type ClaimUpdateWithoutChartOfAccountInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
@@ -2321,16 +2328,9 @@ export type ClaimUpdateWithoutChartOfAccountInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
+  payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
-  payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
 }
 
@@ -2340,6 +2340,7 @@ export type ClaimUncheckedUpdateWithoutChartOfAccountInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2348,9 +2349,16 @@ export type ClaimUncheckedUpdateWithoutChartOfAccountInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2360,14 +2368,6 @@ export type ClaimUncheckedUpdateWithoutChartOfAccountInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUncheckedUpdateManyWithoutChartOfAccountInput = {
@@ -2376,6 +2376,7 @@ export type ClaimUncheckedUpdateManyWithoutChartOfAccountInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2384,9 +2385,16 @@ export type ClaimUncheckedUpdateManyWithoutChartOfAccountInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2396,14 +2404,6 @@ export type ClaimUncheckedUpdateManyWithoutChartOfAccountInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUpdateWithoutPayViaAccountInput = {
@@ -2412,6 +2412,7 @@ export type ClaimUpdateWithoutPayViaAccountInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   spentAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2419,9 +2420,15 @@ export type ClaimUpdateWithoutPayViaAccountInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
@@ -2429,13 +2436,6 @@ export type ClaimUpdateWithoutPayViaAccountInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
@@ -2448,6 +2448,7 @@ export type ClaimUncheckedUpdateWithoutPayViaAccountInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2457,9 +2458,15 @@ export type ClaimUncheckedUpdateWithoutPayViaAccountInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2469,13 +2476,6 @@ export type ClaimUncheckedUpdateWithoutPayViaAccountInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 export type ClaimUncheckedUpdateManyWithoutPayViaAccountInput = {
@@ -2484,6 +2484,7 @@ export type ClaimUncheckedUpdateManyWithoutPayViaAccountInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   category?: Prisma.EnumClaimCategoryFieldUpdateOperationsInput | $Enums.ClaimCategory
+  claimType?: Prisma.EnumClaimTypeFieldUpdateOperationsInput | $Enums.ClaimType
   organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2493,9 +2494,15 @@ export type ClaimUncheckedUpdateManyWithoutPayViaAccountInput = {
   claimRunMonth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   payoutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnitUsed?: Prisma.NullableEnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2505,13 +2512,6 @@ export type ClaimUncheckedUpdateManyWithoutPayViaAccountInput = {
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
-  claimType?: Prisma.EnumClaim_claimTypeFieldUpdateOperationsInput | $Enums.Claim_claimType
-  distance?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageDestinationAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageOriginAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  mileageRateUsed?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  mileageUnitUsed?: Prisma.NullableEnumClaim_mileageUnitUsedFieldUpdateOperationsInput | $Enums.Claim_mileageUnitUsed | null
 }
 
 
@@ -2522,6 +2522,7 @@ export type ClaimSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   title?: boolean
   description?: boolean
   category?: boolean
+  claimType?: boolean
   organizationId?: boolean
   chartOfAccountId?: boolean
   amount?: boolean
@@ -2531,9 +2532,16 @@ export type ClaimSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   claimRunMonth?: boolean
   reviewedAt?: boolean
   payoutAt?: boolean
+  payViaAccountId?: boolean
+  paymentType?: boolean
   status?: boolean
   receiptUrl?: boolean
   reviewNotes?: boolean
+  distance?: boolean
+  mileageOriginAddress?: boolean
+  mileageDestinationAddress?: boolean
+  mileageRateUsed?: boolean
+  mileageUnitUsed?: boolean
   employeeId?: boolean
   reviewerId?: boolean
   xeroBillId?: boolean
@@ -2543,18 +2551,10 @@ export type ClaimSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   xeroSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  payViaAccountId?: boolean
-  paymentType?: boolean
-  claimType?: boolean
-  distance?: boolean
-  mileageDestinationAddress?: boolean
-  mileageOriginAddress?: boolean
-  mileageRateUsed?: boolean
-  mileageUnitUsed?: boolean
   chartOfAccount?: boolean | Prisma.Claim$chartOfAccountArgs<ExtArgs>
+  payViaAccount?: boolean | Prisma.Claim$payViaAccountArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Claim$organizationArgs<ExtArgs>
-  payViaAccount?: boolean | Prisma.Claim$payViaAccountArgs<ExtArgs>
   reviewer?: boolean | Prisma.Claim$reviewerArgs<ExtArgs>
 }, ExtArgs["result"]["claim"]>
 
@@ -2566,6 +2566,7 @@ export type ClaimSelectScalar = {
   title?: boolean
   description?: boolean
   category?: boolean
+  claimType?: boolean
   organizationId?: boolean
   chartOfAccountId?: boolean
   amount?: boolean
@@ -2575,9 +2576,16 @@ export type ClaimSelectScalar = {
   claimRunMonth?: boolean
   reviewedAt?: boolean
   payoutAt?: boolean
+  payViaAccountId?: boolean
+  paymentType?: boolean
   status?: boolean
   receiptUrl?: boolean
   reviewNotes?: boolean
+  distance?: boolean
+  mileageOriginAddress?: boolean
+  mileageDestinationAddress?: boolean
+  mileageRateUsed?: boolean
+  mileageUnitUsed?: boolean
   employeeId?: boolean
   reviewerId?: boolean
   xeroBillId?: boolean
@@ -2587,22 +2595,14 @@ export type ClaimSelectScalar = {
   xeroSyncedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  payViaAccountId?: boolean
-  paymentType?: boolean
-  claimType?: boolean
-  distance?: boolean
-  mileageDestinationAddress?: boolean
-  mileageOriginAddress?: boolean
-  mileageRateUsed?: boolean
-  mileageUnitUsed?: boolean
 }
 
-export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "organizationId" | "chartOfAccountId" | "amount" | "currency" | "spentAt" | "submittedAt" | "claimRunMonth" | "reviewedAt" | "payoutAt" | "status" | "receiptUrl" | "reviewNotes" | "employeeId" | "reviewerId" | "xeroBillId" | "xeroBillRef" | "xeroSyncStatus" | "xeroSyncError" | "xeroSyncedAt" | "createdAt" | "updatedAt" | "payViaAccountId" | "paymentType" | "claimType" | "distance" | "mileageDestinationAddress" | "mileageOriginAddress" | "mileageRateUsed" | "mileageUnitUsed", ExtArgs["result"]["claim"]>
+export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "claimType" | "organizationId" | "chartOfAccountId" | "amount" | "currency" | "spentAt" | "submittedAt" | "claimRunMonth" | "reviewedAt" | "payoutAt" | "payViaAccountId" | "paymentType" | "status" | "receiptUrl" | "reviewNotes" | "distance" | "mileageOriginAddress" | "mileageDestinationAddress" | "mileageRateUsed" | "mileageUnitUsed" | "employeeId" | "reviewerId" | "xeroBillId" | "xeroBillRef" | "xeroSyncStatus" | "xeroSyncError" | "xeroSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["claim"]>
 export type ClaimInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chartOfAccount?: boolean | Prisma.Claim$chartOfAccountArgs<ExtArgs>
+  payViaAccount?: boolean | Prisma.Claim$payViaAccountArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Claim$organizationArgs<ExtArgs>
-  payViaAccount?: boolean | Prisma.Claim$payViaAccountArgs<ExtArgs>
   reviewer?: boolean | Prisma.Claim$reviewerArgs<ExtArgs>
 }
 
@@ -2610,9 +2610,9 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name: "Claim"
   objects: {
     chartOfAccount: Prisma.$ChartOfAccountPayload<ExtArgs> | null
+    payViaAccount: Prisma.$ChartOfAccountPayload<ExtArgs> | null
     employee: Prisma.$UserPayload<ExtArgs>
     organization: Prisma.$OrganizationPayload<ExtArgs> | null
-    payViaAccount: Prisma.$ChartOfAccountPayload<ExtArgs> | null
     reviewer: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2621,6 +2621,7 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     title: string
     description: string
     category: $Enums.ClaimCategory
+    claimType: $Enums.ClaimType
     organizationId: string | null
     chartOfAccountId: string | null
     amount: runtime.Decimal
@@ -2630,9 +2631,16 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     claimRunMonth: Date | null
     reviewedAt: Date | null
     payoutAt: Date | null
+    payViaAccountId: string | null
+    paymentType: $Enums.PaymentType
     status: $Enums.ClaimStatus
     receiptUrl: string | null
     reviewNotes: string | null
+    distance: runtime.Decimal | null
+    mileageOriginAddress: string | null
+    mileageDestinationAddress: string | null
+    mileageRateUsed: runtime.Decimal | null
+    mileageUnitUsed: $Enums.MileageUnit | null
     employeeId: string
     reviewerId: string | null
     xeroBillId: string | null
@@ -2642,14 +2650,6 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     xeroSyncedAt: Date | null
     createdAt: Date
     updatedAt: Date
-    payViaAccountId: string | null
-    paymentType: $Enums.PaymentType
-    claimType: $Enums.Claim_claimType
-    distance: runtime.Decimal | null
-    mileageDestinationAddress: string | null
-    mileageOriginAddress: string | null
-    mileageRateUsed: runtime.Decimal | null
-    mileageUnitUsed: $Enums.Claim_mileageUnitUsed | null
   }, ExtArgs["result"]["claim"]>
   composites: {}
 }
@@ -2991,9 +2991,9 @@ readonly fields: ClaimFieldRefs;
 export interface Prisma__ClaimClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   chartOfAccount<T extends Prisma.Claim$chartOfAccountArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$chartOfAccountArgs<ExtArgs>>): Prisma.Prisma__ChartOfAccountClient<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  payViaAccount<T extends Prisma.Claim$payViaAccountArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$payViaAccountArgs<ExtArgs>>): Prisma.Prisma__ChartOfAccountClient<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   employee<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   organization<T extends Prisma.Claim$organizationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$organizationArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  payViaAccount<T extends Prisma.Claim$payViaAccountArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$payViaAccountArgs<ExtArgs>>): Prisma.Prisma__ChartOfAccountClient<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   reviewer<T extends Prisma.Claim$reviewerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$reviewerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -3029,6 +3029,7 @@ export interface ClaimFieldRefs {
   readonly title: Prisma.FieldRef<"Claim", 'String'>
   readonly description: Prisma.FieldRef<"Claim", 'String'>
   readonly category: Prisma.FieldRef<"Claim", 'ClaimCategory'>
+  readonly claimType: Prisma.FieldRef<"Claim", 'ClaimType'>
   readonly organizationId: Prisma.FieldRef<"Claim", 'String'>
   readonly chartOfAccountId: Prisma.FieldRef<"Claim", 'String'>
   readonly amount: Prisma.FieldRef<"Claim", 'Decimal'>
@@ -3038,9 +3039,16 @@ export interface ClaimFieldRefs {
   readonly claimRunMonth: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly reviewedAt: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly payoutAt: Prisma.FieldRef<"Claim", 'DateTime'>
+  readonly payViaAccountId: Prisma.FieldRef<"Claim", 'String'>
+  readonly paymentType: Prisma.FieldRef<"Claim", 'PaymentType'>
   readonly status: Prisma.FieldRef<"Claim", 'ClaimStatus'>
   readonly receiptUrl: Prisma.FieldRef<"Claim", 'String'>
   readonly reviewNotes: Prisma.FieldRef<"Claim", 'String'>
+  readonly distance: Prisma.FieldRef<"Claim", 'Decimal'>
+  readonly mileageOriginAddress: Prisma.FieldRef<"Claim", 'String'>
+  readonly mileageDestinationAddress: Prisma.FieldRef<"Claim", 'String'>
+  readonly mileageRateUsed: Prisma.FieldRef<"Claim", 'Decimal'>
+  readonly mileageUnitUsed: Prisma.FieldRef<"Claim", 'MileageUnit'>
   readonly employeeId: Prisma.FieldRef<"Claim", 'String'>
   readonly reviewerId: Prisma.FieldRef<"Claim", 'String'>
   readonly xeroBillId: Prisma.FieldRef<"Claim", 'String'>
@@ -3050,14 +3058,6 @@ export interface ClaimFieldRefs {
   readonly xeroSyncedAt: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Claim", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Claim", 'DateTime'>
-  readonly payViaAccountId: Prisma.FieldRef<"Claim", 'String'>
-  readonly paymentType: Prisma.FieldRef<"Claim", 'PaymentType'>
-  readonly claimType: Prisma.FieldRef<"Claim", 'Claim_claimType'>
-  readonly distance: Prisma.FieldRef<"Claim", 'Decimal'>
-  readonly mileageDestinationAddress: Prisma.FieldRef<"Claim", 'String'>
-  readonly mileageOriginAddress: Prisma.FieldRef<"Claim", 'String'>
-  readonly mileageRateUsed: Prisma.FieldRef<"Claim", 'Decimal'>
-  readonly mileageUnitUsed: Prisma.FieldRef<"Claim", 'Claim_mileageUnitUsed'>
 }
     
 
@@ -3425,25 +3425,6 @@ export type Claim$chartOfAccountArgs<ExtArgs extends runtime.Types.Extensions.In
 }
 
 /**
- * Claim.organization
- */
-export type Claim$organizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the Organization
-   */
-  select?: Prisma.OrganizationSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the Organization
-   */
-  omit?: Prisma.OrganizationOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.OrganizationInclude<ExtArgs> | null
-  where?: Prisma.OrganizationWhereInput
-}
-
-/**
  * Claim.payViaAccount
  */
 export type Claim$payViaAccountArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3460,6 +3441,25 @@ export type Claim$payViaAccountArgs<ExtArgs extends runtime.Types.Extensions.Int
    */
   include?: Prisma.ChartOfAccountInclude<ExtArgs> | null
   where?: Prisma.ChartOfAccountWhereInput
+}
+
+/**
+ * Claim.organization
+ */
+export type Claim$organizationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Organization
+   */
+  select?: Prisma.OrganizationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Organization
+   */
+  omit?: Prisma.OrganizationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganizationInclude<ExtArgs> | null
+  where?: Prisma.OrganizationWhereInput
 }
 
 /**

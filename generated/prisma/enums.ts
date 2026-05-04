@@ -101,50 +101,42 @@ export const OTSubtype = {
 export type OTSubtype = (typeof OTSubtype)[keyof typeof OTSubtype]
 
 
-export const EmployeeProfile_payoutMethod = {
-  HOURLY: 'HOURLY',
-  DAILY_BASED: 'DAILY_BASED'
+export const ClaimType = {
+  EXPENSE: 'EXPENSE',
+  MILEAGE: 'MILEAGE'
 } as const
 
-export type EmployeeProfile_payoutMethod = (typeof EmployeeProfile_payoutMethod)[keyof typeof EmployeeProfile_payoutMethod]
+export type ClaimType = (typeof ClaimType)[keyof typeof ClaimType]
 
 
-export const ChartOfAccount_limitPeriod = {
+export const LimitPeriod = {
   PER_CLAIM: 'PER_CLAIM',
   MONTHLY: 'MONTHLY',
   YEARLY: 'YEARLY'
 } as const
 
-export type ChartOfAccount_limitPeriod = (typeof ChartOfAccount_limitPeriod)[keyof typeof ChartOfAccount_limitPeriod]
+export type LimitPeriod = (typeof LimitPeriod)[keyof typeof LimitPeriod]
 
 
-export const Organization_mileageUnit = {
-  KM: 'KM',
-  MILE: 'MILE'
-} as const
-
-export type Organization_mileageUnit = (typeof Organization_mileageUnit)[keyof typeof Organization_mileageUnit]
-
-
-export const ChartOfAccount_limitScope = {
+export const LimitScope = {
   PER_EMPLOYEE: 'PER_EMPLOYEE',
   ORG_WIDE: 'ORG_WIDE'
 } as const
 
-export type ChartOfAccount_limitScope = (typeof ChartOfAccount_limitScope)[keyof typeof ChartOfAccount_limitScope]
+export type LimitScope = (typeof LimitScope)[keyof typeof LimitScope]
 
 
-export const Claim_claimType = {
-  EXPENSE: 'EXPENSE',
-  MILEAGE: 'MILEAGE'
-} as const
-
-export type Claim_claimType = (typeof Claim_claimType)[keyof typeof Claim_claimType]
-
-
-export const Claim_mileageUnitUsed = {
+export const MileageUnit = {
   KM: 'KM',
   MILE: 'MILE'
 } as const
 
-export type Claim_mileageUnitUsed = (typeof Claim_mileageUnitUsed)[keyof typeof Claim_mileageUnitUsed]
+export type MileageUnit = (typeof MileageUnit)[keyof typeof MileageUnit]
+
+
+export const PayoutMethod = {
+  HOURLY: 'HOURLY',
+  DAILY_BASED: 'DAILY_BASED'
+} as const
+
+export type PayoutMethod = (typeof PayoutMethod)[keyof typeof PayoutMethod]

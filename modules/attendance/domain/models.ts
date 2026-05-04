@@ -118,3 +118,32 @@ export type TodayRollCall = {
   onLeave: RollCallPerson[]
   notClockedIn: RollCallPerson[]
 }
+
+/**
+ * View model for the per-employee attendance detail page. Lives here (not in
+ * the React view file) so the service `employee-detail-loader` can depend on
+ * it without importing the component module — keeps the dependency direction
+ * pointing from view → domain, never the other way.
+ */
+export type EmployeeDetailData = {
+  profile: {
+    name: string
+    email: string
+    role: string
+    initials: string
+    jobTitle: string | null
+    project: string | null
+    employeeIdRef: string | null
+    supervisorName: string | null
+  }
+  todayRecord: AttendanceRecordView | null
+  todayEvents: ClockEventLite[]
+  monthSummary: {
+    totalMin: number
+    onTime: number
+    late: number
+    missing: number
+  }
+  history: AttendanceRecordView[]
+  otRecords: ApprovalRequestView[]
+}

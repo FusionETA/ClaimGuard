@@ -11,7 +11,10 @@ import {
   createManualProjectAction,
   deleteCustomAccountAction,
   deleteManualProjectAction,
+  saveAccountLimitAction,
   saveClaimRunSettingsAction,
+  saveMileageAccountsAction,
+  saveMileageDefaultsAction,
   saveOrganizationSettingsAction,
   saveOtRatesAction,
   saveSelectableAccountsAction,
@@ -26,6 +29,7 @@ import { setWorkingHoursAction, type SetWorkingHoursState } from "@/app/(admin)/
 import { XeroConnectionCard } from "@/components/admin/xero-connection-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ComingSoonCard } from "@/components/ui/coming-soon-card"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -34,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useToast } from "@/components/ui/toaster"
+import { useToast, useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import type { XeroTenant } from "@/lib/xero"
 import type { AdminProfile } from "@/modules/claims/domain/models"
@@ -46,7 +50,7 @@ import type {
   XeroConnectionSummary,
 } from "@/modules/organization/domain/models"
 
-type TabKey = "organization" | "accounts" | "banks" | "projects" | "runs" | "attendance"
+type TabKey = "organization" | "accounts" | "projects" | "attendance" | "leave"
 
 /** Lat/Lng pair inputs used for project geofence setup.
  *  - In edit (controlled) mode: pass defaultLat/defaultLng + onChange.
@@ -144,6 +148,38 @@ function CoordinatePairInputs({
       </p>
     </div>
   )
+}
+
+/** Sub-pill state inside the Accounts tab. */
+type AccountsSubTab = "selectable" | "banks" | "mileage"
+
+/**
+ * Map deep-link ?tab= values (including legacy ones) to the new top-level
+ * tab + an optional Accounts sub-pill. Keeps existing bookmarks working.
+ */
+function resolveTabFromInitial(initial?: string): {
+  tab: TabKey
+  accountsSub: AccountsSubTab
+} {
+  switch (initial) {
+    case "organization":
+    case "runs": // legacy → moved into Organization
+      return { tab: "organization", accountsSub: "selectable" }
+    case "accounts":
+      return { tab: "accounts", accountsSub: "selectable" }
+    case "banks": // legacy → Accounts → Bank pill
+      return { tab: "accounts", accountsSub: "banks" }
+    case "mileage": // legacy → Accounts → Mileage pill
+      return { tab: "accounts", accountsSub: "mileage" }
+    case "projects":
+      return { tab: "projects", accountsSub: "selectable" }
+    case "attendance":
+      return { tab: "attendance", accountsSub: "selectable" }
+    case "leave":
+      return { tab: "leave", accountsSub: "selectable" }
+    default:
+      return { tab: "organization", accountsSub: "selectable" }
+  }
 }
 
 function ProjectCard({
@@ -265,17 +301,34 @@ export function AdminSettingsPanel({
   initialTab?: string
 }) {
   const { toast } = useToast()
-  const [activeTab, setActiveTab] = useState<TabKey>((initialTab as TabKey) ?? "organization")
+  const initialResolved = resolveTabFromInitial(initialTab)
+  const [activeTab, setActiveTab] = useState<TabKey>(initialResolved.tab)
+  const [accountsSubTab, setAccountsSubTab] = useState<AccountsSubTab>(
+    initialResolved.accountsSub
+  )
 
   useEffect(() => {
-    if (initialTab && initialTab !== activeTab) {
-      setActiveTab(initialTab as TabKey)
+    if (!initialTab) return
+    const resolved = resolveTabFromInitial(initialTab)
+    if (resolved.tab !== activeTab) setActiveTab(resolved.tab)
+    if (resolved.tab === "accounts" && resolved.accountsSub !== accountsSubTab) {
+      setAccountsSubTab(resolved.accountsSub)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialTab])
   const [accountTypeFilter, setAccountTypeFilter] = useState<string>("all")
   const [accountSearch, setAccountSearch] = useState("")
   const [projectSearch, setProjectSearch] = useState("")
+  // Search/filter for the Spend Limits card. By default we hide accounts that
+  // don't have a limit set — admins with many accounts shouldn't have to scroll
+  // past every row to review the few that have policy.
+  const [limitSearch, setLimitSearch] = useState("")
+  const [limitTypeFilter, setLimitTypeFilter] = useState<string>("all")
+  const [limitOnlyConfigured, setLimitOnlyConfigured] = useState<boolean>(true)
+  // Search/filter for the Mileage-eligible accounts card. Same reasoning.
+  const [mileageSearch, setMileageSearch] = useState("")
+  const [mileageTypeFilter, setMileageTypeFilter] = useState<string>("all")
+  const [mileageOnlyEnabled, setMileageOnlyEnabled] = useState<boolean>(true)
   const [switchPending, startSwitch] = useTransition()
 
   // Custom mode = no Xero connections exist at all
@@ -333,60 +386,31 @@ export function AdminSettingsPanel({
     createManualProjectAction,
     initialSettingsActionState
   )
+  const [mileageDefaultsState, mileageDefaultsAction, mileageDefaultsPending] =
+    useActionState(saveMileageDefaultsAction, initialSettingsActionState)
+  const [mileageAccountsState, mileageAccountsAction, mileageAccountsPending] =
+    useActionState(saveMileageAccountsAction, initialSettingsActionState)
+  const [limitState, limitAction, limitPending] = useActionState(
+    saveAccountLimitAction,
+    initialSettingsActionState
+  )
 
-  useEffect(() => {
-    if (organizationState.status === "success") toast({ title: organizationState.message, variant: "success" })
-    if (organizationState.status === "error") toast({ title: organizationState.message, variant: "error" })
-  }, [organizationState.status, organizationState.message, toast])
-
-  useEffect(() => {
-    if (accountsState.status === "success") toast({ title: accountsState.message, variant: "success" })
-    if (accountsState.status === "error") toast({ title: accountsState.message, variant: "error" })
-  }, [accountsState.status, accountsState.message, toast])
-
-  useEffect(() => {
-    if (claimRunState.status === "success") toast({ title: claimRunState.message, variant: "success" })
-    if (claimRunState.status === "error") toast({ title: claimRunState.message, variant: "error" })
-  }, [claimRunState.status, claimRunState.message, toast])
-
-  useEffect(() => {
-    if (xeroState.status === "success") toast({ title: xeroState.message, variant: "success" })
-    if (xeroState.status === "error") toast({ title: xeroState.message, variant: "error" })
-  }, [xeroState.status, xeroState.message, toast])
-
-  useEffect(() => {
-    if (projectsState.status === "success") toast({ title: projectsState.message, variant: "success" })
-    if (projectsState.status === "error") toast({ title: projectsState.message, variant: "error" })
-  }, [projectsState.status, projectsState.message, toast])
-
-  useEffect(() => {
-    if (selectTenantState.status === "success") toast({ title: selectTenantState.message, variant: "success" })
-    if (selectTenantState.status === "error") toast({ title: selectTenantState.message, variant: "error" })
-  }, [selectTenantState.status, selectTenantState.message, toast])
-
-  useEffect(() => {
-    if (createAccountState.status === "success") toast({ title: createAccountState.message, variant: "success" })
-    if (createAccountState.status === "error") toast({ title: createAccountState.message, variant: "error" })
-  }, [createAccountState.status, createAccountState.message, toast])
-
-  useEffect(() => {
-    if (createOrganizationState.status === "success") {
-      toast({ title: createOrganizationState.message, variant: "success" })
-    }
-    if (createOrganizationState.status === "error") {
-      toast({ title: createOrganizationState.message, variant: "error" })
-    }
-  }, [createOrganizationState.status, createOrganizationState.message, toast])
-
-  useEffect(() => {
-    if (selectedBankState.status === "success") toast({ title: selectedBankState.message, variant: "success" })
-    if (selectedBankState.status === "error") toast({ title: selectedBankState.message, variant: "error" })
-  }, [selectedBankState.status, selectedBankState.message, toast])
-
-  useEffect(() => {
-    if (createProjectState.status === "success") toast({ title: createProjectState.message, variant: "success" })
-    if (createProjectState.status === "error") toast({ title: createProjectState.message, variant: "error" })
-  }, [createProjectState.status, createProjectState.message, toast])
+  // Toast on every server-action state transition. The hook handles the
+  // success/error branch + dep-array internally, so each action only needs
+  // one line. Replaces 14 hand-rolled `useEffect`s.
+  useToastOnAction(organizationState)
+  useToastOnAction(accountsState)
+  useToastOnAction(claimRunState)
+  useToastOnAction(xeroState)
+  useToastOnAction(projectsState)
+  useToastOnAction(selectTenantState)
+  useToastOnAction(createAccountState)
+  useToastOnAction(createOrganizationState)
+  useToastOnAction(selectedBankState)
+  useToastOnAction(createProjectState)
+  useToastOnAction(mileageDefaultsState)
+  useToastOnAction(mileageAccountsState)
+  useToastOnAction(limitState)
 
   function handleSwitchConnection(connectionId: string) {
     startSwitch(() => switchActiveXeroConnectionAction(connectionId))
@@ -427,11 +451,16 @@ export function AdminSettingsPanel({
 
   const settingsTabs = [
     ["organization", "Organization"],
-    ["accounts", "Claim accounts"],
-    ["banks", "Bank accounts"],
+    ["accounts", "Accounts"],
     ["projects", "Projects"],
-    ["runs", "Claim runs"],
     ["attendance", "Attendance"],
+    ["leave", "Leave"],
+  ] as const
+
+  const accountsSubTabs = [
+    ["selectable", "Selectable"],
+    ["banks", "Bank accounts"],
+    ["mileage", "Mileage"],
   ] as const
 
   return (
@@ -556,17 +585,6 @@ export function AdminSettingsPanel({
                 )}
               </div>
 
-              <div className="rounded-[24px] bg-surface-low p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Current admin
-                </p>
-                <p className="mt-2 text-lg font-black">{admin.name}</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {admin.email}
-                  {organization?.name ? ` · ${organization.name}` : ""}
-                </p>
-              </div>
-
               <form action={organizationAction} className="space-y-4">
                 <label className="space-y-2 text-sm font-semibold text-muted-foreground">
                   <span>
@@ -633,10 +651,69 @@ export function AdminSettingsPanel({
             </CardContent>
           </Card>
 
+          {/* Claim run cutoff — moved here from the standalone "Claim runs" tab. */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Claim run cutoff</CardTitle>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Claims submitted on or before this day stay in the current month&apos;s
+                claims run. Claims submitted after the cutoff still go through, but
+                they roll into the next run.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <form action={claimRunAction} className="grid gap-3 sm:grid-cols-[200px_auto] sm:items-end">
+                <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <span>Cutoff day of month</span>
+                  <Input
+                    name="claimCutoffDay"
+                    type="number"
+                    min="1"
+                    max="28"
+                    defaultValue={organization?.claimCutoffDay ?? 25}
+                    disabled={claimRunPending}
+                  />
+                </label>
+                <Button type="submit" className="rounded-xl" disabled={claimRunPending}>
+                  {claimRunPending ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</>
+                  ) : (
+                    "Save claim run cutoff"
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
         </div>
       ) : null}
 
       {activeTab === "accounts" ? (
+        <div className="space-y-6">
+          {/* Sub-pill nav inside the merged Accounts tab. */}
+          <nav className="-mx-6 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-2 pb-0.5">
+              {accountsSubTabs.map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setAccountsSubTab(value)}
+                  className={cn(
+                    "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                    accountsSubTab === value
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+        </div>
+      ) : null}
+
+      {activeTab === "accounts" && accountsSubTab === "selectable" ? (
         <div className="space-y-6">
 
           <Card>
@@ -824,10 +901,457 @@ export function AdminSettingsPanel({
               )}
             </CardContent>
           </Card>
+
+          {/* Per-account spend limit editor — applies to whichever accounts the
+              admin has marked selectable (or custom). Filtering: defaults to
+              showing only accounts that already have a limit so the page stays
+              short on COAs with hundreds of accounts; flip the toggle to add a
+              limit on a new account. */}
+          {(() => {
+            const limitableAccounts = displayAccounts.filter(
+              (a) => a.isSelectable || isCustomMode
+            )
+            if (limitableAccounts.length === 0) return null
+
+            const limitSearchLower = limitSearch.toLowerCase()
+            const limitTypes = Array.from(
+              new Set(limitableAccounts.map((a) => a.type).filter(Boolean) as string[])
+            ).sort()
+
+            const filteredLimitAccounts = limitableAccounts.filter((account) => {
+              if (limitOnlyConfigured && account.limitAmount == null) return false
+              if (limitTypeFilter !== "all" && account.type !== limitTypeFilter) {
+                return false
+              }
+              if (limitSearchLower === "") return true
+              return (
+                account.code.toLowerCase().includes(limitSearchLower) ||
+                account.name.toLowerCase().includes(limitSearchLower)
+              )
+            })
+
+            const configuredCount = limitableAccounts.filter(
+              (a) => a.limitAmount != null
+            ).length
+
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Spend limits</CardTitle>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Cap the total claimable amount per account. Leave amount blank to
+                    remove a limit. {configuredCount} of {limitableAccounts.length}{" "}
+                    accounts have a limit configured.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Search / filter / show-all toggle */}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="relative flex-1 min-w-[200px]">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          placeholder="Search by code or name…"
+                          value={limitSearch}
+                          onChange={(e) => setLimitSearch(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant={limitOnlyConfigured ? "default" : "ghost"}
+                        className="rounded-full"
+                        onClick={() => setLimitOnlyConfigured((v) => !v)}
+                      >
+                        {limitOnlyConfigured ? "With limit only" : "All accounts"}
+                      </Button>
+                    </div>
+
+                    {limitTypes.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant={limitTypeFilter === "all" ? "default" : "ghost"}
+                          className="rounded-full"
+                          onClick={() => setLimitTypeFilter("all")}
+                        >
+                          All
+                        </Button>
+                        {limitTypes.map((type) => (
+                          <Button
+                            key={type}
+                            type="button"
+                            variant={limitTypeFilter === type ? "default" : "ghost"}
+                            className="rounded-full"
+                            onClick={() => setLimitTypeFilter(type)}
+                          >
+                            {type.charAt(0) + type.slice(1).toLowerCase()}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {filteredLimitAccounts.length === 0 ? (
+                    <div className="rounded-[20px] bg-surface-low p-5 text-sm leading-6 text-muted-foreground">
+                      {limitOnlyConfigured
+                        ? "No accounts have a limit configured. Switch to \"All accounts\" to add one."
+                        : "No accounts match your search."}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredLimitAccounts.map((account) => (
+                        <div
+                          key={account.id}
+                          className="rounded-[20px] border border-border/70 bg-surface-low p-4 space-y-3"
+                        >
+                          <div>
+                            <p className="font-bold text-foreground">
+                              {account.code} · {account.name}
+                            </p>
+                            {account.limitAmount != null ? (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Current limit: {account.limitAmount.toFixed(2)} ·{" "}
+                                {account.limitPeriod === "PER_CLAIM"
+                                  ? "per claim"
+                                  : account.limitPeriod === "MONTHLY"
+                                    ? "monthly"
+                                    : "yearly"}{" "}
+                                ·{" "}
+                                {account.limitScope === "ORG_WIDE"
+                                  ? "org-wide"
+                                  : "per employee"}
+                              </p>
+                            ) : (
+                              <p className="mt-1 text-xs text-muted-foreground">No limit configured</p>
+                            )}
+                          </div>
+
+                          {/* Save form — sets a limit or updates an existing one. */}
+                          <form action={limitAction} className="space-y-3">
+                            <input type="hidden" name="chartOfAccountId" value={account.id} />
+                            <div className="grid gap-3 sm:grid-cols-3">
+                              <Input
+                                name="limitAmount"
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="Amount"
+                                defaultValue={account.limitAmount?.toFixed(2) ?? ""}
+                              />
+                              <Select
+                                name="limitPeriod"
+                                defaultValue={account.limitPeriod ?? ""}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Period" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="PER_CLAIM">Per claim</SelectItem>
+                                  <SelectItem value="MONTHLY">Monthly</SelectItem>
+                                  <SelectItem value="YEARLY">Yearly</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Select
+                                name="limitScope"
+                                defaultValue={account.limitScope ?? ""}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Scope" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="PER_EMPLOYEE">Per employee</SelectItem>
+                                  <SelectItem value="ORG_WIDE">Org-wide</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <Button
+                              type="submit"
+                              variant="outline"
+                              className="rounded-xl"
+                              disabled={limitPending}
+                            >
+                              Save limit
+                            </Button>
+                          </form>
+
+                          {/* Remove form — separate form so it submits empty
+                              limit fields regardless of what's typed in the
+                              save form above. The action interprets all-empty
+                              as "clear" and nulls limitAmount/Period/Scope. */}
+                          {account.limitAmount != null ? (
+                            <form action={limitAction}>
+                              <input type="hidden" name="chartOfAccountId" value={account.id} />
+                              <input type="hidden" name="limitAmount" value="" />
+                              <input type="hidden" name="limitPeriod" value="" />
+                              <input type="hidden" name="limitScope" value="" />
+                              <Button
+                                type="submit"
+                                variant="ghost"
+                                size="sm"
+                                className="rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                disabled={limitPending}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Remove limit
+                              </Button>
+                            </form>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })()}
         </div>
       ) : null}
 
-      {activeTab === "banks" ? (() => {
+      {activeTab === "accounts" && accountsSubTab === "mileage" ? (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Mileage defaults</CardTitle>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Set the organization-wide mileage rate and unit. Per-account
+                overrides below take precedence when set.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <form
+                action={mileageDefaultsAction}
+                className="grid gap-3 sm:grid-cols-[1fr_160px_auto]"
+              >
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    Default rate (per unit)
+                  </label>
+                  <Input
+                    name="defaultMileageRate"
+                    type="number"
+                    step="0.0001"
+                    min="0"
+                    placeholder="e.g. 0.60"
+                    defaultValue={
+                      organization?.defaultMileageRate?.toString() ?? ""
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                    Unit
+                  </label>
+                  <Select
+                    name="mileageUnit"
+                    defaultValue={organization?.mileageUnit ?? "KM"}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="KM">km</SelectItem>
+                      <SelectItem value="MILE">mile</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <Button
+                    type="submit"
+                    className="rounded-xl"
+                    disabled={mileageDefaultsPending}
+                  >
+                    {mileageDefaultsPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving…
+                      </>
+                    ) : (
+                      "Save defaults"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {(() => {
+            const mileageSearchLower = mileageSearch.toLowerCase()
+            const mileageTypes = Array.from(
+              new Set(displayAccounts.map((a) => a.type).filter(Boolean) as string[])
+            ).sort()
+            const enabledCount = displayAccounts.filter(
+              (a) => a.allowMileageClaim
+            ).length
+
+            // Single form submits all ticked accounts at once, so hidden rows
+            // must stay in the DOM (with `hidden` class) — otherwise filtering
+            // them out would silently un-tick their checkboxes on save.
+            const isVisible = (account: ChartOfAccountOption): boolean => {
+              if (mileageOnlyEnabled && !account.allowMileageClaim) return false
+              if (mileageTypeFilter !== "all" && account.type !== mileageTypeFilter)
+                return false
+              if (mileageSearchLower === "") return true
+              return (
+                account.code.toLowerCase().includes(mileageSearchLower) ||
+                account.name.toLowerCase().includes(mileageSearchLower)
+              )
+            }
+
+            const visibleCount = displayAccounts.filter(isVisible).length
+
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Mileage-eligible accounts</CardTitle>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Tick the accounts that should appear when an employee creates a
+                    Mileage claim. You can also override the rate per account — leave
+                    blank to use the organization default. {enabledCount} of{" "}
+                    {displayAccounts.length} accounts enabled for mileage.
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {displayAccounts.length === 0 ? (
+                    <div className="rounded-[24px] bg-surface-low p-5 text-sm leading-6 text-muted-foreground">
+                      Add or sync accounts first from the Claim accounts tab.
+                    </div>
+                  ) : (
+                    <form action={mileageAccountsAction} className="space-y-4">
+                      <input
+                        type="hidden"
+                        name="connectionId"
+                        value={activeXeroConnectionId ?? ""}
+                      />
+
+                      {/* Search / filter controls */}
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className="relative flex-1 min-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                              placeholder="Search by code or name…"
+                              value={mileageSearch}
+                              onChange={(e) => setMileageSearch(e.target.value)}
+                              className="pl-9"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant={mileageOnlyEnabled ? "default" : "ghost"}
+                            className="rounded-full"
+                            onClick={() => setMileageOnlyEnabled((v) => !v)}
+                          >
+                            {mileageOnlyEnabled ? "Enabled only" : "All accounts"}
+                          </Button>
+                        </div>
+
+                        {mileageTypes.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              variant={mileageTypeFilter === "all" ? "default" : "ghost"}
+                              className="rounded-full"
+                              onClick={() => setMileageTypeFilter("all")}
+                            >
+                              All
+                            </Button>
+                            {mileageTypes.map((type) => (
+                              <Button
+                                key={type}
+                                type="button"
+                                variant={mileageTypeFilter === type ? "default" : "ghost"}
+                                className="rounded-full"
+                                onClick={() => setMileageTypeFilter(type)}
+                              >
+                                {type.charAt(0) + type.slice(1).toLowerCase()}
+                              </Button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {visibleCount === 0 ? (
+                        <div className="rounded-[20px] bg-surface-low p-5 text-sm leading-6 text-muted-foreground">
+                          {mileageOnlyEnabled
+                            ? "No accounts enabled for mileage yet. Switch to \"All accounts\" to start ticking."
+                            : "No accounts match your search."}
+                        </div>
+                      ) : null}
+
+                      <div className="space-y-3">
+                        {displayAccounts.map((account) => {
+                          const visible = isVisible(account)
+                          return (
+                            <label
+                              key={account.id}
+                              className={cn(
+                                "flex items-start gap-3 rounded-[20px] border border-border/70 bg-surface-low p-4 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5",
+                                !visible ? "hidden" : ""
+                              )}
+                            >
+                              <input
+                                type="checkbox"
+                                name="mileageAccountIds"
+                                value={account.id}
+                                defaultChecked={account.allowMileageClaim}
+                                className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                              />
+                              <div className="flex-1 space-y-2">
+                                <div>
+                                  <p className="font-bold text-foreground">
+                                    {account.code} · {account.name}
+                                  </p>
+                                  <p className="mt-1 text-xs text-muted-foreground">
+                                    {account.allowMileageClaim
+                                      ? account.mileageRate != null
+                                        ? `Override: ${account.mileageRate} per ${
+                                            organization?.mileageUnit === "MILE" ? "mile" : "km"
+                                          }`
+                                        : "Uses org default rate"
+                                      : "Not enabled for mileage"}
+                                  </p>
+                                </div>
+                                <div className="max-w-[200px]">
+                                  <Input
+                                    name={`mileageRate__${account.id}`}
+                                    type="number"
+                                    step="0.0001"
+                                    min="0"
+                                    placeholder="Rate override (optional)"
+                                    defaultValue={account.mileageRate?.toString() ?? ""}
+                                  />
+                                </div>
+                              </div>
+                            </label>
+                          )
+                        })}
+                      </div>
+
+                      <Button
+                        type="submit"
+                        className="rounded-xl"
+                        disabled={mileageAccountsPending}
+                      >
+                        {mileageAccountsPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Saving…
+                          </>
+                        ) : (
+                          "Save mileage accounts"
+                        )}
+                      </Button>
+                    </form>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })()}
+        </div>
+      ) : null}
+
+      {activeTab === "accounts" && accountsSubTab === "banks" ? (() => {
         const bankAccounts = isCustomMode
           ? customAccounts.filter((a) => a.type === "BANK")
           : chartAccounts.filter((a) => a.type === "BANK")
@@ -1058,43 +1582,18 @@ export function AdminSettingsPanel({
         </div>
       ) : null}
 
-      {activeTab === "runs" ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Claims run cutoff</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm leading-6 text-muted-foreground">
-              Claims submitted on or before this day stay in the current month&apos;s claims run.
-              Claims submitted after this cutoff are still accepted, but they move to the next run.
-            </p>
-
-            <form action={claimRunAction} className="space-y-4">
-              <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                <span>Cutoff day of month</span>
-                <Input
-                  name="claimCutoffDay"
-                  type="number"
-                  min="1"
-                  max="28"
-                  defaultValue={organization?.claimCutoffDay ?? 25}
-                  disabled={claimRunPending}
-                />
-              </label>
-
-              <Button type="submit" className="rounded-xl" disabled={claimRunPending}>
-                Save claim run settings
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      ) : null}
-
       {activeTab === "attendance" ? (
         <div className="space-y-6">
           <WorkingHoursCard initial={workingHours} />
           <OtRatesCard organization={organization} />
         </div>
+      ) : null}
+
+      {activeTab === "leave" ? (
+        <ComingSoonCard
+          title="Leave"
+          body="Leave applications and balances will live here. Coming as a separate module."
+        />
       ) : null}
     </div>
   )

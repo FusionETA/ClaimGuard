@@ -73,10 +73,6 @@ export function getXeroScopes() {
   return process.env.XERO_SCOPES?.trim() || "offline_access accounting.transactions accounting.contacts"
 }
 
-export function getXeroDefaultAccountCode() {
-  return process.env.XERO_DEFAULT_ACCOUNT_CODE?.trim() || ""
-}
-
 export function getXeroRuntimeConfigStatus() {
   return {
     configured: Boolean(

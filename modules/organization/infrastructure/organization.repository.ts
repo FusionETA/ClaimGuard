@@ -1,12 +1,17 @@
 import "server-only"
 
 import { hashPassword } from "@/lib/auth/password"
+import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
+import { mapChartAccount } from "@/modules/organization/infrastructure/chart-account.mapper"
 import type {
   AdminOrganizationOption,
   AssignedProject,
   ChartOfAccountOption,
   EmployeePayoutMethod,
+  LimitPeriod,
+  LimitScope,
+  MileageUnit,
   OrganizationMember,
   OrganizationProjectOption,
   OrganizationSummary,
@@ -44,13 +49,9 @@ export type XeroConnectionRecord = {
   updatedAt: Date
 }
 
-function toNumberOr(value: unknown, fallback: number): number {
-  if (value == null) return fallback
-  if (typeof value === "number") return value
-  // Prisma returns Decimal as a wrapper with toString(); Number(...) handles both.
-  const n = Number(value as { toString(): string })
-  return Number.isFinite(n) ? n : fallback
-}
+// `toNumber` lives in `lib/decimal.ts` — re-aliased locally for the older
+// callers below that pass a fallback positionally.
+const toNumberOr = (value: unknown, fallback: number) => toNumber(value, fallback)
 
 function mapOrganizationSummary(
   org?:
@@ -65,10 +66,21 @@ function mapOrganizationSummary(
         restDayInShiftRate?: unknown
         publicHolidayInShiftRate?: unknown
         otSalaryThreshold?: unknown
+        defaultMileageRate?: unknown
+        mileageUnit?: string | null
       }
     | null
 ): OrganizationSummary | undefined {
   if (!org) return undefined
+
+  const rawDefaultMileageRate = org.defaultMileageRate
+  const defaultMileageRate =
+    rawDefaultMileageRate == null
+      ? undefined
+      : (() => {
+          const n = Number(rawDefaultMileageRate as { toString(): string })
+          return Number.isFinite(n) ? n : undefined
+        })()
 
   return {
     id: org.id,
@@ -86,34 +98,8 @@ function mapOrganizationSummary(
       ),
       salaryThreshold: toNumberOr(org.otSalaryThreshold, DEFAULT_OT_RATES.salaryThreshold),
     },
-  }
-}
-
-function mapChartAccount(account?: {
-  id: string
-  code: string
-  name: string
-  type: string | null
-  status: string | null
-  isSelectable: boolean
-  isBankAccount: boolean
-  isCustom: boolean
-  isDisabled: boolean
-  xeroConnectionId: string | null
-} | null): ChartOfAccountOption | undefined {
-  if (!account) return undefined
-
-  return {
-    id: account.id,
-    code: account.code,
-    name: account.name,
-    type: account.type ?? undefined,
-    status: account.status ?? undefined,
-    isSelectable: account.isSelectable,
-    isBankAccount: account.isBankAccount,
-    isCustom: account.isCustom,
-    isDisabled: account.isDisabled,
-    xeroConnectionId: account.xeroConnectionId ?? undefined,
+    defaultMileageRate,
+    mileageUnit: (org.mileageUnit as MileageUnit | null | undefined) === "MILE" ? "MILE" : "KM",
   }
 }
 
@@ -1147,20 +1133,63 @@ export const organizationRepository = {
   async getChartAccountByIdForOrganization(data: {
     organizationId: string
     chartOfAccountId: string
+    /**
+     * When "EXPENSE" (the default) the account must have isSelectable=true.
+     * When "MILEAGE" the account must have allowMileageClaim=true (it may or
+     * may not also be selectable for expenses).
+     */
+    forClaimType?: "EXPENSE" | "MILEAGE"
   }): Promise<ChartOfAccountOption | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
+
+    const claimTypeWhere =
+      data.forClaimType === "MILEAGE"
+        ? { allowMileageClaim: true }
+        : { isSelectable: true }
 
     const row = await prisma.chartOfAccount.findFirst({
       where: {
         id: data.chartOfAccountId,
         organizationId: data.organizationId,
-        isSelectable: true,
         isDisabled: false,
+        ...claimTypeWhere,
       },
     })
 
     return mapChartAccount(row) ?? null
+  },
+
+  async getMileageChartAccountsForEmployee(data: {
+    organizationId: string
+    xeroConnectionId?: string
+  }): Promise<ChartOfAccountOption[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    if (data.xeroConnectionId) {
+      const rows = await prisma.chartOfAccount.findMany({
+        where: {
+          xeroConnectionId: data.xeroConnectionId,
+          allowMileageClaim: true,
+          isDisabled: false,
+        },
+        orderBy: [{ code: "asc" }, { name: "asc" }],
+      })
+      return rows.map((row) => mapChartAccount(row)!)
+    }
+
+    const rows = await prisma.chartOfAccount.findMany({
+      where: {
+        organizationId: data.organizationId,
+        xeroConnectionId: null,
+        allowMileageClaim: true,
+        isDisabled: false,
+      },
+      orderBy: [{ code: "asc" }, { name: "asc" }],
+    })
+
+    return rows.map((row) => mapChartAccount(row)!)
   },
 
   async createCustomChartAccount(data: {
@@ -1309,6 +1338,111 @@ export const organizationRepository = {
           ]
         : []),
     ])
+  },
+
+  /**
+   * Bulk-update which accounts are valid for Mileage claims, plus the
+   * optional per-account mileage rate override. Accounts not present in
+   * `selectedAccounts` get `allowMileageClaim` cleared.
+   */
+  async setMileageChartAccounts(data: {
+    organizationId: string
+    xeroConnectionId?: string
+    selectedAccounts: Array<{ chartAccountId: string; mileageRate?: number }>
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    const scopeWhere = data.xeroConnectionId
+      ? { organizationId: data.organizationId, xeroConnectionId: data.xeroConnectionId }
+      : { organizationId: data.organizationId, xeroConnectionId: null }
+
+    const ops: Array<ReturnType<typeof prisma.chartOfAccount.updateMany>> = [
+      prisma.chartOfAccount.updateMany({
+        where: scopeWhere,
+        data: { allowMileageClaim: false, mileageRate: null },
+      }),
+    ]
+
+    for (const selection of data.selectedAccounts) {
+      ops.push(
+        prisma.chartOfAccount.updateMany({
+          where: { ...scopeWhere, id: selection.chartAccountId },
+          data: {
+            allowMileageClaim: true,
+            mileageRate:
+              selection.mileageRate != null && Number.isFinite(selection.mileageRate)
+                ? selection.mileageRate
+                : null,
+          },
+        })
+      )
+    }
+
+    await prisma.$transaction(ops)
+  },
+
+  /**
+   * Update the spend-limit policy on a single account. Pass undefined values
+   * to clear the limit entirely (limitAmount=null + limitPeriod=null + limitScope=null).
+   */
+  async updateChartAccountLimit(data: {
+    organizationId: string
+    chartOfAccountId: string
+    limitAmount?: number
+    limitPeriod?: LimitPeriod
+    limitScope?: LimitScope
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    const hasLimit =
+      data.limitAmount != null &&
+      Number.isFinite(data.limitAmount) &&
+      data.limitAmount > 0 &&
+      data.limitPeriod != null &&
+      data.limitScope != null
+
+    await prisma.chartOfAccount.updateMany({
+      where: { id: data.chartOfAccountId, organizationId: data.organizationId },
+      data: hasLimit
+        ? {
+            limitAmount: data.limitAmount,
+            limitPeriod: data.limitPeriod,
+            limitScope: data.limitScope,
+          }
+        : {
+            limitAmount: null,
+            limitPeriod: null,
+            limitScope: null,
+          },
+    })
+  },
+
+  async updateOrganizationMileageDefaults(data: {
+    organizationId: string
+    defaultMileageRate?: number
+    mileageUnit: MileageUnit
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await prisma.organization.update({
+      where: { id: data.organizationId },
+      data: {
+        defaultMileageRate:
+          data.defaultMileageRate != null && Number.isFinite(data.defaultMileageRate)
+            ? data.defaultMileageRate
+            : null,
+        mileageUnit: data.mileageUnit,
+      },
+    })
   },
 
   // ---------------------------------------------------------------------------

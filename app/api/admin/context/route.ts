@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 export async function GET() {
@@ -23,7 +23,7 @@ export async function GET() {
   return NextResponse.json(
     {
       adminOrganizations,
-      activeOrganizationId: session.activeOrganizationId ?? session.organizationId ?? null,
+      activeOrganizationId: resolveActiveOrgId(session) ?? null,
     },
     {
       headers: { "Cache-Control": "no-store" },

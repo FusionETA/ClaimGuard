@@ -42,28 +42,10 @@ function fmtTime(iso: string | null) {
     : "—"
 }
 
-export type EmployeeDetailData = {
-  profile: {
-    name: string
-    email: string
-    role: string
-    initials: string
-    jobTitle: string | null
-    project: string | null
-    employeeIdRef: string | null
-    supervisorName: string | null
-  }
-  todayRecord: AttendanceRecordView | null
-  todayEvents: ClockEventLite[]
-  monthSummary: {
-    totalMin: number
-    onTime: number
-    late: number
-    missing: number
-  }
-  history: AttendanceRecordView[]
-  otRecords: ApprovalRequestView[]
-}
+// EmployeeDetailData moved to modules/attendance/domain/models.ts so the
+// service that builds it doesn't have to import this view file.
+export type { EmployeeDetailData } from "@/modules/attendance/domain/models"
+import type { EmployeeDetailData } from "@/modules/attendance/domain/models"
 
 export function EmployeeDetailView({ data }: { data: EmployeeDetailData }) {
   const { profile, todayRecord, todayEvents, monthSummary, history, otRecords } = data

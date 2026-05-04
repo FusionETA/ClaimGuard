@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
-import { requirePortalSession } from "@/lib/auth/session"
+import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 
 const timeSchema = z
@@ -25,7 +25,7 @@ export async function setWorkingHoursAction(
   formData: FormData,
 ): Promise<SetWorkingHoursState> {
   const session = await requirePortalSession("ADMIN")
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
 
   if (!organizationId) {
     return { error: "Admin account is not assigned to an organisation." }

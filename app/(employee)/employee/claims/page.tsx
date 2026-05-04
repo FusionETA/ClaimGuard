@@ -18,7 +18,10 @@ export default async function EmployeeClaimsPage() {
     <ClaimsPageClient
       claims={claims}
       chartAccounts={submissionData.chartAccounts}
+      mileageAccounts={submissionData.mileageAccounts}
       bankAccounts={submissionData.bankAccounts}
+      defaultMileageRate={submissionData.organization?.defaultMileageRate}
+      mileageUnit={submissionData.organization?.mileageUnit ?? "KM"}
       claimRunPreview={submissionData.claimRunPreview}
       organizationName={submissionData.organization?.name}
     />
