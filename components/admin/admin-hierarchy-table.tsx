@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react"
+import { useActionState, useEffect, useMemo, useRef, useState } from "react"
 
 import {
   createInitialAddHierarchyMemberFormState,
@@ -8,16 +8,9 @@ import {
 } from "@/app/(admin)/admin/hierarchy/form-state"
 import {
   createHierarchyMemberAction,
-  saveApprovalChainAction,
   updateHierarchyAction,
 } from "@/app/(admin)/admin/hierarchy/actions"
-import { CheckSquare, ChevronDown, Loader2, Plus, Search, Square, X } from "lucide-react"
-
-function ordinalLabel(n: number) {
-  const s = ["th", "st", "nd", "rd"]
-  const v = n % 100
-  return n + (s[(v - 20) % 10] || s[v] || s[0]) + " Supervisor"
-}
+import { CheckSquare, ChevronDown, Loader2, Search, Square } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -52,6 +45,7 @@ import type {
   EmployeePayoutMethod,
   OrganizationMember,
   OrganizationProjectOption,
+  TeamSummary,
   XeroConnectionInfo,
 } from "@/modules/organization/domain/models"
 import {
@@ -65,6 +59,7 @@ type AdminHierarchyTableProps = {
   projects: OrganizationProjectOption[]
   xeroConnections: XeroConnectionInfo[]
   organizationName: string
+  teams: TeamSummary[]
 }
 
 type RoleFilter = "ALL" | "EMPLOYEE" | "SUPERVISOR"
@@ -81,7 +76,17 @@ const roleOptions: Exclude<RoleFilter, "ALL">[] = ["EMPLOYEE", "SUPERVISOR"]
 const payoutMethodOptions = employeePayoutMethods
 
 function getDirectSupervisor(member: OrganizationMember) {
-  return member.approvalChain[0]?.approverName ?? member.supervisorName ?? null
+  // Use the first team's first chain step as the visible supervisor.
+  // Falls back to the legacy supervisorName for employees without team
+  // chains yet.
+  const firstChainStep = member.teams.flatMap((t) => t.chain)[0]
+  return firstChainStep?.approverName ?? member.supervisorName ?? null
+}
+
+function chainStepCount(member: OrganizationMember) {
+  // Sum of chain rows across all teams. Used by the table to surface
+  // "N-step chain" hint when more than one approver exists overall.
+  return member.teams.reduce((acc, t) => acc + t.chain.length, 0)
 }
 
 function formatAssignedProjects(member: OrganizationMember) {
@@ -214,6 +219,7 @@ export function AdminHierarchyTable({
   projects,
   xeroConnections,
   organizationName,
+  teams,
 }: AdminHierarchyTableProps) {
   const supervisors = members.filter((member) => member.role === "SUPERVISOR")
   const [page, setPage] = useState(1)
@@ -446,6 +452,8 @@ export function AdminHierarchyTable({
             projects={projects}
             xeroConnection={xeroConnection}
             xeroDisplayName={xeroDisplayName}
+            teams={teams}
+            allMembers={members}
           />
         </CardHeader>
         <CardContent className="space-y-4 p-0">
@@ -492,9 +500,9 @@ export function AdminHierarchyTable({
                       <TableCell>
                         <div>
                           <p>{directSupervisor ?? "No supervisor"}</p>
-                          {member.approvalChain.length > 1 ? (
+                          {chainStepCount(member) > 1 ? (
                             <p className="text-xs text-muted-foreground">
-                              {member.approvalChain.length}-step chain
+                              {chainStepCount(member)}-step chain
                             </p>
                           ) : null}
                         </div>
@@ -506,6 +514,8 @@ export function AdminHierarchyTable({
                           projects={projects}
                           xeroConnection={xeroConnection}
                           xeroDisplayName={xeroDisplayName}
+                          teams={teams}
+                          allMembers={members}
                         />
                       </TableCell>
                     </TableRow>
@@ -534,16 +544,25 @@ function AddHierarchyMemberDialog({
   projects,
   xeroConnection,
   xeroDisplayName,
+  teams,
+  allMembers,
 }: {
   supervisors: OrganizationMember[]
   projects: OrganizationProjectOption[]
   xeroConnection: XeroConnectionInfo | undefined
   xeroDisplayName: string
+  teams: TeamSummary[]
+  allMembers: OrganizationMember[]
 }) {
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
-  const [chainApproverIds, setChainApproverIds] = useState<string[]>([])
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([])
+  /// Per-project routing config keyed by projectId. Each entry has the
+  /// chosen team, the employee's layer in that team, and the per-layer
+  /// chain pickers above them.
+  const [projectConfigs, setProjectConfigs] = useState<
+    Record<string, { teamId: string; layer: number; chainApproverByLayer: Record<number, string> }>
+  >({})
   const [addRoleValue, setAddRoleValue] = useState<"EMPLOYEE" | "SUPERVISOR">("EMPLOYEE")
   const [addPayoutMethodValue, setAddPayoutMethodValue] =
     useState<EmployeePayoutMethod>("HOURLY")
@@ -561,12 +580,49 @@ function AddHierarchyMemberDialog({
     addPayoutMethodValue
   )
 
+  const projectsById = useMemo(
+    () => new Map(filteredProjects.map((p) => [p.id, p])),
+    [filteredProjects],
+  )
+  const teamsByProject = useMemo(() => {
+    const map = new Map<string, TeamSummary[]>()
+    for (const t of teams) {
+      const list = map.get(t.projectId) ?? []
+      list.push(t)
+      map.set(t.projectId, list)
+    }
+    return map
+  }, [teams])
+
+  const supervisorsAtLayerInTeam = (
+    teamId: string,
+    layer: number,
+  ): OrganizationMember[] => {
+    return allMembers.filter(
+      (m) =>
+        m.role === "SUPERVISOR" &&
+        m.teams.some((t) => t.teamId === teamId && t.layer === layer),
+    )
+  }
+
+  // For each selected project, compute layers above and check chain completeness.
+  const allChainsComplete = selectedProjectIds.every((pid) => {
+    const cfg = projectConfigs[pid]
+    if (!cfg || !cfg.teamId) return false
+    const team = teams.find((t) => t.id === cfg.teamId)
+    if (!team) return false
+    for (let l = cfg.layer + 1; l <= team.layerCount; l++) {
+      if (!cfg.chainApproverByLayer[l]) return false
+    }
+    return true
+  })
+
   useEffect(() => {
     if (state.status === "success") {
       toast({ title: state.message, variant: "success" })
       setOpen(false)
-      setChainApproverIds([])
       setSelectedProjectIds([])
+      setProjectConfigs({})
       setAddRoleValue("EMPLOYEE")
       setAddPayoutMethodValue("HOURLY")
     }
@@ -579,11 +635,39 @@ function AddHierarchyMemberDialog({
   useEffect(() => {
     if (open) {
       setSelectedProjectIds([])
-      setChainApproverIds([])
+      setProjectConfigs({})
       setAddRoleValue("EMPLOYEE")
       setAddPayoutMethodValue("HOURLY")
     }
   }, [open])
+
+  // When projects are toggled, prune configs for unselected projects.
+  useEffect(() => {
+    setProjectConfigs((prev) => {
+      const out: typeof prev = {}
+      for (const pid of selectedProjectIds) {
+        out[pid] = prev[pid] ?? {
+          teamId: "",
+          layer: 1,
+          chainApproverByLayer: {},
+        }
+      }
+      return out
+    })
+  }, [selectedProjectIds.join(",")])
+
+  // EMPLOYEE role defaults to layer 1 in every project config.
+  useEffect(() => {
+    if (addRoleValue === "EMPLOYEE") {
+      setProjectConfigs((prev) => {
+        const out: typeof prev = {}
+        for (const pid of Object.keys(prev)) {
+          out[pid] = { ...prev[pid]!, layer: 1 }
+        }
+        return out
+      })
+    }
+  }, [addRoleValue])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -708,103 +792,221 @@ function AddHierarchyMemberDialog({
                   projects={filteredProjects}
                   selectedProjectIds={selectedProjectIds}
                   disabled={pending}
-                  helperText="Select one or more projects for this employee."
+                  helperText="Select the projects this employee will work on. Each project gets its own team + chain below."
                   onToggle={(projectId) =>
                     setSelectedProjectIds((current) =>
                       current.includes(projectId)
                         ? current.filter((id) => id !== projectId)
-                        : [...current, projectId]
+                        : [...current, projectId],
                     )
                   }
                 />
               </div>
             </div>
 
-            <div className="space-y-4 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
-              {/* Hidden inputs carry the chain approver IDs to the server action */}
-              {chainApproverIds.map((id, i) => (
-                <input key={i} type="hidden" name="approverIds" value={id} />
-              ))}
-
-              <div>
-                <p className="text-sm font-semibold text-muted-foreground">Approval chain</p>
-                <p className="mt-0.5 text-xs text-muted-foreground/70">
-                  Add supervisors in the order this employee should get approval from.
-                </p>
+            {/* Per-project team + chain configuration. */}
+            {selectedProjectIds.length === 0 ? (
+              <div className="rounded-[28px] border border-dashed border-border/70 bg-card/40 p-5 text-sm text-muted-foreground">
+                Select one or more projects above to configure team + chain.
               </div>
+            ) : (
+              selectedProjectIds.map((pid) => {
+                const project = projectsById.get(pid)
+                if (!project) return null
+                const cfg = projectConfigs[pid] ?? {
+                  teamId: "",
+                  layer: 1,
+                  chainApproverByLayer: {},
+                }
+                const projectTeams = teamsByProject.get(pid) ?? []
+                const team = projectTeams.find((t) => t.id === cfg.teamId)
+                const layersAbove = team
+                  ? Array.from(
+                      { length: Math.max(0, team.layerCount - cfg.layer) },
+                      (_, i) => cfg.layer + i + 1,
+                    )
+                  : []
+                return (
+                  <div
+                    key={pid}
+                    className="space-y-4 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {project.name}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground/70">
+                        Team and approval chain for this project.
+                      </p>
+                    </div>
 
-              {supervisors.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No supervisors yet — add supervisors first to build an approval chain.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {chainApproverIds.map((approverId, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <span className="w-28 shrink-0 text-xs font-semibold text-muted-foreground">
-                        {ordinalLabel(index + 1)}
-                      </span>
-                      <div className="flex-1">
+                    <input type="hidden" name={`proj.${pid}.teamId`} value={cfg.teamId} />
+                    <input type="hidden" name={`proj.${pid}.layer`} value={String(cfg.layer)} />
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                        <label htmlFor={`add-team-${pid}`}>Team</label>
                         <Select
-                          value={approverId || undefined}
+                          value={cfg.teamId || undefined}
                           onValueChange={(v) =>
-                            setChainApproverIds((prev) =>
-                              prev.map((id, i) => (i === index ? v : id))
-                            )
+                            setProjectConfigs((prev) => ({
+                              ...prev,
+                              [pid]: {
+                                teamId: v,
+                                layer: 1,
+                                chainApproverByLayer: {},
+                              },
+                            }))
                           }
                           disabled={pending}
                         >
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Select supervisor…" />
+                          <SelectTrigger id={`add-team-${pid}`}>
+                            <SelectValue
+                              placeholder={
+                                projectTeams.length === 0
+                                  ? "No teams in this project"
+                                  : "Select team"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
-                            {supervisors.map((s) => (
-                              <SelectItem
-                                key={s.id}
-                                value={s.id}
-                                disabled={chainApproverIds.some((id, i) => id === s.id && i !== index)}
-                              >
-                                {s.name}
+                            {projectTeams.map((t) => (
+                              <SelectItem key={t.id} value={t.id}>
+                                {t.name} · {t.layerCount} layer{t.layerCount === 1 ? "" : "s"}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setChainApproverIds((prev) => prev.filter((_, i) => i !== index))
-                        }
-                        disabled={pending}
-                        className="shrink-0 text-muted-foreground transition-colors hover:text-destructive"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
 
-                  <div className="border-t border-border/60 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl"
-                      onClick={() => setChainApproverIds((prev) => [...prev, ""])}
-                      disabled={pending || chainApproverIds.length >= supervisors.length}
-                    >
-                      <Plus className="mr-1.5 h-3.5 w-3.5" />
-                      Add supervisor
-                    </Button>
+                      {addRoleValue === "SUPERVISOR" && team ? (
+                        <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                          <label htmlFor={`add-layer-${pid}`}>
+                            This employee&apos;s layer
+                          </label>
+                          <Select
+                            value={String(cfg.layer)}
+                            onValueChange={(v) =>
+                              setProjectConfigs((prev) => ({
+                                ...prev,
+                                [pid]: {
+                                  ...prev[pid]!,
+                                  layer: Number(v) || 1,
+                                  chainApproverByLayer: {},
+                                },
+                              }))
+                            }
+                            disabled={pending}
+                          >
+                            <SelectTrigger id={`add-layer-${pid}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from(
+                                { length: team.layerCount },
+                                (_, i) => i + 1,
+                              ).map((layer) => {
+                                // Empty-string labels fall back to "Layer N"
+                                // (?? would keep "" as-is and look broken).
+                                const label =
+                                  team.layerLabels?.[layer - 1]?.trim() ||
+                                  `Layer ${layer}`
+                                return (
+                                  <SelectItem key={layer} value={String(layer)}>
+                                    L{layer} — {label}
+                                  </SelectItem>
+                                )
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {!team ? (
+                      <p className="text-sm text-muted-foreground">
+                        Pick a team to configure the approval chain.
+                      </p>
+                    ) : layersAbove.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        This employee is at the top layer — nobody approves above them in this project.
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-xs font-medium text-muted-foreground/80">
+                          Approval chain (one approver per layer above)
+                        </p>
+                        {layersAbove.map((layer) => {
+                          const candidates = supervisorsAtLayerInTeam(team.id, layer)
+                          const value = cfg.chainApproverByLayer[layer] ?? ""
+                          const label =
+                            team.layerLabels?.[layer - 1]?.trim() ||
+                            `Layer ${layer}`
+                          return (
+                            <div key={layer} className="space-y-1.5">
+                              <label className="text-sm font-semibold text-muted-foreground">
+                                L{layer} approver
+                                <span className="ml-1 font-normal text-muted-foreground/70">
+                                  — {label}
+                                </span>
+                              </label>
+                              <Select
+                                value={value || undefined}
+                                onValueChange={(v) =>
+                                  setProjectConfigs((prev) => ({
+                                    ...prev,
+                                    [pid]: {
+                                      ...prev[pid]!,
+                                      chainApproverByLayer: {
+                                        ...prev[pid]!.chainApproverByLayer,
+                                        [layer]: v,
+                                      },
+                                    },
+                                  }))
+                                }
+                                disabled={pending || candidates.length === 0}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={
+                                      candidates.length === 0
+                                        ? `No L${layer} supervisors in this team`
+                                        : "Select approver"
+                                    }
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {candidates.map((s) => (
+                                    <SelectItem key={s.id} value={s.id}>
+                                      {s.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <input
+                                type="hidden"
+                                name={`proj.${pid}.chainApprover.${layer}`}
+                                value={value}
+                              />
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
-            </div>
+                )
+              })
+            )}
 
             <div className="flex justify-end border-t border-border/60 pt-4">
               <Button
                 type="submit"
                 className="rounded-xl"
-                disabled={pending || chainApproverIds.some((id) => !id)}
+                disabled={
+                  pending ||
+                  selectedProjectIds.length === 0 ||
+                  !allChainsComplete
+                }
               >
                 {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating…</> : "Create employee"}
               </Button>
@@ -822,12 +1024,16 @@ function HierarchyEditDialog({
   projects,
   xeroConnection,
   xeroDisplayName,
+  teams,
+  allMembers,
 }: {
   member: OrganizationMember
   supervisors: OrganizationMember[]
   projects: OrganizationProjectOption[]
   xeroConnection: XeroConnectionInfo | undefined
   xeroDisplayName: string
+  teams: TeamSummary[]
+  allMembers: OrganizationMember[]
 }) {
   const { toast } = useToast()
   const xeroConnectionId = xeroConnection?.id ?? ""
@@ -854,11 +1060,31 @@ function HierarchyEditDialog({
     member.projects.filter((project) => !project.id.startsWith("legacy:")).map((project) => project.id)
   )
 
-  // Approval chain state — initialised from the member's existing chain
-  const [chainApproverIds, setChainApproverIds] = useState<string[]>(
-    () => member.approvalChain.map((s) => s.approverId)
-  )
-  const [chainPending, startChainTransition] = useTransition()
+  /// Per-project routing config keyed by projectId. Prefilled from the
+  /// member's existing team memberships and chain rows.
+  const [projectConfigs, setProjectConfigs] = useState<
+    Record<
+      string,
+      { teamId: string; layer: number; chainApproverByLayer: Record<number, string> }
+    >
+  >(() => {
+    const out: Record<
+      string,
+      { teamId: string; layer: number; chainApproverByLayer: Record<number, string> }
+    > = {}
+    for (const t of member.teams) {
+      const map: Record<number, string> = {}
+      t.chain.forEach((step, idx) => {
+        map[t.layer + idx + 1] = step.approverId
+      })
+      out[t.projectId] = {
+        teamId: t.teamId,
+        layer: t.layer,
+        chainApproverByLayer: map,
+      }
+    }
+    return out
+  })
   const resolvedEditPayoutMethod = resolveEmployeePayoutMethod(
     editRoleValue,
     editPayoutMethodValue
@@ -869,6 +1095,43 @@ function HierarchyEditDialog({
       ? projects.filter((p) => p.xeroConnectionId === xeroConnectionId)
       : projects
   }, [projects, xeroConnectionId])
+
+  const projectsById = useMemo(
+    () => new Map(filteredProjects.map((p) => [p.id, p])),
+    [filteredProjects],
+  )
+  const teamsByProject = useMemo(() => {
+    const map = new Map<string, TeamSummary[]>()
+    for (const t of teams) {
+      const list = map.get(t.projectId) ?? []
+      list.push(t)
+      map.set(t.projectId, list)
+    }
+    return map
+  }, [teams])
+
+  const supervisorsAtLayerInTeam = (
+    teamId: string,
+    layer: number,
+  ): OrganizationMember[] => {
+    return allMembers.filter(
+      (m) =>
+        m.id !== member.id &&
+        m.role === "SUPERVISOR" &&
+        m.teams.some((t) => t.teamId === teamId && t.layer === layer),
+    )
+  }
+
+  const allChainsComplete = selectedEditProjectIds.every((pid) => {
+    const cfg = projectConfigs[pid]
+    if (!cfg || !cfg.teamId) return false
+    const team = teams.find((t) => t.id === cfg.teamId)
+    if (!team) return false
+    for (let l = cfg.layer + 1; l <= team.layerCount; l++) {
+      if (!cfg.chainApproverByLayer[l]) return false
+    }
+    return true
+  })
 
   useEffect(() => {
     if (state.status === "success") {
@@ -881,49 +1144,53 @@ function HierarchyEditDialog({
     }
   }, [state.status, state.message, toast])
 
-  // Reset chain when dialog opens/member changes
+  // Reset on open/member change
   useEffect(() => {
     if (open) {
-      setChainApproverIds(member.approvalChain.map((s) => s.approverId))
       setEditRoleValue(member.role)
       setEditPayoutMethodValue(member.payoutMethod)
       setSelectedEditProjectIds(resolveSelectedProjectIds(member.projects, filteredProjects))
+      const out: Record<
+        string,
+        { teamId: string; layer: number; chainApproverByLayer: Record<number, string> }
+      > = {}
+      for (const t of member.teams) {
+        const map: Record<number, string> = {}
+        t.chain.forEach((step, idx) => {
+          map[t.layer + idx + 1] = step.approverId
+        })
+        out[t.projectId] = {
+          teamId: t.teamId,
+          layer: t.layer,
+          chainApproverByLayer: map,
+        }
+      }
+      setProjectConfigs(out)
     }
   }, [
     open,
-    member.approvalChain,
     member.payoutMethod,
     member.projects,
     member.role,
+    member.teams,
     filteredProjects,
   ])
 
-  function handleAddChainStep() {
-    setChainApproverIds((prev) => [...prev, ""])
-  }
-
-  function handleChainApproverChange(index: number, approverId: string) {
-    setChainApproverIds((prev) => prev.map((id, i) => (i === index ? approverId : id)))
-  }
-
-  function handleRemoveChainStep(index: number) {
-    setChainApproverIds((prev) => prev.filter((_, i) => i !== index))
-  }
-
-  function handleSaveChain() {
-    const validIds = chainApproverIds.filter(Boolean)
-    startChainTransition(async () => {
-      const result = await saveApprovalChainAction(member.id, validIds)
-      if (result.ok) {
-        toast({ title: result.message, variant: "success" })
-      } else {
-        toast({ title: result.message, variant: "error" })
+  // When projects are toggled, prune configs for unselected projects and
+  // make sure newly-selected projects have a placeholder entry.
+  useEffect(() => {
+    setProjectConfigs((prev) => {
+      const out: typeof prev = {}
+      for (const pid of selectedEditProjectIds) {
+        out[pid] = prev[pid] ?? {
+          teamId: "",
+          layer: 1,
+          chainApproverByLayer: {},
+        }
       }
+      return out
     })
-  }
-
-  // Approver candidates: supervisors, excluding the member themselves
-  const approverOptions = supervisors.filter((s) => s.id !== member.id)
+  }, [selectedEditProjectIds.join(",")])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -1038,7 +1305,7 @@ function HierarchyEditDialog({
                       setSelectedEditProjectIds((current) =>
                         current.includes(projectId)
                           ? current.filter((id) => id !== projectId)
-                          : [...current, projectId]
+                          : [...current, projectId],
                       )
                     }
                   />
@@ -1046,96 +1313,221 @@ function HierarchyEditDialog({
               </div>
             </div>
 
+            {/* Per-project team + chain configuration. */}
+            {selectedEditProjectIds.length === 0 ? (
+              <div className="rounded-[28px] border border-dashed border-border/70 bg-card/40 p-5 text-sm text-muted-foreground">
+                Pick at least one project above.
+              </div>
+            ) : (
+              selectedEditProjectIds.map((pid) => {
+                const project = projectsById.get(pid)
+                if (!project) return null
+                const cfg = projectConfigs[pid] ?? {
+                  teamId: "",
+                  layer: 1,
+                  chainApproverByLayer: {},
+                }
+                const projectTeams = teamsByProject.get(pid) ?? []
+                const team = projectTeams.find((t) => t.id === cfg.teamId)
+                const layersAbove = team
+                  ? Array.from(
+                      { length: Math.max(0, team.layerCount - cfg.layer) },
+                      (_, i) => cfg.layer + i + 1,
+                    )
+                  : []
+                return (
+                  <div
+                    key={pid}
+                    className="space-y-4 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {project.name}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground/70">
+                        Team and approval chain for this project.
+                      </p>
+                    </div>
+
+                    <input type="hidden" name={`proj.${pid}.teamId`} value={cfg.teamId} />
+                    <input type="hidden" name={`proj.${pid}.layer`} value={String(cfg.layer)} />
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                        <label htmlFor={`edit-team-${member.id}-${pid}`}>Team</label>
+                        <Select
+                          value={cfg.teamId || undefined}
+                          onValueChange={(v) =>
+                            setProjectConfigs((prev) => ({
+                              ...prev,
+                              [pid]: {
+                                teamId: v,
+                                layer: 1,
+                                chainApproverByLayer: {},
+                              },
+                            }))
+                          }
+                          disabled={pending}
+                        >
+                          <SelectTrigger id={`edit-team-${member.id}-${pid}`}>
+                            <SelectValue
+                              placeholder={
+                                projectTeams.length === 0
+                                  ? "No teams in this project"
+                                  : "Select team"
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {projectTeams.map((t) => (
+                              <SelectItem key={t.id} value={t.id}>
+                                {t.name} · {t.layerCount} layer{t.layerCount === 1 ? "" : "s"}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {editRoleValue === "SUPERVISOR" && team ? (
+                        <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                          <label htmlFor={`edit-layer-${member.id}-${pid}`}>
+                            This employee&apos;s layer
+                          </label>
+                          <Select
+                            value={String(cfg.layer)}
+                            onValueChange={(v) =>
+                              setProjectConfigs((prev) => ({
+                                ...prev,
+                                [pid]: {
+                                  ...prev[pid]!,
+                                  layer: Number(v) || 1,
+                                  chainApproverByLayer: {},
+                                },
+                              }))
+                            }
+                            disabled={pending}
+                          >
+                            <SelectTrigger id={`edit-layer-${member.id}-${pid}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from(
+                                { length: team.layerCount },
+                                (_, i) => i + 1,
+                              ).map((layer) => {
+                                // Empty-string labels fall back to "Layer N"
+                                // (?? would keep "" as-is and look broken).
+                                const label =
+                                  team.layerLabels?.[layer - 1]?.trim() ||
+                                  `Layer ${layer}`
+                                return (
+                                  <SelectItem key={layer} value={String(layer)}>
+                                    L{layer} — {label}
+                                  </SelectItem>
+                                )
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {!team ? (
+                      <p className="text-sm text-muted-foreground">
+                        Pick a team to configure the approval chain.
+                      </p>
+                    ) : layersAbove.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        This employee is at the top layer — nobody approves above them in this project.
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-xs font-medium text-muted-foreground/80">
+                          Approval chain (one approver per layer above)
+                        </p>
+                        {layersAbove.map((layer) => {
+                          const candidates = supervisorsAtLayerInTeam(team.id, layer)
+                          const value = cfg.chainApproverByLayer[layer] ?? ""
+                          const label =
+                            team.layerLabels?.[layer - 1]?.trim() ||
+                            `Layer ${layer}`
+                          return (
+                            <div key={layer} className="space-y-1.5">
+                              <label className="text-sm font-semibold text-muted-foreground">
+                                L{layer} approver
+                                <span className="ml-1 font-normal text-muted-foreground/70">
+                                  — {label}
+                                </span>
+                              </label>
+                              <Select
+                                value={value || undefined}
+                                onValueChange={(v) =>
+                                  setProjectConfigs((prev) => ({
+                                    ...prev,
+                                    [pid]: {
+                                      ...prev[pid]!,
+                                      chainApproverByLayer: {
+                                        ...prev[pid]!.chainApproverByLayer,
+                                        [layer]: v,
+                                      },
+                                    },
+                                  }))
+                                }
+                                disabled={pending || candidates.length === 0}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue
+                                    placeholder={
+                                      candidates.length === 0
+                                        ? `No L${layer} supervisors in this team`
+                                        : "Select approver"
+                                    }
+                                  />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {candidates.map((s) => (
+                                    <SelectItem key={s.id} value={s.id}>
+                                      {s.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <input
+                                type="hidden"
+                                name={`proj.${pid}.chainApprover.${layer}`}
+                                value={value}
+                              />
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )
+              })
+            )}
+
             <div className="flex justify-end border-t border-border/60 pt-4">
-              <Button type="submit" className="rounded-xl" disabled={pending}>
-                Save changes
+              <Button
+                type="submit"
+                className="rounded-xl"
+                disabled={
+                  pending ||
+                  selectedEditProjectIds.length === 0 ||
+                  !allChainsComplete
+                }
+              >
+                {pending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  "Save changes"
+                )}
               </Button>
             </div>
           </form>
-
-        {/* ── Approval chain ──────────────────────────────────────────────── */}
-          <div className="space-y-4 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
-            <div>
-              <p className="text-sm font-semibold text-muted-foreground">Approval chain</p>
-              <p className="mt-0.5 text-xs text-muted-foreground/70">
-                Claims from {member.name} will require sign-off from each approver in order before reaching admin.
-              </p>
-            </div>
-
-            {approverOptions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No supervisors available. Add supervisors to your team first.
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {chainApproverIds.map((approverId, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="w-28 shrink-0 text-xs font-semibold text-muted-foreground">
-                      {ordinalLabel(index + 1)}
-                    </span>
-                    <div className="flex-1">
-                      <Select
-                        value={approverId || undefined}
-                        onValueChange={(v) => handleChainApproverChange(index, v)}
-                        disabled={chainPending}
-                      >
-                        <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Select approver…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {approverOptions.map((s) => (
-                            <SelectItem
-                              key={s.id}
-                              value={s.id}
-                              disabled={chainApproverIds.some((id, i) => id === s.id && i !== index)}
-                            >
-                              {s.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveChainStep(index)}
-                      disabled={chainPending}
-                      className="shrink-0 text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-
-                <div className="flex items-center justify-between border-t border-border/60 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="rounded-xl"
-                    onClick={handleAddChainStep}
-                    disabled={chainPending || chainApproverIds.length >= approverOptions.length}
-                  >
-                    <Plus className="mr-1.5 h-3.5 w-3.5" />
-                    Add supervisor
-                  </Button>
-
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="rounded-xl"
-                    onClick={handleSaveChain}
-                    disabled={chainPending || chainApproverIds.some((id) => !id)}
-                  >
-                    {chainPending ? (
-                      <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Saving…</>
-                    ) : (
-                      "Save chain"
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
         </div>
       </DialogContent>

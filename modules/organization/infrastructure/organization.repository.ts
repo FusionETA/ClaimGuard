@@ -16,13 +16,20 @@ import type {
   OrganizationProjectOption,
   OrganizationSummary,
   OtRates,
+  TeamDetail,
+  TeamMembership,
+  TeamModuleConfig,
+  TeamSummary,
   XeroConnectionInfo,
   XeroConnectionSummary,
 } from "@/modules/organization/domain/models"
 import {
+  defaultModuleConfig,
   resolveAssignedProjects,
   resolveEmployeePayoutMethod,
   resolvePrimaryProjectName,
+  trimModuleConfig,
+  validateModuleConfig,
 } from "@/modules/organization/domain/models"
 
 const DEFAULT_OT_RATES: OtRates = {
@@ -515,34 +522,65 @@ export const organizationRepository = {
             },
             supervisor: true,
             xeroConnection: { select: { id: true, tenantName: true } },
+            teamMemberships: {
+              include: {
+                team: {
+                  select: {
+                    id: true,
+                    name: true,
+                    projectId: true,
+                    project: { select: { id: true, name: true } },
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+            },
           },
         },
         approvalChainSteps: {
           include: { approver: { select: { id: true, name: true } } },
-          orderBy: { step: "asc" },
+          orderBy: [{ teamId: "asc" }, { step: "asc" }],
         },
       },
       orderBy: { name: "asc" },
     })
 
     return rows.map((user) => {
-      // If there's no chain row yet but a legacy supervisorId is set, surface
-      // it as a synthetic 1-step chain so the UI can treat supervisor and the
-      // chain as the same thing. Saving the chain will persist it to the DB.
-      const persistedChain = user.approvalChainSteps.map((s) => ({
-        step: s.step,
-        approverId: s.approverId,
-        approverName: s.approver.name,
-      }))
       const supervisorId = user.employeeProfile?.supervisorId ?? undefined
       const supervisorName = user.employeeProfile?.supervisor?.name ?? undefined
-      const approvalChain =
-        persistedChain.length === 0 && supervisorId && supervisorName
-          ? [{ step: 1, approverId: supervisorId, approverName: supervisorName }]
-          : persistedChain
       const assignedProjects = mapAssignedProjects(
         user.employeeProfile?.project,
         user.employeeProfile?.projectAssignments ?? [],
+      )
+
+      // Build per-team chain map. Each chain row's teamId tells us which
+      // team it belongs to; legacy rows with teamId=null are dropped from
+      // the per-team view (they'll be cleaned up by the backfill).
+      const chainsByTeam = new Map<
+        string,
+        Array<{ step: number; approverId: string; approverName: string }>
+      >()
+      for (const s of user.approvalChainSteps) {
+        if (!s.teamId) continue
+        const list = chainsByTeam.get(s.teamId) ?? []
+        list.push({
+          step: s.step,
+          approverId: s.approverId,
+          approverName: s.approver.name,
+        })
+        chainsByTeam.set(s.teamId, list)
+      }
+
+      const teams = (user.employeeProfile?.teamMemberships ?? []).map(
+        (membership) => ({
+          membershipId: membership.id,
+          teamId: membership.teamId,
+          teamName: membership.team.name,
+          projectId: membership.team.projectId,
+          projectName: membership.team.project.name,
+          layer: membership.layer,
+          chain: chainsByTeam.get(membership.teamId) ?? [],
+        }),
       )
 
       return {
@@ -567,7 +605,7 @@ export const organizationRepository = {
         supervisorName,
         xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
         xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
-        approvalChain,
+        teams,
       }
     })
   },
@@ -580,6 +618,16 @@ export const organizationRepository = {
     jobTitle: string
     payoutMethod: EmployeePayoutMethod
     xeroConnectionId?: string
+    /// One entry per project the employee should belong to. When provided
+    /// (even as []), the employee's team memberships and chain rows are
+    /// rewritten from scratch to match. When undefined, those tables are
+    /// left untouched.
+    projectAssignments?: Array<{
+      projectId: string
+      teamId: string
+      layer: number
+      chainApprovers: Array<{ layer: number; userId: string }>
+    }>
   }): Promise<boolean> {
     const prisma = getPrismaClient()
     if (!prisma) return false
@@ -635,39 +683,184 @@ export const organizationRepository = {
       .map((projectId) => assignedProjectById.get(projectId)?.name)
       .find(Boolean) ?? ""
 
-    await prisma.$transaction([
-      prisma.user.update({
+    // Validate per-project assignments if provided.
+    type ValidatedAssignment = {
+      projectId: string
+      teamId: string
+      layer: number
+      sortedChain: Array<{ layer: number; userId: string }>
+      lowestLayerApproverId: string | null
+    }
+    let validatedAssignments: ValidatedAssignment[] | undefined
+    if (data.projectAssignments !== undefined) {
+      validatedAssignments = []
+      const teamIds = Array.from(
+        new Set(data.projectAssignments.map((a) => a.teamId)),
+      )
+      const teams = teamIds.length
+        ? await prisma.team.findMany({
+            where: { id: { in: teamIds } },
+            select: { id: true, projectId: true, layerCount: true },
+          })
+        : []
+      const teamById = new Map(teams.map((t) => [t.id, t]))
+
+      const allApproverIds = Array.from(
+        new Set(
+          data.projectAssignments
+            .flatMap((a) => a.chainApprovers.map((c) => c.userId))
+            .filter(Boolean),
+        ),
+      )
+      const approvers = allApproverIds.length
+        ? await prisma.user.findMany({
+            where: { id: { in: allApproverIds } },
+            select: { id: true, organizationId: true, role: true },
+          })
+        : []
+      const approverById = new Map(approvers.map((a) => [a.id, a]))
+
+      const memberships = teamIds.length && allApproverIds.length
+        ? await prisma.employeeTeamMembership.findMany({
+            where: {
+              teamId: { in: teamIds },
+              employeeProfile: { userId: { in: allApproverIds } },
+            },
+            select: {
+              teamId: true,
+              layer: true,
+              employeeProfile: { select: { userId: true } },
+            },
+          })
+        : []
+      const layerByTeamUser = new Map(
+        memberships.map((m) => [`${m.teamId}:${m.employeeProfile.userId}`, m.layer]),
+      )
+
+      for (const a of data.projectAssignments) {
+        const team = teamById.get(a.teamId)
+        if (!team) throw new Error("Team not found.")
+        if (team.projectId !== a.projectId) {
+          throw new Error("Team does not belong to the chosen project.")
+        }
+        if (!data.projectIds.includes(a.projectId)) {
+          throw new Error("Project must be one of the assigned projects.")
+        }
+        if (a.layer < 1 || a.layer > team.layerCount) {
+          throw new Error(
+            `Layer must be between 1 and ${team.layerCount} for this team.`,
+          )
+        }
+        const sortedChain = [...a.chainApprovers].sort(
+          (x, y) => x.layer - y.layer,
+        )
+        for (const c of sortedChain) {
+          const u = approverById.get(c.userId)
+          if (!u || u.organizationId !== data.organizationId) {
+            throw new Error("All chain approvers must belong to your organization.")
+          }
+          if (u.role !== "SUPERVISOR" && u.role !== "ADMIN") {
+            throw new Error("Chain approvers must be supervisors or admins.")
+          }
+          const layer = layerByTeamUser.get(`${a.teamId}:${c.userId}`)
+          if (layer === undefined || layer !== c.layer) {
+            throw new Error(
+              `Selected approver is not a layer-${c.layer} member of this team.`,
+            )
+          }
+        }
+        validatedAssignments.push({
+          projectId: a.projectId,
+          teamId: a.teamId,
+          layer: a.layer,
+          sortedChain,
+          lowestLayerApproverId: sortedChain[0]?.userId ?? null,
+        })
+      }
+    }
+
+    const profile = await prisma.employeeProfile.findUnique({
+      where: { userId: data.userId },
+      select: { id: true },
+    })
+    if (!profile) throw new Error("Employee profile not found.")
+
+    // Pick a deterministic supervisorId for legacy callers (alphabetically-
+    // first project's lowest-layer approver). Only updated when assignments
+    // are explicitly being rewritten.
+    let supervisorIdForProfile: string | null | undefined
+    if (validatedAssignments !== undefined) {
+      if (validatedAssignments.length === 0) {
+        supervisorIdForProfile = null
+      } else {
+        const byProject = [...validatedAssignments].sort((x, y) => {
+          const xName = assignedProjectById.get(x.projectId)?.name ?? ""
+          const yName = assignedProjectById.get(y.projectId)?.name ?? ""
+          return xName.localeCompare(yName)
+        })
+        supervisorIdForProfile = byProject[0]!.lowestLayerApproverId
+      }
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
         where: { id: data.userId },
-        data: {
-          role: data.role,
-          organizationId: data.organizationId,
-        },
-      }),
-      prisma.employeeProfile.update({
+        data: { role: data.role, organizationId: data.organizationId },
+      })
+      await tx.employeeProfile.update({
         where: { userId: data.userId },
         data: {
           project: primaryProjectName,
           jobTitle: data.jobTitle,
           payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
           xeroConnectionId: data.xeroConnectionId || null,
+          ...(supervisorIdForProfile !== undefined
+            ? { supervisorId: supervisorIdForProfile }
+            : {}),
         },
-      }),
-      prisma.employeeProjectAssignment.deleteMany({
-        where: {
-          employeeProfile: {
-            userId: data.userId,
-          },
-        },
-      }),
-      ...data.projectIds.map((projectId) =>
-        prisma.employeeProjectAssignment.create({
+      })
+      await tx.employeeProjectAssignment.deleteMany({
+        where: { employeeProfile: { userId: data.userId } },
+      })
+      for (const projectId of data.projectIds) {
+        await tx.employeeProjectAssignment.create({
           data: {
             employeeProfile: { connect: { userId: data.userId } },
             project: { connect: { id: projectId } },
           },
         })
-      ),
-    ])
+      }
+
+      // Rewrite team memberships + chain rows when assignments were
+      // explicitly provided (even as []).
+      if (validatedAssignments !== undefined) {
+        await tx.employeeTeamMembership.deleteMany({
+          where: { employeeProfileId: profile.id },
+        })
+        await tx.approvalChainStep.deleteMany({
+          where: { employeeId: data.userId },
+        })
+        for (const a of validatedAssignments) {
+          await tx.employeeTeamMembership.create({
+            data: {
+              employeeProfileId: profile.id,
+              teamId: a.teamId,
+              layer: a.layer,
+            },
+          })
+          if (a.sortedChain.length > 0) {
+            await tx.approvalChainStep.createMany({
+              data: a.sortedChain.map((c, index) => ({
+                employeeId: data.userId,
+                teamId: a.teamId,
+                approverId: c.userId,
+                step: index + 1,
+              })),
+            })
+          }
+        }
+      }
+    })
 
     return true
   },
@@ -682,8 +875,19 @@ export const organizationRepository = {
     projectIds: string[]
     jobTitle: string
     payoutMethod: EmployeePayoutMethod
-    supervisorId?: string
     xeroConnectionId?: string
+    /// One entry per project the employee belongs to. Each entry pins the
+    /// employee to a team in that project at a specific layer, plus an
+    /// explicit per-layer chain (one approver per layer above the
+    /// employee). Required when the employee is in any project (i.e.
+    /// projectIds is non-empty); empty allowed for super-edge-cases like
+    /// admins without project assignments.
+    projectAssignments?: Array<{
+      projectId: string
+      teamId: string
+      layer: number
+      chainApprovers: Array<{ layer: number; userId: string }>
+    }>
   }): Promise<{ id: string }> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -704,21 +908,6 @@ export const organizationRepository = {
 
     if (existingEmployeeProfile) {
       throw new Error("That employee ID is already assigned to another user.")
-    }
-
-    if (data.supervisorId) {
-      const supervisor = await prisma.user.findUnique({
-        where: { id: data.supervisorId },
-        select: { organizationId: true, role: true },
-      })
-
-      if (
-        !supervisor ||
-        supervisor.organizationId !== data.organizationId ||
-        supervisor.role !== "SUPERVISOR"
-      ) {
-        throw new Error("Supervisor must belong to your organization.")
-      }
     }
 
     if (data.xeroConnectionId) {
@@ -759,6 +948,114 @@ export const organizationRepository = {
       .map((projectId) => assignedProjectById.get(projectId)?.name)
       .find(Boolean) ?? ""
 
+    // Validate per-project assignments. Each must reference a project the
+    // employee is assigned to, point at a real team in that project, and
+    // every chain approver must be a member of that team at the claimed
+    // layer.
+    const validatedAssignments: Array<{
+      projectId: string
+      teamId: string
+      layer: number
+      sortedChain: Array<{ layer: number; userId: string }>
+      lowestLayerApproverId: string | null
+    }> = []
+    if (data.projectAssignments && data.projectAssignments.length > 0) {
+      const teamIds = Array.from(
+        new Set(data.projectAssignments.map((a) => a.teamId)),
+      )
+      const teams = await prisma.team.findMany({
+        where: { id: { in: teamIds } },
+        select: { id: true, projectId: true, layerCount: true },
+      })
+      const teamById = new Map(teams.map((t) => [t.id, t]))
+
+      const allApproverIds = Array.from(
+        new Set(
+          data.projectAssignments
+            .flatMap((a) => a.chainApprovers.map((c) => c.userId))
+            .filter(Boolean),
+        ),
+      )
+      const approvers = allApproverIds.length
+        ? await prisma.user.findMany({
+            where: { id: { in: allApproverIds } },
+            select: { id: true, organizationId: true, role: true },
+          })
+        : []
+      const approverById = new Map(approvers.map((a) => [a.id, a]))
+
+      const memberships = teamIds.length
+        ? await prisma.employeeTeamMembership.findMany({
+            where: {
+              teamId: { in: teamIds },
+              employeeProfile: { userId: { in: allApproverIds } },
+            },
+            select: {
+              teamId: true,
+              layer: true,
+              employeeProfile: { select: { userId: true } },
+            },
+          })
+        : []
+      const layerByTeamUser = new Map(
+        memberships.map((m) => [`${m.teamId}:${m.employeeProfile.userId}`, m.layer]),
+      )
+
+      for (const a of data.projectAssignments) {
+        const team = teamById.get(a.teamId)
+        if (!team) throw new Error("Team not found.")
+        if (team.projectId !== a.projectId) {
+          throw new Error("Team does not belong to the chosen project.")
+        }
+        if (!data.projectIds.includes(a.projectId)) {
+          throw new Error("Project must be one of the assigned projects.")
+        }
+        if (a.layer < 1 || a.layer > team.layerCount) {
+          throw new Error(
+            `Layer must be between 1 and ${team.layerCount} for this team.`,
+          )
+        }
+        const sortedChain = [...a.chainApprovers].sort(
+          (x, y) => x.layer - y.layer,
+        )
+        for (const c of sortedChain) {
+          const u = approverById.get(c.userId)
+          if (!u || u.organizationId !== data.organizationId) {
+            throw new Error("All chain approvers must belong to your organization.")
+          }
+          if (u.role !== "SUPERVISOR" && u.role !== "ADMIN") {
+            throw new Error("Chain approvers must be supervisors or admins.")
+          }
+          const layer = layerByTeamUser.get(`${a.teamId}:${c.userId}`)
+          if (layer === undefined || layer !== c.layer) {
+            throw new Error(
+              `Selected approver is not a layer-${c.layer} member of this team.`,
+            )
+          }
+        }
+        validatedAssignments.push({
+          projectId: a.projectId,
+          teamId: a.teamId,
+          layer: a.layer,
+          sortedChain,
+          lowestLayerApproverId: sortedChain[0]?.userId ?? null,
+        })
+      }
+    }
+
+    // Pick a representative supervisor pointer for legacy callers reading
+    // EmployeeProfile.supervisorId. Use the lowest-layer approver from the
+    // alphabetically-first project (so the value is deterministic).
+    const supervisorIdForProfile = (() => {
+      if (validatedAssignments.length === 0) return null
+      const byProject = [...validatedAssignments].sort((x, y) => {
+        const xName = assignedProjectById.get(x.projectId)?.name ?? ""
+        const yName = assignedProjectById.get(y.projectId)?.name ?? ""
+        return xName.localeCompare(yName)
+      })
+      return byProject[0]!.lowestLayerApproverId
+    })()
+
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -771,7 +1068,7 @@ export const organizationRepository = {
             employeeId: data.employeeId,
             project: primaryProjectName,
             jobTitle: data.jobTitle,
-            supervisorId: data.supervisorId || null,
+            supervisorId: supervisorIdForProfile,
             payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
             preferredCurrency: "USD",
             xeroConnectionId: data.xeroConnectionId || null,
@@ -780,11 +1077,34 @@ export const organizationRepository = {
                 project: { connect: { id: projectId } },
               })),
             },
+            ...(validatedAssignments.length > 0
+              ? {
+                  teamMemberships: {
+                    create: validatedAssignments.map((a) => ({
+                      teamId: a.teamId,
+                      layer: a.layer,
+                    })),
+                  },
+                }
+              : {}),
           },
         },
       },
       select: { id: true },
     })
+
+    // Write per-team chain rows. Each project's chain is independent.
+    for (const a of validatedAssignments) {
+      if (a.sortedChain.length === 0) continue
+      await prisma.approvalChainStep.createMany({
+        data: a.sortedChain.map((c, index) => ({
+          employeeId: user.id,
+          teamId: a.teamId,
+          approverId: c.userId,
+          step: index + 1,
+        })),
+      })
+    }
 
     return { id: user.id }
   },
@@ -1779,6 +2099,64 @@ export const organizationRepository = {
    * Returns the subset of the given tenantIds that are already connected to a
    * *different* organisation. Used to prevent two orgs sharing the same Xero tenant.
    */
+  /// Projects the employee can submit claims for. Unions three sources so
+  /// the picker is populated for both new-flow and legacy employees:
+  ///   1. EmployeeProjectAssignment rows (canonical for new-flow employees)
+  ///   2. Projects the employee has a team membership in (these are the
+  ///      ones routing is actually configured for — most important for
+  ///      claim submission)
+  ///   3. The legacy EmployeeProfile.project string matched by name (for
+  ///      employees that pre-date EmployeeProjectAssignment entirely)
+  /// Returned sorted by name, deduped by id.
+  async getProjectsForEmployee(
+    employeeUserId: string,
+  ): Promise<Array<{ id: string; name: string }>> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const profile = await prisma.employeeProfile.findUnique({
+      where: { userId: employeeUserId },
+      select: {
+        id: true,
+        project: true,
+        user: { select: { organizationId: true } },
+        projectAssignments: {
+          select: { project: { select: { id: true, name: true } } },
+          orderBy: { project: { name: "asc" } },
+        },
+        teamMemberships: {
+          select: { team: { select: { project: { select: { id: true, name: true } } } } },
+        },
+      },
+    })
+    if (!profile) return []
+
+    const byId = new Map<string, { id: string; name: string }>()
+    for (const a of profile.projectAssignments) {
+      byId.set(a.project.id, { id: a.project.id, name: a.project.name })
+    }
+    for (const t of profile.teamMemberships) {
+      byId.set(t.team.project.id, {
+        id: t.team.project.id,
+        name: t.team.project.name,
+      })
+    }
+
+    // Legacy free-string project: resolve to a XeroProject by (org, name).
+    const legacy = profile.project?.trim()
+    if (legacy && profile.user.organizationId) {
+      const match = await prisma.xeroProject.findFirst({
+        where: { organizationId: profile.user.organizationId, name: legacy },
+        select: { id: true, name: true },
+      })
+      if (match && !byId.has(match.id)) {
+        byId.set(match.id, match)
+      }
+    }
+
+    return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name))
+  },
+
   async getInUseTenantIds(
     tenantIds: string[],
     excludeOrganizationId: string
@@ -1796,4 +2174,406 @@ export const organizationRepository = {
 
     return rows.map((r) => r.tenantId)
   },
+
+  // ---------------------------------------------------------------------------
+  // Team-based approval templates
+  // ---------------------------------------------------------------------------
+
+  /// List every team across every project owned by `organizationId`,
+  /// joined with project name and member count for the Company Structure
+  /// admin tab.
+  async listTeams(organizationId: string): Promise<TeamSummary[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const rows = await prisma.team.findMany({
+      where: { project: { organizationId } },
+      include: {
+        project: { select: { id: true, name: true } },
+        _count: { select: { memberships: true } },
+      },
+      orderBy: [{ project: { name: "asc" } }, { name: "asc" }],
+    })
+
+    return rows.map((row) => mapTeamSummary(row))
+  },
+
+  async getTeam(teamId: string, organizationId: string): Promise<TeamDetail | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const row = await prisma.team.findFirst({
+      where: { id: teamId, project: { organizationId } },
+      include: {
+        project: { select: { id: true, name: true } },
+        memberships: {
+          include: {
+            employeeProfile: {
+              select: {
+                id: true,
+                userId: true,
+                user: { select: { id: true, name: true, role: true } },
+              },
+            },
+          },
+          orderBy: [{ layer: "asc" }],
+        },
+      },
+    })
+
+    if (!row) return null
+
+    const summary = mapTeamSummary({
+      ...row,
+      _count: { memberships: row.memberships.length },
+    })
+    const members: TeamMembership[] = row.memberships.map((m) => ({
+      id: m.id,
+      employeeProfileId: m.employeeProfileId,
+      userId: m.employeeProfile.userId,
+      name: m.employeeProfile.user.name,
+      role: m.employeeProfile.user.role === "SUPERVISOR" ? "SUPERVISOR" : "EMPLOYEE",
+      layer: m.layer,
+      teamId: m.teamId,
+    }))
+
+    return { ...summary, members }
+  },
+
+  async createTeam(data: {
+    organizationId: string
+    projectId: string
+    name: string
+    layerCount: number
+    moduleConfig?: TeamModuleConfig
+    layerLabels?: string[] | null
+  }): Promise<TeamSummary> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    if (data.layerCount < 1 || data.layerCount > 10) {
+      throw new Error("Team must have between 1 and 10 layers.")
+    }
+    const trimmedName = data.name.trim()
+    if (!trimmedName) {
+      throw new Error("Team name is required.")
+    }
+
+    const project = await prisma.xeroProject.findFirst({
+      where: { id: data.projectId, organizationId: data.organizationId },
+      select: { id: true, name: true },
+    })
+    if (!project) {
+      throw new Error("Project not found in this organization.")
+    }
+
+    const cfgInput = data.moduleConfig ?? defaultModuleConfig(data.layerCount)
+    const validated = validateModuleConfig(cfgInput, data.layerCount)
+    if (!validated.ok) {
+      throw new Error(validated.error)
+    }
+
+    const labels =
+      data.layerLabels && data.layerLabels.length > 0
+        ? data.layerLabels.slice(0, data.layerCount)
+        : null
+
+    const created = await prisma.team.create({
+      data: {
+        projectId: project.id,
+        name: trimmedName,
+        layerCount: data.layerCount,
+        layerLabels: labels ?? undefined,
+        moduleConfig: validated.value,
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+        _count: { select: { memberships: true } },
+      },
+    })
+    return mapTeamSummary(created)
+  },
+
+  async updateTeam(data: {
+    organizationId: string
+    teamId: string
+    name?: string
+    layerCount?: number
+    layerLabels?: string[] | null
+    moduleConfig?: TeamModuleConfig
+  }): Promise<TeamSummary> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const team = await prisma.team.findFirst({
+      where: { id: data.teamId, project: { organizationId: data.organizationId } },
+      include: {
+        memberships: { select: { layer: true } },
+      },
+    })
+    if (!team) throw new Error("Team not found.")
+
+    const nextLayerCount = data.layerCount ?? team.layerCount
+    if (nextLayerCount < 1 || nextLayerCount > 10) {
+      throw new Error("Team must have between 1 and 10 layers.")
+    }
+    if (nextLayerCount < team.layerCount) {
+      const offending = team.memberships.find((m) => m.layer > nextLayerCount)
+      if (offending) {
+        throw new Error(
+          `Cannot shrink to ${nextLayerCount} layers — at least one member sits at layer ${offending.layer}. Move them first.`,
+        )
+      }
+    }
+
+    let nextModuleCfg: TeamModuleConfig | undefined
+    if (data.moduleConfig) {
+      const v = validateModuleConfig(data.moduleConfig, nextLayerCount)
+      if (!v.ok) throw new Error(v.error)
+      nextModuleCfg = v.value
+    } else if (data.layerCount !== undefined && data.layerCount < team.layerCount) {
+      // Layer count shrunk and no fresh moduleConfig was provided — trim
+      // existing one so we don't leave dangling layer numbers.
+      const current = parseModuleConfigJson(team.moduleConfig, team.layerCount)
+      nextModuleCfg = trimModuleConfig(current, nextLayerCount)
+    }
+
+    const trimmedName = data.name?.trim()
+    if (data.name !== undefined && !trimmedName) {
+      throw new Error("Team name is required.")
+    }
+
+    let labelsUpdate: string[] | null | undefined
+    if (data.layerLabels !== undefined) {
+      labelsUpdate =
+        data.layerLabels === null
+          ? null
+          : data.layerLabels.slice(0, nextLayerCount)
+    }
+
+    const updated = await prisma.team.update({
+      where: { id: team.id },
+      data: {
+        ...(trimmedName !== undefined ? { name: trimmedName } : {}),
+        ...(data.layerCount !== undefined ? { layerCount: nextLayerCount } : {}),
+        ...(labelsUpdate !== undefined
+          ? { layerLabels: labelsUpdate ?? undefined }
+          : {}),
+        ...(nextModuleCfg ? { moduleConfig: nextModuleCfg } : {}),
+      },
+      include: {
+        project: { select: { id: true, name: true } },
+        _count: { select: { memberships: true } },
+      },
+    })
+    return mapTeamSummary(updated)
+  },
+
+  async deleteTeam(data: {
+    organizationId: string
+    teamId: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const team = await prisma.team.findFirst({
+      where: { id: data.teamId, project: { organizationId: data.organizationId } },
+      include: { _count: { select: { memberships: true } } },
+    })
+    if (!team) throw new Error("Team not found.")
+    if (team._count.memberships > 0) {
+      throw new Error(
+        "Remove all members from this team before deleting it.",
+      )
+    }
+    await prisma.team.delete({ where: { id: team.id } })
+  },
+
+  async assignTeamMember(data: {
+    organizationId: string
+    employeeProfileId: string
+    teamId: string
+    layer: number
+  }): Promise<TeamMembership> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const team = await prisma.team.findFirst({
+      where: { id: data.teamId, project: { organizationId: data.organizationId } },
+      select: { id: true, projectId: true, layerCount: true },
+    })
+    if (!team) throw new Error("Team not found.")
+    if (data.layer < 1 || data.layer > team.layerCount) {
+      throw new Error(
+        `Layer must be between 1 and ${team.layerCount} for this team.`,
+      )
+    }
+
+    const profile = await prisma.employeeProfile.findUnique({
+      where: { id: data.employeeProfileId },
+      include: {
+        user: { select: { id: true, name: true, role: true, organizationId: true } },
+        projectAssignments: { select: { projectId: true } },
+      },
+    })
+    if (!profile || profile.user.organizationId !== data.organizationId) {
+      throw new Error("Employee not found in this organization.")
+    }
+    const employeeProjectIds = new Set(
+      profile.projectAssignments.map((a) => a.projectId),
+    )
+    if (!employeeProjectIds.has(team.projectId)) {
+      throw new Error(
+        "Employee is not assigned to the project this team belongs to.",
+      )
+    }
+
+    const upserted = await prisma.employeeTeamMembership.upsert({
+      where: {
+        employeeProfileId_teamId: {
+          employeeProfileId: profile.id,
+          teamId: team.id,
+        },
+      },
+      create: {
+        employeeProfileId: profile.id,
+        teamId: team.id,
+        layer: data.layer,
+      },
+      update: { layer: data.layer },
+    })
+
+    return {
+      id: upserted.id,
+      employeeProfileId: upserted.employeeProfileId,
+      userId: profile.user.id,
+      name: profile.user.name,
+      role: profile.user.role === "SUPERVISOR" ? "SUPERVISOR" : "EMPLOYEE",
+      layer: upserted.layer,
+      teamId: upserted.teamId,
+    }
+  },
+
+  async removeTeamMember(data: {
+    organizationId: string
+    membershipId: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    const membership = await prisma.employeeTeamMembership.findUnique({
+      where: { id: data.membershipId },
+      select: { id: true, team: { select: { project: { select: { organizationId: true } } } } },
+    })
+    if (
+      !membership ||
+      membership.team.project.organizationId !== data.organizationId
+    ) {
+      throw new Error("Membership not found.")
+    }
+    await prisma.employeeTeamMembership.delete({ where: { id: membership.id } })
+  },
+
+  /// Supervisor picker: every SUPERVISOR-role user assigned to `projectId`,
+  /// either via EmployeeProjectAssignment or via the legacy `project` string
+  /// match. Used by the new employee creation form's "Direct Supervisor"
+  /// dropdown — flexible (not strict next-layer-up).
+  async listSupervisorsInProject(
+    projectId: string,
+    organizationId: string,
+  ): Promise<Array<{ id: string; name: string; layer?: number; teamId?: string }>> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const project = await prisma.xeroProject.findFirst({
+      where: { id: projectId, organizationId },
+      select: { id: true, name: true },
+    })
+    if (!project) return []
+
+    const supervisors = await prisma.user.findMany({
+      where: {
+        organizationId,
+        role: "SUPERVISOR",
+        OR: [
+          {
+            employeeProfile: {
+              projectAssignments: { some: { projectId: project.id } },
+            },
+          },
+          {
+            employeeProfile: { project: project.name },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        employeeProfile: {
+          select: {
+            teamMemberships: {
+              where: { team: { projectId: project.id } },
+              select: { teamId: true, layer: true },
+            },
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    })
+
+    return supervisors.map((s) => {
+      const membership = s.employeeProfile?.teamMemberships?.[0]
+      return {
+        id: s.id,
+        name: s.name,
+        layer: membership?.layer,
+        teamId: membership?.teamId,
+      }
+    })
+  },
+}
+
+// ---------------------------------------------------------------------------
+// Internal helpers (kept inside this file because they only need to know about
+// the Prisma row shapes returned above).
+// ---------------------------------------------------------------------------
+
+type TeamRow = {
+  id: string
+  projectId: string
+  name: string
+  layerCount: number
+  layerLabels: unknown
+  moduleConfig: unknown
+  project: { id: string; name: string }
+  _count: { memberships: number }
+}
+
+function mapTeamSummary(row: TeamRow): TeamSummary {
+  return {
+    id: row.id,
+    projectId: row.projectId,
+    projectName: row.project.name,
+    name: row.name,
+    layerCount: row.layerCount,
+    layerLabels: parseLayerLabels(row.layerLabels),
+    moduleConfig: parseModuleConfigJson(row.moduleConfig, row.layerCount),
+    memberCount: row._count.memberships,
+  }
+}
+
+function parseLayerLabels(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined
+  const labels: string[] = []
+  for (const item of raw) {
+    if (typeof item === "string") labels.push(item)
+  }
+  return labels.length > 0 ? labels : undefined
+}
+
+function parseModuleConfigJson(raw: unknown, layerCount: number): TeamModuleConfig {
+  const validated = validateModuleConfig(raw, layerCount)
+  if (validated.ok) return validated.value
+  // If the persisted JSON is invalid (legacy / corrupted), fall back to the
+  // safe default so the UI still works.
+  return defaultModuleConfig(layerCount)
 }

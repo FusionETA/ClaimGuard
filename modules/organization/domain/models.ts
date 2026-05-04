@@ -123,6 +123,18 @@ export type ApprovalChainStep = {
   approverName: string
 }
 
+export type MemberTeamInfo = {
+  membershipId: string
+  teamId: string
+  teamName: string
+  projectId: string
+  projectName: string
+  layer: number
+  /// Chain rows that belong to this team (one approver per layer above the
+  /// employee's layer, sorted by step ascending).
+  chain: ApprovalChainStep[]
+}
+
 export type OrganizationMember = {
   id: string
   name: string
@@ -139,7 +151,10 @@ export type OrganizationMember = {
   supervisorName?: string
   xeroConnectionId?: string
   xeroConnectionName?: string
-  approvalChain: ApprovalChainStep[]
+  /// One team membership per project the employee is in. Each membership
+  /// carries its own chain. Empty when the employee has no team yet
+  /// (e.g. before backfill).
+  teams: MemberTeamInfo[]
 }
 
 export function resolveAssignedProjects(
@@ -169,4 +184,125 @@ export function resolvePrimaryProjectName(
   assignedProjects: Array<{ id: string; name: string }> = [],
 ): string {
   return resolveAssignedProjects(legacyProject, assignedProjects)[0]?.name ?? "Unknown"
+}
+
+// ---------------------------------------------------------------------------
+// Team-based approval templates
+// ---------------------------------------------------------------------------
+//
+// Each XeroProject can host multiple Teams. A Team has a fixed number of
+// hierarchy layers and a per-module config that says which layers must
+// approve for each module. Each employee belongs to exactly one Team per
+// project, at a specific layer.
+//
+// Approval routing is module-aware: for module M, only chain steps whose
+// approver sits at a layer in `moduleConfig[M]` actually need to approve.
+
+export const teamModules = ["CLAIMS", "OT", "LEAVE", "ATTENDANCE"] as const
+export type TeamModule = (typeof teamModules)[number]
+
+/// Map of module → 1-indexed layer numbers that must approve. A module with
+/// an empty array means "no layers approve" (auto-approve), which is rare;
+/// the default is "every layer approves".
+export type TeamModuleConfig = Record<TeamModule, number[]>
+
+export type TeamSummary = {
+  id: string
+  projectId: string
+  projectName: string
+  name: string
+  layerCount: number
+  layerLabels?: string[]
+  moduleConfig: TeamModuleConfig
+  memberCount: number
+}
+
+export type TeamMembership = {
+  id: string
+  employeeProfileId: string
+  userId: string
+  name: string
+  role: "EMPLOYEE" | "SUPERVISOR"
+  layer: number
+  teamId: string
+}
+
+export type TeamDetail = TeamSummary & {
+  members: TeamMembership[]
+}
+
+export function defaultModuleConfig(layerCount: number): TeamModuleConfig {
+  const layers = Array.from({ length: Math.max(1, layerCount) }, (_, i) => i + 1)
+  return {
+    CLAIMS: layers.slice(),
+    OT: layers.slice(),
+    LEAVE: layers.slice(),
+    ATTENDANCE: layers.slice(),
+  }
+}
+
+/// Validate a TeamModuleConfig: every key must be a known module, every
+/// value must be a (possibly empty) array of unique 1..layerCount integers.
+export function validateModuleConfig(
+  cfg: unknown,
+  layerCount: number,
+): { ok: true; value: TeamModuleConfig } | { ok: false; error: string } {
+  if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) {
+    return { ok: false, error: "moduleConfig must be an object" }
+  }
+  const out: TeamModuleConfig = {
+    CLAIMS: [],
+    OT: [],
+    LEAVE: [],
+    ATTENDANCE: [],
+  }
+  for (const m of teamModules) {
+    const raw = (cfg as Record<string, unknown>)[m]
+    if (raw === undefined) {
+      // Missing key — treat as "no layers approve" (caller will normally
+      // pre-populate with defaultModuleConfig before passing in).
+      out[m] = []
+      continue
+    }
+    if (!Array.isArray(raw)) {
+      return { ok: false, error: `moduleConfig.${m} must be an array` }
+    }
+    const seen = new Set<number>()
+    const layers: number[] = []
+    for (const v of raw) {
+      if (typeof v !== "number" || !Number.isInteger(v)) {
+        return { ok: false, error: `moduleConfig.${m} contains non-integer value` }
+      }
+      if (v < 1 || v > layerCount) {
+        return {
+          ok: false,
+          error: `moduleConfig.${m} layer ${v} is out of range 1..${layerCount}`,
+        }
+      }
+      if (seen.has(v)) continue
+      seen.add(v)
+      layers.push(v)
+    }
+    layers.sort((a, b) => a - b)
+    out[m] = layers
+  }
+  return { ok: true, value: out }
+}
+
+/// Trim a moduleConfig to a new layerCount (used when the admin shrinks a
+/// team's layer count: drop any layer numbers that are now out of range).
+export function trimModuleConfig(
+  cfg: TeamModuleConfig,
+  layerCount: number,
+): TeamModuleConfig {
+  const out: TeamModuleConfig = {
+    CLAIMS: [],
+    OT: [],
+    LEAVE: [],
+    ATTENDANCE: [],
+  }
+  for (const m of teamModules) {
+    out[m] = cfg[m].filter((layer) => layer >= 1 && layer <= layerCount)
+  }
+  return out
 }

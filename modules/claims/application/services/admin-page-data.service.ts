@@ -17,6 +17,7 @@ import type {
   OrganizationMember,
   OrganizationProjectOption,
   OrganizationSummary,
+  TeamSummary,
   XeroConnectionInfo,
   XeroConnectionSummary,
 } from "@/modules/organization/domain/models"
@@ -109,6 +110,7 @@ export type AdminHierarchyPageData = {
   projects: OrganizationProjectOption[]
   xeroConnections: XeroConnectionInfo[]
   organizationName: string
+  teams: TeamSummary[]
 }
 
 export async function getAdminHierarchyPageData(input: {
@@ -117,7 +119,7 @@ export async function getAdminHierarchyPageData(input: {
   const members = await getOrganizationHierarchy()
   if (members === null) return null
 
-  const [organization, projects, xeroConnections] = await Promise.all([
+  const [organization, projects, xeroConnections, teams] = await Promise.all([
     input.organizationId
       ? organizationRepository.getOrganizationById(input.organizationId)
       : Promise.resolve(null),
@@ -127,6 +129,9 @@ export async function getAdminHierarchyPageData(input: {
     input.organizationId
       ? organizationRepository.getXeroConnections(input.organizationId)
       : Promise.resolve([]),
+    input.organizationId
+      ? organizationRepository.listTeams(input.organizationId)
+      : Promise.resolve<TeamSummary[]>([]),
   ])
 
   return {
@@ -134,6 +139,7 @@ export async function getAdminHierarchyPageData(input: {
     projects,
     xeroConnections,
     organizationName: organization?.name ?? "",
+    teams,
   }
 }
 
@@ -210,4 +216,33 @@ export async function getInUseTenantIds(
 ): Promise<string[]> {
   if (pendingTenantIds.length === 0) return []
   return organizationRepository.getInUseTenantIds(pendingTenantIds, organizationId)
+}
+
+export type AdminCompanyStructurePageData = {
+  organizationName: string
+  projects: OrganizationProjectOption[]
+  teams: TeamSummary[]
+}
+
+/**
+ * Combined data for `/admin/company-structure`. Returns null when the admin
+ * has no active organisation yet (the page should redirect to /login or show
+ * an empty-state).
+ */
+export async function getAdminCompanyStructurePageData(input: {
+  organizationId: string | undefined
+}): Promise<AdminCompanyStructurePageData | null> {
+  if (!input.organizationId) return null
+
+  const [organization, projects, teams] = await Promise.all([
+    organizationRepository.getOrganizationById(input.organizationId),
+    organizationRepository.getProjectsForOrganization(input.organizationId),
+    organizationRepository.listTeams(input.organizationId),
+  ])
+
+  return {
+    organizationName: organization?.name ?? "",
+    projects,
+    teams,
+  }
 }

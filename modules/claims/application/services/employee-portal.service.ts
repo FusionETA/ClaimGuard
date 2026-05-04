@@ -93,6 +93,7 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
       chartAccounts: [],
       mileageAccounts: [],
       bankAccounts: [],
+      employeeProjects: [],
     }
   }
 
@@ -101,7 +102,7 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
     "EMPLOYEE"
   )
 
-  const [organization, chartAccounts, mileageAccounts, bankAccounts] = await Promise.all([
+  const [organization, chartAccounts, mileageAccounts, bankAccounts, employeeProjects] = await Promise.all([
     organizationRepository.getOrganizationById(store.employee.organizationId),
     organizationRepository.getSelectableChartAccountsForEmployee({
       organizationId: store.employee.organizationId,
@@ -115,6 +116,9 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
       organizationId: store.employee.organizationId,
       xeroConnectionId: store.employee.xeroConnectionId,
     }),
+    employeeUserId
+      ? organizationRepository.getProjectsForEmployee(employeeUserId)
+      : Promise.resolve<Array<{ id: string; name: string }>>([]),
   ])
 
   // Decorate every account with its remaining-limit info so the form can show
@@ -139,6 +143,7 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
     chartAccounts: decoratedChart,
     mileageAccounts: decoratedMileage,
     bankAccounts,
+    employeeProjects,
     claimRunPreview: organization
       ? buildClaimRunPreview({
           submittedAt: new Date(),

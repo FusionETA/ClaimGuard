@@ -28,6 +28,7 @@ type Props = {
   mileageUnit: "KM" | "MILE"
   claimRunPreview?: ClaimRunPreview
   organizationName?: string
+  employeeProjects?: Array<{ id: string; name: string }>
 }
 
 export function ClaimsPageClient({
@@ -39,6 +40,7 @@ export function ClaimsPageClient({
   mileageUnit,
   claimRunPreview,
   organizationName,
+  employeeProjects,
 }: Props) {
   const [open, setOpen] = useState(false)
 
@@ -80,6 +82,7 @@ export function ClaimsPageClient({
               mileageUnit={mileageUnit}
               claimRunPreview={claimRunPreview}
               organizationName={organizationName}
+              employeeProjects={employeeProjects}
               onSuccess={() => setOpen(false)}
             />
           </div>

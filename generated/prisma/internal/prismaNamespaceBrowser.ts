@@ -64,7 +64,9 @@ export const ModelName = {
   ProjectHoliday: 'ProjectHoliday',
   AttendanceRecord: 'AttendanceRecord',
   ApprovalRequest: 'ApprovalRequest',
-  ApprovalChainStep: 'ApprovalChainStep'
+  ApprovalChainStep: 'ApprovalChainStep',
+  Team: 'Team',
+  EmployeeTeamMembership: 'EmployeeTeamMembership'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -180,6 +182,7 @@ export const ClaimScalarFieldEnum = {
   category: 'category',
   claimType: 'claimType',
   organizationId: 'organizationId',
+  projectId: 'projectId',
   chartOfAccountId: 'chartOfAccountId',
   amount: 'amount',
   currency: 'currency',
@@ -340,6 +343,7 @@ export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldE
 export const ApprovalChainStepScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
+  teamId: 'teamId',
   step: 'step',
   approverId: 'approverId',
   createdAt: 'createdAt',
@@ -349,12 +353,53 @@ export const ApprovalChainStepScalarFieldEnum = {
 export type ApprovalChainStepScalarFieldEnum = (typeof ApprovalChainStepScalarFieldEnum)[keyof typeof ApprovalChainStepScalarFieldEnum]
 
 
+export const TeamScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name',
+  layerCount: 'layerCount',
+  layerLabels: 'layerLabels',
+  moduleConfig: 'moduleConfig',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
+
+
+export const EmployeeTeamMembershipScalarFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  teamId: 'teamId',
+  layer: 'layer',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeTeamMembershipScalarFieldEnum = (typeof EmployeeTeamMembershipScalarFieldEnum)[keyof typeof EmployeeTeamMembershipScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullsOrder = {
@@ -437,6 +482,7 @@ export const ClaimOrderByRelevanceFieldEnum = {
   title: 'title',
   description: 'description',
   organizationId: 'organizationId',
+  projectId: 'projectId',
   chartOfAccountId: 'chartOfAccountId',
   currency: 'currency',
   payViaAccountId: 'payViaAccountId',
@@ -542,8 +588,44 @@ export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOr
 export const ApprovalChainStepOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
+  teamId: 'teamId',
   approverId: 'approverId'
 } as const
 
 export type ApprovalChainStepOrderByRelevanceFieldEnum = (typeof ApprovalChainStepOrderByRelevanceFieldEnum)[keyof typeof ApprovalChainStepOrderByRelevanceFieldEnum]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const TeamOrderByRelevanceFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name'
+} as const
+
+export type TeamOrderByRelevanceFieldEnum = (typeof TeamOrderByRelevanceFieldEnum)[keyof typeof TeamOrderByRelevanceFieldEnum]
+
+
+export const EmployeeTeamMembershipOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  teamId: 'teamId'
+} as const
+
+export type EmployeeTeamMembershipOrderByRelevanceFieldEnum = (typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum)[keyof typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum]
 

@@ -27,6 +27,7 @@ type Props = {
   mileageUnit: "KM" | "MILE"
   claimRunPreview?: ClaimRunPreview
   organizationName?: string
+  employeeProjects?: Array<{ id: string; name: string }>
 }
 
 export function DashboardQuickActions({
@@ -37,6 +38,7 @@ export function DashboardQuickActions({
   mileageUnit,
   claimRunPreview,
   organizationName,
+  employeeProjects,
 }: Props) {
   const [open, setOpen] = useState(false)
 
@@ -86,6 +88,7 @@ export function DashboardQuickActions({
               mileageUnit={mileageUnit}
               claimRunPreview={claimRunPreview}
               organizationName={organizationName}
+              employeeProjects={employeeProjects}
               onSuccess={() => setOpen(false)}
             />
           </div>

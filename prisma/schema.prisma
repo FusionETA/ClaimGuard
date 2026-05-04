@@ -103,6 +103,7 @@ model EmployeeProfile {
   user               User                          @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
   xeroConnection     XeroConnection?               @relation(fields: [xeroConnectionId], references: [id])
   projectAssignments EmployeeProjectAssignment[]
+  teamMemberships    EmployeeTeamMembership[]
 
   @@index([supervisorId])
   @@index([xeroConnectionId])
@@ -130,6 +131,12 @@ model Claim {
   category         ClaimCategory
   claimType        ClaimType       @default(EXPENSE)
   organizationId   String?
+  /// Project this claim is filed against. Drives approval routing — when
+  /// set, the claim follows the employee's team chain in this project.
+  /// Nullable for legacy claims that pre-date the project picker; new
+  /// submissions require it whenever the employee has any project
+  /// assignments.
+  projectId        String?
   chartOfAccountId String?
   amount           Decimal         @db.Decimal(12, 2)
   currency         String          @default("USD")
@@ -167,6 +174,7 @@ model Claim {
   chartOfAccount   ChartOfAccount? @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
   employee         User            @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
   organization     Organization?   @relation(fields: [organizationId], references: [id])
+  project          XeroProject?    @relation("ClaimProject", fields: [projectId], references: [id])
   payViaAccount    ChartOfAccount? @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
   reviewer         User?           @relation("AdminReviews", fields: [reviewerId], references: [id])
 
@@ -177,6 +185,7 @@ model Claim {
   @@index([status, submittedAt])
   @@index([xeroSyncStatus])
   @@index([reviewerId], map: "Claim_reviewerId_fkey")
+  @@index([projectId])
 }
 
 model ChartOfAccount {
@@ -258,10 +267,12 @@ model XeroProject {
   workingDays       String?
   attendanceRecords AttendanceRecord[]          @relation("AttendanceRecordProject")
   assignedEmployees EmployeeProjectAssignment[]
+  claims            Claim[]                     @relation("ClaimProject")
   holidays          ProjectHoliday[]
   organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   projectManager    User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
   xeroConnection    XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
+  teams             Team[]
 
   @@unique([xeroConnectionId, xeroProjectId])
   @@index([xeroConnectionId, name])
@@ -337,16 +348,62 @@ model ApprovalRequest {
 model ApprovalChainStep {
   id         String   @id @default(cuid())
   employeeId String
+  /// teamId scopes this chain step to a specific team. An employee in
+  /// multiple projects has one chain per team. Null only on legacy rows
+  /// that pre-date the per-team migration; the backfill script fills these
+  /// in from the employee's existing team membership.
+  teamId     String?
   step       Int
   approverId String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   approver   User     @relation("ApproverChain", fields: [approverId], references: [id])
   employee   User     @relation("EmployeeChain", fields: [employeeId], references: [id], onDelete: Cascade)
+  team       Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  @@unique([employeeId, step])
+  @@unique([employeeId, teamId, step])
   @@index([employeeId])
   @@index([approverId])
+  @@index([teamId])
+}
+
+/// Team-based approval template attached to a XeroProject. Each team has a
+/// fixed number of hierarchy layers and a per-module config that says which
+/// layers must approve for each module (CLAIMS, OT, LEAVE, ATTENDANCE).
+/// Employees join a team at a specific layer; their effective approval chain
+/// for a given module is filtered by the team's moduleConfig.
+model Team {
+  id           String                   @id @default(cuid())
+  projectId    String
+  name         String
+  layerCount   Int                      @default(1)
+  layerLabels  Json?
+  moduleConfig Json
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  project      XeroProject              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  memberships  EmployeeTeamMembership[]
+  chainSteps   ApprovalChainStep[]
+
+  @@unique([projectId, name])
+  @@index([projectId])
+}
+
+/// Joins an EmployeeProfile to a Team at a specific hierarchy layer (1-indexed,
+/// must be <= team.layerCount). One row per (employee, team) — an employee
+/// belongs to at most one layer per team.
+model EmployeeTeamMembership {
+  id                String          @id @default(cuid())
+  employeeProfileId String
+  teamId            String
+  layer             Int
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  team              Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeProfileId, teamId])
+  @@index([teamId, layer])
 }
 
 enum UserRole {

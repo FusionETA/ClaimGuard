@@ -24,6 +24,7 @@ export default async function EmployeeClaimsPage() {
       mileageUnit={submissionData.organization?.mileageUnit ?? "KM"}
       claimRunPreview={submissionData.claimRunPreview}
       organizationName={submissionData.organization?.name}
+      employeeProjects={submissionData.employeeProjects}
     />
   )
 }

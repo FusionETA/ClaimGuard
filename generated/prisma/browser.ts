@@ -87,3 +87,19 @@ export type ApprovalRequest = Prisma.ApprovalRequestModel
  * 
  */
 export type ApprovalChainStep = Prisma.ApprovalChainStepModel
+/**
+ * Model Team
+ * Team-based approval template attached to a XeroProject. Each team has a
+ * fixed number of hierarchy layers and a per-module config that says which
+ * layers must approve for each module (CLAIMS, OT, LEAVE, ATTENDANCE).
+ * Employees join a team at a specific layer; their effective approval chain
+ * for a given module is filtered by the team's moduleConfig.
+ */
+export type Team = Prisma.TeamModel
+/**
+ * Model EmployeeTeamMembership
+ * Joins an EmployeeProfile to a Team at a specific hierarchy layer (1-indexed,
+ * must be <= team.layerCount). One row per (employee, team) — an employee
+ * belongs to at most one layer per team.
+ */
+export type EmployeeTeamMembership = Prisma.EmployeeTeamMembershipModel

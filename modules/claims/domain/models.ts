@@ -258,6 +258,8 @@ export type EmployeeClaimSubmissionData = {
   mileageAccounts: ChartAccountWithRemainingLimit[]
   /** Admin-selected BANK accounts employees can choose for COMPANY-money claims. */
   bankAccounts: ChartOfAccountOption[]
+  /** Projects the employee is assigned to — populates the project picker. */
+  employeeProjects: Array<{ id: string; name: string }>
   claimRunPreview?: ClaimRunPreview
 }
 

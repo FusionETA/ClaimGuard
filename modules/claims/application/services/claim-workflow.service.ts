@@ -40,6 +40,9 @@ const baseClaimSchema = z.object({
   receiptUrl: z.string().optional(),
   paymentType: z.enum(["PERSONAL", "COMPANY"]).default("PERSONAL"),
   payViaAccountId: z.string().optional(),
+  /// Project this claim is filed against. Required when the employee has
+  /// any project assignments — drives module-aware approval routing.
+  projectId: z.string().optional(),
 })
 
 const expenseClaimSchema = baseClaimSchema.extend({
@@ -112,6 +115,9 @@ export type CreateClaimInput = {
   receiptUrl?: string
   paymentType?: "PERSONAL" | "COMPANY"
   payViaAccountId?: string
+  /// Project the claim is filed against. Required when the employee has
+  /// project assignments; null/undefined OK only when they don't.
+  projectId?: string
   // Mileage-claim fields. Required when claimType === "MILEAGE", ignored otherwise.
   claimType?: "EXPENSE" | "MILEAGE"
   distance?: string | number
@@ -128,6 +134,7 @@ export type CreateClaimFieldErrors = {
   receiptUrl?: string
   paymentType?: string
   payViaAccountId?: string
+  projectId?: string
   claimType?: string
   distance?: string
   mileageOriginAddress?: string
@@ -585,11 +592,31 @@ export async function createClaimForEmployee({
     claimCutoffDay: organization.claimCutoffDay,
   })
 
+  // Validate the chosen projectId belongs to the employee. If the
+  // employee has project assignments, projectId is required.
+  const employeeProjects =
+    await organizationRepository.getProjectsForEmployee(employeeId)
+  if (employeeProjects.length > 0) {
+    const assignedProjectIds = new Set(employeeProjects.map((p) => p.id))
+    if (!parsed.data.projectId || !assignedProjectIds.has(parsed.data.projectId)) {
+      return {
+        ok: false,
+        status: 400,
+        message: "Pick a project from your assigned projects.",
+        values: input,
+        fieldErrors: {
+          projectId: "Select one of your assigned projects.",
+        },
+      }
+    }
+  }
+
   const ok = await claimRepository.createClaim({
     claimNumber: `CLM-${Date.now().toString().slice(-5)}`,
     title: parsed.data.title,
     description: parsed.data.description,
     organizationId: session.organizationId,
+    projectId: parsed.data.projectId ?? null,
     chartOfAccountId: parsed.data.chartOfAccountId,
     amount: finalAmount.toFixed(2),
     currency: "USD",
