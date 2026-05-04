@@ -78,7 +78,7 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
       { href: "/admin/settings?tab=organization", label: "Organization" },
       { href: "/admin/settings?tab=accounts", label: "Accounts" },
       { href: "/admin/settings?tab=projects", label: "Projects" },
-      { href: "/admin/settings?tab=attendance", label: "Attendance" },
+      { href: "/admin/settings?tab=work-schedule", label: "Work Schedule" },
       { href: "/admin/settings?tab=leave", label: "Leave" },
     ],
   },
@@ -219,10 +219,15 @@ export function AdminShell({
                     {item.children.map((child) => {
                       // Support both path-based and ?tab= query-param-based children
                       const childTabMatch = child.href.match(/[?&]tab=([^&]+)/)
+                      const childSectionMatch = child.href.match(/[?&]section=([^&]+)/)
                       const childTab = childTabMatch?.[1] ?? null
+                      const childSection = childSectionMatch?.[1] ?? null
                       const currentTab = searchParams.get("tab") ?? "organization"
+                      const currentSection = searchParams.get("section")
                       const childActive = childTab
-                        ? pathname === item.href && currentTab === childTab
+                        ? pathname === item.href &&
+                          currentTab === childTab &&
+                          (childSection ? currentSection === childSection : true)
                         : pathname === child.href
                       return (
                         <Link

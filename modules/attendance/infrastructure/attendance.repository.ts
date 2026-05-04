@@ -238,9 +238,21 @@ export const attendanceRepository = {
 
   async getWorkingHours(
     orgId: string | null,
+    projectId?: string | null,
   ): Promise<{ start: string; end: string }> {
     if (!orgId) return { ...SYSTEM_DEFAULT_HOURS }
     const prisma = getClient()
+
+    if (projectId) {
+      const project = await prisma.xeroProject.findFirst({
+        where: { id: projectId, organizationId: orgId },
+        select: { workingHoursStart: true, workingHoursEnd: true },
+      })
+      if (project?.workingHoursStart && project?.workingHoursEnd) {
+        return { start: project.workingHoursStart, end: project.workingHoursEnd }
+      }
+    }
+
     const org = await prisma.organization.findUnique({
       where: { id: orgId },
       select: { workingHoursStart: true, workingHoursEnd: true },
@@ -342,7 +354,10 @@ export const attendanceRepository = {
       where: { id: employeeId },
       select: { organizationId: true, role: true },
     })
-    const hours = await this.getWorkingHours(employee?.organizationId ?? null)
+    const hours = await this.getWorkingHours(
+      employee?.organizationId ?? null,
+      projectId ?? null,
+    )
     const [hh, mm] = hours.start.split(":").map(Number)
     const expected = new Date(today)
     expected.setUTCHours(hh ?? 9, mm ?? 0, 0, 0)

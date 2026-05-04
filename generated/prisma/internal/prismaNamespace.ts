@@ -394,6 +394,7 @@ export const ModelName = {
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
+  ProjectHoliday: 'ProjectHoliday',
   AttendanceRecord: 'AttendanceRecord',
   ApprovalRequest: 'ApprovalRequest',
   ApprovalChainStep: 'ApprovalChainStep'
@@ -412,7 +413,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "attendanceRecord" | "approvalRequest" | "approvalChainStep"
+    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "attendanceRecord" | "approvalRequest" | "approvalChainStep"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1076,6 +1077,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProjectHoliday: {
+      payload: Prisma.$ProjectHolidayPayload<ExtArgs>
+      fields: Prisma.ProjectHolidayFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectHolidayFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectHolidayPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectHolidayFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectHolidayPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectHolidayFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectHolidayPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectHolidayFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectHolidayPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectHolidayFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectHolidayPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectHolidayCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectHolidayPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectHolidayCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ProjectHolidayDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectHolidayPayload>
+        }
+        update: {
+          args: Prisma.ProjectHolidayUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectHolidayPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectHolidayDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectHolidayUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ProjectHolidayUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectHolidayPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectHolidayAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectHoliday>
+        }
+        groupBy: {
+          args: Prisma.ProjectHolidayGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectHolidayGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectHolidayCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectHolidayCountAggregateOutputType> | number
+        }
+      }
+    }
     AttendanceRecord: {
       payload: Prisma.$AttendanceRecordPayload<ExtArgs>
       fields: Prisma.AttendanceRecordFieldRefs
@@ -1345,7 +1412,8 @@ export const OrganizationScalarFieldEnum = {
   restDayInShiftRate: 'restDayInShiftRate',
   geofenceRadiusMeters: 'geofenceRadiusMeters',
   defaultMileageRate: 'defaultMileageRate',
-  mileageUnit: 'mileageUnit'
+  mileageUnit: 'mileageUnit',
+  otEnabled: 'otEnabled'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -1501,10 +1569,24 @@ export const XeroProjectScalarFieldEnum = {
   projectManagerId: 'projectManagerId',
   isDisabled: 'isDisabled',
   latitude: 'latitude',
-  longitude: 'longitude'
+  longitude: 'longitude',
+  workingHoursStart: 'workingHoursStart',
+  workingHoursEnd: 'workingHoursEnd',
+  workingDays: 'workingDays'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
+
+
+export const ProjectHolidayScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  date: 'date',
+  name: 'name',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectHolidayScalarFieldEnum = (typeof ProjectHolidayScalarFieldEnum)[keyof typeof ProjectHolidayScalarFieldEnum]
 
 
 export const AttendanceRecordScalarFieldEnum = {
@@ -1709,10 +1791,22 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   status: 'status',
   contactId: 'contactId',
   location: 'location',
-  projectManagerId: 'projectManagerId'
+  projectManagerId: 'projectManagerId',
+  workingHoursStart: 'workingHoursStart',
+  workingHoursEnd: 'workingHoursEnd',
+  workingDays: 'workingDays'
 } as const
 
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
+
+
+export const ProjectHolidayOrderByRelevanceFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name'
+} as const
+
+export type ProjectHolidayOrderByRelevanceFieldEnum = (typeof ProjectHolidayOrderByRelevanceFieldEnum)[keyof typeof ProjectHolidayOrderByRelevanceFieldEnum]
 
 
 export const AttendanceRecordOrderByRelevanceFieldEnum = {
@@ -1800,6 +1894,13 @@ export type EnumMileageUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'PayoutMethod'
  */
 export type EnumPayoutMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayoutMethod'>
@@ -1838,13 +1939,6 @@ export type EnumClaimStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'XeroSyncStatus'
  */
 export type EnumXeroSyncStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'XeroSyncStatus'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -2001,6 +2095,7 @@ export type GlobalOmitConfig = {
   chartOfAccount?: Prisma.ChartOfAccountOmit
   xeroConnection?: Prisma.XeroConnectionOmit
   xeroProject?: Prisma.XeroProjectOmit
+  projectHoliday?: Prisma.ProjectHolidayOmit
   attendanceRecord?: Prisma.AttendanceRecordOmit
   approvalRequest?: Prisma.ApprovalRequestOmit
   approvalChainStep?: Prisma.ApprovalChainStepOmit

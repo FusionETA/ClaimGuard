@@ -167,6 +167,11 @@ export type EnumMileageUnitFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMileageUnitFilter<$PrismaModel> | $Enums.MileageUnit
 }
 
+export type BoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
 export type IntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[]
@@ -223,6 +228,14 @@ export type EnumMileageUnitWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMileageUnitFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMileageUnitFilter<$PrismaModel>
+}
+
+export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
 export type EnumPayoutMethodNullableFilter<$PrismaModel = never> = {
@@ -369,11 +382,6 @@ export type EnumXeroSyncStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumXeroSyncStatusFilter<$PrismaModel>
 }
 
-export type BoolFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
-}
-
 export type EnumLimitPeriodNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.LimitPeriod | Prisma.EnumLimitPeriodFieldRefInput<$PrismaModel> | null
   in?: $Enums.LimitPeriod[] | null
@@ -386,14 +394,6 @@ export type EnumLimitScopeNullableFilter<$PrismaModel = never> = {
   in?: $Enums.LimitScope[] | null
   notIn?: $Enums.LimitScope[] | null
   not?: Prisma.NestedEnumLimitScopeNullableFilter<$PrismaModel> | $Enums.LimitScope | null
-}
-
-export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedBoolFilter<$PrismaModel>
-  _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
 export type EnumLimitPeriodNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -697,6 +697,11 @@ export type NestedEnumMileageUnitFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMileageUnitFilter<$PrismaModel> | $Enums.MileageUnit
 }
 
+export type NestedBoolFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
+}
+
 export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
   equals?: number | Prisma.IntFieldRefInput<$PrismaModel>
   in?: number[]
@@ -764,6 +769,14 @@ export type NestedEnumMileageUnitWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumMileageUnitFilter<$PrismaModel>
   _max?: Prisma.NestedEnumMileageUnitFilter<$PrismaModel>
+}
+
+export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
 export type NestedEnumPayoutMethodNullableFilter<$PrismaModel = never> = {
@@ -910,11 +923,6 @@ export type NestedEnumXeroSyncStatusWithAggregatesFilter<$PrismaModel = never> =
   _max?: Prisma.NestedEnumXeroSyncStatusFilter<$PrismaModel>
 }
 
-export type NestedBoolFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolFilter<$PrismaModel> | boolean
-}
-
 export type NestedEnumLimitPeriodNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.LimitPeriod | Prisma.EnumLimitPeriodFieldRefInput<$PrismaModel> | null
   in?: $Enums.LimitPeriod[] | null
@@ -927,14 +935,6 @@ export type NestedEnumLimitScopeNullableFilter<$PrismaModel = never> = {
   in?: $Enums.LimitScope[] | null
   notIn?: $Enums.LimitScope[] | null
   not?: Prisma.NestedEnumLimitScopeNullableFilter<$PrismaModel> | $Enums.LimitScope | null
-}
-
-export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel>
-  not?: Prisma.NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedBoolFilter<$PrismaModel>
-  _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
 export type NestedEnumLimitPeriodNullableWithAggregatesFilter<$PrismaModel = never> = {

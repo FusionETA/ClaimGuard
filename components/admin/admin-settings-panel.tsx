@@ -1,8 +1,10 @@
 "use client"
 
-import { useActionState, useEffect, useState, useTransition } from "react"
+import { useActionState, useEffect, useLayoutEffect, useRef, useState, useTransition } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
-import { Loader2, MapPin, Plus, Search, Trash2 } from "lucide-react"
+import { useSearchParams, useRouter } from "next/navigation"
+import { CalendarDays, Clock, Download, Loader2, MapPin, Plus, Search, Trash2 } from "lucide-react"
 
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import {
@@ -17,6 +19,12 @@ import {
   saveMileageDefaultsAction,
   saveOrganizationSettingsAction,
   saveOtRatesAction,
+  toggleOrgOtAction,
+  saveOrgWorkingHoursAction,
+  saveProjectCalendarAction,
+  addProjectHolidayAction,
+  deleteProjectHolidayAction,
+  importProjectHolidaysAction,
   saveSelectableAccountsAction,
   saveSelectedBankAccountsAction,
   selectXeroTenantAction,
@@ -25,7 +33,6 @@ import {
   syncXeroProjectsAction,
   updateProjectAction,
 } from "@/app/(admin)/admin/settings/actions"
-import { setWorkingHoursAction, type SetWorkingHoursState } from "@/app/(admin)/admin/attendance/actions"
 import { XeroConnectionCard } from "@/components/admin/xero-connection-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -50,7 +57,8 @@ import type {
   XeroConnectionSummary,
 } from "@/modules/organization/domain/models"
 
-type TabKey = "organization" | "accounts" | "projects" | "attendance" | "leave"
+type TabKey = "organization" | "accounts" | "projects" | "work-schedule" | "leave"
+type WorkScheduleSection = "ot-rates" | "calendar"
 
 /** Lat/Lng pair inputs used for project geofence setup.
  *  - In edit (controlled) mode: pass defaultLat/defaultLng + onChange.
@@ -174,7 +182,8 @@ function resolveTabFromInitial(initial?: string): {
     case "projects":
       return { tab: "projects", accountsSub: "selectable" }
     case "attendance":
-      return { tab: "attendance", accountsSub: "selectable" }
+    case "work-schedule":
+      return { tab: "work-schedule", accountsSub: "selectable" }
     case "leave":
       return { tab: "leave", accountsSub: "selectable" }
     default:
@@ -284,6 +293,7 @@ export function AdminSettingsPanel({
   takenTenantIds = [],
   workingHours,
   initialTab,
+  initialSection,
 }: {
   admin: AdminProfile
   organization?: OrganizationSummary
@@ -299,12 +309,16 @@ export function AdminSettingsPanel({
   takenTenantIds?: string[]
   workingHours: { start: string; end: string }
   initialTab?: string
+  initialSection?: string
 }) {
   const { toast } = useToast()
   const initialResolved = resolveTabFromInitial(initialTab)
   const [activeTab, setActiveTab] = useState<TabKey>(initialResolved.tab)
   const [accountsSubTab, setAccountsSubTab] = useState<AccountsSubTab>(
     initialResolved.accountsSub
+  )
+  const [workScheduleSection, setWorkScheduleSection] = useState<WorkScheduleSection>(
+    initialSection === "calendar" ? "calendar" : "ot-rates"
   )
 
   useEffect(() => {
@@ -314,8 +328,12 @@ export function AdminSettingsPanel({
     if (resolved.tab === "accounts" && resolved.accountsSub !== accountsSubTab) {
       setAccountsSubTab(resolved.accountsSub)
     }
+    if (resolved.tab === "work-schedule") {
+      const next: WorkScheduleSection = initialSection === "calendar" ? "calendar" : "ot-rates"
+      if (next !== workScheduleSection) setWorkScheduleSection(next)
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialTab])
+  }, [initialTab, initialSection])
   const [accountTypeFilter, setAccountTypeFilter] = useState<string>("all")
   const [accountSearch, setAccountSearch] = useState("")
   const [projectSearch, setProjectSearch] = useState("")
@@ -453,7 +471,7 @@ export function AdminSettingsPanel({
     ["organization", "Organization"],
     ["accounts", "Accounts"],
     ["projects", "Projects"],
-    ["attendance", "Attendance"],
+    ["work-schedule", "Work Schedule"],
     ["leave", "Leave"],
   ] as const
 
@@ -1582,10 +1600,42 @@ export function AdminSettingsPanel({
         </div>
       ) : null}
 
-      {activeTab === "attendance" ? (
+      {activeTab === "work-schedule" ? (
         <div className="space-y-6">
-          <WorkingHoursCard initial={workingHours} />
-          <OtRatesCard organization={organization} />
+          <nav className="flex flex-wrap gap-2">
+            {(
+              [
+                ["ot-rates", "OT Rates"],
+                ["calendar", "Calendar"],
+              ] as const
+            ).map(([value, label]) => (
+              <Link
+                key={value}
+                href={`/admin/settings?tab=work-schedule&section=${value}`}
+                onClick={() => setWorkScheduleSection(value)}
+                className={cn(
+                  "rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                  workScheduleSection === value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
+
+          {workScheduleSection === "ot-rates" ? (
+            <>
+              <OrgOtToggleCard organization={organization} />
+              <OtRatesCard organization={organization} />
+            </>
+          ) : (
+            <>
+              <OrgWorkingHoursCard initial={workingHours} />
+              <ProjectCalendarPanel projects={projects} orgWorkingHours={workingHours} />
+            </>
+          )}
         </div>
       ) : null}
 
@@ -1596,61 +1646,6 @@ export function AdminSettingsPanel({
         />
       ) : null}
     </div>
-  )
-}
-
-function WorkingHoursCard({ initial }: { initial: { start: string; end: string } }) {
-  const [state, formAction, pending] = useActionState<SetWorkingHoursState, FormData>(
-    setWorkingHoursAction,
-    {}
-  )
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Working hours</CardTitle>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          The standard daily start and end time used to flag late check-ins and missing
-          attendance for everyone in this organization.
-        </p>
-      </CardHeader>
-      <CardContent>
-        <form action={formAction} className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-          <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-            <span>Start</span>
-            <Input
-              name="start"
-              type="time"
-              defaultValue={initial.start}
-              required
-              disabled={pending}
-            />
-          </label>
-
-          <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-            <span>End</span>
-            <Input
-              name="end"
-              type="time"
-              defaultValue={initial.end}
-              required
-              disabled={pending}
-            />
-          </label>
-
-          <Button type="submit" className="rounded-xl sm:w-auto" disabled={pending}>
-            {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save"}
-          </Button>
-        </form>
-
-        {state.error ? (
-          <p className="mt-3 text-sm font-semibold text-destructive">{state.error}</p>
-        ) : null}
-        {state.ok ? (
-          <p className="mt-3 text-sm font-semibold text-success">Saved.</p>
-        ) : null}
-      </CardContent>
-    </Card>
   )
 }
 
@@ -1806,5 +1801,864 @@ function RateInput({
         </span>
       </div>
     </label>
+  )
+}
+
+function OrgWorkingHoursCard({ initial }: { initial: { start: string; end: string } }) {
+  const { toast } = useToast()
+  const [pending, startTransition] = useTransition()
+  const [start, setStart] = useState(initial.start)
+  const [end, setEnd] = useState(initial.end)
+
+  function handleSave() {
+    startTransition(async () => {
+      const result = await saveOrgWorkingHoursAction(start, end)
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+    })
+  }
+
+  const dirty = start !== initial.start || end !== initial.end
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Org default hours</CardTitle>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Used by any project that doesn&apos;t set its own hours.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-[8rem_8rem_1fr] sm:items-end">
+          <TimeField
+            label="Start"
+            value={start}
+            onChange={(v) => setStart(v || initial.start)}
+            disabled={pending}
+          />
+          <TimeField
+            label="End"
+            value={end}
+            onChange={(v) => setEnd(v || initial.end)}
+            disabled={pending}
+          />
+          <div className="flex items-center justify-end">
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-lg"
+              onClick={handleSave}
+              disabled={pending || !dirty}
+            >
+              {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function OrgOtToggleCard({ organization }: { organization?: OrganizationSummary }) {
+  const { toast } = useToast()
+  const [pending, startTransition] = useTransition()
+  const [enabled, setEnabled] = useState<boolean>(organization?.otEnabled ?? true)
+
+  useEffect(() => {
+    setEnabled(organization?.otEnabled ?? true)
+  }, [organization?.otEnabled])
+
+  function handleToggle(next: boolean) {
+    setEnabled(next)
+    startTransition(async () => {
+      const result = await toggleOrgOtAction(next)
+      if (!result.ok) {
+        setEnabled(!next)
+        toast({ title: result.message, variant: "error" })
+      } else {
+        toast({ title: result.message, variant: "success" })
+      }
+    })
+  }
+
+  return (
+    <Card>
+      <CardContent className="flex items-center justify-between gap-4 py-5">
+        <div>
+          <p className="text-sm font-semibold text-foreground">Overtime feature</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            When off, overtime is not accrued or paid for any project in this organization.
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          disabled={pending}
+          onClick={() => handleToggle(!enabled)}
+          className={cn(
+            "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
+            enabled ? "bg-primary" : "bg-border",
+            pending && "opacity-60"
+          )}
+        >
+          <span
+            className={cn(
+              "inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform",
+              enabled ? "translate-x-5" : "translate-x-0.5"
+            )}
+          />
+        </button>
+      </CardContent>
+    </Card>
+  )
+}
+
+const WEEKDAYS: ReadonlyArray<{ value: number; label: string }> = [
+  { value: 1, label: "Mon" },
+  { value: 2, label: "Tue" },
+  { value: 3, label: "Wed" },
+  { value: 4, label: "Thu" },
+  { value: 5, label: "Fri" },
+  { value: 6, label: "Sat" },
+  { value: 7, label: "Sun" },
+]
+
+function parseWorkingDays(csv: string | null | undefined): Set<number> {
+  if (!csv) return new Set([1, 2, 3, 4, 5])
+  return new Set(
+    csv
+      .split(",")
+      .map((s) => Number(s.trim()))
+      .filter((n) => Number.isInteger(n) && n >= 1 && n <= 7)
+  )
+}
+
+function ProjectCalendarPanel({
+  projects,
+  orgWorkingHours,
+}: {
+  projects: OrganizationProjectOption[]
+  orgWorkingHours: { start: string; end: string }
+}) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const initialId = searchParams.get("projectId") ?? projects[0]?.id ?? ""
+  const [selectedId, setSelectedId] = useState<string>(initialId)
+
+  useEffect(() => {
+    const fromUrl = searchParams.get("projectId")
+    if (fromUrl && fromUrl !== selectedId) setSelectedId(fromUrl)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
+  const project = projects.find((p) => p.id === selectedId) ?? projects[0]
+
+  function handlePick(id: string) {
+    setSelectedId(id)
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("tab", "work-schedule")
+    params.set("section", "calendar")
+    params.set("projectId", id)
+    router.replace(`/admin/settings?${params.toString()}`)
+  }
+
+  if (projects.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Calendar</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Add a project first to configure its calendar.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Project</CardTitle>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            Each project keeps its own working hours, working days and holidays.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedId} onValueChange={handlePick}>
+            <SelectTrigger className="h-10 text-sm">
+              <SelectValue placeholder="Pick a project" />
+            </SelectTrigger>
+            <SelectContent>
+              {projects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+
+      {project ? (
+        <>
+          <ProjectWorkingHoursCard
+            project={project}
+            orgWorkingHours={orgWorkingHours}
+          />
+          <ProjectHolidaysCard project={project} />
+          <ProjectCalendarView project={project} />
+        </>
+      ) : null}
+    </div>
+  )
+}
+
+function TimeField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  disabled,
+}: {
+  label: string
+  value: string
+  onChange: (next: string) => void
+  placeholder?: string
+  disabled?: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
+  const display = value || placeholder || "--:--"
+
+  useEffect(() => {
+    if (!open) return
+    function onDoc(e: MouseEvent) {
+      const target = e.target as Node
+      if (wrapRef.current?.contains(target)) return
+      if (popRef.current?.contains(target)) return
+      setOpen(false)
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false)
+    }
+    document.addEventListener("mousedown", onDoc)
+    document.addEventListener("keydown", onKey)
+    return () => {
+      document.removeEventListener("mousedown", onDoc)
+      document.removeEventListener("keydown", onKey)
+    }
+  }, [open])
+
+  return (
+    <div ref={wrapRef} className="relative block">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <button
+        type="button"
+        onClick={() => !disabled && setOpen((v) => !v)}
+        disabled={disabled}
+        className={cn(
+          "mt-1 flex w-full items-center gap-2 rounded-lg border bg-card px-2.5 py-1.5 text-left transition-colors",
+          open
+            ? "border-primary ring-1 ring-primary/30"
+            : "border-border hover:border-border/80",
+          disabled && "opacity-60"
+        )}
+      >
+        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+        <span
+          className={cn(
+            "flex-1 text-sm font-semibold tabular-nums",
+            value ? "text-foreground" : "text-muted-foreground"
+          )}
+        >
+          {display}
+        </span>
+        {value ? (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation()
+              onChange("")
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                e.stopPropagation()
+                onChange("")
+              }
+            }}
+            className="text-[10px] font-semibold text-muted-foreground hover:text-foreground"
+            aria-label={`Clear ${label}`}
+          >
+            ✕
+          </span>
+        ) : null}
+      </button>
+
+      {open ? (
+        <TimePopover
+          anchorRef={wrapRef}
+          popoverRef={popRef}
+          value={value}
+          onSelect={(next) => {
+            onChange(next)
+            setOpen(false)
+          }}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+function TimePopover({
+  anchorRef,
+  popoverRef,
+  value,
+  onSelect,
+}: {
+  anchorRef: React.RefObject<HTMLDivElement | null>
+  popoverRef: React.RefObject<HTMLDivElement | null>
+  value: string
+  onSelect: (next: string) => void
+}) {
+  const [pos, setPos] = useState<{ top: number; left: number; width: number } | null>(null)
+
+  useLayoutEffect(() => {
+    function update() {
+      const el = anchorRef.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      setPos({
+        top: r.bottom + window.scrollY + 8,
+        left: r.left + window.scrollX,
+        width: r.width,
+      })
+    }
+    update()
+    window.addEventListener("resize", update)
+    window.addEventListener("scroll", update, true)
+    return () => {
+      window.removeEventListener("resize", update)
+      window.removeEventListener("scroll", update, true)
+    }
+  }, [anchorRef])
+
+  const initialHour = value ? Number(value.slice(0, 2)) : 9
+  const initialMinute = value ? Number(value.slice(3, 5)) : 0
+  const [h, setH] = useState<number>(Number.isFinite(initialHour) ? initialHour : 9)
+  const [m, setM] = useState<number>(Number.isFinite(initialMinute) ? initialMinute : 0)
+
+  const hours = Array.from({ length: 24 }, (_, i) => i)
+  const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]
+
+  const formatted = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
+
+  if (typeof document === "undefined" || !pos) return null
+
+  return createPortal(
+    <div
+      ref={popoverRef}
+      style={{
+        position: "absolute",
+        top: pos.top,
+        left: pos.left,
+        zIndex: 9999,
+      }}
+      className="w-44 rounded-lg border border-border bg-card p-2 shadow-md"
+    >
+      <div className="grid grid-cols-2 gap-1.5">
+        <div className="h-32 overflow-y-auto rounded border border-border/40 [scrollbar-width:thin]">
+          {hours.map((hh) => (
+            <button
+              key={hh}
+              type="button"
+              onClick={() => setH(hh)}
+              className={cn(
+                "block w-full px-2 py-1 text-center text-xs tabular-nums transition-colors",
+                hh === h
+                  ? "bg-foreground/5 font-semibold text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {String(hh).padStart(2, "0")}
+            </button>
+          ))}
+        </div>
+        <div className="h-32 overflow-y-auto rounded border border-border/40 [scrollbar-width:thin]">
+          {minutes.map((mm) => (
+            <button
+              key={mm}
+              type="button"
+              onClick={() => setM(mm)}
+              className={cn(
+                "block w-full px-2 py-1 text-center text-xs tabular-nums transition-colors",
+                mm === m
+                  ? "bg-foreground/5 font-semibold text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {String(mm).padStart(2, "0")}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onSelect(formatted)}
+        className="mt-2 w-full rounded border border-border/60 py-1 text-xs font-semibold tabular-nums text-foreground hover:bg-foreground/5"
+      >
+        {formatted}
+      </button>
+    </div>,
+    document.body
+  )
+}
+
+function ProjectCalendarView({ project }: { project: OrganizationProjectOption }) {
+  const today = new Date()
+  const [viewYear, setViewYear] = useState(today.getFullYear())
+  const [viewMonth, setViewMonth] = useState(today.getMonth())
+
+  const workingDays = parseWorkingDays(project.workingDays)
+  const holidayMap = new Map(
+    (project.holidays ?? []).map((h) => [h.date, h.name] as const)
+  )
+
+  const firstOfMonth = new Date(viewYear, viewMonth, 1)
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+  // Calendar grid starts on Monday (ISO 1..7)
+  const firstWeekdayIso = ((firstOfMonth.getDay() + 6) % 7) + 1
+  const leadingBlanks = firstWeekdayIso - 1
+
+  const cells: Array<{ day: number; iso: string; weekday: number } | null> = []
+  for (let i = 0; i < leadingBlanks; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(viewYear, viewMonth, d)
+    const iso = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`
+    const weekday = ((date.getDay() + 6) % 7) + 1
+    cells.push({ day: d, iso, weekday })
+  }
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  function shift(delta: number) {
+    const next = new Date(viewYear, viewMonth + delta, 1)
+    setViewYear(next.getFullYear())
+    setViewMonth(next.getMonth())
+  }
+
+  const monthLabel = firstOfMonth.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  })
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-semibold tabular-nums">{monthLabel}</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => shift(-1)}
+              className="rounded-md px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
+              aria-label="Previous month"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={() => shift(1)}
+              className="rounded-md px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
+              aria-label="Next month"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-1 grid grid-cols-7 text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground/70">
+          {WEEKDAYS.map((d) => (
+            <div key={d.value} className="py-1">{d.label.charAt(0)}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-px rounded-md bg-border/40 overflow-hidden">
+          {cells.map((cell, idx) => {
+            if (!cell) {
+              return <div key={`blank-${idx}`} className="min-h-[60px] bg-card" />
+            }
+            const isWorking = workingDays.has(cell.weekday)
+            const holidayName = holidayMap.get(cell.iso)
+            const isHoliday = !!holidayName
+            const isToday =
+              cell.iso ===
+              `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`
+
+            return (
+              <div
+                key={cell.iso}
+                className={cn(
+                  "min-h-[60px] p-1.5 transition-colors",
+                  isHoliday
+                    ? "bg-primary/5"
+                    : isWorking
+                      ? "bg-card"
+                      : "bg-surface-low"
+                )}
+                title={holidayName ?? undefined}
+              >
+                <span
+                  className={cn(
+                    "inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] tabular-nums",
+                    isToday
+                      ? "bg-primary text-primary-foreground font-bold"
+                      : isHoliday
+                        ? "text-primary font-semibold"
+                        : isWorking
+                          ? "text-foreground"
+                          : "text-muted-foreground/60"
+                  )}
+                >
+                  {cell.day}
+                </span>
+                {isHoliday ? (
+                  <p className="mt-0.5 line-clamp-2 text-[10px] font-medium leading-tight text-primary/80">
+                    {holidayName}
+                  </p>
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-card border border-border/60" />
+            Working day
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-surface-low border border-border/60" />
+            Rest / off
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm bg-primary/10 border border-primary/20" />
+            Public holiday
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+            Today
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ProjectWorkingHoursCard({
+  project,
+  orgWorkingHours,
+}: {
+  project: OrganizationProjectOption
+  orgWorkingHours: { start: string; end: string }
+}) {
+  const { toast } = useToast()
+  const [pending, startTransition] = useTransition()
+  const [start, setStart] = useState(project.workingHoursStart ?? "")
+  const [end, setEnd] = useState(project.workingHoursEnd ?? "")
+  const [days, setDays] = useState<Set<number>>(parseWorkingDays(project.workingDays))
+
+  useEffect(() => {
+    setStart(project.workingHoursStart ?? "")
+    setEnd(project.workingHoursEnd ?? "")
+    setDays(parseWorkingDays(project.workingDays))
+  }, [project.id, project.workingHoursStart, project.workingHoursEnd, project.workingDays])
+
+  function toggleDay(value: number) {
+    setDays((prev) => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      return next
+    })
+  }
+
+  function handleSave() {
+    startTransition(async () => {
+      const result = await saveProjectCalendarAction(project.id, {
+        workingHoursStart: start.trim() || null,
+        workingHoursEnd: end.trim() || null,
+        workingDays: days.size === 0 ? null : Array.from(days).sort().join(","),
+      })
+      toast({
+        title: result.message,
+        variant: result.ok ? "success" : "error",
+      })
+    })
+  }
+
+  function resetToOrgDefault() {
+    setStart("")
+    setEnd("")
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Working hours &amp; days</CardTitle>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          Leave hours blank to inherit the organization default
+          ({orgWorkingHours.start}–{orgWorkingHours.end}).
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-3 sm:grid-cols-[8rem_8rem_1fr] sm:items-end">
+          <TimeField
+            label="Start"
+            value={start}
+            onChange={setStart}
+            placeholder={orgWorkingHours.start}
+            disabled={pending}
+          />
+          <TimeField
+            label="End"
+            value={end}
+            onChange={setEnd}
+            placeholder={orgWorkingHours.end}
+            disabled={pending}
+          />
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={resetToOrgDefault}
+              disabled={pending || (!start && !end)}
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground disabled:opacity-40"
+            >
+              Use org default
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {start && end
+            ? `${start}–${end}`
+            : `Using org default ${orgWorkingHours.start}–${orgWorkingHours.end}`}
+        </p>
+
+        <div>
+          <p className="text-sm font-semibold text-foreground">Working days</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Days the project operates. Days outside this set are treated as rest days.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {WEEKDAYS.map((d) => {
+              const active = days.has(d.value)
+              return (
+                <button
+                  key={d.value}
+                  type="button"
+                  onClick={() => toggleDay(d.value)}
+                  disabled={pending}
+                  className={cn(
+                    "rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {d.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            className="rounded-xl"
+            onClick={handleSave}
+            disabled={pending}
+          >
+            {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save calendar"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function ProjectHolidaysCard({ project }: { project: OrganizationProjectOption }) {
+  const { toast } = useToast()
+  const [pending, startTransition] = useTransition()
+  const [date, setDate] = useState("")
+  const [name, setName] = useState("")
+  const [importYear, setImportYear] = useState<string>(String(new Date().getFullYear()))
+  const [importCountry, setImportCountry] = useState<string>("MY")
+  const holidays = project.holidays ?? []
+
+  function handleImport() {
+    const yearNum = Number(importYear)
+    if (!Number.isInteger(yearNum)) {
+      toast({ title: "Year must be a whole number.", variant: "error" })
+      return
+    }
+    startTransition(async () => {
+      const result = await importProjectHolidaysAction(
+        project.id,
+        yearNum,
+        importCountry.trim().toUpperCase()
+      )
+      toast({
+        title: result.message,
+        variant: result.ok ? "success" : "error",
+      })
+    })
+  }
+
+  function handleAdd() {
+    if (!date || !name.trim()) {
+      toast({ title: "Date and name are required.", variant: "error" })
+      return
+    }
+    startTransition(async () => {
+      const result = await addProjectHolidayAction(project.id, date, name)
+      toast({
+        title: result.message,
+        variant: result.ok ? "success" : "error",
+      })
+      if (result.ok) {
+        setDate("")
+        setName("")
+      }
+    })
+  }
+
+  function handleDelete(id: string) {
+    startTransition(async () => {
+      const result = await deleteProjectHolidayAction(id)
+      toast({
+        title: result.message,
+        variant: result.ok ? "success" : "error",
+      })
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Public holidays</CardTitle>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          Dates listed here count as public holidays for this project. They influence OT
+          rate selection for hours worked on that day.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="rounded-2xl border border-border/60 bg-surface-low p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Import from public holiday API
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-[6rem_5rem_auto] sm:items-end">
+            <label className="space-y-1 text-xs font-semibold text-muted-foreground">
+              <span>Year</span>
+              <Input
+                type="number"
+                min="2000"
+                max="2100"
+                value={importYear}
+                onChange={(e) => setImportYear(e.target.value)}
+                disabled={pending}
+              />
+            </label>
+            <label className="space-y-1 text-xs font-semibold text-muted-foreground">
+              <span>Country</span>
+              <Input
+                type="text"
+                maxLength={2}
+                value={importCountry}
+                onChange={(e) => setImportCountry(e.target.value.toUpperCase())}
+                placeholder="MY"
+                disabled={pending}
+              />
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-xl"
+              onClick={handleImport}
+              disabled={pending}
+            >
+              <Download className="mr-2 h-4 w-4" />Import
+            </Button>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            ISO-3166 country code (MY, SG, US, GB, …). Existing entries on the same date are overwritten.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-end">
+          <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+            <span>Date</span>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              disabled={pending}
+            />
+          </label>
+          <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+            <span>Name</span>
+            <Input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Hari Raya"
+              disabled={pending}
+            />
+          </label>
+          <Button
+            type="button"
+            className="rounded-xl"
+            onClick={handleAdd}
+            disabled={pending}
+          >
+            <Plus className="mr-2 h-4 w-4" />Add
+          </Button>
+        </div>
+
+        {holidays.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No holidays configured.</p>
+        ) : (
+          <ul className="divide-y divide-border/60">
+            {holidays.map((h) => (
+              <li
+                key={h.id}
+                className="flex items-center justify-between gap-4 py-2"
+              >
+                <div className="flex items-baseline gap-3">
+                  <span className="text-sm font-semibold text-foreground">{h.date}</span>
+                  <span className="text-sm text-muted-foreground">{h.name}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(h.id)}
+                  disabled={pending}
+                  className="text-muted-foreground hover:text-destructive transition-colors"
+                  aria-label={`Delete ${h.name}`}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
   )
 }

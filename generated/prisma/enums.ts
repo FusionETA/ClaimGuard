@@ -35,6 +35,7 @@ export type ClaimCategory = (typeof ClaimCategory)[keyof typeof ClaimCategory]
 export const ClaimStatus = {
   SUBMITTED: 'SUBMITTED',
   PENDING: 'PENDING',
+  REVIEWED: 'REVIEWED',
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED',
   PAID: 'PAID',

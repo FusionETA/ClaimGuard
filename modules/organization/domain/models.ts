@@ -47,6 +47,7 @@ export type OrganizationSummary = {
   claimCutoffDay: number
   bankAccount?: string
   otRates: OtRates
+  otEnabled: boolean
   defaultMileageRate?: number
   mileageUnit: MileageUnit
 }
@@ -90,6 +91,10 @@ export type OrganizationProjectOption = {
   latitude?: number
   longitude?: number
   isManual: boolean
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
+  holidays?: ReadonlyArray<{ id: string; date: string; name: string }>
 }
 
 export type AssignedProject = {

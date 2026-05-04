@@ -789,10 +789,6 @@ export type ChartOfAccountUpdateOneWithoutPayViaClaimsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ChartOfAccountUpdateToOneWithWhereWithoutPayViaClaimsInput, Prisma.ChartOfAccountUpdateWithoutPayViaClaimsInput>, Prisma.ChartOfAccountUncheckedUpdateWithoutPayViaClaimsInput>
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type NullableEnumLimitPeriodFieldUpdateOperationsInput = {
   set?: $Enums.LimitPeriod | null
 }

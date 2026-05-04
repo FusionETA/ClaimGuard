@@ -52,6 +52,9 @@ export type XeroProjectMinAggregateOutputType = {
   isDisabled: boolean | null
   latitude: number | null
   longitude: number | null
+  workingHoursStart: string | null
+  workingHoursEnd: string | null
+  workingDays: string | null
 }
 
 export type XeroProjectMaxAggregateOutputType = {
@@ -70,6 +73,9 @@ export type XeroProjectMaxAggregateOutputType = {
   isDisabled: boolean | null
   latitude: number | null
   longitude: number | null
+  workingHoursStart: string | null
+  workingHoursEnd: string | null
+  workingDays: string | null
 }
 
 export type XeroProjectCountAggregateOutputType = {
@@ -88,6 +94,9 @@ export type XeroProjectCountAggregateOutputType = {
   isDisabled: number
   latitude: number
   longitude: number
+  workingHoursStart: number
+  workingHoursEnd: number
+  workingDays: number
   _all: number
 }
 
@@ -118,6 +127,9 @@ export type XeroProjectMinAggregateInputType = {
   isDisabled?: true
   latitude?: true
   longitude?: true
+  workingHoursStart?: true
+  workingHoursEnd?: true
+  workingDays?: true
 }
 
 export type XeroProjectMaxAggregateInputType = {
@@ -136,6 +148,9 @@ export type XeroProjectMaxAggregateInputType = {
   isDisabled?: true
   latitude?: true
   longitude?: true
+  workingHoursStart?: true
+  workingHoursEnd?: true
+  workingDays?: true
 }
 
 export type XeroProjectCountAggregateInputType = {
@@ -154,6 +169,9 @@ export type XeroProjectCountAggregateInputType = {
   isDisabled?: true
   latitude?: true
   longitude?: true
+  workingHoursStart?: true
+  workingHoursEnd?: true
+  workingDays?: true
   _all?: true
 }
 
@@ -259,6 +277,9 @@ export type XeroProjectGroupByOutputType = {
   isDisabled: boolean
   latitude: number | null
   longitude: number | null
+  workingHoursStart: string | null
+  workingHoursEnd: string | null
+  workingDays: string | null
   _count: XeroProjectCountAggregateOutputType | null
   _avg: XeroProjectAvgAggregateOutputType | null
   _sum: XeroProjectSumAggregateOutputType | null
@@ -300,8 +321,12 @@ export type XeroProjectWhereInput = {
   isDisabled?: Prisma.BoolFilter<"XeroProject"> | boolean
   latitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
   longitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
+  workingHoursStart?: Prisma.StringNullableFilter<"XeroProject"> | string | null
+  workingHoursEnd?: Prisma.StringNullableFilter<"XeroProject"> | string | null
+  workingDays?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   attendanceRecords?: Prisma.AttendanceRecordListRelationFilter
   assignedEmployees?: Prisma.EmployeeProjectAssignmentListRelationFilter
+  holidays?: Prisma.ProjectHolidayListRelationFilter
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   projectManager?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
@@ -323,8 +348,12 @@ export type XeroProjectOrderByWithRelationInput = {
   isDisabled?: Prisma.SortOrder
   latitude?: Prisma.SortOrderInput | Prisma.SortOrder
   longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrderInput | Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrderInput | Prisma.SortOrder
+  workingDays?: Prisma.SortOrderInput | Prisma.SortOrder
   attendanceRecords?: Prisma.AttendanceRecordOrderByRelationAggregateInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentOrderByRelationAggregateInput
+  holidays?: Prisma.ProjectHolidayOrderByRelationAggregateInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
   projectManager?: Prisma.UserOrderByWithRelationInput
   xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
@@ -351,8 +380,12 @@ export type XeroProjectWhereUniqueInput = Prisma.AtLeast<{
   isDisabled?: Prisma.BoolFilter<"XeroProject"> | boolean
   latitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
   longitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
+  workingHoursStart?: Prisma.StringNullableFilter<"XeroProject"> | string | null
+  workingHoursEnd?: Prisma.StringNullableFilter<"XeroProject"> | string | null
+  workingDays?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   attendanceRecords?: Prisma.AttendanceRecordListRelationFilter
   assignedEmployees?: Prisma.EmployeeProjectAssignmentListRelationFilter
+  holidays?: Prisma.ProjectHolidayListRelationFilter
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   projectManager?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
@@ -374,6 +407,9 @@ export type XeroProjectOrderByWithAggregationInput = {
   isDisabled?: Prisma.SortOrder
   latitude?: Prisma.SortOrderInput | Prisma.SortOrder
   longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrderInput | Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrderInput | Prisma.SortOrder
+  workingDays?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.XeroProjectCountOrderByAggregateInput
   _avg?: Prisma.XeroProjectAvgOrderByAggregateInput
   _max?: Prisma.XeroProjectMaxOrderByAggregateInput
@@ -400,6 +436,9 @@ export type XeroProjectScalarWhereWithAggregatesInput = {
   isDisabled?: Prisma.BoolWithAggregatesFilter<"XeroProject"> | boolean
   latitude?: Prisma.FloatNullableWithAggregatesFilter<"XeroProject"> | number | null
   longitude?: Prisma.FloatNullableWithAggregatesFilter<"XeroProject"> | number | null
+  workingHoursStart?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
+  workingHoursEnd?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
+  workingDays?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
 }
 
 export type XeroProjectCreateInput = {
@@ -415,8 +454,12 @@ export type XeroProjectCreateInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
@@ -438,8 +481,12 @@ export type XeroProjectUncheckedCreateInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectUpdateInput = {
@@ -455,8 +502,12 @@ export type XeroProjectUpdateInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
@@ -478,8 +529,12 @@ export type XeroProjectUncheckedUpdateInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectCreateManyInput = {
@@ -498,6 +553,9 @@ export type XeroProjectCreateManyInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
 }
 
 export type XeroProjectUpdateManyMutationInput = {
@@ -513,6 +571,9 @@ export type XeroProjectUpdateManyMutationInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type XeroProjectUncheckedUpdateManyInput = {
@@ -531,6 +592,9 @@ export type XeroProjectUncheckedUpdateManyInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type XeroProjectListRelationFilter = {
@@ -575,6 +639,9 @@ export type XeroProjectCountOrderByAggregateInput = {
   isDisabled?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
+  workingDays?: Prisma.SortOrder
 }
 
 export type XeroProjectAvgOrderByAggregateInput = {
@@ -598,6 +665,9 @@ export type XeroProjectMaxOrderByAggregateInput = {
   isDisabled?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
+  workingDays?: Prisma.SortOrder
 }
 
 export type XeroProjectMinOrderByAggregateInput = {
@@ -616,6 +686,9 @@ export type XeroProjectMinOrderByAggregateInput = {
   isDisabled?: Prisma.SortOrder
   latitude?: Prisma.SortOrder
   longitude?: Prisma.SortOrder
+  workingHoursStart?: Prisma.SortOrder
+  workingHoursEnd?: Prisma.SortOrder
+  workingDays?: Prisma.SortOrder
 }
 
 export type XeroProjectSumOrderByAggregateInput = {
@@ -776,6 +849,20 @@ export type NullableFloatFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type XeroProjectCreateNestedOneWithoutHolidaysInput = {
+  create?: Prisma.XOR<Prisma.XeroProjectCreateWithoutHolidaysInput, Prisma.XeroProjectUncheckedCreateWithoutHolidaysInput>
+  connectOrCreate?: Prisma.XeroProjectCreateOrConnectWithoutHolidaysInput
+  connect?: Prisma.XeroProjectWhereUniqueInput
+}
+
+export type XeroProjectUpdateOneRequiredWithoutHolidaysNestedInput = {
+  create?: Prisma.XOR<Prisma.XeroProjectCreateWithoutHolidaysInput, Prisma.XeroProjectUncheckedCreateWithoutHolidaysInput>
+  connectOrCreate?: Prisma.XeroProjectCreateOrConnectWithoutHolidaysInput
+  upsert?: Prisma.XeroProjectUpsertWithoutHolidaysInput
+  connect?: Prisma.XeroProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.XeroProjectUpdateToOneWithWhereWithoutHolidaysInput, Prisma.XeroProjectUpdateWithoutHolidaysInput>, Prisma.XeroProjectUncheckedUpdateWithoutHolidaysInput>
+}
+
 export type XeroProjectCreateNestedOneWithoutAttendanceRecordsInput = {
   create?: Prisma.XOR<Prisma.XeroProjectCreateWithoutAttendanceRecordsInput, Prisma.XeroProjectUncheckedCreateWithoutAttendanceRecordsInput>
   connectOrCreate?: Prisma.XeroProjectCreateOrConnectWithoutAttendanceRecordsInput
@@ -805,8 +892,12 @@ export type XeroProjectCreateWithoutProjectManagerInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
 }
@@ -826,8 +917,12 @@ export type XeroProjectUncheckedCreateWithoutProjectManagerInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectCreateOrConnectWithoutProjectManagerInput = {
@@ -875,6 +970,9 @@ export type XeroProjectScalarWhereInput = {
   isDisabled?: Prisma.BoolFilter<"XeroProject"> | boolean
   latitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
   longitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
+  workingHoursStart?: Prisma.StringNullableFilter<"XeroProject"> | string | null
+  workingHoursEnd?: Prisma.StringNullableFilter<"XeroProject"> | string | null
+  workingDays?: Prisma.StringNullableFilter<"XeroProject"> | string | null
 }
 
 export type XeroProjectCreateWithoutOrganizationInput = {
@@ -890,8 +988,12 @@ export type XeroProjectCreateWithoutOrganizationInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
 }
@@ -911,8 +1013,12 @@ export type XeroProjectUncheckedCreateWithoutOrganizationInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectCreateOrConnectWithoutOrganizationInput = {
@@ -954,7 +1060,11 @@ export type XeroProjectCreateWithoutAssignedEmployeesInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
+  holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
@@ -976,7 +1086,11 @@ export type XeroProjectUncheckedCreateWithoutAssignedEmployeesInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
+  holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectCreateOrConnectWithoutAssignedEmployeesInput = {
@@ -1008,7 +1122,11 @@ export type XeroProjectUpdateWithoutAssignedEmployeesInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
+  holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
@@ -1030,7 +1148,11 @@ export type XeroProjectUncheckedUpdateWithoutAssignedEmployeesInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
+  holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectCreateWithoutXeroConnectionInput = {
@@ -1046,8 +1168,12 @@ export type XeroProjectCreateWithoutXeroConnectionInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
 }
@@ -1067,8 +1193,12 @@ export type XeroProjectUncheckedCreateWithoutXeroConnectionInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectCreateOrConnectWithoutXeroConnectionInput = {
@@ -1097,6 +1227,114 @@ export type XeroProjectUpdateManyWithWhereWithoutXeroConnectionInput = {
   data: Prisma.XOR<Prisma.XeroProjectUpdateManyMutationInput, Prisma.XeroProjectUncheckedUpdateManyWithoutXeroConnectionInput>
 }
 
+export type XeroProjectCreateWithoutHolidaysInput = {
+  id?: string
+  xeroProjectId?: string | null
+  name: string
+  status?: string | null
+  contactId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isManual?: boolean
+  location?: string | null
+  isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
+  attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
+  projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
+}
+
+export type XeroProjectUncheckedCreateWithoutHolidaysInput = {
+  id?: string
+  organizationId: string
+  xeroConnectionId?: string | null
+  xeroProjectId?: string | null
+  name: string
+  status?: string | null
+  contactId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isManual?: boolean
+  location?: string | null
+  projectManagerId?: string | null
+  isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
+  attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type XeroProjectCreateOrConnectWithoutHolidaysInput = {
+  where: Prisma.XeroProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.XeroProjectCreateWithoutHolidaysInput, Prisma.XeroProjectUncheckedCreateWithoutHolidaysInput>
+}
+
+export type XeroProjectUpsertWithoutHolidaysInput = {
+  update: Prisma.XOR<Prisma.XeroProjectUpdateWithoutHolidaysInput, Prisma.XeroProjectUncheckedUpdateWithoutHolidaysInput>
+  create: Prisma.XOR<Prisma.XeroProjectCreateWithoutHolidaysInput, Prisma.XeroProjectUncheckedCreateWithoutHolidaysInput>
+  where?: Prisma.XeroProjectWhereInput
+}
+
+export type XeroProjectUpdateToOneWithWhereWithoutHolidaysInput = {
+  where?: Prisma.XeroProjectWhereInput
+  data: Prisma.XOR<Prisma.XeroProjectUpdateWithoutHolidaysInput, Prisma.XeroProjectUncheckedUpdateWithoutHolidaysInput>
+}
+
+export type XeroProjectUpdateWithoutHolidaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
+  projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
+}
+
+export type XeroProjectUncheckedUpdateWithoutHolidaysInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+}
+
 export type XeroProjectCreateWithoutAttendanceRecordsInput = {
   id?: string
   xeroProjectId?: string | null
@@ -1110,7 +1348,11 @@ export type XeroProjectCreateWithoutAttendanceRecordsInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
@@ -1132,7 +1374,11 @@ export type XeroProjectUncheckedCreateWithoutAttendanceRecordsInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectCreateOrConnectWithoutAttendanceRecordsInput = {
@@ -1164,7 +1410,11 @@ export type XeroProjectUpdateWithoutAttendanceRecordsInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
@@ -1186,7 +1436,11 @@ export type XeroProjectUncheckedUpdateWithoutAttendanceRecordsInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectCreateManyProjectManagerInput = {
@@ -1204,6 +1458,9 @@ export type XeroProjectCreateManyProjectManagerInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
 }
 
 export type XeroProjectUpdateWithoutProjectManagerInput = {
@@ -1219,8 +1476,12 @@ export type XeroProjectUpdateWithoutProjectManagerInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
 }
@@ -1240,8 +1501,12 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagerInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectUncheckedUpdateManyWithoutProjectManagerInput = {
@@ -1259,6 +1524,9 @@ export type XeroProjectUncheckedUpdateManyWithoutProjectManagerInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type XeroProjectCreateManyOrganizationInput = {
@@ -1276,6 +1544,9 @@ export type XeroProjectCreateManyOrganizationInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
 }
 
 export type XeroProjectUpdateWithoutOrganizationInput = {
@@ -1291,8 +1562,12 @@ export type XeroProjectUpdateWithoutOrganizationInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
 }
@@ -1312,8 +1587,12 @@ export type XeroProjectUncheckedUpdateWithoutOrganizationInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1331,6 +1610,9 @@ export type XeroProjectUncheckedUpdateManyWithoutOrganizationInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type XeroProjectCreateManyXeroConnectionInput = {
@@ -1348,6 +1630,9 @@ export type XeroProjectCreateManyXeroConnectionInput = {
   isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
 }
 
 export type XeroProjectUpdateWithoutXeroConnectionInput = {
@@ -1363,8 +1648,12 @@ export type XeroProjectUpdateWithoutXeroConnectionInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
 }
@@ -1384,8 +1673,12 @@ export type XeroProjectUncheckedUpdateWithoutXeroConnectionInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectUncheckedUpdateManyWithoutXeroConnectionInput = {
@@ -1403,6 +1696,9 @@ export type XeroProjectUncheckedUpdateManyWithoutXeroConnectionInput = {
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1413,11 +1709,13 @@ export type XeroProjectUncheckedUpdateManyWithoutXeroConnectionInput = {
 export type XeroProjectCountOutputType = {
   attendanceRecords: number
   assignedEmployees: number
+  holidays: number
 }
 
 export type XeroProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendanceRecords?: boolean | XeroProjectCountOutputTypeCountAttendanceRecordsArgs
   assignedEmployees?: boolean | XeroProjectCountOutputTypeCountAssignedEmployeesArgs
+  holidays?: boolean | XeroProjectCountOutputTypeCountHolidaysArgs
 }
 
 /**
@@ -1444,6 +1742,13 @@ export type XeroProjectCountOutputTypeCountAssignedEmployeesArgs<ExtArgs extends
   where?: Prisma.EmployeeProjectAssignmentWhereInput
 }
 
+/**
+ * XeroProjectCountOutputType without action
+ */
+export type XeroProjectCountOutputTypeCountHolidaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectHolidayWhereInput
+}
+
 
 export type XeroProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1461,8 +1766,12 @@ export type XeroProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   isDisabled?: boolean
   latitude?: boolean
   longitude?: boolean
+  workingHoursStart?: boolean
+  workingHoursEnd?: boolean
+  workingDays?: boolean
   attendanceRecords?: boolean | Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>
   assignedEmployees?: boolean | Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>
+  holidays?: boolean | Prisma.XeroProject$holidaysArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   projectManager?: boolean | Prisma.XeroProject$projectManagerArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.XeroProject$xeroConnectionArgs<ExtArgs>
@@ -1487,12 +1796,16 @@ export type XeroProjectSelectScalar = {
   isDisabled?: boolean
   latitude?: boolean
   longitude?: boolean
+  workingHoursStart?: boolean
+  workingHoursEnd?: boolean
+  workingDays?: boolean
 }
 
-export type XeroProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroProjectId" | "name" | "status" | "contactId" | "createdAt" | "updatedAt" | "isManual" | "location" | "projectManagerId" | "isDisabled" | "latitude" | "longitude", ExtArgs["result"]["xeroProject"]>
+export type XeroProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroProjectId" | "name" | "status" | "contactId" | "createdAt" | "updatedAt" | "isManual" | "location" | "projectManagerId" | "isDisabled" | "latitude" | "longitude" | "workingHoursStart" | "workingHoursEnd" | "workingDays", ExtArgs["result"]["xeroProject"]>
 export type XeroProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendanceRecords?: boolean | Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>
   assignedEmployees?: boolean | Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>
+  holidays?: boolean | Prisma.XeroProject$holidaysArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   projectManager?: boolean | Prisma.XeroProject$projectManagerArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.XeroProject$xeroConnectionArgs<ExtArgs>
@@ -1504,6 +1817,7 @@ export type $XeroProjectPayload<ExtArgs extends runtime.Types.Extensions.Interna
   objects: {
     attendanceRecords: Prisma.$AttendanceRecordPayload<ExtArgs>[]
     assignedEmployees: Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>[]
+    holidays: Prisma.$ProjectHolidayPayload<ExtArgs>[]
     organization: Prisma.$OrganizationPayload<ExtArgs>
     projectManager: Prisma.$UserPayload<ExtArgs> | null
     xeroConnection: Prisma.$XeroConnectionPayload<ExtArgs> | null
@@ -1524,6 +1838,9 @@ export type $XeroProjectPayload<ExtArgs extends runtime.Types.Extensions.Interna
     isDisabled: boolean
     latitude: number | null
     longitude: number | null
+    workingHoursStart: string | null
+    workingHoursEnd: string | null
+    workingDays: string | null
   }, ExtArgs["result"]["xeroProject"]>
   composites: {}
 }
@@ -1866,6 +2183,7 @@ export interface Prisma__XeroProjectClient<T, Null = never, ExtArgs extends runt
   readonly [Symbol.toStringTag]: "PrismaPromise"
   attendanceRecords<T extends Prisma.XeroProject$attendanceRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   assignedEmployees<T extends Prisma.XeroProject$assignedEmployeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  holidays<T extends Prisma.XeroProject$holidaysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$holidaysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectHolidayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   projectManager<T extends Prisma.XeroProject$projectManagerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$projectManagerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   xeroConnection<T extends Prisma.XeroProject$xeroConnectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$xeroConnectionArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -1913,6 +2231,9 @@ export interface XeroProjectFieldRefs {
   readonly isDisabled: Prisma.FieldRef<"XeroProject", 'Boolean'>
   readonly latitude: Prisma.FieldRef<"XeroProject", 'Float'>
   readonly longitude: Prisma.FieldRef<"XeroProject", 'Float'>
+  readonly workingHoursStart: Prisma.FieldRef<"XeroProject", 'String'>
+  readonly workingHoursEnd: Prisma.FieldRef<"XeroProject", 'String'>
+  readonly workingDays: Prisma.FieldRef<"XeroProject", 'String'>
 }
     
 
@@ -2306,6 +2627,30 @@ export type XeroProject$assignedEmployeesArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.EmployeeProjectAssignmentScalarFieldEnum | Prisma.EmployeeProjectAssignmentScalarFieldEnum[]
+}
+
+/**
+ * XeroProject.holidays
+ */
+export type XeroProject$holidaysArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectHoliday
+   */
+  select?: Prisma.ProjectHolidaySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectHoliday
+   */
+  omit?: Prisma.ProjectHolidayOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectHolidayInclude<ExtArgs> | null
+  where?: Prisma.ProjectHolidayWhereInput
+  orderBy?: Prisma.ProjectHolidayOrderByWithRelationInput | Prisma.ProjectHolidayOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectHolidayWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectHolidayScalarFieldEnum | Prisma.ProjectHolidayScalarFieldEnum[]
 }
 
 /**

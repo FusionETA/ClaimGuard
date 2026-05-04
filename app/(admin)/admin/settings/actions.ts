@@ -15,6 +15,7 @@ import {
   syncOrganizationProjects,
 } from "@/modules/organization/application/services/xero-connection.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { getPrismaClient } from "@/lib/prisma"
 
 const XERO_PENDING_COOKIE = "claimguard_xero_pending"
 
@@ -1073,4 +1074,369 @@ export async function saveOtRatesAction(
     status: "success",
     message: "OT rates updated.",
   }
+}
+
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/
+
+async function assertProjectInActiveOrg(projectId: string) {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false as const, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { ok: false as const, message: "No organization found." }
+  }
+  const prisma = getPrismaClient()
+  if (!prisma) return { ok: false as const, message: "Database is not configured." }
+  const project = await prisma.xeroProject.findFirst({
+    where: { id: projectId, organizationId },
+    select: { id: true },
+  })
+  if (!project) return { ok: false as const, message: "Project not found." }
+  return { ok: true as const, session, organizationId, prisma }
+}
+
+export async function saveOrgWorkingHoursAction(
+  start: string,
+  end: string
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+  const prisma = getPrismaClient()
+  if (!prisma) return { ok: false, message: "Database is not configured." }
+
+  if (!TIME_RE.test(start) || !TIME_RE.test(end)) {
+    return { ok: false, message: "Times must be HH:MM (24h)." }
+  }
+  if (start >= end) {
+    return { ok: false, message: "Start time must be before end time." }
+  }
+
+  try {
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { workingHoursStart: start, workingHoursEnd: end },
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unable to save working hours.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+  return { ok: true, message: "Default working hours saved." }
+}
+
+export async function toggleOrgOtAction(
+  enabled: boolean
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+  const prisma = getPrismaClient()
+  if (!prisma) return { ok: false, message: "Database is not configured." }
+
+  try {
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { otEnabled: enabled },
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unable to update OT setting.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+  return { ok: true, message: enabled ? "Overtime enabled." : "Overtime disabled." }
+}
+
+export async function saveProjectCalendarAction(
+  projectId: string,
+  values: {
+    workingHoursStart: string | null
+    workingHoursEnd: string | null
+    workingDays: string | null
+  }
+): Promise<{ ok: boolean; message: string }> {
+  const ctx = await assertProjectInActiveOrg(projectId)
+  if (!ctx.ok) return ctx
+
+  const { workingHoursStart, workingHoursEnd, workingDays } = values
+
+  if (workingHoursStart && !TIME_RE.test(workingHoursStart)) {
+    return { ok: false, message: "Start time must be HH:MM (24h)." }
+  }
+  if (workingHoursEnd && !TIME_RE.test(workingHoursEnd)) {
+    return { ok: false, message: "End time must be HH:MM (24h)." }
+  }
+  if (workingHoursStart && workingHoursEnd && workingHoursStart >= workingHoursEnd) {
+    return { ok: false, message: "Start time must be before end time." }
+  }
+  if (workingDays !== null && workingDays !== "") {
+    const days = workingDays.split(",").map((d) => d.trim())
+    for (const d of days) {
+      const n = Number(d)
+      if (!Number.isInteger(n) || n < 1 || n > 7) {
+        return { ok: false, message: "Working days must be a comma-separated list of 1–7." }
+      }
+    }
+  }
+
+  try {
+    await ctx.prisma.xeroProject.update({
+      where: { id: projectId },
+      data: {
+        workingHoursStart: workingHoursStart || null,
+        workingHoursEnd: workingHoursEnd || null,
+        workingDays: workingDays || null,
+      },
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unable to save calendar.",
+    }
+  }
+
+  clearAdminStore(ctx.session.email)
+  revalidateAdminSurfaces()
+  return { ok: true, message: "Calendar saved." }
+}
+
+export async function addProjectHolidayAction(
+  projectId: string,
+  date: string,
+  name: string
+): Promise<{ ok: boolean; message: string }> {
+  const ctx = await assertProjectInActiveOrg(projectId)
+  if (!ctx.ok) return ctx
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return { ok: false, message: "Date must be YYYY-MM-DD." }
+  }
+  const trimmed = name.trim()
+  if (!trimmed) {
+    return { ok: false, message: "Holiday name is required." }
+  }
+
+  try {
+    await ctx.prisma.projectHoliday.upsert({
+      where: { projectId_date: { projectId, date: new Date(date) } },
+      create: { projectId, date: new Date(date), name: trimmed },
+      update: { name: trimmed },
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unable to add holiday.",
+    }
+  }
+
+  revalidateAdminSurfaces()
+  return { ok: true, message: "Holiday added." }
+}
+
+export type HolidayApiSource = "nager" | "calendarific"
+
+async function fetchNagerHolidays(
+  year: number,
+  countryCode: string
+): Promise<{ ok: true; holidays: Array<{ date: string; name: string }> } | { ok: false; message: string }> {
+  try {
+    const res = await fetch(
+      `https://date.nager.at/api/v3/PublicHolidays/${year}/${countryCode}`,
+      { cache: "no-store" }
+    )
+    if (!res.ok) {
+      return { ok: false, message: `date.nager.at returned ${res.status}.` }
+    }
+    const raw = (await res.json()) as Array<{
+      date: string
+      localName?: string
+      name?: string
+    }>
+    return {
+      ok: true,
+      holidays: raw
+        .filter((h) => /^\d{4}-\d{2}-\d{2}$/.test(h.date))
+        .map((h) => ({
+          date: h.date,
+          name: (h.localName || h.name || "Public holiday").trim(),
+        })),
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not reach date.nager.at.",
+    }
+  }
+}
+
+async function fetchCalendarificHolidays(
+  year: number,
+  countryCode: string
+): Promise<{ ok: true; holidays: Array<{ date: string; name: string }> } | { ok: false; message: string }> {
+  const key = process.env.CALENDARIFIC_API_KEY
+  if (!key) {
+    return {
+      ok: false,
+      message:
+        "Calendarific requires CALENDARIFIC_API_KEY in your environment. Get a free key at calendarific.com.",
+    }
+  }
+  try {
+    const url = `https://calendarific.com/api/v2/holidays?api_key=${key}&country=${countryCode}&year=${year}&type=national`
+    const res = await fetch(url, { cache: "no-store" })
+    if (!res.ok) {
+      return { ok: false, message: `Calendarific returned ${res.status}.` }
+    }
+    const data = (await res.json()) as {
+      response?: {
+        holidays?: Array<{
+          name?: string
+          date?: { iso?: string }
+        }>
+      }
+      meta?: { code?: number; error_detail?: string }
+    }
+    if (data.meta?.code && data.meta.code !== 200) {
+      return {
+        ok: false,
+        message: data.meta.error_detail || `Calendarific error ${data.meta.code}.`,
+      }
+    }
+    const list = data.response?.holidays ?? []
+    return {
+      ok: true,
+      holidays: list
+        .map((h) => {
+          const iso = (h.date?.iso ?? "").slice(0, 10)
+          return /^\d{4}-\d{2}-\d{2}$/.test(iso)
+            ? { date: iso, name: (h.name || "Public holiday").trim() }
+            : null
+        })
+        .filter((h): h is { date: string; name: string } => h !== null),
+    }
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Could not reach Calendarific.",
+    }
+  }
+}
+
+export async function importProjectHolidaysAction(
+  projectId: string,
+  year: number,
+  countryCode: string
+): Promise<{ ok: boolean; message: string; imported?: number }> {
+  const ctx = await assertProjectInActiveOrg(projectId)
+  if (!ctx.ok) return ctx
+
+  if (!Number.isInteger(year) || year < 2000 || year > 2100) {
+    return { ok: false, message: "Year must be between 2000 and 2100." }
+  }
+  if (!/^[A-Z]{2}$/.test(countryCode)) {
+    return { ok: false, message: "Country code must be 2 uppercase letters (e.g. MY)." }
+  }
+
+  // Try Calendarific first when a key is configured (richer, esp. for MY).
+  // Fall back to date.nager.at on failure or when no key is set.
+  let usedSource: HolidayApiSource = "nager"
+  let result = process.env.CALENDARIFIC_API_KEY
+    ? await fetchCalendarificHolidays(year, countryCode)
+    : await fetchNagerHolidays(year, countryCode)
+  if (result.ok && process.env.CALENDARIFIC_API_KEY) usedSource = "calendarific"
+
+  if (!result.ok) {
+    if (usedSource === "calendarific") {
+      const fallback = await fetchNagerHolidays(year, countryCode)
+      if (fallback.ok) {
+        result = fallback
+        usedSource = "nager"
+      } else {
+        return { ok: false, message: result.message }
+      }
+    } else {
+      return { ok: false, message: result.message }
+    }
+  }
+  if (result.holidays.length === 0) {
+    return { ok: false, message: "No holidays returned for that year." }
+  }
+
+  // De-duplicate by date — Calendarific can return the same date multiple times
+  // (e.g. when a regional holiday and a national holiday fall on the same day).
+  const dedupedByDate = new Map<string, string>()
+  for (const h of result.holidays) {
+    if (!dedupedByDate.has(h.date)) dedupedByDate.set(h.date, h.name)
+  }
+
+  let imported = 0
+  for (const [date, name] of dedupedByDate) {
+    try {
+      await ctx.prisma.projectHoliday.upsert({
+        where: { projectId_date: { projectId, date: new Date(date) } },
+        create: { projectId, date: new Date(date), name },
+        update: { name },
+      })
+      imported += 1
+    } catch {
+      // skip individual failures, continue with rest
+    }
+  }
+
+  const sourceLabel = usedSource === "calendarific" ? "Calendarific" : "date.nager.at"
+  revalidateAdminSurfaces()
+  return {
+    ok: true,
+    message: `Imported ${imported} holidays for ${countryCode} ${year} (${sourceLabel}).`,
+    imported,
+  }
+}
+
+export async function deleteProjectHolidayAction(
+  holidayId: string
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+  const prisma = getPrismaClient()
+  if (!prisma) return { ok: false, message: "Database is not configured." }
+
+  const holiday = await prisma.projectHoliday.findUnique({
+    where: { id: holidayId },
+    select: { project: { select: { organizationId: true } } },
+  })
+  if (!holiday || holiday.project.organizationId !== organizationId) {
+    return { ok: false, message: "Holiday not found." }
+  }
+
+  try {
+    await prisma.projectHoliday.delete({ where: { id: holidayId } })
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unable to delete holiday.",
+    }
+  }
+
+  revalidateAdminSurfaces()
+  return { ok: true, message: "Holiday removed." }
 }
