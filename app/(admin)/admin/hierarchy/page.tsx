@@ -1,35 +1,24 @@
 import { redirect } from "next/navigation"
 
 import { AdminHierarchyTable } from "@/components/admin/admin-hierarchy-table"
-import { getCurrentSession } from "@/lib/auth/session"
-import { getOrganizationHierarchy } from "@/modules/organization/application/services/organization-admin.service"
-import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getAdminHierarchyPageData } from "@/modules/claims/application/services/admin-page-data.service"
 
 export default async function AdminHierarchyPage() {
   const session = await getCurrentSession()
-  const members = await getOrganizationHierarchy()
-  if (!session || members === null) redirect("/login")
+  if (!session) redirect("/login")
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
-
-  const [organization, projects, xeroConnections] = await Promise.all([
-    organizationId
-      ? organizationRepository.getOrganizationById(organizationId)
-      : Promise.resolve(null),
-    organizationId
-      ? organizationRepository.getProjectsForOrganization(organizationId)
-      : Promise.resolve([]),
-    organizationId
-      ? organizationRepository.getXeroConnections(organizationId)
-      : Promise.resolve([]),
-  ])
+  const data = await getAdminHierarchyPageData({
+    organizationId: resolveActiveOrgId(session),
+  })
+  if (!data) redirect("/login")
 
   return (
     <AdminHierarchyTable
-      members={members}
-      projects={projects}
-      xeroConnections={xeroConnections}
-      organizationName={organization?.name ?? ""}
+      members={data.members}
+      projects={data.projects}
+      xeroConnections={data.xeroConnections}
+      organizationName={data.organizationName}
     />
   )
 }

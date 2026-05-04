@@ -5,8 +5,10 @@ import { z } from "zod"
 import { clearEmployeeStore } from "@/lib/app-store"
 import type { AuthenticatedSession } from "@/lib/auth/types"
 import { loadEmployeeData } from "@/lib/load-user-data"
+import { computeMileageAmount, resolveMileageRate } from "@/lib/mileage"
 import { sendPushToUser } from "@/lib/web-push"
 import { invalidateAdminStore } from "@/modules/claims/application/services/admin-portal.service"
+import { claimMatchesStatusFilter } from "@/modules/claims/domain/models"
 import type {
   ClaimRecord,
   ClaimStatus,
@@ -14,18 +16,45 @@ import type {
 } from "@/modules/claims/domain/models"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import type {
+  ChartOfAccountOption,
+  LimitPeriod,
+} from "@/modules/organization/domain/models"
+
+// Re-export so existing callers (`import { computeMileageAmount } from
+// ".../claim-workflow.service"`) keep working without changes.
+export { computeMileageAmount, resolveMileageRate }
+
+/**
+ * Common claim fields shared by the EXPENSE and MILEAGE branches.
+ * - paymentType / payViaAccountId behave identically in both branches.
+ * - Mileage claims still record an "amount" but it's computed server-side
+ *   from distance × rate.
+ */
+const baseClaimSchema = z.object({
+  title: z.string().min(3, "Give the claim a short title."),
+  chartOfAccountId: z.string().min(1, "Select the chart of account for this claim."),
+  spentAt: z.string().min(1, "Select the expense date."),
+  description: z.string().min(12, "Add enough detail for the reviewer."),
+  receiptUrl: z.string().optional(),
+  paymentType: z.enum(["PERSONAL", "COMPANY"]).default("PERSONAL"),
+  payViaAccountId: z.string().optional(),
+})
+
+const expenseClaimSchema = baseClaimSchema.extend({
+  claimType: z.literal("EXPENSE"),
+  amount: z.coerce.number().positive("Amount must be greater than zero."),
+})
+
+const mileageClaimSchema = baseClaimSchema.extend({
+  claimType: z.literal("MILEAGE"),
+  distance: z.coerce.number().positive("Distance must be greater than zero."),
+  mileageOriginAddress: z.string().min(1, "Enter the trip origin."),
+  mileageDestinationAddress: z.string().min(1, "Enter the trip destination."),
+})
 
 export const createClaimSchema = z
-  .object({
-    title: z.string().min(3, "Give the claim a short title."),
-    chartOfAccountId: z.string().min(1, "Select the chart of account for this claim."),
-    amount: z.coerce.number().positive("Amount must be greater than zero."),
-    spentAt: z.string().min(1, "Select the expense date."),
-    description: z.string().min(12, "Add enough detail for the reviewer."),
-    receiptUrl: z.string().optional(),
-    paymentType: z.enum(["PERSONAL", "COMPANY"]).default("PERSONAL"),
-    payViaAccountId: z.string().optional(),
-  })
+  .discriminatedUnion("claimType", [expenseClaimSchema, mileageClaimSchema])
   .superRefine((data, ctx) => {
     if (data.paymentType === "COMPANY" && !data.payViaAccountId) {
       ctx.addIssue({
@@ -64,12 +93,32 @@ export type ReviewClaimInput = {
 export type CreateClaimInput = {
   title: string
   chartOfAccountId: string
-  amount: string | number
+  amount?: string | number
   spentAt: string
   description: string
   receiptUrl?: string
   paymentType?: "PERSONAL" | "COMPANY"
   payViaAccountId?: string
+  // Mileage-claim fields. Required when claimType === "MILEAGE", ignored otherwise.
+  claimType?: "EXPENSE" | "MILEAGE"
+  distance?: string | number
+  mileageOriginAddress?: string
+  mileageDestinationAddress?: string
+}
+
+export type CreateClaimFieldErrors = {
+  title?: string
+  chartOfAccountId?: string
+  amount?: string
+  spentAt?: string
+  description?: string
+  receiptUrl?: string
+  paymentType?: string
+  payViaAccountId?: string
+  claimType?: string
+  distance?: string
+  mileageOriginAddress?: string
+  mileageDestinationAddress?: string
 }
 
 export type CreateClaimServiceResult =
@@ -81,16 +130,7 @@ export type CreateClaimServiceResult =
       status: number
       message: string
       values: CreateClaimInput
-      fieldErrors?: {
-        title?: string
-        chartOfAccountId?: string
-        amount?: string
-        spentAt?: string
-        description?: string
-        receiptUrl?: string
-        paymentType?: string
-        payViaAccountId?: string
-      }
+      fieldErrors?: CreateClaimFieldErrors
     }
 
 export type ReviewClaimServiceResult =
@@ -124,15 +164,7 @@ export async function listClaimsForSession({
         : []
       : await claimRepository.getClaimsByEmployee(session.email)
 
-  if (!status || status === "ALL") {
-    return claims
-  }
-
-  return claims.filter((claim) =>
-    status === "PENDING"
-      ? claim.status === "PENDING" || claim.status === "SUBMITTED"
-      : claim.status === status
-  )
+  return claims.filter((claim) => claimMatchesStatusFilter(claim, status))
 }
 
 export async function listClaimsForSupervisorReview({
@@ -147,25 +179,179 @@ export async function listClaimsForSupervisorReview({
   }
 
   const claims = await claimRepository.getClaimsForSupervisor(session.email)
-
-  if (!status || status === "ALL") {
-    return claims
-  }
-
-  return claims.filter((claim) =>
-    status === "PENDING"
-      ? claim.status === "PENDING" || claim.status === "SUBMITTED"
-      : claim.status === status
-  )
+  return claims.filter((claim) => claimMatchesStatusFilter(claim, status))
 }
 
 export async function countPendingClaimsForSupervisor(
   supervisorEmail: string
 ): Promise<number> {
-  const claims = await claimRepository.getClaimsForSupervisor(supervisorEmail)
-  return claims.filter(
-    (c) => c.status === "PENDING" || c.status === "SUBMITTED"
-  ).length
+  // Count-only repo method — no claim hydration, no chain join.
+  return claimRepository.countPendingForSupervisor(supervisorEmail)
+}
+
+/**
+ * Pure helpers for limits + mileage. Exported so tests can call them directly
+ * and the employee form can preview "X of Y used" without needing the full
+ * service pipeline.
+ */
+
+/**
+ * Returns the [start, end) window that a limitPeriod covers, anchored on the
+ * spend date. PER_CLAIM uses an empty window — the limit is checked against
+ * the single claim amount, not historical totals.
+ */
+export function getPeriodWindow(
+  period: LimitPeriod,
+  refDate: Date
+): { start: Date; end: Date } {
+  if (period === "PER_CLAIM") {
+    return { start: refDate, end: refDate }
+  }
+  if (period === "MONTHLY") {
+    const start = new Date(refDate.getFullYear(), refDate.getMonth(), 1)
+    const end = new Date(refDate.getFullYear(), refDate.getMonth() + 1, 1)
+    return { start, end }
+  }
+  // YEARLY (calendar year)
+  const start = new Date(refDate.getFullYear(), 0, 1)
+  const end = new Date(refDate.getFullYear() + 1, 0, 1)
+  return { start, end }
+}
+
+export type LimitCheckResult =
+  | { ok: true }
+  | {
+      ok: false
+      limit: number
+      used: number
+      remaining: number
+      attempted: number
+      period: LimitPeriod
+    }
+
+/**
+ * Validates that adding a new claim of `amount` to the given chart of account
+ * won't exceed its configured spend limit. Always returns ok:true if the
+ * account has no limit configured.
+ */
+export async function checkClaimAccountLimit(input: {
+  organizationId: string
+  account: ChartOfAccountOption
+  employeeId: string
+  amount: number
+  spentAt: Date
+  excludeClaimId?: string
+}): Promise<LimitCheckResult> {
+  const { account, amount } = input
+  if (
+    account.limitAmount == null ||
+    account.limitPeriod == null ||
+    account.limitScope == null
+  ) {
+    return { ok: true }
+  }
+
+  const period = account.limitPeriod
+  const limit = account.limitAmount
+
+  // PER_CLAIM is just an upper bound on a single submission.
+  if (period === "PER_CLAIM") {
+    if (amount > limit) {
+      return {
+        ok: false,
+        limit,
+        used: 0,
+        remaining: limit,
+        attempted: amount,
+        period,
+      }
+    }
+    return { ok: true }
+  }
+
+  const { start, end } = getPeriodWindow(period, input.spentAt)
+
+  const used = await claimRepository.sumClaimsForLimit({
+    organizationId: input.organizationId,
+    chartOfAccountId: account.id,
+    employeeId:
+      account.limitScope === "PER_EMPLOYEE" ? input.employeeId : undefined,
+    periodStart: start,
+    periodEnd: end,
+    excludeClaimId: input.excludeClaimId,
+  })
+
+  const remaining = Math.max(0, limit - used)
+  if (used + amount > limit) {
+    return {
+      ok: false,
+      limit,
+      used,
+      remaining,
+      attempted: amount,
+      period,
+    }
+  }
+  return { ok: true }
+}
+
+export type RemainingLimitInfo = {
+  limit: number
+  used: number
+  remaining: number
+  period: LimitPeriod
+  scope: "PER_EMPLOYEE" | "ORG_WIDE"
+}
+
+/**
+ * Computes "X of Y remaining" for a given account, used by the employee form
+ * to show a hint before submission. Returns null when the account has no limit.
+ */
+export async function getRemainingLimit(input: {
+  organizationId: string
+  account: ChartOfAccountOption
+  employeeId: string
+  refDate?: Date
+}): Promise<RemainingLimitInfo | null> {
+  const { account } = input
+  if (
+    account.limitAmount == null ||
+    account.limitPeriod == null ||
+    account.limitScope == null
+  ) {
+    return null
+  }
+
+  const period = account.limitPeriod
+  // PER_CLAIM has no historical sum — always full limit available.
+  if (period === "PER_CLAIM") {
+    return {
+      limit: account.limitAmount,
+      used: 0,
+      remaining: account.limitAmount,
+      period,
+      scope: account.limitScope,
+    }
+  }
+
+  const refDate = input.refDate ?? new Date()
+  const { start, end } = getPeriodWindow(period, refDate)
+  const used = await claimRepository.sumClaimsForLimit({
+    organizationId: input.organizationId,
+    chartOfAccountId: account.id,
+    employeeId:
+      account.limitScope === "PER_EMPLOYEE" ? input.employeeId : undefined,
+    periodStart: start,
+    periodEnd: end,
+  })
+
+  return {
+    limit: account.limitAmount,
+    used,
+    remaining: Math.max(0, account.limitAmount - used),
+    period,
+    scope: account.limitScope,
+  }
 }
 
 export async function createClaimForEmployee({
@@ -184,10 +370,22 @@ export async function createClaimForEmployee({
     }
   }
 
-  const parsed = createClaimSchema.safeParse(input)
+  // Default older callers (which don't yet send claimType) to EXPENSE so this
+  // change is backwards-compatible during the transition.
+  const normalised = {
+    ...input,
+    claimType: input.claimType ?? "EXPENSE",
+  }
+
+  const parsed = createClaimSchema.safeParse(normalised)
 
   if (!parsed.success) {
-    const fieldErrors = parsed.error.flatten().fieldErrors
+    // Zod's discriminated-union flatten() narrows to the common keys, so cast
+    // to a generic record to access branch-specific fields.
+    const fieldErrors = parsed.error.flatten().fieldErrors as Record<
+      string,
+      string[] | undefined
+    >
 
     return {
       ok: false,
@@ -203,6 +401,10 @@ export async function createClaimForEmployee({
         receiptUrl: fieldErrors.receiptUrl?.[0],
         paymentType: fieldErrors.paymentType?.[0],
         payViaAccountId: fieldErrors.payViaAccountId?.[0],
+        claimType: fieldErrors.claimType?.[0],
+        distance: fieldErrors.distance?.[0],
+        mileageOriginAddress: fieldErrors.mileageOriginAddress?.[0],
+        mileageDestinationAddress: fieldErrors.mileageDestinationAddress?.[0],
       },
     }
   }
@@ -235,6 +437,7 @@ export async function createClaimForEmployee({
     organizationRepository.getChartAccountByIdForOrganization({
       organizationId: session.organizationId,
       chartOfAccountId: parsed.data.chartOfAccountId,
+      forClaimType: parsed.data.claimType,
     }),
   ])
 
@@ -248,13 +451,95 @@ export async function createClaimForEmployee({
   }
 
   if (!chartOfAccount) {
+    const message =
+      parsed.data.claimType === "MILEAGE"
+        ? "Select an account configured for mileage claims."
+        : "Select an enabled chart of account option."
     return {
       ok: false,
       status: 400,
       message: "Please choose one of the enabled chart of account options.",
       values: input,
       fieldErrors: {
-        chartOfAccountId: "Select an enabled chart of account option.",
+        chartOfAccountId: message,
+      },
+    }
+  }
+
+  // Resolve final amount + mileage snapshot fields based on claim type.
+  let finalAmount: number
+  let distanceForDb: string | undefined
+  let mileageOriginAddress: string | undefined
+  let mileageDestinationAddress: string | undefined
+  let mileageRateUsed: string | undefined
+  let mileageUnitUsed: "KM" | "MILE" | undefined
+
+  if (parsed.data.claimType === "MILEAGE") {
+    const resolved = resolveMileageRate({ organization, account: chartOfAccount })
+    if (!resolved) {
+      return {
+        ok: false,
+        status: 400,
+        message:
+          "Mileage rate is not configured. Ask your admin to set the rate in Mileage claim settings.",
+        values: input,
+        fieldErrors: {
+          chartOfAccountId: "No mileage rate configured for this account.",
+        },
+      }
+    }
+
+    finalAmount = computeMileageAmount({
+      distance: parsed.data.distance,
+      rate: resolved.rate,
+    })
+
+    if (finalAmount <= 0) {
+      return {
+        ok: false,
+        status: 400,
+        message: "Mileage amount must be greater than zero.",
+        values: input,
+        fieldErrors: { distance: "Distance must be greater than zero." },
+      }
+    }
+
+    distanceForDb = parsed.data.distance.toFixed(2)
+    mileageOriginAddress = parsed.data.mileageOriginAddress
+    mileageDestinationAddress = parsed.data.mileageDestinationAddress
+    mileageRateUsed = resolved.rate.toFixed(4)
+    mileageUnitUsed = resolved.unit
+  } else {
+    finalAmount = parsed.data.amount
+  }
+
+  // Spend-limit check — applies to both expense and mileage claims.
+  const limitCheck = await checkClaimAccountLimit({
+    organizationId: session.organizationId,
+    account: chartOfAccount,
+    employeeId,
+    amount: finalAmount,
+    spentAt: new Date(parsed.data.spentAt),
+  })
+
+  if (!limitCheck.ok) {
+    const periodLabel =
+      limitCheck.period === "PER_CLAIM"
+        ? "per claim"
+        : limitCheck.period === "MONTHLY"
+          ? "this month"
+          : "this year"
+    return {
+      ok: false,
+      status: 400,
+      message: `This claim would exceed the ${chartOfAccount.name} limit (${periodLabel}). Limit: ${limitCheck.limit.toFixed(
+        2
+      )}, used: ${limitCheck.used.toFixed(2)}, remaining: ${limitCheck.remaining.toFixed(
+        2
+      )}.`,
+      values: input,
+      fieldErrors: {
+        amount: `Exceeds remaining limit of ${limitCheck.remaining.toFixed(2)}.`,
       },
     }
   }
@@ -293,7 +578,7 @@ export async function createClaimForEmployee({
     description: parsed.data.description,
     organizationId: session.organizationId,
     chartOfAccountId: parsed.data.chartOfAccountId,
-    amount: parsed.data.amount.toFixed(2),
+    amount: finalAmount.toFixed(2),
     currency: "USD",
     spentAt: new Date(parsed.data.spentAt),
     claimRunMonth: claimRunMonth.targetMonth,
@@ -302,6 +587,12 @@ export async function createClaimForEmployee({
     reviewerId,
     paymentType: parsed.data.paymentType,
     payViaAccountId: validatedPayViaAccountId,
+    claimType: parsed.data.claimType,
+    distance: distanceForDb,
+    mileageOriginAddress,
+    mileageDestinationAddress,
+    mileageRateUsed,
+    mileageUnitUsed,
   })
 
   if (!ok) {

@@ -48,21 +48,16 @@ export async function markClaimPaidAction(
     return { status: "error", message: messages[result] }
   }
 
-  // Notify the employee
+  // Notify the employee. Hidden dynamic-prisma-import was replaced with a
+  // dedicated repo method so this dependency is visible in the imports.
   try {
-    const prisma = (await import("@/lib/prisma")).getPrismaClient()
-    if (prisma) {
-      const claim = await prisma.claim.findUnique({
-        where: { id: claimId },
-        select: { employeeId: true, title: true },
+    const snapshot = await claimRepository.getClaimNotificationSnapshot(claimId)
+    if (snapshot) {
+      await sendPushToUser(snapshot.employeeId, {
+        title: "Claim Paid",
+        body: `Your claim "${snapshot.title}" has been paid.`,
+        url: "/employee/claims",
       })
-      if (claim) {
-        await sendPushToUser(claim.employeeId, {
-          title: "Claim Paid",
-          body: `Your claim "${claim.title}" has been paid.`,
-          url: "/employee/claims",
-        })
-      }
     }
   } catch {
     // Push notifications never block the payout action.

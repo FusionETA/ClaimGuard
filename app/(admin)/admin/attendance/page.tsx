@@ -10,13 +10,13 @@ import {
 
 import { MetricCard } from "@/components/claims/metric-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { requirePortalSession } from "@/lib/auth/session"
+import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 import type { RollCallPerson } from "@/modules/attendance/domain/models"
 
 export default async function AdminAttendancePage() {
   const session = await requirePortalSession("ADMIN")
-  const orgId = session.activeOrganizationId ?? session.organizationId ?? null
+  const orgId = resolveActiveOrgId(session) ?? null
   const [overview, stats, rollCall] = await Promise.all([
     adminAttendanceService.getOrgOverview(orgId),
     adminAttendanceService.getAggregateStats(

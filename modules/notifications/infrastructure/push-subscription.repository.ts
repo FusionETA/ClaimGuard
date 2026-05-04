@@ -1,0 +1,62 @@
+import "server-only"
+
+import { getPrismaClient } from "@/lib/prisma"
+
+/**
+ * Persistence for web-push subscriptions. Both `/api/push/{subscribe,
+ * unsubscribe}` route handlers used to call Prisma directly — moved here so
+ * the routes stay thin and the DB shape stays in one place.
+ */
+export const pushSubscriptionRepository = {
+  async upsertForUserEmail(data: {
+    email: string
+    endpoint: string
+    p256dh: string
+    auth: string
+  }): Promise<{ ok: true } | { ok: false; reason: "no-db" | "user-not-found" }> {
+    const prisma = getPrismaClient()
+    if (!prisma) return { ok: false, reason: "no-db" }
+
+    const user = await prisma.user.findUnique({
+      where: { email: data.email },
+      select: { id: true },
+    })
+    if (!user) return { ok: false, reason: "user-not-found" }
+
+    await prisma.pushSubscription.upsert({
+      where: { endpoint: data.endpoint },
+      update: { p256dh: data.p256dh, auth: data.auth, userId: user.id },
+      create: {
+        userId: user.id,
+        endpoint: data.endpoint,
+        p256dh: data.p256dh,
+        auth: data.auth,
+      },
+    })
+    return { ok: true }
+  },
+
+  /**
+   * Delete a subscription by endpoint, but only if it belongs to the given
+   * user (verified by joining on `user.email`). Silently swallows missing-
+   * row errors since the caller doesn't care whether the row was already gone.
+   */
+  async deleteForUserEmail(data: {
+    email: string
+    endpoint: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) return
+
+    await prisma.pushSubscription
+      .deleteMany({
+        where: {
+          endpoint: data.endpoint,
+          user: { email: data.email },
+        },
+      })
+      .catch(() => {
+        // subscription may already be gone — not worth surfacing
+      })
+  },
+}

@@ -1,6 +1,7 @@
 import "server-only"
 
 import { getPrismaClient } from "@/lib/prisma"
+import { buildInitials } from "@/lib/utils"
 import type {
   AdminOrgOverview,
   ApprovalKind,
@@ -37,15 +38,6 @@ function endOfDay(d: Date) {
   const x = new Date(d)
   x.setUTCHours(23, 59, 59, 999)
   return x
-}
-
-function buildInitials(name: string) {
-  return name
-    .split(" ")
-    .map((p) => p[0] ?? "")
-    .join("")
-    .slice(0, 2)
-    .toUpperCase()
 }
 
 function diffMinutes(a: Date, b: Date) {
@@ -144,6 +136,104 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
 const SYSTEM_DEFAULT_HOURS = { start: "09:00", end: "18:00" } as const
 
 export const attendanceRepository = {
+  // ── User / org lookups (used by the employee-attendance service to resolve
+  // an employee's org + geofence context without bypassing the repo layer).
+
+  async getOrganizationIdForUser(userId: string): Promise<string | null> {
+    const prisma = getClient()
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { organizationId: true },
+    })
+    return user?.organizationId ?? null
+  },
+
+  async getGeofenceRadiusForOrganization(orgId: string | null): Promise<number | null> {
+    if (!orgId) return null
+    const prisma = getClient()
+    const org = await prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { geofenceRadiusMeters: true },
+    })
+    return org?.geofenceRadiusMeters ?? null
+  },
+
+  async getProjectGeoById(projectId: string): Promise<{
+    name: string
+    latitude: number | null
+    longitude: number | null
+  } | null> {
+    const prisma = getClient()
+    const project = await prisma.xeroProject.findUnique({
+      where: { id: projectId },
+      select: { name: true, latitude: true, longitude: true },
+    })
+    return project ?? null
+  },
+
+  async getTodayProjectId(employeeId: string): Promise<string | null> {
+    const prisma = getClient()
+    const today = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00.000Z")
+    const record = await prisma.attendanceRecord.findUnique({
+      where: { employeeId_date: { employeeId, date: today } },
+      select: { projectId: true },
+    })
+    return record?.projectId ?? null
+  },
+
+  /**
+   * Returns the employee's project assignments + legacy project string in
+   * one shot. Used by `getAvailableProjects` in the service to decide whether
+   * to use the assignment list or fall back to legacy. Replaces a 25-line
+   * `prisma.user.findUnique` literal that the service used to do directly.
+   */
+  async getEmployeeProjectAssignments(employeeId: string): Promise<{
+    organizationId: string | null
+    legacyProject: string | null
+    assignments: Array<{
+      id: string
+      name: string
+      status: string | null
+      latitude: number | null
+      longitude: number | null
+    }>
+  } | null> {
+    const prisma = getClient()
+    const user = await prisma.user.findUnique({
+      where: { id: employeeId },
+      select: {
+        organizationId: true,
+        employeeProfile: {
+          select: {
+            project: true,
+            projectAssignments: {
+              select: {
+                project: {
+                  select: {
+                    id: true,
+                    name: true,
+                    status: true,
+                    latitude: true,
+                    longitude: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        },
+      },
+    })
+    if (!user) return null
+    return {
+      organizationId: user.organizationId ?? null,
+      legacyProject: user.employeeProfile?.project ?? null,
+      assignments: (user.employeeProfile?.projectAssignments ?? []).map(
+        (assignment) => assignment.project
+      ),
+    }
+  },
+
   // ── Working hours ──────────────────────────────────────────────────────
 
   async getWorkingHours(

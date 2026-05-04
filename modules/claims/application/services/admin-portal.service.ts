@@ -2,7 +2,7 @@ import "server-only"
 
 import { getAdminStore, clearAdminStore } from "@/lib/app-store"
 import { loadAdminData } from "@/lib/load-user-data"
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isStoreExpired } from "@/lib/app-store"
 import {
   buildAdminOverview,
@@ -32,7 +32,7 @@ async function getStore() {
     store &&
     (isStoreExpired(store.cachedAt) ||
       store.activeOrganizationId !==
-        (session.activeOrganizationId ?? session.organizationId) ||
+        (resolveActiveOrgId(session)) ||
       store.activeXeroConnectionId !== session.activeXeroConnectionId)
   ) {
     clearAdminStore(session.email)
@@ -44,7 +44,7 @@ async function getStore() {
     try {
       await loadAdminData(
         session.email,
-        session.activeOrganizationId ?? session.organizationId,
+        resolveActiveOrgId(session),
         session.activeXeroConnectionId
       )
     } catch {

@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { CheckCircle2, CircleAlert, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -93,4 +93,34 @@ export function useToast() {
   }
 
   return context
+}
+
+/**
+ * Convenience hook that fires a toast every time a server-action's state
+ * transitions to "success" or "error". Removes the boilerplate
+ *
+ *   useEffect(() => {
+ *     if (state.status === "success") toast({ ... })
+ *     if (state.status === "error")   toast({ ... })
+ *   }, [state.status, state.message])
+ *
+ * which used to be repeated for every `useActionState` call.
+ */
+export function useToastOnAction(state: {
+  status: "idle" | "success" | "error"
+  message: string
+}) {
+  const { toast } = useToast()
+
+  useEffect(() => {
+    if (state.status === "success") {
+      toast({ title: state.message, variant: "success" })
+    } else if (state.status === "error") {
+      toast({ title: state.message, variant: "error" })
+    }
+    // We intentionally depend on status + message rather than the full state
+    // object so a state literal that happens to share status/message doesn't
+    // re-fire the toast.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.status, state.message])
 }

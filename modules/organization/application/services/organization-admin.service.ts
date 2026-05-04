@@ -1,6 +1,6 @@
 import "server-only"
 
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import type { OrganizationMember } from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
@@ -11,7 +11,7 @@ export async function getOrganizationHierarchy(): Promise<OrganizationMember[] |
     return null
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
 
   if (!organizationId) {
     return []

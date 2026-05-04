@@ -160,6 +160,47 @@ export async function getCurrentSession() {
   return decodeSession(token)
 }
 
+/**
+ * Returns the org id the user is currently *acting on*. For admins this is
+ * the company they have selected in the org dropdown (`activeOrganizationId`),
+ * which can differ from their home `organizationId`. For employees and
+ * supervisors the two are always equal.
+ *
+ * Pass `session ?? null` directly — returns undefined when the session is
+ * absent or the user has no org assigned at all.
+ */
+export function resolveActiveOrgId(
+  session: Pick<AuthenticatedSession, "activeOrganizationId" | "organizationId"> | null | undefined
+): string | undefined {
+  if (!session) return undefined
+  return session.activeOrganizationId ?? session.organizationId
+}
+
+/**
+ * Non-redirecting variant of `requirePortalSession`, intended for service-
+ * layer callers that prefer to return `null` and let the caller decide
+ * whether to redirect, render an empty state, or throw.
+ *
+ * The result is a discriminated union so TypeScript narrows `session` to
+ * `AuthenticatedSession` inside the `ok` branch.
+ */
+export async function requireSessionForRole(
+  role: AppRole
+): Promise<
+  | { ok: true; session: AuthenticatedSession }
+  | { ok: false; reason: "no-session" | "wrong-role" }
+> {
+  const session = await getCurrentSession()
+  if (!session) return { ok: false, reason: "no-session" }
+
+  const matchesEmployeePortal =
+    role === "EMPLOYEE" && isEmployeePortalRole(session.role)
+  if (session.role !== role && !matchesEmployeePortal) {
+    return { ok: false, reason: "wrong-role" }
+  }
+  return { ok: true, session }
+}
+
 export async function requirePortalSession(role: AppRole) {
   const session = await getCurrentSession()
 

@@ -13,19 +13,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import type { ClaimRunPreview } from "@/modules/claims/domain/models"
+import type {
+  ChartAccountWithRemainingLimit,
+  ClaimRunPreview,
+} from "@/modules/claims/domain/models"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 
 type Props = {
-  chartAccounts: ChartOfAccountOption[]
+  chartAccounts: ChartAccountWithRemainingLimit[]
+  mileageAccounts: ChartAccountWithRemainingLimit[]
   bankAccounts: ChartOfAccountOption[]
+  defaultMileageRate?: number
+  mileageUnit: "KM" | "MILE"
   claimRunPreview?: ClaimRunPreview
   organizationName?: string
 }
 
 export function DashboardQuickActions({
   chartAccounts,
+  mileageAccounts,
   bankAccounts,
+  defaultMileageRate,
+  mileageUnit,
   claimRunPreview,
   organizationName,
 }: Props) {
@@ -71,7 +80,10 @@ export function DashboardQuickActions({
             <ClaimForm
               compact
               chartAccounts={chartAccounts}
+              mileageAccounts={mileageAccounts}
               bankAccounts={bankAccounts}
+              defaultMileageRate={defaultMileageRate}
+              mileageUnit={mileageUnit}
               claimRunPreview={claimRunPreview}
               organizationName={organizationName}
               onSuccess={() => setOpen(false)}

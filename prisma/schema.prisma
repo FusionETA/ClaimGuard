@@ -51,6 +51,8 @@ model Organization {
   publicHolidayInShiftRate Decimal             @default(2.00) @db.Decimal(4, 2)
   restDayInShiftRate       Decimal             @default(1.00) @db.Decimal(4, 2)
   geofenceRadiusMeters     Int                 @default(200)
+  defaultMileageRate       Decimal?            @db.Decimal(10, 4)
+  mileageUnit              MileageUnit         @default(KM)
   adminMembers             AdminOrganization[]
   chartAccounts            ChartOfAccount[]
   claims                   Claim[]
@@ -91,7 +93,7 @@ model EmployeeProfile {
   project            String                      @map("department")
   jobTitle           String
   supervisorId       String?
-  payoutMethod       String?
+  payoutMethod       PayoutMethod?
   preferredCurrency  String                      @default("USD")
   xeroConnectionId   String?
   createdAt          DateTime                    @default(now())
@@ -125,9 +127,10 @@ model Claim {
   title            String
   description      String          @db.Text
   category         ClaimCategory
+  claimType        ClaimType       @default(EXPENSE)
   organizationId   String?
   chartOfAccountId String?
-  amount           Decimal         @db.Decimal(10, 2)
+  amount           Decimal         @db.Decimal(12, 2)
   currency         String          @default("USD")
   spentAt          DateTime
   submittedAt      DateTime        @default(now())
@@ -139,6 +142,14 @@ model Claim {
   status           ClaimStatus     @default(PENDING)
   receiptUrl       String?
   reviewNotes      String?         @db.Text
+  // Mileage-claim fields (only populated when claimType = MILEAGE).
+  distance                    Decimal? @db.Decimal(10, 2)
+  mileageOriginAddress        String?
+  mileageDestinationAddress   String?
+  // Snapshot of the rate that was used at submission time so historical claims
+  // never change when the admin updates the rate later.
+  mileageRateUsed             Decimal? @db.Decimal(10, 4)
+  mileageUnitUsed             MileageUnit?
   employeeId       String
   reviewerId       String?
   xeroBillId       String?         @unique
@@ -178,6 +189,16 @@ model ChartOfAccount {
   updatedAt        DateTime        @updatedAt
   isBankAccount    Boolean         @default(false)
   isDisabled       Boolean         @default(false)
+  // Spend-limit policy on this account. limitAmount = null means no limit.
+  // Period defines the reset window; scope selects per-employee or org-wide totals.
+  limitAmount      Decimal?        @db.Decimal(12, 2)
+  limitPeriod      LimitPeriod?
+  limitScope       LimitScope?
+  // Mileage flags. allowMileageClaim = true means this account is selectable
+  // when an employee creates a Mileage-type claim. mileageRate (per-account
+  // override) takes precedence over Organization.defaultMileageRate.
+  allowMileageClaim Boolean        @default(false)
+  mileageRate      Decimal?        @db.Decimal(10, 4)
   organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
   claims           Claim[]         @relation("ClaimAccount")
@@ -375,4 +396,41 @@ enum OTSubtype {
   LATE_REPLACEMENT
   OT_OFFSET
   UNRESOLVED
+}
+
+enum ClaimType {
+  EXPENSE
+  MILEAGE
+}
+
+enum LimitPeriod {
+  PER_CLAIM
+  MONTHLY
+  YEARLY
+}
+
+enum LimitScope {
+  PER_EMPLOYEE
+  ORG_WIDE
+}
+
+enum MileageUnit {
+  KM
+  MILE
+}
+
+/**
+ * Mirrors the `EmployeePayoutMethod` literal type in the org domain. Switched
+ * from a free String to enforce that callers can only ever store one of the
+ * two valid values.
+ *
+ * Backfill caveat for ops: any existing rows with values other than HOURLY /
+ * DAILY_BASED must be normalised before `prisma db push` will accept this
+ * change. Run something like:
+ *   UPDATE EmployeeProfile SET payoutMethod = 'HOURLY'
+ *   WHERE payoutMethod IS NOT NULL AND payoutMethod NOT IN ('HOURLY','DAILY_BASED');
+ */
+enum PayoutMethod {
+  HOURLY
+  DAILY_BASED
 }

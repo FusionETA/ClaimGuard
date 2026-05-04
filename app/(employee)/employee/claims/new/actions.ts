@@ -48,6 +48,10 @@ export async function submitClaimAction(
   const paymentType: "PERSONAL" | "COMPANY" =
     rawPaymentType === "COMPANY" ? "COMPANY" : "PERSONAL"
 
+  const rawClaimType = String(formData.get("claimType") ?? "EXPENSE")
+  const claimType: "EXPENSE" | "MILEAGE" =
+    rawClaimType === "MILEAGE" ? "MILEAGE" : "EXPENSE"
+
   const values: ClaimFormValues = {
     title: String(formData.get("title") ?? ""),
     chartOfAccountId: String(formData.get("chartOfAccountId") ?? ""),
@@ -57,10 +61,45 @@ export async function submitClaimAction(
     receiptUrl: String(formData.get("receiptUrl") ?? ""),
     paymentType,
     payViaAccountId: String(formData.get("payViaAccountId") ?? ""),
+    claimType,
+    distance: String(formData.get("distance") ?? ""),
+    mileageOriginAddress: String(formData.get("mileageOriginAddress") ?? ""),
+    mileageDestinationAddress: String(
+      formData.get("mileageDestinationAddress") ?? ""
+    ),
   }
 
+  // Build the payload Zod will see — for mileage, omit `amount` so the
+  // discriminated union goes to the right branch.
+  const candidate =
+    claimType === "MILEAGE"
+      ? {
+          claimType,
+          title: values.title,
+          chartOfAccountId: values.chartOfAccountId,
+          spentAt: values.spentAt,
+          description: values.description,
+          receiptUrl: values.receiptUrl || undefined,
+          paymentType: values.paymentType,
+          payViaAccountId: values.payViaAccountId || undefined,
+          distance: values.distance,
+          mileageOriginAddress: values.mileageOriginAddress,
+          mileageDestinationAddress: values.mileageDestinationAddress,
+        }
+      : {
+          claimType,
+          title: values.title,
+          chartOfAccountId: values.chartOfAccountId,
+          amount: values.amount,
+          spentAt: values.spentAt,
+          description: values.description,
+          receiptUrl: values.receiptUrl || undefined,
+          paymentType: values.paymentType,
+          payViaAccountId: values.payViaAccountId || undefined,
+        }
+
   // Validate form fields.
-  const parsed = createClaimSchema.safeParse(values)
+  const parsed = createClaimSchema.safeParse(candidate)
   const receiptError =
     receiptFile instanceof File && receiptFile.size > 0
       ? !allowedReceiptTypes.has(receiptFile.type)
@@ -71,7 +110,9 @@ export async function submitClaimAction(
       : undefined
 
   if (!parsed.success || receiptError) {
-    const fieldErrors = parsed.success ? {} : parsed.error.flatten().fieldErrors
+    const fieldErrors = parsed.success
+      ? ({} as Record<string, string[] | undefined>)
+      : (parsed.error.flatten().fieldErrors as Record<string, string[] | undefined>)
     return {
       status: "error",
       message: "Please review the highlighted fields and try again.",
@@ -85,6 +126,10 @@ export async function submitClaimAction(
         receiptUrl: receiptError ?? fieldErrors.receiptUrl?.[0],
         paymentType: fieldErrors.paymentType?.[0],
         payViaAccountId: fieldErrors.payViaAccountId?.[0],
+        claimType: fieldErrors.claimType?.[0],
+        distance: fieldErrors.distance?.[0],
+        mileageOriginAddress: fieldErrors.mileageOriginAddress?.[0],
+        mileageDestinationAddress: fieldErrors.mileageDestinationAddress?.[0],
       },
     }
   }
@@ -126,19 +171,38 @@ export async function submitClaimAction(
 
   const result = await createClaimForEmployee({
     session,
-    input: {
-      title: parsed.data.title,
-      chartOfAccountId: parsed.data.chartOfAccountId,
-      amount: parsed.data.amount,
-      spentAt: parsed.data.spentAt,
-      description: parsed.data.description,
-      receiptUrl,
-      paymentType: parsed.data.paymentType,
-      payViaAccountId:
-        parsed.data.paymentType === "COMPANY"
-          ? parsed.data.payViaAccountId
-          : undefined,
-    },
+    input:
+      parsed.data.claimType === "MILEAGE"
+        ? {
+            title: parsed.data.title,
+            chartOfAccountId: parsed.data.chartOfAccountId,
+            spentAt: parsed.data.spentAt,
+            description: parsed.data.description,
+            receiptUrl,
+            paymentType: parsed.data.paymentType,
+            payViaAccountId:
+              parsed.data.paymentType === "COMPANY"
+                ? parsed.data.payViaAccountId
+                : undefined,
+            claimType: "MILEAGE",
+            distance: parsed.data.distance,
+            mileageOriginAddress: parsed.data.mileageOriginAddress,
+            mileageDestinationAddress: parsed.data.mileageDestinationAddress,
+          }
+        : {
+            title: parsed.data.title,
+            chartOfAccountId: parsed.data.chartOfAccountId,
+            amount: parsed.data.amount,
+            spentAt: parsed.data.spentAt,
+            description: parsed.data.description,
+            receiptUrl,
+            paymentType: parsed.data.paymentType,
+            payViaAccountId:
+              parsed.data.paymentType === "COMPANY"
+                ? parsed.data.payViaAccountId
+                : undefined,
+            claimType: "EXPENSE",
+          },
   })
 
   if (!result.ok) {

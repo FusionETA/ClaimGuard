@@ -1343,7 +1343,9 @@ export const OrganizationScalarFieldEnum = {
   otSalaryThreshold: 'otSalaryThreshold',
   publicHolidayInShiftRate: 'publicHolidayInShiftRate',
   restDayInShiftRate: 'restDayInShiftRate',
-  geofenceRadiusMeters: 'geofenceRadiusMeters'
+  geofenceRadiusMeters: 'geofenceRadiusMeters',
+  defaultMileageRate: 'defaultMileageRate',
+  mileageUnit: 'mileageUnit'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -1405,6 +1407,7 @@ export const ClaimScalarFieldEnum = {
   title: 'title',
   description: 'description',
   category: 'category',
+  claimType: 'claimType',
   organizationId: 'organizationId',
   chartOfAccountId: 'chartOfAccountId',
   amount: 'amount',
@@ -1419,6 +1422,11 @@ export const ClaimScalarFieldEnum = {
   status: 'status',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
+  distance: 'distance',
+  mileageOriginAddress: 'mileageOriginAddress',
+  mileageDestinationAddress: 'mileageDestinationAddress',
+  mileageRateUsed: 'mileageRateUsed',
+  mileageUnitUsed: 'mileageUnitUsed',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
@@ -1447,7 +1455,12 @@ export const ChartOfAccountScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isBankAccount: 'isBankAccount',
-  isDisabled: 'isDisabled'
+  isDisabled: 'isDisabled',
+  limitAmount: 'limitAmount',
+  limitPeriod: 'limitPeriod',
+  limitScope: 'limitScope',
+  allowMileageClaim: 'allowMileageClaim',
+  mileageRate: 'mileageRate'
 } as const
 
 export type ChartOfAccountScalarFieldEnum = (typeof ChartOfAccountScalarFieldEnum)[keyof typeof ChartOfAccountScalarFieldEnum]
@@ -1617,7 +1630,6 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   project: 'project',
   jobTitle: 'jobTitle',
   supervisorId: 'supervisorId',
-  payoutMethod: 'payoutMethod',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId'
 } as const
@@ -1645,6 +1657,8 @@ export const ClaimOrderByRelevanceFieldEnum = {
   payViaAccountId: 'payViaAccountId',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
+  mileageOriginAddress: 'mileageOriginAddress',
+  mileageDestinationAddress: 'mileageDestinationAddress',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
@@ -1779,9 +1793,30 @@ export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'MileageUnit'
+ */
+export type EnumMileageUnitFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MileageUnit'>
+    
+
+
+/**
+ * Reference to a field of type 'PayoutMethod'
+ */
+export type EnumPayoutMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayoutMethod'>
+    
+
+
+/**
  * Reference to a field of type 'ClaimCategory'
  */
 export type EnumClaimCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimCategory'>
+    
+
+
+/**
+ * Reference to a field of type 'ClaimType'
+ */
+export type EnumClaimTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimType'>
     
 
 
@@ -1810,6 +1845,20 @@ export type EnumXeroSyncStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'LimitPeriod'
+ */
+export type EnumLimitPeriodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LimitPeriod'>
+    
+
+
+/**
+ * Reference to a field of type 'LimitScope'
+ */
+export type EnumLimitScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LimitScope'>
     
 
 

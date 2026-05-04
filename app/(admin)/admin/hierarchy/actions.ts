@@ -10,7 +10,7 @@ import {
   type HierarchyFormState,
 } from "@/app/(admin)/admin/hierarchy/form-state"
 import { clearAdminStore, clearEmployeeStore } from "@/lib/app-store"
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import {
   employeePayoutMethods,
   resolveEmployeePayoutMethod,
@@ -65,7 +65,7 @@ export async function updateHierarchyAction(
     }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
 
   if (!organizationId) {
     return {
@@ -156,7 +156,7 @@ export async function createHierarchyMemberAction(
     }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
 
   if (!organizationId) {
     return {
@@ -242,7 +242,7 @@ export async function saveApprovalChainAction(
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
 
   if (!organizationId) {
     return { ok: false, message: "Set up your organization in settings before managing hierarchy." }

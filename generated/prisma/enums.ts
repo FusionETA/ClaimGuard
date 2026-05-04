@@ -99,3 +99,44 @@ export const OTSubtype = {
 } as const
 
 export type OTSubtype = (typeof OTSubtype)[keyof typeof OTSubtype]
+
+
+export const ClaimType = {
+  EXPENSE: 'EXPENSE',
+  MILEAGE: 'MILEAGE'
+} as const
+
+export type ClaimType = (typeof ClaimType)[keyof typeof ClaimType]
+
+
+export const LimitPeriod = {
+  PER_CLAIM: 'PER_CLAIM',
+  MONTHLY: 'MONTHLY',
+  YEARLY: 'YEARLY'
+} as const
+
+export type LimitPeriod = (typeof LimitPeriod)[keyof typeof LimitPeriod]
+
+
+export const LimitScope = {
+  PER_EMPLOYEE: 'PER_EMPLOYEE',
+  ORG_WIDE: 'ORG_WIDE'
+} as const
+
+export type LimitScope = (typeof LimitScope)[keyof typeof LimitScope]
+
+
+export const MileageUnit = {
+  KM: 'KM',
+  MILE: 'MILE'
+} as const
+
+export type MileageUnit = (typeof MileageUnit)[keyof typeof MileageUnit]
+
+
+export const PayoutMethod = {
+  HOURLY: 'HOURLY',
+  DAILY_BASED: 'DAILY_BASED'
+} as const
+
+export type PayoutMethod = (typeof PayoutMethod)[keyof typeof PayoutMethod]
