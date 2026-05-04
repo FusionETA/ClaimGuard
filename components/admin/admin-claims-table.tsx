@@ -1,9 +1,10 @@
 "use client"
 
 import { useActionState, useEffect, useMemo, useState } from "react"
-import { Banknote, Car, Check, Clock3, Receipt, Search, UserCircle2, X } from "lucide-react"
+import { Car, Check, CheckCircle2, Clock3, Loader2, Receipt, Search, UserCircle2, X } from "lucide-react"
 
-import { markClaimPaidAction, type MarkPaidFormState } from "@/app/(admin)/admin/claims/actions"
+import { adminFinalReviewClaimAction } from "@/app/(admin)/admin/claims/actions"
+import { createInitialReviewClaimFormState } from "@/app/(admin)/admin/claims/form-state"
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -41,14 +42,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Textarea } from "@/components/ui/textarea"
+import { useToastOnAction } from "@/components/ui/toaster"
 import { cn, formatCurrency, formatShortDate } from "@/lib/utils"
 import {
+  claimMatchesReviewerFilter,
   claimMatchesStatusFilter,
   visibleStatusOptions,
   type ApprovalStepInfo,
   type ClaimRecord,
   type ClaimStatus,
   type ClaimType,
+  type ReviewerFilter,
 } from "@/modules/claims/domain/models"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 
@@ -58,111 +63,190 @@ const statusLabels: Record<ClaimStatus, string> = {
   SUBMITTED: "Pending",
   PENDING: "Pending",
   APPROVED: "Approved",
+  REVIEWED: "Reviewed",
   REJECTED: "Rejected",
-  PAID: "Paid",
-  SETTLED: "Settled",
 }
 
 // `visibleStatusOptions` and the SUBMITTED-folds-into-PENDING rule live in
 // the claims domain so the admin table, supervisor queue, and employee
 // history can't drift apart.
-// `claimStatuses` is left imported in case other parts of this file consume it.
 
-const initialPayState: MarkPaidFormState = { status: "idle", message: "" }
-
-function PayDialog({
+/**
+ * Admin's "Final approve" dialog. Opens for any claim with
+ * `awaitingAdminFinalApproval === true` — i.e. all supervisors have signed
+ * off (or the chain is empty) and the claim is ready for admin review. Admin can:
+ *   1. Optionally swap the chart of account before approving.
+ *   2. Add review notes.
+ *   3. Approve → claim becomes REVIEWED (terminal).
+ *   4. Reject → claim becomes REJECTED. Notes are required when rejecting.
+ */
+function AdminFinalApprovalDialog({
   claim,
-  bankAccounts,
+  chartAccounts,
   open,
   onClose,
 }: {
   claim: ClaimRecord
-  bankAccounts: ChartOfAccountOption[]
+  chartAccounts: ChartOfAccountOption[]
   open: boolean
   onClose: () => void
 }) {
-  const [selectedBank, setSelectedBank] = useState("")
-  const [state, action, pending] = useActionState(markClaimPaidAction, initialPayState)
+  const [state, action, pending] = useActionState(
+    adminFinalReviewClaimAction,
+    createInitialReviewClaimFormState()
+  )
 
-  // Close the dialog on success
+  const [coa, setCoa] = useState<string>(claim.chartOfAccount?.id ?? "")
+  const [reason, setReason] = useState("")
+  // The decision is set by which submit button the admin clicks; both
+  // buttons live in the same form so we toggle this hidden input value.
+  const [pendingDecision, setPendingDecision] = useState<"APPROVED" | "REJECTED">("APPROVED")
+
+  // Reset local state when the dialog re-opens for a new claim.
+  useEffect(() => {
+    if (open) {
+      setCoa(claim.chartOfAccount?.id ?? "")
+      setReason("")
+      setPendingDecision("APPROVED")
+    }
+  }, [open, claim.id, claim.chartOfAccount?.id])
+
+  useToastOnAction(state)
+
+  // Close the dialog on a successful submission.
   useEffect(() => {
     if (state.status === "success") {
       onClose()
     }
   }, [state.status, onClose])
 
-  // Reset bank selection when dialog opens
-  useEffect(() => {
-    if (open) setSelectedBank("")
-  }, [open])
-
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <DialogContent className="w-[min(92vw,480px)] sm:max-w-[480px]">
+      <DialogContent className="w-[min(92vw,520px)] sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Mark as paid</DialogTitle>
+          <DialogTitle>Review claim</DialogTitle>
           <DialogDescription>
-            Select the bank account this claim will be paid from. This cannot be undone.
+            Recode the Chart of Account if needed, then approve or reject.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Claim summary */}
+          {/* Claim summary card */}
           <div className="rounded-xl border border-border/70 bg-surface-low p-4 text-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
               {claim.claimNumber}
             </p>
             <p className="mt-1 font-bold">{claim.title}</p>
-            <p className="mt-0.5 text-muted-foreground">{claim.employee.name}</p>
+            <p className="mt-0.5 text-muted-foreground">
+              {claim.employee.name} · {claim.employee.jobTitle}
+            </p>
             <p className="mt-2 text-lg font-black">{formatCurrency(claim.amount)}</p>
           </div>
 
-          <form action={action} id="pay-form">
+          <form action={action} id="admin-final-form" className="space-y-4">
             <input type="hidden" name="claimId" value={claim.id} />
-            <input type="hidden" name="bankAccountId" value={selectedBank} />
+            <input type="hidden" name="decision" value={pendingDecision} />
 
             <div className="space-y-2">
-              <Label htmlFor="bank-select">Pay from bank account</Label>
-              {bankAccounts.length === 0 ? (
+              <Label htmlFor="coa-select">Chart of account</Label>
+              {chartAccounts.length === 0 ? (
                 <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/50 dark:bg-amber-900/20 dark:text-amber-300">
-                  No bank accounts configured. Add bank accounts in{" "}
-                  <a href="/admin/settings?tab=banks" className="font-semibold underline">
-                    Settings → Bank accounts
+                  No selectable chart accounts configured. Add some in{" "}
+                  <a href="/admin/settings?tab=accounts" className="font-semibold underline">
+                    Settings → Accounts
                   </a>
                   .
                 </p>
               ) : (
-                <Select value={selectedBank} onValueChange={setSelectedBank}>
-                  <SelectTrigger id="bank-select">
-                    <SelectValue placeholder="Select bank account" />
+                <Select
+                  value={coa}
+                  onValueChange={setCoa}
+                  // Send the COA value with the form via a hidden input below.
+                >
+                  <SelectTrigger id="coa-select">
+                    <SelectValue placeholder="Select chart of account" />
                   </SelectTrigger>
                   <SelectContent>
-                    {bankAccounts.map((bank) => (
-                      <SelectItem key={bank.id} value={bank.id}>
-                        {bank.code} · {bank.name}
+                    {chartAccounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        {account.code} · {account.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               )}
+              <input type="hidden" name="chartOfAccountId" value={coa} />
+              {claim.chartOfAccount && coa !== claim.chartOfAccount.id ? (
+                <p className="text-xs text-muted-foreground">
+                  Originally filed under{" "}
+                  <span className="font-semibold text-foreground">
+                    {claim.chartOfAccount.code} · {claim.chartOfAccount.name}
+                  </span>
+                </p>
+              ) : null}
             </div>
 
-            {state.status === "error" ? (
-              <p className="mt-3 text-sm text-destructive">{state.message}</p>
+            <div className="space-y-2">
+              <Label htmlFor="reason">
+                Notes
+                <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                  (required to reject)
+                </span>
+              </Label>
+              <Textarea
+                id="reason"
+                name="reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Optional note for approve, required if rejecting…"
+                rows={3}
+                disabled={pending}
+              />
+              {state.errors.reason ? (
+                <p className="text-sm text-destructive">{state.errors.reason}</p>
+              ) : null}
+            </div>
+
+            {state.status === "error" && !state.errors.reason ? (
+              <p className="text-sm text-destructive">{state.message}</p>
             ) : null}
           </form>
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={pending}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
-            form="pay-form"
-            disabled={pending || !selectedBank || bankAccounts.length === 0}
+            form="admin-final-form"
+            variant="ghost"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => setPendingDecision("REJECTED")}
+            disabled={pending || chartAccounts.length === 0}
           >
-            {pending ? "Processing…" : "Confirm payment"}
+            {pending && pendingDecision === "REJECTED" ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Rejecting…</>
+            ) : (
+              "Reject"
+            )}
+          </Button>
+          <Button
+            type="submit"
+            form="admin-final-form"
+            onClick={() => setPendingDecision("APPROVED")}
+            disabled={pending || chartAccounts.length === 0}
+          >
+            {pending && pendingDecision === "APPROVED" ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Reviewing…</>
+            ) : (
+              <><CheckCircle2 className="mr-2 h-4 w-4" />Mark reviewed</>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -216,24 +300,43 @@ function ClaimTypeBadge({ claimType }: { claimType: ClaimType }) {
   )
 }
 
-function PaymentTypeBadge({ claim }: { claim: ClaimRecord }) {
+function PaymentTypeBadge({
+  claim,
+  align = "start",
+}: {
+  claim: ClaimRecord
+  align?: "start" | "end"
+}) {
   const isCompany = claim.paymentType === "COMPANY"
+  const bankAccountLabel = claim.payViaAccount
+    ? `${claim.payViaAccount.code} · ${claim.payViaAccount.name}`
+    : "Bank account not recorded"
+
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em]",
-        isCompany
-          ? "bg-primary/12 text-primary"
-          : "bg-surface-low text-muted-foreground"
-      )}
-      title={
-        isCompany
-          ? "Paid by the company — no reimbursement needed"
-          : "Paid by the employee — needs to be reimbursed"
-      }
+    <div
+      className={cn("flex flex-col gap-1", align === "end" ? "items-end text-right" : "items-start")}
     >
-      {isCompany ? "Company" : "Personal"}
-    </span>
+      <span
+        className={cn(
+          "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em]",
+          isCompany
+            ? "bg-primary/12 text-primary"
+            : "bg-surface-low text-muted-foreground"
+        )}
+        title={
+          isCompany
+            ? "Paid by the company — no reimbursement needed"
+            : "Paid by the employee — needs to be reimbursed"
+        }
+      >
+        {isCompany ? "Company" : "Personal"}
+      </span>
+      {isCompany ? (
+        <span className="max-w-[13rem] text-xs font-semibold leading-snug text-muted-foreground">
+          {bankAccountLabel}
+        </span>
+      ) : null}
+    </div>
   )
 }
 
@@ -317,7 +420,7 @@ function ClaimDetailSheet({
                 Submitted {formatShortDate(claim.submittedAt)}
               </SheetDescription>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <ClaimStatusBadge status={claim.status} />
+                <ClaimStatusBadge status={claim.status} reviewerRole={claim.reviewerRole} />
                 <ClaimTypeBadge claimType={claim.claimType} />
                 <PaymentTypeBadge claim={claim} />
                 <AwaitingApproverBadge claim={claim} />
@@ -373,16 +476,6 @@ function ClaimDetailSheet({
                   </p>
                 </div>
 
-                {claim.payViaAccount ? (
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-                      {claim.paymentType === "COMPANY" ? "Paid from" : "Paid via"}
-                    </p>
-                    <p className="mt-1 text-sm font-semibold">
-                      {claim.payViaAccount.code} · {claim.payViaAccount.name}
-                    </p>
-                  </div>
-                ) : null}
 
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
@@ -510,18 +603,24 @@ function ClaimDetailSheet({
 
 export function AdminClaimsTable({
   claims,
-  bankAccounts,
+  chartAccounts,
 }: {
   claims: ClaimRecord[]
-  bankAccounts: ChartOfAccountOption[]
+  /** Selectable chart accounts shown in the admin's "Final approve" dialog. */
+  chartAccounts: ChartOfAccountOption[]
 }) {
   const [status, setStatus] = useState<ClaimStatus | "ALL">("ALL")
   // Distinguishes EXPENSE vs MILEAGE claims. "ALL" shows both. The table now
   // surfaces both types together, so admins typically want to narrow.
   const [typeFilter, setTypeFilter] = useState<ClaimType | "ALL">("ALL")
+  // Filters by who acted on the claim — supervisor vs admin. Independent of
+  // status (so you can combine "Approved + by Supervisor", "Rejected + by
+  // Admin", etc.). Pending/unreviewed claims only ever show under "All".
+  const [reviewerFilter, setReviewerFilter] = useState<ReviewerFilter>("ALL")
   const [searchTerm, setSearchTerm] = useState("")
   const [page, setPage] = useState(1)
-  const [payingClaim, setPayingClaim] = useState<ClaimRecord | null>(null)
+  // Claim currently open in the AdminFinalApprovalDialog, if any.
+  const [reviewingClaim, setReviewingClaim] = useState<ClaimRecord | null>(null)
   const [detailClaim, setDetailClaim] = useState<ClaimRecord | null>(null)
 
   const filteredClaims = useMemo(() => {
@@ -530,6 +629,7 @@ export function AdminClaimsTable({
     return claims.filter((claim) => {
       const matchesStatus = claimMatchesStatusFilter(claim, status)
       const matchesType = typeFilter === "ALL" || claim.claimType === typeFilter
+      const matchesReviewer = claimMatchesReviewerFilter(claim, reviewerFilter)
 
       const matchesQuery =
         normalizedQuery.length === 0
@@ -547,13 +647,13 @@ export function AdminClaimsTable({
               .toLowerCase()
               .includes(normalizedQuery)
 
-      return matchesStatus && matchesType && matchesQuery
+      return matchesStatus && matchesType && matchesReviewer && matchesQuery
     })
-  }, [claims, searchTerm, status, typeFilter])
+  }, [claims, searchTerm, status, typeFilter, reviewerFilter])
 
   useEffect(() => {
     setPage(1)
-  }, [searchTerm, status, typeFilter])
+  }, [searchTerm, status, typeFilter, reviewerFilter])
 
   const totalPages = Math.max(1, Math.ceil(filteredClaims.length / PAGE_SIZE))
 
@@ -569,7 +669,10 @@ export function AdminClaimsTable({
   }, [filteredClaims, page])
 
   const hasActiveFilters =
-    status !== "ALL" || typeFilter !== "ALL" || searchTerm.trim().length > 0
+    status !== "ALL" ||
+    typeFilter !== "ALL" ||
+    reviewerFilter !== "ALL" ||
+    searchTerm.trim().length > 0
 
   const typeFilterOptions: Array<{ value: ClaimType | "ALL"; label: string }> = [
     { value: "ALL", label: "All types" },
@@ -577,14 +680,20 @@ export function AdminClaimsTable({
     { value: "MILEAGE", label: "Mileage" },
   ]
 
+  const reviewerFilterOptions: Array<{ value: ReviewerFilter; label: string }> = [
+    { value: "ALL", label: "All reviewers" },
+    { value: "SUPERVISOR", label: "Supervisor" },
+    { value: "ADMIN", label: "Admin" },
+  ]
+
   return (
     <>
-      {payingClaim ? (
-        <PayDialog
-          claim={payingClaim}
-          bankAccounts={bankAccounts}
+      {reviewingClaim ? (
+        <AdminFinalApprovalDialog
+          claim={reviewingClaim}
+          chartAccounts={chartAccounts}
           open={true}
-          onClose={() => setPayingClaim(null)}
+          onClose={() => setReviewingClaim(null)}
         />
       ) : null}
 
@@ -597,137 +706,74 @@ export function AdminClaimsTable({
       <div className="space-y-4 sm:space-y-6">
         <Card>
           <CardContent className="space-y-4 px-5 pb-5 pt-3 sm:space-y-5 sm:p-6">
-            <div className="hidden items-center justify-between gap-4 md:flex">
-              <div className="relative w-full max-w-sm">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Search by claim, employee, or account"
-                  className="pl-10"
-                />
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={status === "ALL" ? "default" : "ghost"}
-                  onClick={() => setStatus("ALL")}
-                  className={cn(
-                    "rounded-full",
-                    status !== "ALL" &&
-                      "bg-surface-low text-muted-foreground hover:bg-surface-high hover:text-foreground"
-                  )}
-                >
-                  All
-                </Button>
-                {visibleStatusOptions.map((claimStatus) => (
-                  <Button
-                    key={claimStatus}
-                    type="button"
-                    size="sm"
-                    variant={status === claimStatus ? "default" : "ghost"}
-                    onClick={() => setStatus(claimStatus)}
-                    className={cn(
-                      "rounded-full",
-                      status !== claimStatus &&
-                        "bg-surface-low text-muted-foreground hover:bg-surface-high hover:text-foreground"
-                    )}
-                  >
-                    {statusLabels[claimStatus]}
-                  </Button>
-                ))}
-              </div>
+            {/* Search input — full width, same on mobile and desktop. */}
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search by claim, employee, or account"
+                className="pl-10"
+              />
             </div>
 
-            {/* Claim type filter (desktop) — separate row from status pills so
-                the two concerns stay visually distinct. */}
-            <div className="hidden flex-wrap items-center gap-2 md:flex">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                Type
-              </p>
-              {typeFilterOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  type="button"
-                  size="sm"
-                  variant={typeFilter === option.value ? "default" : "ghost"}
-                  onClick={() => setTypeFilter(option.value)}
-                  className={cn(
-                    "rounded-full",
-                    typeFilter !== option.value &&
-                      "bg-surface-low text-muted-foreground hover:bg-surface-high hover:text-foreground"
-                  )}
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 md:hidden">
-              <button
-                type="button"
-                onClick={() => setStatus("ALL")}
-                className={cn(
-                  "relative z-10 touch-manipulation rounded-[20px] px-4 py-3 text-sm font-semibold transition-all sm:text-base",
-                  status === "ALL"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
-                )}
+            {/* Three filter dropdowns — same layout on mobile and desktop.
+                Stack on the narrowest screens, then sit side-by-side from
+                sm: upward. Dropdowns are far more compact than rows of pills
+                and let admins combine filters (e.g. "Approved + Mileage +
+                by Admin") with three taps. */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
+              <Select
+                value={status}
+                onValueChange={(value) => setStatus(value as ClaimStatus | "ALL")}
               >
-                All
-              </button>
-              {visibleStatusOptions.map((claimStatus) => (
-                <button
-                  key={claimStatus}
-                  type="button"
-                  onClick={() => setStatus(claimStatus)}
-                  className={cn(
-                    "relative z-10 touch-manipulation rounded-[20px] px-4 py-3 text-sm font-semibold transition-all sm:text-base",
-                    status === claimStatus
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
-                  )}
-                >
-                  {statusLabels[claimStatus]}
-                </button>
-              ))}
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All statuses</SelectItem>
+                  {visibleStatusOptions.map((claimStatus) => (
+                    <SelectItem key={claimStatus} value={claimStatus}>
+                      {statusLabels[claimStatus]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={typeFilter}
+                onValueChange={(value) => setTypeFilter(value as ClaimType | "ALL")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {typeFilterOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={reviewerFilter}
+                onValueChange={(value) => setReviewerFilter(value as ReviewerFilter)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {reviewerFilterOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Claim type filter (mobile) — compact 3-up grid below the status
-                row to mirror the desktop layout. */}
-            <div className="grid grid-cols-3 gap-2 md:hidden">
-              {typeFilterOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => setTypeFilter(option.value)}
-                  className={cn(
-                    "relative z-10 touch-manipulation rounded-[20px] px-4 py-2.5 text-xs font-semibold transition-all sm:text-sm",
-                    typeFilter === option.value
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
-                  )}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="md:hidden">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  placeholder="Search claims"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="hidden flex-col gap-2 text-sm text-muted-foreground md:flex md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
               <p>
                 Showing <span className="font-semibold text-foreground">{filteredClaims.length}</span>{" "}
                 of <span className="font-semibold text-foreground">{claims.length}</span> claims
@@ -741,6 +787,7 @@ export function AdminClaimsTable({
                   onClick={() => {
                     setStatus("ALL")
                     setTypeFilter("ALL")
+                    setReviewerFilter("ALL")
                     setSearchTerm("")
                   }}
                 >
@@ -750,13 +797,6 @@ export function AdminClaimsTable({
             </div>
           </CardContent>
         </Card>
-
-        <div className="px-1 text-sm text-muted-foreground md:hidden">
-          <p>
-            Showing <span className="font-semibold text-foreground">{filteredClaims.length}</span> of{" "}
-            <span className="font-semibold text-foreground">{claims.length}</span> claims
-          </p>
-        </div>
 
         {filteredClaims.length === 0 ? (
           <Card>
@@ -798,8 +838,8 @@ export function AdminClaimsTable({
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1.5">
-                      <ClaimStatusBadge status={claim.status} />
-                      <PaymentTypeBadge claim={claim} />
+                      <ClaimStatusBadge status={claim.status} reviewerRole={claim.reviewerRole} />
+                      <PaymentTypeBadge claim={claim} align="end" />
                       <AwaitingApproverBadge claim={claim} />
                     </div>
                   </div>
@@ -831,27 +871,17 @@ export function AdminClaimsTable({
                         : "Not assigned"}
                     </p>
                   </div>
-                  {claim.status === "PAID" && claim.payViaAccount ? (
-                    <div>
-                      <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:text-xs sm:tracking-[0.18em]">
-                        Paid via
-                      </p>
-                      <p className="mt-1 text-sm font-semibold sm:text-base">
-                        {claim.payViaAccount.code} · {claim.payViaAccount.name}
-                      </p>
-                    </div>
-                  ) : null}
-                  {claim.status === "APPROVED" && claim.paymentType === "PERSONAL" ? (
+                  {claim.awaitingAdminFinalApproval ? (
                     <Button
                       size="sm"
                       className="w-full gap-2 rounded-full"
                       onClick={(e) => {
                         e.stopPropagation()
-                        setPayingClaim(claim)
+                        setReviewingClaim(claim)
                       }}
                     >
-                      <Banknote className="h-4 w-4" />
-                      Mark as paid
+                      <CheckCircle2 className="h-4 w-4" />
+                      Review
                     </Button>
                   ) : null}
                 </CardContent>
@@ -915,35 +945,26 @@ export function AdminClaimsTable({
                         {formatCurrency(claim.amount)}
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1">
-                          <PaymentTypeBadge claim={claim} />
-                          {claim.payViaAccount ? (
-                            <p className="text-xs text-muted-foreground">
-                              {claim.paymentType === "COMPANY" ? "from" : "via"}{" "}
-                              {claim.payViaAccount.code} · {claim.payViaAccount.name}
-                            </p>
-                          ) : null}
-                        </div>
+                        <PaymentTypeBadge claim={claim} />
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <ClaimStatusBadge status={claim.status} />
+                          <ClaimStatusBadge status={claim.status} reviewerRole={claim.reviewerRole} />
                           <AwaitingApproverBadge claim={claim} />
                         </div>
                       </TableCell>
                       <TableCell className="w-px whitespace-nowrap">
-                        {claim.status === "APPROVED" && claim.paymentType === "PERSONAL" ? (
+                        {claim.awaitingAdminFinalApproval ? (
                           <Button
                             size="sm"
-                            variant="outline"
                             className="gap-1.5 rounded-full"
                             onClick={(e) => {
                               e.stopPropagation()
-                              setPayingClaim(claim)
+                              setReviewingClaim(claim)
                             }}
                           >
-                            <Banknote className="h-3.5 w-3.5" />
-                            Pay
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            Review
                           </Button>
                         ) : null}
                       </TableCell>

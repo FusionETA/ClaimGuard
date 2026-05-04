@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { CircleDollarSign, Clock3, Files, Wallet } from "lucide-react"
+import { CircleDollarSign, Clock3, Files } from "lucide-react"
 
 import { AdminClaimsTable } from "@/components/admin/admin-claims-table"
 import { MetricCard } from "@/components/claims/metric-card"
@@ -25,11 +25,11 @@ export default async function AdminClaimsPage() {
   })
   if (!data) redirect("/login")
 
-  const { dashboard, claims, bankAccounts } = data
+  const { dashboard, claims, chartAccounts } = data
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
           title="Total claims"
           value={String(dashboard.totals.totalClaims)}
@@ -41,26 +41,19 @@ export default async function AdminClaimsPage() {
           title="Needs review"
           value={String(dashboard.totals.pending)}
           icon={Clock3}
-          detail="Supervisor queue"
+          detail="Supervisor + admin queue"
           compact
         />
         <MetricCard
           title="Approved value"
           value={formatCurrency(dashboard.totals.approvedValue)}
           icon={CircleDollarSign}
-          detail="Approved + paid"
-          compact
-        />
-        <MetricCard
-          title="Paid value"
-          value={formatCurrency(dashboard.totals.paidValue)}
-          icon={Wallet}
-          detail="Completed payouts"
+          detail="All approved claims"
           compact
         />
       </div>
 
-      <AdminClaimsTable claims={claims} bankAccounts={bankAccounts} />
+      <AdminClaimsTable claims={claims} chartAccounts={chartAccounts} />
     </div>
   )
 }

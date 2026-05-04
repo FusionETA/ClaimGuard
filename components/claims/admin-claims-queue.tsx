@@ -30,16 +30,61 @@ const statusOptions = ["ALL", ...visibleStatusOptions] as const
 type StatusFilter = (typeof statusOptions)[number]
 const PAGE_SIZE = 10
 
-export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
+function getSupervisorStep(claim: ClaimRecord, supervisorId?: string) {
+  if (!supervisorId) return undefined
+  return claim.approvalChain?.find((step) => step.approverId === supervisorId)
+}
+
+function getSupervisorDisplayStatus(
+  claim: ClaimRecord,
+  supervisorId?: string
+): ClaimStatus {
+  const step = getSupervisorStep(claim, supervisorId)
+  if (step?.state === "approved") return "APPROVED"
+  if (step?.state === "rejected") return "REJECTED"
+  return claim.status
+}
+
+function isSupervisorActionable(claim: ClaimRecord, supervisorId?: string) {
+  const step = getSupervisorStep(claim, supervisorId)
+  if (step) {
+    return (
+      step.state === "current" &&
+      (claim.status === "SUBMITTED" || claim.status === "PENDING")
+    )
+  }
+  return claim.status === "SUBMITTED" || claim.status === "PENDING"
+}
+
+export function AdminClaimsQueue({
+  claims,
+  supervisorId,
+}: {
+  claims: ClaimRecord[]
+  supervisorId?: string
+}) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
   const [searchTerm, setSearchTerm] = useState("")
   const [page, setPage] = useState(1)
+  const [dismissedClaimIds, setDismissedClaimIds] = useState<Set<string>>(
+    () => new Set()
+  )
+
+  useEffect(() => {
+    setDismissedClaimIds(new Set())
+  }, [claims])
 
   const filteredClaims = useMemo(() => {
     const normalizedQuery = searchTerm.trim().toLowerCase()
 
     return claims.filter((claim) => {
-      const matchesStatus = claimMatchesStatusFilter(claim, statusFilter)
+      if (dismissedClaimIds.has(claim.id)) return false
+
+      const displayStatus = getSupervisorDisplayStatus(claim, supervisorId)
+      const matchesStatus = claimMatchesStatusFilter(
+        { status: displayStatus },
+        statusFilter
+      )
 
       const matchesQuery =
         normalizedQuery.length === 0
@@ -58,7 +103,7 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
 
       return matchesStatus && matchesQuery
     })
-  }, [claims, searchTerm, statusFilter])
+  }, [claims, dismissedClaimIds, searchTerm, statusFilter, supervisorId])
 
   useEffect(() => {
     setPage(1)
@@ -195,43 +240,59 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
       {filteredClaims.length > 0 ? (
         <>
           <div className="grid gap-4 lg:hidden">
-            {paginatedClaims.map((claim) => (
-              <Card key={claim.id}>
-                <CardContent className="space-y-4 p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                        {claim.claimNumber}
-                      </p>
-                      <p className="mt-1 text-lg font-black">{claim.title}</p>
-                      <p className="text-sm text-muted-foreground">{claim.employee.name}</p>
+            {paginatedClaims.map((claim) => {
+              const displayStatus = getSupervisorDisplayStatus(claim, supervisorId)
+              const actionable = isSupervisorActionable(claim, supervisorId)
+
+              return (
+                <Card key={claim.id}>
+                  <CardContent className="space-y-4 p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                          {claim.claimNumber}
+                        </p>
+                        <p className="mt-1 text-lg font-black">{claim.title}</p>
+                        <p className="text-sm text-muted-foreground">{claim.employee.name}</p>
+                      </div>
+                      <ClaimStatusBadge status={displayStatus} />
                     </div>
-                    <ClaimStatusBadge status={claim.status} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Account</p>
-                      <p className="mt-1 font-semibold">
-                        {claim.chartOfAccount
-                          ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
-                          : "Not assigned"}
-                      </p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Account</p>
+                        <p className="mt-1 font-semibold">
+                          {claim.chartOfAccount
+                            ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
+                            : "Not assigned"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Amount</p>
+                        <p className="mt-1 font-semibold">{formatCurrency(claim.amount)}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Amount</p>
-                      <p className="mt-1 font-semibold">{formatCurrency(claim.amount)}</p>
+                    <div className="flex items-center justify-between gap-3 rounded-2xl bg-surface-low p-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Submitted</p>
+                        <p className="mt-1 font-semibold">{formatShortDate(claim.submittedAt)}</p>
+                      </div>
+                      <AdminClaimReviewActions
+                        claim={claim}
+                        displayStatus={displayStatus}
+                        actionable={actionable}
+                        onReviewed={(claimId) => {
+                          setDismissedClaimIds((current) => {
+                            const next = new Set(current)
+                            next.add(claimId)
+                            return next
+                          })
+                        }}
+                      />
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between gap-3 rounded-2xl bg-surface-low p-4">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Submitted</p>
-                      <p className="mt-1 font-semibold">{formatShortDate(claim.submittedAt)}</p>
-                    </div>
-                    <AdminClaimReviewActions claim={claim} />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
 
           <Card className="hidden lg:block">
@@ -249,7 +310,11 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedClaims.map((claim) => (
+                  {paginatedClaims.map((claim) => {
+                    const displayStatus = getSupervisorDisplayStatus(claim, supervisorId)
+                    const actionable = isSupervisorActionable(claim, supervisorId)
+
+                    return (
                     <TableRow key={claim.id}>
                       <TableCell>
                         <div>
@@ -273,13 +338,25 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
                       <TableCell>{formatShortDate(claim.submittedAt)}</TableCell>
                       <TableCell>{formatCurrency(claim.amount)}</TableCell>
                       <TableCell>
-                        <ClaimStatusBadge status={claim.status} />
+                        <ClaimStatusBadge status={displayStatus} />
                       </TableCell>
                       <TableCell>
-                        <AdminClaimReviewActions claim={claim} />
+                        <AdminClaimReviewActions
+                          claim={claim}
+                          displayStatus={displayStatus}
+                          actionable={actionable}
+                          onReviewed={(claimId) => {
+                            setDismissedClaimIds((current) => {
+                              const next = new Set(current)
+                              next.add(claimId)
+                              return next
+                            })
+                          }}
+                        />
                       </TableCell>
                     </TableRow>
-                  ))}
+                    )
+                  })}
                 </TableBody>
               </Table>
 

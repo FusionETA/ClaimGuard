@@ -75,7 +75,7 @@ export const executiveOverviewRepository = {
       where: {
         organizationId: orgId,
         submittedAt: { gte: monthStart, lte: monthEnd },
-        status: { in: ["PENDING", "SUBMITTED", "APPROVED", "PAID"] },
+        status: { not: "REJECTED" },
       },
       select: {
         amount: true,

@@ -1473,6 +1473,49 @@ export const organizationRepository = {
     return rows.map((row) => mapChartAccount(row)!)
   },
 
+  async getSelectedBankAccountsForOrganization(data: {
+    organizationId: string
+    xeroConnectionId?: string
+  }): Promise<ChartOfAccountOption[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const rows = await prisma.chartOfAccount.findMany({
+      where: {
+        organizationId: data.organizationId,
+        type: "BANK",
+        isBankAccount: true,
+        isDisabled: false,
+        ...(data.xeroConnectionId
+          ? { xeroConnectionId: data.xeroConnectionId }
+          : { xeroConnectionId: null }),
+      },
+      orderBy: [{ code: "asc" }, { name: "asc" }],
+    })
+
+    return rows.map((row) => mapChartAccount(row)!)
+  },
+
+  async getSelectedBankAccountByIdForOrganization(data: {
+    organizationId: string
+    chartAccountId: string
+  }): Promise<ChartOfAccountOption | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const row = await prisma.chartOfAccount.findFirst({
+      where: {
+        id: data.chartAccountId,
+        organizationId: data.organizationId,
+        type: "BANK",
+        isBankAccount: true,
+        isDisabled: false,
+      },
+    })
+
+    return row ? mapChartAccount(row)! : null
+  },
+
   async setSelectedBankAccounts(data: {
     organizationId: string
     xeroConnectionId?: string

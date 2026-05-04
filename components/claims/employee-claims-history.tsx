@@ -32,9 +32,8 @@ const statusLabels: Record<ClaimStatus, string> = {
   SUBMITTED: "Pending",
   PENDING: "Pending",
   APPROVED: "Approved",
+  REVIEWED: "Reviewed",
   REJECTED: "Rejected",
-  PAID: "Paid",
-  SETTLED: "Settled",
 }
 
 const PAGE_SIZE = 10

@@ -3,73 +3,79 @@
 import { revalidatePath } from "next/cache"
 
 import {
-  createInitialReviewClaimFormState,
   type ReviewClaimFormState,
 } from "@/app/(admin)/admin/claims/form-state"
 import { getCurrentSession } from "@/lib/auth/session"
-import { reviewClaimForSupervisor } from "@/modules/claims/application/services/claim-workflow.service"
-import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
-import { invalidateAdminStore } from "@/modules/claims/application/services/admin-portal.service"
-import { sendPushToUser } from "@/lib/web-push"
+import {
+  reviewClaimForAdmin,
+  reviewClaimForSupervisor,
+} from "@/modules/claims/application/services/claim-workflow.service"
 
-export type MarkPaidFormState = {
-  status: "idle" | "success" | "error"
-  message: string
-}
-
-export async function markClaimPaidAction(
-  _prev: MarkPaidFormState,
+/**
+ * Admin's final review action. Used from the /admin/claims table after
+ * all supervisors in the chain have signed off (or when there's no chain
+ * at all). Accepts an optional `chartOfAccountId` so the admin can recode
+ * the claim against a different COA before approving.
+ */
+export async function adminFinalReviewClaimAction(
+  _previousState: ReviewClaimFormState,
   formData: FormData
-): Promise<MarkPaidFormState> {
-  const claimId = String(formData.get("claimId") ?? "")
-  const bankAccountId = String(formData.get("bankAccountId") ?? "")
-
-  if (!claimId || !bankAccountId) {
-    return { status: "error", message: "Missing required fields." }
+): Promise<ReviewClaimFormState> {
+  const values = {
+    claimId: String(formData.get("claimId") ?? ""),
+    decision: String(formData.get("decision") ?? "APPROVED"),
+    reason: String(formData.get("reason") ?? ""),
+    chartOfAccountId: String(formData.get("chartOfAccountId") ?? ""),
   }
 
   const session = await getCurrentSession()
+
   if (!session || session.role !== "ADMIN") {
-    return { status: "error", message: "Session expired. Please log in again." }
+    return {
+      status: "error",
+      message: "Session expired. Please log in again.",
+      values: {
+        reason: values.reason,
+      },
+      errors: {},
+    }
   }
 
-  const result = await claimRepository.markClaimAsPaid({
-    claimId,
-    payViaAccountId: bankAccountId,
-    paidById: session.userId,
+  const result = await reviewClaimForAdmin({
+    session,
+    input: values,
   })
 
-  if (result !== "OK") {
-    const messages = {
-      NOT_FOUND: "Claim not found.",
-      NOT_ACTIONABLE: "Only approved claims can be marked as paid.",
-      DB_UNAVAILABLE: "Database is not configured. Contact your administrator.",
-    } as const
-    return { status: "error", message: messages[result] }
-  }
-
-  // Notify the employee. Hidden dynamic-prisma-import was replaced with a
-  // dedicated repo method so this dependency is visible in the imports.
-  try {
-    const snapshot = await claimRepository.getClaimNotificationSnapshot(claimId)
-    if (snapshot) {
-      await sendPushToUser(snapshot.employeeId, {
-        title: "Claim Paid",
-        body: `Your claim "${snapshot.title}" has been paid.`,
-        url: "/employee/claims",
-      })
+  if (!result.ok) {
+    return {
+      status: "error",
+      message: result.message,
+      values: {
+        reason: result.reason ?? values.reason,
+      },
+      errors: result.fieldErrors ?? {},
     }
-  } catch {
-    // Push notifications never block the payout action.
   }
 
-  invalidateAdminStore()
   revalidatePath("/admin")
   revalidatePath("/admin/claims")
   revalidatePath("/employee")
   revalidatePath("/employee/claims")
+  revalidatePath("/employee/review")
 
-  return { status: "success", message: "Claim marked as paid." }
+  return {
+    status: "success",
+    message:
+      result.claimStatus === "REVIEWED"
+        ? "Admin review recorded."
+        : "Claim rejected and reason saved.",
+    values: {
+      reason: result.reason,
+    },
+    errors: {},
+    claimStatus: result.claimStatus,
+    reviewerName: result.reviewerName,
+  }
 }
 
 export async function reviewClaimAction(
@@ -122,6 +128,8 @@ export async function reviewClaimAction(
     message:
       result.claimStatus === "APPROVED"
         ? "Claim approved successfully."
+        : result.claimStatus === "PENDING"
+          ? "Approval recorded and sent to the next supervisor."
         : "Claim rejected and reason saved.",
     values: {
       reason: result.reason,

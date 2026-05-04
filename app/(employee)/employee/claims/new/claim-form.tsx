@@ -60,7 +60,7 @@ export function ClaimForm({
   const [paymentType, setPaymentType] = useState<"PERSONAL" | "COMPANY">(
     state?.values?.paymentType ?? "PERSONAL"
   )
-  const [selectedBankAccountId, setSelectedBankAccountId] = useState(
+  const [payViaAccountId, setPayViaAccountId] = useState(
     state?.values?.payViaAccountId ?? ""
   )
   const [distance, setDistance] = useState(state?.values?.distance ?? "")
@@ -79,7 +79,7 @@ export function ClaimForm({
       setSelectedReceiptName("")
       setSelectedChartAccountId("")
       setPaymentType("PERSONAL")
-      setSelectedBankAccountId("")
+      setPayViaAccountId("")
       setClaimType("EXPENSE")
       setDistance("")
       setAmountInput("")
@@ -95,10 +95,15 @@ export function ClaimForm({
     }
   }, [state.values?.amount])
 
-  // Reset bank-account selection whenever the user toggles back to PERSONAL.
   useEffect(() => {
-    if (paymentType === "PERSONAL") {
-      setSelectedBankAccountId("")
+    if (state?.values?.payViaAccountId) {
+      setPayViaAccountId(state.values.payViaAccountId)
+    }
+  }, [state?.values?.payViaAccountId])
+
+  useEffect(() => {
+    if (paymentType !== "COMPANY") {
+      setPayViaAccountId("")
     }
   }, [paymentType])
 
@@ -130,9 +135,8 @@ export function ClaimForm({
 
   const canSubmit =
     visibleAccounts.length > 0 &&
-    (paymentType === "PERSONAL" ||
-      (bankAccounts.length > 0 && selectedBankAccountId !== "")) &&
-    (claimType === "EXPENSE" || resolvedMileageRate > 0)
+    (claimType === "EXPENSE" || resolvedMileageRate > 0) &&
+    (paymentType !== "COMPANY" || (bankAccounts.length > 0 && payViaAccountId.length > 0))
 
   // Compute the amount the user is *trying* to claim (typed amount for
   // expense, computed mileage amount otherwise) and check it against the
@@ -171,8 +175,8 @@ export function ClaimForm({
     state.errors?.mileageDestinationAddress,
     state.errors?.spentAt,
     state.errors?.description,
-    state.errors?.payViaAccountId,
     state.errors?.receiptUrl,
+    state.errors?.payViaAccountId,
   ].filter((message): message is string => Boolean(message))
 
   // Shared field blocks used in both layouts
@@ -498,38 +502,31 @@ export function ClaimForm({
 
       {paymentType === "COMPANY" ? (
         <div className="space-y-2">
-          <Label htmlFor="payViaAccountId">Company bank account used</Label>
+          <Label htmlFor="payViaAccountId">Company bank account</Label>
           {bankAccounts.length === 0 ? (
             <div className="rounded-[20px] border border-amber-300/50 bg-amber-50/70 p-4 text-sm leading-6 text-amber-900 sm:rounded-[24px]">
-              No company bank accounts are configured yet. Ask your admin to add
-              bank accounts in Settings before submitting a company-money claim.
+              No company bank accounts have been enabled for claims yet. Ask your admin to select bank accounts in Settings → Accounts → Banks.
             </div>
           ) : (
-            <>
-              <input
-                type="hidden"
-                name="payViaAccountId"
-                value={selectedBankAccountId}
-              />
-              <Select
-                value={selectedBankAccountId}
-                onValueChange={setSelectedBankAccountId}
+            <Select
+              name="payViaAccountId"
+              value={payViaAccountId}
+              onValueChange={setPayViaAccountId}
+            >
+              <SelectTrigger
+                id="payViaAccountId"
+                aria-invalid={Boolean(state.errors?.payViaAccountId)}
               >
-                <SelectTrigger
-                  id="payViaAccountId"
-                  aria-invalid={Boolean(state.errors?.payViaAccountId)}
-                >
-                  <SelectValue placeholder="Select bank account" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bankAccounts.map((bank) => (
-                    <SelectItem key={bank.id} value={bank.id}>
-                      {bank.code} · {bank.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
+                <SelectValue placeholder="Select company bank account" />
+              </SelectTrigger>
+              <SelectContent>
+                {bankAccounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.code} · {account.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
           <FieldError message={state.errors?.payViaAccountId} />
         </div>

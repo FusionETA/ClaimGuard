@@ -12,5 +12,5 @@ export default async function SupervisorReviewPage() {
 
   const claims = await listClaimsForSupervisorReview({ session })
 
-  return <AdminClaimsQueue claims={claims} />
+  return <AdminClaimsQueue claims={claims} supervisorId={session.userId} />
 }
