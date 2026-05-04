@@ -564,15 +564,24 @@ export async function createManualProjectAction(
   const name = String(formData.get("name") ?? "").trim()
   const rawPm = String(formData.get("projectManagerId") ?? "").trim()
   const projectManagerId = rawPm && rawPm !== "__none" ? rawPm : undefined
-  const location = String(formData.get("location") ?? "").trim() || undefined
   const rawLat = parseFloat(String(formData.get("latitude") ?? ""))
   const rawLng = parseFloat(String(formData.get("longitude") ?? ""))
-  const latitude = isNaN(rawLat) ? undefined : rawLat
-  const longitude = isNaN(rawLng) ? undefined : rawLng
+  const latitude = Number.isFinite(rawLat) ? rawLat : undefined
+  const longitude = Number.isFinite(rawLng) ? rawLng : undefined
 
   if (!name) {
     return { status: "error", message: "Project name is required." }
   }
+  if (latitude != null && (latitude < -90 || latitude > 90)) {
+    return { status: "error", message: "Latitude must be between -90 and 90." }
+  }
+  if (longitude != null && (longitude < -180 || longitude > 180)) {
+    return { status: "error", message: "Longitude must be between -180 and 180." }
+  }
+  const location =
+    latitude != null && longitude != null
+      ? `${latitude.toFixed(6)},${longitude.toFixed(6)}`
+      : undefined
 
   try {
     await organizationRepository.createManualProject({
@@ -614,12 +623,26 @@ export async function updateProjectAction(
     return { ok: false, message: "No organization found." }
   }
 
+  if (latitude != null && (latitude < -90 || latitude > 90)) {
+    return { ok: false, message: "Latitude must be between -90 and 90." }
+  }
+  if (longitude != null && (longitude < -180 || longitude > 180)) {
+    return { ok: false, message: "Longitude must be between -180 and 180." }
+  }
+
+  // Derive canonical location string from coords; fall back to caller-provided
+  // value (currently always undefined from the new UI, but kept for safety).
+  const derivedLocation =
+    latitude != null && longitude != null
+      ? `${latitude.toFixed(6)},${longitude.toFixed(6)}`
+      : location || undefined
+
   try {
     await organizationRepository.updateProjectDetails({
       projectId,
       organizationId,
       projectManagerId: projectManagerId || undefined,
-      location: location || undefined,
+      location: derivedLocation,
       latitude: latitude ?? null,
       longitude: longitude ?? null,
     })

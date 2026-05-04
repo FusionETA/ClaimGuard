@@ -48,120 +48,100 @@ import type {
 
 type TabKey = "organization" | "accounts" | "banks" | "projects" | "runs" | "attendance"
 
-/** Controlled geolocation input — use inside components with their own state.
- *  onCoords fires with numeric lat/lng when the 📍 button is used. */
-function GeoLocationInput({
-  value,
+/** Lat/Lng pair inputs used for project geofence setup.
+ *  - In edit (controlled) mode: pass defaultLat/defaultLng + onChange.
+ *  - In create-form (uncontrolled) mode: omit onChange — the inputs submit
+ *    directly via name="latitude" / name="longitude" to the server action. */
+function CoordinatePairInputs({
+  defaultLat = null,
+  defaultLng = null,
   onChange,
-  onCoords,
-  placeholder = "Address or coordinates",
   className,
 }: {
-  value: string
-  onChange: (value: string) => void
-  onCoords?: (lat: number | null, lng: number | null) => void
-  placeholder?: string
+  defaultLat?: number | null
+  defaultLng?: number | null
+  onChange?: (lat: number | null, lng: number | null) => void
   className?: string
 }) {
+  const [lat, setLat] = useState<string>(defaultLat != null ? String(defaultLat) : "")
+  const [lng, setLng] = useState<string>(defaultLng != null ? String(defaultLng) : "")
   const [locating, setLocating] = useState(false)
 
-  function handleGeoLocate() {
+  function emit(nextLat: string, nextLng: string) {
+    if (!onChange) return
+    const la = nextLat.trim() === "" ? Number.NaN : Number.parseFloat(nextLat)
+    const lo = nextLng.trim() === "" ? Number.NaN : Number.parseFloat(nextLng)
+    onChange(Number.isFinite(la) ? la : null, Number.isFinite(lo) ? lo : null)
+  }
+
+  function update(nextLat: string, nextLng: string) {
+    setLat(nextLat)
+    setLng(nextLng)
+    emit(nextLat, nextLng)
+  }
+
+  function handleUseMyLocation() {
     if (!navigator.geolocation) return
     setLocating(true)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const lat = pos.coords.latitude
-        const lng = pos.coords.longitude
-        onChange(`${lat.toFixed(6)}, ${lng.toFixed(6)}`)
-        onCoords?.(lat, lng)
+        update(pos.coords.latitude.toFixed(6), pos.coords.longitude.toFixed(6))
         setLocating(false)
       },
-      () => setLocating(false)
+      () => setLocating(false),
+      { timeout: 8000, maximumAge: 0 },
     )
   }
 
   return (
-    <div className={`relative ${className ?? ""}`}>
-      <Input
-        value={value}
-        onChange={(event) => {
-          onChange(event.target.value)
-          onCoords?.(null, null)
-        }}
-        placeholder={placeholder}
-        className="pr-10 h-9 text-sm"
-      />
-      <button
-        type="button"
-        onClick={handleGeoLocate}
-        disabled={locating}
-        title="Use my current location"
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
-      >
-        {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-      </button>
-    </div>
-  )
-}
-
-/** Self-contained geolocation input for use inside server-action forms.
- *  Submits location text via name="location", lat via name="latitude", lng via name="longitude". */
-function GeoLocationFormField({
-  defaultValue = "",
-  placeholder = "Address or coordinates",
-  className,
-}: {
-  defaultValue?: string
-  placeholder?: string
-  className?: string
-}) {
-  const [value, setValue] = useState(defaultValue)
-  const [lat, setLat] = useState<number | null>(null)
-  const [lng, setLng] = useState<number | null>(null)
-  const [locating, setLocating] = useState(false)
-
-  function handleGeoLocate() {
-    if (!navigator.geolocation) return
-    setLocating(true)
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const la = pos.coords.latitude
-        const lo = pos.coords.longitude
-        setValue(`${la.toFixed(6)}, ${lo.toFixed(6)}`)
-        setLat(la)
-        setLng(lo)
-        setLocating(false)
-      },
-      () => setLocating(false)
-    )
-  }
-
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    setValue(event.target.value)
-    setLat(null)
-    setLng(null)
-  }
-
-  return (
-    <div className={`relative ${className ?? ""}`}>
-      <input type="hidden" name="location" value={value} />
-      {lat !== null && <input type="hidden" name="latitude" value={lat} />}
-      {lng !== null && <input type="hidden" name="longitude" value={lng} />}
-      <Input
-        value={value}
-        onChange={handleChange}
-        placeholder={placeholder}
-        className="pr-10 h-9 text-sm"
-      />
-      <button
-        type="button"
-        onClick={handleGeoLocate}
-        disabled={locating}
-        title="Use my current location"
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
-      >
-        {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-      </button>
+    <div className={cn("space-y-1", className)}>
+      <div className="flex flex-wrap items-center gap-2">
+        <Input
+          name="latitude"
+          type="number"
+          inputMode="decimal"
+          step="any"
+          min={-90}
+          max={90}
+          placeholder="Latitude"
+          value={lat}
+          onChange={(e) => update(e.target.value, lng)}
+          className="h-9 w-32 text-sm"
+        />
+        <Input
+          name="longitude"
+          type="number"
+          inputMode="decimal"
+          step="any"
+          min={-180}
+          max={180}
+          placeholder="Longitude"
+          value={lng}
+          onChange={(e) => update(lat, e.target.value)}
+          className="h-9 w-32 text-sm"
+        />
+        <button
+          type="button"
+          onClick={handleUseMyLocation}
+          disabled={locating}
+          title="Use my current location"
+          className="inline-flex h-9 items-center gap-1 rounded-md border border-border px-2 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary disabled:opacity-50"
+        >
+          {locating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <MapPin className="h-4 w-4" />
+          )}
+          <span className="hidden sm:inline">My location</span>
+        </button>
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Open Google Maps, right-click the project location, then click the
+        <span className="mx-1 font-mono">1.234567, 103.456789</span>
+        coordinates at the top of the menu to copy. Paste them into the two
+        fields. Or tap <span className="font-semibold">My location</span> if
+        you&apos;re already on site.
+      </p>
     </div>
   )
 }
@@ -184,19 +164,16 @@ function ProjectCard({
   onDelete?: (id: string) => void
 }) {
   const [pmId, setPmId] = useState(project.projectManagerId ?? "")
-  const [location, setLocation] = useState(project.location ?? "")
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
-    project.latitude != null && project.longitude != null
-      ? { lat: project.latitude, lng: project.longitude }
-      : null
-  )
+  const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
+    lat: project.latitude ?? null,
+    lng: project.longitude ?? null,
+  })
   const [saving, setSaving] = useState(false)
 
   async function handleSave() {
     setSaving(true)
-    const lat = coords?.lat ?? null
-    const lng = coords?.lng ?? null
-    await onUpdate(project.id, pmId || undefined, location || undefined, lat, lng)
+    // Server derives `location` from coords; pass undefined to let it overwrite.
+    await onUpdate(project.id, pmId || undefined, undefined, coords.lat, coords.lng)
     setSaving(false)
   }
 
@@ -237,11 +214,10 @@ function ProjectCard({
             ))}
         </SelectContent>
       </Select>
-      <GeoLocationInput
-        value={location}
-        onChange={(v) => { setLocation(v); setCoords(null) }}
-        onCoords={(lat, lng) => setCoords(lat !== null && lng !== null ? { lat, lng } : null)}
-        placeholder="Address or coordinates (optional)"
+      <CoordinatePairInputs
+        defaultLat={project.latitude ?? null}
+        defaultLng={project.longitude ?? null}
+        onChange={(lat, lng) => setCoords({ lat, lng })}
       />
       <Button
         type="button"
@@ -1024,10 +1000,7 @@ export function AdminSettingsPanel({
                         </SelectContent>
                       </Select>
                     </div>
-                    <GeoLocationFormField
-                      placeholder="Address (optional)"
-                      className="w-48 flex-1"
-                    />
+                    <CoordinatePairInputs className="w-full" />
                   </div>
                   <Button
                     type="submit"
