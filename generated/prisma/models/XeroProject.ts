@@ -48,10 +48,10 @@ export type XeroProjectMinAggregateOutputType = {
   updatedAt: Date | null
   isManual: boolean | null
   location: string | null
-  latitude: number | null
-  longitude: number | null
   projectManagerId: string | null
   isDisabled: boolean | null
+  latitude: number | null
+  longitude: number | null
 }
 
 export type XeroProjectMaxAggregateOutputType = {
@@ -66,10 +66,10 @@ export type XeroProjectMaxAggregateOutputType = {
   updatedAt: Date | null
   isManual: boolean | null
   location: string | null
-  latitude: number | null
-  longitude: number | null
   projectManagerId: string | null
   isDisabled: boolean | null
+  latitude: number | null
+  longitude: number | null
 }
 
 export type XeroProjectCountAggregateOutputType = {
@@ -84,10 +84,10 @@ export type XeroProjectCountAggregateOutputType = {
   updatedAt: number
   isManual: number
   location: number
-  latitude: number
-  longitude: number
   projectManagerId: number
   isDisabled: number
+  latitude: number
+  longitude: number
   _all: number
 }
 
@@ -114,10 +114,10 @@ export type XeroProjectMinAggregateInputType = {
   updatedAt?: true
   isManual?: true
   location?: true
-  latitude?: true
-  longitude?: true
   projectManagerId?: true
   isDisabled?: true
+  latitude?: true
+  longitude?: true
 }
 
 export type XeroProjectMaxAggregateInputType = {
@@ -132,10 +132,10 @@ export type XeroProjectMaxAggregateInputType = {
   updatedAt?: true
   isManual?: true
   location?: true
-  latitude?: true
-  longitude?: true
   projectManagerId?: true
   isDisabled?: true
+  latitude?: true
+  longitude?: true
 }
 
 export type XeroProjectCountAggregateInputType = {
@@ -150,10 +150,10 @@ export type XeroProjectCountAggregateInputType = {
   updatedAt?: true
   isManual?: true
   location?: true
-  latitude?: true
-  longitude?: true
   projectManagerId?: true
   isDisabled?: true
+  latitude?: true
+  longitude?: true
   _all?: true
 }
 
@@ -255,10 +255,10 @@ export type XeroProjectGroupByOutputType = {
   updatedAt: Date
   isManual: boolean
   location: string | null
-  latitude: number | null
-  longitude: number | null
   projectManagerId: string | null
   isDisabled: boolean
+  latitude: number | null
+  longitude: number | null
   _count: XeroProjectCountAggregateOutputType | null
   _avg: XeroProjectAvgAggregateOutputType | null
   _sum: XeroProjectSumAggregateOutputType | null
@@ -296,12 +296,12 @@ export type XeroProjectWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
   isManual?: Prisma.BoolFilter<"XeroProject"> | boolean
   location?: Prisma.StringNullableFilter<"XeroProject"> | string | null
-  latitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
-  longitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
   projectManagerId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   isDisabled?: Prisma.BoolFilter<"XeroProject"> | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentListRelationFilter
+  latitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
+  longitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
   attendanceRecords?: Prisma.AttendanceRecordListRelationFilter
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentListRelationFilter
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   projectManager?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
@@ -319,12 +319,12 @@ export type XeroProjectOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
-  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
-  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
   projectManagerId?: Prisma.SortOrderInput | Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentOrderByRelationAggregateInput
+  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
   attendanceRecords?: Prisma.AttendanceRecordOrderByRelationAggregateInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentOrderByRelationAggregateInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
   projectManager?: Prisma.UserOrderByWithRelationInput
   xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
@@ -347,12 +347,12 @@ export type XeroProjectWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
   isManual?: Prisma.BoolFilter<"XeroProject"> | boolean
   location?: Prisma.StringNullableFilter<"XeroProject"> | string | null
-  latitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
-  longitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
   projectManagerId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   isDisabled?: Prisma.BoolFilter<"XeroProject"> | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentListRelationFilter
+  latitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
+  longitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
   attendanceRecords?: Prisma.AttendanceRecordListRelationFilter
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentListRelationFilter
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   projectManager?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
@@ -370,10 +370,10 @@ export type XeroProjectOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
-  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
-  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
   projectManagerId?: Prisma.SortOrderInput | Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
+  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.XeroProjectCountOrderByAggregateInput
   _avg?: Prisma.XeroProjectAvgOrderByAggregateInput
   _max?: Prisma.XeroProjectMaxOrderByAggregateInput
@@ -396,10 +396,10 @@ export type XeroProjectScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"XeroProject"> | Date | string
   isManual?: Prisma.BoolWithAggregatesFilter<"XeroProject"> | boolean
   location?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
-  latitude?: Prisma.FloatNullableWithAggregatesFilter<"XeroProject"> | number | null
-  longitude?: Prisma.FloatNullableWithAggregatesFilter<"XeroProject"> | number | null
   projectManagerId?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
   isDisabled?: Prisma.BoolWithAggregatesFilter<"XeroProject"> | boolean
+  latitude?: Prisma.FloatNullableWithAggregatesFilter<"XeroProject"> | number | null
+  longitude?: Prisma.FloatNullableWithAggregatesFilter<"XeroProject"> | number | null
 }
 
 export type XeroProjectCreateInput = {
@@ -412,11 +412,11 @@ export type XeroProjectCreateInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
+  isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
-  isDisabled?: boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
@@ -434,12 +434,12 @@ export type XeroProjectUncheckedCreateInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
-  latitude?: number | null
-  longitude?: number | null
   projectManagerId?: string | null
   isDisabled?: boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  latitude?: number | null
+  longitude?: number | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectUpdateInput = {
@@ -452,11 +452,11 @@ export type XeroProjectUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
@@ -474,12 +474,12 @@ export type XeroProjectUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectCreateManyInput = {
@@ -494,10 +494,10 @@ export type XeroProjectCreateManyInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
-  latitude?: number | null
-  longitude?: number | null
   projectManagerId?: string | null
   isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export type XeroProjectUpdateManyMutationInput = {
@@ -510,9 +510,9 @@ export type XeroProjectUpdateManyMutationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type XeroProjectUncheckedUpdateManyInput = {
@@ -527,10 +527,10 @@ export type XeroProjectUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type XeroProjectListRelationFilter = {
@@ -571,10 +571,10 @@ export type XeroProjectCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
   location?: Prisma.SortOrder
-  latitude?: Prisma.SortOrder
-  longitude?: Prisma.SortOrder
   projectManagerId?: Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
 }
 
 export type XeroProjectAvgOrderByAggregateInput = {
@@ -594,10 +594,10 @@ export type XeroProjectMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
   location?: Prisma.SortOrder
-  latitude?: Prisma.SortOrder
-  longitude?: Prisma.SortOrder
   projectManagerId?: Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
 }
 
 export type XeroProjectMinOrderByAggregateInput = {
@@ -612,10 +612,10 @@ export type XeroProjectMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
   location?: Prisma.SortOrder
-  latitude?: Prisma.SortOrder
-  longitude?: Prisma.SortOrder
   projectManagerId?: Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
 }
 
 export type XeroProjectSumOrderByAggregateInput = {
@@ -802,11 +802,11 @@ export type XeroProjectCreateWithoutProjectManagerInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
+  isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
-  isDisabled?: boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
 }
@@ -823,11 +823,11 @@ export type XeroProjectUncheckedCreateWithoutProjectManagerInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
+  isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
-  isDisabled?: boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectCreateOrConnectWithoutProjectManagerInput = {
@@ -871,10 +871,10 @@ export type XeroProjectScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
   isManual?: Prisma.BoolFilter<"XeroProject"> | boolean
   location?: Prisma.StringNullableFilter<"XeroProject"> | string | null
-  latitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
-  longitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
   projectManagerId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   isDisabled?: Prisma.BoolFilter<"XeroProject"> | boolean
+  latitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
+  longitude?: Prisma.FloatNullableFilter<"XeroProject"> | number | null
 }
 
 export type XeroProjectCreateWithoutOrganizationInput = {
@@ -887,11 +887,11 @@ export type XeroProjectCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
+  isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
-  isDisabled?: boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
 }
@@ -907,12 +907,12 @@ export type XeroProjectUncheckedCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
-  latitude?: number | null
-  longitude?: number | null
   projectManagerId?: string | null
   isDisabled?: boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  latitude?: number | null
+  longitude?: number | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectCreateOrConnectWithoutOrganizationInput = {
@@ -951,9 +951,9 @@ export type XeroProjectCreateWithoutAssignedEmployeesInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
+  isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
-  isDisabled?: boolean
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
@@ -972,10 +972,10 @@ export type XeroProjectUncheckedCreateWithoutAssignedEmployeesInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
-  latitude?: number | null
-  longitude?: number | null
   projectManagerId?: string | null
   isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
 }
 
@@ -1005,9 +1005,9 @@ export type XeroProjectUpdateWithoutAssignedEmployeesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
@@ -1026,10 +1026,10 @@ export type XeroProjectUncheckedUpdateWithoutAssignedEmployeesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
 }
 
@@ -1043,11 +1043,11 @@ export type XeroProjectCreateWithoutXeroConnectionInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
+  isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
-  isDisabled?: boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
   attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
 }
@@ -1063,12 +1063,12 @@ export type XeroProjectUncheckedCreateWithoutXeroConnectionInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
-  latitude?: number | null
-  longitude?: number | null
   projectManagerId?: string | null
   isDisabled?: boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  latitude?: number | null
+  longitude?: number | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectCreateOrConnectWithoutXeroConnectionInput = {
@@ -1107,9 +1107,9 @@ export type XeroProjectCreateWithoutAttendanceRecordsInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
+  isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
-  isDisabled?: boolean
   assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
@@ -1128,10 +1128,10 @@ export type XeroProjectUncheckedCreateWithoutAttendanceRecordsInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
-  latitude?: number | null
-  longitude?: number | null
   projectManagerId?: string | null
   isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1161,9 +1161,9 @@ export type XeroProjectUpdateWithoutAttendanceRecordsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
@@ -1182,10 +1182,10 @@ export type XeroProjectUncheckedUpdateWithoutAttendanceRecordsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1201,9 +1201,9 @@ export type XeroProjectCreateManyProjectManagerInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
+  isDisabled?: boolean
   latitude?: number | null
   longitude?: number | null
-  isDisabled?: boolean
 }
 
 export type XeroProjectUpdateWithoutProjectManagerInput = {
@@ -1216,11 +1216,11 @@ export type XeroProjectUpdateWithoutProjectManagerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
 }
@@ -1237,11 +1237,11 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectUncheckedUpdateManyWithoutProjectManagerInput = {
@@ -1256,9 +1256,9 @@ export type XeroProjectUncheckedUpdateManyWithoutProjectManagerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type XeroProjectCreateManyOrganizationInput = {
@@ -1272,10 +1272,10 @@ export type XeroProjectCreateManyOrganizationInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
-  latitude?: number | null
-  longitude?: number | null
   projectManagerId?: string | null
   isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export type XeroProjectUpdateWithoutOrganizationInput = {
@@ -1288,11 +1288,11 @@ export type XeroProjectUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
 }
@@ -1308,12 +1308,12 @@ export type XeroProjectUncheckedUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1327,10 +1327,10 @@ export type XeroProjectUncheckedUpdateManyWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type XeroProjectCreateManyXeroConnectionInput = {
@@ -1344,10 +1344,10 @@ export type XeroProjectCreateManyXeroConnectionInput = {
   updatedAt?: Date | string
   isManual?: boolean
   location?: string | null
-  latitude?: number | null
-  longitude?: number | null
   projectManagerId?: string | null
   isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export type XeroProjectUpdateWithoutXeroConnectionInput = {
@@ -1360,11 +1360,11 @@ export type XeroProjectUpdateWithoutXeroConnectionInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
   attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
 }
@@ -1380,12 +1380,12 @@ export type XeroProjectUncheckedUpdateWithoutXeroConnectionInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectUncheckedUpdateManyWithoutXeroConnectionInput = {
@@ -1399,10 +1399,10 @@ export type XeroProjectUncheckedUpdateManyWithoutXeroConnectionInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 
@@ -1411,13 +1411,13 @@ export type XeroProjectUncheckedUpdateManyWithoutXeroConnectionInput = {
  */
 
 export type XeroProjectCountOutputType = {
-  assignedEmployees: number
   attendanceRecords: number
+  assignedEmployees: number
 }
 
 export type XeroProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  assignedEmployees?: boolean | XeroProjectCountOutputTypeCountAssignedEmployeesArgs
   attendanceRecords?: boolean | XeroProjectCountOutputTypeCountAttendanceRecordsArgs
+  assignedEmployees?: boolean | XeroProjectCountOutputTypeCountAssignedEmployeesArgs
 }
 
 /**
@@ -1433,15 +1433,15 @@ export type XeroProjectCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.
 /**
  * XeroProjectCountOutputType without action
  */
-export type XeroProjectCountOutputTypeCountAssignedEmployeesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.EmployeeProjectAssignmentWhereInput
+export type XeroProjectCountOutputTypeCountAttendanceRecordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AttendanceRecordWhereInput
 }
 
 /**
  * XeroProjectCountOutputType without action
  */
-export type XeroProjectCountOutputTypeCountAttendanceRecordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.AttendanceRecordWhereInput
+export type XeroProjectCountOutputTypeCountAssignedEmployeesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeProjectAssignmentWhereInput
 }
 
 
@@ -1457,12 +1457,12 @@ export type XeroProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   updatedAt?: boolean
   isManual?: boolean
   location?: boolean
-  latitude?: boolean
-  longitude?: boolean
   projectManagerId?: boolean
   isDisabled?: boolean
-  assignedEmployees?: boolean | Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>
+  latitude?: boolean
+  longitude?: boolean
   attendanceRecords?: boolean | Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>
+  assignedEmployees?: boolean | Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   projectManager?: boolean | Prisma.XeroProject$projectManagerArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.XeroProject$xeroConnectionArgs<ExtArgs>
@@ -1483,16 +1483,16 @@ export type XeroProjectSelectScalar = {
   updatedAt?: boolean
   isManual?: boolean
   location?: boolean
-  latitude?: boolean
-  longitude?: boolean
   projectManagerId?: boolean
   isDisabled?: boolean
+  latitude?: boolean
+  longitude?: boolean
 }
 
-export type XeroProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroProjectId" | "name" | "status" | "contactId" | "createdAt" | "updatedAt" | "isManual" | "location" | "latitude" | "longitude" | "projectManagerId" | "isDisabled", ExtArgs["result"]["xeroProject"]>
+export type XeroProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroProjectId" | "name" | "status" | "contactId" | "createdAt" | "updatedAt" | "isManual" | "location" | "projectManagerId" | "isDisabled" | "latitude" | "longitude", ExtArgs["result"]["xeroProject"]>
 export type XeroProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  assignedEmployees?: boolean | Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>
   attendanceRecords?: boolean | Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>
+  assignedEmployees?: boolean | Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   projectManager?: boolean | Prisma.XeroProject$projectManagerArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.XeroProject$xeroConnectionArgs<ExtArgs>
@@ -1502,8 +1502,8 @@ export type XeroProjectInclude<ExtArgs extends runtime.Types.Extensions.Internal
 export type $XeroProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "XeroProject"
   objects: {
-    assignedEmployees: Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>[]
     attendanceRecords: Prisma.$AttendanceRecordPayload<ExtArgs>[]
+    assignedEmployees: Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>[]
     organization: Prisma.$OrganizationPayload<ExtArgs>
     projectManager: Prisma.$UserPayload<ExtArgs> | null
     xeroConnection: Prisma.$XeroConnectionPayload<ExtArgs> | null
@@ -1520,10 +1520,10 @@ export type $XeroProjectPayload<ExtArgs extends runtime.Types.Extensions.Interna
     updatedAt: Date
     isManual: boolean
     location: string | null
-    latitude: number | null
-    longitude: number | null
     projectManagerId: string | null
     isDisabled: boolean
+    latitude: number | null
+    longitude: number | null
   }, ExtArgs["result"]["xeroProject"]>
   composites: {}
 }
@@ -1864,8 +1864,8 @@ readonly fields: XeroProjectFieldRefs;
  */
 export interface Prisma__XeroProjectClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  assignedEmployees<T extends Prisma.XeroProject$assignedEmployeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   attendanceRecords<T extends Prisma.XeroProject$attendanceRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  assignedEmployees<T extends Prisma.XeroProject$assignedEmployeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$assignedEmployeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   projectManager<T extends Prisma.XeroProject$projectManagerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$projectManagerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   xeroConnection<T extends Prisma.XeroProject$xeroConnectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$xeroConnectionArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -1909,10 +1909,10 @@ export interface XeroProjectFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"XeroProject", 'DateTime'>
   readonly isManual: Prisma.FieldRef<"XeroProject", 'Boolean'>
   readonly location: Prisma.FieldRef<"XeroProject", 'String'>
-  readonly latitude: Prisma.FieldRef<"XeroProject", 'Float'>
-  readonly longitude: Prisma.FieldRef<"XeroProject", 'Float'>
   readonly projectManagerId: Prisma.FieldRef<"XeroProject", 'String'>
   readonly isDisabled: Prisma.FieldRef<"XeroProject", 'Boolean'>
+  readonly latitude: Prisma.FieldRef<"XeroProject", 'Float'>
+  readonly longitude: Prisma.FieldRef<"XeroProject", 'Float'>
 }
     
 
@@ -2261,30 +2261,6 @@ export type XeroProjectDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
 }
 
 /**
- * XeroProject.assignedEmployees
- */
-export type XeroProject$assignedEmployeesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the EmployeeProjectAssignment
-   */
-  select?: Prisma.EmployeeProjectAssignmentSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the EmployeeProjectAssignment
-   */
-  omit?: Prisma.EmployeeProjectAssignmentOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EmployeeProjectAssignmentInclude<ExtArgs> | null
-  where?: Prisma.EmployeeProjectAssignmentWhereInput
-  orderBy?: Prisma.EmployeeProjectAssignmentOrderByWithRelationInput | Prisma.EmployeeProjectAssignmentOrderByWithRelationInput[]
-  cursor?: Prisma.EmployeeProjectAssignmentWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.EmployeeProjectAssignmentScalarFieldEnum | Prisma.EmployeeProjectAssignmentScalarFieldEnum[]
-}
-
-/**
  * XeroProject.attendanceRecords
  */
 export type XeroProject$attendanceRecordsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2306,6 +2282,30 @@ export type XeroProject$attendanceRecordsArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.AttendanceRecordScalarFieldEnum | Prisma.AttendanceRecordScalarFieldEnum[]
+}
+
+/**
+ * XeroProject.assignedEmployees
+ */
+export type XeroProject$assignedEmployeesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeProjectAssignment
+   */
+  select?: Prisma.EmployeeProjectAssignmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeProjectAssignment
+   */
+  omit?: Prisma.EmployeeProjectAssignmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeProjectAssignmentInclude<ExtArgs> | null
+  where?: Prisma.EmployeeProjectAssignmentWhereInput
+  orderBy?: Prisma.EmployeeProjectAssignmentOrderByWithRelationInput | Prisma.EmployeeProjectAssignmentOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeProjectAssignmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeProjectAssignmentScalarFieldEnum | Prisma.EmployeeProjectAssignmentScalarFieldEnum[]
 }
 
 /**

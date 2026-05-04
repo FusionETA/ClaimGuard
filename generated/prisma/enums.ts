@@ -99,3 +99,52 @@ export const OTSubtype = {
 } as const
 
 export type OTSubtype = (typeof OTSubtype)[keyof typeof OTSubtype]
+
+
+export const EmployeeProfile_payoutMethod = {
+  HOURLY: 'HOURLY',
+  DAILY_BASED: 'DAILY_BASED'
+} as const
+
+export type EmployeeProfile_payoutMethod = (typeof EmployeeProfile_payoutMethod)[keyof typeof EmployeeProfile_payoutMethod]
+
+
+export const ChartOfAccount_limitPeriod = {
+  PER_CLAIM: 'PER_CLAIM',
+  MONTHLY: 'MONTHLY',
+  YEARLY: 'YEARLY'
+} as const
+
+export type ChartOfAccount_limitPeriod = (typeof ChartOfAccount_limitPeriod)[keyof typeof ChartOfAccount_limitPeriod]
+
+
+export const Organization_mileageUnit = {
+  KM: 'KM',
+  MILE: 'MILE'
+} as const
+
+export type Organization_mileageUnit = (typeof Organization_mileageUnit)[keyof typeof Organization_mileageUnit]
+
+
+export const ChartOfAccount_limitScope = {
+  PER_EMPLOYEE: 'PER_EMPLOYEE',
+  ORG_WIDE: 'ORG_WIDE'
+} as const
+
+export type ChartOfAccount_limitScope = (typeof ChartOfAccount_limitScope)[keyof typeof ChartOfAccount_limitScope]
+
+
+export const Claim_claimType = {
+  EXPENSE: 'EXPENSE',
+  MILEAGE: 'MILEAGE'
+} as const
+
+export type Claim_claimType = (typeof Claim_claimType)[keyof typeof Claim_claimType]
+
+
+export const Claim_mileageUnitUsed = {
+  KM: 'KM',
+  MILE: 'MILE'
+} as const
+
+export type Claim_mileageUnitUsed = (typeof Claim_mileageUnitUsed)[keyof typeof Claim_mileageUnitUsed]

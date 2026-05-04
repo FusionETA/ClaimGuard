@@ -112,7 +112,9 @@ export const OrganizationScalarFieldEnum = {
   otSalaryThreshold: 'otSalaryThreshold',
   publicHolidayInShiftRate: 'publicHolidayInShiftRate',
   restDayInShiftRate: 'restDayInShiftRate',
-  geofenceRadiusMeters: 'geofenceRadiusMeters'
+  geofenceRadiusMeters: 'geofenceRadiusMeters',
+  defaultMileageRate: 'defaultMileageRate',
+  mileageUnit: 'mileageUnit'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -183,8 +185,6 @@ export const ClaimScalarFieldEnum = {
   claimRunMonth: 'claimRunMonth',
   reviewedAt: 'reviewedAt',
   payoutAt: 'payoutAt',
-  payViaAccountId: 'payViaAccountId',
-  paymentType: 'paymentType',
   status: 'status',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
@@ -196,7 +196,15 @@ export const ClaimScalarFieldEnum = {
   xeroSyncError: 'xeroSyncError',
   xeroSyncedAt: 'xeroSyncedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  payViaAccountId: 'payViaAccountId',
+  paymentType: 'paymentType',
+  claimType: 'claimType',
+  distance: 'distance',
+  mileageDestinationAddress: 'mileageDestinationAddress',
+  mileageOriginAddress: 'mileageOriginAddress',
+  mileageRateUsed: 'mileageRateUsed',
+  mileageUnitUsed: 'mileageUnitUsed'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
@@ -216,7 +224,12 @@ export const ChartOfAccountScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isBankAccount: 'isBankAccount',
-  isDisabled: 'isDisabled'
+  isDisabled: 'isDisabled',
+  allowMileageClaim: 'allowMileageClaim',
+  limitAmount: 'limitAmount',
+  limitPeriod: 'limitPeriod',
+  limitScope: 'limitScope',
+  mileageRate: 'mileageRate'
 } as const
 
 export type ChartOfAccountScalarFieldEnum = (typeof ChartOfAccountScalarFieldEnum)[keyof typeof ChartOfAccountScalarFieldEnum]
@@ -254,10 +267,10 @@ export const XeroProjectScalarFieldEnum = {
   updatedAt: 'updatedAt',
   isManual: 'isManual',
   location: 'location',
-  latitude: 'latitude',
-  longitude: 'longitude',
   projectManagerId: 'projectManagerId',
-  isDisabled: 'isDisabled'
+  isDisabled: 'isDisabled',
+  latitude: 'latitude',
+  longitude: 'longitude'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
@@ -273,11 +286,11 @@ export const AttendanceRecordScalarFieldEnum = {
   lateByMin: 'lateByMin',
   location: 'location',
   project: 'project',
-  projectId: 'projectId',
   status: 'status',
   notes: 'notes',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  projectId: 'projectId'
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
@@ -386,7 +399,6 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   project: 'project',
   jobTitle: 'jobTitle',
   supervisorId: 'supervisorId',
-  payoutMethod: 'payoutMethod',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId'
 } as const
@@ -411,14 +423,16 @@ export const ClaimOrderByRelevanceFieldEnum = {
   organizationId: 'organizationId',
   chartOfAccountId: 'chartOfAccountId',
   currency: 'currency',
-  payViaAccountId: 'payViaAccountId',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
-  xeroSyncError: 'xeroSyncError'
+  xeroSyncError: 'xeroSyncError',
+  payViaAccountId: 'payViaAccountId',
+  mileageDestinationAddress: 'mileageDestinationAddress',
+  mileageOriginAddress: 'mileageOriginAddress'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
@@ -475,8 +489,8 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
   employeeId: 'employeeId',
   location: 'location',
   project: 'project',
-  projectId: 'projectId',
-  notes: 'notes'
+  notes: 'notes',
+  projectId: 'projectId'
 } as const
 
 export type AttendanceRecordOrderByRelevanceFieldEnum = (typeof AttendanceRecordOrderByRelevanceFieldEnum)[keyof typeof AttendanceRecordOrderByRelevanceFieldEnum]

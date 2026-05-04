@@ -36,21 +36,23 @@ model User {
 }
 
 model Organization {
-  id                       String              @id @default(cuid())
-  name                     String              @unique
-  claimCutoffDay           Int                 @default(25)
-  createdAt                DateTime            @default(now())
-  updatedAt                DateTime            @updatedAt
-  workingHoursEnd          String              @default("18:00")
-  workingHoursStart        String              @default("09:00")
+  id                       String                   @id @default(cuid())
+  name                     String                   @unique
+  claimCutoffDay           Int                      @default(25)
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+  workingHoursEnd          String                   @default("18:00")
+  workingHoursStart        String                   @default("09:00")
   bankAccount              String?
-  otRateNormalDay          Decimal             @default(1.50) @db.Decimal(4, 2)
-  otRatePublicHoliday      Decimal             @default(3.00) @db.Decimal(4, 2)
-  otRateRestDay            Decimal             @default(2.00) @db.Decimal(4, 2)
-  otSalaryThreshold        Decimal             @default(4000.00) @db.Decimal(10, 2)
-  publicHolidayInShiftRate Decimal             @default(2.00) @db.Decimal(4, 2)
-  restDayInShiftRate       Decimal             @default(1.00) @db.Decimal(4, 2)
-  geofenceRadiusMeters     Int                 @default(200)
+  otRateNormalDay          Decimal                  @default(1.50) @db.Decimal(4, 2)
+  otRatePublicHoliday      Decimal                  @default(3.00) @db.Decimal(4, 2)
+  otRateRestDay            Decimal                  @default(2.00) @db.Decimal(4, 2)
+  otSalaryThreshold        Decimal                  @default(4000.00) @db.Decimal(10, 2)
+  publicHolidayInShiftRate Decimal                  @default(2.00) @db.Decimal(4, 2)
+  restDayInShiftRate       Decimal                  @default(1.00) @db.Decimal(4, 2)
+  geofenceRadiusMeters     Int                      @default(200)
+  defaultMileageRate       Decimal?                 @db.Decimal(10, 4)
+  mileageUnit              Organization_mileageUnit @default(KM)
   adminMembers             AdminOrganization[]
   chartAccounts            ChartOfAccount[]
   claims                   Claim[]
@@ -85,20 +87,20 @@ model PushSubscription {
 }
 
 model EmployeeProfile {
-  id                 String                      @id @default(cuid())
-  userId             String                      @unique
-  employeeId         String                      @unique
-  project            String                      @map("department")
+  id                 String                        @id @default(cuid())
+  userId             String                        @unique
+  employeeId         String                        @unique
+  project            String                        @map("department")
   jobTitle           String
   supervisorId       String?
-  payoutMethod       String?
-  preferredCurrency  String                      @default("USD")
+  payoutMethod       EmployeeProfile_payoutMethod?
+  preferredCurrency  String                        @default("USD")
   xeroConnectionId   String?
-  createdAt          DateTime                    @default(now())
-  updatedAt          DateTime                    @updatedAt
-  supervisor         User?                       @relation("SupervisorReports", fields: [supervisorId], references: [id])
-  user               User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
-  xeroConnection     XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
+  createdAt          DateTime                      @default(now())
+  updatedAt          DateTime                      @updatedAt
+  supervisor         User?                         @relation("SupervisorReports", fields: [supervisorId], references: [id])
+  user               User                          @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  xeroConnection     XeroConnection?               @relation(fields: [xeroConnectionId], references: [id])
   projectAssignments EmployeeProjectAssignment[]
 
   @@index([supervisorId])
@@ -120,39 +122,45 @@ model EmployeeProjectAssignment {
 }
 
 model Claim {
-  id               String          @id @default(cuid())
-  claimNumber      String          @unique
-  title            String
-  description      String          @db.Text
-  category         ClaimCategory
-  organizationId   String?
-  chartOfAccountId String?
-  amount           Decimal         @db.Decimal(10, 2)
-  currency         String          @default("USD")
-  spentAt          DateTime
-  submittedAt      DateTime        @default(now())
-  claimRunMonth    DateTime?
-  reviewedAt       DateTime?
-  payoutAt         DateTime?
-  payViaAccountId  String?
-  paymentType      PaymentType     @default(PERSONAL)
-  status           ClaimStatus     @default(PENDING)
-  receiptUrl       String?
-  reviewNotes      String?         @db.Text
-  employeeId       String
-  reviewerId       String?
-  xeroBillId       String?         @unique
-  xeroBillRef      String?
-  xeroSyncStatus   XeroSyncStatus  @default(NOT_SYNCED)
-  xeroSyncError    String?         @db.Text
-  xeroSyncedAt     DateTime?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  chartOfAccount   ChartOfAccount? @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
-  payViaAccount    ChartOfAccount? @relation("ClaimPayVia", fields: [payViaAccountId], references: [id])
-  employee         User            @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
-  organization     Organization?   @relation(fields: [organizationId], references: [id])
-  reviewer         User?           @relation("AdminReviews", fields: [reviewerId], references: [id])
+  id                        String                 @id @default(cuid())
+  claimNumber               String                 @unique
+  title                     String
+  description               String                 @db.Text
+  category                  ClaimCategory
+  organizationId            String?
+  chartOfAccountId          String?
+  amount                    Decimal                @db.Decimal(12, 2)
+  currency                  String                 @default("USD")
+  spentAt                   DateTime
+  submittedAt               DateTime               @default(now())
+  claimRunMonth             DateTime?
+  reviewedAt                DateTime?
+  payoutAt                  DateTime?
+  status                    ClaimStatus            @default(PENDING)
+  receiptUrl                String?
+  reviewNotes               String?                @db.Text
+  employeeId                String
+  reviewerId                String?
+  xeroBillId                String?                @unique
+  xeroBillRef               String?
+  xeroSyncStatus            XeroSyncStatus         @default(NOT_SYNCED)
+  xeroSyncError             String?                @db.Text
+  xeroSyncedAt              DateTime?
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+  payViaAccountId           String?
+  paymentType               PaymentType            @default(PERSONAL)
+  claimType                 Claim_claimType        @default(EXPENSE)
+  distance                  Decimal?               @db.Decimal(10, 2)
+  mileageDestinationAddress String?
+  mileageOriginAddress      String?
+  mileageRateUsed           Decimal?               @db.Decimal(10, 4)
+  mileageUnitUsed           Claim_mileageUnitUsed?
+  chartOfAccount            ChartOfAccount?        @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
+  employee                  User                   @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
+  organization              Organization?          @relation(fields: [organizationId], references: [id])
+  payViaAccount             ChartOfAccount?        @relation("ClaimPayVia", fields: [payViaAccountId], references: [id])
+  reviewer                  User?                  @relation("AdminReviews", fields: [reviewerId], references: [id])
 
   @@index([organizationId, submittedAt])
   @@index([chartOfAccountId])
@@ -164,24 +172,29 @@ model Claim {
 }
 
 model ChartOfAccount {
-  id               String          @id @default(cuid())
-  organizationId   String
-  xeroConnectionId String?
-  xeroAccountId    String?
-  code             String
-  name             String
-  type             String?
-  status           String?
-  isSelectable     Boolean         @default(false)
-  isCustom         Boolean         @default(false)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  isBankAccount    Boolean         @default(false)
-  isDisabled       Boolean         @default(false)
-  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
-  claims           Claim[]         @relation("ClaimAccount")
-  payViaClaims     Claim[]         @relation("ClaimPayVia")
+  id                String                      @id @default(cuid())
+  organizationId    String
+  xeroConnectionId  String?
+  xeroAccountId     String?
+  code              String
+  name              String
+  type              String?
+  status            String?
+  isSelectable      Boolean                     @default(false)
+  isCustom          Boolean                     @default(false)
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+  isBankAccount     Boolean                     @default(false)
+  isDisabled        Boolean                     @default(false)
+  allowMileageClaim Boolean                     @default(false)
+  limitAmount       Decimal?                    @db.Decimal(12, 2)
+  limitPeriod       ChartOfAccount_limitPeriod?
+  limitScope        ChartOfAccount_limitScope?
+  mileageRate       Decimal?                    @db.Decimal(10, 4)
+  organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  xeroConnection    XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
+  claims            Claim[]                     @relation("ClaimAccount")
+  payViaClaims      Claim[]                     @relation("ClaimPayVia")
 
   @@unique([xeroConnectionId, xeroAccountId])
   @@unique([organizationId, code])
@@ -228,12 +241,12 @@ model XeroProject {
   updatedAt         DateTime                    @updatedAt
   isManual          Boolean                     @default(false)
   location          String?
-  latitude          Float?
-  longitude         Float?
   projectManagerId  String?
   isDisabled        Boolean                     @default(false)
-  assignedEmployees EmployeeProjectAssignment[]
+  latitude          Float?
+  longitude         Float?
   attendanceRecords AttendanceRecord[]          @relation("AttendanceRecordProject")
+  assignedEmployees EmployeeProjectAssignment[]
   organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   projectManager    User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
   xeroConnection    XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
@@ -254,11 +267,11 @@ model AttendanceRecord {
   lateByMin   Int?
   location    String?
   project     String?
-  projectId   String?
   status      AttendanceStatus @default(MISSING)
   notes       String?          @db.Text
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  projectId   String?
   employee    User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
   projectRef  XeroProject?     @relation("AttendanceRecordProject", fields: [projectId], references: [id])
 
@@ -375,4 +388,35 @@ enum OTSubtype {
   LATE_REPLACEMENT
   OT_OFFSET
   UNRESOLVED
+}
+
+enum EmployeeProfile_payoutMethod {
+  HOURLY
+  DAILY_BASED
+}
+
+enum ChartOfAccount_limitPeriod {
+  PER_CLAIM
+  MONTHLY
+  YEARLY
+}
+
+enum Organization_mileageUnit {
+  KM
+  MILE
+}
+
+enum ChartOfAccount_limitScope {
+  PER_EMPLOYEE
+  ORG_WIDE
+}
+
+enum Claim_claimType {
+  EXPENSE
+  MILEAGE
+}
+
+enum Claim_mileageUnitUsed {
+  KM
+  MILE
 }
