@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { getCurrentSession, updateCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
 import { exchangeXeroCodeForTokens, getXeroTenants } from "@/lib/xero"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     // Auto-create org from Xero tenant name if admin hasn't set one yet.
     // Respect activeOrganizationId so the connection attaches to whichever
     // company is currently selected in the org dropdown.
-    let organizationId = session.activeOrganizationId ?? session.organizationId
+    let organizationId = resolveActiveOrgId(session)
     if (!organizationId) {
       const org = await organizationRepository.upsertAdminOrganization({
         adminUserId: session.userId,

@@ -1,5 +1,5 @@
 import { AdminShell } from "@/components/layout/admin-shell"
-import { requirePortalSession } from "@/lib/auth/session"
+import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 
 export default async function AdminLayout({
   children,
@@ -8,7 +8,7 @@ export default async function AdminLayout({
 }) {
   const session = await requirePortalSession("ADMIN")
   const activeOrganizationId =
-    session.activeOrganizationId ?? session.organizationId
+    resolveActiveOrgId(session)
 
   return (
     <AdminShell

@@ -16,7 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import {
-  claimStatuses,
+  claimMatchesStatusFilter,
+  visibleStatusOptions,
   type ClaimRecord,
   type ClaimStatus,
 } from "@/modules/claims/domain/models"
@@ -36,9 +37,6 @@ const statusLabels: Record<ClaimStatus, string> = {
   SETTLED: "Settled",
 }
 
-const visibleStatusOptions = claimStatuses.filter(
-  (status) => status !== "SUBMITTED"
-) as Exclude<ClaimStatus, "SUBMITTED">[]
 const PAGE_SIZE = 10
 
 export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
@@ -50,12 +48,7 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
     const normalizedQuery = searchTerm.trim().toLowerCase()
 
     return claims.filter((claim) => {
-      const matchesStatus =
-        status === "ALL"
-          ? true
-          : status === "PENDING"
-            ? claim.status === "PENDING" || claim.status === "SUBMITTED"
-            : claim.status === status
+      const matchesStatus = claimMatchesStatusFilter(claim, status)
 
       const matchesQuery =
         normalizedQuery.length === 0

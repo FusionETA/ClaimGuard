@@ -1,7 +1,7 @@
 import "server-only"
 
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
-import type { EmployeeDetailData } from "@/components/attendance/employee-detail-view"
+import type { EmployeeDetailData } from "@/modules/attendance/domain/models"
 
 export async function loadEmployeeDetail(
   employeeId: string,

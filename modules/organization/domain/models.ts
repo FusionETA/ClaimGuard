@@ -32,12 +32,23 @@ export function resolveEmployeePayoutMethod(
   return payoutMethod === "DAILY_BASED" ? "DAILY_BASED" : "HOURLY"
 }
 
+export const mileageUnits = ["KM", "MILE"] as const
+export type MileageUnit = (typeof mileageUnits)[number]
+
+export const limitPeriods = ["PER_CLAIM", "MONTHLY", "YEARLY"] as const
+export type LimitPeriod = (typeof limitPeriods)[number]
+
+export const limitScopes = ["PER_EMPLOYEE", "ORG_WIDE"] as const
+export type LimitScope = (typeof limitScopes)[number]
+
 export type OrganizationSummary = {
   id: string
   name: string
   claimCutoffDay: number
   bankAccount?: string
   otRates: OtRates
+  defaultMileageRate?: number
+  mileageUnit: MileageUnit
 }
 
 export type AdminOrganizationOption = {
@@ -56,6 +67,14 @@ export type ChartOfAccountOption = {
   isCustom: boolean
   isDisabled: boolean
   xeroConnectionId?: string
+  // Spend-limit policy. limitAmount === undefined ⇒ no limit configured.
+  limitAmount?: number
+  limitPeriod?: LimitPeriod
+  limitScope?: LimitScope
+  // Mileage flags. allowMileageClaim ⇒ shown in the Mileage claim flow.
+  // mileageRate, when set, overrides Organization.defaultMileageRate.
+  allowMileageClaim: boolean
+  mileageRate?: number
 }
 
 export type OrganizationProjectOption = {

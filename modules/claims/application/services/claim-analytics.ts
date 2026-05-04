@@ -62,7 +62,6 @@ export function buildAdminOverview(claims: ClaimRecord[]) {
     alerts: {
       highValue: claims.filter((claim) => claim.amount >= 1000).length,
       readyForPayout: claims.filter((claim) => claim.status === "APPROVED").length,
-      autoReviewScore: 88,
     },
     monthlyVolume: buildMonthlyVolumes(claims),
     queue: [...claims].sort((a, b) => {

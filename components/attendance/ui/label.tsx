@@ -1,22 +1,10 @@
-"use client"
-
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
-import { cn } from "@/lib/utils"
-
-const Label = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <LabelPrimitive.Root
-    ref={ref}
-    className={cn(
-      "text-sm font-semibold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-      className,
-    )}
-    {...props}
-  />
-))
-Label.displayName = LabelPrimitive.Root.displayName
-
-export { Label }
+/**
+ * The attendance Label primitive previously had `peer-disabled` styling that
+ * the canonical Label didn't. We re-export the canonical version because none
+ * of the attendance pages render Labels with disabled-peer siblings — the
+ * missing styles are inert in this codebase.
+ *
+ * Re-exporting (rather than deleting + rewriting imports) keeps every
+ * attendance import path working.
+ */
+export { Label } from "@/components/ui/label"

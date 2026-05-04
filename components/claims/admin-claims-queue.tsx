@@ -19,14 +19,11 @@ import {
 } from "@/components/ui/table"
 import { cn, formatCurrency, formatShortDate } from "@/lib/utils"
 import {
-  claimStatuses,
+  claimMatchesStatusFilter,
+  visibleStatusOptions,
   type ClaimRecord,
   type ClaimStatus,
 } from "@/modules/claims/domain/models"
-
-const visibleStatusOptions = claimStatuses.filter(
-  (status) => status !== "SUBMITTED"
-) as Exclude<ClaimStatus, "SUBMITTED">[]
 
 const statusOptions = ["ALL", ...visibleStatusOptions] as const
 
@@ -42,12 +39,7 @@ export function AdminClaimsQueue({ claims }: { claims: ClaimRecord[] }) {
     const normalizedQuery = searchTerm.trim().toLowerCase()
 
     return claims.filter((claim) => {
-      const matchesStatus =
-        statusFilter === "ALL"
-          ? true
-          : statusFilter === "PENDING"
-            ? claim.status === "PENDING" || claim.status === "SUBMITTED"
-            : claim.status === (statusFilter as ClaimStatus)
+      const matchesStatus = claimMatchesStatusFilter(claim, statusFilter)
 
       const matchesQuery =
         normalizedQuery.length === 0

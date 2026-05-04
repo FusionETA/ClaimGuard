@@ -1,0 +1,210 @@
+import "server-only"
+
+import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
+import {
+  getAdminClaimsQueue,
+  getAdminDashboard,
+} from "@/modules/claims/application/services/admin-portal.service"
+import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
+import { getOrganizationHierarchy } from "@/modules/organization/application/services/organization-admin.service"
+import type {
+  AdminDashboardData,
+  AdminProfile,
+  ClaimRecord,
+} from "@/modules/claims/domain/models"
+import type {
+  ChartOfAccountOption,
+  OrganizationMember,
+  OrganizationProjectOption,
+  OrganizationSummary,
+  XeroConnectionInfo,
+  XeroConnectionSummary,
+} from "@/modules/organization/domain/models"
+import { getXeroConnectionSummary } from "@/modules/organization/application/services/xero-connection.service"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+
+/**
+ * Page-data services. Each function returns the full bag of data that one
+ * admin page needs, so the page itself only handles HTTP concerns (cookies,
+ * search params, redirects). Pages used to call 4-6 repository methods inline
+ * — that violated the layered-architecture rule and made testing hard.
+ *
+ * `activeXeroConnectionId` resolution lives here too, since the rule
+ * "session > cookie > first connection, validate it still belongs to the org"
+ * was open-coded across `claims/page.tsx` and `settings/page.tsx`.
+ */
+
+/** Resolve the active Xero connection — session > cookie > first available. */
+function resolveActiveConnection(
+  xeroConnection: XeroConnectionSummary,
+  preferredConnectionId: string | undefined,
+): string | undefined {
+  let activeId =
+    preferredConnectionId ?? xeroConnection.connections[0]?.id ?? undefined
+  if (
+    activeId &&
+    !xeroConnection.connections.find((c) => c.id === activeId)
+  ) {
+    activeId = xeroConnection.connections[0]?.id ?? undefined
+  }
+  return activeId
+}
+
+export type AdminClaimsPageData = {
+  session: { email: string; role: string }
+  claims: ClaimRecord[]
+  dashboard: AdminDashboardData
+  bankAccounts: ChartOfAccountOption[]
+  activeXeroConnectionId?: string
+}
+
+/**
+ * Combined data for `/admin/claims`. Returns null when the session is
+ * unauthorised or the admin store can't be loaded — the page should
+ * `redirect("/login")` in that case.
+ */
+export async function getAdminClaimsPageData(input: {
+  organizationId: string | undefined
+  preferredConnectionId: string | undefined
+}): Promise<{
+  claims: ClaimRecord[]
+  dashboard: AdminDashboardData
+  bankAccounts: ChartOfAccountOption[]
+  xeroConnection: XeroConnectionSummary
+  activeXeroConnectionId?: string
+} | null> {
+  const [claims, dashboard, xeroConnection] = await Promise.all([
+    getAdminClaimsQueue(),
+    getAdminDashboard(),
+    getXeroConnectionSummary(input.organizationId),
+  ])
+  if (!claims || !dashboard) return null
+
+  const activeXeroConnectionId = resolveActiveConnection(
+    xeroConnection,
+    input.preferredConnectionId,
+  )
+
+  const bankAccounts = input.organizationId
+    ? await organizationRepository.getBankAccountsForOrganization({
+        organizationId: input.organizationId,
+        xeroConnectionId: activeXeroConnectionId,
+      })
+    : []
+
+  return {
+    claims,
+    dashboard,
+    bankAccounts,
+    xeroConnection,
+    activeXeroConnectionId,
+  }
+}
+
+export type AdminHierarchyPageData = {
+  members: OrganizationMember[]
+  projects: OrganizationProjectOption[]
+  xeroConnections: XeroConnectionInfo[]
+  organizationName: string
+}
+
+export async function getAdminHierarchyPageData(input: {
+  organizationId: string | undefined
+}): Promise<AdminHierarchyPageData | null> {
+  const members = await getOrganizationHierarchy()
+  if (members === null) return null
+
+  const [organization, projects, xeroConnections] = await Promise.all([
+    input.organizationId
+      ? organizationRepository.getOrganizationById(input.organizationId)
+      : Promise.resolve(null),
+    input.organizationId
+      ? organizationRepository.getProjectsForOrganization(input.organizationId)
+      : Promise.resolve([]),
+    input.organizationId
+      ? organizationRepository.getXeroConnections(input.organizationId)
+      : Promise.resolve([]),
+  ])
+
+  return {
+    members,
+    projects,
+    xeroConnections,
+    organizationName: organization?.name ?? "",
+  }
+}
+
+export type AdminSettingsPageData = {
+  admin: AdminProfile
+  organization: OrganizationSummary | undefined
+  xeroConnection: XeroConnectionSummary
+  chartAccounts: ChartOfAccountOption[]
+  customAccounts: ChartOfAccountOption[]
+  projects: OrganizationProjectOption[]
+  members: OrganizationMember[]
+  workingHours: { start: string; end: string }
+  activeXeroConnectionId?: string
+}
+
+export async function getAdminSettingsPageData(input: {
+  adminEmail: string
+  organizationId: string | undefined
+  preferredConnectionId: string | undefined
+}): Promise<AdminSettingsPageData | null> {
+  const admin = await claimRepository.getAdminProfile(input.adminEmail)
+  if (!admin) return null
+
+  const [organization, xeroConnection] = await Promise.all([
+    input.organizationId
+      ? organizationRepository.getOrganizationById(input.organizationId)
+      : Promise.resolve(null),
+    getXeroConnectionSummary(input.organizationId),
+  ])
+
+  const activeXeroConnectionId = resolveActiveConnection(
+    xeroConnection,
+    input.preferredConnectionId,
+  )
+
+  const [chartAccounts, projects, customAccounts, members, workingHours] =
+    await Promise.all([
+      activeXeroConnectionId
+        ? organizationRepository.getChartAccountsForConnection(activeXeroConnectionId)
+        : Promise.resolve([]),
+      input.organizationId
+        ? organizationRepository.getProjectsForOrganization(input.organizationId)
+        : Promise.resolve([]),
+      input.organizationId
+        ? organizationRepository.getCustomChartAccountsForOrganization(input.organizationId)
+        : Promise.resolve([]),
+      input.organizationId
+        ? organizationRepository.getOrganizationMembers(input.organizationId)
+        : Promise.resolve([]),
+      adminAttendanceService.getWorkingHours(input.organizationId ?? null),
+    ])
+
+  return {
+    admin,
+    organization: organization ?? undefined,
+    xeroConnection,
+    chartAccounts,
+    customAccounts,
+    projects,
+    members,
+    workingHours,
+    activeXeroConnectionId,
+  }
+}
+
+/**
+ * Look up which Xero tenant ids in `pendingTenantIds` are already in use by
+ * other organisations. Used by the settings page when handling the OAuth
+ * callback's "select-tenant" state.
+ */
+export async function getInUseTenantIds(
+  pendingTenantIds: string[],
+  organizationId: string,
+): Promise<string[]> {
+  if (pendingTenantIds.length === 0) return []
+  return organizationRepository.getInUseTenantIds(pendingTenantIds, organizationId)
+}

@@ -6,7 +6,8 @@ import { z } from "zod"
 
 import type { SettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import { clearAdminStore } from "@/lib/app-store"
-import { getCurrentSession, updateCurrentSession } from "@/lib/auth/session"
+import { geocodeAddress } from "@/lib/geocode"
+import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
 import type { XeroTenant } from "@/lib/xero"
 import { deleteXeroConnection } from "@/lib/xero"
 import {
@@ -89,7 +90,7 @@ export async function saveOrganizationSettingsAction(
     }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
 
   const organization = organizationId
     ? await organizationRepository.updateOrganizationName({
@@ -199,7 +200,7 @@ export async function saveSelectableAccountsAction(
     }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return {
       status: "error",
@@ -265,7 +266,7 @@ export async function createCustomAccountAction(
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return { status: "error", message: "Create an organization before adding accounts." }
   }
@@ -309,7 +310,7 @@ export async function deleteCustomAccountAction(
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return { ok: false, message: "No organization found." }
   }
@@ -378,7 +379,7 @@ export async function selectXeroTenantAction(
   }
 
   // Auto-create org from Xero tenant name if admin hasn't set one yet
-  let organizationId = session.activeOrganizationId ?? session.organizationId
+  let organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     const org = await organizationRepository.upsertAdminOrganization({
       adminUserId: session.userId,
@@ -449,7 +450,7 @@ export async function disconnectXeroAction(
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return { ok: false, message: "No organization found." }
   }
@@ -526,7 +527,7 @@ export async function saveSelectedBankAccountsAction(
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return { status: "error", message: "No organization selected." }
   }
@@ -556,7 +557,7 @@ export async function createManualProjectAction(
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return { status: "error", message: "Create an organization first." }
   }
@@ -567,11 +568,22 @@ export async function createManualProjectAction(
   const location = String(formData.get("location") ?? "").trim() || undefined
   const rawLat = parseFloat(String(formData.get("latitude") ?? ""))
   const rawLng = parseFloat(String(formData.get("longitude") ?? ""))
-  const latitude = isNaN(rawLat) ? undefined : rawLat
-  const longitude = isNaN(rawLng) ? undefined : rawLng
+  let latitude: number | undefined = isNaN(rawLat) ? undefined : rawLat
+  let longitude: number | undefined = isNaN(rawLng) ? undefined : rawLng
 
   if (!name) {
     return { status: "error", message: "Project name is required." }
+  }
+
+  // If the admin typed an address but didn't pin coordinates (no 📍 button
+  // press, no "lat, lng" string), geocode it server-side so the project still
+  // gets coords for distance / map features.
+  if (location && (latitude === undefined || longitude === undefined)) {
+    const resolved = await geocodeAddress(location)
+    if (resolved) {
+      latitude = resolved.lat
+      longitude = resolved.lng
+    }
   }
 
   try {
@@ -609,9 +621,22 @@ export async function updateProjectAction(
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return { ok: false, message: "No organization found." }
+  }
+
+  // If the admin typed an address but didn't pin coordinates (no 📍 button,
+  // no "lat, lng" string), geocode it server-side so the project still gets
+  // coords. Mirrors the create flow.
+  let resolvedLat = latitude
+  let resolvedLng = longitude
+  if (location && (resolvedLat == null || resolvedLng == null)) {
+    const geo = await geocodeAddress(location)
+    if (geo) {
+      resolvedLat = geo.lat
+      resolvedLng = geo.lng
+    }
   }
 
   try {
@@ -620,8 +645,8 @@ export async function updateProjectAction(
       organizationId,
       projectManagerId: projectManagerId || undefined,
       location: location || undefined,
-      latitude: latitude ?? null,
-      longitude: longitude ?? null,
+      latitude: resolvedLat ?? null,
+      longitude: resolvedLng ?? null,
     })
   } catch (error) {
     return {
@@ -645,7 +670,7 @@ export async function deleteManualProjectAction(
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return { ok: false, message: "No organization found." }
   }
@@ -678,7 +703,7 @@ export async function saveBankAccountAction(
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return { status: "error", message: "Create an organization before adding a bank account." }
   }
@@ -710,7 +735,7 @@ export async function deleteBankAccountAction(): Promise<{ ok: boolean; message:
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return { ok: false, message: "No organization found." }
   }
@@ -736,7 +761,7 @@ export async function saveClaimRunSettingsAction(
     }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return {
       status: "error",
@@ -769,6 +794,227 @@ export async function saveClaimRunSettingsAction(
   }
 }
 
+// ----------------------------------------------------------------------------
+// Mileage claim settings
+// ----------------------------------------------------------------------------
+
+const mileageDefaultsSchema = z.object({
+  defaultMileageRate: z
+    .union([
+      z
+        .string()
+        .trim()
+        .transform((v) => (v === "" ? undefined : Number(v)))
+        .refine((v) => v === undefined || (Number.isFinite(v) && v >= 0), {
+          message: "Rate must be 0 or greater.",
+        }),
+      z.number().nonnegative(),
+    ])
+    .optional(),
+  mileageUnit: z.enum(["KM", "MILE"]).default("KM"),
+})
+
+export async function saveMileageDefaultsAction(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "Create or assign an organization first." }
+  }
+
+  const parsed = mileageDefaultsSchema.safeParse({
+    defaultMileageRate: formData.get("defaultMileageRate"),
+    mileageUnit: formData.get("mileageUnit") ?? "KM",
+  })
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Unable to save mileage defaults.",
+    }
+  }
+
+  try {
+    await organizationRepository.updateOrganizationMileageDefaults({
+      organizationId,
+      defaultMileageRate: parsed.data.defaultMileageRate,
+      mileageUnit: parsed.data.mileageUnit,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unable to save mileage defaults.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { status: "success", message: "Mileage defaults saved." }
+}
+
+/**
+ * Bulk-save which accounts are mileage-eligible plus optional per-account
+ * rate overrides. The form posts paired arrays:
+ *   mileageAccountIds[] — selected account ids
+ *   mileageRate__<accountId> — optional decimal override
+ */
+export async function saveMileageAccountsAction(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "No organization selected." }
+  }
+
+  const connectionId = String(formData.get("connectionId") ?? "").trim() || undefined
+
+  const selectedIds = formData
+    .getAll("mileageAccountIds")
+    .map((value) => String(value))
+    .filter(Boolean)
+
+  const selectedAccounts: Array<{ chartAccountId: string; mileageRate?: number }> = []
+  for (const id of selectedIds) {
+    const raw = String(formData.get(`mileageRate__${id}`) ?? "").trim()
+    if (raw === "") {
+      selectedAccounts.push({ chartAccountId: id })
+      continue
+    }
+    const n = Number(raw)
+    if (!Number.isFinite(n) || n < 0) {
+      return {
+        status: "error",
+        message: "Mileage rate overrides must be 0 or greater.",
+      }
+    }
+    selectedAccounts.push({ chartAccountId: id, mileageRate: n })
+  }
+
+  try {
+    await organizationRepository.setMileageChartAccounts({
+      organizationId,
+      xeroConnectionId: connectionId,
+      selectedAccounts,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unable to save mileage accounts.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { status: "success", message: "Mileage claim accounts saved." }
+}
+
+// ----------------------------------------------------------------------------
+// Per-account spend-limit setting
+// ----------------------------------------------------------------------------
+
+const limitSchema = z
+  .object({
+    chartOfAccountId: z.string().min(1),
+    limitAmount: z
+      .string()
+      .trim()
+      .transform((v) => (v === "" ? undefined : Number(v)))
+      .refine((v) => v === undefined || (Number.isFinite(v) && v > 0), {
+        message: "Limit must be a positive number.",
+      })
+      .optional(),
+    limitPeriod: z
+      .enum(["", "PER_CLAIM", "MONTHLY", "YEARLY"])
+      .transform((v) => (v === "" ? undefined : v))
+      .optional(),
+    limitScope: z
+      .enum(["", "PER_EMPLOYEE", "ORG_WIDE"])
+      .transform((v) => (v === "" ? undefined : v))
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasAny =
+      data.limitAmount !== undefined ||
+      data.limitPeriod !== undefined ||
+      data.limitScope !== undefined
+    const hasAll =
+      data.limitAmount !== undefined &&
+      data.limitPeriod !== undefined &&
+      data.limitScope !== undefined
+    if (hasAny && !hasAll) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Provide amount, period, and scope to set a limit (or clear all to remove).",
+      })
+    }
+  })
+
+export async function saveAccountLimitAction(
+  _previousState: SettingsActionState,
+  formData: FormData
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "No organization selected." }
+  }
+
+  const parsed = limitSchema.safeParse({
+    chartOfAccountId: formData.get("chartOfAccountId") ?? "",
+    limitAmount: formData.get("limitAmount") ?? "",
+    limitPeriod: formData.get("limitPeriod") ?? "",
+    limitScope: formData.get("limitScope") ?? "",
+  })
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Unable to save limit.",
+    }
+  }
+
+  try {
+    await organizationRepository.updateChartAccountLimit({
+      organizationId,
+      chartOfAccountId: parsed.data.chartOfAccountId,
+      limitAmount: parsed.data.limitAmount,
+      limitPeriod: parsed.data.limitPeriod,
+      limitScope: parsed.data.limitScope,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unable to save limit.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return { status: "success", message: "Account limit updated." }
+}
+
 export async function saveOtRatesAction(
   _previousState: SettingsActionState,
   formData: FormData
@@ -779,7 +1025,7 @@ export async function saveOtRatesAction(
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
-  const organizationId = session.activeOrganizationId ?? session.organizationId
+  const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {
     return {
       status: "error",

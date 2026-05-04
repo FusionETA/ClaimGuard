@@ -1,7 +1,8 @@
 import "server-only"
 
-import { getPrismaClient } from "@/lib/prisma"
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { toNumber } from "@/lib/decimal"
+import { executiveOverviewRepository } from "@/modules/claims/infrastructure/executive-overview.repository"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,12 +86,9 @@ function daysBetween(a: Date, b: Date) {
   return Math.floor((a.getTime() - b.getTime()) / 86_400_000)
 }
 
-function num(value: unknown): number {
-  if (value == null) return 0
-  if (typeof value === "number") return value
-  const n = Number(value as { toString(): string })
-  return Number.isFinite(n) ? n : 0
-}
+// `num` was a local Prisma-Decimal coercion helper — replaced by `toNumber`
+// from `lib/decimal.ts` (same behaviour, single source of truth).
+const num = (value: unknown): number => toNumber(value, 0)
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
@@ -102,10 +100,7 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") return null
 
-  const prisma = getPrismaClient()
-  if (!prisma) return null
-
-  const orgId = session.activeOrganizationId ?? session.organizationId ?? null
+  const orgId = resolveActiveOrgId(session) ?? null
   if (!orgId) {
     return {
       projectSpend: [],
@@ -125,141 +120,29 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
   const otLookback = new Date(now.getTime() - SLOW_OT_LOOKBACK_DAYS * 86_400_000)
   const overturnLookback = new Date(now.getTime() - 90 * 86_400_000)
 
+  // Each call below maps 1:1 to a query that used to live inline as raw
+  // `prisma.*.findMany` — moved into `executive-overview.repository.ts` so
+  // the service stays orchestration-only, per the layered architecture rule.
   const [
     monthClaims,
     attendanceRecords,
     otReviewed,
     otPending,
     pendingClaims,
-    org,
+    cutoffDay,
     runClaims,
     rejectedClaims,
     chainStepRows,
   ] = await Promise.all([
-    // 1. Monthly project claim spend — claims submitted this month, group by employee.project
-    prisma.claim.findMany({
-      where: {
-        organizationId: orgId,
-        submittedAt: { gte: monthStart, lte: monthEnd },
-        status: { in: ["PENDING", "SUBMITTED", "APPROVED", "PAID"] },
-      },
-      select: {
-        amount: true,
-        employee: {
-          select: { employeeProfile: { select: { project: true } } },
-        },
-      },
-    }),
-
-    // 2. Attendance health by project (last 30 days)
-    prisma.attendanceRecord.findMany({
-      where: {
-        date: { gte: last30Days, lte: now },
-        employee: { organizationId: orgId },
-      },
-      select: {
-        status: true,
-        project: true,
-        employee: { select: { employeeProfile: { select: { project: true } } } },
-      },
-    }),
-
-    // 3a. OT approvals reviewed in lookback window — for slow-approver avg
-    prisma.approvalRequest.findMany({
-      where: {
-        kind: "OT",
-        reviewerId: { not: null },
-        reviewedAt: { not: null, gte: otLookback },
-        employee: { organizationId: orgId },
-      },
-      select: {
-        submittedAt: true,
-        reviewedAt: true,
-        reviewerId: true,
-        reviewer: { select: { name: true } },
-      },
-    }),
-
-    // 3b. OT approvals still pending — group by would-be-reviewer (supervisor)
-    prisma.approvalRequest.findMany({
-      where: {
-        kind: "OT",
-        status: "PENDING",
-        employee: { organizationId: orgId },
-      },
-      select: {
-        employee: {
-          select: {
-            employeeProfile: {
-              select: {
-                supervisorId: true,
-                supervisor: { select: { id: true, name: true } },
-              },
-            },
-          },
-        },
-      },
-    }),
-
-    // 4. Stale pending claims (>7 days)
-    prisma.claim.findMany({
-      where: {
-        organizationId: orgId,
-        status: { in: ["PENDING", "SUBMITTED"] },
-        submittedAt: { lt: staleCutoff },
-      },
-      orderBy: { submittedAt: "asc" },
-      take: 5,
-      select: {
-        id: true,
-        claimNumber: true,
-        title: true,
-        amount: true,
-        submittedAt: true,
-        employee: { select: { name: true } },
-      },
-    }),
-
-    // 5a. Org for cutoff day
-    prisma.organization.findUnique({
-      where: { id: orgId },
-      select: { claimCutoffDay: true },
-    }),
-
-    // 5b. Claims in current claim run
-    prisma.claim.findMany({
-      where: {
-        organizationId: orgId,
-        claimRunMonth: { gte: monthStart, lte: monthEnd },
-      },
-      select: { amount: true, status: true },
-    }),
-
-    // 6a. Rejected claims in lookback — used to compute "overturned at layer 1"
-    prisma.claim.findMany({
-      where: {
-        organizationId: orgId,
-        status: "REJECTED",
-        reviewedAt: { gte: overturnLookback },
-      },
-      select: {
-        id: true,
-        employeeId: true,
-        reviewerId: true,
-      },
-    }),
-
-    // 6b. Approval chain steps for the org (small table — fetch all once and group in memory)
-    prisma.approvalChainStep.findMany({
-      where: { employee: { organizationId: orgId } },
-      select: {
-        employeeId: true,
-        step: true,
-        approverId: true,
-        approver: { select: { id: true, name: true } },
-      },
-      orderBy: [{ employeeId: "asc" }, { step: "asc" }],
-    }),
+    executiveOverviewRepository.getMonthClaimsForOrg(orgId, monthStart, monthEnd),
+    executiveOverviewRepository.getAttendanceRecordsForOrg(orgId, last30Days, now),
+    executiveOverviewRepository.getReviewedOtApprovalsForOrg(orgId, otLookback),
+    executiveOverviewRepository.getPendingOtApprovalsForOrg(orgId),
+    executiveOverviewRepository.getStalePendingClaims(orgId, staleCutoff, 5),
+    executiveOverviewRepository.getOrgClaimCutoffDay(orgId),
+    executiveOverviewRepository.getClaimsInRunForOrg(orgId, monthStart, monthEnd),
+    executiveOverviewRepository.getRejectedClaimsSinceForOrg(orgId, overturnLookback),
+    executiveOverviewRepository.getChainStepsForOrg(orgId),
   ])
 
   // ── 1. Project claims breakdown ────────────────────────────────────────────
@@ -352,8 +235,7 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
 
   // ── 5. Upcoming claim run ──────────────────────────────────────────────────
   let upcomingClaimRun: UpcomingClaimRun | null = null
-  if (org) {
-    const cutoffDay = org.claimCutoffDay
+  if (cutoffDay != null) {
     // Next cutoff date: this month's cutoff if not yet passed, else next month's
     let cutoffDate = new Date(now.getFullYear(), now.getMonth(), cutoffDay, 23, 59, 59, 999)
     if (cutoffDate.getTime() < now.getTime()) {

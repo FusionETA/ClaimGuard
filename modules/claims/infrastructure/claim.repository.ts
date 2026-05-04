@@ -1,31 +1,27 @@
 import "server-only"
 
+import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
+import { buildInitials } from "@/lib/utils"
+import { mapChartAccount } from "@/modules/organization/infrastructure/chart-account.mapper"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 import {
   resolveAssignedProjects,
   resolveEmployeePayoutMethod,
   resolvePrimaryProjectName,
 } from "@/modules/organization/domain/models"
+import { decideNextClaimStatus } from "@/modules/claims/domain/models"
 import type {
   AdminProfile,
   ApprovalStepInfo,
   ApprovalStepState,
   ClaimRecord,
   ClaimStatus,
+  ClaimType,
   PaymentType,
   PendingApproverInfo,
   PortalUser,
 } from "@/modules/claims/domain/models"
-
-function buildInitials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase()
-}
 
 type PrismaUser = {
   id?: string
@@ -71,6 +67,11 @@ type PrismaChartAccount = {
   isCustom: boolean
   isDisabled: boolean
   xeroConnectionId: string | null
+  limitAmount?: unknown
+  limitPeriod?: string | null
+  limitScope?: string | null
+  allowMileageClaim?: boolean | null
+  mileageRate?: unknown
 }
 
 type PrismaClaim = {
@@ -85,11 +86,17 @@ type PrismaClaim = {
   claimRunMonth: Date | null
   status: string
   paymentType: string
+  claimType?: string | null
   receiptUrl: string | null
   reviewNotes: string | null
   reviewedAt: Date | null
   reviewerId: string | null
   employeeId: string
+  distance?: { toString(): string } | number | string | null
+  mileageOriginAddress?: string | null
+  mileageDestinationAddress?: string | null
+  mileageRateUsed?: { toString(): string } | number | string | null
+  mileageUnitUsed?: string | null
   reviewer: { name: string } | null
   organization: { name: string } | null
   chartOfAccount: PrismaChartAccount | null
@@ -202,6 +209,14 @@ export type CreateClaimData = {
   reviewerId: string | null
   paymentType: PaymentType
   payViaAccountId?: string
+  // Claim-type + mileage snapshot fields. EXPENSE is the default and leaves
+  // the mileage columns null.
+  claimType?: "EXPENSE" | "MILEAGE"
+  distance?: string
+  mileageOriginAddress?: string
+  mileageDestinationAddress?: string
+  mileageRateUsed?: string
+  mileageUnitUsed?: "KM" | "MILE"
 }
 
 export type ReviewClaimData = {
@@ -241,34 +256,6 @@ export type ClaimForXeroSync = {
   employee: {
     name: string
     email: string
-  }
-}
-
-function mapChartAccount(account?: {
-  id: string
-  code: string
-  name: string
-  type: string | null
-  status: string | null
-  isSelectable: boolean
-  isBankAccount: boolean
-  isCustom: boolean
-  isDisabled: boolean
-  xeroConnectionId?: string | null
-} | null): ChartOfAccountOption | undefined {
-  if (!account) return undefined
-
-  return {
-    id: account.id,
-    code: account.code,
-    name: account.name,
-    type: account.type ?? undefined,
-    status: account.status ?? undefined,
-    isSelectable: account.isSelectable,
-    isBankAccount: account.isBankAccount,
-    isCustom: account.isCustom,
-    isDisabled: account.isDisabled,
-    xeroConnectionId: account.xeroConnectionId ?? undefined,
   }
 }
 
@@ -330,10 +317,19 @@ function mapClaim(
     claimRunMonth: claim.claimRunMonth?.toISOString(),
     status: claim.status as ClaimStatus,
     paymentType: claim.paymentType as PaymentType,
+    claimType: (claim.claimType as ClaimType | null | undefined) ?? "EXPENSE",
     receiptUrl: claim.receiptUrl ?? undefined,
     reviewNotes: claim.reviewNotes ?? undefined,
     reviewerName: claim.reviewer?.name ?? undefined,
     reviewedAt: claim.reviewedAt?.toISOString(),
+    distance: toNumber(claim.distance ?? null),
+    mileageOriginAddress: claim.mileageOriginAddress ?? undefined,
+    mileageDestinationAddress: claim.mileageDestinationAddress ?? undefined,
+    mileageRateUsed: toNumber(claim.mileageRateUsed ?? null),
+    mileageUnitUsed:
+      claim.mileageUnitUsed === "KM" || claim.mileageUnitUsed === "MILE"
+        ? claim.mileageUnitUsed
+        : undefined,
     employee: mapUser(claim.employee),
     pendingApprover: chainState?.pending,
     approvalChain: chainState?.chain,
@@ -510,6 +506,76 @@ export const claimRepository = {
     return rows.map((row) => mapClaim(row))
   },
 
+  /**
+   * Count-only variant of `getClaimsForSupervisor`. Avoids hydrating the full
+   * claim payload (mapper + chain join + employee join) just to compute a
+   * badge number. Used by the supervisor dashboard's "Awaiting your review"
+   * indicator, which gets re-fetched on every page poll.
+   */
+  /**
+   * Lightweight lookup for sending push notifications about a claim — returns
+   * just the employee user-id and the claim title, without hydrating the full
+   * claim payload. Replaces the dynamic `await import("@/lib/prisma")` shortcut
+   * that used to live inline in `markClaimPaidAction`.
+   */
+  async getClaimNotificationSnapshot(
+    claimId: string
+  ): Promise<{ employeeId: string; title: string } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const claim = await prisma.claim.findUnique({
+      where: { id: claimId },
+      select: { employeeId: true, title: true },
+    })
+    return claim ?? null
+  },
+
+  async countPendingForSupervisor(email: string): Promise<number> {
+    const prisma = getPrismaClient()
+    if (!prisma) return 0
+
+    const supervisor = await prisma.user.findFirst({
+      where: { email, role: "SUPERVISOR" },
+      select: { id: true, organizationId: true },
+    })
+
+    if (!supervisor) return 0
+
+    const chainSteps = await prisma.approvalChainStep.findMany({
+      where: { approverId: supervisor.id },
+      select: { employeeId: true, step: true },
+    })
+
+    if (chainSteps.length > 0) {
+      const conditions = chainSteps.map(
+        ({ employeeId, step }) =>
+          step === 1
+            ? {
+                employeeId,
+                status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
+                reviewedAt: null as null,
+              }
+            : {
+                employeeId,
+                status: { in: ["PENDING"] as ClaimStatus[] },
+                reviewedAt: { not: null },
+              }
+      )
+      return prisma.claim.count({ where: { OR: conditions } })
+    }
+
+    return prisma.claim.count({
+      where: {
+        status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
+        reviewedAt: null,
+        organizationId: supervisor.organizationId ?? undefined,
+        employee: {
+          employeeProfile: { supervisorId: supervisor.id },
+        },
+      },
+    })
+  },
+
   async getClaimsForOrganization(
     organizationId: string,
     xeroConnectionId?: string
@@ -610,6 +676,7 @@ export const claimRepository = {
         title: data.title,
         description: data.description,
         category: "OTHER",
+        claimType: data.claimType ?? "EXPENSE",
         status: "SUBMITTED",
         organizationId: data.organizationId,
         chartOfAccountId: data.chartOfAccountId,
@@ -622,9 +689,91 @@ export const claimRepository = {
         reviewerId: data.reviewerId,
         paymentType: data.paymentType,
         payViaAccountId: data.payViaAccountId,
+        distance: data.distance,
+        mileageOriginAddress: data.mileageOriginAddress,
+        mileageDestinationAddress: data.mileageDestinationAddress,
+        mileageRateUsed: data.mileageRateUsed,
+        mileageUnitUsed: data.mileageUnitUsed,
       },
     })
     return true
+  },
+
+  /**
+   * Sum claim amounts that count against an account's spend limit. Includes
+   * claims in any non-terminal status (SUBMITTED/PENDING/APPROVED/PAID/SETTLED)
+   * — only REJECTED claims are excluded.
+   *
+   * - employeeId omitted ⇒ org-wide sum (use for ORG_WIDE limits).
+   * - excludeClaimId lets callers ignore the current claim when re-checking
+   *   on edit (not used yet but cheap to support).
+   */
+  async sumClaimsForLimit(data: {
+    organizationId: string
+    chartOfAccountId: string
+    employeeId?: string
+    periodStart: Date
+    periodEnd: Date
+    excludeClaimId?: string
+  }): Promise<number> {
+    const prisma = getPrismaClient()
+    if (!prisma) return 0
+
+    const result = await prisma.claim.aggregate({
+      _sum: { amount: true },
+      where: {
+        organizationId: data.organizationId,
+        chartOfAccountId: data.chartOfAccountId,
+        status: { not: "REJECTED" },
+        spentAt: { gte: data.periodStart, lt: data.periodEnd },
+        ...(data.employeeId ? { employeeId: data.employeeId } : {}),
+        ...(data.excludeClaimId ? { id: { not: data.excludeClaimId } } : {}),
+      },
+    })
+
+    return toNumber(result._sum.amount, 0)
+  },
+
+  /**
+   * Batched version of `sumClaimsForLimit` for the employee claim form, where
+   * we want totals for many accounts at once (one for each account that has
+   * a limit configured). Returns a `Map<chartOfAccountId, number>` so the
+   * service can look up each account's used-amount in O(1).
+   *
+   * Implementation note: a single grouped aggregate is much cheaper than
+   * N separate aggregate queries — one DB round trip vs N. When `accountIds`
+   * is empty, returns an empty map without hitting the DB.
+   */
+  async sumClaimsByAccountForLimits(data: {
+    organizationId: string
+    accountIds: string[]
+    employeeId?: string
+    periodStart: Date
+    periodEnd: Date
+  }): Promise<Map<string, number>> {
+    const result = new Map<string, number>()
+    if (data.accountIds.length === 0) return result
+
+    const prisma = getPrismaClient()
+    if (!prisma) return result
+
+    const rows = await prisma.claim.groupBy({
+      by: ["chartOfAccountId"],
+      _sum: { amount: true },
+      where: {
+        organizationId: data.organizationId,
+        chartOfAccountId: { in: data.accountIds },
+        status: { not: "REJECTED" },
+        spentAt: { gte: data.periodStart, lt: data.periodEnd },
+        ...(data.employeeId ? { employeeId: data.employeeId } : {}),
+      },
+    })
+
+    for (const row of rows) {
+      if (row.chartOfAccountId == null) continue
+      result.set(row.chartOfAccountId, toNumber(row._sum.amount, 0))
+    }
+    return result
   },
 
   async reviewClaim(data: ReviewClaimData): Promise<ReviewClaimResult> {
@@ -676,6 +825,10 @@ export const claimRepository = {
         orderBy: { step: "asc" },
       })
 
+      // Resolve `isFinalStep` based on which path we're on. After this point
+      // all branches use `decideNextClaimStatus` for the actual transition,
+      // so the state machine lives in one place.
+      let isFinalStep: boolean
       if (chain.length > 0) {
         // Determine which step is expected:
         // - SUBMITTED, or PENDING with no prior review (legacy) → step 1
@@ -691,66 +844,40 @@ export const claimRepository = {
           return { ok: false, error: "NOT_FOUND" }
         }
 
-        // Determine the next status for an approval decision:
-        // If there are more chain steps after this reviewer → PENDING
-        // If this is the last step:
-        //   - PERSONAL → APPROVED (admin still needs to mark as paid)
-        //   - COMPANY  → SETTLED  (company already paid; no payout step)
-        const isFinalStep = !chain.some((s) => s.step > reviewerStep.step)
-        const nextStatus:
-          | "SUBMITTED"
-          | "PENDING"
-          | "APPROVED"
-          | "REJECTED"
-          | "SETTLED" =
-          data.status === "REJECTED"
-            ? "REJECTED"
-            : isFinalStep
-              ? isCompanyMoney
-                ? "SETTLED"
-                : "APPROVED"
-              : "PENDING"
-
-        await prisma.claim.update({
-          where: { id: data.claimId },
-          data: {
-            status: nextStatus,
-            reviewNotes: data.reviewNotes || null,
-            reviewedAt: new Date(),
-            reviewerId: data.reviewerId,
-            // Stamp the settlement timestamp when company-money claims auto-settle
-            payoutAt: nextStatus === "SETTLED" ? new Date() : undefined,
-          },
-        })
+        isFinalStep = !chain.some((s) => s.step > reviewerStep.step)
       } else {
-        // Legacy path: no chain steps — fall back to supervisorId check (1-step approval)
+        // Legacy path: no chain steps — fall back to supervisorId check
+        // (treated as a single-step chain so isFinalStep is always true).
         if (existingClaim.employee.employeeProfile?.supervisorId !== data.reviewerId) {
           return { ok: false, error: "NOT_FOUND" }
         }
-
-        const finalStatus: "APPROVED" | "REJECTED" | "SETTLED" =
-          data.status === "REJECTED"
-            ? "REJECTED"
-            : isCompanyMoney
-              ? "SETTLED"
-              : "APPROVED"
-
-        await prisma.claim.update({
-          where: { id: data.claimId },
-          data: {
-            status: finalStatus,
-            reviewNotes: data.reviewNotes || null,
-            reviewedAt: new Date(),
-            reviewerId: data.reviewerId,
-            payoutAt: finalStatus === "SETTLED" ? new Date() : undefined,
-          },
-        })
+        isFinalStep = true
       }
+
+      const nextStatus = decideNextClaimStatus({
+        decision: data.status,
+        isFinalStep,
+        isCompanyMoney,
+      })
+
+      await prisma.claim.update({
+        where: { id: data.claimId },
+        data: {
+          status: nextStatus,
+          reviewNotes: data.reviewNotes || null,
+          reviewedAt: new Date(),
+          reviewerId: data.reviewerId,
+          payoutAt: nextStatus === "SETTLED" ? new Date() : undefined,
+        },
+      })
     } else {
-      // Admin review — use the requested status, but auto-promote APPROVED on
-      // COMPANY-money claims to SETTLED (admin doesn't need to pay them out).
-      const finalStatus =
-        data.status === "APPROVED" && isCompanyMoney ? "SETTLED" : data.status
+      // Admin review — admins are always the final approver (they're the last
+      // word on every claim) so isFinalStep is always true here.
+      const finalStatus = decideNextClaimStatus({
+        decision: data.status,
+        isFinalStep: true,
+        isCompanyMoney,
+      })
 
       await prisma.claim.update({
         where: { id: data.claimId },

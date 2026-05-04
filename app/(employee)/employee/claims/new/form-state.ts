@@ -7,6 +7,10 @@ export type ClaimFormValues = {
   receiptUrl: string
   paymentType: "PERSONAL" | "COMPANY"
   payViaAccountId: string
+  claimType: "EXPENSE" | "MILEAGE"
+  distance: string
+  mileageOriginAddress: string
+  mileageDestinationAddress: string
 }
 
 export type ClaimFormState = {
@@ -28,6 +32,10 @@ export const initialClaimFormState: ClaimFormState = {
     receiptUrl: "",
     paymentType: "PERSONAL",
     payViaAccountId: "",
+    claimType: "EXPENSE",
+    distance: "",
+    mileageOriginAddress: "",
+    mileageDestinationAddress: "",
   },
   errors: {},
 }

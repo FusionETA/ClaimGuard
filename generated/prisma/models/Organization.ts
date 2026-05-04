@@ -35,6 +35,7 @@ export type OrganizationAvgAggregateOutputType = {
   publicHolidayInShiftRate: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
   geofenceRadiusMeters: number | null
+  defaultMileageRate: runtime.Decimal | null
 }
 
 export type OrganizationSumAggregateOutputType = {
@@ -46,6 +47,7 @@ export type OrganizationSumAggregateOutputType = {
   publicHolidayInShiftRate: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
   geofenceRadiusMeters: number | null
+  defaultMileageRate: runtime.Decimal | null
 }
 
 export type OrganizationMinAggregateOutputType = {
@@ -64,6 +66,8 @@ export type OrganizationMinAggregateOutputType = {
   publicHolidayInShiftRate: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
   geofenceRadiusMeters: number | null
+  defaultMileageRate: runtime.Decimal | null
+  mileageUnit: $Enums.MileageUnit | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -82,6 +86,8 @@ export type OrganizationMaxAggregateOutputType = {
   publicHolidayInShiftRate: runtime.Decimal | null
   restDayInShiftRate: runtime.Decimal | null
   geofenceRadiusMeters: number | null
+  defaultMileageRate: runtime.Decimal | null
+  mileageUnit: $Enums.MileageUnit | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -100,6 +106,8 @@ export type OrganizationCountAggregateOutputType = {
   publicHolidayInShiftRate: number
   restDayInShiftRate: number
   geofenceRadiusMeters: number
+  defaultMileageRate: number
+  mileageUnit: number
   _all: number
 }
 
@@ -113,6 +121,7 @@ export type OrganizationAvgAggregateInputType = {
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
   geofenceRadiusMeters?: true
+  defaultMileageRate?: true
 }
 
 export type OrganizationSumAggregateInputType = {
@@ -124,6 +133,7 @@ export type OrganizationSumAggregateInputType = {
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
   geofenceRadiusMeters?: true
+  defaultMileageRate?: true
 }
 
 export type OrganizationMinAggregateInputType = {
@@ -142,6 +152,8 @@ export type OrganizationMinAggregateInputType = {
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
   geofenceRadiusMeters?: true
+  defaultMileageRate?: true
+  mileageUnit?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -160,6 +172,8 @@ export type OrganizationMaxAggregateInputType = {
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
   geofenceRadiusMeters?: true
+  defaultMileageRate?: true
+  mileageUnit?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -178,6 +192,8 @@ export type OrganizationCountAggregateInputType = {
   publicHolidayInShiftRate?: true
   restDayInShiftRate?: true
   geofenceRadiusMeters?: true
+  defaultMileageRate?: true
+  mileageUnit?: true
   _all?: true
 }
 
@@ -283,6 +299,8 @@ export type OrganizationGroupByOutputType = {
   publicHolidayInShiftRate: runtime.Decimal
   restDayInShiftRate: runtime.Decimal
   geofenceRadiusMeters: number
+  defaultMileageRate: runtime.Decimal | null
+  mileageUnit: $Enums.MileageUnit
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -324,6 +342,8 @@ export type OrganizationWhereInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFilter<"Organization"> | number
+  defaultMileageRate?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFilter<"Organization"> | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
@@ -348,6 +368,8 @@ export type OrganizationOrderByWithRelationInput = {
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
+  defaultMileageRate?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageUnit?: Prisma.SortOrder
   adminMembers?: Prisma.AdminOrganizationOrderByRelationAggregateInput
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
@@ -376,6 +398,8 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFilter<"Organization"> | number
+  defaultMileageRate?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFilter<"Organization"> | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
@@ -400,6 +424,8 @@ export type OrganizationOrderByWithAggregationInput = {
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
+  defaultMileageRate?: Prisma.SortOrderInput | Prisma.SortOrder
+  mileageUnit?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -426,6 +452,8 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   publicHolidayInShiftRate?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntWithAggregatesFilter<"Organization"> | number
+  defaultMileageRate?: Prisma.DecimalNullableWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitWithAggregatesFilter<"Organization"> | $Enums.MileageUnit
 }
 
 export type OrganizationCreateInput = {
@@ -444,6 +472,8 @@ export type OrganizationCreateInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -468,6 +498,8 @@ export type OrganizationUncheckedCreateInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -492,6 +524,8 @@ export type OrganizationUpdateInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -516,6 +550,8 @@ export type OrganizationUncheckedUpdateInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -540,6 +576,8 @@ export type OrganizationCreateManyInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -558,6 +596,8 @@ export type OrganizationUpdateManyMutationInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -576,6 +616,8 @@ export type OrganizationUncheckedUpdateManyInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
 }
 
 export type OrganizationNullableScalarRelationFilter = {
@@ -605,6 +647,8 @@ export type OrganizationCountOrderByAggregateInput = {
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
+  defaultMileageRate?: Prisma.SortOrder
+  mileageUnit?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
@@ -616,6 +660,7 @@ export type OrganizationAvgOrderByAggregateInput = {
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
+  defaultMileageRate?: Prisma.SortOrder
 }
 
 export type OrganizationMaxOrderByAggregateInput = {
@@ -634,6 +679,8 @@ export type OrganizationMaxOrderByAggregateInput = {
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
+  defaultMileageRate?: Prisma.SortOrder
+  mileageUnit?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -652,6 +699,8 @@ export type OrganizationMinOrderByAggregateInput = {
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
+  defaultMileageRate?: Prisma.SortOrder
+  mileageUnit?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
@@ -663,6 +712,7 @@ export type OrganizationSumOrderByAggregateInput = {
   publicHolidayInShiftRate?: Prisma.SortOrder
   restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
+  defaultMileageRate?: Prisma.SortOrder
 }
 
 export type OrganizationScalarRelationFilter = {
@@ -700,6 +750,18 @@ export type DecimalFieldUpdateOperationsInput = {
   decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
   multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type NullableDecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type EnumMileageUnitFieldUpdateOperationsInput = {
+  set?: $Enums.MileageUnit
 }
 
 export type OrganizationCreateNestedOneWithoutAdminMembersInput = {
@@ -790,6 +852,8 @@ export type OrganizationCreateWithoutUsersInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -813,6 +877,8 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -852,6 +918,8 @@ export type OrganizationUpdateWithoutUsersInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -875,6 +943,8 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -898,6 +968,8 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -921,6 +993,8 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -960,6 +1034,8 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -983,6 +1059,8 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1006,6 +1084,8 @@ export type OrganizationCreateWithoutClaimsInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -1029,6 +1109,8 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1068,6 +1150,8 @@ export type OrganizationUpdateWithoutClaimsInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -1091,6 +1175,8 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1114,6 +1200,8 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -1137,6 +1225,8 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1176,6 +1266,8 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -1199,6 +1291,8 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1222,6 +1316,8 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1245,6 +1341,8 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1284,6 +1382,8 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1307,6 +1407,8 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1330,6 +1432,8 @@ export type OrganizationCreateWithoutProjectsInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1353,6 +1457,8 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1392,6 +1498,8 @@ export type OrganizationUpdateWithoutProjectsInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1415,6 +1523,8 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1514,6 +1624,8 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   publicHolidayInShiftRate?: boolean
   restDayInShiftRate?: boolean
   geofenceRadiusMeters?: boolean
+  defaultMileageRate?: boolean
+  mileageUnit?: boolean
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
@@ -1541,9 +1653,11 @@ export type OrganizationSelectScalar = {
   publicHolidayInShiftRate?: boolean
   restDayInShiftRate?: boolean
   geofenceRadiusMeters?: boolean
+  defaultMileageRate?: boolean
+  mileageUnit?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
@@ -1580,6 +1694,8 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     publicHolidayInShiftRate: runtime.Decimal
     restDayInShiftRate: runtime.Decimal
     geofenceRadiusMeters: number
+    defaultMileageRate: runtime.Decimal | null
+    mileageUnit: $Enums.MileageUnit
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -1970,6 +2086,8 @@ export interface OrganizationFieldRefs {
   readonly publicHolidayInShiftRate: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly restDayInShiftRate: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly geofenceRadiusMeters: Prisma.FieldRef<"Organization", 'Int'>
+  readonly defaultMileageRate: Prisma.FieldRef<"Organization", 'Decimal'>
+  readonly mileageUnit: Prisma.FieldRef<"Organization", 'MileageUnit'>
 }
     
 

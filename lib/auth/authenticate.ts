@@ -5,15 +5,7 @@ import { verifyPassword } from "@/lib/auth/password"
 import type {
   SessionUser,
 } from "@/lib/auth/types"
-
-function buildInitials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase()
-}
+import { buildInitials } from "@/lib/utils"
 
 function buildSubtitle(
   role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR",
