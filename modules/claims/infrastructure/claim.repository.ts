@@ -3,6 +3,7 @@ import "server-only"
 import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
 import { buildInitials } from "@/lib/utils"
+import type { Prisma } from "@/generated/prisma/client"
 import { mapChartAccount } from "@/modules/organization/infrastructure/chart-account.mapper"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 import {
@@ -86,11 +87,13 @@ type PrismaClaim = {
   claimRunMonth: Date | null
   status: string
   paymentType: string
+  payViaAccountId?: string | null
   claimType?: string | null
   receiptUrl: string | null
   reviewNotes: string | null
   reviewedAt: Date | null
   reviewerId: string | null
+  reviewerRole: string | null
   employeeId: string
   distance?: { toString(): string } | number | string | null
   mileageOriginAddress?: string | null
@@ -100,7 +103,7 @@ type PrismaClaim = {
   reviewer: { name: string } | null
   organization: { name: string } | null
   chartOfAccount: PrismaChartAccount | null
-  payViaAccount: PrismaChartAccount | null
+  payViaAccount?: PrismaChartAccount | null
   employee: PrismaUser
 }
 
@@ -123,7 +126,7 @@ type ApprovalChainRow = {
  * - SUBMITTED               → step 1 is "current", later steps "upcoming"
  * - PENDING (no reviewedAt) → step 1 is "current" (legacy)
  * - PENDING (reviewedAt set)→ step 1 "approved", step 2 "current", later "upcoming"
- * - APPROVED / PAID         → all steps "approved"
+ * - APPROVED/REVIEWED       → all steps "approved"
  * - REJECTED                → reviewer's step "rejected", earlier "approved",
  *                              later "skipped"
  */
@@ -140,15 +143,38 @@ function buildApprovalChainState(
   const sorted = [...steps].sort((a, b) => a.step - b.step)
   const totalSteps = sorted.length
 
-  // Determine the "current" step number.
+  // Find which chain step corresponds to the most recent reviewer (if any).
+  // Locating the reviewer in the chain is how we know how many supervisor
+  // steps have completed — the previous heuristic ("alreadyReviewedOnce")
+  // assumed at most a 2-step chain and broke for 3+. Now we walk to the
+  // exact step the reviewer occupied and treat everything ≤ that as
+  // approved.
+  const reviewedStepIdx =
+    claim.reviewerId !== null
+      ? sorted.findIndex((s) => s.approverId === claim.reviewerId)
+      : -1
+
+  // Determine the "current" step number — i.e. who's the next supervisor
+  // expected to act. A `currentStep` greater than the last step in the
+  // chain means every supervisor in the chain has approved (the claim is
+  // either fully done or sitting in PENDING awaiting the admin's final
+  // approval).
   let currentStep: number
   if (claim.status === "SUBMITTED") {
     currentStep = sorted[0]!.step
   } else if (claim.status === "PENDING") {
-    currentStep =
-      claim.reviewedAt && sorted[1] ? sorted[1].step : sorted[0]!.step
-  } else if (claim.status === "APPROVED" || claim.status === "PAID") {
-    currentStep = sorted[totalSteps - 1]!.step + 1 // past the last step
+    if (reviewedStepIdx >= 0) {
+      const next = sorted[reviewedStepIdx + 1]
+      // No next chain step → claim is now waiting for admin (no supervisor
+      // is "current" in the chain). Push currentStep past the end so every
+      // chain row falls into the "approved" branch below.
+      currentStep = next ? next.step : sorted[totalSteps - 1]!.step + 1
+    } else {
+      // No previous review yet → first supervisor is current.
+      currentStep = sorted[0]!.step
+    }
+  } else if (claim.status === "APPROVED" || claim.status === "REVIEWED") {
+    currentStep = sorted[totalSteps - 1]!.step + 1
   } else if (claim.status === "REJECTED") {
     const rejectedAt = sorted.find((s) => s.approverId === claim.reviewerId)
     currentStep = rejectedAt?.step ?? sorted[0]!.step
@@ -208,7 +234,7 @@ export type CreateClaimData = {
   employeeId: string
   reviewerId: string | null
   paymentType: PaymentType
-  payViaAccountId?: string
+  payViaAccountId?: string | null
   // Claim-type + mileage snapshot fields. EXPENSE is the default and leaves
   // the mileage columns null.
   claimType?: "EXPENSE" | "MILEAGE"
@@ -225,6 +251,12 @@ export type ReviewClaimData = {
   reviewNotes?: string
   reviewerId: string
   supervisorOnly?: boolean
+  /**
+   * Optional COA override — admins can swap the chart of account when
+   * giving final review (e.g. recoding a misclassified expense). Ignored
+   * on the supervisor branch.
+   */
+  chartOfAccountId?: string
 }
 
 export type ReviewClaimResult =
@@ -234,6 +266,7 @@ export type ReviewClaimResult =
       employeeEmail: string
       employeeUserId: string
       claimTitle: string
+      claimStatus: ClaimStatus
     }
   | {
       ok: false
@@ -302,6 +335,18 @@ function mapClaim(
     reviewerId: claim.reviewerId,
   })
 
+  // Admin's final review gate. A claim is ready when:
+  //  - status is APPROVED and no supervisor is still expected, OR
+  //  - status is SUBMITTED and the employee has no chain at all (skips the
+  //    supervisor layer entirely), OR
+  //  - status is legacy PENDING with the supervisor chain already complete.
+  const awaitingAdminFinalApproval =
+    (claim.status === "APPROVED" &&
+      (chainRows.length === 0 || chainState?.pending === undefined)) ||
+    (claim.status === "PENDING" &&
+      (chainRows.length === 0 || chainState?.pending === undefined)) ||
+    (claim.status === "SUBMITTED" && chainRows.length === 0)
+
   return {
     id: claim.id,
     claimNumber: claim.claimNumber,
@@ -321,6 +366,12 @@ function mapClaim(
     receiptUrl: claim.receiptUrl ?? undefined,
     reviewNotes: claim.reviewNotes ?? undefined,
     reviewerName: claim.reviewer?.name ?? undefined,
+    // reviewerRole is the snapshot persisted at decision time. Cast through
+    // string so historical rows (null before the column existed) stay typed.
+    reviewerRole:
+      claim.reviewerRole === "SUPERVISOR" || claim.reviewerRole === "ADMIN"
+        ? claim.reviewerRole
+        : undefined,
     reviewedAt: claim.reviewedAt?.toISOString(),
     distance: toNumber(claim.distance ?? null),
     mileageOriginAddress: claim.mileageOriginAddress ?? undefined,
@@ -333,6 +384,7 @@ function mapClaim(
     employee: mapUser(claim.employee),
     pendingApprover: chainState?.pending,
     approvalChain: chainState?.chain,
+    awaitingAdminFinalApproval,
   }
 }
 
@@ -453,31 +505,50 @@ export const claimRepository = {
     })
 
     if (chainSteps.length > 0) {
+      const employeeIds = [...new Set(chainSteps.map((step) => step.employeeId))]
+      const chainRows = await prisma.approvalChainStep.findMany({
+        where: { employeeId: { in: employeeIds } },
+        select: { employeeId: true, step: true, approverId: true },
+      })
+      const approverByEmployeeStep = new Map(
+        chainRows.map((step) => [`${step.employeeId}:${step.step}`, step.approverId])
+      )
+
       // Build per-employee OR conditions: match the claim's employeeId and the
       // correct status for this supervisor's layer in that employee's chain.
       // Step 1 → SUBMITTED or PENDING with no prior review (legacy claims
       //           created before status was explicitly SUBMITTED on creation).
-      // Step 2+ → PENDING that has already been reviewed once (reviewedAt set),
-      //           meaning the previous layer signed off.
+      // Step 2+ → PENDING whose last reviewer is the previous chain step.
+      // That prevents a supervisor from seeing the same claim as still
+      // reviewable after they have already approved it.
       // Build typed OR conditions. Explicit ClaimStatus[] cast is required
       // because Prisma's generated type expects a mutable array, not readonly.
-      const conditions = chainSteps.map(
-        ({ employeeId, step }) =>
-          step === 1
-            ? {
-                employeeId,
-                status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
-                reviewedAt: null as null,
-              }
-            : {
-                employeeId,
-                status: { in: ["PENDING"] as ClaimStatus[] },
-                reviewedAt: { not: null },
-              }
-      )
+      const actionableConditions: Prisma.ClaimWhereInput[] = []
+      for (const { employeeId, step } of chainSteps) {
+        if (step === 1) {
+          actionableConditions.push({
+            employeeId,
+            status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
+            reviewedAt: null,
+          })
+          continue
+        }
+
+        const previousApproverId = approverByEmployeeStep.get(`${employeeId}:${step - 1}`)
+        if (!previousApproverId) continue
+
+        actionableConditions.push({
+          employeeId,
+          status: { in: ["PENDING"] as ClaimStatus[] },
+          reviewerId: previousApproverId,
+          reviewerRole: "SUPERVISOR",
+        })
+      }
+
+      if (actionableConditions.length === 0) return []
 
       const rows = await prisma.claim.findMany({
-        where: { OR: conditions },
+        where: { OR: actionableConditions },
         include: claimInclude,
         orderBy: { submittedAt: "desc" },
       })
@@ -515,8 +586,7 @@ export const claimRepository = {
   /**
    * Lightweight lookup for sending push notifications about a claim — returns
    * just the employee user-id and the claim title, without hydrating the full
-   * claim payload. Replaces the dynamic `await import("@/lib/prisma")` shortcut
-   * that used to live inline in `markClaimPaidAction`.
+   * claim payload.
    */
   async getClaimNotificationSnapshot(
     claimId: string
@@ -547,20 +617,39 @@ export const claimRepository = {
     })
 
     if (chainSteps.length > 0) {
-      const conditions = chainSteps.map(
-        ({ employeeId, step }) =>
-          step === 1
-            ? {
-                employeeId,
-                status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
-                reviewedAt: null as null,
-              }
-            : {
-                employeeId,
-                status: { in: ["PENDING"] as ClaimStatus[] },
-                reviewedAt: { not: null },
-              }
+      const employeeIds = [...new Set(chainSteps.map((step) => step.employeeId))]
+      const chainRows = await prisma.approvalChainStep.findMany({
+        where: { employeeId: { in: employeeIds } },
+        select: { employeeId: true, step: true, approverId: true },
+      })
+      const approverByEmployeeStep = new Map(
+        chainRows.map((step) => [`${step.employeeId}:${step.step}`, step.approverId])
       )
+
+      const conditions: Prisma.ClaimWhereInput[] = []
+      for (const { employeeId, step } of chainSteps) {
+        if (step === 1) {
+          conditions.push({
+            employeeId,
+            status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
+            reviewedAt: null,
+          })
+          continue
+        }
+
+        const previousApproverId = approverByEmployeeStep.get(`${employeeId}:${step - 1}`)
+        if (!previousApproverId) continue
+
+        conditions.push({
+          employeeId,
+          status: { in: ["PENDING"] as ClaimStatus[] },
+          reviewerId: previousApproverId,
+          reviewerRole: "SUPERVISOR",
+        })
+      }
+
+      if (conditions.length === 0) return 0
+
       return prisma.claim.count({ where: { OR: conditions } })
     }
 
@@ -688,7 +777,7 @@ export const claimRepository = {
         employeeId: data.employeeId,
         reviewerId: data.reviewerId,
         paymentType: data.paymentType,
-        payViaAccountId: data.payViaAccountId,
+        payViaAccountId: data.payViaAccountId ?? null,
         distance: data.distance,
         mileageOriginAddress: data.mileageOriginAddress,
         mileageDestinationAddress: data.mileageDestinationAddress,
@@ -701,8 +790,8 @@ export const claimRepository = {
 
   /**
    * Sum claim amounts that count against an account's spend limit. Includes
-   * claims in any non-terminal status (SUBMITTED/PENDING/APPROVED/PAID/SETTLED)
-   * — only REJECTED claims are excluded.
+   * claims in any non-terminal status (SUBMITTED/PENDING/APPROVED) — only
+   * REJECTED claims are excluded.
    *
    * - employeeId omitted ⇒ org-wide sum (use for ORG_WIDE limits).
    * - excludeClaimId lets callers ignore the current claim when re-checking
@@ -789,6 +878,7 @@ export const claimRepository = {
         title: true,
         status: true,
         reviewedAt: true,
+        reviewerId: true,
         employeeId: true,
         paymentType: true,
         employee: {
@@ -808,57 +898,69 @@ export const claimRepository = {
       return { ok: false, error: "NOT_FOUND" }
     }
 
-    if (existingClaim.status !== "SUBMITTED" && existingClaim.status !== "PENDING") {
+    if (
+      data.supervisorOnly &&
+      existingClaim.status !== "SUBMITTED" &&
+      existingClaim.status !== "PENDING"
+    ) {
       return { ok: false, error: "NOT_ACTIONABLE" }
     }
 
-    // For COMPANY-money claims, full approval flips straight to SETTLED — the
-    // company already paid out of its bank account, so there's no
-    // "Mark as paid" step for the admin to perform.
-    const isCompanyMoney = existingClaim.paymentType === "COMPANY"
+    if (
+      !data.supervisorOnly &&
+      existingClaim.status !== "SUBMITTED" &&
+      existingClaim.status !== "PENDING" &&
+      existingClaim.status !== "APPROVED"
+    ) {
+      return { ok: false, error: "NOT_ACTIONABLE" }
+    }
+
+    let persistedStatus: ClaimStatus
 
     if (data.supervisorOnly) {
-      // Load the employee's approval chain to verify the reviewer is the correct
-      // layer for the claim's current status.
+      // Load the employee's approval chain to verify the reviewer is the
+      // expected next supervisor in line. When the last supervisor approves,
+      // the claim moves to APPROVED and becomes ready for admin review.
       const chain = await prisma.approvalChainStep.findMany({
         where: { employeeId: existingClaim.employeeId },
         orderBy: { step: "asc" },
       })
 
-      // Resolve `isFinalStep` based on which path we're on. After this point
-      // all branches use `decideNextClaimStatus` for the actual transition,
-      // so the state machine lives in one place.
-      let isFinalStep: boolean
-      if (chain.length > 0) {
-        // Determine which step is expected:
-        // - SUBMITTED, or PENDING with no prior review (legacy) → step 1
-        // - PENDING with a prior review → step 2+ (already passed layer 1)
-        const alreadyReviewedOnce =
-          existingClaim.status === "PENDING" && existingClaim.reviewedAt !== null
-        const expectedStep = alreadyReviewedOnce ? 2 : 1
-        const reviewerStep = chain.find(
-          (s) => s.approverId === data.reviewerId && s.step >= expectedStep
-        )
+      let supervisorChainComplete = true
 
-        if (!reviewerStep) {
+      if (chain.length > 0) {
+        const reviewerStep = chain.find((s) => s.approverId === data.reviewerId)
+        const reviewedStep =
+          existingClaim.reviewerId !== null
+            ? chain.find((s) => s.approverId === existingClaim.reviewerId)
+            : undefined
+
+        let expectedStep = chain[0]!.step
+        if (existingClaim.status === "PENDING" && existingClaim.reviewedAt !== null) {
+          if (!reviewedStep) {
+            return { ok: false, error: "NOT_FOUND" }
+          }
+          expectedStep = reviewedStep.step + 1
+        }
+
+        if (!reviewerStep || reviewerStep.step !== expectedStep) {
           return { ok: false, error: "NOT_FOUND" }
         }
 
-        isFinalStep = !chain.some((s) => s.step > reviewerStep.step)
+        supervisorChainComplete = reviewerStep.step === chain[chain.length - 1]!.step
       } else {
-        // Legacy path: no chain steps — fall back to supervisorId check
-        // (treated as a single-step chain so isFinalStep is always true).
+        // Legacy path: no chain steps — fall back to supervisorId check.
         if (existingClaim.employee.employeeProfile?.supervisorId !== data.reviewerId) {
           return { ok: false, error: "NOT_FOUND" }
         }
-        isFinalStep = true
       }
 
       const nextStatus = decideNextClaimStatus({
         decision: data.status,
-        isFinalStep,
-        isCompanyMoney,
+        reviewerKind: "SUPERVISOR",
+        supervisorChainComplete,
       })
+      persistedStatus = nextStatus
 
       await prisma.claim.update({
         where: { id: data.claimId },
@@ -867,17 +969,22 @@ export const claimRepository = {
           reviewNotes: data.reviewNotes || null,
           reviewedAt: new Date(),
           reviewerId: data.reviewerId,
-          payoutAt: nextStatus === "SETTLED" ? new Date() : undefined,
+          // Snapshot the reviewer's role at decision time so the UI can
+          // filter and label "approved/rejected by supervisor" later.
+          reviewerRole: "SUPERVISOR",
         },
       })
     } else {
-      // Admin review — admins are always the final approver (they're the last
-      // word on every claim) so isFinalStep is always true here.
+      // Admin review — always terminal. Admin can also swap the chart of
+      // account at this point (e.g. recoding a misfiled expense) by passing
+      // `chartOfAccountId`. We only honor the COA override on approve; on
+      // reject it would be a rejected claim with a freshly-changed COA,
+      // which is confusing.
       const finalStatus = decideNextClaimStatus({
         decision: data.status,
-        isFinalStep: true,
-        isCompanyMoney,
+        reviewerKind: "ADMIN",
       })
+      persistedStatus = finalStatus
 
       await prisma.claim.update({
         where: { id: data.claimId },
@@ -886,7 +993,10 @@ export const claimRepository = {
           reviewNotes: data.reviewNotes || null,
           reviewedAt: new Date(),
           reviewerId: data.reviewerId,
-          payoutAt: finalStatus === "SETTLED" ? new Date() : undefined,
+          reviewerRole: "ADMIN",
+          ...(finalStatus === "REVIEWED" && data.chartOfAccountId
+            ? { chartOfAccountId: data.chartOfAccountId }
+            : {}),
         },
       })
     }
@@ -897,36 +1007,8 @@ export const claimRepository = {
       employeeEmail: existingClaim.employee.email,
       employeeUserId: existingClaim.employeeId,
       claimTitle: existingClaim.title,
+      claimStatus: persistedStatus,
     }
-  },
-
-  async markClaimAsPaid(data: {
-    claimId: string
-    payViaAccountId: string
-    paidById: string
-  }): Promise<"OK" | "NOT_FOUND" | "NOT_ACTIONABLE" | "DB_UNAVAILABLE"> {
-    const prisma = getPrismaClient()
-    if (!prisma) return "DB_UNAVAILABLE"
-
-    const existing = await prisma.claim.findUnique({
-      where: { id: data.claimId },
-      select: { status: true },
-    })
-
-    if (!existing) return "NOT_FOUND"
-    if (existing.status !== "APPROVED") return "NOT_ACTIONABLE"
-
-    await prisma.claim.update({
-      where: { id: data.claimId },
-      data: {
-        status: "PAID",
-        payViaAccountId: data.payViaAccountId,
-        payoutAt: new Date(),
-        reviewerId: data.paidById,
-      },
-    })
-
-    return "OK"
   },
 
   async getClaimForXeroSync(claimId: string): Promise<ClaimForXeroSync | null> {

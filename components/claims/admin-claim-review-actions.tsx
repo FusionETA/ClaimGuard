@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { ExternalLink, LoaderCircle } from "lucide-react"
 
 import { reviewClaimAction } from "@/app/(employee)/employee/review/actions"
@@ -25,7 +26,18 @@ function isActionableStatus(status: ClaimStatus) {
   return status === "SUBMITTED" || status === "PENDING"
 }
 
-export function AdminClaimReviewActions({ claim }: { claim: ClaimRecord }) {
+export function AdminClaimReviewActions({
+  claim,
+  displayStatus,
+  actionable: actionableOverride,
+  onReviewed,
+}: {
+  claim: ClaimRecord
+  displayStatus?: ClaimStatus
+  actionable?: boolean
+  onReviewed?: (claimId: string) => void
+}) {
+  const router = useRouter()
   const { toast } = useToast()
   const initialState = useMemo(
     () => createInitialReviewClaimFormState(claim.reviewNotes ?? ""),
@@ -42,15 +54,17 @@ export function AdminClaimReviewActions({ claim }: { claim: ClaimRecord }) {
   useEffect(() => {
     if (state.status === "success") {
       toast({ title: state.message, variant: "success" })
+      onReviewed?.(claim.id)
       setOpen(false)
+      router.refresh()
     }
     if (state.status === "error" && state.message) {
       toast({ title: state.message, variant: "error" })
     }
-  }, [state.status, state.message, toast])
+  }, [claim.id, onReviewed, router, state.status, state.message, toast])
 
-  const currentStatus = state.claimStatus ?? claim.status
-  const actionable = isActionableStatus(currentStatus)
+  const currentStatus = state.claimStatus ?? displayStatus ?? claim.status
+  const actionable = actionableOverride ?? isActionableStatus(currentStatus)
   const reviewNote = reason.trim()
   const reviewerName = state.reviewerName ?? claim.reviewerName
 

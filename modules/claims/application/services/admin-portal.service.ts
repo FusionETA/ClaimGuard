@@ -41,15 +41,11 @@ async function getStore() {
 
   if (!store) {
     // Server restart cleared memory or connection switched — reload from DB transparently.
-    try {
-      await loadAdminData(
-        session.email,
-        resolveActiveOrgId(session),
-        session.activeXeroConnectionId
-      )
-    } catch {
-      return null
-    }
+    await loadAdminData(
+      session.email,
+      resolveActiveOrgId(session),
+      session.activeXeroConnectionId
+    )
     store = getAdminStore(session.email)
   }
 

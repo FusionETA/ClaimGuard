@@ -4,31 +4,55 @@ import type { Route } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { useEffect, useState, useTransition } from "react"
+import { useActionState, useEffect, useState, useTransition } from "react"
 import {
   CalendarClock,
   CalendarDays,
   LayoutDashboard,
+  Loader2,
   LogOut,
   Network,
+  Plus,
   Receipt,
   Settings2,
 } from "lucide-react"
 
 import { logoutAction } from "@/app/login/actions"
-import { switchActiveOrganizationAction } from "@/app/(admin)/admin/settings/actions"
+import {
+  createOrganizationAction,
+  switchActiveOrganizationAction,
+} from "@/app/(admin)/admin/settings/actions"
+import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useToastOnAction } from "@/components/ui/toaster"
 import type { AuthenticatedSession } from "@/lib/auth/types"
 import type { AdminOrganizationOption } from "@/modules/organization/domain/models"
 import { cn } from "@/lib/utils"
+
+/**
+ * Sentinel value used by the "+ Add company" item inside the org switcher
+ * dropdown. Picked instead of an org id, this is intercepted in
+ * `onValueChange` to open the create-company dialog instead of switching.
+ */
+const ADD_COMPANY_SENTINEL = "__add_company"
 
 type AdminNavItem = {
   href: Route
@@ -164,7 +188,10 @@ export function AdminShell({
     return () => controller.abort()
   }, [activeOrganizationId])
 
-  const hasMultipleOrgs = adminOrganizations.length > 1
+  // Show the dropdown whenever the admin has at least one company so the
+  // "+ Add company" affordance lives in a single, predictable place. Single-
+  // org admins still see a dropdown (with one entry) instead of plain text.
+  const hasOrgs = adminOrganizations.length >= 1
   const activeOrg =
     adminOrganizations.find((o) => o.id === resolvedActiveOrganizationId) ??
     adminOrganizations[0]
@@ -174,6 +201,26 @@ export function AdminShell({
     setResolvedActiveOrganizationId(orgId)
     startSwitch(() => switchActiveOrganizationAction(orgId))
   }
+
+  // Add-company dialog state. The form lives inline in the header so the
+  // create flow is reachable from any admin page without needing to navigate
+  // to Settings → Organization first.
+  const [addCompanyOpen, setAddCompanyOpen] = useState(false)
+  const [createOrgState, createOrgAction, createOrgPending] = useActionState(
+    createOrganizationAction,
+    initialSettingsActionState
+  )
+  useToastOnAction(createOrgState)
+
+  // Close the dialog when the server action reports success. The action also
+  // calls `revalidateAdminSurfaces()` server-side, which re-renders this layout
+  // with a new `activeOrganizationId` prop — that triggers the effect above
+  // and refetches the org list, so the dropdown picks up the new entry.
+  useEffect(() => {
+    if (createOrgState.status === "success") {
+      setAddCompanyOpen(false)
+    }
+  }, [createOrgState.status, createOrgState.message])
 
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[300px_1fr]">
@@ -262,11 +309,19 @@ export function AdminShell({
               <h1 className="font-headline text-2xl font-black tracking-tight">
                 {getTitle(pathname)}
               </h1>
-              {hasMultipleOrgs ? (
+              {hasOrgs ? (
                 <div className="mt-1 inline-block">
                   <Select
                     value={resolvedActiveOrganizationId ?? undefined}
-                    onValueChange={(v) => handleOrgSwitch(v)}
+                    onValueChange={(v) => {
+                      // Intercept the sentinel before treating it as an org id —
+                      // we never want to set it as the active company.
+                      if (v === ADD_COMPANY_SENTINEL) {
+                        setAddCompanyOpen(true)
+                        return
+                      }
+                      handleOrgSwitch(v)
+                    }}
                     disabled={switchPending}
                   >
                     <SelectTrigger className="h-8 w-auto min-w-[200px] gap-1.5 rounded-lg border-transparent bg-transparent px-2 text-sm text-muted-foreground shadow-none hover:border-border/60 hover:bg-card/60 sm:h-8 sm:text-sm">
@@ -278,6 +333,16 @@ export function AdminShell({
                           {org.name}
                         </SelectItem>
                       ))}
+                      <SelectSeparator />
+                      <SelectItem
+                        value={ADD_COMPANY_SENTINEL}
+                        className="font-semibold text-primary focus:text-primary"
+                      >
+                        <span className="inline-flex items-center gap-2">
+                          <Plus className="h-4 w-4" />
+                          Add company
+                        </span>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -332,6 +397,56 @@ export function AdminShell({
           </div>
         </nav>
       </div>
+
+      {/* "+ Add company" dialog — opened from the org switcher dropdown.
+          Lives at the layout root so the Portal renders above sticky headers
+          and bottom navs on every admin page. */}
+      <Dialog open={addCompanyOpen} onOpenChange={setAddCompanyOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add company</DialogTitle>
+            <DialogDescription>
+              Create a separate company workspace. You can switch between
+              companies anytime from this dropdown.
+            </DialogDescription>
+          </DialogHeader>
+          <form action={createOrgAction} className="space-y-4">
+            <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+              <span>Company name</span>
+              <Input
+                name="name"
+                required
+                autoFocus
+                disabled={createOrgPending}
+              />
+            </label>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setAddCompanyOpen(false)}
+                disabled={createOrgPending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="rounded-xl" disabled={createOrgPending}>
+                {createOrgPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating…
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add company
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

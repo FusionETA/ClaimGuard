@@ -54,7 +54,7 @@ export type AdminClaimsPageData = {
   session: { email: string; role: string }
   claims: ClaimRecord[]
   dashboard: AdminDashboardData
-  bankAccounts: ChartOfAccountOption[]
+  chartAccounts: ChartOfAccountOption[]
   activeXeroConnectionId?: string
 }
 
@@ -62,6 +62,10 @@ export type AdminClaimsPageData = {
  * Combined data for `/admin/claims`. Returns null when the session is
  * unauthorised or the admin store can't be loaded — the page should
  * `redirect("/login")` in that case.
+ *
+ * `chartAccounts` is the org's selectable Chart of Account list, used by
+ * the admin's "Final approve" dialog to optionally recode a claim against a
+ * different account before approving.
  */
 export async function getAdminClaimsPageData(input: {
   organizationId: string | undefined
@@ -69,7 +73,7 @@ export async function getAdminClaimsPageData(input: {
 }): Promise<{
   claims: ClaimRecord[]
   dashboard: AdminDashboardData
-  bankAccounts: ChartOfAccountOption[]
+  chartAccounts: ChartOfAccountOption[]
   xeroConnection: XeroConnectionSummary
   activeXeroConnectionId?: string
 } | null> {
@@ -85,17 +89,16 @@ export async function getAdminClaimsPageData(input: {
     input.preferredConnectionId,
   )
 
-  const bankAccounts = input.organizationId
-    ? await organizationRepository.getBankAccountsForOrganization({
-        organizationId: input.organizationId,
-        xeroConnectionId: activeXeroConnectionId,
-      })
+  const chartAccounts = input.organizationId
+    ? await organizationRepository.getSelectableChartAccountsForOrganization(
+        input.organizationId,
+      )
     : []
 
   return {
     claims,
     dashboard,
-    bankAccounts,
+    chartAccounts,
     xeroConnection,
     activeXeroConnectionId,
   }

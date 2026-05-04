@@ -180,10 +180,7 @@ export async function submitClaimAction(
             description: parsed.data.description,
             receiptUrl,
             paymentType: parsed.data.paymentType,
-            payViaAccountId:
-              parsed.data.paymentType === "COMPANY"
-                ? parsed.data.payViaAccountId
-                : undefined,
+            payViaAccountId: parsed.data.payViaAccountId,
             claimType: "MILEAGE",
             distance: parsed.data.distance,
             mileageOriginAddress: parsed.data.mileageOriginAddress,
@@ -197,10 +194,7 @@ export async function submitClaimAction(
             description: parsed.data.description,
             receiptUrl,
             paymentType: parsed.data.paymentType,
-            payViaAccountId:
-              parsed.data.paymentType === "COMPANY"
-                ? parsed.data.payViaAccountId
-                : undefined,
+            payViaAccountId: parsed.data.payViaAccountId,
             claimType: "EXPENSE",
           },
   })

@@ -10,9 +10,8 @@ export const claimStatuses = [
   "SUBMITTED",
   "PENDING",
   "APPROVED",
+  "REVIEWED",
   "REJECTED",
-  "PAID",
-  "SETTLED",
 ] as const
 
 export type ClaimStatus = (typeof claimStatuses)[number]
@@ -51,32 +50,53 @@ export type PaymentType = (typeof paymentTypes)[number]
 export const claimTypes = ["EXPENSE", "MILEAGE"] as const
 export type ClaimType = (typeof claimTypes)[number]
 
+/**
+ * The role of the user who last approved or rejected a claim. Snapshotted
+ * onto Claim.reviewerRole at decision time so the admin queue can filter
+ * "approved/rejected by supervisor vs admin" without joining to User and
+ * without losing the historical fact if the reviewer's role changes later.
+ */
+export const reviewerRoles = ["SUPERVISOR", "ADMIN"] as const
+export type ReviewerRole = (typeof reviewerRoles)[number]
+
+export type ReviewerFilter = ReviewerRole | "ALL"
+
+/**
+ * Match a claim against the user's reviewer-filter selection. Claims that
+ * have not yet been reviewed (no reviewerRole) only match the "ALL" option —
+ * "Supervisor" / "Admin" buckets only contain claims that have actually been
+ * acted on by that role.
+ */
+export function claimMatchesReviewerFilter(
+  claim: { reviewerRole?: ReviewerRole },
+  filter: ReviewerFilter | undefined
+): boolean {
+  if (!filter || filter === "ALL") return true
+  return claim.reviewerRole === filter
+}
+
 export type ReviewDecision = "APPROVED" | "REJECTED"
 
 /**
- * Pure decision function for the claim approval state machine. Replaces the
- * three near-identical inline branches that lived inside the repository's
- * `reviewClaim` method.
+ * Pure decision function for the claim approval state machine.
  *
- * Rules:
- *  - REJECTED stays REJECTED, no matter what.
- *  - APPROVED but the reviewer is *not* the final step → PENDING (next layer).
- *  - APPROVED + final step + COMPANY money → SETTLED. Company has already
- *    paid out of its own account; there is no separate "mark as paid" step.
- *  - APPROVED + final step + PERSONAL money → APPROVED. Admin still needs
- *    to mark it paid afterwards.
+ * The current rules (after the workflow simplification):
+ *  - REJECTED stays REJECTED, no matter who rejected.
+ *  - SUPERVISOR APPROVED → PENDING until the last supervisor signs off.
+ *  - Last SUPERVISOR APPROVED → APPROVED, ready for admin review.
+ *  - ADMIN APPROVED → REVIEWED. Admin is the final review step.
  *
- * For admin reviews and legacy (no-chain) supervisor reviews, callers pass
- * `isFinalStep: true` since both paths skip the multi-layer chain.
+ * PaymentType (PERSONAL / COMPANY) no longer affects the state machine —
+ * both flow through the same path now.
  */
 export function decideNextClaimStatus(input: {
   decision: ReviewDecision
-  isFinalStep: boolean
-  isCompanyMoney: boolean
-}): "PENDING" | "APPROVED" | "REJECTED" | "SETTLED" {
+  reviewerKind: "SUPERVISOR" | "ADMIN"
+  supervisorChainComplete?: boolean
+}): "PENDING" | "APPROVED" | "REVIEWED" | "REJECTED" {
   if (input.decision === "REJECTED") return "REJECTED"
-  if (!input.isFinalStep) return "PENDING"
-  return input.isCompanyMoney ? "SETTLED" : "APPROVED"
+  if (input.reviewerKind === "ADMIN") return "REVIEWED"
+  return input.supervisorChainComplete ? "APPROVED" : "PENDING"
 }
 
 export type ClaimRunPreview = {
@@ -160,6 +180,7 @@ export type ClaimRecord = {
   receiptUrl?: string
   reviewNotes?: string
   reviewerName?: string
+  reviewerRole?: ReviewerRole
   reviewedAt?: string
   // Mileage snapshot — populated only when claimType === "MILEAGE".
   distance?: number
@@ -170,6 +191,13 @@ export type ClaimRecord = {
   employee: PortalUser
   pendingApprover?: PendingApproverInfo
   approvalChain?: ApprovalStepInfo[]
+  /**
+   * True when the claim is sitting in PENDING with all supervisor chain
+   * steps already approved (or the chain is empty / the claim is SUBMITTED
+   * with no chain at all). The admin's "Final approve" button on the admin
+   * claims table reads this flag to decide whether to render.
+   */
+  awaitingAdminFinalApproval: boolean
 }
 
 export type CreateClaimInput = {
@@ -228,6 +256,7 @@ export type EmployeeClaimSubmissionData = {
   chartAccounts: ChartAccountWithRemainingLimit[]
   /** Mileage-eligible accounts only, separate from expense accounts. */
   mileageAccounts: ChartAccountWithRemainingLimit[]
+  /** Admin-selected BANK accounts employees can choose for COMPANY-money claims. */
   bankAccounts: ChartOfAccountOption[]
   claimRunPreview?: ClaimRunPreview
 }

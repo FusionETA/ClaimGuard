@@ -27,7 +27,8 @@ export { computeMileageAmount, resolveMileageRate }
 
 /**
  * Common claim fields shared by the EXPENSE and MILEAGE branches.
- * - paymentType / payViaAccountId behave identically in both branches.
+ * - paymentType (PERSONAL vs COMPANY) is a label only for workflow state, but
+ *   COMPANY-money claims must record which selected bank account paid.
  * - Mileage claims still record an "amount" but it's computed server-side
  *   from distance × rate.
  */
@@ -53,17 +54,20 @@ const mileageClaimSchema = baseClaimSchema.extend({
   mileageDestinationAddress: z.string().min(1, "Enter the trip destination."),
 })
 
-export const createClaimSchema = z
-  .discriminatedUnion("claimType", [expenseClaimSchema, mileageClaimSchema])
-  .superRefine((data, ctx) => {
-    if (data.paymentType === "COMPANY" && !data.payViaAccountId) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["payViaAccountId"],
-        message: "Choose which company bank account paid for this expense.",
-      })
-    }
-  })
+const createClaimBaseSchema = z.discriminatedUnion("claimType", [
+  expenseClaimSchema,
+  mileageClaimSchema,
+])
+
+export const createClaimSchema = createClaimBaseSchema.superRefine((data, ctx) => {
+  if (data.paymentType === "COMPANY" && !data.payViaAccountId?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["payViaAccountId"],
+      message: "Select the company bank account that paid for this claim.",
+    })
+  }
+})
 
 export const reviewClaimSchema = z
   .object({
@@ -88,6 +92,15 @@ export type ReviewClaimInput = {
   claimId: string
   decision: string
   reason: string
+}
+
+export type AdminReviewClaimInput = ReviewClaimInput & {
+  /**
+   * Optional Chart-of-Account override. Admin's final review lets them
+   * recode the claim if it was filed against the wrong account; ignored on
+   * reject. Empty string is treated as "no change".
+   */
+  chartOfAccountId?: string
 }
 
 export type CreateClaimInput = {
@@ -136,7 +149,7 @@ export type CreateClaimServiceResult =
 export type ReviewClaimServiceResult =
   | {
       ok: true
-      claimStatus: "APPROVED" | "REJECTED"
+      claimStatus: ClaimStatus
       reviewerName: string
       reason: string
     }
@@ -466,6 +479,29 @@ export async function createClaimForEmployee({
     }
   }
 
+  let payViaAccountId: string | undefined
+  if (parsed.data.paymentType === "COMPANY") {
+    const bankAccount = await organizationRepository.getSelectedBankAccountByIdForOrganization({
+      organizationId: session.organizationId,
+      chartAccountId: parsed.data.payViaAccountId ?? "",
+    })
+
+    if (!bankAccount) {
+      return {
+        ok: false,
+        status: 400,
+        message: "Please choose one of the enabled company bank accounts.",
+        values: input,
+        fieldErrors: {
+          payViaAccountId:
+            "Select a bank account enabled by your admin for company-money claims.",
+        },
+      }
+    }
+
+    payViaAccountId = bankAccount.id
+  }
+
   // Resolve final amount + mileage snapshot fields based on claim type.
   let finalAmount: number
   let distanceForDb: string | undefined
@@ -544,29 +580,6 @@ export async function createClaimForEmployee({
     }
   }
 
-  // For COMPANY-money claims, validate that the chosen bank account exists and
-  // belongs to the same organization (and Xero connection scope, if any).
-  let validatedPayViaAccountId: string | undefined
-  if (parsed.data.paymentType === "COMPANY") {
-    const bankAccounts = await organizationRepository.getBankAccountsForOrganization({
-      organizationId: session.organizationId,
-      xeroConnectionId: session.activeXeroConnectionId ?? undefined,
-    })
-    const match = bankAccounts.find((b) => b.id === parsed.data.payViaAccountId)
-    if (!match) {
-      return {
-        ok: false,
-        status: 400,
-        message: "Choose one of your organization's bank accounts.",
-        values: input,
-        fieldErrors: {
-          payViaAccountId: "Select a configured bank account.",
-        },
-      }
-    }
-    validatedPayViaAccountId = match.id
-  }
-
   const claimRunMonth = calculateClaimRunMonth({
     submittedAt: new Date(),
     claimCutoffDay: organization.claimCutoffDay,
@@ -586,7 +599,7 @@ export async function createClaimForEmployee({
     employeeId,
     reviewerId,
     paymentType: parsed.data.paymentType,
-    payViaAccountId: validatedPayViaAccountId,
+    payViaAccountId,
     claimType: parsed.data.claimType,
     distance: distanceForDb,
     mileageOriginAddress,
@@ -757,7 +770,109 @@ export async function reviewClaimForSupervisor({
 
   return {
     ok: true,
-    claimStatus: parsed.data.decision,
+    claimStatus: result.claimStatus,
+    reviewerName: session.name,
+    reason: parsed.data.reason,
+  }
+}
+
+/**
+ * Admin's final review / rejection on a claim that has cleared (or
+ * skipped) the supervisor chain. Same shape as the supervisor flow plus an
+ * optional `chartOfAccountId` override that the admin can pick from a
+ * dropdown when recoding the claim before approving.
+ */
+export async function reviewClaimForAdmin({
+  session,
+  input,
+}: {
+  session: AuthenticatedSession
+  input: AdminReviewClaimInput
+}): Promise<ReviewClaimServiceResult> {
+  if (session.role !== "ADMIN") {
+    return {
+      ok: false,
+      status: 403,
+      message: "Only admins can give final review.",
+    }
+  }
+
+  const parsed = reviewClaimSchema.safeParse(input)
+
+  if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors
+
+    return {
+      ok: false,
+      status: 400,
+      message: "Please fix the review note and try again.",
+      reason: input.reason,
+      fieldErrors: {
+        reason: fieldErrors.reason?.[0],
+      },
+    }
+  }
+
+  // Trim + drop empty COA overrides so the repo only writes when the admin
+  // actually picked something different.
+  const overrideCoa = input.chartOfAccountId?.trim() || undefined
+
+  const result = await claimRepository.reviewClaim({
+    claimId: parsed.data.claimId,
+    status: parsed.data.decision,
+    reviewNotes: parsed.data.reason || undefined,
+    reviewerId: session.userId,
+    supervisorOnly: false,
+    chartOfAccountId: overrideCoa,
+  })
+
+  if (!result.ok) {
+    const messageMap = {
+      DB_UNAVAILABLE: "Database is not configured. Contact your administrator.",
+      NOT_FOUND: "This claim could not be found anymore.",
+      NOT_ACTIONABLE: "This claim has already been reviewed.",
+    } as const
+
+    const statusMap = {
+      DB_UNAVAILABLE: 503,
+      NOT_FOUND: 404,
+      NOT_ACTIONABLE: 409,
+    } as const
+
+    return {
+      ok: false,
+      status: statusMap[result.error],
+      message: messageMap[result.error],
+      reason: parsed.data.reason,
+    }
+  }
+
+  clearEmployeeStore(result.employeeEmail)
+
+  try {
+    await loadEmployeeData(result.employeeEmail)
+  } catch {
+    // Cache refresh failure is non-fatal — next read will go to DB.
+  }
+
+  invalidateAdminStore()
+
+  try {
+    await sendPushToUser(result.employeeUserId, {
+      title: "Claim Updated",
+      body:
+        parsed.data.decision === "APPROVED"
+          ? `Your claim "${result.claimTitle}" was approved.`
+          : `Your claim "${result.claimTitle}" was rejected.`,
+      url: "/employee/claims",
+    })
+  } catch {
+    // Push notifications never block a successful review.
+  }
+
+  return {
+    ok: true,
+    claimStatus: result.claimStatus,
     reviewerName: session.name,
     reason: parsed.data.reason,
   }

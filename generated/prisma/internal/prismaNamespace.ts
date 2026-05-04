@@ -1484,12 +1484,12 @@ export const ClaimScalarFieldEnum = {
   submittedAt: 'submittedAt',
   claimRunMonth: 'claimRunMonth',
   reviewedAt: 'reviewedAt',
-  payoutAt: 'payoutAt',
-  payViaAccountId: 'payViaAccountId',
   paymentType: 'paymentType',
+  payViaAccountId: 'payViaAccountId',
   status: 'status',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
+  reviewerRole: 'reviewerRole',
   distance: 'distance',
   mileageOriginAddress: 'mileageOriginAddress',
   mileageDestinationAddress: 'mileageDestinationAddress',
@@ -1524,10 +1524,10 @@ export const ChartOfAccountScalarFieldEnum = {
   updatedAt: 'updatedAt',
   isBankAccount: 'isBankAccount',
   isDisabled: 'isDisabled',
+  allowMileageClaim: 'allowMileageClaim',
   limitAmount: 'limitAmount',
   limitPeriod: 'limitPeriod',
   limitScope: 'limitScope',
-  allowMileageClaim: 'allowMileageClaim',
   mileageRate: 'mileageRate'
 } as const
 

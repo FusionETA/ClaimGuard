@@ -44,11 +44,7 @@ async function getStore() {
 
   if (!store) {
     // Server restart cleared memory — reload from DB transparently.
-    try {
-      await loadEmployeeData(session.email)
-    } catch {
-      return null
-    }
+    await loadEmployeeData(session.email)
     store = getEmployeeStore(session.email)
   }
 
@@ -105,22 +101,21 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
     "EMPLOYEE"
   )
 
-  const [organization, chartAccounts, mileageAccounts, bankAccounts] =
-    await Promise.all([
-      organizationRepository.getOrganizationById(store.employee.organizationId),
-      organizationRepository.getSelectableChartAccountsForEmployee({
-        organizationId: store.employee.organizationId,
-        xeroConnectionId: store.employee.xeroConnectionId,
-      }),
-      organizationRepository.getMileageChartAccountsForEmployee({
-        organizationId: store.employee.organizationId,
-        xeroConnectionId: store.employee.xeroConnectionId,
-      }),
-      organizationRepository.getBankAccountsForOrganization({
-        organizationId: store.employee.organizationId,
-        xeroConnectionId: store.employee.xeroConnectionId,
-      }),
-    ])
+  const [organization, chartAccounts, mileageAccounts, bankAccounts] = await Promise.all([
+    organizationRepository.getOrganizationById(store.employee.organizationId),
+    organizationRepository.getSelectableChartAccountsForEmployee({
+      organizationId: store.employee.organizationId,
+      xeroConnectionId: store.employee.xeroConnectionId,
+    }),
+    organizationRepository.getMileageChartAccountsForEmployee({
+      organizationId: store.employee.organizationId,
+      xeroConnectionId: store.employee.xeroConnectionId,
+    }),
+    organizationRepository.getSelectedBankAccountsForOrganization({
+      organizationId: store.employee.organizationId,
+      xeroConnectionId: store.employee.xeroConnectionId,
+    }),
+  ])
 
   // Decorate every account with its remaining-limit info so the form can show
   // an inline hint. Previously this was a per-account `getRemainingLimit` call

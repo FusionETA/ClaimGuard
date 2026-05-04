@@ -137,12 +137,16 @@ model Claim {
   submittedAt      DateTime        @default(now())
   claimRunMonth    DateTime?
   reviewedAt       DateTime?
-  payoutAt         DateTime?
-  payViaAccountId  String?
   paymentType      PaymentType     @default(PERSONAL)
+  payViaAccountId  String?
   status           ClaimStatus     @default(PENDING)
   receiptUrl       String?
   reviewNotes      String?         @db.Text
+  // Snapshot of the reviewer's role at decision time (SUPERVISOR or ADMIN).
+  // Denormalized so we can filter "approved/rejected by supervisor vs admin"
+  // without joining to User, and so history is preserved if the reviewer's
+  // role later changes or the user is deleted.
+  reviewerRole     UserRole?
   // Mileage-claim fields (only populated when claimType = MILEAGE).
   distance                    Decimal? @db.Decimal(10, 2)
   mileageOriginAddress        String?
@@ -161,49 +165,44 @@ model Claim {
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   chartOfAccount   ChartOfAccount? @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
-  payViaAccount    ChartOfAccount? @relation("ClaimPayVia", fields: [payViaAccountId], references: [id])
   employee         User            @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
   organization     Organization?   @relation(fields: [organizationId], references: [id])
+  payViaAccount    ChartOfAccount? @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
   reviewer         User?           @relation("AdminReviews", fields: [reviewerId], references: [id])
 
   @@index([organizationId, submittedAt])
   @@index([chartOfAccountId])
-  @@index([payViaAccountId])
   @@index([employeeId, submittedAt])
+  @@index([payViaAccountId], map: "Claim_payViaAccountId_fkey")
   @@index([status, submittedAt])
   @@index([xeroSyncStatus])
   @@index([reviewerId], map: "Claim_reviewerId_fkey")
 }
 
 model ChartOfAccount {
-  id               String          @id @default(cuid())
-  organizationId   String
-  xeroConnectionId String?
-  xeroAccountId    String?
-  code             String
-  name             String
-  type             String?
-  status           String?
-  isSelectable     Boolean         @default(false)
-  isCustom         Boolean         @default(false)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  isBankAccount    Boolean         @default(false)
-  isDisabled       Boolean         @default(false)
-  // Spend-limit policy on this account. limitAmount = null means no limit.
-  // Period defines the reset window; scope selects per-employee or org-wide totals.
-  limitAmount      Decimal?        @db.Decimal(12, 2)
-  limitPeriod      LimitPeriod?
-  limitScope       LimitScope?
-  // Mileage flags. allowMileageClaim = true means this account is selectable
-  // when an employee creates a Mileage-type claim. mileageRate (per-account
-  // override) takes precedence over Organization.defaultMileageRate.
-  allowMileageClaim Boolean        @default(false)
-  mileageRate      Decimal?        @db.Decimal(10, 4)
+  id                                          String          @id @default(cuid())
+  organizationId                              String
+  xeroConnectionId                            String?
+  xeroAccountId                               String?
+  code                                        String
+  name                                        String
+  type                                        String?
+  status                                      String?
+  isSelectable                                Boolean         @default(false)
+  isCustom                                    Boolean         @default(false)
+  createdAt                                   DateTime        @default(now())
+  updatedAt                                   DateTime        @updatedAt
+  isBankAccount                               Boolean         @default(false)
+  isDisabled                                  Boolean         @default(false)
+  allowMileageClaim                           Boolean         @default(false)
+  limitAmount                                 Decimal?        @db.Decimal(12, 2)
+  limitPeriod                                 LimitPeriod?
+  limitScope                                  LimitScope?
+  mileageRate                                 Decimal?        @db.Decimal(10, 4)
   organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
   claims           Claim[]         @relation("ClaimAccount")
-  payViaClaims     Claim[]         @relation("ClaimPayVia")
+  paidClaims       Claim[]         @relation("ClaimPayViaAccount")
 
   @@unique([xeroConnectionId, xeroAccountId])
   @@unique([organizationId, code])
@@ -370,13 +369,10 @@ enum ClaimCategory {
 enum ClaimStatus {
   SUBMITTED
   PENDING
-  REVIEWED
   APPROVED
+  REVIEWED
   REJECTED
-  PAID
-  SETTLED
 }
-
 enum PaymentType {
   PERSONAL
   COMPANY
@@ -437,17 +433,16 @@ enum MileageUnit {
   MILE
 }
 
-/**
- * Mirrors the `EmployeePayoutMethod` literal type in the org domain. Switched
- * from a free String to enforce that callers can only ever store one of the
- * two valid values.
- *
- * Backfill caveat for ops: any existing rows with values other than HOURLY /
- * DAILY_BASED must be normalised before `prisma db push` will accept this
- * change. Run something like:
- *   UPDATE EmployeeProfile SET payoutMethod = 'HOURLY'
- *   WHERE payoutMethod IS NOT NULL AND payoutMethod NOT IN ('HOURLY','DAILY_BASED');
- */
+/// *
+///  * Mirrors the `EmployeePayoutMethod` literal type in the org domain. Switched
+///  * from a free String to enforce that callers can only ever store one of the
+///  * two valid values.
+///  *
+///  * Backfill caveat for ops: any existing rows with values other than HOURLY /
+///  * DAILY_BASED must be normalised before `prisma db push` will accept this
+///  * change. Run something like:
+///  *   UPDATE EmployeeProfile SET payoutMethod = 'HOURLY'
+///  *   WHERE payoutMethod IS NOT NULL AND payoutMethod NOT IN ('HOURLY','DAILY_BASED');
 enum PayoutMethod {
   HOURLY
   DAILY_BASED

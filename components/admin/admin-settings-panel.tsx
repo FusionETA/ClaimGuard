@@ -8,7 +8,6 @@ import { CalendarDays, Clock, Download, Loader2, MapPin, Plus, Search, Trash2 } 
 
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import {
-  createOrganizationAction,
   createCustomAccountAction,
   createManualProjectAction,
   deleteCustomAccountAction,
@@ -394,8 +393,6 @@ export function AdminSettingsPanel({
     createCustomAccountAction,
     initialSettingsActionState
   )
-  const [createOrganizationState, createOrganizationFormAction, createOrganizationPending] =
-    useActionState(createOrganizationAction, initialSettingsActionState)
   const [selectedBankState, selectedBankAction, selectedBankPending] = useActionState(
     saveSelectedBankAccountsAction,
     initialSettingsActionState
@@ -423,7 +420,6 @@ export function AdminSettingsPanel({
   useToastOnAction(projectsState)
   useToastOnAction(selectTenantState)
   useToastOnAction(createAccountState)
-  useToastOnAction(createOrganizationState)
   useToastOnAction(selectedBankState)
   useToastOnAction(createProjectState)
   useToastOnAction(mileageDefaultsState)
@@ -628,29 +624,6 @@ export function AdminSettingsPanel({
                 <Button type="submit" className="rounded-xl" disabled={organizationPending}>
                   Save organization
                 </Button>
-              </form>
-
-              <form action={createOrganizationFormAction} className="space-y-4 rounded-[24px] border border-dashed border-border/70 p-5">
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold text-foreground">Add another company</p>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    Create a separate company workspace. You can switch companies from the dropdown in the header.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <Input
-                    name="name"
-                    disabled={createOrganizationPending}
-                    className="min-w-[220px] flex-1"
-                  />
-                  <Button type="submit" variant="outline" className="rounded-xl" disabled={createOrganizationPending}>
-                    {createOrganizationPending ? (
-                      <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating…</>
-                    ) : (
-                      <><Plus className="mr-2 h-4 w-4" />Add company</>
-                    )}
-                  </Button>
-                </div>
               </form>
 
               {/* Connect to Xero prompt — shown only when org exists but no Xero connected */}
