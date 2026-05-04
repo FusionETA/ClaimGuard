@@ -61,6 +61,7 @@ export const ModelName = {
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
+  ProjectHoliday: 'ProjectHoliday',
   AttendanceRecord: 'AttendanceRecord',
   ApprovalRequest: 'ApprovalRequest',
   ApprovalChainStep: 'ApprovalChainStep'
@@ -114,7 +115,8 @@ export const OrganizationScalarFieldEnum = {
   restDayInShiftRate: 'restDayInShiftRate',
   geofenceRadiusMeters: 'geofenceRadiusMeters',
   defaultMileageRate: 'defaultMileageRate',
-  mileageUnit: 'mileageUnit'
+  mileageUnit: 'mileageUnit',
+  otEnabled: 'otEnabled'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -270,10 +272,24 @@ export const XeroProjectScalarFieldEnum = {
   projectManagerId: 'projectManagerId',
   isDisabled: 'isDisabled',
   latitude: 'latitude',
-  longitude: 'longitude'
+  longitude: 'longitude',
+  workingHoursStart: 'workingHoursStart',
+  workingHoursEnd: 'workingHoursEnd',
+  workingDays: 'workingDays'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
+
+
+export const ProjectHolidayScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  date: 'date',
+  name: 'name',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectHolidayScalarFieldEnum = (typeof ProjectHolidayScalarFieldEnum)[keyof typeof ProjectHolidayScalarFieldEnum]
 
 
 export const AttendanceRecordScalarFieldEnum = {
@@ -478,10 +494,22 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   status: 'status',
   contactId: 'contactId',
   location: 'location',
-  projectManagerId: 'projectManagerId'
+  projectManagerId: 'projectManagerId',
+  workingHoursStart: 'workingHoursStart',
+  workingHoursEnd: 'workingHoursEnd',
+  workingDays: 'workingDays'
 } as const
 
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
+
+
+export const ProjectHolidayOrderByRelevanceFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  name: 'name'
+} as const
+
+export type ProjectHolidayOrderByRelevanceFieldEnum = (typeof ProjectHolidayOrderByRelevanceFieldEnum)[keyof typeof ProjectHolidayOrderByRelevanceFieldEnum]
 
 
 export const AttendanceRecordOrderByRelevanceFieldEnum = {

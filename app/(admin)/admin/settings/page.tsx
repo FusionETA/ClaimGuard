@@ -74,6 +74,7 @@ export default async function AdminSettingsPage({
       takenTenantIds={takenTenantIds}
       workingHours={data.workingHours}
       initialTab={typeof params.tab === "string" ? params.tab : "organization"}
+      initialSection={typeof params.section === "string" ? params.section : undefined}
     />
   )
 }

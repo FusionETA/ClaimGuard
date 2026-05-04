@@ -53,6 +53,7 @@ model Organization {
   geofenceRadiusMeters     Int                 @default(200)
   defaultMileageRate       Decimal?            @db.Decimal(10, 4)
   mileageUnit              MileageUnit         @default(KM)
+  otEnabled                Boolean             @default(true)
   adminMembers             AdminOrganization[]
   chartAccounts            ChartOfAccount[]
   claims                   Claim[]
@@ -253,8 +254,12 @@ model XeroProject {
   isDisabled        Boolean                     @default(false)
   latitude          Float?
   longitude         Float?
+  workingHoursStart String?
+  workingHoursEnd   String?
+  workingDays       String?
   attendanceRecords AttendanceRecord[]          @relation("AttendanceRecordProject")
   assignedEmployees EmployeeProjectAssignment[]
+  holidays          ProjectHoliday[]
   organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   projectManager    User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
   xeroConnection    XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
@@ -263,6 +268,18 @@ model XeroProject {
   @@index([xeroConnectionId, name])
   @@index([organizationId], map: "XeroProject_organizationId_fkey")
   @@index([projectManagerId])
+}
+
+model ProjectHoliday {
+  id        String      @id @default(cuid())
+  projectId String
+  date      DateTime    @db.Date
+  name      String
+  createdAt DateTime    @default(now())
+  project   XeroProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, date])
+  @@index([projectId])
 }
 
 model AttendanceRecord {
@@ -353,6 +370,7 @@ enum ClaimCategory {
 enum ClaimStatus {
   SUBMITTED
   PENDING
+  REVIEWED
   APPROVED
   REJECTED
   PAID

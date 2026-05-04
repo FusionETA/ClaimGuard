@@ -66,6 +66,7 @@ function mapOrganizationSummary(
         restDayInShiftRate?: unknown
         publicHolidayInShiftRate?: unknown
         otSalaryThreshold?: unknown
+        otEnabled?: boolean | null
         defaultMileageRate?: unknown
         mileageUnit?: string | null
       }
@@ -98,6 +99,7 @@ function mapOrganizationSummary(
       ),
       salaryThreshold: toNumberOr(org.otSalaryThreshold, DEFAULT_OT_RATES.salaryThreshold),
     },
+    otEnabled: org.otEnabled ?? true,
     defaultMileageRate,
     mileageUnit: (org.mileageUnit as MileageUnit | null | undefined) === "MILE" ? "MILE" : "KM",
   }
@@ -1552,7 +1554,10 @@ export const organizationRepository = {
 
     const rows = await prisma.xeroProject.findMany({
       where: { organizationId, isDisabled: false },
-      include: { projectManager: { select: { id: true, name: true } } },
+      include: {
+        projectManager: { select: { id: true, name: true } },
+        holidays: { orderBy: { date: "asc" } },
+      },
       orderBy: [{ name: "asc" }],
     })
 
@@ -1569,6 +1574,14 @@ export const organizationRepository = {
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
       isManual: row.isManual,
+      workingHoursStart: row.workingHoursStart,
+      workingHoursEnd: row.workingHoursEnd,
+      workingDays: row.workingDays,
+      holidays: row.holidays.map((h) => ({
+        id: h.id,
+        date: h.date.toISOString().slice(0, 10),
+        name: h.name,
+      })),
     }))
   },
 

@@ -92,6 +92,11 @@ export type XeroConnection = Prisma.XeroConnectionModel
  */
 export type XeroProject = Prisma.XeroProjectModel
 /**
+ * Model ProjectHoliday
+ * 
+ */
+export type ProjectHoliday = Prisma.ProjectHolidayModel
+/**
  * Model AttendanceRecord
  * 
  */
