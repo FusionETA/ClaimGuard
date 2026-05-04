@@ -1,22 +1,14 @@
 import Image from "next/image"
-import { redirect } from "next/navigation"
 
 import { LoginForm } from "@/app/login/login-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getCurrentSession, getHomePathForRole } from "@/lib/auth/session"
 
 const loginCopy = {
   eyebrow: "ClaimGuard Access",
   title: "Login",
 } as const
 
-export default async function LoginPage() {
-  const session = await getCurrentSession()
-
-  if (session) {
-    redirect(getHomePathForRole(session.role))
-  }
-
+export default function LoginPage() {
   const copy = loginCopy
 
   return (
