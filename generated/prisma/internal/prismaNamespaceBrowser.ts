@@ -267,10 +267,10 @@ export const XeroProjectScalarFieldEnum = {
   updatedAt: 'updatedAt',
   isManual: 'isManual',
   location: 'location',
-  latitude: 'latitude',
-  longitude: 'longitude',
   projectManagerId: 'projectManagerId',
-  isDisabled: 'isDisabled'
+  isDisabled: 'isDisabled',
+  latitude: 'latitude',
+  longitude: 'longitude'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
@@ -286,11 +286,11 @@ export const AttendanceRecordScalarFieldEnum = {
   lateByMin: 'lateByMin',
   location: 'location',
   project: 'project',
-  projectId: 'projectId',
   status: 'status',
   notes: 'notes',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  projectId: 'projectId'
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
@@ -489,8 +489,8 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
   employeeId: 'employeeId',
   location: 'location',
   project: 'project',
-  projectId: 'projectId',
-  notes: 'notes'
+  notes: 'notes',
+  projectId: 'projectId'
 } as const
 
 export type AttendanceRecordOrderByRelevanceFieldEnum = (typeof AttendanceRecordOrderByRelevanceFieldEnum)[keyof typeof AttendanceRecordOrderByRelevanceFieldEnum]

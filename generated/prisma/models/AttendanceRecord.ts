@@ -46,11 +46,11 @@ export type AttendanceRecordMinAggregateOutputType = {
   lateByMin: number | null
   location: string | null
   project: string | null
-  projectId: string | null
   status: $Enums.AttendanceStatus | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  projectId: string | null
 }
 
 export type AttendanceRecordMaxAggregateOutputType = {
@@ -63,11 +63,11 @@ export type AttendanceRecordMaxAggregateOutputType = {
   lateByMin: number | null
   location: string | null
   project: string | null
-  projectId: string | null
   status: $Enums.AttendanceStatus | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  projectId: string | null
 }
 
 export type AttendanceRecordCountAggregateOutputType = {
@@ -80,11 +80,11 @@ export type AttendanceRecordCountAggregateOutputType = {
   lateByMin: number
   location: number
   project: number
-  projectId: number
   status: number
   notes: number
   createdAt: number
   updatedAt: number
+  projectId: number
   _all: number
 }
 
@@ -109,11 +109,11 @@ export type AttendanceRecordMinAggregateInputType = {
   lateByMin?: true
   location?: true
   project?: true
-  projectId?: true
   status?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
+  projectId?: true
 }
 
 export type AttendanceRecordMaxAggregateInputType = {
@@ -126,11 +126,11 @@ export type AttendanceRecordMaxAggregateInputType = {
   lateByMin?: true
   location?: true
   project?: true
-  projectId?: true
   status?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
+  projectId?: true
 }
 
 export type AttendanceRecordCountAggregateInputType = {
@@ -143,11 +143,11 @@ export type AttendanceRecordCountAggregateInputType = {
   lateByMin?: true
   location?: true
   project?: true
-  projectId?: true
   status?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
+  projectId?: true
   _all?: true
 }
 
@@ -247,11 +247,11 @@ export type AttendanceRecordGroupByOutputType = {
   lateByMin: number | null
   location: string | null
   project: string | null
-  projectId: string | null
   status: $Enums.AttendanceStatus
   notes: string | null
   createdAt: Date
   updatedAt: Date
+  projectId: string | null
   _count: AttendanceRecordCountAggregateOutputType | null
   _avg: AttendanceRecordAvgAggregateOutputType | null
   _sum: AttendanceRecordSumAggregateOutputType | null
@@ -287,11 +287,11 @@ export type AttendanceRecordWhereInput = {
   lateByMin?: Prisma.IntNullableFilter<"AttendanceRecord"> | number | null
   location?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   project?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
-  projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   status?: Prisma.EnumAttendanceStatusFilter<"AttendanceRecord"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
+  projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
 }
@@ -306,11 +306,11 @@ export type AttendanceRecordOrderByWithRelationInput = {
   lateByMin?: Prisma.SortOrderInput | Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   project?: Prisma.SortOrderInput | Prisma.SortOrder
-  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   employee?: Prisma.UserOrderByWithRelationInput
   projectRef?: Prisma.XeroProjectOrderByWithRelationInput
   _relevance?: Prisma.AttendanceRecordOrderByRelevanceInput
@@ -330,11 +330,11 @@ export type AttendanceRecordWhereUniqueInput = Prisma.AtLeast<{
   lateByMin?: Prisma.IntNullableFilter<"AttendanceRecord"> | number | null
   location?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   project?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
-  projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   status?: Prisma.EnumAttendanceStatusFilter<"AttendanceRecord"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
+  projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
 }, "id" | "employeeId_date">
@@ -349,11 +349,11 @@ export type AttendanceRecordOrderByWithAggregationInput = {
   lateByMin?: Prisma.SortOrderInput | Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
   project?: Prisma.SortOrderInput | Prisma.SortOrder
-  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AttendanceRecordCountOrderByAggregateInput
   _avg?: Prisma.AttendanceRecordAvgOrderByAggregateInput
   _max?: Prisma.AttendanceRecordMaxOrderByAggregateInput
@@ -374,11 +374,11 @@ export type AttendanceRecordScalarWhereWithAggregatesInput = {
   lateByMin?: Prisma.IntNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
   location?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
   project?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
-  projectId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
   status?: Prisma.EnumAttendanceStatusWithAggregatesFilter<"AttendanceRecord"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AttendanceRecord"> | Date | string
+  projectId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
 }
 
 export type AttendanceRecordCreateInput = {
@@ -408,11 +408,11 @@ export type AttendanceRecordUncheckedCreateInput = {
   lateByMin?: number | null
   location?: string | null
   project?: string | null
-  projectId?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  projectId?: string | null
 }
 
 export type AttendanceRecordUpdateInput = {
@@ -442,11 +442,11 @@ export type AttendanceRecordUncheckedUpdateInput = {
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AttendanceRecordCreateManyInput = {
@@ -459,11 +459,11 @@ export type AttendanceRecordCreateManyInput = {
   lateByMin?: number | null
   location?: string | null
   project?: string | null
-  projectId?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  projectId?: string | null
 }
 
 export type AttendanceRecordUpdateManyMutationInput = {
@@ -491,11 +491,11 @@ export type AttendanceRecordUncheckedUpdateManyInput = {
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AttendanceRecordListRelationFilter = {
@@ -529,11 +529,11 @@ export type AttendanceRecordCountOrderByAggregateInput = {
   lateByMin?: Prisma.SortOrder
   location?: Prisma.SortOrder
   project?: Prisma.SortOrder
-  projectId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
 }
 
 export type AttendanceRecordAvgOrderByAggregateInput = {
@@ -551,11 +551,11 @@ export type AttendanceRecordMaxOrderByAggregateInput = {
   lateByMin?: Prisma.SortOrder
   location?: Prisma.SortOrder
   project?: Prisma.SortOrder
-  projectId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
 }
 
 export type AttendanceRecordMinOrderByAggregateInput = {
@@ -568,11 +568,11 @@ export type AttendanceRecordMinOrderByAggregateInput = {
   lateByMin?: Prisma.SortOrder
   location?: Prisma.SortOrder
   project?: Prisma.SortOrder
-  projectId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
 }
 
 export type AttendanceRecordSumOrderByAggregateInput = {
@@ -701,11 +701,11 @@ export type AttendanceRecordUncheckedCreateWithoutEmployeeInput = {
   lateByMin?: number | null
   location?: string | null
   project?: string | null
-  projectId?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  projectId?: string | null
 }
 
 export type AttendanceRecordCreateOrConnectWithoutEmployeeInput = {
@@ -747,11 +747,11 @@ export type AttendanceRecordScalarWhereInput = {
   lateByMin?: Prisma.IntNullableFilter<"AttendanceRecord"> | number | null
   location?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   project?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
-  projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   status?: Prisma.EnumAttendanceStatusFilter<"AttendanceRecord"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
+  projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
 }
 
 export type AttendanceRecordCreateWithoutProjectRefInput = {
@@ -821,11 +821,11 @@ export type AttendanceRecordCreateManyEmployeeInput = {
   lateByMin?: number | null
   location?: string | null
   project?: string | null
-  projectId?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  projectId?: string | null
 }
 
 export type AttendanceRecordUpdateWithoutEmployeeInput = {
@@ -853,11 +853,11 @@ export type AttendanceRecordUncheckedUpdateWithoutEmployeeInput = {
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AttendanceRecordUncheckedUpdateManyWithoutEmployeeInput = {
@@ -869,11 +869,11 @@ export type AttendanceRecordUncheckedUpdateManyWithoutEmployeeInput = {
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AttendanceRecordCreateManyProjectRefInput = {
@@ -952,11 +952,11 @@ export type AttendanceRecordSelect<ExtArgs extends runtime.Types.Extensions.Inte
   lateByMin?: boolean
   location?: boolean
   project?: boolean
-  projectId?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  projectId?: boolean
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
 }, ExtArgs["result"]["attendanceRecord"]>
@@ -973,14 +973,14 @@ export type AttendanceRecordSelectScalar = {
   lateByMin?: boolean
   location?: boolean
   project?: boolean
-  projectId?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  projectId?: boolean
 }
 
-export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "durationMin" | "lateByMin" | "location" | "project" | "projectId" | "status" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["attendanceRecord"]>
+export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "durationMin" | "lateByMin" | "location" | "project" | "status" | "notes" | "createdAt" | "updatedAt" | "projectId", ExtArgs["result"]["attendanceRecord"]>
 export type AttendanceRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
@@ -1002,11 +1002,11 @@ export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.In
     lateByMin: number | null
     location: string | null
     project: string | null
-    projectId: string | null
     status: $Enums.AttendanceStatus
     notes: string | null
     createdAt: Date
     updatedAt: Date
+    projectId: string | null
   }, ExtArgs["result"]["attendanceRecord"]>
   composites: {}
 }
@@ -1387,11 +1387,11 @@ export interface AttendanceRecordFieldRefs {
   readonly lateByMin: Prisma.FieldRef<"AttendanceRecord", 'Int'>
   readonly location: Prisma.FieldRef<"AttendanceRecord", 'String'>
   readonly project: Prisma.FieldRef<"AttendanceRecord", 'String'>
-  readonly projectId: Prisma.FieldRef<"AttendanceRecord", 'String'>
   readonly status: Prisma.FieldRef<"AttendanceRecord", 'AttendanceStatus'>
   readonly notes: Prisma.FieldRef<"AttendanceRecord", 'String'>
   readonly createdAt: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
+  readonly projectId: Prisma.FieldRef<"AttendanceRecord", 'String'>
 }
     
 

@@ -6,7 +6,6 @@ import { z } from "zod"
 
 import type { SettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import { clearAdminStore } from "@/lib/app-store"
-import { geocodeAddress } from "@/lib/geocode"
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
 import type { XeroTenant } from "@/lib/xero"
 import { deleteXeroConnection } from "@/lib/xero"
@@ -565,26 +564,24 @@ export async function createManualProjectAction(
   const name = String(formData.get("name") ?? "").trim()
   const rawPm = String(formData.get("projectManagerId") ?? "").trim()
   const projectManagerId = rawPm && rawPm !== "__none" ? rawPm : undefined
-  const location = String(formData.get("location") ?? "").trim() || undefined
   const rawLat = parseFloat(String(formData.get("latitude") ?? ""))
   const rawLng = parseFloat(String(formData.get("longitude") ?? ""))
-  let latitude: number | undefined = isNaN(rawLat) ? undefined : rawLat
-  let longitude: number | undefined = isNaN(rawLng) ? undefined : rawLng
+  const latitude = Number.isFinite(rawLat) ? rawLat : undefined
+  const longitude = Number.isFinite(rawLng) ? rawLng : undefined
 
   if (!name) {
     return { status: "error", message: "Project name is required." }
   }
-
-  // If the admin typed an address but didn't pin coordinates (no 📍 button
-  // press, no "lat, lng" string), geocode it server-side so the project still
-  // gets coords for distance / map features.
-  if (location && (latitude === undefined || longitude === undefined)) {
-    const resolved = await geocodeAddress(location)
-    if (resolved) {
-      latitude = resolved.lat
-      longitude = resolved.lng
-    }
+  if (latitude != null && (latitude < -90 || latitude > 90)) {
+    return { status: "error", message: "Latitude must be between -90 and 90." }
   }
+  if (longitude != null && (longitude < -180 || longitude > 180)) {
+    return { status: "error", message: "Longitude must be between -180 and 180." }
+  }
+  const location =
+    latitude != null && longitude != null
+      ? `${latitude.toFixed(6)},${longitude.toFixed(6)}`
+      : undefined
 
   try {
     await organizationRepository.createManualProject({
@@ -626,27 +623,28 @@ export async function updateProjectAction(
     return { ok: false, message: "No organization found." }
   }
 
-  // If the admin typed an address but didn't pin coordinates (no 📍 button,
-  // no "lat, lng" string), geocode it server-side so the project still gets
-  // coords. Mirrors the create flow.
-  let resolvedLat = latitude
-  let resolvedLng = longitude
-  if (location && (resolvedLat == null || resolvedLng == null)) {
-    const geo = await geocodeAddress(location)
-    if (geo) {
-      resolvedLat = geo.lat
-      resolvedLng = geo.lng
-    }
+  if (latitude != null && (latitude < -90 || latitude > 90)) {
+    return { ok: false, message: "Latitude must be between -90 and 90." }
   }
+  if (longitude != null && (longitude < -180 || longitude > 180)) {
+    return { ok: false, message: "Longitude must be between -180 and 180." }
+  }
+
+  // Derive canonical location string from coords; fall back to caller-provided
+  // value (currently always undefined from the new UI, but kept for safety).
+  const derivedLocation =
+    latitude != null && longitude != null
+      ? `${latitude.toFixed(6)},${longitude.toFixed(6)}`
+      : location || undefined
 
   try {
     await organizationRepository.updateProjectDetails({
       projectId,
       organizationId,
       projectManagerId: projectManagerId || undefined,
-      location: location || undefined,
-      latitude: resolvedLat ?? null,
-      longitude: resolvedLng ?? null,
+      location: derivedLocation,
+      latitude: latitude ?? null,
+      longitude: longitude ?? null,
     })
   } catch (error) {
     return {
