@@ -15,6 +15,7 @@ import type {
   OrganizationMember,
   OrganizationProjectOption,
   OrganizationSummary,
+  OtPayoutMethod,
   OtRates,
   TeamDetail,
   TeamMembership,
@@ -39,6 +40,7 @@ const DEFAULT_OT_RATES: OtRates = {
   restDayInShift: 1.0,
   publicHolidayInShift: 2.0,
   salaryThreshold: 4000,
+  dailyThresholdMinutes: 480,
 }
 
 export type XeroConnectionRecord = {
@@ -93,6 +95,7 @@ function mapOrganizationSummary(
         restDayInShiftRate?: unknown
         publicHolidayInShiftRate?: unknown
         otSalaryThreshold?: unknown
+        otDailyThresholdMinutes?: number | null
         otEnabled?: boolean | null
         defaultMileageRate?: unknown
         mileageUnit?: string | null
@@ -126,6 +129,8 @@ function mapOrganizationSummary(
         DEFAULT_OT_RATES.publicHolidayInShift
       ),
       salaryThreshold: toNumberOr(org.otSalaryThreshold, DEFAULT_OT_RATES.salaryThreshold),
+      dailyThresholdMinutes:
+        org.otDailyThresholdMinutes ?? DEFAULT_OT_RATES.dailyThresholdMinutes,
     },
     otEnabled: org.otEnabled ?? true,
     defaultMileageRate,
@@ -493,6 +498,7 @@ export const organizationRepository = {
         restDayInShiftRate: data.rates.restDayInShift,
         publicHolidayInShiftRate: data.rates.publicHolidayInShift,
         otSalaryThreshold: data.rates.salaryThreshold,
+        otDailyThresholdMinutes: data.rates.dailyThresholdMinutes,
       },
     })
   },
@@ -631,6 +637,9 @@ export const organizationRepository = {
           user.role as OrganizationMember["role"],
           user.employeeProfile?.payoutMethod,
         ),
+        otPayoutMethod:
+          user.employeeProfile?.otPayoutMethod === "TIME_BANK" ? "TIME_BANK" : "CASH",
+        otTimeBalanceMin: user.employeeProfile?.otTimeBalanceMin ?? 0,
         hourlyRate:
           user.employeeProfile?.hourlyRate != null
             ? toNumber(user.employeeProfile.hourlyRate)
@@ -651,6 +660,9 @@ export const organizationRepository = {
     projectIds: string[]
     jobTitle: string
     payoutMethod: EmployeePayoutMethod
+    /// CASH for hourly workers; CASH | TIME_BANK for office workers.
+    /// Coerced to CASH automatically when payoutMethod is HOURLY.
+    otPayoutMethod?: OtPayoutMethod
     /// Required (positive number) when payoutMethod is HOURLY. Null /
     /// undefined OK for MONTHLY_BASED. When the role flips to SUPERVISOR
     /// or payoutMethod flips to MONTHLY_BASED, the rate is cleared.
@@ -851,6 +863,10 @@ export const organizationRepository = {
           project: primaryProjectName,
           jobTitle: data.jobTitle,
           payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
+          otPayoutMethod:
+            resolveEmployeePayoutMethod(data.role, data.payoutMethod) === "MONTHLY_BASED"
+              ? data.otPayoutMethod ?? "CASH"
+              : "CASH",
           hourlyRate: resolveHourlyRateForWrite(
             data.role,
             data.payoutMethod,
@@ -928,6 +944,8 @@ export const organizationRepository = {
     projectIds: string[]
     jobTitle: string
     payoutMethod: EmployeePayoutMethod
+    /// CASH for hourly workers; CASH | TIME_BANK for office workers.
+    otPayoutMethod?: OtPayoutMethod
     /// Required (positive number) when payoutMethod is HOURLY. Ignored
     /// otherwise — supervisors and MONTHLY_BASED employees don't carry
     /// an hourly rate.
@@ -1127,6 +1145,10 @@ export const organizationRepository = {
             jobTitle: data.jobTitle,
             supervisorId: supervisorIdForProfile,
             payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
+            otPayoutMethod:
+              resolveEmployeePayoutMethod(data.role, data.payoutMethod) === "MONTHLY_BASED"
+                ? data.otPayoutMethod ?? "CASH"
+                : "CASH",
             hourlyRate: resolveHourlyRateForWrite(data.role, data.payoutMethod, data.hourlyRate),
             preferredCurrency: "USD",
             xeroConnectionId: data.xeroConnectionId || null,

@@ -9,13 +9,19 @@ import {
 } from "lucide-react"
 
 import { MetricCard } from "@/components/claims/metric-card"
+import { ApprovalAuditLog } from "@/components/attendance/approval-audit-log"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
+import { ProjectFilterPicker } from "@/components/attendance/project-filter-picker"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 import type { RollCallPerson } from "@/modules/attendance/domain/models"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
-import { loadOrgHoursSummaryAction } from "./hours-summary-actions"
+import {
+  loadApprovalAuditLogForProjectAction,
+  loadOrgHoursSummaryForProjectAction,
+} from "./hours-summary-actions"
 
 function startOfMonthIso(): string {
   const d = new Date()
@@ -28,33 +34,63 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default async function AdminAttendancePage() {
+export default async function AdminAttendancePage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
+}) {
   const session = await requirePortalSession("ADMIN")
   const orgId = resolveActiveOrgId(session) ?? null
+  const params = (await searchParams) ?? {}
+  const projectIdParam =
+    typeof params.projectId === "string" && params.projectId.length > 0
+      ? params.projectId
+      : null
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
-  const [overview, stats, rollCall, initialHoursSummary] = await Promise.all([
-    adminAttendanceService.getOrgOverview(orgId),
-    adminAttendanceService.getAggregateStats(
-      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      new Date(),
-      orgId,
-    ),
-    adminAttendanceService.getTodayRollCall(orgId),
-    adminAttendanceService.getOrgHoursSummary(
-      orgId,
-      new Date(initialFrom),
-      new Date(initialTo),
-    ),
-  ])
+  const [overview, stats, rollCall, initialHoursSummary, projects, initialAudit] =
+    await Promise.all([
+      adminAttendanceService.getOrgOverview(orgId, projectIdParam),
+      adminAttendanceService.getAggregateStats(
+        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        new Date(),
+        orgId,
+        projectIdParam,
+      ),
+      adminAttendanceService.getTodayRollCall(orgId, projectIdParam),
+      adminAttendanceService.getOrgHoursSummary(
+        orgId,
+        new Date(initialFrom),
+        new Date(initialTo),
+        projectIdParam,
+      ),
+      orgId
+        ? organizationRepository.getProjectsForOrganization(orgId)
+        : Promise.resolve([]),
+      adminAttendanceService.getApprovalAuditLog(
+        orgId,
+        new Date(initialFrom),
+        new Date(initialTo),
+        projectIdParam,
+      ),
+    ])
 
   const presentRate =
     overview.headcount > 0
       ? Math.round((overview.presentToday / overview.headcount) * 100)
       : 0
 
+  const hoursAction = loadOrgHoursSummaryForProjectAction.bind(null, projectIdParam)
+  const auditAction = loadApprovalAuditLogForProjectAction.bind(null, projectIdParam)
+
   return (
     <div className="space-y-6">
+      {projects.length > 0 ? (
+        <div className="flex justify-end">
+          <ProjectFilterPicker projects={projects} value={projectIdParam} />
+        </div>
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Headcount"
@@ -152,7 +188,7 @@ export default async function AdminAttendancePage() {
         initialFrom={initialFrom}
         initialTo={initialTo}
         initialData={initialHoursSummary}
-        loadAction={loadOrgHoursSummaryAction}
+        loadAction={hoursAction}
         showEmployeeTable
       />
 
@@ -182,45 +218,55 @@ export default async function AdminAttendancePage() {
         />
       </div>
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
-          <CardTitle>By project</CardTitle>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Today
-          </span>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {overview.byProject.length === 0 ? (
-            <p className="rounded-2xl bg-surface-low px-4 py-6 text-center text-sm text-muted-foreground">
-              No projects yet.
-            </p>
-          ) : (
-            overview.byProject.map((p) => {
-              const rate =
-                p.headcount > 0 ? Math.round((p.presentToday / p.headcount) * 100) : 0
-              return (
-                <div
-                  key={p.project}
-                  className="flex items-center gap-3 rounded-2xl border border-border/60 bg-surface-low px-4 py-3"
-                >
-                  <div className="rounded-xl bg-primary/10 p-2 text-primary">
-                    <Building2 className="h-4 w-4" />
+      {projectIdParam ? null : (
+        <Card>
+          <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
+            <CardTitle>By project</CardTitle>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              Today
+            </span>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {overview.byProject.length === 0 ? (
+              <p className="rounded-2xl bg-surface-low px-4 py-6 text-center text-sm text-muted-foreground">
+                No projects yet.
+              </p>
+            ) : (
+              overview.byProject.map((p) => {
+                const rate =
+                  p.headcount > 0 ? Math.round((p.presentToday / p.headcount) * 100) : 0
+                return (
+                  <div
+                    key={p.project}
+                    className="flex items-center gap-3 rounded-2xl border border-border/60 bg-surface-low px-4 py-3"
+                  >
+                    <div className="rounded-xl bg-primary/10 p-2 text-primary">
+                      <Building2 className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {p.project}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {p.presentToday}/{p.headcount} present · {p.lateToday} late
+                      </p>
+                    </div>
+                    <span className="text-sm font-bold text-foreground">{rate}%</span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {p.project}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {p.presentToday}/{p.headcount} present · {p.lateToday} late
-                    </p>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">{rate}%</span>
-                </div>
-              )
-            })
-          )}
-        </CardContent>
-      </Card>
+                )
+              })
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      <ApprovalAuditLog
+        initialFrom={initialFrom}
+        initialTo={initialTo}
+        initialRows={initialAudit}
+        loadAction={auditAction}
+        projectId={projectIdParam}
+      />
     </div>
   )
 }

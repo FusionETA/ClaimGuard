@@ -36,6 +36,15 @@ export type AttendanceRecordView = {
   notes: string | null
 }
 
+export type ChainHistoryEntry = {
+  step: number
+  approverId: string
+  approverName: string
+  reviewedAt: string
+  status: "APPROVED" | "REJECTED"
+  notes: string | null
+}
+
 export type ApprovalRequestView = {
   id: string
   kind: ApprovalKind
@@ -50,11 +59,24 @@ export type ApprovalRequestView = {
   location: string | null
   project: string | null
   otSubtype: OTSubtype | null
+  /// CASH or TIME_BANK snapshot for OT requests. Null for non-OT or legacy
+  /// rows submitted before the snapshot was added.
+  otPayoutMethod: "CASH" | "TIME_BANK" | null
   lateMinutes: number | null
   offsetRef: string | null
   reviewNotes: string | null
   submittedAt: string
   reviewedAt: string | null
+  /** Per-step approval audit. Null on legacy / auto-approved rows. */
+  chainHistory: ChainHistoryEntry[] | null
+  /** 1-indexed step number currently waiting for review. Null when finalised. */
+  currentStep: number | null
+  /** Total number of steps in the resolved chain (length 1 for fallback / legacy). */
+  totalSteps: number
+  /** When `currentStep` is set, the names of the approvers who can act on it. */
+  currentStepApproverNames: string[]
+  /** When `currentStep` is set, the user IDs of the approvers who can act on it. */
+  currentStepApproverIds: string[]
 }
 
 export type AttendanceProjectView = {

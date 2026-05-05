@@ -20,11 +20,17 @@ export type BucketInputs = {
   isPublicHoliday: boolean
   workingDays: Set<number>
   standardDailyMin: number
+  /// Minutes per day that must be exceeded before time counts as OT on a
+  /// regular working day. Org-wide setting. Independent from
+  /// standardDailyMin (which is per-project working hours used for
+  /// display/scheduling).
+  otThresholdMin: number
   hasApprovedOT: boolean
 }
 
 const DEFAULT_WORKING_DAYS = new Set([1, 2, 3, 4, 5])
 const DEFAULT_STANDARD_DAILY_MIN = 8 * 60
+export const DEFAULT_OT_THRESHOLD_MIN = 8 * 60
 
 export function parseWorkingDays(csv: string | null | undefined): Set<number> {
   if (!csv) return new Set(DEFAULT_WORKING_DAYS)
@@ -89,8 +95,8 @@ export function bucketRecord(input: BucketInputs): HoursBuckets {
     }
   }
 
-  const std = Math.max(0, input.standardDailyMin)
-  if (dur <= std || !input.hasApprovedOT) {
+  const threshold = Math.max(0, input.otThresholdMin)
+  if (dur <= threshold || !input.hasApprovedOT) {
     return {
       normalMin: dur,
       otMin: 0,
@@ -101,8 +107,8 @@ export function bucketRecord(input: BucketInputs): HoursBuckets {
   }
 
   return {
-    normalMin: std,
-    otMin: dur - std,
+    normalMin: threshold,
+    otMin: dur - threshold,
     restDayMin: 0,
     publicHolidayMin: 0,
     totalMin: dur,

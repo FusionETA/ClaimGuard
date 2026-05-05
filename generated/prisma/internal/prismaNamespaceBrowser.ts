@@ -121,7 +121,8 @@ export const OrganizationScalarFieldEnum = {
   geofenceRadiusMeters: 'geofenceRadiusMeters',
   defaultMileageRate: 'defaultMileageRate',
   mileageUnit: 'mileageUnit',
-  otEnabled: 'otEnabled'
+  otEnabled: 'otEnabled',
+  otDailyThresholdMinutes: 'otDailyThresholdMinutes'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -161,7 +162,9 @@ export const EmployeeProfileScalarFieldEnum = {
   xeroConnectionId: 'xeroConnectionId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  hourlyRate: 'hourlyRate'
+  hourlyRate: 'hourlyRate',
+  otPayoutMethod: 'otPayoutMethod',
+  otTimeBalanceMin: 'otTimeBalanceMin'
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
@@ -353,6 +356,7 @@ export const ApprovalRequestScalarFieldEnum = {
   detail: 'detail',
   location: 'location',
   otSubtype: 'otSubtype',
+  otPayoutMethod: 'otPayoutMethod',
   lateMinutes: 'lateMinutes',
   offsetRef: 'offsetRef',
   reviewNotes: 'reviewNotes',
@@ -360,7 +364,8 @@ export const ApprovalRequestScalarFieldEnum = {
   reviewedAt: 'reviewedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  project: 'project'
+  project: 'project',
+  chainHistory: 'chainHistory'
 } as const
 
 export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
@@ -614,6 +619,23 @@ export const BreakSessionOrderByRelevanceFieldEnum = {
 export type BreakSessionOrderByRelevanceFieldEnum = (typeof BreakSessionOrderByRelevanceFieldEnum)[keyof typeof BreakSessionOrderByRelevanceFieldEnum]
 
 
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
 export const ApprovalRequestOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -637,23 +659,6 @@ export const ApprovalChainStepOrderByRelevanceFieldEnum = {
 } as const
 
 export type ApprovalChainStepOrderByRelevanceFieldEnum = (typeof ApprovalChainStepOrderByRelevanceFieldEnum)[keyof typeof ApprovalChainStepOrderByRelevanceFieldEnum]
-
-
-export const JsonNullValueFilter = {
-  DbNull: DbNull,
-  JsonNull: JsonNull,
-  AnyNull: AnyNull
-} as const
-
-export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
-
-
-export const QueryMode = {
-  default: 'default',
-  insensitive: 'insensitive'
-} as const
-
-export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
 export const TeamOrderByRelevanceFieldEnum = {
