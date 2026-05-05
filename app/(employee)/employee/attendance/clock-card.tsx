@@ -183,6 +183,10 @@ export function ClockCard({
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [remark, setRemark] = useState("")
   const [remarkError, setRemarkError] = useState<string | null>(null)
+  // Guards against a second tap firing handleClockIn/Out/Break while the
+  // first is still awaiting GPS — without this, the second resolution
+  // wipes any remark the user has typed and reopens the dismissed popup.
+  const [isResolving, setIsResolving] = useState(false)
   const [employeeCoords, setEmployeeCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [gpsState, setGpsState] = useState<"idle" | "locating" | "ok" | "denied">("idle")
 
@@ -230,51 +234,63 @@ export function ClockCard({
 
   async function handleClockIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    const project = projects.find((p) => p.id === selected) ?? null
-    await attachCoords(formData)
-    fallbackCoordsFromState(formData, employeeCoords)
-    const fence = checkGeofence(
-      readCoordsFrom(formData),
-      project ?? { latitude: null, longitude: null },
-      geofenceRadiusMeters,
-    )
-    if (fence.withinRadius) {
-      startTransition(() => formAction(formData))
-      return
+    if (isResolving || pendingAction) return
+    setIsResolving(true)
+    try {
+      const formData = new FormData(e.currentTarget)
+      const project = projects.find((p) => p.id === selected) ?? null
+      await attachCoords(formData)
+      fallbackCoordsFromState(formData, employeeCoords)
+      const fence = checkGeofence(
+        readCoordsFrom(formData),
+        project ?? { latitude: null, longitude: null },
+        geofenceRadiusMeters,
+      )
+      if (fence.withinRadius) {
+        startTransition(() => formAction(formData))
+        return
+      }
+      setRemark("")
+      setRemarkError(null)
+      setPendingAction({
+        formData,
+        fence,
+        kind: "CLOCK_IN",
+        projectName: project?.name ?? null,
+      })
+    } finally {
+      setIsResolving(false)
     }
-    setRemark("")
-    setRemarkError(null)
-    setPendingAction({
-      formData,
-      fence,
-      kind: "CLOCK_IN",
-      projectName: project?.name ?? null,
-    })
   }
 
   async function handleClockOut(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    await attachCoords(formData)
-    fallbackCoordsFromState(formData, employeeCoords)
-    const fence = checkGeofence(
-      readCoordsFrom(formData),
-      { latitude: activeProjectLat, longitude: activeProjectLng },
-      geofenceRadiusMeters,
-    )
-    if (fence.withinRadius) {
-      startClockOutTransition(() => clockOutAction(formData))
-      return
+    if (isResolving || pendingAction) return
+    setIsResolving(true)
+    try {
+      const formData = new FormData(e.currentTarget)
+      await attachCoords(formData)
+      fallbackCoordsFromState(formData, employeeCoords)
+      const fence = checkGeofence(
+        readCoordsFrom(formData),
+        { latitude: activeProjectLat, longitude: activeProjectLng },
+        geofenceRadiusMeters,
+      )
+      if (fence.withinRadius) {
+        startClockOutTransition(() => clockOutAction(formData))
+        return
+      }
+      setRemark("")
+      setRemarkError(null)
+      setPendingAction({
+        formData,
+        fence,
+        kind: "CLOCK_OUT",
+        projectName: activeProject,
+      })
+    } finally {
+      setIsResolving(false)
     }
-    setRemark("")
-    setRemarkError(null)
-    setPendingAction({
-      formData,
-      fence,
-      kind: "CLOCK_OUT",
-      projectName: activeProject,
-    })
   }
 
   async function handleBreak(
@@ -282,30 +298,36 @@ export function ClockCard({
     kind: BreakKind,
   ) {
     e.preventDefault()
-    const formData = new FormData(e.currentTarget)
-    await attachCoords(formData)
-    fallbackCoordsFromState(formData, employeeCoords)
-    const fence = checkGeofence(
-      readCoordsFrom(formData),
-      { latitude: activeProjectLat, longitude: activeProjectLng },
-      geofenceRadiusMeters,
-    )
-    if (fence.withinRadius) {
-      startBreakTransition(() =>
-        kind === "BREAK_START"
-          ? startBreakAction(formData)
-          : endBreakAction(formData),
+    if (isResolving || pendingAction) return
+    setIsResolving(true)
+    try {
+      const formData = new FormData(e.currentTarget)
+      await attachCoords(formData)
+      fallbackCoordsFromState(formData, employeeCoords)
+      const fence = checkGeofence(
+        readCoordsFrom(formData),
+        { latitude: activeProjectLat, longitude: activeProjectLng },
+        geofenceRadiusMeters,
       )
-      return
+      if (fence.withinRadius) {
+        startBreakTransition(() =>
+          kind === "BREAK_START"
+            ? startBreakAction(formData)
+            : endBreakAction(formData),
+        )
+        return
+      }
+      setRemark("")
+      setRemarkError(null)
+      setPendingAction({
+        formData,
+        fence,
+        kind,
+        projectName: activeProject,
+      })
+    } finally {
+      setIsResolving(false)
     }
-    setRemark("")
-    setRemarkError(null)
-    setPendingAction({
-      formData,
-      fence,
-      kind,
-      projectName: activeProject,
-    })
   }
 
   function confirmRemark() {
@@ -317,6 +339,8 @@ export function ClockCard({
     }
     pendingAction.formData.set("notes", trimmed)
     dispatch(pendingAction)
+    setRemark("")
+    setRemarkError(null)
     setPendingAction(null)
   }
 
@@ -412,7 +436,7 @@ export function ClockCard({
               </div>
             ) : null}
           </div>
-          <ClockInButton pending={isPending} />
+          <ClockInButton pending={isPending || isResolving} />
           {result.error ? (
             <p className="text-xs font-semibold text-destructive">{result.error}</p>
           ) : null}
@@ -430,16 +454,16 @@ export function ClockCard({
             . Clock out is disabled until you end the break.
           </p>
           <form onSubmit={(e) => handleBreak(e, "BREAK_END")}>
-            <BreakEndButton pending={isBreakPending} />
+            <BreakEndButton pending={isBreakPending || isResolving} />
           </form>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           <form onSubmit={(e) => handleBreak(e, "BREAK_START")}>
-            <BreakStartButton pending={isBreakPending} />
+            <BreakStartButton pending={isBreakPending || isResolving} />
           </form>
           <form onSubmit={handleClockOut}>
-            <ClockOutButton pending={isClockOutPending} />
+            <ClockOutButton pending={isClockOutPending || isResolving} />
           </form>
         </div>
       )}
@@ -487,7 +511,7 @@ function RemarkPanel({
     <div className="mt-4 rounded-[20px] border border-amber-300 bg-amber-50 p-4">
       <p className="text-sm font-bold text-amber-900">{heading}</p>
       <p className="mt-1 text-xs text-amber-800">
-        Add a remark explaining why you're off-site. Your supervisor will see it.
+        Add a remark explaining why you're off-site. Your approver will see it.
       </p>
       <textarea
         value={remark}
