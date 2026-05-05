@@ -1039,19 +1039,37 @@ export const attendanceRepository = {
     return backfillLateMinutes(records.map(approvalToView), prisma)
   },
 
-  async getOrgOverview(orgId: string | null): Promise<AdminOrgOverview> {
+  async getOrgOverview(
+    orgId: string | null,
+    projectId?: string | null,
+  ): Promise<AdminOrgOverview> {
     const prisma = getClient()
     const today = startOfDay(new Date())
 
+    // When a project filter is set, scope every count/list to employees who
+    // are assigned to that project (via EmployeeProjectAssignment) and to
+    // attendance records actually clocked into that project.
+    let employeeIds: string[] | null = null
+    if (projectId && orgId) {
+      employeeIds = await this.getEmployeeIdsForProject(orgId, projectId)
+    }
+
     const userWhere = orgId ? { organizationId: orgId } : {}
     const headcount = await prisma.user.count({
-      where: { ...userWhere, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
+      where: {
+        ...userWhere,
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        ...(employeeIds ? { id: { in: employeeIds } } : {}),
+      },
     })
 
     const todayRecords = await prisma.attendanceRecord.findMany({
-      where: orgId
-        ? { date: today, employee: { organizationId: orgId } }
-        : { date: today },
+      where: {
+        date: today,
+        ...(orgId ? { employee: { organizationId: orgId } } : {}),
+        ...(projectId ? { projectId } : {}),
+        ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
+      },
       include: orgId ? undefined : { employee: { select: { organizationId: true } } },
     })
 
@@ -1062,9 +1080,11 @@ export const attendanceRepository = {
     const onLeaveToday = todayRecords.filter((r) => r.status === "ON_LEAVE").length
 
     const pendingApprovals = await prisma.approvalRequest.count({
-      where: orgId
-        ? { status: "PENDING", employee: { organizationId: orgId } }
-        : { status: "PENDING" },
+      where: {
+        status: "PENDING",
+        ...(orgId ? { employee: { organizationId: orgId } } : {}),
+        ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
+      },
     })
 
     // Group present/late counts by project (best-effort — uses the project string on AttendanceRecord)
@@ -1101,6 +1121,7 @@ export const attendanceRepository = {
     from: Date,
     to: Date,
     orgId: string | null,
+    projectId?: string | null,
   ): Promise<{
     totalAttendanceRecords: number
     totalLate: number
@@ -1109,9 +1130,15 @@ export const attendanceRepository = {
     pendingOT: number
   }> {
     const prisma = getClient()
+    let employeeIds: string[] | null = null
+    if (projectId && orgId) {
+      employeeIds = await this.getEmployeeIdsForProject(orgId, projectId)
+    }
     const baseWhere = {
       date: { gte: startOfDay(from), lte: endOfDay(to) },
       ...(orgId ? { employee: { organizationId: orgId } } : {}),
+      ...(projectId ? { projectId } : {}),
+      ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
     }
     const [totalAttendanceRecords, totalLate, totalMissing, totalOnLeave, pendingOT] =
       await Promise.all([
@@ -1124,6 +1151,7 @@ export const attendanceRepository = {
             kind: "OT",
             status: "PENDING",
             ...(orgId ? { employee: { organizationId: orgId } } : {}),
+            ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
           },
         }),
       ])
@@ -1142,15 +1170,27 @@ export const attendanceRepository = {
    *   - onLeave   → AttendanceRecord.status = ON_LEAVE
    *   - notClockedIn → no record OR record.status = MISSING (and not on leave)
    */
-  async getTodayRollCall(orgId: string | null): Promise<TodayRollCall> {
+  async getTodayRollCall(
+    orgId: string | null,
+    projectId?: string | null,
+  ): Promise<TodayRollCall> {
     const prisma = getClient()
     const today = startOfDay(new Date())
+
+    let employeeIds: string[] | null = null
+    if (projectId && orgId) {
+      employeeIds = await this.getEmployeeIdsForProject(orgId, projectId)
+    }
 
     const userWhere = orgId ? { organizationId: orgId } : {}
 
     const [employees, todayRecords] = await Promise.all([
       prisma.user.findMany({
-        where: { ...userWhere, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
+        where: {
+          ...userWhere,
+          role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+          ...(employeeIds ? { id: { in: employeeIds } } : {}),
+        },
         select: {
           id: true,
           name: true,
@@ -1161,9 +1201,12 @@ export const attendanceRepository = {
         orderBy: { name: "asc" },
       }),
       prisma.attendanceRecord.findMany({
-        where: orgId
-          ? { date: today, employee: { organizationId: orgId } }
-          : { date: today },
+        where: {
+          date: today,
+          ...(orgId ? { employee: { organizationId: orgId } } : {}),
+          ...(projectId ? { projectId } : {}),
+          ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
+        },
         select: {
           employeeId: true,
           status: true,
@@ -1223,6 +1266,7 @@ export const attendanceRepository = {
   async getHoursSummary(args: {
     orgId?: string | null
     employeeId?: string
+    projectId?: string | null
     from: Date
     to: Date
   }): Promise<{
@@ -1247,6 +1291,11 @@ export const attendanceRepository = {
     } else if (args.orgId) {
       employeeWhere.organizationId = args.orgId
     }
+    if (args.projectId && args.orgId) {
+      employeeWhere.employeeProfile = {
+        projectAssignments: { some: { projectId: args.projectId } },
+      }
+    }
 
     const employees = await prisma.user.findMany({
       where: employeeWhere,
@@ -1263,6 +1312,7 @@ export const attendanceRepository = {
         employeeId: { in: employeeIds },
         date: { gte: from, lte: to },
         durationMin: { not: null },
+        ...(args.projectId ? { projectId: args.projectId } : {}),
       },
       select: {
         employeeId: true,
@@ -1357,5 +1407,104 @@ export const attendanceRepository = {
     })
 
     return { totals, employees: rows }
+  },
+
+  /**
+   * Returns IDs of EMPLOYEE/SUPERVISOR users in `orgId` who are assigned to
+   * `projectId` via EmployeeProjectAssignment. Used to scope all attendance
+   * queries when an admin filters the overview by project.
+   */
+  async getEmployeeIdsForProject(
+    orgId: string,
+    projectId: string,
+  ): Promise<string[]> {
+    const prisma = getClient()
+    const users = await prisma.user.findMany({
+      where: {
+        organizationId: orgId,
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        employeeProfile: {
+          projectAssignments: { some: { projectId } },
+        },
+      },
+      select: { id: true },
+    })
+    return users.map((u) => u.id)
+  },
+
+  /**
+   * Returns reviewed approvals (APPROVED + REJECTED) for the org over a
+   * date range, with reviewer + employee names and a delta (in minutes)
+   * between the original event time and when the supervisor reviewed it.
+   * Optionally filtered to a single project.
+   */
+  async getApprovalAuditLog(args: {
+    orgId: string | null
+    from: Date
+    to: Date
+    projectId?: string | null
+  }): Promise<
+    Array<{
+      id: string
+      kind: ApprovalKind
+      status: "APPROVED" | "REJECTED"
+      employeeId: string
+      employeeName: string
+      reviewerId: string | null
+      reviewerName: string | null
+      eventAt: string | null
+      reviewedAt: string
+      delayMinutes: number | null
+      project: string | null
+      title: string
+    }>
+  > {
+    const prisma = getClient()
+    const from = startOfDay(args.from)
+    const to = endOfDay(args.to)
+
+    const where: Record<string, unknown> = {
+      status: { in: ["APPROVED", "REJECTED"] },
+      reviewedAt: { gte: from, lte: to },
+    }
+    if (args.orgId) {
+      where.employee = { organizationId: args.orgId }
+    }
+    if (args.projectId && args.orgId) {
+      const empIds = await this.getEmployeeIdsForProject(args.orgId, args.projectId)
+      if (empIds.length === 0) return []
+      where.employeeId = { in: empIds }
+    }
+
+    const rows = await prisma.approvalRequest.findMany({
+      where,
+      orderBy: { reviewedAt: "desc" },
+      take: 500,
+      include: {
+        employee: { select: { name: true } },
+        reviewer: { select: { name: true } },
+      },
+    })
+    return rows.map((r) => {
+      const reviewedAt = r.reviewedAt!
+      const delayMinutes =
+        r.eventAt && reviewedAt
+          ? Math.round((reviewedAt.getTime() - r.eventAt.getTime()) / 60000)
+          : null
+      return {
+        id: r.id,
+        kind: r.kind as ApprovalKind,
+        status: r.status as "APPROVED" | "REJECTED",
+        employeeId: r.employeeId,
+        employeeName: r.employee?.name ?? r.employeeId,
+        reviewerId: r.reviewerId,
+        reviewerName: r.reviewer?.name ?? null,
+        eventAt: r.eventAt?.toISOString() ?? null,
+        reviewedAt: reviewedAt.toISOString(),
+        delayMinutes,
+        project: r.project,
+        title: r.title,
+      }
+    })
   },
 }

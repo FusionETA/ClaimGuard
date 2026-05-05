@@ -13,10 +13,39 @@ function parseRange(fromIso: string, toIso: string): { from: Date; to: Date } {
   return { from, to }
 }
 
-export async function loadOrgHoursSummaryAction(fromIso: string, toIso: string) {
+export async function loadOrgHoursSummaryAction(
+  fromIso: string,
+  toIso: string,
+  projectId?: string | null,
+) {
   const session = await requirePortalSession("ADMIN")
   const { from, to } = parseRange(fromIso, toIso)
-  return adminAttendanceService.getOrgHoursSummary(session.organizationId ?? null, from, to)
+  return adminAttendanceService.getOrgHoursSummary(
+    session.organizationId ?? null,
+    from,
+    to,
+    projectId ?? null,
+  )
+}
+
+/**
+ * Project-leading variant so the page can bind the projectId before
+ * passing the action to a (from, to) → data panel.
+ */
+export async function loadOrgHoursSummaryForProjectAction(
+  projectId: string | null,
+  fromIso: string,
+  toIso: string,
+) {
+  return loadOrgHoursSummaryAction(fromIso, toIso, projectId)
+}
+
+export async function loadApprovalAuditLogForProjectAction(
+  projectId: string | null,
+  fromIso: string,
+  toIso: string,
+) {
+  return loadApprovalAuditLogAction(fromIso, toIso, projectId)
 }
 
 export async function loadEmployeeHoursSummaryAction(
@@ -27,4 +56,19 @@ export async function loadEmployeeHoursSummaryAction(
   await requirePortalSession("ADMIN")
   const { from, to } = parseRange(fromIso, toIso)
   return adminAttendanceService.getEmployeeHoursSummary(employeeId, from, to)
+}
+
+export async function loadApprovalAuditLogAction(
+  fromIso: string,
+  toIso: string,
+  projectId?: string | null,
+) {
+  const session = await requirePortalSession("ADMIN")
+  const { from, to } = parseRange(fromIso, toIso)
+  return adminAttendanceService.getApprovalAuditLog(
+    session.organizationId ?? null,
+    from,
+    to,
+    projectId ?? null,
+  )
 }

@@ -12,12 +12,18 @@ import {
 } from "./employee-detail-loader"
 
 export const adminAttendanceService = {
-  async getOrgOverview(orgId: string | null): Promise<AdminOrgOverview> {
-    return attendanceRepository.getOrgOverview(orgId)
+  async getOrgOverview(
+    orgId: string | null,
+    projectId?: string | null,
+  ): Promise<AdminOrgOverview> {
+    return attendanceRepository.getOrgOverview(orgId, projectId)
   },
 
-  async getTodayRollCall(orgId: string | null): Promise<TodayRollCall> {
-    return attendanceRepository.getTodayRollCall(orgId)
+  async getTodayRollCall(
+    orgId: string | null,
+    projectId?: string | null,
+  ): Promise<TodayRollCall> {
+    return attendanceRepository.getTodayRollCall(orgId, projectId)
   },
 
   async getAllPendingApprovals(orgId: string | null): Promise<ApprovalRequestView[]> {
@@ -28,6 +34,7 @@ export const adminAttendanceService = {
     from: Date,
     to: Date,
     orgId: string | null,
+    projectId?: string | null,
   ): Promise<{
     totalAttendanceRecords: number
     totalLate: number
@@ -35,7 +42,7 @@ export const adminAttendanceService = {
     totalOnLeave: number
     pendingOT: number
   }> {
-    return attendanceRepository.getAggregateStats(from, to, orgId)
+    return attendanceRepository.getAggregateStats(from, to, orgId, projectId)
   },
 
   async getWorkingHours(orgId: string | null): Promise<{ start: string; end: string }> {
@@ -58,11 +65,25 @@ export const adminAttendanceService = {
     return loadEmployeeDetailForAdmin(adminOrgId, employeeId)
   },
 
-  async getOrgHoursSummary(orgId: string | null, from: Date, to: Date) {
-    return attendanceRepository.getHoursSummary({ orgId, from, to })
+  async getOrgHoursSummary(
+    orgId: string | null,
+    from: Date,
+    to: Date,
+    projectId?: string | null,
+  ) {
+    return attendanceRepository.getHoursSummary({ orgId, from, to, projectId })
   },
 
   async getEmployeeHoursSummary(employeeId: string, from: Date, to: Date) {
     return attendanceRepository.getHoursSummary({ employeeId, from, to })
+  },
+
+  async getApprovalAuditLog(
+    orgId: string | null,
+    from: Date,
+    to: Date,
+    projectId?: string | null,
+  ) {
+    return attendanceRepository.getApprovalAuditLog({ orgId, from, to, projectId })
   },
 }
