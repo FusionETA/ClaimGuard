@@ -196,4 +196,8 @@ export const employeeAttendanceService = {
       : undefined
     return attendanceRepository.confirmBreak(employeeId, location, notes)
   },
+
+  async getHoursSummary(employeeId: string, from: Date, to: Date) {
+    return attendanceRepository.getHoursSummary({ employeeId, from, to })
+  },
 }

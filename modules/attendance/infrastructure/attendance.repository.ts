@@ -15,6 +15,14 @@ import type {
   SupervisorTeamOverview,
   TodayRollCall,
 } from "@/modules/attendance/domain/models"
+import {
+  EMPTY_BUCKETS,
+  addBuckets,
+  bucketRecord,
+  parseWorkingDays,
+  standardDailyMinutesFrom,
+  type HoursBuckets,
+} from "@/modules/attendance/domain/hours-summary"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -949,5 +957,144 @@ export const attendanceRepository = {
     }
 
     return { late, onLeave, notClockedIn }
+  },
+
+  async getHoursSummary(args: {
+    orgId?: string | null
+    employeeId?: string
+    from: Date
+    to: Date
+  }): Promise<{
+    totals: HoursBuckets
+    employees: Array<{
+      employeeId: string
+      name: string
+      email: string
+      initials: string
+      buckets: HoursBuckets
+    }>
+  }> {
+    const prisma = getClient()
+    const from = startOfDay(args.from)
+    const to = endOfDay(args.to)
+
+    const employeeWhere: Record<string, unknown> = {
+      role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+    }
+    if (args.employeeId) {
+      employeeWhere.id = args.employeeId
+    } else if (args.orgId) {
+      employeeWhere.organizationId = args.orgId
+    }
+
+    const employees = await prisma.user.findMany({
+      where: employeeWhere,
+      orderBy: [{ name: "asc" }],
+      select: { id: true, name: true, email: true },
+    })
+    if (employees.length === 0) {
+      return { totals: { ...EMPTY_BUCKETS }, employees: [] }
+    }
+    const employeeIds = employees.map((e) => e.id)
+
+    const records = await prisma.attendanceRecord.findMany({
+      where: {
+        employeeId: { in: employeeIds },
+        date: { gte: from, lte: to },
+        durationMin: { not: null },
+      },
+      select: {
+        employeeId: true,
+        date: true,
+        durationMin: true,
+        projectId: true,
+        projectRef: {
+          select: {
+            id: true,
+            workingHoursStart: true,
+            workingHoursEnd: true,
+            workingDays: true,
+          },
+        },
+      },
+    })
+
+    const projectIds = Array.from(
+      new Set(records.map((r) => r.projectId).filter((x): x is string => Boolean(x))),
+    )
+    const holidays =
+      projectIds.length === 0
+        ? []
+        : await prisma.projectHoliday.findMany({
+            where: {
+              projectId: { in: projectIds },
+              date: { gte: from, lte: to },
+            },
+            select: { projectId: true, date: true },
+          })
+    const holidayKey = (projectId: string, date: Date) =>
+      `${projectId}|${startOfDay(date).toISOString()}`
+    const holidaySet = new Set(
+      holidays.map((h) => holidayKey(h.projectId, h.date)),
+    )
+
+    const approvedOT = await prisma.approvalRequest.findMany({
+      where: {
+        employeeId: { in: employeeIds },
+        kind: "OT",
+        status: "APPROVED",
+        date: { gte: from, lte: to },
+      },
+      select: { employeeId: true, date: true },
+    })
+    const otKey = (employeeId: string, date: Date) =>
+      `${employeeId}|${startOfDay(date).toISOString()}`
+    const otSet = new Set(approvedOT.map((o) => otKey(o.employeeId, o.date)))
+
+    const perEmployee = new Map<string, HoursBuckets>()
+    for (const id of employeeIds) {
+      perEmployee.set(id, { ...EMPTY_BUCKETS })
+    }
+
+    for (const record of records) {
+      const dur = record.durationMin ?? 0
+      if (dur <= 0) continue
+      const isPH = record.projectId
+        ? holidaySet.has(holidayKey(record.projectId, record.date))
+        : false
+      const workingDays = parseWorkingDays(record.projectRef?.workingDays ?? null)
+      const standardDailyMin = standardDailyMinutesFrom(
+        record.projectRef?.workingHoursStart ?? null,
+        record.projectRef?.workingHoursEnd ?? null,
+      )
+      const hasApprovedOT = otSet.has(otKey(record.employeeId, record.date))
+
+      const bucket = bucketRecord({
+        durationMin: dur,
+        date: record.date,
+        isPublicHoliday: isPH,
+        workingDays,
+        standardDailyMin,
+        hasApprovedOT,
+      })
+
+      const current = perEmployee.get(record.employeeId) ?? { ...EMPTY_BUCKETS }
+      perEmployee.set(record.employeeId, addBuckets(current, bucket))
+    }
+
+    let totals: HoursBuckets = { ...EMPTY_BUCKETS }
+    const rows = employees.map((e) => {
+      const buckets = perEmployee.get(e.id) ?? { ...EMPTY_BUCKETS }
+      totals = addBuckets(totals, buckets)
+      return {
+        employeeId: e.id,
+        name: e.name,
+        email: e.email,
+        initials: buildInitials(e.name),
+        buckets,
+      }
+    })
+
+    return { totals, employees: rows }
   },
 }
