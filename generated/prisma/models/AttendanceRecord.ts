@@ -42,6 +42,8 @@ export type AttendanceRecordMinAggregateOutputType = {
   date: Date | null
   timeIn: Date | null
   timeOut: Date | null
+  breakStart: Date | null
+  breakEnd: Date | null
   durationMin: number | null
   lateByMin: number | null
   location: string | null
@@ -59,6 +61,8 @@ export type AttendanceRecordMaxAggregateOutputType = {
   date: Date | null
   timeIn: Date | null
   timeOut: Date | null
+  breakStart: Date | null
+  breakEnd: Date | null
   durationMin: number | null
   lateByMin: number | null
   location: string | null
@@ -76,6 +80,8 @@ export type AttendanceRecordCountAggregateOutputType = {
   date: number
   timeIn: number
   timeOut: number
+  breakStart: number
+  breakEnd: number
   durationMin: number
   lateByMin: number
   location: number
@@ -105,6 +111,8 @@ export type AttendanceRecordMinAggregateInputType = {
   date?: true
   timeIn?: true
   timeOut?: true
+  breakStart?: true
+  breakEnd?: true
   durationMin?: true
   lateByMin?: true
   location?: true
@@ -122,6 +130,8 @@ export type AttendanceRecordMaxAggregateInputType = {
   date?: true
   timeIn?: true
   timeOut?: true
+  breakStart?: true
+  breakEnd?: true
   durationMin?: true
   lateByMin?: true
   location?: true
@@ -139,6 +149,8 @@ export type AttendanceRecordCountAggregateInputType = {
   date?: true
   timeIn?: true
   timeOut?: true
+  breakStart?: true
+  breakEnd?: true
   durationMin?: true
   lateByMin?: true
   location?: true
@@ -243,6 +255,8 @@ export type AttendanceRecordGroupByOutputType = {
   date: Date
   timeIn: Date | null
   timeOut: Date | null
+  breakStart: Date | null
+  breakEnd: Date | null
   durationMin: number | null
   lateByMin: number | null
   location: string | null
@@ -283,6 +297,8 @@ export type AttendanceRecordWhereInput = {
   date?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   timeIn?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   timeOut?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
+  breakStart?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
+  breakEnd?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   durationMin?: Prisma.IntNullableFilter<"AttendanceRecord"> | number | null
   lateByMin?: Prisma.IntNullableFilter<"AttendanceRecord"> | number | null
   location?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
@@ -302,6 +318,8 @@ export type AttendanceRecordOrderByWithRelationInput = {
   date?: Prisma.SortOrder
   timeIn?: Prisma.SortOrderInput | Prisma.SortOrder
   timeOut?: Prisma.SortOrderInput | Prisma.SortOrder
+  breakStart?: Prisma.SortOrderInput | Prisma.SortOrder
+  breakEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   durationMin?: Prisma.SortOrderInput | Prisma.SortOrder
   lateByMin?: Prisma.SortOrderInput | Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -326,6 +344,8 @@ export type AttendanceRecordWhereUniqueInput = Prisma.AtLeast<{
   date?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   timeIn?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   timeOut?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
+  breakStart?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
+  breakEnd?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   durationMin?: Prisma.IntNullableFilter<"AttendanceRecord"> | number | null
   lateByMin?: Prisma.IntNullableFilter<"AttendanceRecord"> | number | null
   location?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
@@ -345,6 +365,8 @@ export type AttendanceRecordOrderByWithAggregationInput = {
   date?: Prisma.SortOrder
   timeIn?: Prisma.SortOrderInput | Prisma.SortOrder
   timeOut?: Prisma.SortOrderInput | Prisma.SortOrder
+  breakStart?: Prisma.SortOrderInput | Prisma.SortOrder
+  breakEnd?: Prisma.SortOrderInput | Prisma.SortOrder
   durationMin?: Prisma.SortOrderInput | Prisma.SortOrder
   lateByMin?: Prisma.SortOrderInput | Prisma.SortOrder
   location?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -370,6 +392,8 @@ export type AttendanceRecordScalarWhereWithAggregatesInput = {
   date?: Prisma.DateTimeWithAggregatesFilter<"AttendanceRecord"> | Date | string
   timeIn?: Prisma.DateTimeNullableWithAggregatesFilter<"AttendanceRecord"> | Date | string | null
   timeOut?: Prisma.DateTimeNullableWithAggregatesFilter<"AttendanceRecord"> | Date | string | null
+  breakStart?: Prisma.DateTimeNullableWithAggregatesFilter<"AttendanceRecord"> | Date | string | null
+  breakEnd?: Prisma.DateTimeNullableWithAggregatesFilter<"AttendanceRecord"> | Date | string | null
   durationMin?: Prisma.IntNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
   lateByMin?: Prisma.IntNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
   location?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
@@ -386,6 +410,8 @@ export type AttendanceRecordCreateInput = {
   date: Date | string
   timeIn?: Date | string | null
   timeOut?: Date | string | null
+  breakStart?: Date | string | null
+  breakEnd?: Date | string | null
   durationMin?: number | null
   lateByMin?: number | null
   location?: string | null
@@ -404,6 +430,8 @@ export type AttendanceRecordUncheckedCreateInput = {
   date: Date | string
   timeIn?: Date | string | null
   timeOut?: Date | string | null
+  breakStart?: Date | string | null
+  breakEnd?: Date | string | null
   durationMin?: number | null
   lateByMin?: number | null
   location?: string | null
@@ -420,6 +448,8 @@ export type AttendanceRecordUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -438,6 +468,8 @@ export type AttendanceRecordUncheckedUpdateInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -455,6 +487,8 @@ export type AttendanceRecordCreateManyInput = {
   date: Date | string
   timeIn?: Date | string | null
   timeOut?: Date | string | null
+  breakStart?: Date | string | null
+  breakEnd?: Date | string | null
   durationMin?: number | null
   lateByMin?: number | null
   location?: string | null
@@ -471,6 +505,8 @@ export type AttendanceRecordUpdateManyMutationInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -487,6 +523,8 @@ export type AttendanceRecordUncheckedUpdateManyInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -525,6 +563,8 @@ export type AttendanceRecordCountOrderByAggregateInput = {
   date?: Prisma.SortOrder
   timeIn?: Prisma.SortOrder
   timeOut?: Prisma.SortOrder
+  breakStart?: Prisma.SortOrder
+  breakEnd?: Prisma.SortOrder
   durationMin?: Prisma.SortOrder
   lateByMin?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -547,6 +587,8 @@ export type AttendanceRecordMaxOrderByAggregateInput = {
   date?: Prisma.SortOrder
   timeIn?: Prisma.SortOrder
   timeOut?: Prisma.SortOrder
+  breakStart?: Prisma.SortOrder
+  breakEnd?: Prisma.SortOrder
   durationMin?: Prisma.SortOrder
   lateByMin?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -564,6 +606,8 @@ export type AttendanceRecordMinOrderByAggregateInput = {
   date?: Prisma.SortOrder
   timeIn?: Prisma.SortOrder
   timeOut?: Prisma.SortOrder
+  breakStart?: Prisma.SortOrder
+  breakEnd?: Prisma.SortOrder
   durationMin?: Prisma.SortOrder
   lateByMin?: Prisma.SortOrder
   location?: Prisma.SortOrder
@@ -681,6 +725,8 @@ export type AttendanceRecordCreateWithoutEmployeeInput = {
   date: Date | string
   timeIn?: Date | string | null
   timeOut?: Date | string | null
+  breakStart?: Date | string | null
+  breakEnd?: Date | string | null
   durationMin?: number | null
   lateByMin?: number | null
   location?: string | null
@@ -697,6 +743,8 @@ export type AttendanceRecordUncheckedCreateWithoutEmployeeInput = {
   date: Date | string
   timeIn?: Date | string | null
   timeOut?: Date | string | null
+  breakStart?: Date | string | null
+  breakEnd?: Date | string | null
   durationMin?: number | null
   lateByMin?: number | null
   location?: string | null
@@ -743,6 +791,8 @@ export type AttendanceRecordScalarWhereInput = {
   date?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   timeIn?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   timeOut?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
+  breakStart?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
+  breakEnd?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   durationMin?: Prisma.IntNullableFilter<"AttendanceRecord"> | number | null
   lateByMin?: Prisma.IntNullableFilter<"AttendanceRecord"> | number | null
   location?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
@@ -759,6 +809,8 @@ export type AttendanceRecordCreateWithoutProjectRefInput = {
   date: Date | string
   timeIn?: Date | string | null
   timeOut?: Date | string | null
+  breakStart?: Date | string | null
+  breakEnd?: Date | string | null
   durationMin?: number | null
   lateByMin?: number | null
   location?: string | null
@@ -776,6 +828,8 @@ export type AttendanceRecordUncheckedCreateWithoutProjectRefInput = {
   date: Date | string
   timeIn?: Date | string | null
   timeOut?: Date | string | null
+  breakStart?: Date | string | null
+  breakEnd?: Date | string | null
   durationMin?: number | null
   lateByMin?: number | null
   location?: string | null
@@ -817,6 +871,8 @@ export type AttendanceRecordCreateManyEmployeeInput = {
   date: Date | string
   timeIn?: Date | string | null
   timeOut?: Date | string | null
+  breakStart?: Date | string | null
+  breakEnd?: Date | string | null
   durationMin?: number | null
   lateByMin?: number | null
   location?: string | null
@@ -833,6 +889,8 @@ export type AttendanceRecordUpdateWithoutEmployeeInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -849,6 +907,8 @@ export type AttendanceRecordUncheckedUpdateWithoutEmployeeInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -865,6 +925,8 @@ export type AttendanceRecordUncheckedUpdateManyWithoutEmployeeInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -882,6 +944,8 @@ export type AttendanceRecordCreateManyProjectRefInput = {
   date: Date | string
   timeIn?: Date | string | null
   timeOut?: Date | string | null
+  breakStart?: Date | string | null
+  breakEnd?: Date | string | null
   durationMin?: number | null
   lateByMin?: number | null
   location?: string | null
@@ -897,6 +961,8 @@ export type AttendanceRecordUpdateWithoutProjectRefInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -914,6 +980,8 @@ export type AttendanceRecordUncheckedUpdateWithoutProjectRefInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -930,6 +998,8 @@ export type AttendanceRecordUncheckedUpdateManyWithoutProjectRefInput = {
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakStart?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  breakEnd?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -948,6 +1018,8 @@ export type AttendanceRecordSelect<ExtArgs extends runtime.Types.Extensions.Inte
   date?: boolean
   timeIn?: boolean
   timeOut?: boolean
+  breakStart?: boolean
+  breakEnd?: boolean
   durationMin?: boolean
   lateByMin?: boolean
   location?: boolean
@@ -969,6 +1041,8 @@ export type AttendanceRecordSelectScalar = {
   date?: boolean
   timeIn?: boolean
   timeOut?: boolean
+  breakStart?: boolean
+  breakEnd?: boolean
   durationMin?: boolean
   lateByMin?: boolean
   location?: boolean
@@ -980,7 +1054,7 @@ export type AttendanceRecordSelectScalar = {
   projectId?: boolean
 }
 
-export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "durationMin" | "lateByMin" | "location" | "project" | "status" | "notes" | "createdAt" | "updatedAt" | "projectId", ExtArgs["result"]["attendanceRecord"]>
+export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "breakStart" | "breakEnd" | "durationMin" | "lateByMin" | "location" | "project" | "status" | "notes" | "createdAt" | "updatedAt" | "projectId", ExtArgs["result"]["attendanceRecord"]>
 export type AttendanceRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
@@ -998,6 +1072,8 @@ export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.In
     date: Date
     timeIn: Date | null
     timeOut: Date | null
+    breakStart: Date | null
+    breakEnd: Date | null
     durationMin: number | null
     lateByMin: number | null
     location: string | null
@@ -1383,6 +1459,8 @@ export interface AttendanceRecordFieldRefs {
   readonly date: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly timeIn: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly timeOut: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
+  readonly breakStart: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
+  readonly breakEnd: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly durationMin: Prisma.FieldRef<"AttendanceRecord", 'Int'>
   readonly lateByMin: Prisma.FieldRef<"AttendanceRecord", 'Int'>
   readonly location: Prisma.FieldRef<"AttendanceRecord", 'String'>

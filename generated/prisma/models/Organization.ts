@@ -58,6 +58,7 @@ export type OrganizationMinAggregateOutputType = {
   updatedAt: Date | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
+  timezone: string | null
   bankAccount: string | null
   otRateNormalDay: runtime.Decimal | null
   otRatePublicHoliday: runtime.Decimal | null
@@ -79,6 +80,7 @@ export type OrganizationMaxAggregateOutputType = {
   updatedAt: Date | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
+  timezone: string | null
   bankAccount: string | null
   otRateNormalDay: runtime.Decimal | null
   otRatePublicHoliday: runtime.Decimal | null
@@ -100,6 +102,7 @@ export type OrganizationCountAggregateOutputType = {
   updatedAt: number
   workingHoursEnd: number
   workingHoursStart: number
+  timezone: number
   bankAccount: number
   otRateNormalDay: number
   otRatePublicHoliday: number
@@ -147,6 +150,7 @@ export type OrganizationMinAggregateInputType = {
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
+  timezone?: true
   bankAccount?: true
   otRateNormalDay?: true
   otRatePublicHoliday?: true
@@ -168,6 +172,7 @@ export type OrganizationMaxAggregateInputType = {
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
+  timezone?: true
   bankAccount?: true
   otRateNormalDay?: true
   otRatePublicHoliday?: true
@@ -189,6 +194,7 @@ export type OrganizationCountAggregateInputType = {
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
+  timezone?: true
   bankAccount?: true
   otRateNormalDay?: true
   otRatePublicHoliday?: true
@@ -297,6 +303,7 @@ export type OrganizationGroupByOutputType = {
   updatedAt: Date
   workingHoursEnd: string
   workingHoursStart: string
+  timezone: string
   bankAccount: string | null
   otRateNormalDay: runtime.Decimal
   otRatePublicHoliday: runtime.Decimal
@@ -341,6 +348,7 @@ export type OrganizationWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
+  timezone?: Prisma.StringFilter<"Organization"> | string
   bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
   otRateNormalDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -368,6 +376,7 @@ export type OrganizationOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -399,6 +408,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
+  timezone?: Prisma.StringFilter<"Organization"> | string
   bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
   otRateNormalDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -426,6 +436,7 @@ export type OrganizationOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -455,6 +466,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringWithAggregatesFilter<"Organization"> | string
+  timezone?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   bankAccount?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   otRateNormalDay?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -476,6 +488,7 @@ export type OrganizationCreateInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -503,6 +516,7 @@ export type OrganizationUncheckedCreateInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -530,6 +544,7 @@ export type OrganizationUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -557,6 +572,7 @@ export type OrganizationUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -584,6 +600,7 @@ export type OrganizationCreateManyInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -605,6 +622,7 @@ export type OrganizationUpdateManyMutationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -626,6 +644,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -658,6 +677,7 @@ export type OrganizationCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -691,6 +711,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -712,6 +733,7 @@ export type OrganizationMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -870,6 +892,7 @@ export type OrganizationCreateWithoutUsersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -896,6 +919,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -938,6 +962,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -964,6 +989,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -990,6 +1016,7 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1016,6 +1043,7 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1058,6 +1086,7 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1084,6 +1113,7 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1110,6 +1140,7 @@ export type OrganizationCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1136,6 +1167,7 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1178,6 +1210,7 @@ export type OrganizationUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1204,6 +1237,7 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1230,6 +1264,7 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1256,6 +1291,7 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1298,6 +1334,7 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1324,6 +1361,7 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1350,6 +1388,7 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1376,6 +1415,7 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1418,6 +1458,7 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1444,6 +1485,7 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1470,6 +1512,7 @@ export type OrganizationCreateWithoutProjectsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1496,6 +1539,7 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
+  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1538,6 +1582,7 @@ export type OrganizationUpdateWithoutProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1564,6 +1609,7 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1666,6 +1712,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   updatedAt?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
+  timezone?: boolean
   bankAccount?: boolean
   otRateNormalDay?: boolean
   otRatePublicHoliday?: boolean
@@ -1696,6 +1743,7 @@ export type OrganizationSelectScalar = {
   updatedAt?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
+  timezone?: boolean
   bankAccount?: boolean
   otRateNormalDay?: boolean
   otRatePublicHoliday?: boolean
@@ -1709,7 +1757,7 @@ export type OrganizationSelectScalar = {
   otEnabled?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "timezone" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
@@ -1738,6 +1786,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     updatedAt: Date
     workingHoursEnd: string
     workingHoursStart: string
+    timezone: string
     bankAccount: string | null
     otRateNormalDay: runtime.Decimal
     otRatePublicHoliday: runtime.Decimal
@@ -2131,6 +2180,7 @@ export interface OrganizationFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly workingHoursEnd: Prisma.FieldRef<"Organization", 'String'>
   readonly workingHoursStart: Prisma.FieldRef<"Organization", 'String'>
+  readonly timezone: Prisma.FieldRef<"Organization", 'String'>
   readonly bankAccount: Prisma.FieldRef<"Organization", 'String'>
   readonly otRateNormalDay: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly otRatePublicHoliday: Prisma.FieldRef<"Organization", 'Decimal'>

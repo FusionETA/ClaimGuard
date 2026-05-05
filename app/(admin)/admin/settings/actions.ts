@@ -1138,6 +1138,42 @@ export async function saveOrgWorkingHoursAction(
   return { ok: true, message: "Default working hours saved." }
 }
 
+export async function saveOrgTimezoneAction(
+  timezone: string
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+  const prisma = getPrismaClient()
+  if (!prisma) return { ok: false, message: "Database is not configured." }
+
+  const { isValidTimezone } = await import(
+    "@/modules/attendance/domain/timezone"
+  )
+  if (!isValidTimezone(timezone)) {
+    return { ok: false, message: "Unknown timezone." }
+  }
+
+  try {
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { timezone },
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : "Unable to save timezone.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+  return { ok: true, message: "Timezone saved." }
+}
+
 export async function toggleOrgOtAction(
   enabled: boolean
 ): Promise<{ ok: boolean; message: string }> {

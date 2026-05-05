@@ -22,6 +22,8 @@ export type AttendanceRecordView = {
   date: string
   timeIn: string | null
   timeOut: string | null
+  breakStart: string | null
+  breakEnd: string | null
   durationMin: number | null
   lateByMin: number | null
   location: string | null

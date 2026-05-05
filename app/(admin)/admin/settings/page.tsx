@@ -73,6 +73,7 @@ export default async function AdminSettingsPage({
       pendingTenants={pendingTenants}
       takenTenantIds={takenTenantIds}
       workingHours={data.workingHours}
+      timezone={data.timezone}
       initialTab={typeof params.tab === "string" ? params.tab : "organization"}
       initialSection={typeof params.section === "string" ? params.section : undefined}
     />

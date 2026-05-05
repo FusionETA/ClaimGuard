@@ -46,6 +46,10 @@ export const adminAttendanceService = {
     await attendanceRepository.setWorkingHours(orgId, start, end)
   },
 
+  async getOrgTimezone(orgId: string | null): Promise<string> {
+    return attendanceRepository.getOrgTimezone(orgId)
+  },
+
   async getEmployeeList(orgId: string | null) {
     return loadOrgEmployeeListForAdmin(orgId)
   },

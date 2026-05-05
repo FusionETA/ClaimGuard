@@ -84,6 +84,8 @@ export function EmployeeAttendanceDashboardView({
         activeProjectLng={dashboard.activeProjectCoords?.longitude ?? null}
         geofenceRadiusMeters={dashboard.geofenceRadiusMeters}
         now={now.toISOString()}
+        breakStart={dashboard.today?.breakStart ?? null}
+        breakEnd={dashboard.today?.breakEnd ?? null}
       />
 
       {dashboard.todayEvents.length > 0 ? (

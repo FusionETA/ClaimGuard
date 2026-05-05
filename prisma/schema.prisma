@@ -44,6 +44,7 @@ model Organization {
   updatedAt                DateTime            @updatedAt
   workingHoursEnd          String              @default("18:00")
   workingHoursStart        String              @default("09:00")
+  timezone                 String              @default("Asia/Kuala_Lumpur")
   bankAccount              String?
   otRateNormalDay          Decimal             @default(1.50) @db.Decimal(4, 2)
   otRatePublicHoliday      Decimal             @default(3.00) @db.Decimal(4, 2)
@@ -316,6 +317,8 @@ model AttendanceRecord {
   date        DateTime
   timeIn      DateTime?
   timeOut     DateTime?
+  breakStart  DateTime?
+  breakEnd    DateTime?
   durationMin Int?
   lateByMin   Int?
   location    String?

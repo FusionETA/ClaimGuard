@@ -109,6 +109,7 @@ export const OrganizationScalarFieldEnum = {
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
+  timezone: 'timezone',
   bankAccount: 'bankAccount',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
@@ -314,6 +315,8 @@ export const AttendanceRecordScalarFieldEnum = {
   date: 'date',
   timeIn: 'timeIn',
   timeOut: 'timeOut',
+  breakStart: 'breakStart',
+  breakEnd: 'breakEnd',
   durationMin: 'durationMin',
   lateByMin: 'lateByMin',
   location: 'location',
@@ -440,6 +443,7 @@ export const OrganizationOrderByRelevanceFieldEnum = {
   name: 'name',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
+  timezone: 'timezone',
   bankAccount: 'bankAccount'
 } as const
 
