@@ -60,10 +60,18 @@ export async function clockOutAction(formData?: FormData) {
   revalidateAll()
 }
 
-export async function confirmBreakAction(formData?: FormData) {
+export async function startBreakAction(formData?: FormData) {
   const session = await requirePortalSession("EMPLOYEE")
   const coords = parseCoords(formData)
   const notes = parseNotes(formData)
-  await employeeAttendanceService.confirmBreak(session.userId, coords, notes)
+  await employeeAttendanceService.startBreak(session.userId, coords, notes)
+  revalidateAll()
+}
+
+export async function endBreakAction(formData?: FormData) {
+  const session = await requirePortalSession("EMPLOYEE")
+  const coords = parseCoords(formData)
+  const notes = parseNotes(formData)
+  await employeeAttendanceService.endBreak(session.userId, coords, notes)
   revalidateAll()
 }

@@ -42,11 +42,11 @@ export type EmployeeProfileMinAggregateOutputType = {
   jobTitle: string | null
   supervisorId: string | null
   payoutMethod: $Enums.PayoutMethod | null
-  hourlyRate: runtime.Decimal | null
   preferredCurrency: string | null
   xeroConnectionId: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  hourlyRate: runtime.Decimal | null
 }
 
 export type EmployeeProfileMaxAggregateOutputType = {
@@ -57,11 +57,11 @@ export type EmployeeProfileMaxAggregateOutputType = {
   jobTitle: string | null
   supervisorId: string | null
   payoutMethod: $Enums.PayoutMethod | null
-  hourlyRate: runtime.Decimal | null
   preferredCurrency: string | null
   xeroConnectionId: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  hourlyRate: runtime.Decimal | null
 }
 
 export type EmployeeProfileCountAggregateOutputType = {
@@ -72,11 +72,11 @@ export type EmployeeProfileCountAggregateOutputType = {
   jobTitle: number
   supervisorId: number
   payoutMethod: number
-  hourlyRate: number
   preferredCurrency: number
   xeroConnectionId: number
   createdAt: number
   updatedAt: number
+  hourlyRate: number
   _all: number
 }
 
@@ -97,11 +97,11 @@ export type EmployeeProfileMinAggregateInputType = {
   jobTitle?: true
   supervisorId?: true
   payoutMethod?: true
-  hourlyRate?: true
   preferredCurrency?: true
   xeroConnectionId?: true
   createdAt?: true
   updatedAt?: true
+  hourlyRate?: true
 }
 
 export type EmployeeProfileMaxAggregateInputType = {
@@ -112,11 +112,11 @@ export type EmployeeProfileMaxAggregateInputType = {
   jobTitle?: true
   supervisorId?: true
   payoutMethod?: true
-  hourlyRate?: true
   preferredCurrency?: true
   xeroConnectionId?: true
   createdAt?: true
   updatedAt?: true
+  hourlyRate?: true
 }
 
 export type EmployeeProfileCountAggregateInputType = {
@@ -127,11 +127,11 @@ export type EmployeeProfileCountAggregateInputType = {
   jobTitle?: true
   supervisorId?: true
   payoutMethod?: true
-  hourlyRate?: true
   preferredCurrency?: true
   xeroConnectionId?: true
   createdAt?: true
   updatedAt?: true
+  hourlyRate?: true
   _all?: true
 }
 
@@ -229,11 +229,11 @@ export type EmployeeProfileGroupByOutputType = {
   jobTitle: string
   supervisorId: string | null
   payoutMethod: $Enums.PayoutMethod | null
-  hourlyRate: runtime.Decimal | null
   preferredCurrency: string
   xeroConnectionId: string | null
   createdAt: Date
   updatedAt: Date
+  hourlyRate: runtime.Decimal | null
   _count: EmployeeProfileCountAggregateOutputType | null
   _avg: EmployeeProfileAvgAggregateOutputType | null
   _sum: EmployeeProfileSumAggregateOutputType | null
@@ -267,11 +267,11 @@ export type EmployeeProfileWhereInput = {
   jobTitle?: Prisma.StringFilter<"EmployeeProfile"> | string
   supervisorId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
   payoutMethod?: Prisma.EnumPayoutMethodNullableFilter<"EmployeeProfile"> | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.DecimalNullableFilter<"EmployeeProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFilter<"EmployeeProfile"> | string
   xeroConnectionId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
+  hourlyRate?: Prisma.DecimalNullableFilter<"EmployeeProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
@@ -287,11 +287,11 @@ export type EmployeeProfileOrderByWithRelationInput = {
   jobTitle?: Prisma.SortOrder
   supervisorId?: Prisma.SortOrderInput | Prisma.SortOrder
   payoutMethod?: Prisma.SortOrderInput | Prisma.SortOrder
-  hourlyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   preferredCurrency?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  hourlyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   supervisor?: Prisma.UserOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
   xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
@@ -311,11 +311,11 @@ export type EmployeeProfileWhereUniqueInput = Prisma.AtLeast<{
   jobTitle?: Prisma.StringFilter<"EmployeeProfile"> | string
   supervisorId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
   payoutMethod?: Prisma.EnumPayoutMethodNullableFilter<"EmployeeProfile"> | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.DecimalNullableFilter<"EmployeeProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFilter<"EmployeeProfile"> | string
   xeroConnectionId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
+  hourlyRate?: Prisma.DecimalNullableFilter<"EmployeeProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
@@ -331,11 +331,11 @@ export type EmployeeProfileOrderByWithAggregationInput = {
   jobTitle?: Prisma.SortOrder
   supervisorId?: Prisma.SortOrderInput | Prisma.SortOrder
   payoutMethod?: Prisma.SortOrderInput | Prisma.SortOrder
-  hourlyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   preferredCurrency?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  hourlyRate?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.EmployeeProfileCountOrderByAggregateInput
   _avg?: Prisma.EmployeeProfileAvgOrderByAggregateInput
   _max?: Prisma.EmployeeProfileMaxOrderByAggregateInput
@@ -354,11 +354,11 @@ export type EmployeeProfileScalarWhereWithAggregatesInput = {
   jobTitle?: Prisma.StringWithAggregatesFilter<"EmployeeProfile"> | string
   supervisorId?: Prisma.StringNullableWithAggregatesFilter<"EmployeeProfile"> | string | null
   payoutMethod?: Prisma.EnumPayoutMethodNullableWithAggregatesFilter<"EmployeeProfile"> | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.DecimalNullableWithAggregatesFilter<"EmployeeProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringWithAggregatesFilter<"EmployeeProfile"> | string
   xeroConnectionId?: Prisma.StringNullableWithAggregatesFilter<"EmployeeProfile"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeeProfile"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeeProfile"> | Date | string
+  hourlyRate?: Prisma.DecimalNullableWithAggregatesFilter<"EmployeeProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type EmployeeProfileCreateInput = {
@@ -367,10 +367,10 @@ export type EmployeeProfileCreateInput = {
   project: string
   jobTitle: string
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedProfilesInput
   user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
@@ -386,11 +386,11 @@ export type EmployeeProfileUncheckedCreateInput = {
   jobTitle: string
   supervisorId?: string | null
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   xeroConnectionId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
@@ -401,10 +401,10 @@ export type EmployeeProfileUpdateInput = {
   project?: Prisma.StringFieldUpdateOperationsInput | string
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedProfilesNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
@@ -420,11 +420,11 @@ export type EmployeeProfileUncheckedUpdateInput = {
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   supervisorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
@@ -437,11 +437,11 @@ export type EmployeeProfileCreateManyInput = {
   jobTitle: string
   supervisorId?: string | null
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   xeroConnectionId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type EmployeeProfileUpdateManyMutationInput = {
@@ -450,10 +450,10 @@ export type EmployeeProfileUpdateManyMutationInput = {
   project?: Prisma.StringFieldUpdateOperationsInput | string
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type EmployeeProfileUncheckedUpdateManyInput = {
@@ -464,11 +464,11 @@ export type EmployeeProfileUncheckedUpdateManyInput = {
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   supervisorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type EmployeeProfileListRelationFilter = {
@@ -500,11 +500,11 @@ export type EmployeeProfileCountOrderByAggregateInput = {
   jobTitle?: Prisma.SortOrder
   supervisorId?: Prisma.SortOrder
   payoutMethod?: Prisma.SortOrder
-  hourlyRate?: Prisma.SortOrder
   preferredCurrency?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  hourlyRate?: Prisma.SortOrder
 }
 
 export type EmployeeProfileAvgOrderByAggregateInput = {
@@ -519,11 +519,11 @@ export type EmployeeProfileMaxOrderByAggregateInput = {
   jobTitle?: Prisma.SortOrder
   supervisorId?: Prisma.SortOrder
   payoutMethod?: Prisma.SortOrder
-  hourlyRate?: Prisma.SortOrder
   preferredCurrency?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  hourlyRate?: Prisma.SortOrder
 }
 
 export type EmployeeProfileMinOrderByAggregateInput = {
@@ -534,11 +534,11 @@ export type EmployeeProfileMinOrderByAggregateInput = {
   jobTitle?: Prisma.SortOrder
   supervisorId?: Prisma.SortOrder
   payoutMethod?: Prisma.SortOrder
-  hourlyRate?: Prisma.SortOrder
   preferredCurrency?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  hourlyRate?: Prisma.SortOrder
 }
 
 export type EmployeeProfileSumOrderByAggregateInput = {
@@ -704,10 +704,10 @@ export type EmployeeProfileCreateWithoutSupervisorInput = {
   project: string
   jobTitle: string
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
@@ -721,11 +721,11 @@ export type EmployeeProfileUncheckedCreateWithoutSupervisorInput = {
   project: string
   jobTitle: string
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   xeroConnectionId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
@@ -746,10 +746,10 @@ export type EmployeeProfileCreateWithoutUserInput = {
   project: string
   jobTitle: string
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedProfilesInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
@@ -763,11 +763,11 @@ export type EmployeeProfileUncheckedCreateWithoutUserInput = {
   jobTitle: string
   supervisorId?: string | null
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   xeroConnectionId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
@@ -804,11 +804,11 @@ export type EmployeeProfileScalarWhereInput = {
   jobTitle?: Prisma.StringFilter<"EmployeeProfile"> | string
   supervisorId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
   payoutMethod?: Prisma.EnumPayoutMethodNullableFilter<"EmployeeProfile"> | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.DecimalNullableFilter<"EmployeeProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFilter<"EmployeeProfile"> | string
   xeroConnectionId?: Prisma.StringNullableFilter<"EmployeeProfile"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeProfile"> | Date | string
+  hourlyRate?: Prisma.DecimalNullableFilter<"EmployeeProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type EmployeeProfileUpsertWithoutUserInput = {
@@ -828,10 +828,10 @@ export type EmployeeProfileUpdateWithoutUserInput = {
   project?: Prisma.StringFieldUpdateOperationsInput | string
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedProfilesNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
@@ -845,11 +845,11 @@ export type EmployeeProfileUncheckedUpdateWithoutUserInput = {
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   supervisorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
@@ -860,10 +860,10 @@ export type EmployeeProfileCreateWithoutProjectAssignmentsInput = {
   project: string
   jobTitle: string
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedProfilesInput
   user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
@@ -878,11 +878,11 @@ export type EmployeeProfileUncheckedCreateWithoutProjectAssignmentsInput = {
   jobTitle: string
   supervisorId?: string | null
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   xeroConnectionId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
 
@@ -908,10 +908,10 @@ export type EmployeeProfileUpdateWithoutProjectAssignmentsInput = {
   project?: Prisma.StringFieldUpdateOperationsInput | string
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedProfilesNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
@@ -926,11 +926,11 @@ export type EmployeeProfileUncheckedUpdateWithoutProjectAssignmentsInput = {
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   supervisorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
 
@@ -940,10 +940,10 @@ export type EmployeeProfileCreateWithoutXeroConnectionInput = {
   project: string
   jobTitle: string
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedProfilesInput
   user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
@@ -958,10 +958,10 @@ export type EmployeeProfileUncheckedCreateWithoutXeroConnectionInput = {
   jobTitle: string
   supervisorId?: string | null
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
@@ -998,10 +998,10 @@ export type EmployeeProfileCreateWithoutTeamMembershipsInput = {
   project: string
   jobTitle: string
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserCreateNestedOneWithoutSupervisedProfilesInput
   user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
@@ -1016,11 +1016,11 @@ export type EmployeeProfileUncheckedCreateWithoutTeamMembershipsInput = {
   jobTitle: string
   supervisorId?: string | null
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   xeroConnectionId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
 
@@ -1046,10 +1046,10 @@ export type EmployeeProfileUpdateWithoutTeamMembershipsInput = {
   project?: Prisma.StringFieldUpdateOperationsInput | string
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedProfilesNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
@@ -1064,11 +1064,11 @@ export type EmployeeProfileUncheckedUpdateWithoutTeamMembershipsInput = {
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   supervisorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
 
@@ -1079,11 +1079,11 @@ export type EmployeeProfileCreateManySupervisorInput = {
   project: string
   jobTitle: string
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   xeroConnectionId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type EmployeeProfileUpdateWithoutSupervisorInput = {
@@ -1092,10 +1092,10 @@ export type EmployeeProfileUpdateWithoutSupervisorInput = {
   project?: Prisma.StringFieldUpdateOperationsInput | string
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
@@ -1109,11 +1109,11 @@ export type EmployeeProfileUncheckedUpdateWithoutSupervisorInput = {
   project?: Prisma.StringFieldUpdateOperationsInput | string
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
@@ -1125,11 +1125,11 @@ export type EmployeeProfileUncheckedUpdateManyWithoutSupervisorInput = {
   project?: Prisma.StringFieldUpdateOperationsInput | string
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type EmployeeProfileCreateManyXeroConnectionInput = {
@@ -1140,10 +1140,10 @@ export type EmployeeProfileCreateManyXeroConnectionInput = {
   jobTitle: string
   supervisorId?: string | null
   payoutMethod?: $Enums.PayoutMethod | null
-  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type EmployeeProfileUpdateWithoutXeroConnectionInput = {
@@ -1152,10 +1152,10 @@ export type EmployeeProfileUpdateWithoutXeroConnectionInput = {
   project?: Prisma.StringFieldUpdateOperationsInput | string
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   supervisor?: Prisma.UserUpdateOneWithoutSupervisedProfilesNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
@@ -1170,10 +1170,10 @@ export type EmployeeProfileUncheckedUpdateWithoutXeroConnectionInput = {
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   supervisorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
@@ -1186,10 +1186,10 @@ export type EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionInput = {
   jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
   supervisorId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
-  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 
@@ -1240,11 +1240,11 @@ export type EmployeeProfileSelect<ExtArgs extends runtime.Types.Extensions.Inter
   jobTitle?: boolean
   supervisorId?: boolean
   payoutMethod?: boolean
-  hourlyRate?: boolean
   preferredCurrency?: boolean
   xeroConnectionId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  hourlyRate?: boolean
   supervisor?: boolean | Prisma.EmployeeProfile$supervisorArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.EmployeeProfile$xeroConnectionArgs<ExtArgs>
@@ -1263,14 +1263,14 @@ export type EmployeeProfileSelectScalar = {
   jobTitle?: boolean
   supervisorId?: boolean
   payoutMethod?: boolean
-  hourlyRate?: boolean
   preferredCurrency?: boolean
   xeroConnectionId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  hourlyRate?: boolean
 }
 
-export type EmployeeProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "employeeId" | "project" | "jobTitle" | "supervisorId" | "payoutMethod" | "hourlyRate" | "preferredCurrency" | "xeroConnectionId" | "createdAt" | "updatedAt", ExtArgs["result"]["employeeProfile"]>
+export type EmployeeProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "employeeId" | "project" | "jobTitle" | "supervisorId" | "payoutMethod" | "preferredCurrency" | "xeroConnectionId" | "createdAt" | "updatedAt" | "hourlyRate", ExtArgs["result"]["employeeProfile"]>
 export type EmployeeProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   supervisor?: boolean | Prisma.EmployeeProfile$supervisorArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1297,15 +1297,15 @@ export type $EmployeeProfilePayload<ExtArgs extends runtime.Types.Extensions.Int
     jobTitle: string
     supervisorId: string | null
     payoutMethod: $Enums.PayoutMethod | null
+    preferredCurrency: string
+    xeroConnectionId: string | null
+    createdAt: Date
+    updatedAt: Date
     /**
      * Pay rate per hour. Only populated for employees whose payoutMethod
      * is HOURLY; null for MONTHLY_BASED employees and supervisors.
      */
     hourlyRate: runtime.Decimal | null
-    preferredCurrency: string
-    xeroConnectionId: string | null
-    createdAt: Date
-    updatedAt: Date
   }, ExtArgs["result"]["employeeProfile"]>
   composites: {}
 }
@@ -1687,11 +1687,11 @@ export interface EmployeeProfileFieldRefs {
   readonly jobTitle: Prisma.FieldRef<"EmployeeProfile", 'String'>
   readonly supervisorId: Prisma.FieldRef<"EmployeeProfile", 'String'>
   readonly payoutMethod: Prisma.FieldRef<"EmployeeProfile", 'PayoutMethod'>
-  readonly hourlyRate: Prisma.FieldRef<"EmployeeProfile", 'Decimal'>
   readonly preferredCurrency: Prisma.FieldRef<"EmployeeProfile", 'String'>
   readonly xeroConnectionId: Prisma.FieldRef<"EmployeeProfile", 'String'>
   readonly createdAt: Prisma.FieldRef<"EmployeeProfile", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EmployeeProfile", 'DateTime'>
+  readonly hourlyRate: Prisma.FieldRef<"EmployeeProfile", 'Decimal'>
 }
     
 

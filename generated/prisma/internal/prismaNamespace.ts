@@ -397,6 +397,7 @@ export const ModelName = {
   ProjectHoliday: 'ProjectHoliday',
   ProjectManager: 'ProjectManager',
   AttendanceRecord: 'AttendanceRecord',
+  BreakSession: 'BreakSession',
   ApprovalRequest: 'ApprovalRequest',
   ApprovalChainStep: 'ApprovalChainStep',
   Team: 'Team',
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
+    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1278,6 +1279,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BreakSession: {
+      payload: Prisma.$BreakSessionPayload<ExtArgs>
+      fields: Prisma.BreakSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BreakSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BreakSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.BreakSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BreakSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        findMany: {
+          args: Prisma.BreakSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>[]
+        }
+        create: {
+          args: Prisma.BreakSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        createMany: {
+          args: Prisma.BreakSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.BreakSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        update: {
+          args: Prisma.BreakSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.BreakSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BreakSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.BreakSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.BreakSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBreakSession>
+        }
+        groupBy: {
+          args: Prisma.BreakSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BreakSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BreakSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BreakSessionCountAggregateOutputType> | number
+        }
+      }
+    }
     ApprovalRequest: {
       payload: Prisma.$ApprovalRequestPayload<ExtArgs>
       fields: Prisma.ApprovalRequestFieldRefs
@@ -1604,6 +1671,7 @@ export const OrganizationScalarFieldEnum = {
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
+  timezone: 'timezone',
   bankAccount: 'bankAccount',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
@@ -1650,11 +1718,11 @@ export const EmployeeProfileScalarFieldEnum = {
   jobTitle: 'jobTitle',
   supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
-  hourlyRate: 'hourlyRate',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  hourlyRate: 'hourlyRate'
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
@@ -1677,9 +1745,7 @@ export const ClaimScalarFieldEnum = {
   title: 'title',
   description: 'description',
   category: 'category',
-  claimType: 'claimType',
   organizationId: 'organizationId',
-  projectId: 'projectId',
   chartOfAccountId: 'chartOfAccountId',
   amount: 'amount',
   currency: 'currency',
@@ -1687,18 +1753,9 @@ export const ClaimScalarFieldEnum = {
   submittedAt: 'submittedAt',
   claimRunMonth: 'claimRunMonth',
   reviewedAt: 'reviewedAt',
-  paymentType: 'paymentType',
-  payViaAccountId: 'payViaAccountId',
   status: 'status',
-  exceedsLimit: 'exceedsLimit',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
-  reviewerRole: 'reviewerRole',
-  distance: 'distance',
-  mileageOriginAddress: 'mileageOriginAddress',
-  mileageDestinationAddress: 'mileageDestinationAddress',
-  mileageRateUsed: 'mileageRateUsed',
-  mileageUnitUsed: 'mileageUnitUsed',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
@@ -1707,7 +1764,18 @@ export const ClaimScalarFieldEnum = {
   xeroSyncError: 'xeroSyncError',
   xeroSyncedAt: 'xeroSyncedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  payViaAccountId: 'payViaAccountId',
+  paymentType: 'paymentType',
+  claimType: 'claimType',
+  distance: 'distance',
+  mileageDestinationAddress: 'mileageDestinationAddress',
+  mileageOriginAddress: 'mileageOriginAddress',
+  mileageRateUsed: 'mileageRateUsed',
+  mileageUnitUsed: 'mileageUnitUsed',
+  reviewerRole: 'reviewerRole',
+  projectId: 'projectId',
+  exceedsLimit: 'exceedsLimit'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
@@ -1823,6 +1891,17 @@ export const AttendanceRecordScalarFieldEnum = {
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
 
 
+export const BreakSessionScalarFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BreakSessionScalarFieldEnum = (typeof BreakSessionScalarFieldEnum)[keyof typeof BreakSessionScalarFieldEnum]
+
+
 export const ApprovalRequestScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -1851,11 +1930,11 @@ export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldE
 export const ApprovalChainStepScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
-  teamId: 'teamId',
   step: 'step',
   approverId: 'approverId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  teamId: 'teamId'
 } as const
 
 export type ApprovalChainStepScalarFieldEnum = (typeof ApprovalChainStepScalarFieldEnum)[keyof typeof ApprovalChainStepScalarFieldEnum]
@@ -1935,6 +2014,7 @@ export const OrganizationOrderByRelevanceFieldEnum = {
   name: 'name',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
+  timezone: 'timezone',
   bankAccount: 'bankAccount'
 } as const
 
@@ -1990,19 +2070,19 @@ export const ClaimOrderByRelevanceFieldEnum = {
   title: 'title',
   description: 'description',
   organizationId: 'organizationId',
-  projectId: 'projectId',
   chartOfAccountId: 'chartOfAccountId',
   currency: 'currency',
-  payViaAccountId: 'payViaAccountId',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
-  mileageOriginAddress: 'mileageOriginAddress',
-  mileageDestinationAddress: 'mileageDestinationAddress',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
-  xeroSyncError: 'xeroSyncError'
+  xeroSyncError: 'xeroSyncError',
+  payViaAccountId: 'payViaAccountId',
+  mileageDestinationAddress: 'mileageDestinationAddress',
+  mileageOriginAddress: 'mileageOriginAddress',
+  projectId: 'projectId'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
@@ -2087,6 +2167,14 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
 export type AttendanceRecordOrderByRelevanceFieldEnum = (typeof AttendanceRecordOrderByRelevanceFieldEnum)[keyof typeof AttendanceRecordOrderByRelevanceFieldEnum]
 
 
+export const BreakSessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId'
+} as const
+
+export type BreakSessionOrderByRelevanceFieldEnum = (typeof BreakSessionOrderByRelevanceFieldEnum)[keyof typeof BreakSessionOrderByRelevanceFieldEnum]
+
+
 export const ApprovalRequestOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -2105,8 +2193,8 @@ export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOr
 export const ApprovalChainStepOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
-  teamId: 'teamId',
-  approverId: 'approverId'
+  approverId: 'approverId',
+  teamId: 'teamId'
 } as const
 
 export type ApprovalChainStepOrderByRelevanceFieldEnum = (typeof ApprovalChainStepOrderByRelevanceFieldEnum)[keyof typeof ApprovalChainStepOrderByRelevanceFieldEnum]
@@ -2217,9 +2305,16 @@ export type EnumClaimCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
 
 
 /**
- * Reference to a field of type 'ClaimType'
+ * Reference to a field of type 'ClaimStatus'
  */
-export type EnumClaimTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimType'>
+export type EnumClaimStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'XeroSyncStatus'
+ */
+export type EnumXeroSyncStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'XeroSyncStatus'>
     
 
 
@@ -2231,16 +2326,9 @@ export type EnumPaymentTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
 
 
 /**
- * Reference to a field of type 'ClaimStatus'
+ * Reference to a field of type 'ClaimType'
  */
-export type EnumClaimStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimStatus'>
-    
-
-
-/**
- * Reference to a field of type 'XeroSyncStatus'
- */
-export type EnumXeroSyncStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'XeroSyncStatus'>
+export type EnumClaimTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimType'>
     
 
 
@@ -2414,6 +2502,7 @@ export type GlobalOmitConfig = {
   projectHoliday?: Prisma.ProjectHolidayOmit
   projectManager?: Prisma.ProjectManagerOmit
   attendanceRecord?: Prisma.AttendanceRecordOmit
+  breakSession?: Prisma.BreakSessionOmit
   approvalRequest?: Prisma.ApprovalRequestOmit
   approvalChainStep?: Prisma.ApprovalChainStepOmit
   team?: Prisma.TeamOmit

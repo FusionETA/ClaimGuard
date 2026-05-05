@@ -19,6 +19,8 @@ import {
   saveOrganizationSettingsAction,
   saveOtRatesAction,
   toggleOrgOtAction,
+  saveGeofenceRadiusAction,
+  saveOrgTimezoneAction,
   saveOrgWorkingHoursAction,
   saveProjectCalendarAction,
   addProjectHolidayAction,
@@ -48,6 +50,7 @@ import { useToast, useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import type { XeroTenant } from "@/lib/xero"
 import type { AdminProfile } from "@/modules/claims/domain/models"
+import { TIMEZONE_OPTIONS } from "@/modules/attendance/domain/timezone"
 import type {
   ChartOfAccountOption,
   OrganizationMember,
@@ -443,6 +446,7 @@ export function AdminSettingsPanel({
   pendingTenants,
   takenTenantIds = [],
   workingHours,
+  timezone,
   initialTab,
   initialSection,
 }: {
@@ -459,6 +463,7 @@ export function AdminSettingsPanel({
   pendingTenants?: XeroTenant[]
   takenTenantIds?: string[]
   workingHours: { start: string; end: string }
+  timezone: string
   initialTab?: string
   initialSection?: string
 }) {
@@ -1619,6 +1624,9 @@ export function AdminSettingsPanel({
 
       {activeTab === "projects" ? (
         <div className="space-y-6">
+          <OrgGeofenceRadiusCard
+            initial={organization?.geofenceRadiusMeters ?? 200}
+          />
           <Card>
             <CardHeader className="flex-row items-start justify-between gap-4">
               <div>
@@ -1769,6 +1777,7 @@ export function AdminSettingsPanel({
           ) : (
             <>
               <OrgWorkingHoursCard initial={workingHours} />
+              <OrgTimezoneCard initial={timezone} />
               <ProjectCalendarPanel projects={projects} orgWorkingHours={workingHours} />
             </>
           )}
@@ -1977,6 +1986,129 @@ function OrgWorkingHoursCard({ initial }: { initial: { start: string; end: strin
             onChange={(v) => setEnd(v || initial.end)}
             disabled={pending}
           />
+          <div className="flex items-center justify-end">
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-lg"
+              onClick={handleSave}
+              disabled={pending || !dirty}
+            >
+              {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function OrgTimezoneCard({ initial }: { initial: string }) {
+  const { toast } = useToast()
+  const [pending, startTransition] = useTransition()
+  const [tz, setTz] = useState(initial)
+  const dirty = tz !== initial
+
+  function handleSave() {
+    startTransition(async () => {
+      const result = await saveOrgTimezoneAction(tz)
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Timezone</CardTitle>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Drives the local time shown on attendance approvals and the
+          comparison used to detect late / early clock-ins.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-[18rem_1fr] sm:items-end">
+          <div>
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              IANA timezone
+            </label>
+            <div className="mt-1">
+              <Select value={tz} onValueChange={setTz} disabled={pending}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIMEZONE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-center justify-end">
+            <Button
+              type="button"
+              size="sm"
+              className="rounded-lg"
+              onClick={handleSave}
+              disabled={pending || !dirty}
+            >
+              {pending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function OrgGeofenceRadiusCard({ initial }: { initial: number }) {
+  const { toast } = useToast()
+  const [pending, startTransition] = useTransition()
+  const [meters, setMeters] = useState(String(initial))
+
+  function handleSave() {
+    const value = parseInt(meters, 10)
+    startTransition(async () => {
+      const result = await saveGeofenceRadiusAction(value)
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+    })
+  }
+
+  const dirty = String(initial) !== meters && /^\d+$/.test(meters)
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Geofence radius</CardTitle>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Maximum distance (in metres) an employee can be from a project&apos;s
+          coordinates while still counting as on-site for clock-in. Anyone
+          outside the radius can still clock in but must add a remark.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-[10rem_1fr] sm:items-end">
+          <div>
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Metres
+            </label>
+            <div className="mt-1 flex items-center gap-2">
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={10}
+                max={10000}
+                step={10}
+                value={meters}
+                onChange={(e) => setMeters(e.target.value)}
+                disabled={pending}
+                className="h-9 text-sm"
+              />
+              <span className="text-xs font-semibold text-muted-foreground">m</span>
+            </div>
+          </div>
           <div className="flex items-center justify-end">
             <Button
               type="button"

@@ -152,6 +152,7 @@ export type AdminSettingsPageData = {
   projects: OrganizationProjectOption[]
   members: OrganizationMember[]
   workingHours: { start: string; end: string }
+  timezone: string
   activeXeroConnectionId?: string
 }
 
@@ -175,7 +176,7 @@ export async function getAdminSettingsPageData(input: {
     input.preferredConnectionId,
   )
 
-  const [chartAccounts, projects, customAccounts, members, workingHours] =
+  const [chartAccounts, projects, customAccounts, members, workingHours, timezone] =
     await Promise.all([
       activeXeroConnectionId
         ? organizationRepository.getChartAccountsForConnection(activeXeroConnectionId)
@@ -190,6 +191,7 @@ export async function getAdminSettingsPageData(input: {
         ? organizationRepository.getOrganizationMembers(input.organizationId)
         : Promise.resolve([]),
       adminAttendanceService.getWorkingHours(input.organizationId ?? null),
+      adminAttendanceService.getOrgTimezone(input.organizationId ?? null),
     ])
 
   return {
@@ -201,6 +203,7 @@ export async function getAdminSettingsPageData(input: {
     projects,
     members,
     workingHours,
+    timezone,
     activeXeroConnectionId,
   }
 }

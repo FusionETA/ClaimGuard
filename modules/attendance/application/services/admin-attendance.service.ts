@@ -46,11 +46,23 @@ export const adminAttendanceService = {
     await attendanceRepository.setWorkingHours(orgId, start, end)
   },
 
+  async getOrgTimezone(orgId: string | null): Promise<string> {
+    return attendanceRepository.getOrgTimezone(orgId)
+  },
+
   async getEmployeeList(orgId: string | null) {
     return loadOrgEmployeeListForAdmin(orgId)
   },
 
   async getEmployeeDetail(adminOrgId: string | null, employeeId: string) {
     return loadEmployeeDetailForAdmin(adminOrgId, employeeId)
+  },
+
+  async getOrgHoursSummary(orgId: string | null, from: Date, to: Date) {
+    return attendanceRepository.getHoursSummary({ orgId, from, to })
+  },
+
+  async getEmployeeHoursSummary(employeeId: string, from: Date, to: Date) {
+    return attendanceRepository.getHoursSummary({ employeeId, from, to })
   },
 }

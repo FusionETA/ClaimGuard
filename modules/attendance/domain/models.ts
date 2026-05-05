@@ -22,6 +22,12 @@ export type AttendanceRecordView = {
   date: string
   timeIn: string | null
   timeOut: string | null
+  /** True if there is at least one open BreakSession (startedAt set, endedAt null). */
+  onBreak: boolean
+  /** ISO timestamp of the currently open break, if any. Null when not on break. */
+  currentBreakStartedAt: string | null
+  /** Total minutes spent on completed breaks today. */
+  breakMin: number
   durationMin: number | null
   lateByMin: number | null
   location: string | null
@@ -63,6 +69,8 @@ export type ClockEventLite = {
   kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK"
   status: ApprovalStatus
   eventAt: string
+  /** For kind="BREAK", whether this event is the start or end of the break. */
+  breakSubtype: "start" | "end" | null
 }
 
 export type EmployeeAttendanceDashboard = {

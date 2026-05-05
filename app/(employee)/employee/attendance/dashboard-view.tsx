@@ -84,6 +84,8 @@ export function EmployeeAttendanceDashboardView({
         activeProjectLng={dashboard.activeProjectCoords?.longitude ?? null}
         geofenceRadiusMeters={dashboard.geofenceRadiusMeters}
         now={now.toISOString()}
+        onBreak={dashboard.today?.onBreak ?? false}
+        currentBreakStartedAt={dashboard.today?.currentBreakStartedAt ?? null}
       />
 
       {dashboard.todayEvents.length > 0 ? (
@@ -109,7 +111,11 @@ export function EmployeeAttendanceDashboardView({
                       ? "Clock in"
                       : e.kind === "CLOCK_OUT"
                         ? "Clock out"
-                        : "Break"}
+                        : e.breakSubtype === "end"
+                          ? "Break end"
+                          : e.breakSubtype === "start"
+                            ? "Break start"
+                            : "Break"}
                   </Badge>
                   <span className="text-sm font-semibold text-foreground">
                     {fmtTime(e.eventAt)}

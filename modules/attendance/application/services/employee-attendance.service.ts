@@ -185,7 +185,7 @@ export const employeeAttendanceService = {
     return attendanceRepository.clockOut(employeeId, location, notes)
   },
 
-  async confirmBreak(
+  async startBreak(
     employeeId: string,
     coords?: { lat: number; lng: number },
     notes?: string,
@@ -194,6 +194,22 @@ export const employeeAttendanceService = {
     const location = coords
       ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
       : undefined
-    return attendanceRepository.confirmBreak(employeeId, location, notes)
+    return attendanceRepository.startBreak(employeeId, location, notes)
+  },
+
+  async endBreak(
+    employeeId: string,
+    coords?: { lat: number; lng: number },
+    notes?: string,
+  ) {
+    await enforceGeofenceForActiveRecord(employeeId, coords, notes)
+    const location = coords
+      ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
+      : undefined
+    return attendanceRepository.endBreak(employeeId, location, notes)
+  },
+
+  async getHoursSummary(employeeId: string, from: Date, to: Date) {
+    return attendanceRepository.getHoursSummary({ employeeId, from, to })
   },
 }

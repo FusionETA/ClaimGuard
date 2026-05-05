@@ -15,6 +15,19 @@ import type {
   SupervisorTeamOverview,
   TodayRollCall,
 } from "@/modules/attendance/domain/models"
+import {
+  EMPTY_BUCKETS,
+  addBuckets,
+  bucketRecord,
+  parseWorkingDays,
+  standardDailyMinutesFrom,
+  type HoursBuckets,
+} from "@/modules/attendance/domain/hours-summary"
+import {
+  DEFAULT_TIMEZONE,
+  expectedTimeOnLocalDay as expectedTimeOnLocalDayInTz,
+  formatLocalHm,
+} from "@/modules/attendance/domain/timezone"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -44,6 +57,49 @@ function diffMinutes(a: Date, b: Date) {
   return Math.round((b.getTime() - a.getTime()) / 60000)
 }
 
+// Title formatter helper: defers to org timezone (resolved at call sites)
+function localHm(d: Date, tz: string): string {
+  return formatLocalHm(d, tz)
+}
+
+function expectedTimeOnLocalDay(now: Date, hhmm: string, tz: string): Date {
+  return expectedTimeOnLocalDayInTz(now, hhmm, tz)
+}
+
+/**
+ * Older clock-in approvals were created before lateMinutes was being copied
+ * onto the ApprovalRequest. For any CLOCK_IN row missing lateMinutes, look up
+ * the matching AttendanceRecord.lateByMin so the supervisor still sees the
+ * Late badge.
+ */
+async function backfillLateMinutes(
+  views: ApprovalRequestView[],
+  prisma: ReturnType<typeof getClient>,
+): Promise<ApprovalRequestView[]> {
+  const targets = views.filter(
+    (v) => v.kind === "CLOCK_IN" && v.lateMinutes == null,
+  )
+  if (targets.length === 0) return views
+  const records = await prisma.attendanceRecord.findMany({
+    where: {
+      OR: targets.map((t) => ({
+        employeeId: t.employeeId,
+        date: new Date(`${t.date}T00:00:00.000Z`),
+      })),
+    },
+    select: { employeeId: true, date: true, lateByMin: true },
+  })
+  const lookup = new Map<string, number | null>()
+  for (const r of records) {
+    lookup.set(`${r.employeeId}|${r.date.toISOString().slice(0, 10)}`, r.lateByMin)
+  }
+  return views.map((v) => {
+    if (v.kind !== "CLOCK_IN" || v.lateMinutes != null) return v
+    const lateByMin = lookup.get(`${v.employeeId}|${v.date}`) ?? null
+    return lateByMin && lateByMin > 0 ? { ...v, lateMinutes: lateByMin } : v
+  })
+}
+
 export const OFF_SITE_PREFIX = "⚠ OFF-SITE — "
 
 function buildApprovalDetail(base: string, notes: string | undefined): string {
@@ -67,15 +123,32 @@ type PrismaAttendance = {
   project: string | null
   status: string
   notes: string | null
+  breaks?: Array<{ startedAt: Date; endedAt: Date | null }>
 }
 
 function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
+  const breaks = r.breaks ?? []
+  let breakMin = 0
+  let currentBreakStartedAt: string | null = null
+  for (const b of breaks) {
+    if (b.endedAt) {
+      breakMin += Math.max(
+        0,
+        Math.round((b.endedAt.getTime() - b.startedAt.getTime()) / 60000),
+      )
+    } else if (!currentBreakStartedAt) {
+      currentBreakStartedAt = b.startedAt.toISOString()
+    }
+  }
   return {
     id: r.id,
     employeeId: r.employeeId,
     date: r.date.toISOString().slice(0, 10),
     timeIn: r.timeIn?.toISOString() ?? null,
     timeOut: r.timeOut?.toISOString() ?? null,
+    onBreak: currentBreakStartedAt !== null,
+    currentBreakStartedAt,
+    breakMin,
     durationMin: r.durationMin,
     lateByMin: r.lateByMin,
     location: r.location,
@@ -84,6 +157,10 @@ function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
     notes: r.notes,
   }
 }
+
+const BREAK_INCLUDE = {
+  breaks: { select: { startedAt: true, endedAt: true } },
+} as const
 
 type PrismaApproval = {
   id: string
@@ -261,11 +338,29 @@ export const attendanceRepository = {
     return { start: org.workingHoursStart, end: org.workingHoursEnd }
   },
 
+  async getOrgTimezone(orgId: string | null): Promise<string> {
+    if (!orgId) return DEFAULT_TIMEZONE
+    const prisma = getClient()
+    const org = await prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { timezone: true },
+    })
+    return org?.timezone || DEFAULT_TIMEZONE
+  },
+
   async setWorkingHours(orgId: string, start: string, end: string): Promise<void> {
     const prisma = getClient()
     await prisma.organization.update({
       where: { id: orgId },
       data: { workingHoursStart: start, workingHoursEnd: end },
+    })
+  },
+
+  async setTimezone(orgId: string, timezone: string): Promise<void> {
+    const prisma = getClient()
+    await prisma.organization.update({
+      where: { id: orgId },
+      data: { timezone },
     })
   },
 
@@ -276,6 +371,7 @@ export const attendanceRepository = {
     const today = startOfDay(new Date())
     const r = await prisma.attendanceRecord.findUnique({
       where: { employeeId_date: { employeeId, date: today } },
+      include: BREAK_INCLUDE,
     })
     return r ? attendanceToView(r) : null
   },
@@ -303,14 +399,27 @@ export const attendanceRepository = {
         kind: { in: ["CLOCK_IN", "CLOCK_OUT", "BREAK"] },
       },
       orderBy: { eventAt: "asc" },
-      select: { id: true, kind: true, status: true, eventAt: true },
+      select: { id: true, kind: true, status: true, eventAt: true, title: true },
     })
-    return events.map((e) => ({
-      id: e.id,
-      kind: e.kind as "CLOCK_IN" | "CLOCK_OUT" | "BREAK",
-      status: e.status as ApprovalStatus,
-      eventAt: (e.eventAt ?? new Date()).toISOString(),
-    }))
+    return events.map((e) => {
+      const kind = e.kind as "CLOCK_IN" | "CLOCK_OUT" | "BREAK"
+      let breakSubtype: "start" | "end" | null = null
+      if (kind === "BREAK") {
+        const title = e.title.toLowerCase()
+        breakSubtype = title.startsWith("break end")
+          ? "end"
+          : title.startsWith("break start")
+            ? "start"
+            : null
+      }
+      return {
+        id: e.id,
+        kind,
+        status: e.status as ApprovalStatus,
+        eventAt: (e.eventAt ?? new Date()).toISOString(),
+        breakSubtype,
+      }
+    })
   },
 
   async getEmployeeOTApprovals(employeeId: string): Promise<ApprovalRequestView[]> {
@@ -354,14 +463,15 @@ export const attendanceRepository = {
       where: { id: employeeId },
       select: { organizationId: true, role: true },
     })
-    const hours = await this.getWorkingHours(
-      employee?.organizationId ?? null,
-      projectId ?? null,
-    )
-    const [hh, mm] = hours.start.split(":").map(Number)
-    const expected = new Date(today)
-    expected.setUTCHours(hh ?? 9, mm ?? 0, 0, 0)
-    const lateMin = Math.max(0, diffMinutes(expected, now))
+    const orgId = employee?.organizationId ?? null
+    const [hours, tz] = await Promise.all([
+      this.getWorkingHours(orgId, projectId ?? null),
+      this.getOrgTimezone(orgId),
+    ])
+    const expected = expectedTimeOnLocalDay(now, hours.start, tz)
+    const diff = diffMinutes(expected, now)
+    const lateMin = diff > 0 ? diff : 0
+    const earlyMin = diff < 0 ? -diff : 0
     const status: AttendanceStatus = lateMin > 0 ? "LATE" : "ON_TIME"
 
     const record = await prisma.attendanceRecord.upsert({
@@ -390,6 +500,12 @@ export const attendanceRepository = {
 
     const autoApprove =
       employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
+    const timingNote =
+      lateMin > 0
+        ? ` • ${lateMin}m late`
+        : earlyMin > 0
+          ? ` • ${earlyMin}m early`
+          : ""
     const approval = await prisma.approvalRequest.create({
       data: {
         employeeId,
@@ -397,13 +513,14 @@ export const attendanceRepository = {
         status: autoApprove ? "APPROVED" : "PENDING",
         date: today,
         eventAt: now,
-        title: `Clock-in ${now.toISOString().slice(11, 16)}`,
+        title: `Clock-in ${localHm(now, tz)}${timingNote}`,
         detail: buildApprovalDetail(
-          `${projectName}${location ? ` • ${location}` : ""}`,
+          `${projectName}${location ? ` • ${location}` : ""}${timingNote}`,
           notes,
         ),
         location: location ?? null,
         project: projectName,
+        lateMinutes: lateMin > 0 ? lateMin : null,
         ...(autoApprove
           ? {
               reviewerId: employeeId,
@@ -429,10 +546,55 @@ export const attendanceRepository = {
     const [existing, employee] = await Promise.all([
       prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
+        include: BREAK_INCLUDE,
       }),
-      prisma.user.findUnique({ where: { id: employeeId }, select: { role: true } }),
+      prisma.user.findUnique({
+        where: { id: employeeId },
+        select: { role: true, organizationId: true },
+      }),
     ])
-    const durationMin = existing?.timeIn ? diffMinutes(existing.timeIn, now) : null
+    const orgId = employee?.organizationId ?? null
+    const [hours, tz] = await Promise.all([
+      this.getWorkingHours(orgId, existing?.projectId ?? null),
+      this.getOrgTimezone(orgId),
+    ])
+
+    // Close any open break sessions to `now` so their minutes deduct from
+    // durationMin (employees on break aren't working).
+    if (existing) {
+      await prisma.breakSession.updateMany({
+        where: { attendanceRecordId: existing.id, endedAt: null },
+        data: { endedAt: now },
+      })
+    }
+
+    // Sum total break minutes across all sessions (including ones we just
+    // closed above — re-fetch to capture).
+    let breakMin = 0
+    if (existing) {
+      const sessions = await prisma.breakSession.findMany({
+        where: { attendanceRecordId: existing.id },
+        select: { startedAt: true, endedAt: true },
+      })
+      for (const s of sessions) {
+        const end = s.endedAt ?? now
+        breakMin += Math.max(0, diffMinutes(s.startedAt, end))
+      }
+    }
+
+    // Clamp the effective clock-in to the project's working-hours start so
+    // early arrivals don't pad durationMin. (If they clocked in at 07:50 but
+    // shift starts at 08:00, the 10 minutes early don't count as worked.)
+    let effectiveTimeIn: Date | null = existing?.timeIn ?? null
+    if (effectiveTimeIn) {
+      const expectedStart = expectedTimeOnLocalDay(now, hours.start, tz)
+      if (effectiveTimeIn.getTime() < expectedStart.getTime()) {
+        effectiveTimeIn = expectedStart
+      }
+    }
+    const rawDurationMin = effectiveTimeIn ? diffMinutes(effectiveTimeIn, now) : null
+    const durationMin =
+      rawDurationMin === null ? null : Math.max(0, rawDurationMin - breakMin)
     const autoApprove =
       employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
 
@@ -465,7 +627,7 @@ export const attendanceRepository = {
         status: autoApprove ? "APPROVED" : "PENDING",
         date: today,
         eventAt: now,
-        title: `Clock-out ${now.toISOString().slice(11, 16)}`,
+        title: `Clock-out ${localHm(now, tz)}`,
         detail: buildApprovalDetail(
           durationMin
             ? `Shift duration ${Math.floor(durationMin / 60)}h ${durationMin % 60}m`
@@ -487,7 +649,7 @@ export const attendanceRepository = {
     return { recordId: record.id, approvalId: approval.id }
   },
 
-  async confirmBreak(
+  async startBreak(
     employeeId: string,
     location?: string,
     notes?: string,
@@ -498,18 +660,44 @@ export const attendanceRepository = {
     const [existing, employee] = await Promise.all([
       prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
-        select: { project: true, notes: true },
-      }),
-      prisma.user.findUnique({ where: { id: employeeId }, select: { role: true } }),
-    ])
-    if (notes) {
-      await prisma.attendanceRecord.update({
-        where: { employeeId_date: { employeeId, date: today } },
-        data: {
-          notes: [existing?.notes, `BREAK: ${notes}`].filter(Boolean).join("\n"),
+        select: {
+          id: true,
+          project: true,
+          notes: true,
+          timeIn: true,
+          breaks: { where: { endedAt: null }, select: { id: true } },
         },
-      })
+      }),
+      prisma.user.findUnique({
+        where: { id: employeeId },
+        select: { role: true, organizationId: true },
+      }),
+    ])
+    if (!existing?.timeIn) {
+      throw new Error("Clock in before starting a break.")
     }
+    if (existing.breaks.length > 0) {
+      throw new Error("You're already on break.")
+    }
+    const tz = await this.getOrgTimezone(employee?.organizationId ?? null)
+
+    const appendedNotes = notes
+      ? [existing.notes, `BREAK_START: ${notes}`].filter(Boolean).join("\n")
+      : undefined
+    await prisma.$transaction([
+      prisma.breakSession.create({
+        data: { attendanceRecordId: existing.id, startedAt: now },
+      }),
+      ...(appendedNotes !== undefined
+        ? [
+            prisma.attendanceRecord.update({
+              where: { id: existing.id },
+              data: { notes: appendedNotes },
+            }),
+          ]
+        : []),
+    ])
+
     const autoApprove =
       employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
     const approval = await prisma.approvalRequest.create({
@@ -519,13 +707,94 @@ export const attendanceRepository = {
         status: autoApprove ? "APPROVED" : "PENDING",
         date: today,
         eventAt: now,
-        title: `Break check ${now.toISOString().slice(11, 16)}`,
+        title: `Break start ${localHm(now, tz)}`,
         detail: buildApprovalDetail(
-          location ? `Confirmed on site at ${location}` : "Confirmed on site",
+          location ? `Started break at ${location}` : "Started break",
           notes,
         ),
         location: location ?? null,
-        project: existing?.project ?? null,
+        project: existing.project ?? null,
+        ...(autoApprove
+          ? {
+              reviewerId: employeeId,
+              reviewedAt: now,
+              reviewNotes: "Auto-approved (supervisor self-attendance)",
+            }
+          : {}),
+      },
+    })
+    return { approvalId: approval.id }
+  },
+
+  async endBreak(
+    employeeId: string,
+    location?: string,
+    notes?: string,
+  ): Promise<{ approvalId: string }> {
+    const prisma = getClient()
+    const now = new Date()
+    const today = startOfDay(now)
+    const [existing, employee] = await Promise.all([
+      prisma.attendanceRecord.findUnique({
+        where: { employeeId_date: { employeeId, date: today } },
+        select: {
+          id: true,
+          project: true,
+          notes: true,
+          breaks: {
+            where: { endedAt: null },
+            orderBy: { startedAt: "desc" },
+            take: 1,
+            select: { id: true, startedAt: true },
+          },
+        },
+      }),
+      prisma.user.findUnique({
+        where: { id: employeeId },
+        select: { role: true, organizationId: true },
+      }),
+    ])
+    const openBreak = existing?.breaks[0]
+    if (!existing || !openBreak) {
+      throw new Error("Start a break before ending one.")
+    }
+    const tz = await this.getOrgTimezone(employee?.organizationId ?? null)
+
+    const appendedNotes = notes
+      ? [existing.notes, `BREAK_END: ${notes}`].filter(Boolean).join("\n")
+      : undefined
+    await prisma.$transaction([
+      prisma.breakSession.update({
+        where: { id: openBreak.id },
+        data: { endedAt: now },
+      }),
+      ...(appendedNotes !== undefined
+        ? [
+            prisma.attendanceRecord.update({
+              where: { id: existing.id },
+              data: { notes: appendedNotes },
+            }),
+          ]
+        : []),
+    ])
+
+    const breakMin = Math.max(0, diffMinutes(openBreak.startedAt, now))
+    const autoApprove =
+      employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
+    const approval = await prisma.approvalRequest.create({
+      data: {
+        employeeId,
+        kind: "BREAK",
+        status: autoApprove ? "APPROVED" : "PENDING",
+        date: today,
+        eventAt: now,
+        title: `Break end ${localHm(now, tz)}`,
+        detail: buildApprovalDetail(
+          `${breakMin}m break${location ? ` • back at ${location}` : ""}`,
+          notes,
+        ),
+        location: location ?? null,
+        project: existing.project ?? null,
         ...(autoApprove
           ? {
               reviewerId: employeeId,
@@ -605,7 +874,7 @@ export const attendanceRepository = {
       include: { employee: { select: { name: true } } },
       take: 100,
     })
-    return records.map(approvalToView)
+    return backfillLateMinutes(records.map(approvalToView), prisma)
   },
 
   async getEmployeeProfile(employeeId: string): Promise<{
@@ -767,7 +1036,7 @@ export const attendanceRepository = {
       include: { employee: { select: { name: true } } },
       take: 200,
     })
-    return records.map(approvalToView)
+    return backfillLateMinutes(records.map(approvalToView), prisma)
   },
 
   async getOrgOverview(orgId: string | null): Promise<AdminOrgOverview> {
@@ -949,5 +1218,144 @@ export const attendanceRepository = {
     }
 
     return { late, onLeave, notClockedIn }
+  },
+
+  async getHoursSummary(args: {
+    orgId?: string | null
+    employeeId?: string
+    from: Date
+    to: Date
+  }): Promise<{
+    totals: HoursBuckets
+    employees: Array<{
+      employeeId: string
+      name: string
+      email: string
+      initials: string
+      buckets: HoursBuckets
+    }>
+  }> {
+    const prisma = getClient()
+    const from = startOfDay(args.from)
+    const to = endOfDay(args.to)
+
+    const employeeWhere: Record<string, unknown> = {
+      role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+    }
+    if (args.employeeId) {
+      employeeWhere.id = args.employeeId
+    } else if (args.orgId) {
+      employeeWhere.organizationId = args.orgId
+    }
+
+    const employees = await prisma.user.findMany({
+      where: employeeWhere,
+      orderBy: [{ name: "asc" }],
+      select: { id: true, name: true, email: true },
+    })
+    if (employees.length === 0) {
+      return { totals: { ...EMPTY_BUCKETS }, employees: [] }
+    }
+    const employeeIds = employees.map((e) => e.id)
+
+    const records = await prisma.attendanceRecord.findMany({
+      where: {
+        employeeId: { in: employeeIds },
+        date: { gte: from, lte: to },
+        durationMin: { not: null },
+      },
+      select: {
+        employeeId: true,
+        date: true,
+        durationMin: true,
+        projectId: true,
+        projectRef: {
+          select: {
+            id: true,
+            workingHoursStart: true,
+            workingHoursEnd: true,
+            workingDays: true,
+          },
+        },
+      },
+    })
+
+    const projectIds = Array.from(
+      new Set(records.map((r) => r.projectId).filter((x): x is string => Boolean(x))),
+    )
+    const holidays =
+      projectIds.length === 0
+        ? []
+        : await prisma.projectHoliday.findMany({
+            where: {
+              projectId: { in: projectIds },
+              date: { gte: from, lte: to },
+            },
+            select: { projectId: true, date: true },
+          })
+    const holidayKey = (projectId: string, date: Date) =>
+      `${projectId}|${startOfDay(date).toISOString()}`
+    const holidaySet = new Set(
+      holidays.map((h) => holidayKey(h.projectId, h.date)),
+    )
+
+    const approvedOT = await prisma.approvalRequest.findMany({
+      where: {
+        employeeId: { in: employeeIds },
+        kind: "OT",
+        status: "APPROVED",
+        date: { gte: from, lte: to },
+      },
+      select: { employeeId: true, date: true },
+    })
+    const otKey = (employeeId: string, date: Date) =>
+      `${employeeId}|${startOfDay(date).toISOString()}`
+    const otSet = new Set(approvedOT.map((o) => otKey(o.employeeId, o.date)))
+
+    const perEmployee = new Map<string, HoursBuckets>()
+    for (const id of employeeIds) {
+      perEmployee.set(id, { ...EMPTY_BUCKETS })
+    }
+
+    for (const record of records) {
+      const dur = record.durationMin ?? 0
+      if (dur <= 0) continue
+      const isPH = record.projectId
+        ? holidaySet.has(holidayKey(record.projectId, record.date))
+        : false
+      const workingDays = parseWorkingDays(record.projectRef?.workingDays ?? null)
+      const standardDailyMin = standardDailyMinutesFrom(
+        record.projectRef?.workingHoursStart ?? null,
+        record.projectRef?.workingHoursEnd ?? null,
+      )
+      const hasApprovedOT = otSet.has(otKey(record.employeeId, record.date))
+
+      const bucket = bucketRecord({
+        durationMin: dur,
+        date: record.date,
+        isPublicHoliday: isPH,
+        workingDays,
+        standardDailyMin,
+        hasApprovedOT,
+      })
+
+      const current = perEmployee.get(record.employeeId) ?? { ...EMPTY_BUCKETS }
+      perEmployee.set(record.employeeId, addBuckets(current, bucket))
+    }
+
+    let totals: HoursBuckets = { ...EMPTY_BUCKETS }
+    const rows = employees.map((e) => {
+      const buckets = perEmployee.get(e.id) ?? { ...EMPTY_BUCKETS }
+      totals = addBuckets(totals, buckets)
+      return {
+        employeeId: e.id,
+        name: e.name,
+        email: e.email,
+        initials: buildInitials(e.name),
+        buckets,
+      }
+    })
+
+    return { totals, employees: rows }
   },
 }

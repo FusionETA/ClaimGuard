@@ -37,31 +37,31 @@ export type ApprovalChainStepSumAggregateOutputType = {
 export type ApprovalChainStepMinAggregateOutputType = {
   id: string | null
   employeeId: string | null
-  teamId: string | null
   step: number | null
   approverId: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  teamId: string | null
 }
 
 export type ApprovalChainStepMaxAggregateOutputType = {
   id: string | null
   employeeId: string | null
-  teamId: string | null
   step: number | null
   approverId: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  teamId: string | null
 }
 
 export type ApprovalChainStepCountAggregateOutputType = {
   id: number
   employeeId: number
-  teamId: number
   step: number
   approverId: number
   createdAt: number
   updatedAt: number
+  teamId: number
   _all: number
 }
 
@@ -77,31 +77,31 @@ export type ApprovalChainStepSumAggregateInputType = {
 export type ApprovalChainStepMinAggregateInputType = {
   id?: true
   employeeId?: true
-  teamId?: true
   step?: true
   approverId?: true
   createdAt?: true
   updatedAt?: true
+  teamId?: true
 }
 
 export type ApprovalChainStepMaxAggregateInputType = {
   id?: true
   employeeId?: true
-  teamId?: true
   step?: true
   approverId?: true
   createdAt?: true
   updatedAt?: true
+  teamId?: true
 }
 
 export type ApprovalChainStepCountAggregateInputType = {
   id?: true
   employeeId?: true
-  teamId?: true
   step?: true
   approverId?: true
   createdAt?: true
   updatedAt?: true
+  teamId?: true
   _all?: true
 }
 
@@ -194,11 +194,11 @@ export type ApprovalChainStepGroupByArgs<ExtArgs extends runtime.Types.Extension
 export type ApprovalChainStepGroupByOutputType = {
   id: string
   employeeId: string
-  teamId: string | null
   step: number
   approverId: string
   createdAt: Date
   updatedAt: Date
+  teamId: string | null
   _count: ApprovalChainStepCountAggregateOutputType | null
   _avg: ApprovalChainStepAvgAggregateOutputType | null
   _sum: ApprovalChainStepSumAggregateOutputType | null
@@ -227,11 +227,11 @@ export type ApprovalChainStepWhereInput = {
   NOT?: Prisma.ApprovalChainStepWhereInput | Prisma.ApprovalChainStepWhereInput[]
   id?: Prisma.StringFilter<"ApprovalChainStep"> | string
   employeeId?: Prisma.StringFilter<"ApprovalChainStep"> | string
-  teamId?: Prisma.StringNullableFilter<"ApprovalChainStep"> | string | null
   step?: Prisma.IntFilter<"ApprovalChainStep"> | number
   approverId?: Prisma.StringFilter<"ApprovalChainStep"> | string
   createdAt?: Prisma.DateTimeFilter<"ApprovalChainStep"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ApprovalChainStep"> | Date | string
+  teamId?: Prisma.StringNullableFilter<"ApprovalChainStep"> | string | null
   approver?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   team?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
@@ -240,11 +240,11 @@ export type ApprovalChainStepWhereInput = {
 export type ApprovalChainStepOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
-  teamId?: Prisma.SortOrderInput | Prisma.SortOrder
   step?: Prisma.SortOrder
   approverId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  teamId?: Prisma.SortOrderInput | Prisma.SortOrder
   approver?: Prisma.UserOrderByWithRelationInput
   employee?: Prisma.UserOrderByWithRelationInput
   team?: Prisma.TeamOrderByWithRelationInput
@@ -258,11 +258,11 @@ export type ApprovalChainStepWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.ApprovalChainStepWhereInput[]
   NOT?: Prisma.ApprovalChainStepWhereInput | Prisma.ApprovalChainStepWhereInput[]
   employeeId?: Prisma.StringFilter<"ApprovalChainStep"> | string
-  teamId?: Prisma.StringNullableFilter<"ApprovalChainStep"> | string | null
   step?: Prisma.IntFilter<"ApprovalChainStep"> | number
   approverId?: Prisma.StringFilter<"ApprovalChainStep"> | string
   createdAt?: Prisma.DateTimeFilter<"ApprovalChainStep"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ApprovalChainStep"> | Date | string
+  teamId?: Prisma.StringNullableFilter<"ApprovalChainStep"> | string | null
   approver?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   team?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
@@ -271,11 +271,11 @@ export type ApprovalChainStepWhereUniqueInput = Prisma.AtLeast<{
 export type ApprovalChainStepOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
-  teamId?: Prisma.SortOrderInput | Prisma.SortOrder
   step?: Prisma.SortOrder
   approverId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  teamId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ApprovalChainStepCountOrderByAggregateInput
   _avg?: Prisma.ApprovalChainStepAvgOrderByAggregateInput
   _max?: Prisma.ApprovalChainStepMaxOrderByAggregateInput
@@ -289,11 +289,11 @@ export type ApprovalChainStepScalarWhereWithAggregatesInput = {
   NOT?: Prisma.ApprovalChainStepScalarWhereWithAggregatesInput | Prisma.ApprovalChainStepScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"ApprovalChainStep"> | string
   employeeId?: Prisma.StringWithAggregatesFilter<"ApprovalChainStep"> | string
-  teamId?: Prisma.StringNullableWithAggregatesFilter<"ApprovalChainStep"> | string | null
   step?: Prisma.IntWithAggregatesFilter<"ApprovalChainStep"> | number
   approverId?: Prisma.StringWithAggregatesFilter<"ApprovalChainStep"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ApprovalChainStep"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ApprovalChainStep"> | Date | string
+  teamId?: Prisma.StringNullableWithAggregatesFilter<"ApprovalChainStep"> | string | null
 }
 
 export type ApprovalChainStepCreateInput = {
@@ -309,11 +309,11 @@ export type ApprovalChainStepCreateInput = {
 export type ApprovalChainStepUncheckedCreateInput = {
   id?: string
   employeeId: string
-  teamId?: string | null
   step: number
   approverId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  teamId?: string | null
 }
 
 export type ApprovalChainStepUpdateInput = {
@@ -329,21 +329,21 @@ export type ApprovalChainStepUpdateInput = {
 export type ApprovalChainStepUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
-  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   step?: Prisma.IntFieldUpdateOperationsInput | number
   approverId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalChainStepCreateManyInput = {
   id?: string
   employeeId: string
-  teamId?: string | null
   step: number
   approverId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  teamId?: string | null
 }
 
 export type ApprovalChainStepUpdateManyMutationInput = {
@@ -356,11 +356,11 @@ export type ApprovalChainStepUpdateManyMutationInput = {
 export type ApprovalChainStepUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
-  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   step?: Prisma.IntFieldUpdateOperationsInput | number
   approverId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalChainStepListRelationFilter = {
@@ -389,11 +389,11 @@ export type ApprovalChainStepEmployeeIdTeamIdStepApproverIdCompoundUniqueInput =
 export type ApprovalChainStepCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
-  teamId?: Prisma.SortOrder
   step?: Prisma.SortOrder
   approverId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  teamId?: Prisma.SortOrder
 }
 
 export type ApprovalChainStepAvgOrderByAggregateInput = {
@@ -403,21 +403,21 @@ export type ApprovalChainStepAvgOrderByAggregateInput = {
 export type ApprovalChainStepMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
-  teamId?: Prisma.SortOrder
   step?: Prisma.SortOrder
   approverId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  teamId?: Prisma.SortOrder
 }
 
 export type ApprovalChainStepMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
-  teamId?: Prisma.SortOrder
   step?: Prisma.SortOrder
   approverId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  teamId?: Prisma.SortOrder
 }
 
 export type ApprovalChainStepSumOrderByAggregateInput = {
@@ -562,10 +562,10 @@ export type ApprovalChainStepCreateWithoutApproverInput = {
 export type ApprovalChainStepUncheckedCreateWithoutApproverInput = {
   id?: string
   employeeId: string
-  teamId?: string | null
   step: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  teamId?: string | null
 }
 
 export type ApprovalChainStepCreateOrConnectWithoutApproverInput = {
@@ -589,11 +589,11 @@ export type ApprovalChainStepCreateWithoutEmployeeInput = {
 
 export type ApprovalChainStepUncheckedCreateWithoutEmployeeInput = {
   id?: string
-  teamId?: string | null
   step: number
   approverId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  teamId?: string | null
 }
 
 export type ApprovalChainStepCreateOrConnectWithoutEmployeeInput = {
@@ -628,11 +628,11 @@ export type ApprovalChainStepScalarWhereInput = {
   NOT?: Prisma.ApprovalChainStepScalarWhereInput | Prisma.ApprovalChainStepScalarWhereInput[]
   id?: Prisma.StringFilter<"ApprovalChainStep"> | string
   employeeId?: Prisma.StringFilter<"ApprovalChainStep"> | string
-  teamId?: Prisma.StringNullableFilter<"ApprovalChainStep"> | string | null
   step?: Prisma.IntFilter<"ApprovalChainStep"> | number
   approverId?: Prisma.StringFilter<"ApprovalChainStep"> | string
   createdAt?: Prisma.DateTimeFilter<"ApprovalChainStep"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ApprovalChainStep"> | Date | string
+  teamId?: Prisma.StringNullableFilter<"ApprovalChainStep"> | string | null
 }
 
 export type ApprovalChainStepUpsertWithWhereUniqueWithoutEmployeeInput = {
@@ -698,19 +698,19 @@ export type ApprovalChainStepUpdateManyWithWhereWithoutTeamInput = {
 export type ApprovalChainStepCreateManyApproverInput = {
   id?: string
   employeeId: string
-  teamId?: string | null
   step: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  teamId?: string | null
 }
 
 export type ApprovalChainStepCreateManyEmployeeInput = {
   id?: string
-  teamId?: string | null
   step: number
   approverId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  teamId?: string | null
 }
 
 export type ApprovalChainStepUpdateWithoutApproverInput = {
@@ -725,19 +725,19 @@ export type ApprovalChainStepUpdateWithoutApproverInput = {
 export type ApprovalChainStepUncheckedUpdateWithoutApproverInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
-  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   step?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalChainStepUncheckedUpdateManyWithoutApproverInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
-  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   step?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalChainStepUpdateWithoutEmployeeInput = {
@@ -751,20 +751,20 @@ export type ApprovalChainStepUpdateWithoutEmployeeInput = {
 
 export type ApprovalChainStepUncheckedUpdateWithoutEmployeeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   step?: Prisma.IntFieldUpdateOperationsInput | number
   approverId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalChainStepUncheckedUpdateManyWithoutEmployeeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   step?: Prisma.IntFieldUpdateOperationsInput | number
   approverId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ApprovalChainStepCreateManyTeamInput = {
@@ -808,11 +808,11 @@ export type ApprovalChainStepUncheckedUpdateManyWithoutTeamInput = {
 export type ApprovalChainStepSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   employeeId?: boolean
-  teamId?: boolean
   step?: boolean
   approverId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  teamId?: boolean
   approver?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   team?: boolean | Prisma.ApprovalChainStep$teamArgs<ExtArgs>
@@ -823,14 +823,14 @@ export type ApprovalChainStepSelect<ExtArgs extends runtime.Types.Extensions.Int
 export type ApprovalChainStepSelectScalar = {
   id?: boolean
   employeeId?: boolean
-  teamId?: boolean
   step?: boolean
   approverId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  teamId?: boolean
 }
 
-export type ApprovalChainStepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "teamId" | "step" | "approverId" | "createdAt" | "updatedAt", ExtArgs["result"]["approvalChainStep"]>
+export type ApprovalChainStepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "step" | "approverId" | "createdAt" | "updatedAt" | "teamId", ExtArgs["result"]["approvalChainStep"]>
 export type ApprovalChainStepInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   approver?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -847,6 +847,10 @@ export type $ApprovalChainStepPayload<ExtArgs extends runtime.Types.Extensions.I
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     employeeId: string
+    step: number
+    approverId: string
+    createdAt: Date
+    updatedAt: Date
     /**
      * teamId scopes this chain step to a specific team. An employee in
      * multiple projects has one chain per team. Null only on legacy rows
@@ -854,10 +858,6 @@ export type $ApprovalChainStepPayload<ExtArgs extends runtime.Types.Extensions.I
      * in from the employee's existing team membership.
      */
     teamId: string | null
-    step: number
-    approverId: string
-    createdAt: Date
-    updatedAt: Date
   }, ExtArgs["result"]["approvalChainStep"]>
   composites: {}
 }
@@ -1232,11 +1232,11 @@ export interface Prisma__ApprovalChainStepClient<T, Null = never, ExtArgs extend
 export interface ApprovalChainStepFieldRefs {
   readonly id: Prisma.FieldRef<"ApprovalChainStep", 'String'>
   readonly employeeId: Prisma.FieldRef<"ApprovalChainStep", 'String'>
-  readonly teamId: Prisma.FieldRef<"ApprovalChainStep", 'String'>
   readonly step: Prisma.FieldRef<"ApprovalChainStep", 'Int'>
   readonly approverId: Prisma.FieldRef<"ApprovalChainStep", 'String'>
   readonly createdAt: Prisma.FieldRef<"ApprovalChainStep", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ApprovalChainStep", 'DateTime'>
+  readonly teamId: Prisma.FieldRef<"ApprovalChainStep", 'String'>
 }
     
 

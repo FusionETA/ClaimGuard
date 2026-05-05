@@ -9,15 +9,31 @@ import {
 } from "lucide-react"
 
 import { MetricCard } from "@/components/claims/metric-card"
+import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 import type { RollCallPerson } from "@/modules/attendance/domain/models"
 
+import { loadOrgHoursSummaryAction } from "./hours-summary-actions"
+
+function startOfMonthIso(): string {
+  const d = new Date()
+  d.setUTCDate(1)
+  d.setUTCHours(0, 0, 0, 0)
+  return d.toISOString().slice(0, 10)
+}
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
 export default async function AdminAttendancePage() {
   const session = await requirePortalSession("ADMIN")
   const orgId = resolveActiveOrgId(session) ?? null
-  const [overview, stats, rollCall] = await Promise.all([
+  const initialFrom = startOfMonthIso()
+  const initialTo = todayIso()
+  const [overview, stats, rollCall, initialHoursSummary] = await Promise.all([
     adminAttendanceService.getOrgOverview(orgId),
     adminAttendanceService.getAggregateStats(
       new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
@@ -25,6 +41,11 @@ export default async function AdminAttendancePage() {
       orgId,
     ),
     adminAttendanceService.getTodayRollCall(orgId),
+    adminAttendanceService.getOrgHoursSummary(
+      orgId,
+      new Date(initialFrom),
+      new Date(initialTo),
+    ),
   ])
 
   const presentRate =
@@ -125,6 +146,15 @@ export default async function AdminAttendancePage() {
           </CardContent>
         </Card>
       </div>
+
+      <HoursSummaryPanel
+        title="Working hours summary"
+        initialFrom={initialFrom}
+        initialTo={initialTo}
+        initialData={initialHoursSummary}
+        loadAction={loadOrgHoursSummaryAction}
+        showEmployeeTable
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <RollCallCard

@@ -50,6 +50,7 @@ export type OrganizationSummary = {
   otEnabled: boolean
   defaultMileageRate?: number
   mileageUnit: MileageUnit
+  geofenceRadiusMeters: number
 }
 
 export type AdminOrganizationOption = {

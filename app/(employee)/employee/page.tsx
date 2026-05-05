@@ -73,6 +73,8 @@ export default async function EmployeeDashboardPage() {
           activeProjectLng={attendanceDashboard.activeProjectCoords?.longitude ?? null}
           geofenceRadiusMeters={attendanceDashboard.geofenceRadiusMeters}
           now={nowIso}
+          onBreak={attendanceDashboard.today?.onBreak ?? false}
+          currentBreakStartedAt={attendanceDashboard.today?.currentBreakStartedAt ?? null}
         />
       </section>
 

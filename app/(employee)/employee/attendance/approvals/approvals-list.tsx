@@ -21,6 +21,13 @@ const CLOCK_LABEL: Record<string, string> = {
 
 const OFF_SITE_PREFIX = "⚠ OFF-SITE — "
 
+function parseEarlyMinutes(title: string): number | null {
+  const match = /(\d+)m early/i.exec(title)
+  if (!match) return null
+  const n = Number(match[1])
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
 function parseApprovalDetail(detail: string): {
   offSite: boolean
   base: string
@@ -155,6 +162,19 @@ export function ApprovalsList({ items }: Props) {
                       <span className="text-xs font-semibold text-muted-foreground">
                         {r.date}
                       </span>
+                      {r.kind === "CLOCK_IN" && r.lateMinutes && r.lateMinutes > 0 ? (
+                        <Badge variant="late" className="font-bold">
+                          ⚠ LATE · {r.lateMinutes}m
+                        </Badge>
+                      ) : null}
+                      {r.kind === "CLOCK_IN" && !r.lateMinutes ? (() => {
+                        const early = parseEarlyMinutes(r.title)
+                        return early ? (
+                          <Badge variant="on-time" className="font-bold">
+                            EARLY · {early}m
+                          </Badge>
+                        ) : null
+                      })() : null}
                     </div>
                     <p className="mt-2 text-sm font-bold text-foreground">{r.employeeName}</p>
                     <p className="mt-0.5 text-sm font-semibold text-foreground">{r.title}</p>

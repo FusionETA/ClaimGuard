@@ -151,7 +151,11 @@ export function EmployeeDetailView({ data }: { data: EmployeeDetailData }) {
                             : "pending"
                       }
                     >
-                      {CLOCK_LABEL[e.kind]}
+                      {e.kind === "BREAK" && e.breakSubtype === "end"
+                        ? "Break end"
+                        : e.kind === "BREAK" && e.breakSubtype === "start"
+                          ? "Break start"
+                          : CLOCK_LABEL[e.kind]}
                     </Badge>
                     <span className="text-xs font-semibold text-foreground">
                       {fmtTime(e.eventAt)}

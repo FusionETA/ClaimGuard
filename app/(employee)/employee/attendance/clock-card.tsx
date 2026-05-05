@@ -19,7 +19,8 @@ import { checkGeofence, type GeofenceCheck } from "@/lib/geo"
 import {
   clockInAction,
   clockOutAction,
-  confirmBreakAction,
+  endBreakAction,
+  startBreakAction,
   type ClockInState,
 } from "./actions"
 
@@ -55,10 +56,12 @@ function fallbackCoordsFromState(
   formData.set("lng", String(fallback.lng))
 }
 
+type BreakKind = "BREAK_START" | "BREAK_END"
+
 type PendingAction = {
   formData: FormData
   fence: GeofenceCheck
-  kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK"
+  kind: "CLOCK_IN" | "CLOCK_OUT" | BreakKind
   projectName: string | null
 }
 
@@ -71,6 +74,9 @@ type Props = {
   activeProjectLng: number | null
   geofenceRadiusMeters: number
   now: string
+  onBreak: boolean
+  /** ISO timestamp of the currently-open break, if any (for the "On break since…" label). */
+  currentBreakStartedAt: string | null
 }
 
 function ClockInButton({ pending }: { pending: boolean }) {
@@ -114,7 +120,7 @@ function ClockOutButton({ pending }: { pending: boolean }) {
   )
 }
 
-function BreakButton({ pending }: { pending: boolean }) {
+function BreakStartButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"
@@ -125,9 +131,31 @@ function BreakButton({ pending }: { pending: boolean }) {
         <Coffee className="h-6 w-6" />
       </div>
       <p className="text-sm font-bold text-foreground">
-        {pending ? "Saving…" : "Confirm Break"}
+        {pending ? "Saving…" : "Start Break"}
       </p>
-      <p className="mt-0.5 text-[11px] text-muted-foreground">Still on site</p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground">
+        Pauses your shift
+      </p>
+    </button>
+  )
+}
+
+function BreakEndButton({ pending }: { pending: boolean }) {
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="flex w-full flex-col items-center justify-center rounded-[28px] border border-amber-300 bg-amber-50 py-5 shadow-ambient backdrop-blur-sm transition hover:bg-amber-100 active:scale-95 disabled:opacity-50"
+    >
+      <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-white">
+        <Coffee className="h-6 w-6" />
+      </div>
+      <p className="text-sm font-bold text-amber-900">
+        {pending ? "Saving…" : "End Break"}
+      </p>
+      <p className="mt-0.5 text-[11px] text-amber-800">
+        Resumes your shift
+      </p>
     </button>
   )
 }
@@ -141,6 +169,8 @@ export function ClockCard({
   activeProjectLng,
   geofenceRadiusMeters,
   now,
+  onBreak,
+  currentBreakStartedAt,
 }: Props) {
   const [selected, setSelected] = useState("")
   const [result, formAction] = useActionState<ClockInState, FormData>(
@@ -191,8 +221,10 @@ export function ClockCard({
       startTransition(() => formAction(action.formData))
     } else if (action.kind === "CLOCK_OUT") {
       startClockOutTransition(() => clockOutAction(action.formData))
+    } else if (action.kind === "BREAK_START") {
+      startBreakTransition(() => startBreakAction(action.formData))
     } else {
-      startBreakTransition(() => confirmBreakAction(action.formData))
+      startBreakTransition(() => endBreakAction(action.formData))
     }
   }
 
@@ -245,7 +277,10 @@ export function ClockCard({
     })
   }
 
-  async function handleBreak(e: React.FormEvent<HTMLFormElement>) {
+  async function handleBreak(
+    e: React.FormEvent<HTMLFormElement>,
+    kind: BreakKind,
+  ) {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
     await attachCoords(formData)
@@ -256,7 +291,11 @@ export function ClockCard({
       geofenceRadiusMeters,
     )
     if (fence.withinRadius) {
-      startBreakTransition(() => confirmBreakAction(formData))
+      startBreakTransition(() =>
+        kind === "BREAK_START"
+          ? startBreakAction(formData)
+          : endBreakAction(formData),
+      )
       return
     }
     setRemark("")
@@ -264,7 +303,7 @@ export function ClockCard({
     setPendingAction({
       formData,
       fence,
-      kind: "BREAK",
+      kind,
       projectName: activeProject,
     })
   }
@@ -378,10 +417,26 @@ export function ClockCard({
             <p className="text-xs font-semibold text-destructive">{result.error}</p>
           ) : null}
         </form>
+      ) : onBreak ? (
+        <div className="space-y-3">
+          <p className="rounded-2xl bg-amber-50 px-4 py-3 text-center text-xs font-semibold text-amber-900">
+            On break since{" "}
+            {currentBreakStartedAt
+              ? new Date(currentBreakStartedAt).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "—"}
+            . Clock out is disabled until you end the break.
+          </p>
+          <form onSubmit={(e) => handleBreak(e, "BREAK_END")}>
+            <BreakEndButton pending={isBreakPending} />
+          </form>
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          <form onSubmit={handleBreak}>
-            <BreakButton pending={isBreakPending} />
+          <form onSubmit={(e) => handleBreak(e, "BREAK_START")}>
+            <BreakStartButton pending={isBreakPending} />
           </form>
           <form onSubmit={handleClockOut}>
             <ClockOutButton pending={isClockOutPending} />
