@@ -59,6 +59,9 @@ export type ApprovalRequestView = {
   location: string | null
   project: string | null
   otSubtype: OTSubtype | null
+  /// CASH or TIME_BANK snapshot for OT requests. Null for non-OT or legacy
+  /// rows submitted before the snapshot was added.
+  otPayoutMethod: "CASH" | "TIME_BANK" | null
   lateMinutes: number | null
   offsetRef: string | null
   reviewNotes: string | null

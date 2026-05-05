@@ -143,9 +143,16 @@ export function ApprovalsList({ items }: Props) {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       {r.kind === "OT" ? (
-                        <Badge variant="overtime">
-                          {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"}
-                        </Badge>
+                        <>
+                          <Badge variant="overtime">
+                            {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"}
+                          </Badge>
+                          {r.otPayoutMethod ? (
+                            <Badge variant="outline" className="font-semibold">
+                              {r.otPayoutMethod === "TIME_BANK" ? "Time bank" : "Cash"}
+                            </Badge>
+                          ) : null}
+                        </>
                       ) : (
                         <Badge
                           variant={

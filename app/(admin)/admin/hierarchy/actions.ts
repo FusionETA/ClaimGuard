@@ -13,7 +13,9 @@ import { clearAdminStore, clearEmployeeStore } from "@/lib/app-store"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import {
   employeePayoutMethods,
+  otPayoutMethods,
   resolveEmployeePayoutMethod,
+  type OtPayoutMethod,
 } from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
@@ -23,6 +25,7 @@ const hierarchySchema = z.object({
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
   payoutMethod: z.enum(employeePayoutMethods),
+  otPayoutMethod: z.enum(otPayoutMethods).default("CASH"),
   hourlyRate: z.number().positive().optional(),
   email: z.string().email(),
 })
@@ -36,6 +39,7 @@ const createMemberSchema = z.object({
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
   payoutMethod: z.enum(employeePayoutMethods),
+  otPayoutMethod: z.enum(otPayoutMethods).default("CASH"),
   hourlyRate: z.number().positive().optional(),
 })
 
@@ -44,6 +48,14 @@ function parseHourlyRateFromForm(formData: FormData): number | undefined {
   if (!raw) return undefined
   const n = Number(raw)
   return Number.isFinite(n) && n > 0 ? n : undefined
+}
+
+function resolveOtPayoutMethod(
+  payoutMethod: string,
+  raw: string,
+): OtPayoutMethod {
+  if (payoutMethod !== "MONTHLY_BASED") return "CASH"
+  return raw === "TIME_BANK" ? "TIME_BANK" : "CASH"
 }
 
 /// Pull the per-project routing config out of FormData. Each project section
@@ -133,6 +145,10 @@ export async function updateHierarchyAction(
   const projectIds = formData.getAll("projectIds").map(String).filter(Boolean)
   const projectAssignments = parseProjectAssignments(formData, projectIds)
   const hourlyRate = parseHourlyRateFromForm(formData)
+  const otPayoutMethod = resolveOtPayoutMethod(
+    values.payoutMethod,
+    String(formData.get("otPayoutMethod") ?? "").trim(),
+  )
 
   const parsed = hierarchySchema.safeParse({
     userId: String(formData.get("userId") ?? ""),
@@ -140,6 +156,7 @@ export async function updateHierarchyAction(
     projectIds,
     jobTitle: values.jobTitle,
     payoutMethod: values.payoutMethod,
+    otPayoutMethod,
     hourlyRate,
     email: String(formData.get("email") ?? ""),
   })
@@ -160,6 +177,7 @@ export async function updateHierarchyAction(
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
       payoutMethod: parsed.data.payoutMethod,
+      otPayoutMethod: parsed.data.otPayoutMethod,
       hourlyRate: parsed.data.hourlyRate ?? null,
       xeroConnectionId,
       projectAssignments,
@@ -243,10 +261,16 @@ export async function createHierarchyMemberAction(
   const projectAssignments = parseProjectAssignments(formData, projectIds)
   const hourlyRate = parseHourlyRateFromForm(formData)
 
+  const otPayoutMethod = resolveOtPayoutMethod(
+    values.payoutMethod,
+    String(formData.get("otPayoutMethod") ?? "").trim(),
+  )
+
   const parsed = createMemberSchema.safeParse({
     ...values,
     projectIds,
     payoutMethod: values.payoutMethod,
+    otPayoutMethod,
     hourlyRate,
   })
 
@@ -269,6 +293,7 @@ export async function createHierarchyMemberAction(
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
       payoutMethod: parsed.data.payoutMethod,
+      otPayoutMethod: parsed.data.otPayoutMethod,
       hourlyRate: parsed.data.hourlyRate ?? null,
       xeroConnectionId,
       projectAssignments,

@@ -180,6 +180,7 @@ type PrismaApproval = {
   location: string | null
   project: string | null
   otSubtype: string | null
+  otPayoutMethod: string | null
   lateMinutes: number | null
   offsetRef: string | null
   reviewNotes: string | null
@@ -209,6 +210,10 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
     location: r.location,
     project: r.project,
     otSubtype: (r.otSubtype as OTSubtype | null) ?? null,
+    otPayoutMethod:
+      r.otPayoutMethod === "TIME_BANK" || r.otPayoutMethod === "CASH"
+        ? r.otPayoutMethod
+        : null,
     lateMinutes: r.lateMinutes,
     offsetRef: r.offsetRef,
     reviewNotes: r.reviewNotes,
@@ -285,6 +290,68 @@ async function attachChainContext(
       }
     }),
   )
+}
+
+/// Re-bucket the employee's attendance for the given day and return the
+/// OT minutes that would result if OT were considered approved. Used after
+/// an OT request is approved to determine how many minutes to bank when
+/// the employee's payout method is TIME_BANK.
+async function computeApprovedOtMinutes(
+  prisma: ReturnType<typeof getClient>,
+  employeeId: string,
+  date: Date,
+): Promise<number> {
+  const day = startOfDay(date)
+  const [record, employee] = await Promise.all([
+    prisma.attendanceRecord.findUnique({
+      where: { employeeId_date: { employeeId, date: day } },
+      select: {
+        date: true,
+        durationMin: true,
+        projectId: true,
+        projectRef: {
+          select: { workingHoursStart: true, workingHoursEnd: true, workingDays: true },
+        },
+      },
+    }),
+    prisma.user.findUnique({
+      where: { id: employeeId },
+      select: { organizationId: true },
+    }),
+  ])
+  if (!record?.durationMin || record.durationMin <= 0) return 0
+
+  const isPH = record.projectId
+    ? Boolean(
+        await prisma.projectHoliday.findUnique({
+          where: { projectId_date: { projectId: record.projectId, date: day } },
+          select: { id: true },
+        }),
+      )
+    : false
+
+  let otThresholdMin = 8 * 60
+  if (employee?.organizationId) {
+    const org = await prisma.organization.findUnique({
+      where: { id: employee.organizationId },
+      select: { otDailyThresholdMinutes: true },
+    })
+    otThresholdMin = org?.otDailyThresholdMinutes ?? otThresholdMin
+  }
+
+  const bucket = bucketRecord({
+    durationMin: record.durationMin,
+    date: record.date,
+    isPublicHoliday: isPH,
+    workingDays: parseWorkingDays(record.projectRef?.workingDays ?? null),
+    standardDailyMin: standardDailyMinutesFrom(
+      record.projectRef?.workingHoursStart ?? null,
+      record.projectRef?.workingHoursEnd ?? null,
+    ),
+    otThresholdMin,
+    hasApprovedOT: true,
+  })
+  return bucket.otMin
 }
 
 // ---------------------------------------------------------------------------
@@ -1126,6 +1193,7 @@ export const attendanceRepository = {
         reviewerId: true,
         chainHistory: true,
         date: true,
+        otPayoutMethod: true,
       },
     })
     if (!request) throw new Error("Approval not found.")
@@ -1197,6 +1265,32 @@ export const attendanceRepository = {
         chainHistory: nextHistory as unknown as object,
       },
     })
+
+    // When an OT request reaches APPROVED and the employee's payout method
+    // is TIME_BANK, credit the OT minutes to their time balance. Snapshot
+    // wins if present (locks treatment); otherwise fall back to the
+    // employee's current profile setting.
+    if (finalStatus === "APPROVED" && request.kind === "OT") {
+      const profile = await prisma.employeeProfile.findUnique({
+        where: { userId: request.employeeId },
+        select: { id: true, otPayoutMethod: true },
+      })
+      const effectivePayout =
+        request.otPayoutMethod ?? profile?.otPayoutMethod ?? "CASH"
+      if (effectivePayout === "TIME_BANK" && profile) {
+        const otMinutes = await computeApprovedOtMinutes(
+          prisma,
+          request.employeeId,
+          request.date,
+        )
+        if (otMinutes > 0) {
+          await prisma.employeeProfile.update({
+            where: { id: profile.id },
+            data: { otTimeBalanceMin: { increment: otMinutes } },
+          })
+        }
+      }
+    }
   },
 
   // ── Admin ─────────────────────────────────────────────────────────────
@@ -1477,12 +1571,36 @@ export const attendanceRepository = {
     const employees = await prisma.user.findMany({
       where: employeeWhere,
       orderBy: [{ name: "asc" }],
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, organizationId: true },
     })
     if (employees.length === 0) {
       return { totals: { ...EMPTY_BUCKETS }, employees: [] }
     }
     const employeeIds = employees.map((e) => e.id)
+
+    const orgIds = Array.from(
+      new Set(
+        [args.orgId, ...employees.map((e) => e.organizationId)].filter(
+          (x): x is string => Boolean(x),
+        ),
+      ),
+    )
+    const orgs =
+      orgIds.length === 0
+        ? []
+        : await prisma.organization.findMany({
+            where: { id: { in: orgIds } },
+            select: { id: true, otDailyThresholdMinutes: true },
+          })
+    const orgThresholdById = new Map(
+      orgs.map((o) => [o.id, o.otDailyThresholdMinutes]),
+    )
+    const employeeOrgId = new Map(employees.map((e) => [e.id, e.organizationId]))
+    const otThresholdFor = (employeeId: string): number => {
+      const orgId = employeeOrgId.get(employeeId) ?? args.orgId ?? null
+      const fromMap = orgId ? orgThresholdById.get(orgId) : undefined
+      return fromMap ?? 8 * 60
+    }
 
     const records = await prisma.attendanceRecord.findMany({
       where: {
@@ -1563,6 +1681,7 @@ export const attendanceRepository = {
         isPublicHoliday: isPH,
         workingDays,
         standardDailyMin,
+        otThresholdMin: otThresholdFor(record.employeeId),
         hasApprovedOT,
       })
 

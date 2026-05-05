@@ -1802,7 +1802,10 @@ function OtRatesCard({ organization }: { organization?: OrganizationSummary }) {
     restDayInShift: 1.0,
     publicHolidayInShift: 2.0,
     salaryThreshold: 4000,
+    dailyThresholdMinutes: 480,
   }
+  const dailyThresholdHours =
+    Math.round((rates.dailyThresholdMinutes / 60) * 100) / 100
 
   const [state, formAction, pending] = useActionState(
     saveOtRatesAction,
@@ -1820,6 +1823,28 @@ function OtRatesCard({ organization }: { organization?: OrganizationSummary }) {
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-6">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Daily OT threshold</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Time worked beyond this many hours per day counts as overtime
+              (after approval). Applies to all employees.
+            </p>
+            <div className="mt-3 max-w-xs">
+              <label className="space-y-2 text-sm font-semibold text-muted-foreground">
+                <span>Threshold (hours/day)</span>
+                <Input
+                  name="otDailyThresholdHours"
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  max="24"
+                  defaultValue={dailyThresholdHours}
+                  disabled={pending}
+                />
+              </label>
+            </div>
+          </div>
+
           <div>
             <p className="text-sm font-semibold text-foreground">Overtime multiplier</p>
             <p className="mt-0.5 text-xs text-muted-foreground">

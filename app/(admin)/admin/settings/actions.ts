@@ -46,6 +46,10 @@ const otRatesSchema = z.object({
     .number({ message: "Threshold must be a number." })
     .min(0, "Threshold must be 0 or greater.")
     .max(1_000_000, "Threshold seems unrealistic."),
+  otDailyThresholdHours: z.coerce
+    .number({ message: "OT threshold must be a number." })
+    .min(0, "OT threshold must be 0 or greater.")
+    .max(24, "OT threshold cannot exceed 24 hours."),
 })
 
 function revalidateAdminSurfaces() {
@@ -1043,6 +1047,7 @@ export async function saveOtRatesAction(
     restDayInShiftRate: formData.get("restDayInShiftRate"),
     publicHolidayInShiftRate: formData.get("publicHolidayInShiftRate"),
     otSalaryThreshold: formData.get("otSalaryThreshold"),
+    otDailyThresholdHours: formData.get("otDailyThresholdHours"),
   })
 
   if (!parsed.success) {
@@ -1062,6 +1067,7 @@ export async function saveOtRatesAction(
         restDayInShift: parsed.data.restDayInShiftRate,
         publicHolidayInShift: parsed.data.publicHolidayInShiftRate,
         salaryThreshold: parsed.data.otSalaryThreshold,
+        dailyThresholdMinutes: Math.round(parsed.data.otDailyThresholdHours * 60),
       },
     })
   } catch (error) {

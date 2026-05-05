@@ -10,6 +10,17 @@ export type OtRates = {
   // Salary cap (RM, basic + fixed allowance) above which OT requires
   // management approval.
   salaryThreshold: number
+  // Daily working minutes after which extra time becomes OT-eligible.
+  dailyThresholdMinutes: number
+}
+
+export const otPayoutMethods = ["CASH", "TIME_BANK"] as const
+
+export type OtPayoutMethod = (typeof otPayoutMethods)[number]
+
+export const otPayoutMethodLabels: Record<OtPayoutMethod, string> = {
+  CASH: "Cash out",
+  TIME_BANK: "Time balance",
 }
 
 export const employeePayoutMethods = ["HOURLY", "MONTHLY_BASED"] as const
@@ -162,6 +173,8 @@ export type OrganizationMember = {
   projects: AssignedProject[]
   jobTitle: string
   payoutMethod: EmployeePayoutMethod
+  otPayoutMethod: OtPayoutMethod
+  otTimeBalanceMin: number
   /// Pay rate per hour for HOURLY employees. Always undefined for
   /// MONTHLY_BASED employees / supervisors.
   hourlyRate?: number

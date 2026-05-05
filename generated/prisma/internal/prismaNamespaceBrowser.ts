@@ -121,7 +121,8 @@ export const OrganizationScalarFieldEnum = {
   geofenceRadiusMeters: 'geofenceRadiusMeters',
   defaultMileageRate: 'defaultMileageRate',
   mileageUnit: 'mileageUnit',
-  otEnabled: 'otEnabled'
+  otEnabled: 'otEnabled',
+  otDailyThresholdMinutes: 'otDailyThresholdMinutes'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -161,7 +162,9 @@ export const EmployeeProfileScalarFieldEnum = {
   xeroConnectionId: 'xeroConnectionId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  hourlyRate: 'hourlyRate'
+  hourlyRate: 'hourlyRate',
+  otPayoutMethod: 'otPayoutMethod',
+  otTimeBalanceMin: 'otTimeBalanceMin'
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
@@ -353,6 +356,7 @@ export const ApprovalRequestScalarFieldEnum = {
   detail: 'detail',
   location: 'location',
   otSubtype: 'otSubtype',
+  otPayoutMethod: 'otPayoutMethod',
   lateMinutes: 'lateMinutes',
   offsetRef: 'offsetRef',
   reviewNotes: 'reviewNotes',

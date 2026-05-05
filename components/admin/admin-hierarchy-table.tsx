@@ -45,12 +45,15 @@ import type {
   EmployeePayoutMethod,
   OrganizationMember,
   OrganizationProjectOption,
+  OtPayoutMethod,
   TeamSummary,
   XeroConnectionInfo,
 } from "@/modules/organization/domain/models"
 import {
   employeePayoutMethodLabels,
   employeePayoutMethods,
+  otPayoutMethodLabels,
+  otPayoutMethods,
   resolveEmployeePayoutMethod,
 } from "@/modules/organization/domain/models"
 
@@ -651,6 +654,8 @@ function AddHierarchyMemberDialog({
   const [addPayoutMethodValue, setAddPayoutMethodValue] =
     useState<EmployeePayoutMethod>("HOURLY")
   const [addHourlyRate, setAddHourlyRate] = useState<string>("")
+  const [addOtPayoutMethod, setAddOtPayoutMethod] =
+    useState<OtPayoutMethod>("CASH")
   const [state, formAction, pending] = useActionState(
     createHierarchyMemberAction,
     createInitialAddHierarchyMemberFormState()
@@ -713,6 +718,7 @@ function AddHierarchyMemberDialog({
       setAddRoleValue("EMPLOYEE")
       setAddPayoutMethodValue("HOURLY")
       setAddHourlyRate("")
+      setAddOtPayoutMethod("CASH")
     }
 
     if (state.status === "error" && state.message) {
@@ -727,6 +733,7 @@ function AddHierarchyMemberDialog({
       setAddRoleValue("EMPLOYEE")
       setAddPayoutMethodValue("HOURLY")
       setAddHourlyRate("")
+      setAddOtPayoutMethod("CASH")
     }
   }, [open])
 
@@ -886,6 +893,36 @@ function AddHierarchyMemberDialog({
                   />
                   <p className="text-xs font-medium text-muted-foreground/80">
                     Pay rate per hour for this employee.
+                  </p>
+                </div>
+              ) : null}
+
+              {/* OT payout method — only for Office Workers. Hourly Workers
+                  always cash out. Once an OT request is submitted, the
+                  payout method is locked to whatever this is at that time. */}
+              {resolvedAddPayoutMethod === "MONTHLY_BASED" ? (
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor="add-ot-payout">OT payout method</label>
+                  <input type="hidden" name="otPayoutMethod" value={addOtPayoutMethod} />
+                  <Select
+                    value={addOtPayoutMethod}
+                    onValueChange={(v) => setAddOtPayoutMethod(v as OtPayoutMethod)}
+                    disabled={pending}
+                  >
+                    <SelectTrigger id="add-ot-payout">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {otPayoutMethods.map((method) => (
+                        <SelectItem key={method} value={method}>
+                          {otPayoutMethodLabels[method]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs font-medium text-muted-foreground/80">
+                    Approved OT is paid as cash, or banked as time-off minutes
+                    that can be redeemed later.
                   </p>
                 </div>
               ) : null}
@@ -1153,6 +1190,9 @@ function HierarchyEditDialog({
   const [editHourlyRate, setEditHourlyRate] = useState<string>(
     member.hourlyRate != null ? member.hourlyRate.toFixed(2) : "",
   )
+  const [editOtPayoutMethod, setEditOtPayoutMethod] = useState<OtPayoutMethod>(
+    member.otPayoutMethod,
+  )
   const [selectedEditProjectIds, setSelectedEditProjectIds] = useState<string[]>(
     member.projects.filter((project) => !project.id.startsWith("legacy:")).map((project) => project.id)
   )
@@ -1251,6 +1291,7 @@ function HierarchyEditDialog({
       setEditHourlyRate(
         member.hourlyRate != null ? member.hourlyRate.toFixed(2) : "",
       )
+      setEditOtPayoutMethod(member.otPayoutMethod)
       setSelectedEditProjectIds(resolveSelectedProjectIds(member.projects, filteredProjects))
       const out: Record<
         string,
@@ -1407,6 +1448,33 @@ function HierarchyEditDialog({
                   />
                   <p className="text-xs font-medium text-muted-foreground/80">
                     Pay rate per hour for this employee.
+                  </p>
+                </div>
+              ) : null}
+
+              {resolvedEditPayoutMethod === "MONTHLY_BASED" ? (
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor={`edit-ot-payout-${member.id}`}>OT payout method</label>
+                  <input type="hidden" name="otPayoutMethod" value={editOtPayoutMethod} />
+                  <Select
+                    value={editOtPayoutMethod}
+                    onValueChange={(v) => setEditOtPayoutMethod(v as OtPayoutMethod)}
+                    disabled={pending}
+                  >
+                    <SelectTrigger id={`edit-ot-payout-${member.id}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {otPayoutMethods.map((method) => (
+                        <SelectItem key={method} value={method}>
+                          {otPayoutMethodLabels[method]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs font-medium text-muted-foreground/80">
+                    New OT requests use this default. Already-submitted
+                    requests keep their original payout method.
                   </p>
                 </div>
               ) : null}

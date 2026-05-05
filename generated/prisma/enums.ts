@@ -139,3 +139,11 @@ export const PayoutMethod = {
 } as const
 
 export type PayoutMethod = (typeof PayoutMethod)[keyof typeof PayoutMethod]
+
+
+export const OtPayoutMethod = {
+  CASH: 'CASH',
+  TIME_BANK: 'TIME_BANK'
+} as const
+
+export type OtPayoutMethod = (typeof OtPayoutMethod)[keyof typeof OtPayoutMethod]
