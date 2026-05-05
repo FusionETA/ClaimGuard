@@ -36,6 +36,15 @@ export type AttendanceRecordView = {
   notes: string | null
 }
 
+export type ChainHistoryEntry = {
+  step: number
+  approverId: string
+  approverName: string
+  reviewedAt: string
+  status: "APPROVED" | "REJECTED"
+  notes: string | null
+}
+
 export type ApprovalRequestView = {
   id: string
   kind: ApprovalKind
@@ -55,6 +64,16 @@ export type ApprovalRequestView = {
   reviewNotes: string | null
   submittedAt: string
   reviewedAt: string | null
+  /** Per-step approval audit. Null on legacy / auto-approved rows. */
+  chainHistory: ChainHistoryEntry[] | null
+  /** 1-indexed step number currently waiting for review. Null when finalised. */
+  currentStep: number | null
+  /** Total number of steps in the resolved chain (length 1 for fallback / legacy). */
+  totalSteps: number
+  /** When `currentStep` is set, the names of the approvers who can act on it. */
+  currentStepApproverNames: string[]
+  /** When `currentStep` is set, the user IDs of the approvers who can act on it. */
+  currentStepApproverIds: string[]
 }
 
 export type AttendanceProjectView = {

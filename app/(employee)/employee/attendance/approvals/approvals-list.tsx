@@ -175,6 +175,11 @@ export function ApprovalsList({ items }: Props) {
                           </Badge>
                         ) : null
                       })() : null}
+                      {r.totalSteps > 1 && r.currentStep ? (
+                        <Badge variant="pending" className="font-semibold">
+                          Step {r.currentStep} of {r.totalSteps}
+                        </Badge>
+                      ) : null}
                     </div>
                     <p className="mt-2 text-sm font-bold text-foreground">{r.employeeName}</p>
                     <p className="mt-0.5 text-sm font-semibold text-foreground">{r.title}</p>
@@ -203,6 +208,24 @@ export function ApprovalsList({ items }: Props) {
                     ) : null}
                     {r.location ? (
                       <p className="mt-0.5 text-[11px] text-muted-foreground">📍 {r.location}</p>
+                    ) : null}
+                    {r.chainHistory && r.chainHistory.length > 0 ? (
+                      <div className="mt-2 space-y-0.5 rounded-md border border-border/60 bg-secondary/20 px-2 py-1.5">
+                        {r.chainHistory.map((h) => (
+                          <p key={`${h.step}-${h.approverId}`} className="text-[10px] text-muted-foreground">
+                            <span className="font-semibold text-foreground">
+                              Step {h.step}
+                            </span>{" "}
+                            {h.status === "APPROVED" ? "approved" : "rejected"} by{" "}
+                            <span className="font-semibold">{h.approverName}</span>{" "}
+                            at{" "}
+                            {new Date(h.reviewedAt).toLocaleTimeString("en-US", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        ))}
+                      </div>
                     ) : null}
                   </div>
                 </div>

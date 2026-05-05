@@ -98,6 +98,7 @@ export type ApprovalRequestCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   project: number
+  chainHistory: number
   _all: number
 }
 
@@ -174,6 +175,7 @@ export type ApprovalRequestCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   project?: true
+  chainHistory?: true
   _all?: true
 }
 
@@ -283,6 +285,7 @@ export type ApprovalRequestGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   project: string | null
+  chainHistory: runtime.JsonValue | null
   _count: ApprovalRequestCountAggregateOutputType | null
   _avg: ApprovalRequestAvgAggregateOutputType | null
   _sum: ApprovalRequestSumAggregateOutputType | null
@@ -328,6 +331,7 @@ export type ApprovalRequestWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   project?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
+  chainHistory?: Prisma.JsonNullableFilter<"ApprovalRequest">
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
@@ -352,6 +356,7 @@ export type ApprovalRequestOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   project?: Prisma.SortOrderInput | Prisma.SortOrder
+  chainHistory?: Prisma.SortOrderInput | Prisma.SortOrder
   employee?: Prisma.UserOrderByWithRelationInput
   reviewer?: Prisma.UserOrderByWithRelationInput
   _relevance?: Prisma.ApprovalRequestOrderByRelevanceInput
@@ -380,6 +385,7 @@ export type ApprovalRequestWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   project?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
+  chainHistory?: Prisma.JsonNullableFilter<"ApprovalRequest">
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
@@ -404,6 +410,7 @@ export type ApprovalRequestOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   project?: Prisma.SortOrderInput | Prisma.SortOrder
+  chainHistory?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ApprovalRequestCountOrderByAggregateInput
   _avg?: Prisma.ApprovalRequestAvgOrderByAggregateInput
   _max?: Prisma.ApprovalRequestMaxOrderByAggregateInput
@@ -434,6 +441,7 @@ export type ApprovalRequestScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ApprovalRequest"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ApprovalRequest"> | Date | string
   project?: Prisma.StringNullableWithAggregatesFilter<"ApprovalRequest"> | string | null
+  chainHistory?: Prisma.JsonNullableWithAggregatesFilter<"ApprovalRequest">
 }
 
 export type ApprovalRequestCreateInput = {
@@ -454,6 +462,7 @@ export type ApprovalRequestCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   employee: Prisma.UserCreateNestedOneWithoutApprovalsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutApprovalReviewsInput
 }
@@ -478,6 +487,7 @@ export type ApprovalRequestUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestUpdateInput = {
@@ -498,6 +508,7 @@ export type ApprovalRequestUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   employee?: Prisma.UserUpdateOneRequiredWithoutApprovalsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutApprovalReviewsNestedInput
 }
@@ -522,6 +533,7 @@ export type ApprovalRequestUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestCreateManyInput = {
@@ -544,6 +556,7 @@ export type ApprovalRequestCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestUpdateManyMutationInput = {
@@ -564,6 +577,7 @@ export type ApprovalRequestUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestUncheckedUpdateManyInput = {
@@ -586,6 +600,7 @@ export type ApprovalRequestUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestListRelationFilter = {
@@ -624,6 +639,7 @@ export type ApprovalRequestCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   project?: Prisma.SortOrder
+  chainHistory?: Prisma.SortOrder
 }
 
 export type ApprovalRequestAvgOrderByAggregateInput = {
@@ -792,6 +808,7 @@ export type ApprovalRequestCreateWithoutEmployeeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   reviewer?: Prisma.UserCreateNestedOneWithoutApprovalReviewsInput
 }
 
@@ -814,6 +831,7 @@ export type ApprovalRequestUncheckedCreateWithoutEmployeeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestCreateOrConnectWithoutEmployeeInput = {
@@ -844,6 +862,7 @@ export type ApprovalRequestCreateWithoutReviewerInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   employee: Prisma.UserCreateNestedOneWithoutApprovalsInput
 }
 
@@ -866,6 +885,7 @@ export type ApprovalRequestUncheckedCreateWithoutReviewerInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestCreateOrConnectWithoutReviewerInput = {
@@ -917,6 +937,7 @@ export type ApprovalRequestScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ApprovalRequest"> | Date | string
   project?: Prisma.StringNullableFilter<"ApprovalRequest"> | string | null
+  chainHistory?: Prisma.JsonNullableFilter<"ApprovalRequest">
 }
 
 export type ApprovalRequestUpsertWithWhereUniqueWithoutReviewerInput = {
@@ -954,6 +975,7 @@ export type ApprovalRequestCreateManyEmployeeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestCreateManyReviewerInput = {
@@ -975,6 +997,7 @@ export type ApprovalRequestCreateManyReviewerInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project?: string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestUpdateWithoutEmployeeInput = {
@@ -995,6 +1018,7 @@ export type ApprovalRequestUpdateWithoutEmployeeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   reviewer?: Prisma.UserUpdateOneWithoutApprovalReviewsNestedInput
 }
 
@@ -1017,6 +1041,7 @@ export type ApprovalRequestUncheckedUpdateWithoutEmployeeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestUncheckedUpdateManyWithoutEmployeeInput = {
@@ -1038,6 +1063,7 @@ export type ApprovalRequestUncheckedUpdateManyWithoutEmployeeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestUpdateWithoutReviewerInput = {
@@ -1058,6 +1084,7 @@ export type ApprovalRequestUpdateWithoutReviewerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   employee?: Prisma.UserUpdateOneRequiredWithoutApprovalsNestedInput
 }
 
@@ -1080,6 +1107,7 @@ export type ApprovalRequestUncheckedUpdateWithoutReviewerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type ApprovalRequestUncheckedUpdateManyWithoutReviewerInput = {
@@ -1101,6 +1129,7 @@ export type ApprovalRequestUncheckedUpdateManyWithoutReviewerInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  chainHistory?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 
@@ -1125,6 +1154,7 @@ export type ApprovalRequestSelect<ExtArgs extends runtime.Types.Extensions.Inter
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean
+  chainHistory?: boolean
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.ApprovalRequest$reviewerArgs<ExtArgs>
 }, ExtArgs["result"]["approvalRequest"]>
@@ -1151,9 +1181,10 @@ export type ApprovalRequestSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean
+  chainHistory?: boolean
 }
 
-export type ApprovalRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "reviewerId" | "kind" | "status" | "date" | "eventAt" | "title" | "detail" | "location" | "otSubtype" | "lateMinutes" | "offsetRef" | "reviewNotes" | "submittedAt" | "reviewedAt" | "createdAt" | "updatedAt" | "project", ExtArgs["result"]["approvalRequest"]>
+export type ApprovalRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "reviewerId" | "kind" | "status" | "date" | "eventAt" | "title" | "detail" | "location" | "otSubtype" | "lateMinutes" | "offsetRef" | "reviewNotes" | "submittedAt" | "reviewedAt" | "createdAt" | "updatedAt" | "project" | "chainHistory", ExtArgs["result"]["approvalRequest"]>
 export type ApprovalRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reviewer?: boolean | Prisma.ApprovalRequest$reviewerArgs<ExtArgs>
@@ -1185,6 +1216,13 @@ export type $ApprovalRequestPayload<ExtArgs extends runtime.Types.Extensions.Int
     createdAt: Date
     updatedAt: Date
     project: string | null
+    /**
+     * Per-step approval history. Array<{ step: number; approverId: string;
+     * approverName: string; reviewedAt: string; status: "APPROVED" |
+     * "REJECTED"; notes: string | null }>. Null for auto-approved requests
+     * and rows created before the multi-layer chain was introduced.
+     */
+    chainHistory: runtime.JsonValue | null
   }, ExtArgs["result"]["approvalRequest"]>
   composites: {}
 }
@@ -1575,6 +1613,7 @@ export interface ApprovalRequestFieldRefs {
   readonly createdAt: Prisma.FieldRef<"ApprovalRequest", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ApprovalRequest", 'DateTime'>
   readonly project: Prisma.FieldRef<"ApprovalRequest", 'String'>
+  readonly chainHistory: Prisma.FieldRef<"ApprovalRequest", 'Json'>
 }
     
 

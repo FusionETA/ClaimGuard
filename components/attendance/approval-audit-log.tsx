@@ -16,6 +16,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+export type AuditChainEntry = {
+  step: number
+  approverId: string
+  approverName: string
+  reviewedAt: string
+  status: "APPROVED" | "REJECTED"
+  notes: string | null
+}
+
 export type AuditLogRow = {
   id: string
   kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK" | "OT"
@@ -29,6 +38,7 @@ export type AuditLogRow = {
   delayMinutes: number | null
   project: string | null
   title: string
+  chainHistory: AuditChainEntry[] | null
 }
 
 type LoadAction = (
@@ -281,7 +291,26 @@ export function ApprovalAuditLog({
                       {row.eventAt ? fmtDateTime(row.eventAt) : "—"}
                     </td>
                     <td className="py-2 pr-3 text-xs">
-                      {row.reviewerName ?? (
+                      {row.chainHistory && row.chainHistory.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {row.chainHistory.map((h) => (
+                            <div
+                              key={`${h.step}-${h.approverId}`}
+                              className="text-[11px]"
+                            >
+                              <span className="text-muted-foreground">
+                                Step {h.step}:
+                              </span>{" "}
+                              <span className="font-medium">{h.approverName}</span>
+                              {h.status === "REJECTED" ? (
+                                <span className="text-destructive"> (rejected)</span>
+                              ) : null}
+                            </div>
+                          ))}
+                        </div>
+                      ) : row.reviewerName ? (
+                        row.reviewerName
+                      ) : (
                         <span className="text-muted-foreground">—</span>
                       )}
                     </td>

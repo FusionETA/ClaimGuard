@@ -360,7 +360,8 @@ export const ApprovalRequestScalarFieldEnum = {
   reviewedAt: 'reviewedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  project: 'project'
+  project: 'project',
+  chainHistory: 'chainHistory'
 } as const
 
 export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
@@ -614,6 +615,23 @@ export const BreakSessionOrderByRelevanceFieldEnum = {
 export type BreakSessionOrderByRelevanceFieldEnum = (typeof BreakSessionOrderByRelevanceFieldEnum)[keyof typeof BreakSessionOrderByRelevanceFieldEnum]
 
 
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
 export const ApprovalRequestOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -637,23 +655,6 @@ export const ApprovalChainStepOrderByRelevanceFieldEnum = {
 } as const
 
 export type ApprovalChainStepOrderByRelevanceFieldEnum = (typeof ApprovalChainStepOrderByRelevanceFieldEnum)[keyof typeof ApprovalChainStepOrderByRelevanceFieldEnum]
-
-
-export const JsonNullValueFilter = {
-  DbNull: DbNull,
-  JsonNull: JsonNull,
-  AnyNull: AnyNull
-} as const
-
-export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
-
-
-export const QueryMode = {
-  default: 'default',
-  insensitive: 'insensitive'
-} as const
-
-export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
 export const TeamOrderByRelevanceFieldEnum = {

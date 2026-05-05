@@ -349,25 +349,30 @@ model BreakSession {
 }
 
 model ApprovalRequest {
-  id          String         @id @default(cuid())
-  employeeId  String
-  reviewerId  String?
-  kind        ApprovalKind
-  status      ApprovalStatus @default(PENDING)
-  date        DateTime
-  eventAt     DateTime?
-  title       String
-  detail      String         @db.Text
-  location    String?
-  otSubtype   OTSubtype?
-  lateMinutes Int?
-  offsetRef   String?
-  reviewNotes String?        @db.Text
-  submittedAt DateTime       @default(now())
-  reviewedAt  DateTime?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  project     String?
+  id           String         @id @default(cuid())
+  employeeId   String
+  reviewerId   String?
+  kind         ApprovalKind
+  status       ApprovalStatus @default(PENDING)
+  date         DateTime
+  eventAt      DateTime?
+  title        String
+  detail       String         @db.Text
+  location     String?
+  otSubtype    OTSubtype?
+  lateMinutes  Int?
+  offsetRef    String?
+  reviewNotes  String?        @db.Text
+  submittedAt  DateTime       @default(now())
+  reviewedAt   DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  project      String?
+  /// Per-step approval history. Array<{ step: number; approverId: string;
+  /// approverName: string; reviewedAt: string; status: "APPROVED" |
+  /// "REJECTED"; notes: string | null }>. Null for auto-approved requests
+  /// and rows created before the multi-layer chain was introduced.
+  chainHistory Json?
   employee    User           @relation("EmployeeApprovals", fields: [employeeId], references: [id], onDelete: Cascade)
   reviewer    User?          @relation("ReviewerApprovals", fields: [reviewerId], references: [id])
 

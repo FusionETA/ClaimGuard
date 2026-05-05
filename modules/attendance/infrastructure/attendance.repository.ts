@@ -28,6 +28,11 @@ import {
   expectedTimeOnLocalDay as expectedTimeOnLocalDayInTz,
   formatLocalHm,
 } from "@/modules/attendance/domain/timezone"
+import {
+  isAutoApprovingActor,
+  resolveApprovalContext,
+} from "@/modules/attendance/infrastructure/approval-chain-context"
+import type { ChainHistoryEntry } from "@/modules/attendance/domain/models"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -180,7 +185,13 @@ type PrismaApproval = {
   reviewNotes: string | null
   submittedAt: Date
   reviewedAt: Date | null
+  chainHistory?: unknown
   employee?: { name: string } | null
+}
+
+function parseChainHistory(raw: unknown): ChainHistoryEntry[] | null {
+  if (!Array.isArray(raw)) return null
+  return raw as ChainHistoryEntry[]
 }
 
 function approvalToView(r: PrismaApproval): ApprovalRequestView {
@@ -203,7 +214,77 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
     reviewNotes: r.reviewNotes,
     submittedAt: r.submittedAt.toISOString(),
     reviewedAt: r.reviewedAt?.toISOString() ?? null,
+    chainHistory: parseChainHistory(r.chainHistory),
+    // Defaults — populated by attachChainContext when needed.
+    currentStep: r.status === "PENDING" ? 1 : null,
+    totalSteps: 1,
+    currentStepApproverNames: [],
+    currentStepApproverIds: [],
   }
+}
+
+/**
+ * Per-row chain resolution. Looks up the project for each approval (via
+ * AttendanceRecord on the same employee+date), resolves the chain, and
+ * overrides currentStep / totalSteps / currentStepApproverNames on each
+ * view. Async + N+1-ish; only call where the UI needs step context.
+ */
+async function attachChainContext(
+  views: ApprovalRequestView[],
+): Promise<ApprovalRequestView[]> {
+  if (views.length === 0) return views
+  const prisma = getClient()
+  const dates = Array.from(
+    new Set(views.map((v) => `${v.employeeId}|${v.date}`)),
+  )
+  const dateRows = await prisma.attendanceRecord.findMany({
+    where: {
+      OR: dates.map((d) => {
+        const [employeeId, date] = d.split("|")
+        return {
+          employeeId,
+          date: new Date(`${date}T00:00:00.000Z`),
+        }
+      }),
+    },
+    select: { employeeId: true, date: true, projectId: true },
+  })
+  const projectByKey = new Map<string, string | null>()
+  for (const r of dateRows) {
+    projectByKey.set(
+      `${r.employeeId}|${r.date.toISOString().slice(0, 10)}`,
+      r.projectId,
+    )
+  }
+  return Promise.all(
+    views.map(async (v) => {
+      const projectId = projectByKey.get(`${v.employeeId}|${v.date}`) ?? null
+      const ctx = await resolveApprovalContext({
+        requestId: v.id,
+        employeeId: v.employeeId,
+        kind: v.kind,
+        status: v.status as "PENDING" | "APPROVED" | "REJECTED",
+        reviewerId: v.reviewerId,
+        projectId,
+      })
+      const totalSteps = Math.max(1, ctx.chain.length)
+      const currentStep = ctx.currentStep
+      const stepEntry =
+        currentStep && ctx.chain[currentStep - 1]
+          ? ctx.chain[currentStep - 1]
+          : null
+      const currentStepApproverNames = stepEntry?.approvers.map((a) => a.name) ?? []
+      const currentStepApproverIds =
+        stepEntry?.approvers.map((a) => a.approverId) ?? []
+      return {
+        ...v,
+        currentStep,
+        totalSteps,
+        currentStepApproverNames,
+        currentStepApproverIds,
+      }
+    }),
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -498,8 +579,11 @@ export const attendanceRepository = {
       },
     })
 
-    const autoApprove =
-      employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
+    const autoApprove = await isAutoApprovingActor({
+      employeeId,
+      role: employee?.role,
+      projectId: projectId ?? null,
+    })
     const timingNote =
       lateMin > 0
         ? ` • ${lateMin}m late`
@@ -595,8 +679,11 @@ export const attendanceRepository = {
     const rawDurationMin = effectiveTimeIn ? diffMinutes(effectiveTimeIn, now) : null
     const durationMin =
       rawDurationMin === null ? null : Math.max(0, rawDurationMin - breakMin)
-    const autoApprove =
-      employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
+    const autoApprove = await isAutoApprovingActor({
+      employeeId,
+      role: employee?.role,
+      projectId: existing?.projectId ?? null,
+    })
 
     const appendedNotes = notes
       ? [existing?.notes, `CLOCK_OUT: ${notes}`].filter(Boolean).join("\n")
@@ -663,6 +750,7 @@ export const attendanceRepository = {
         select: {
           id: true,
           project: true,
+          projectId: true,
           notes: true,
           timeIn: true,
           breaks: { where: { endedAt: null }, select: { id: true } },
@@ -698,8 +786,11 @@ export const attendanceRepository = {
         : []),
     ])
 
-    const autoApprove =
-      employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
+    const autoApprove = await isAutoApprovingActor({
+      employeeId,
+      role: employee?.role,
+      projectId: existing.projectId ?? null,
+    })
     const approval = await prisma.approvalRequest.create({
       data: {
         employeeId,
@@ -740,6 +831,7 @@ export const attendanceRepository = {
         select: {
           id: true,
           project: true,
+          projectId: true,
           notes: true,
           breaks: {
             where: { endedAt: null },
@@ -779,8 +871,11 @@ export const attendanceRepository = {
     ])
 
     const breakMin = Math.max(0, diffMinutes(openBreak.startedAt, now))
-    const autoApprove =
-      employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
+    const autoApprove = await isAutoApprovingActor({
+      employeeId,
+      role: employee?.role,
+      projectId: existing.projectId ?? null,
+    })
     const approval = await prisma.approvalRequest.create({
       data: {
         employeeId,
@@ -874,7 +969,14 @@ export const attendanceRepository = {
       include: { employee: { select: { name: true } } },
       take: 100,
     })
-    return backfillLateMinutes(records.map(approvalToView), prisma)
+    const baseViews = records.map(approvalToView)
+    const withContext = await attachChainContext(baseViews)
+    // Only show requests where this supervisor is among the current step's
+    // approvers — multi-layer chain enforcement.
+    const filtered = withContext.filter((v) =>
+      v.currentStepApproverIds.includes(supervisorId),
+    )
+    return backfillLateMinutes(filtered, prisma)
   },
 
   async getEmployeeProfile(employeeId: string): Promise<{
@@ -1012,13 +1114,87 @@ export const attendanceRepository = {
     notes?: string,
   ): Promise<void> {
     const prisma = getClient()
+    const now = new Date()
+
+    const request = await prisma.approvalRequest.findUnique({
+      where: { id: approvalId },
+      select: {
+        id: true,
+        employeeId: true,
+        kind: true,
+        status: true,
+        reviewerId: true,
+        chainHistory: true,
+        date: true,
+      },
+    })
+    if (!request) throw new Error("Approval not found.")
+    if (request.status !== "PENDING") {
+      throw new Error("This request has already been finalised.")
+    }
+
+    // Resolve which project this approval belongs to (for chain selection).
+    // Use the AttendanceRecord on the same employee+date.
+    const attendance = await prisma.attendanceRecord.findUnique({
+      where: {
+        employeeId_date: { employeeId: request.employeeId, date: request.date },
+      },
+      select: { projectId: true },
+    })
+
+    const ctx = await resolveApprovalContext({
+      requestId: request.id,
+      employeeId: request.employeeId,
+      kind: request.kind as "CLOCK_IN" | "CLOCK_OUT" | "BREAK" | "OT",
+      status: "PENDING",
+      reviewerId: request.reviewerId,
+      projectId: attendance?.projectId ?? null,
+    })
+
+    if (ctx.currentStep === null || ctx.chain.length === 0) {
+      throw new Error("No approver chain configured for this request.")
+    }
+
+    const stepEntry = ctx.chain[ctx.currentStep - 1]
+    const reviewerInStep = stepEntry?.approvers.some(
+      (a) => a.approverId === reviewerId,
+    )
+    if (!reviewerInStep) {
+      throw new Error("Not your turn to review this request.")
+    }
+
+    // Look up the reviewer's display name (best-effort) so we can store it
+    // in chainHistory without needing to join later.
+    const reviewer = await prisma.user.findUnique({
+      where: { id: reviewerId },
+      select: { name: true },
+    })
+
+    const existingHistory: ChainHistoryEntry[] = Array.isArray(request.chainHistory)
+      ? (request.chainHistory as unknown as ChainHistoryEntry[])
+      : []
+    const newEntry: ChainHistoryEntry = {
+      step: ctx.currentStep,
+      approverId: reviewerId,
+      approverName: reviewer?.name ?? reviewerId,
+      reviewedAt: now.toISOString(),
+      status,
+      notes: notes ?? null,
+    }
+    const nextHistory = [...existingHistory, newEntry]
+
+    const isLastStep = ctx.currentStep === ctx.chain.length
+    const finalStatus: "PENDING" | "APPROVED" | "REJECTED" =
+      status === "REJECTED" ? "REJECTED" : isLastStep ? "APPROVED" : "PENDING"
+
     await prisma.approvalRequest.update({
       where: { id: approvalId },
       data: {
-        status,
+        status: finalStatus,
         reviewerId,
-        reviewedAt: new Date(),
+        reviewedAt: now,
         reviewNotes: notes ?? null,
+        chainHistory: nextHistory as unknown as object,
       },
     })
   },
@@ -1036,7 +1212,8 @@ export const attendanceRepository = {
       include: { employee: { select: { name: true } } },
       take: 200,
     })
-    return backfillLateMinutes(records.map(approvalToView), prisma)
+    const withContext = await attachChainContext(records.map(approvalToView))
+    return backfillLateMinutes(withContext, prisma)
   },
 
   async getOrgOverview(
@@ -1457,6 +1634,7 @@ export const attendanceRepository = {
       delayMinutes: number | null
       project: string | null
       title: string
+      chainHistory: ChainHistoryEntry[] | null
     }>
   > {
     const prisma = getClient()
@@ -1504,6 +1682,7 @@ export const attendanceRepository = {
         delayMinutes,
         project: r.project,
         title: r.title,
+        chainHistory: parseChainHistory(r.chainHistory),
       }
     })
   },
