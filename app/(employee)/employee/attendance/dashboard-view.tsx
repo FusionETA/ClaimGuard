@@ -111,7 +111,11 @@ export function EmployeeAttendanceDashboardView({
                       ? "Clock in"
                       : e.kind === "CLOCK_OUT"
                         ? "Clock out"
-                        : "Break"}
+                        : e.breakSubtype === "end"
+                          ? "Break end"
+                          : e.breakSubtype === "start"
+                            ? "Break start"
+                            : "Break"}
                   </Badge>
                   <span className="text-sm font-semibold text-foreground">
                     {fmtTime(e.eventAt)}

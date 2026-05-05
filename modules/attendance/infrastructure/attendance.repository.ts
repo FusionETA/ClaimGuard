@@ -381,14 +381,27 @@ export const attendanceRepository = {
         kind: { in: ["CLOCK_IN", "CLOCK_OUT", "BREAK"] },
       },
       orderBy: { eventAt: "asc" },
-      select: { id: true, kind: true, status: true, eventAt: true },
+      select: { id: true, kind: true, status: true, eventAt: true, title: true },
     })
-    return events.map((e) => ({
-      id: e.id,
-      kind: e.kind as "CLOCK_IN" | "CLOCK_OUT" | "BREAK",
-      status: e.status as ApprovalStatus,
-      eventAt: (e.eventAt ?? new Date()).toISOString(),
-    }))
+    return events.map((e) => {
+      const kind = e.kind as "CLOCK_IN" | "CLOCK_OUT" | "BREAK"
+      let breakSubtype: "start" | "end" | null = null
+      if (kind === "BREAK") {
+        const title = e.title.toLowerCase()
+        breakSubtype = title.startsWith("break end")
+          ? "end"
+          : title.startsWith("break start")
+            ? "start"
+            : null
+      }
+      return {
+        id: e.id,
+        kind,
+        status: e.status as ApprovalStatus,
+        eventAt: (e.eventAt ?? new Date()).toISOString(),
+        breakSubtype,
+      }
+    })
   },
 
   async getEmployeeOTApprovals(employeeId: string): Promise<ApprovalRequestView[]> {

@@ -65,6 +65,8 @@ export type ClockEventLite = {
   kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK"
   status: ApprovalStatus
   eventAt: string
+  /** For kind="BREAK", whether this event is the start or end of the break. */
+  breakSubtype: "start" | "end" | null
 }
 
 export type EmployeeAttendanceDashboard = {
