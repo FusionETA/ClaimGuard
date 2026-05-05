@@ -64,6 +64,7 @@ export const ModelName = {
   ProjectHoliday: 'ProjectHoliday',
   ProjectManager: 'ProjectManager',
   AttendanceRecord: 'AttendanceRecord',
+  BreakSession: 'BreakSession',
   ApprovalRequest: 'ApprovalRequest',
   ApprovalChainStep: 'ApprovalChainStep',
   Team: 'Team',
@@ -315,8 +316,6 @@ export const AttendanceRecordScalarFieldEnum = {
   date: 'date',
   timeIn: 'timeIn',
   timeOut: 'timeOut',
-  breakStart: 'breakStart',
-  breakEnd: 'breakEnd',
   durationMin: 'durationMin',
   lateByMin: 'lateByMin',
   location: 'location',
@@ -329,6 +328,17 @@ export const AttendanceRecordScalarFieldEnum = {
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
+
+
+export const BreakSessionScalarFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BreakSessionScalarFieldEnum = (typeof BreakSessionScalarFieldEnum)[keyof typeof BreakSessionScalarFieldEnum]
 
 
 export const ApprovalRequestScalarFieldEnum = {
@@ -594,6 +604,14 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
 } as const
 
 export type AttendanceRecordOrderByRelevanceFieldEnum = (typeof AttendanceRecordOrderByRelevanceFieldEnum)[keyof typeof AttendanceRecordOrderByRelevanceFieldEnum]
+
+
+export const BreakSessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId'
+} as const
+
+export type BreakSessionOrderByRelevanceFieldEnum = (typeof BreakSessionOrderByRelevanceFieldEnum)[keyof typeof BreakSessionOrderByRelevanceFieldEnum]
 
 
 export const ApprovalRequestOrderByRelevanceFieldEnum = {

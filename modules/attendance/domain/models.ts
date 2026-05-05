@@ -22,8 +22,12 @@ export type AttendanceRecordView = {
   date: string
   timeIn: string | null
   timeOut: string | null
-  breakStart: string | null
-  breakEnd: string | null
+  /** True if there is at least one open BreakSession (startedAt set, endedAt null). */
+  onBreak: boolean
+  /** ISO timestamp of the currently open break, if any. Null when not on break. */
+  currentBreakStartedAt: string | null
+  /** Total minutes spent on completed breaks today. */
+  breakMin: number
   durationMin: number | null
   lateByMin: number | null
   location: string | null

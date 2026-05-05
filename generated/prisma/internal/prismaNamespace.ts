@@ -397,6 +397,7 @@ export const ModelName = {
   ProjectHoliday: 'ProjectHoliday',
   ProjectManager: 'ProjectManager',
   AttendanceRecord: 'AttendanceRecord',
+  BreakSession: 'BreakSession',
   ApprovalRequest: 'ApprovalRequest',
   ApprovalChainStep: 'ApprovalChainStep',
   Team: 'Team',
@@ -416,7 +417,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
+    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1278,6 +1279,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BreakSession: {
+      payload: Prisma.$BreakSessionPayload<ExtArgs>
+      fields: Prisma.BreakSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BreakSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BreakSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.BreakSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BreakSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        findMany: {
+          args: Prisma.BreakSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>[]
+        }
+        create: {
+          args: Prisma.BreakSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        createMany: {
+          args: Prisma.BreakSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.BreakSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        update: {
+          args: Prisma.BreakSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.BreakSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BreakSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.BreakSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BreakSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.BreakSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBreakSession>
+        }
+        groupBy: {
+          args: Prisma.BreakSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BreakSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BreakSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BreakSessionCountAggregateOutputType> | number
+        }
+      }
+    }
     ApprovalRequest: {
       payload: Prisma.$ApprovalRequestPayload<ExtArgs>
       fields: Prisma.ApprovalRequestFieldRefs
@@ -1810,8 +1877,6 @@ export const AttendanceRecordScalarFieldEnum = {
   date: 'date',
   timeIn: 'timeIn',
   timeOut: 'timeOut',
-  breakStart: 'breakStart',
-  breakEnd: 'breakEnd',
   durationMin: 'durationMin',
   lateByMin: 'lateByMin',
   location: 'location',
@@ -1824,6 +1889,17 @@ export const AttendanceRecordScalarFieldEnum = {
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
+
+
+export const BreakSessionScalarFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BreakSessionScalarFieldEnum = (typeof BreakSessionScalarFieldEnum)[keyof typeof BreakSessionScalarFieldEnum]
 
 
 export const ApprovalRequestScalarFieldEnum = {
@@ -2089,6 +2165,14 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
 } as const
 
 export type AttendanceRecordOrderByRelevanceFieldEnum = (typeof AttendanceRecordOrderByRelevanceFieldEnum)[keyof typeof AttendanceRecordOrderByRelevanceFieldEnum]
+
+
+export const BreakSessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId'
+} as const
+
+export type BreakSessionOrderByRelevanceFieldEnum = (typeof BreakSessionOrderByRelevanceFieldEnum)[keyof typeof BreakSessionOrderByRelevanceFieldEnum]
 
 
 export const ApprovalRequestOrderByRelevanceFieldEnum = {
@@ -2418,6 +2502,7 @@ export type GlobalOmitConfig = {
   projectHoliday?: Prisma.ProjectHolidayOmit
   projectManager?: Prisma.ProjectManagerOmit
   attendanceRecord?: Prisma.AttendanceRecordOmit
+  breakSession?: Prisma.BreakSessionOmit
   approvalRequest?: Prisma.ApprovalRequestOmit
   approvalChainStep?: Prisma.ApprovalChainStepOmit
   team?: Prisma.TeamOmit

@@ -117,25 +117,38 @@ type PrismaAttendance = {
   date: Date
   timeIn: Date | null
   timeOut: Date | null
-  breakStart: Date | null
-  breakEnd: Date | null
   durationMin: number | null
   lateByMin: number | null
   location: string | null
   project: string | null
   status: string
   notes: string | null
+  breaks?: Array<{ startedAt: Date; endedAt: Date | null }>
 }
 
 function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
+  const breaks = r.breaks ?? []
+  let breakMin = 0
+  let currentBreakStartedAt: string | null = null
+  for (const b of breaks) {
+    if (b.endedAt) {
+      breakMin += Math.max(
+        0,
+        Math.round((b.endedAt.getTime() - b.startedAt.getTime()) / 60000),
+      )
+    } else if (!currentBreakStartedAt) {
+      currentBreakStartedAt = b.startedAt.toISOString()
+    }
+  }
   return {
     id: r.id,
     employeeId: r.employeeId,
     date: r.date.toISOString().slice(0, 10),
     timeIn: r.timeIn?.toISOString() ?? null,
     timeOut: r.timeOut?.toISOString() ?? null,
-    breakStart: r.breakStart?.toISOString() ?? null,
-    breakEnd: r.breakEnd?.toISOString() ?? null,
+    onBreak: currentBreakStartedAt !== null,
+    currentBreakStartedAt,
+    breakMin,
     durationMin: r.durationMin,
     lateByMin: r.lateByMin,
     location: r.location,
@@ -144,6 +157,10 @@ function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
     notes: r.notes,
   }
 }
+
+const BREAK_INCLUDE = {
+  breaks: { select: { startedAt: true, endedAt: true } },
+} as const
 
 type PrismaApproval = {
   id: string
@@ -354,6 +371,7 @@ export const attendanceRepository = {
     const today = startOfDay(new Date())
     const r = await prisma.attendanceRecord.findUnique({
       where: { employeeId_date: { employeeId, date: today } },
+      include: BREAK_INCLUDE,
     })
     return r ? attendanceToView(r) : null
   },
@@ -528,6 +546,7 @@ export const attendanceRepository = {
     const [existing, employee] = await Promise.all([
       prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
+        include: BREAK_INCLUDE,
       }),
       prisma.user.findUnique({
         where: { id: employeeId },
@@ -539,14 +558,30 @@ export const attendanceRepository = {
       this.getWorkingHours(orgId, existing?.projectId ?? null),
       this.getOrgTimezone(orgId),
     ])
-    // If still on break at clock-out, close the break now so its minutes are
-    // deducted from durationMin (employees on break aren't working).
-    const breakEndForCalc =
-      existing?.breakStart && !existing.breakEnd ? now : existing?.breakEnd ?? null
-    const breakMin =
-      existing?.breakStart && breakEndForCalc
-        ? Math.max(0, diffMinutes(existing.breakStart, breakEndForCalc))
-        : 0
+
+    // Close any open break sessions to `now` so their minutes deduct from
+    // durationMin (employees on break aren't working).
+    if (existing) {
+      await prisma.breakSession.updateMany({
+        where: { attendanceRecordId: existing.id, endedAt: null },
+        data: { endedAt: now },
+      })
+    }
+
+    // Sum total break minutes across all sessions (including ones we just
+    // closed above — re-fetch to capture).
+    let breakMin = 0
+    if (existing) {
+      const sessions = await prisma.breakSession.findMany({
+        where: { attendanceRecordId: existing.id },
+        select: { startedAt: true, endedAt: true },
+      })
+      for (const s of sessions) {
+        const end = s.endedAt ?? now
+        breakMin += Math.max(0, diffMinutes(s.startedAt, end))
+      }
+    }
+
     // Clamp the effective clock-in to the project's working-hours start so
     // early arrivals don't pad durationMin. (If they clocked in at 07:50 but
     // shift starts at 08:00, the 10 minutes early don't count as worked.)
@@ -573,7 +608,6 @@ export const attendanceRepository = {
         durationMin,
         status: "CLOCKED_OUT",
         location: location ?? existing?.location ?? null,
-        ...(existing?.breakStart && !existing.breakEnd ? { breakEnd: now } : {}),
         ...(appendedNotes !== undefined ? { notes: appendedNotes } : {}),
       },
       create: {
@@ -626,7 +660,13 @@ export const attendanceRepository = {
     const [existing, employee] = await Promise.all([
       prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
-        select: { project: true, notes: true, timeIn: true, breakStart: true, breakEnd: true },
+        select: {
+          id: true,
+          project: true,
+          notes: true,
+          timeIn: true,
+          breaks: { where: { endedAt: null }, select: { id: true } },
+        },
       }),
       prisma.user.findUnique({
         where: { id: employeeId },
@@ -636,24 +676,27 @@ export const attendanceRepository = {
     if (!existing?.timeIn) {
       throw new Error("Clock in before starting a break.")
     }
-    if (existing.breakStart && !existing.breakEnd) {
+    if (existing.breaks.length > 0) {
       throw new Error("You're already on break.")
-    }
-    if (existing.breakStart && existing.breakEnd) {
-      throw new Error("You've already taken your break today.")
     }
     const tz = await this.getOrgTimezone(employee?.organizationId ?? null)
 
     const appendedNotes = notes
       ? [existing.notes, `BREAK_START: ${notes}`].filter(Boolean).join("\n")
       : undefined
-    await prisma.attendanceRecord.update({
-      where: { employeeId_date: { employeeId, date: today } },
-      data: {
-        breakStart: now,
-        ...(appendedNotes !== undefined ? { notes: appendedNotes } : {}),
-      },
-    })
+    await prisma.$transaction([
+      prisma.breakSession.create({
+        data: { attendanceRecordId: existing.id, startedAt: now },
+      }),
+      ...(appendedNotes !== undefined
+        ? [
+            prisma.attendanceRecord.update({
+              where: { id: existing.id },
+              data: { notes: appendedNotes },
+            }),
+          ]
+        : []),
+    ])
 
     const autoApprove =
       employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
@@ -694,33 +737,48 @@ export const attendanceRepository = {
     const [existing, employee] = await Promise.all([
       prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
-        select: { project: true, notes: true, breakStart: true, breakEnd: true },
+        select: {
+          id: true,
+          project: true,
+          notes: true,
+          breaks: {
+            where: { endedAt: null },
+            orderBy: { startedAt: "desc" },
+            take: 1,
+            select: { id: true, startedAt: true },
+          },
+        },
       }),
       prisma.user.findUnique({
         where: { id: employeeId },
         select: { role: true, organizationId: true },
       }),
     ])
-    if (!existing?.breakStart) {
+    const openBreak = existing?.breaks[0]
+    if (!existing || !openBreak) {
       throw new Error("Start a break before ending one.")
-    }
-    if (existing.breakEnd) {
-      throw new Error("Your break has already ended.")
     }
     const tz = await this.getOrgTimezone(employee?.organizationId ?? null)
 
     const appendedNotes = notes
       ? [existing.notes, `BREAK_END: ${notes}`].filter(Boolean).join("\n")
       : undefined
-    await prisma.attendanceRecord.update({
-      where: { employeeId_date: { employeeId, date: today } },
-      data: {
-        breakEnd: now,
-        ...(appendedNotes !== undefined ? { notes: appendedNotes } : {}),
-      },
-    })
+    await prisma.$transaction([
+      prisma.breakSession.update({
+        where: { id: openBreak.id },
+        data: { endedAt: now },
+      }),
+      ...(appendedNotes !== undefined
+        ? [
+            prisma.attendanceRecord.update({
+              where: { id: existing.id },
+              data: { notes: appendedNotes },
+            }),
+          ]
+        : []),
+    ])
 
-    const breakMin = Math.max(0, diffMinutes(existing.breakStart, now))
+    const breakMin = Math.max(0, diffMinutes(openBreak.startedAt, now))
     const autoApprove =
       employee?.role === "SUPERVISOR" || employee?.role === "ADMIN"
     const approval = await prisma.approvalRequest.create({

@@ -74,8 +74,9 @@ type Props = {
   activeProjectLng: number | null
   geofenceRadiusMeters: number
   now: string
-  breakStart: string | null
-  breakEnd: string | null
+  onBreak: boolean
+  /** ISO timestamp of the currently-open break, if any (for the "On break since…" label). */
+  currentBreakStartedAt: string | null
 }
 
 function ClockInButton({ pending }: { pending: boolean }) {
@@ -168,11 +169,9 @@ export function ClockCard({
   activeProjectLng,
   geofenceRadiusMeters,
   now,
-  breakStart,
-  breakEnd,
+  onBreak,
+  currentBreakStartedAt,
 }: Props) {
-  const onBreak = Boolean(breakStart && !breakEnd)
-  const breakUsed = Boolean(breakStart && breakEnd)
   const [selected, setSelected] = useState("")
   const [result, formAction] = useActionState<ClockInState, FormData>(
     clockInAction,
@@ -422,8 +421,8 @@ export function ClockCard({
         <div className="space-y-3">
           <p className="rounded-2xl bg-amber-50 px-4 py-3 text-center text-xs font-semibold text-amber-900">
             On break since{" "}
-            {breakStart
-              ? new Date(breakStart).toLocaleTimeString("en-US", {
+            {currentBreakStartedAt
+              ? new Date(currentBreakStartedAt).toLocaleTimeString("en-US", {
                   hour: "2-digit",
                   minute: "2-digit",
                 })
@@ -436,19 +435,9 @@ export function ClockCard({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          {breakUsed ? (
-            <div className="flex w-full flex-col items-center justify-center rounded-[28px] border border-dashed border-border/60 bg-secondary/20 py-5 text-center">
-              <Coffee className="mb-2 h-6 w-6 text-muted-foreground" />
-              <p className="text-sm font-bold text-muted-foreground">Break done</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                One break per day
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={(e) => handleBreak(e, "BREAK_START")}>
-              <BreakStartButton pending={isBreakPending} />
-            </form>
-          )}
+          <form onSubmit={(e) => handleBreak(e, "BREAK_START")}>
+            <BreakStartButton pending={isBreakPending} />
+          </form>
           <form onSubmit={handleClockOut}>
             <ClockOutButton pending={isClockOutPending} />
           </form>

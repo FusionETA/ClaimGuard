@@ -317,8 +317,6 @@ model AttendanceRecord {
   date        DateTime
   timeIn      DateTime?
   timeOut     DateTime?
-  breakStart  DateTime?
-  breakEnd    DateTime?
   durationMin Int?
   lateByMin   Int?
   location    String?
@@ -330,11 +328,24 @@ model AttendanceRecord {
   projectId   String?
   employee    User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
   projectRef  XeroProject?     @relation("AttendanceRecordProject", fields: [projectId], references: [id])
+  breaks      BreakSession[]
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
   @@index([status, date])
   @@index([projectId])
+}
+
+model BreakSession {
+  id                 String           @id @default(cuid())
+  attendanceRecordId String
+  startedAt          DateTime
+  endedAt            DateTime?
+  createdAt          DateTime         @default(now())
+  attendanceRecord   AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+
+  @@index([attendanceRecordId])
+  @@index([attendanceRecordId, endedAt])
 }
 
 model ApprovalRequest {

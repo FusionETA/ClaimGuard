@@ -85,6 +85,11 @@ export type ProjectManager = Prisma.ProjectManagerModel
  */
 export type AttendanceRecord = Prisma.AttendanceRecordModel
 /**
+ * Model BreakSession
+ * 
+ */
+export type BreakSession = Prisma.BreakSessionModel
+/**
  * Model ApprovalRequest
  * 
  */
