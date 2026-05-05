@@ -1,7 +1,18 @@
 "use client"
 
 import { useActionState, useEffect, useMemo, useState } from "react"
-import { Car, Check, CheckCircle2, Clock3, Loader2, Receipt, Search, UserCircle2, X } from "lucide-react"
+import {
+  AlertCircle,
+  Car,
+  Check,
+  CheckCircle2,
+  Clock3,
+  Loader2,
+  Receipt,
+  Search,
+  UserCircle2,
+  X,
+} from "lucide-react"
 
 import { adminFinalReviewClaimAction } from "@/app/(admin)/admin/claims/actions"
 import { createInitialReviewClaimFormState } from "@/app/(admin)/admin/claims/form-state"
@@ -254,6 +265,22 @@ function AdminFinalApprovalDialog({
   )
 }
 
+/** Pill that flags claims whose amount blew past the chart-of-account
+ *  spend limit at submission. Submission was allowed; the badge tells the
+ *  admin "this needs a closer look". Amber so it stands out from the
+ *  normal status badges without screaming "rejected". */
+function OverLimitBadge() {
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber-900"
+      title="This claim exceeds the chart-of-account spend limit. Review carefully before approving."
+    >
+      <AlertCircle className="h-3 w-3" />
+      Over limit
+    </span>
+  )
+}
+
 function AwaitingApproverBadge({ claim }: { claim: ClaimRecord }) {
   // Only show for SUBMITTED/PENDING claims that have a known next approver.
   if (
@@ -424,6 +451,7 @@ function ClaimDetailSheet({
                 <ClaimTypeBadge claimType={claim.claimType} />
                 <PaymentTypeBadge claim={claim} />
                 <AwaitingApproverBadge claim={claim} />
+                {claim.exceedsLimit ? <OverLimitBadge /> : null}
               </div>
             </SheetHeader>
 
@@ -841,6 +869,7 @@ export function AdminClaimsTable({
                       <ClaimStatusBadge status={claim.status} reviewerRole={claim.reviewerRole} />
                       <PaymentTypeBadge claim={claim} align="end" />
                       <AwaitingApproverBadge claim={claim} />
+                      {claim.exceedsLimit ? <OverLimitBadge /> : null}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 sm:gap-4">

@@ -11,6 +11,7 @@
     "db:push": "prisma db push",
     "db:backfill-org": "tsx prisma/backfill-organization.ts",
     "db:backfill-teams": "tsx prisma/backfill-teams.ts",
+    "db:backfill-project-managers": "tsx prisma/backfill-project-managers.ts",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio"

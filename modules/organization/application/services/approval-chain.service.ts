@@ -8,15 +8,17 @@ import {
   type TeamModuleConfig,
 } from "@/modules/organization/domain/models"
 
-/// One step of the module-filtered approval chain. `step` is 1-indexed and
-/// re-numbered after filtering, so consumers can apply the existing
-/// "currentStep" walking logic without modification.
+/// One filtered chain step. Multi-approver: each step holds the SET of
+/// approvers eligible to act at that step. Any one of them approving
+/// completes the step.
 export type ResolvedChainStep = {
   step: number
-  approverId: string
-  name: string
-  email: string
-  role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR"
+  approvers: Array<{
+    approverId: string
+    name: string
+    email: string
+    role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR"
+  }>
 }
 
 /**
@@ -26,16 +28,16 @@ export type ResolvedChainStep = {
  * Process:
  *   1. Find the employee's team membership for `projectId` (or fall back
  *      to their alphabetically-first project's team when projectId is
- *      omitted — used by today's claim flow which doesn't yet stamp a
- *      project on the Claim row).
- *   2. Read that team's `moduleConfig[module]`.
- *   3. Fetch the chain rows scoped to that team (`teamId` matches).
- *   4. Filter to steps whose approver layer is in moduleConfig[module].
- *   5. Renumber steps from 1 in the filtered list.
+ *      omitted).
+ *   2. Read the team's `moduleConfig[module]` (set of layer numbers that
+ *      approve for this module).
+ *   3. Fetch chain rows for that (employee, team), grouped by step.
+ *   4. For each row: find the approver's layer in the same team; keep
+ *      the row iff that layer is in the module config.
+ *   5. Group remaining rows by step, then renumber steps from 1.
  *
- * Fallback: if the employee has no team membership at all (legacy or new
- * hire pre-config), we use any unscoped legacy chain rows (teamId = null)
- * unfiltered, so existing approval flows keep working.
+ * Fallback: legacy chain rows with teamId IS NULL are returned unfiltered
+ * (one approver per step).
  */
 export async function resolveModuleChain(
   employeeId: string,
@@ -45,7 +47,6 @@ export async function resolveModuleChain(
   const prisma = getPrismaClient()
   if (!prisma) return []
 
-  // Find the relevant team membership.
   const profile = await prisma.employeeProfile.findUnique({
     where: { userId: employeeId },
     include: {
@@ -69,9 +70,6 @@ export async function resolveModuleChain(
     ? profile?.teamMemberships.find((m) => m.team.projectId === projectId)
     : undefined
 
-  // Fallback: if no projectId given (or projectId not found in their teams),
-  // use the alphabetically-first team by project name. Stable and
-  // deterministic for today's project-less claim submissions.
   if (!membership && profile && profile.teamMemberships.length > 0) {
     const sorted = [...profile.teamMemberships].sort((a, b) =>
       a.team.project.name.localeCompare(b.team.project.name),
@@ -90,12 +88,17 @@ export async function resolveModuleChain(
       },
       orderBy: { step: "asc" },
     })
+    // Each legacy row is its own step (single-approver legacy data).
     return legacyRows.map((s, i) => ({
       step: i + 1,
-      approverId: s.approverId,
-      name: s.approver.name,
-      email: s.approver.email,
-      role: s.approver.role as ResolvedChainStep["role"],
+      approvers: [
+        {
+          approverId: s.approverId,
+          name: s.approver.name,
+          email: s.approver.email,
+          role: s.approver.role as "ADMIN" | "EMPLOYEE" | "SUPERVISOR",
+        },
+      ],
     }))
   }
 
@@ -113,12 +116,13 @@ export async function resolveModuleChain(
         select: { id: true, name: true, email: true, role: true },
       },
     },
-    orderBy: { step: "asc" },
+    orderBy: [{ step: "asc" }],
   })
 
   if (chainSteps.length === 0) return []
 
-  // Look up each approver's layer in the same team.
+  // Look up each approver's layer in the same team. Use that to apply
+  // the module-config filter.
   const approverUserIds = Array.from(
     new Set(chainSteps.map((s) => s.approverId)),
   )
@@ -138,39 +142,35 @@ export async function resolveModuleChain(
     if (m) layerByUserId.set(p.userId, m.layer)
   }
 
-  const filtered: ResolvedChainStep[] = []
-  for (const s of chainSteps) {
+  // Apply module filter, keeping rows whose approver layer is allowed.
+  // Defensive: cross-team approvers (no layer match) are kept (legacy
+  // behaviour — preserve the routing target).
+  const kept = chainSteps.filter((s) => {
     const layer = layerByUserId.get(s.approverId)
-    // Defensive: keep cross-team approvers if the team config can't place
-    // them. Prevents accidentally cutting an approver from the chain just
-    // because their team membership lookup failed.
-    if (layer === undefined) {
-      filtered.push({
-        step: filtered.length + 1,
-        approverId: s.approverId,
-        name: s.approver.name,
-        email: s.approver.email,
-        role: s.approver.role as ResolvedChainStep["role"],
-      })
-      continue
-    }
-    if (!allowedLayers.has(layer)) continue
-    filtered.push({
-      step: filtered.length + 1,
+    if (layer === undefined) return true
+    return allowedLayers.has(layer)
+  })
+
+  // Group by original step number, then renumber consecutively.
+  const byStep = new Map<number, typeof chainSteps>()
+  for (const s of kept) {
+    const list = byStep.get(s.step) ?? []
+    list.push(s)
+    byStep.set(s.step, list)
+  }
+  const sortedStepNumbers = Array.from(byStep.keys()).sort((a, b) => a - b)
+  return sortedStepNumbers.map((origStep, i) => ({
+    step: i + 1,
+    approvers: (byStep.get(origStep) ?? []).map((s) => ({
       approverId: s.approverId,
       name: s.approver.name,
       email: s.approver.email,
-      role: s.approver.role as ResolvedChainStep["role"],
-    })
-  }
-
-  return filtered
+      role: s.approver.role as "ADMIN" | "EMPLOYEE" | "SUPERVISOR",
+    })),
+  }))
 }
 
 // ---------------------------------------------------------------------------
 // TODO(team-config): wire `resolveModuleChain` into OT / LEAVE / ATTENDANCE
-// routing once those modules grow explicit chain walks. Today only CLAIMS
-// does explicit chain walking (claim.repository.ts). The OT / LEAVE /
-// ATTENDANCE flows in modules/attendance/* deliver to the supervisorId
-// pointer directly without consulting a chain.
+// routing once those modules grow explicit chain walks.
 // ---------------------------------------------------------------------------

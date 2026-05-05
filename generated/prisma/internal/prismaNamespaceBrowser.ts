@@ -62,6 +62,7 @@ export const ModelName = {
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
   ProjectHoliday: 'ProjectHoliday',
+  ProjectManager: 'ProjectManager',
   AttendanceRecord: 'AttendanceRecord',
   ApprovalRequest: 'ApprovalRequest',
   ApprovalChainStep: 'ApprovalChainStep',
@@ -154,6 +155,7 @@ export const EmployeeProfileScalarFieldEnum = {
   jobTitle: 'jobTitle',
   supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
+  hourlyRate: 'hourlyRate',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId',
   createdAt: 'createdAt',
@@ -193,6 +195,7 @@ export const ClaimScalarFieldEnum = {
   paymentType: 'paymentType',
   payViaAccountId: 'payViaAccountId',
   status: 'status',
+  exceedsLimit: 'exceedsLimit',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
   reviewerRole: 'reviewerRole',
@@ -293,6 +296,16 @@ export const ProjectHolidayScalarFieldEnum = {
 } as const
 
 export type ProjectHolidayScalarFieldEnum = (typeof ProjectHolidayScalarFieldEnum)[keyof typeof ProjectHolidayScalarFieldEnum]
+
+
+export const ProjectManagerScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectManagerScalarFieldEnum = (typeof ProjectManagerScalarFieldEnum)[keyof typeof ProjectManagerScalarFieldEnum]
 
 
 export const AttendanceRecordScalarFieldEnum = {
@@ -556,6 +569,15 @@ export const ProjectHolidayOrderByRelevanceFieldEnum = {
 } as const
 
 export type ProjectHolidayOrderByRelevanceFieldEnum = (typeof ProjectHolidayOrderByRelevanceFieldEnum)[keyof typeof ProjectHolidayOrderByRelevanceFieldEnum]
+
+
+export const ProjectManagerOrderByRelevanceFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  userId: 'userId'
+} as const
+
+export type ProjectManagerOrderByRelevanceFieldEnum = (typeof ProjectManagerOrderByRelevanceFieldEnum)[keyof typeof ProjectManagerOrderByRelevanceFieldEnum]
 
 
 export const AttendanceRecordOrderByRelevanceFieldEnum = {

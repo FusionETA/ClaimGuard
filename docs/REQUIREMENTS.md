@@ -36,7 +36,7 @@ Last updated: 2026-04-30 (v2: confirmed daily/monthly worker, Location API, admi
 ### Worker types
 
 - [x] New field at registration: daily vs monthly worker.
-  - Verified: `EmployeePayoutMethod` enum (`HOURLY` / `DAILY_BASED`) in `modules/organization/domain/models.ts:15`, stored on `EmployeeProfile.payoutMethod`. Supervisors auto-resolved to `DAILY_BASED` (`resolveEmployeePayoutMethod`).
+  - Verified: `EmployeePayoutMethod` enum (`HOURLY` / `MONTHLY_BASED`) in `modules/organization/domain/models.ts:15`, stored on `EmployeeProfile.payoutMethod`. Supervisors auto-resolved to `MONTHLY_BASED` (`resolveEmployeePayoutMethod`).
 - [ ] Leave only available for monthly staff.
   - Notes: Leave page is currently a placeholder (`app/(employee)/employee/leave/page.tsx`), so gating not needed yet — apply once leave module is built.
 - [~] Use project location instead of a separate "office worker" setting.

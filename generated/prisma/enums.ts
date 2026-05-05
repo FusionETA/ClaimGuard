@@ -135,7 +135,7 @@ export type MileageUnit = (typeof MileageUnit)[keyof typeof MileageUnit]
 
 export const PayoutMethod = {
   HOURLY: 'HOURLY',
-  DAILY_BASED: 'DAILY_BASED'
+  MONTHLY_BASED: 'MONTHLY_BASED'
 } as const
 
 export type PayoutMethod = (typeof PayoutMethod)[keyof typeof PayoutMethod]

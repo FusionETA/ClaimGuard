@@ -200,7 +200,13 @@ export function AdminCompanyStructure({ organizationName, projects, teams }: Pro
             />
           ) : selectedTeam ? (
             <TeamEditor
-              key={selectedTeam.id}
+              // Key includes a fingerprint of the saved team data so the
+              // editor remounts after each successful save. Without this,
+              // useState would retain stale values relative to the new
+              // server-side state (e.g. if the server normalised the
+              // moduleConfig, or after layerCount/layerLabels changes
+              // were persisted).
+              key={`${selectedTeam.id}::${selectedTeam.layerCount}::${selectedTeam.name}::${(selectedTeam.layerLabels ?? []).join("|")}::${JSON.stringify(selectedTeam.moduleConfig)}`}
               mode="edit"
               team={selectedTeam}
               projectName={

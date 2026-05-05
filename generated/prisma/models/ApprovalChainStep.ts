@@ -253,7 +253,7 @@ export type ApprovalChainStepOrderByWithRelationInput = {
 
 export type ApprovalChainStepWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  employeeId_teamId_step?: Prisma.ApprovalChainStepEmployeeIdTeamIdStepCompoundUniqueInput
+  employeeId_teamId_step_approverId?: Prisma.ApprovalChainStepEmployeeIdTeamIdStepApproverIdCompoundUniqueInput
   AND?: Prisma.ApprovalChainStepWhereInput | Prisma.ApprovalChainStepWhereInput[]
   OR?: Prisma.ApprovalChainStepWhereInput[]
   NOT?: Prisma.ApprovalChainStepWhereInput | Prisma.ApprovalChainStepWhereInput[]
@@ -266,7 +266,7 @@ export type ApprovalChainStepWhereUniqueInput = Prisma.AtLeast<{
   approver?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   team?: Prisma.XOR<Prisma.TeamNullableScalarRelationFilter, Prisma.TeamWhereInput> | null
-}, "id" | "employeeId_teamId_step">
+}, "id" | "employeeId_teamId_step_approverId">
 
 export type ApprovalChainStepOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -379,10 +379,11 @@ export type ApprovalChainStepOrderByRelevanceInput = {
   search: string
 }
 
-export type ApprovalChainStepEmployeeIdTeamIdStepCompoundUniqueInput = {
+export type ApprovalChainStepEmployeeIdTeamIdStepApproverIdCompoundUniqueInput = {
   employeeId: string
   teamId: string
   step: number
+  approverId: string
 }
 
 export type ApprovalChainStepCountOrderByAggregateInput = {

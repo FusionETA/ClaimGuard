@@ -31,6 +31,7 @@ model User {
   organization           Organization?       @relation(fields: [organizationId], references: [id])
   xeroConnections        XeroConnection[]    @relation("XeroConnectedBy")
   managedProjects        XeroProject[]       @relation("ProjectManager")
+  projectManagerOf       ProjectManager[]    @relation("ProjectManagerOf")
 
   @@index([organizationId])
 }
@@ -95,6 +96,9 @@ model EmployeeProfile {
   jobTitle           String
   supervisorId       String?
   payoutMethod       PayoutMethod?
+  /// Pay rate per hour. Only populated for employees whose payoutMethod
+  /// is HOURLY; null for MONTHLY_BASED employees and supervisors.
+  hourlyRate         Decimal?                      @db.Decimal(10, 2)
   preferredCurrency  String                        @default("USD")
   xeroConnectionId   String?
   createdAt          DateTime                      @default(now())
@@ -147,6 +151,10 @@ model Claim {
   paymentType      PaymentType     @default(PERSONAL)
   payViaAccountId  String?
   status           ClaimStatus     @default(PENDING)
+  /// True when the claim's amount blew past the chart-of-account spend
+  /// limit at submission time. The claim is still saved (employees can
+  /// submit over-limit), but admins see a visual flag in their queue.
+  exceedsLimit     Boolean         @default(false)
   receiptUrl       String?
   reviewNotes      String?         @db.Text
   // Snapshot of the reviewer's role at decision time (SUPERVISOR or ADMIN).
@@ -271,6 +279,7 @@ model XeroProject {
   holidays          ProjectHoliday[]
   organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   projectManager    User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  projectManagers   ProjectManager[]            @relation("ProjectManagers")
   xeroConnection    XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
   teams             Team[]
 
@@ -290,6 +299,22 @@ model ProjectHoliday {
 
   @@unique([projectId, date])
   @@index([projectId])
+}
+
+/// Many-to-many between XeroProject and User for project managers. Replaces
+/// the legacy single XeroProject.projectManagerId column (which is kept
+/// during migration but no longer the source of truth).
+model ProjectManager {
+  id        String      @id @default(cuid())
+  projectId String
+  userId    String
+  createdAt DateTime    @default(now())
+  project   XeroProject @relation("ProjectManagers", fields: [projectId], references: [id], onDelete: Cascade)
+  user      User        @relation("ProjectManagerOf", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
 }
 
 model AttendanceRecord {
@@ -361,7 +386,11 @@ model ApprovalChainStep {
   employee   User     @relation("EmployeeChain", fields: [employeeId], references: [id], onDelete: Cascade)
   team       Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  @@unique([employeeId, teamId, step])
+  // Multiple approvers can sit at the same step (any-of approval). The
+  // unique key now includes approverId, which means each (employee, team,
+  // step, approver) combo is still distinct, but a single step can hold
+  // multiple rows with different approverIds.
+  @@unique([employeeId, teamId, step, approverId])
   @@index([employeeId])
   @@index([approverId])
   @@index([teamId])
@@ -496,11 +525,10 @@ enum MileageUnit {
 ///  * two valid values.
 ///  *
 ///  * Backfill caveat for ops: any existing rows with values other than HOURLY /
-///  * DAILY_BASED must be normalised before `prisma db push` will accept this
-///  * change. Run something like:
-///  *   UPDATE EmployeeProfile SET payoutMethod = 'HOURLY'
-///  *   WHERE payoutMethod IS NOT NULL AND payoutMethod NOT IN ('HOURLY','DAILY_BASED');
+///  * MONTHLY_BASED must be normalised before `prisma db push` will accept this
+///  * change. (The previous DAILY_BASED value was renamed in 2026-05; old rows
+///  * were migrated by raw SQL ahead of the schema rename.)
 enum PayoutMethod {
   HOURLY
-  DAILY_BASED
+  MONTHLY_BASED
 }

@@ -144,6 +144,10 @@ export type CreateClaimFieldErrors = {
 export type CreateClaimServiceResult =
   | {
       ok: true
+      /// Set when the claim was saved but flagged because it exceeds the
+      /// account spend limit. The claim itself goes through the normal
+      /// approval flow; this just lets the form surface the warning.
+      warning?: string
     }
   | {
       ok: false
@@ -557,6 +561,11 @@ export async function createClaimForEmployee({
   }
 
   // Spend-limit check — applies to both expense and mileage claims.
+  // Submission is no longer rejected on limit exceed; instead the claim
+  // is saved with `exceedsLimit = true` so admins can spot it. The form
+  // shows a non-blocking warning before the user submits (driven by the
+  // remaining-limit hint), and the submission result includes a warning
+  // message when the flag was set.
   const limitCheck = await checkClaimAccountLimit({
     organizationId: session.organizationId,
     account: chartOfAccount,
@@ -564,28 +573,18 @@ export async function createClaimForEmployee({
     amount: finalAmount,
     spentAt: new Date(parsed.data.spentAt),
   })
-
-  if (!limitCheck.ok) {
-    const periodLabel =
-      limitCheck.period === "PER_CLAIM"
-        ? "per claim"
-        : limitCheck.period === "MONTHLY"
-          ? "this month"
-          : "this year"
-    return {
-      ok: false,
-      status: 400,
-      message: `This claim would exceed the ${chartOfAccount.name} limit (${periodLabel}). Limit: ${limitCheck.limit.toFixed(
-        2
-      )}, used: ${limitCheck.used.toFixed(2)}, remaining: ${limitCheck.remaining.toFixed(
-        2
-      )}.`,
-      values: input,
-      fieldErrors: {
-        amount: `Exceeds remaining limit of ${limitCheck.remaining.toFixed(2)}.`,
-      },
-    }
-  }
+  const exceedsLimit = !limitCheck.ok
+  const exceedsLimitMessage = exceedsLimit
+    ? (() => {
+        const periodLabel =
+          limitCheck.period === "PER_CLAIM"
+            ? "per claim"
+            : limitCheck.period === "MONTHLY"
+              ? "this month"
+              : "this year"
+        return `Submitted, but flagged: this claim exceeds the ${chartOfAccount.name} limit (${periodLabel}). Limit: ${limitCheck.limit.toFixed(2)}, used: ${limitCheck.used.toFixed(2)}, attempted: ${limitCheck.attempted.toFixed(2)}.`
+      })()
+    : undefined
 
   const claimRunMonth = calculateClaimRunMonth({
     submittedAt: new Date(),
@@ -627,6 +626,7 @@ export async function createClaimForEmployee({
     reviewerId,
     paymentType: parsed.data.paymentType,
     payViaAccountId,
+    exceedsLimit,
     claimType: parsed.data.claimType,
     distance: distanceForDb,
     mileageOriginAddress,
@@ -661,7 +661,7 @@ export async function createClaimForEmployee({
     // Push notifications should never block a successful claim submission.
   }
 
-  return { ok: true }
+  return { ok: true, warning: exceedsLimitMessage }
 }
 
 export function calculateClaimRunMonth({
