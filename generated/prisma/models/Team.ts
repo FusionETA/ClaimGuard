@@ -236,9 +236,9 @@ export type TeamWhereInput = {
   moduleConfig?: Prisma.JsonFilter<"Team">
   createdAt?: Prisma.DateTimeFilter<"Team"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Team"> | Date | string
-  project?: Prisma.XOR<Prisma.XeroProjectScalarRelationFilter, Prisma.XeroProjectWhereInput>
-  memberships?: Prisma.EmployeeTeamMembershipListRelationFilter
   chainSteps?: Prisma.ApprovalChainStepListRelationFilter
+  memberships?: Prisma.EmployeeTeamMembershipListRelationFilter
+  project?: Prisma.XOR<Prisma.XeroProjectScalarRelationFilter, Prisma.XeroProjectWhereInput>
 }
 
 export type TeamOrderByWithRelationInput = {
@@ -250,9 +250,9 @@ export type TeamOrderByWithRelationInput = {
   moduleConfig?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  project?: Prisma.XeroProjectOrderByWithRelationInput
-  memberships?: Prisma.EmployeeTeamMembershipOrderByRelationAggregateInput
   chainSteps?: Prisma.ApprovalChainStepOrderByRelationAggregateInput
+  memberships?: Prisma.EmployeeTeamMembershipOrderByRelationAggregateInput
+  project?: Prisma.XeroProjectOrderByWithRelationInput
   _relevance?: Prisma.TeamOrderByRelevanceInput
 }
 
@@ -269,9 +269,9 @@ export type TeamWhereUniqueInput = Prisma.AtLeast<{
   moduleConfig?: Prisma.JsonFilter<"Team">
   createdAt?: Prisma.DateTimeFilter<"Team"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Team"> | Date | string
-  project?: Prisma.XOR<Prisma.XeroProjectScalarRelationFilter, Prisma.XeroProjectWhereInput>
-  memberships?: Prisma.EmployeeTeamMembershipListRelationFilter
   chainSteps?: Prisma.ApprovalChainStepListRelationFilter
+  memberships?: Prisma.EmployeeTeamMembershipListRelationFilter
+  project?: Prisma.XOR<Prisma.XeroProjectScalarRelationFilter, Prisma.XeroProjectWhereInput>
 }, "id" | "projectId_name">
 
 export type TeamOrderByWithAggregationInput = {
@@ -312,9 +312,9 @@ export type TeamCreateInput = {
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
-  project: Prisma.XeroProjectCreateNestedOneWithoutTeamsInput
-  memberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutTeamInput
   chainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutTeamInput
+  memberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutTeamInput
+  project: Prisma.XeroProjectCreateNestedOneWithoutTeamsInput
 }
 
 export type TeamUncheckedCreateInput = {
@@ -326,8 +326,8 @@ export type TeamUncheckedCreateInput = {
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
-  memberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutTeamInput
   chainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutTeamInput
+  memberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutTeamInput
 }
 
 export type TeamUpdateInput = {
@@ -338,9 +338,9 @@ export type TeamUpdateInput = {
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  project?: Prisma.XeroProjectUpdateOneRequiredWithoutTeamsNestedInput
-  memberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutTeamNestedInput
   chainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutTeamNestedInput
+  memberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutTeamNestedInput
+  project?: Prisma.XeroProjectUpdateOneRequiredWithoutTeamsNestedInput
 }
 
 export type TeamUncheckedUpdateInput = {
@@ -352,8 +352,8 @@ export type TeamUncheckedUpdateInput = {
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  memberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutTeamNestedInput
   chainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutTeamNestedInput
+  memberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamCreateManyInput = {
@@ -536,8 +536,8 @@ export type TeamCreateWithoutProjectInput = {
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
-  memberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutTeamInput
   chainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutTeamInput
+  memberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutTeamInput
 }
 
 export type TeamUncheckedCreateWithoutProjectInput = {
@@ -548,8 +548,8 @@ export type TeamUncheckedCreateWithoutProjectInput = {
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
-  memberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutTeamInput
   chainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutTeamInput
+  memberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutTeamInput
 }
 
 export type TeamCreateOrConnectWithoutProjectInput = {
@@ -600,8 +600,8 @@ export type TeamCreateWithoutChainStepsInput = {
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
-  project: Prisma.XeroProjectCreateNestedOneWithoutTeamsInput
   memberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutTeamInput
+  project: Prisma.XeroProjectCreateNestedOneWithoutTeamsInput
 }
 
 export type TeamUncheckedCreateWithoutChainStepsInput = {
@@ -640,8 +640,8 @@ export type TeamUpdateWithoutChainStepsInput = {
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  project?: Prisma.XeroProjectUpdateOneRequiredWithoutTeamsNestedInput
   memberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutTeamNestedInput
+  project?: Prisma.XeroProjectUpdateOneRequiredWithoutTeamsNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutChainStepsInput = {
@@ -664,8 +664,8 @@ export type TeamCreateWithoutMembershipsInput = {
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
-  project: Prisma.XeroProjectCreateNestedOneWithoutTeamsInput
   chainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutTeamInput
+  project: Prisma.XeroProjectCreateNestedOneWithoutTeamsInput
 }
 
 export type TeamUncheckedCreateWithoutMembershipsInput = {
@@ -704,8 +704,8 @@ export type TeamUpdateWithoutMembershipsInput = {
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  project?: Prisma.XeroProjectUpdateOneRequiredWithoutTeamsNestedInput
   chainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutTeamNestedInput
+  project?: Prisma.XeroProjectUpdateOneRequiredWithoutTeamsNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutMembershipsInput = {
@@ -738,8 +738,8 @@ export type TeamUpdateWithoutProjectInput = {
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  memberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutTeamNestedInput
   chainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutTeamNestedInput
+  memberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamUncheckedUpdateWithoutProjectInput = {
@@ -750,8 +750,8 @@ export type TeamUncheckedUpdateWithoutProjectInput = {
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  memberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutTeamNestedInput
   chainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutTeamNestedInput
+  memberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutTeamNestedInput
 }
 
 export type TeamUncheckedUpdateManyWithoutProjectInput = {
@@ -770,13 +770,13 @@ export type TeamUncheckedUpdateManyWithoutProjectInput = {
  */
 
 export type TeamCountOutputType = {
-  memberships: number
   chainSteps: number
+  memberships: number
 }
 
 export type TeamCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  memberships?: boolean | TeamCountOutputTypeCountMembershipsArgs
   chainSteps?: boolean | TeamCountOutputTypeCountChainStepsArgs
+  memberships?: boolean | TeamCountOutputTypeCountMembershipsArgs
 }
 
 /**
@@ -792,15 +792,15 @@ export type TeamCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
 /**
  * TeamCountOutputType without action
  */
-export type TeamCountOutputTypeCountMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.EmployeeTeamMembershipWhereInput
+export type TeamCountOutputTypeCountChainStepsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApprovalChainStepWhereInput
 }
 
 /**
  * TeamCountOutputType without action
  */
-export type TeamCountOutputTypeCountChainStepsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ApprovalChainStepWhereInput
+export type TeamCountOutputTypeCountMembershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeTeamMembershipWhereInput
 }
 
 
@@ -813,9 +813,9 @@ export type TeamSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   moduleConfig?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  project?: boolean | Prisma.XeroProjectDefaultArgs<ExtArgs>
-  memberships?: boolean | Prisma.Team$membershipsArgs<ExtArgs>
   chainSteps?: boolean | Prisma.Team$chainStepsArgs<ExtArgs>
+  memberships?: boolean | Prisma.Team$membershipsArgs<ExtArgs>
+  project?: boolean | Prisma.XeroProjectDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.TeamCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["team"]>
 
@@ -834,18 +834,18 @@ export type TeamSelectScalar = {
 
 export type TeamOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "layerCount" | "layerLabels" | "moduleConfig" | "createdAt" | "updatedAt", ExtArgs["result"]["team"]>
 export type TeamInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  project?: boolean | Prisma.XeroProjectDefaultArgs<ExtArgs>
-  memberships?: boolean | Prisma.Team$membershipsArgs<ExtArgs>
   chainSteps?: boolean | Prisma.Team$chainStepsArgs<ExtArgs>
+  memberships?: boolean | Prisma.Team$membershipsArgs<ExtArgs>
+  project?: boolean | Prisma.XeroProjectDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.TeamCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $TeamPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Team"
   objects: {
-    project: Prisma.$XeroProjectPayload<ExtArgs>
-    memberships: Prisma.$EmployeeTeamMembershipPayload<ExtArgs>[]
     chainSteps: Prisma.$ApprovalChainStepPayload<ExtArgs>[]
+    memberships: Prisma.$EmployeeTeamMembershipPayload<ExtArgs>[]
+    project: Prisma.$XeroProjectPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1196,9 +1196,9 @@ readonly fields: TeamFieldRefs;
  */
 export interface Prisma__TeamClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  project<T extends Prisma.XeroProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__XeroProjectClient<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  memberships<T extends Prisma.Team$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeTeamMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chainSteps<T extends Prisma.Team$chainStepsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$chainStepsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalChainStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  memberships<T extends Prisma.Team$membershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Team$membershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeTeamMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  project<T extends Prisma.XeroProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__XeroProjectClient<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1584,30 +1584,6 @@ export type TeamDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * Team.memberships
- */
-export type Team$membershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the EmployeeTeamMembership
-   */
-  select?: Prisma.EmployeeTeamMembershipSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the EmployeeTeamMembership
-   */
-  omit?: Prisma.EmployeeTeamMembershipOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EmployeeTeamMembershipInclude<ExtArgs> | null
-  where?: Prisma.EmployeeTeamMembershipWhereInput
-  orderBy?: Prisma.EmployeeTeamMembershipOrderByWithRelationInput | Prisma.EmployeeTeamMembershipOrderByWithRelationInput[]
-  cursor?: Prisma.EmployeeTeamMembershipWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.EmployeeTeamMembershipScalarFieldEnum | Prisma.EmployeeTeamMembershipScalarFieldEnum[]
-}
-
-/**
  * Team.chainSteps
  */
 export type Team$chainStepsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1629,6 +1605,30 @@ export type Team$chainStepsArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.ApprovalChainStepScalarFieldEnum | Prisma.ApprovalChainStepScalarFieldEnum[]
+}
+
+/**
+ * Team.memberships
+ */
+export type Team$membershipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeTeamMembership
+   */
+  select?: Prisma.EmployeeTeamMembershipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeTeamMembership
+   */
+  omit?: Prisma.EmployeeTeamMembershipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeTeamMembershipInclude<ExtArgs> | null
+  where?: Prisma.EmployeeTeamMembershipWhereInput
+  orderBy?: Prisma.EmployeeTeamMembershipOrderByWithRelationInput | Prisma.EmployeeTeamMembershipOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeTeamMembershipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeTeamMembershipScalarFieldEnum | Prisma.EmployeeTeamMembershipScalarFieldEnum[]
 }
 
 /**

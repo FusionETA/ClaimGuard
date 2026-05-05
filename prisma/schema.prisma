@@ -27,23 +27,23 @@ model User {
   reviews                Claim[]             @relation("AdminReviews")
   supervisedProfiles     EmployeeProfile[]   @relation("SupervisorReports")
   employeeProfile        EmployeeProfile?    @relation("EmployeeProfileUser")
+  projectManagerOf       ProjectManager[]    @relation("ProjectManagerOf")
   pushSubscriptions      PushSubscription[]
   organization           Organization?       @relation(fields: [organizationId], references: [id])
   xeroConnections        XeroConnection[]    @relation("XeroConnectedBy")
   managedProjects        XeroProject[]       @relation("ProjectManager")
-  projectManagerOf       ProjectManager[]    @relation("ProjectManagerOf")
 
   @@index([organizationId])
 }
 
 model Organization {
-  id                       String                   @id @default(cuid())
-  name                     String                   @unique
-  claimCutoffDay           Int                      @default(25)
-  createdAt                DateTime                 @default(now())
-  updatedAt                DateTime                 @updatedAt
-  workingHoursEnd          String                   @default("18:00")
-  workingHoursStart        String                   @default("09:00")
+  id                       String              @id @default(cuid())
+  name                     String              @unique
+  claimCutoffDay           Int                 @default(25)
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  workingHoursEnd          String              @default("18:00")
+  workingHoursStart        String              @default("09:00")
   bankAccount              String?
   otRateNormalDay          Decimal             @default(1.50) @db.Decimal(4, 2)
   otRatePublicHoliday      Decimal             @default(3.00) @db.Decimal(4, 2)
@@ -89,23 +89,23 @@ model PushSubscription {
 }
 
 model EmployeeProfile {
-  id                 String                        @id @default(cuid())
-  userId             String                        @unique
-  employeeId         String                        @unique
-  project            String                        @map("department")
+  id                 String                      @id @default(cuid())
+  userId             String                      @unique
+  employeeId         String                      @unique
+  project            String                      @map("department")
   jobTitle           String
   supervisorId       String?
   payoutMethod       PayoutMethod?
+  preferredCurrency  String                      @default("USD")
+  xeroConnectionId   String?
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
   /// Pay rate per hour. Only populated for employees whose payoutMethod
   /// is HOURLY; null for MONTHLY_BASED employees and supervisors.
-  hourlyRate         Decimal?                      @db.Decimal(10, 2)
-  preferredCurrency  String                        @default("USD")
-  xeroConnectionId   String?
-  createdAt          DateTime                      @default(now())
-  updatedAt          DateTime                      @updatedAt
-  supervisor         User?                         @relation("SupervisorReports", fields: [supervisorId], references: [id])
-  user               User                          @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
-  xeroConnection     XeroConnection?               @relation(fields: [xeroConnectionId], references: [id])
+  hourlyRate         Decimal?                    @db.Decimal(10, 2)
+  supervisor         User?                       @relation("SupervisorReports", fields: [supervisorId], references: [id])
+  user               User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  xeroConnection     XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
   projectAssignments EmployeeProjectAssignment[]
   teamMemberships    EmployeeTeamMembership[]
 
@@ -128,63 +128,56 @@ model EmployeeProjectAssignment {
 }
 
 model Claim {
-  id               String          @id @default(cuid())
-  claimNumber      String          @unique
-  title            String
-  description      String          @db.Text
-  category         ClaimCategory
-  claimType        ClaimType       @default(EXPENSE)
-  organizationId   String?
+  id                        String          @id @default(cuid())
+  claimNumber               String          @unique
+  title                     String
+  description               String          @db.Text
+  category                  ClaimCategory
+  organizationId            String?
+  chartOfAccountId          String?
+  amount                    Decimal         @db.Decimal(12, 2)
+  currency                  String          @default("USD")
+  spentAt                   DateTime
+  submittedAt               DateTime        @default(now())
+  claimRunMonth             DateTime?
+  reviewedAt                DateTime?
+  status                    ClaimStatus     @default(PENDING)
+  receiptUrl                String?
+  reviewNotes               String?         @db.Text
+  employeeId                String
+  reviewerId                String?
+  xeroBillId                String?         @unique
+  xeroBillRef               String?
+  xeroSyncStatus            XeroSyncStatus  @default(NOT_SYNCED)
+  xeroSyncError             String?         @db.Text
+  xeroSyncedAt              DateTime?
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  payViaAccountId           String?
+  paymentType               PaymentType     @default(PERSONAL)
+  claimType                 ClaimType       @default(EXPENSE)
+  distance                  Decimal?        @db.Decimal(10, 2)
+  mileageDestinationAddress String?
+  mileageOriginAddress      String?
+  mileageRateUsed           Decimal?        @db.Decimal(10, 4)
+  mileageUnitUsed           MileageUnit?
+  reviewerRole              UserRole?
   /// Project this claim is filed against. Drives approval routing — when
   /// set, the claim follows the employee's team chain in this project.
   /// Nullable for legacy claims that pre-date the project picker; new
   /// submissions require it whenever the employee has any project
   /// assignments.
-  projectId        String?
-  chartOfAccountId String?
-  amount           Decimal         @db.Decimal(12, 2)
-  currency         String          @default("USD")
-  spentAt          DateTime
-  submittedAt      DateTime        @default(now())
-  claimRunMonth    DateTime?
-  reviewedAt       DateTime?
-  paymentType      PaymentType     @default(PERSONAL)
-  payViaAccountId  String?
-  status           ClaimStatus     @default(PENDING)
+  projectId                 String?
   /// True when the claim's amount blew past the chart-of-account spend
   /// limit at submission time. The claim is still saved (employees can
   /// submit over-limit), but admins see a visual flag in their queue.
-  exceedsLimit     Boolean         @default(false)
-  receiptUrl       String?
-  reviewNotes      String?         @db.Text
-  // Snapshot of the reviewer's role at decision time (SUPERVISOR or ADMIN).
-  // Denormalized so we can filter "approved/rejected by supervisor vs admin"
-  // without joining to User, and so history is preserved if the reviewer's
-  // role later changes or the user is deleted.
-  reviewerRole     UserRole?
-  // Mileage-claim fields (only populated when claimType = MILEAGE).
-  distance                    Decimal? @db.Decimal(10, 2)
-  mileageOriginAddress        String?
-  mileageDestinationAddress   String?
-  // Snapshot of the rate that was used at submission time so historical claims
-  // never change when the admin updates the rate later.
-  mileageRateUsed             Decimal? @db.Decimal(10, 4)
-  mileageUnitUsed             MileageUnit?
-  employeeId       String
-  reviewerId       String?
-  xeroBillId       String?         @unique
-  xeroBillRef      String?
-  xeroSyncStatus   XeroSyncStatus  @default(NOT_SYNCED)
-  xeroSyncError    String?         @db.Text
-  xeroSyncedAt     DateTime?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  chartOfAccount   ChartOfAccount? @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
-  employee         User            @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
-  organization     Organization?   @relation(fields: [organizationId], references: [id])
-  project          XeroProject?    @relation("ClaimProject", fields: [projectId], references: [id])
-  payViaAccount    ChartOfAccount? @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
-  reviewer         User?           @relation("AdminReviews", fields: [reviewerId], references: [id])
+  exceedsLimit              Boolean         @default(false)
+  chartOfAccount            ChartOfAccount? @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
+  employee                  User            @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
+  organization              Organization?   @relation(fields: [organizationId], references: [id])
+  payViaAccount             ChartOfAccount? @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
+  project                   XeroProject?    @relation("ClaimProject", fields: [projectId], references: [id])
+  reviewer                  User?           @relation("AdminReviews", fields: [reviewerId], references: [id])
 
   @@index([organizationId, submittedAt])
   @@index([chartOfAccountId])
@@ -197,29 +190,29 @@ model Claim {
 }
 
 model ChartOfAccount {
-  id                                          String          @id @default(cuid())
-  organizationId                              String
-  xeroConnectionId                            String?
-  xeroAccountId                               String?
-  code                                        String
-  name                                        String
-  type                                        String?
-  status                                      String?
-  isSelectable                                Boolean         @default(false)
-  isCustom                                    Boolean         @default(false)
-  createdAt                                   DateTime        @default(now())
-  updatedAt                                   DateTime        @updatedAt
-  isBankAccount                               Boolean         @default(false)
-  isDisabled                                  Boolean         @default(false)
-  allowMileageClaim                           Boolean         @default(false)
-  limitAmount                                 Decimal?        @db.Decimal(12, 2)
-  limitPeriod                                 LimitPeriod?
-  limitScope                                  LimitScope?
-  mileageRate                                 Decimal?        @db.Decimal(10, 4)
-  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  xeroConnection   XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
-  claims           Claim[]         @relation("ClaimAccount")
-  paidClaims       Claim[]         @relation("ClaimPayViaAccount")
+  id                String          @id @default(cuid())
+  organizationId    String
+  xeroConnectionId  String?
+  xeroAccountId     String?
+  code              String
+  name              String
+  type              String?
+  status            String?
+  isSelectable      Boolean         @default(false)
+  isCustom          Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  isBankAccount     Boolean         @default(false)
+  isDisabled        Boolean         @default(false)
+  allowMileageClaim Boolean         @default(false)
+  limitAmount       Decimal?        @db.Decimal(12, 2)
+  limitPeriod       LimitPeriod?
+  limitScope        LimitScope?
+  mileageRate       Decimal?        @db.Decimal(10, 4)
+  organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  xeroConnection    XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
+  claims            Claim[]         @relation("ClaimAccount")
+  paidClaims        Claim[]         @relation("ClaimPayViaAccount")
 
   @@unique([xeroConnectionId, xeroAccountId])
   @@unique([organizationId, code])
@@ -274,14 +267,14 @@ model XeroProject {
   workingHoursEnd   String?
   workingDays       String?
   attendanceRecords AttendanceRecord[]          @relation("AttendanceRecordProject")
-  assignedEmployees EmployeeProjectAssignment[]
   claims            Claim[]                     @relation("ClaimProject")
+  assignedEmployees EmployeeProjectAssignment[]
   holidays          ProjectHoliday[]
+  projectManagers   ProjectManager[]            @relation("ProjectManagers")
+  teams             Team[]
   organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   projectManager    User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
-  projectManagers   ProjectManager[]            @relation("ProjectManagers")
   xeroConnection    XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
-  teams             Team[]
 
   @@unique([xeroConnectionId, xeroProjectId])
   @@index([xeroConnectionId, name])
@@ -373,23 +366,19 @@ model ApprovalRequest {
 model ApprovalChainStep {
   id         String   @id @default(cuid())
   employeeId String
+  step       Int
+  approverId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   /// teamId scopes this chain step to a specific team. An employee in
   /// multiple projects has one chain per team. Null only on legacy rows
   /// that pre-date the per-team migration; the backfill script fills these
   /// in from the employee's existing team membership.
   teamId     String?
-  step       Int
-  approverId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
   approver   User     @relation("ApproverChain", fields: [approverId], references: [id])
   employee   User     @relation("EmployeeChain", fields: [employeeId], references: [id], onDelete: Cascade)
   team       Team?    @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
-  // Multiple approvers can sit at the same step (any-of approval). The
-  // unique key now includes approverId, which means each (employee, team,
-  // step, approver) combo is still distinct, but a single step can hold
-  // multiple rows with different approverIds.
   @@unique([employeeId, teamId, step, approverId])
   @@index([employeeId])
   @@index([approverId])
@@ -410,9 +399,9 @@ model Team {
   moduleConfig Json
   createdAt    DateTime                 @default(now())
   updatedAt    DateTime                 @updatedAt
-  project      XeroProject              @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  memberships  EmployeeTeamMembership[]
   chainSteps   ApprovalChainStep[]
+  memberships  EmployeeTeamMembership[]
+  project      XeroProject              @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, name])
   @@index([projectId])
@@ -459,6 +448,7 @@ enum ClaimStatus {
   REVIEWED
   REJECTED
 }
+
 enum PaymentType {
   PERSONAL
   COMPANY
@@ -520,14 +510,14 @@ enum MileageUnit {
 }
 
 /// *
-///  * Mirrors the `EmployeePayoutMethod` literal type in the org domain. Switched
-///  * from a free String to enforce that callers can only ever store one of the
-///  * two valid values.
-///  *
-///  * Backfill caveat for ops: any existing rows with values other than HOURLY /
-///  * MONTHLY_BASED must be normalised before `prisma db push` will accept this
-///  * change. (The previous DAILY_BASED value was renamed in 2026-05; old rows
-///  * were migrated by raw SQL ahead of the schema rename.)
+/// * Mirrors the `EmployeePayoutMethod` literal type in the org domain. Switched
+/// * from a free String to enforce that callers can only ever store one of the
+/// * two valid values.
+/// *
+/// * Backfill caveat for ops: any existing rows with values other than HOURLY /
+/// * MONTHLY_BASED must be normalised before `prisma db push` will accept this
+/// * change. (The previous DAILY_BASED value was renamed in 2026-05; old rows
+/// * were migrated by raw SQL ahead of the schema rename.)
 enum PayoutMethod {
   HOURLY
   MONTHLY_BASED

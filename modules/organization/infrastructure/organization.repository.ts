@@ -96,6 +96,7 @@ function mapOrganizationSummary(
         otEnabled?: boolean | null
         defaultMileageRate?: unknown
         mileageUnit?: string | null
+        geofenceRadiusMeters?: number | null
       }
     | null
 ): OrganizationSummary | undefined {
@@ -129,6 +130,7 @@ function mapOrganizationSummary(
     otEnabled: org.otEnabled ?? true,
     defaultMileageRate,
     mileageUnit: (org.mileageUnit as MileageUnit | null | undefined) === "MILE" ? "MILE" : "KM",
+    geofenceRadiusMeters: org.geofenceRadiusMeters ?? 200,
   }
 }
 

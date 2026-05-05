@@ -155,11 +155,11 @@ export const EmployeeProfileScalarFieldEnum = {
   jobTitle: 'jobTitle',
   supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
-  hourlyRate: 'hourlyRate',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  hourlyRate: 'hourlyRate'
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
@@ -182,9 +182,7 @@ export const ClaimScalarFieldEnum = {
   title: 'title',
   description: 'description',
   category: 'category',
-  claimType: 'claimType',
   organizationId: 'organizationId',
-  projectId: 'projectId',
   chartOfAccountId: 'chartOfAccountId',
   amount: 'amount',
   currency: 'currency',
@@ -192,18 +190,9 @@ export const ClaimScalarFieldEnum = {
   submittedAt: 'submittedAt',
   claimRunMonth: 'claimRunMonth',
   reviewedAt: 'reviewedAt',
-  paymentType: 'paymentType',
-  payViaAccountId: 'payViaAccountId',
   status: 'status',
-  exceedsLimit: 'exceedsLimit',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
-  reviewerRole: 'reviewerRole',
-  distance: 'distance',
-  mileageOriginAddress: 'mileageOriginAddress',
-  mileageDestinationAddress: 'mileageDestinationAddress',
-  mileageRateUsed: 'mileageRateUsed',
-  mileageUnitUsed: 'mileageUnitUsed',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
@@ -212,7 +201,18 @@ export const ClaimScalarFieldEnum = {
   xeroSyncError: 'xeroSyncError',
   xeroSyncedAt: 'xeroSyncedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  payViaAccountId: 'payViaAccountId',
+  paymentType: 'paymentType',
+  claimType: 'claimType',
+  distance: 'distance',
+  mileageDestinationAddress: 'mileageDestinationAddress',
+  mileageOriginAddress: 'mileageOriginAddress',
+  mileageRateUsed: 'mileageRateUsed',
+  mileageUnitUsed: 'mileageUnitUsed',
+  reviewerRole: 'reviewerRole',
+  projectId: 'projectId',
+  exceedsLimit: 'exceedsLimit'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
@@ -356,11 +356,11 @@ export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldE
 export const ApprovalChainStepScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
-  teamId: 'teamId',
   step: 'step',
   approverId: 'approverId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  teamId: 'teamId'
 } as const
 
 export type ApprovalChainStepScalarFieldEnum = (typeof ApprovalChainStepScalarFieldEnum)[keyof typeof ApprovalChainStepScalarFieldEnum]
@@ -495,19 +495,19 @@ export const ClaimOrderByRelevanceFieldEnum = {
   title: 'title',
   description: 'description',
   organizationId: 'organizationId',
-  projectId: 'projectId',
   chartOfAccountId: 'chartOfAccountId',
   currency: 'currency',
-  payViaAccountId: 'payViaAccountId',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
-  mileageOriginAddress: 'mileageOriginAddress',
-  mileageDestinationAddress: 'mileageDestinationAddress',
   employeeId: 'employeeId',
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
-  xeroSyncError: 'xeroSyncError'
+  xeroSyncError: 'xeroSyncError',
+  payViaAccountId: 'payViaAccountId',
+  mileageDestinationAddress: 'mileageDestinationAddress',
+  mileageOriginAddress: 'mileageOriginAddress',
+  projectId: 'projectId'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
@@ -610,8 +610,8 @@ export type ApprovalRequestOrderByRelevanceFieldEnum = (typeof ApprovalRequestOr
 export const ApprovalChainStepOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
-  teamId: 'teamId',
-  approverId: 'approverId'
+  approverId: 'approverId',
+  teamId: 'teamId'
 } as const
 
 export type ApprovalChainStepOrderByRelevanceFieldEnum = (typeof ApprovalChainStepOrderByRelevanceFieldEnum)[keyof typeof ApprovalChainStepOrderByRelevanceFieldEnum]
