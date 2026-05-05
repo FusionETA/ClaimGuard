@@ -4,7 +4,7 @@ import { LoginForm } from "@/app/login/login-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const loginCopy = {
-  eyebrow: "ClaimGuard Access",
+  eyebrow: "Workpulse Access",
   title: "Login",
 } as const
 
@@ -16,10 +16,10 @@ export default function LoginPage() {
       <div className="mx-auto w-full max-w-xl">
         <Card className="border-white/60">
           <CardHeader className="space-y-6 p-5 pb-3 sm:p-8 sm:pb-0">
-            <div className="mx-auto flex w-fit items-center rounded-[28px] border border-white/60 bg-white/85 px-5 py-4 shadow-ambient">
+            <div className="mx-auto flex h-[140px] w-[140px] items-center justify-center rounded-[28px] border border-white/60 bg-white/85 p-4 shadow-ambient">
               <Image
                 src="/brand-icon.png"
-                alt="ClaimGuard logo"
+                alt="Workpulse logo"
                 width={512}
                 height={512}
                 className="h-auto w-[108px] object-contain"

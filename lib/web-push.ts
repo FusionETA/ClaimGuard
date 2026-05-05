@@ -11,7 +11,7 @@ import { getPrismaClient } from "@/lib/prisma"
 // ---------------------------------------------------------------------------
 
 webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT ?? "mailto:admin@claimguard.app",
+    process.env.VAPID_SUBJECT ?? "mailto:admin@workpulse.app",
     process.env.VAPID_PUBLIC_KEY ?? "",
     process.env.VAPID_PRIVATE_KEY ?? ""
 )

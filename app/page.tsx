@@ -21,7 +21,7 @@ export default async function HomePage() {
           <div className="flex justify-center">
             <Image
               src="/brand-icon.png"
-              alt="ClaimGuard logo"
+              alt="Workpulse logo"
               width={512}
               height={512}
               className="h-auto w-[112px] object-contain sm:hidden"
@@ -29,7 +29,7 @@ export default async function HomePage() {
             />
             <Image
               src="/brand-logo.png"
-              alt="ClaimGuard logo"
+              alt="Workpulse logo"
               width={1280}
               height={851}
               className="hidden h-auto w-[160px] object-contain sm:block lg:w-[190px]"

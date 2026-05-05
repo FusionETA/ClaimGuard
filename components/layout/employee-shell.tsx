@@ -191,7 +191,7 @@ export function EmployeeShell({
         <Link href="/" className="block self-center text-center">
           <Image
             src="/brand-logo.png"
-            alt="ClaimGuard logo"
+            alt="Workpulse logo"
             width={1280}
             height={851}
             className="h-auto w-[148px] object-contain"
@@ -271,7 +271,7 @@ export function EmployeeShell({
           <div className="container flex items-center justify-between py-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                ClaimGuard
+                Workpulse
               </p>
               <h1 className="font-headline text-2xl font-black tracking-tight">
                 {getSectionTitle(pathname)}

@@ -6,7 +6,7 @@ type AppSplashProps = {
 }
 
 export function AppSplash({
-  label = "Opening ClaimGuard...",
+  label = "Opening Workpulse...",
   onManualReload,
 }: AppSplashProps) {
   return (
@@ -18,7 +18,7 @@ export function AppSplash({
         <div className="flex justify-center">
           <Image
             src="/brand-icon.png"
-            alt="ClaimGuard logo"
+            alt="Workpulse logo"
             width={512}
             height={512}
             className="h-auto w-[86px] object-contain"
@@ -26,7 +26,7 @@ export function AppSplash({
           />
         </div>
         <p className="mt-6 text-[2rem] font-black uppercase tracking-[0.08em] text-primary">
-          ClaimGuard
+          Workpulse
         </p>
         <div className="mt-5 flex justify-center">
           <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/8">

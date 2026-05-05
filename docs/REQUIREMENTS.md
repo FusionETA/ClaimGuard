@@ -1,6 +1,6 @@
-# ClaimGuard Requirements
+# Workpulse Requirements
 
-Tracking doc for ClaimGuard requirements. Status legend:
+Tracking doc for Workpulse requirements. Status legend:
 - `[ ]` Not started
 - `[~]` In progress / partial
 - `[x]` Done

@@ -64,17 +64,17 @@ const APPLE_SPLASH_SCREENS: Array<{
 
 export const metadata: Metadata = {
   title: {
-    default: "ClaimGuard",
-    template: "%s | ClaimGuard",
+    default: "Workpulse",
+    template: "%s | Workpulse",
   },
   description:
-    "ClaimGuard is a dual-portal expense claims platform for employees and administrators, built with Next.js, shadcn/ui, and Prisma.",
-  applicationName: "ClaimGuard",
+    "Workpulse is a dual-portal expense claims platform for employees and administrators, built with Next.js, shadcn/ui, and Prisma.",
+  applicationName: "Workpulse",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ClaimGuard",
+    title: "Workpulse",
   },
   icons: {
     icon: [{ url: BRAND_ICON_URL, type: "image/png" }],
@@ -109,7 +109,7 @@ export default function RootLayout({
 
           Inline <style> in <head> is applied before any external CSS,
           so the background goes straight from iOS splash → cream →
-          ClaimGuard splash overlay, with no black flash in between.
+          Workpulse splash overlay, with no black flash in between.
           Values mirror --background in globals.css.
         */}
         <style
