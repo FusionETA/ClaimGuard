@@ -169,12 +169,10 @@ export function ClaimForm({
     ) : null
 
   // Collect all current field errors so we can render one banner at the top
-  // of the form. Live over-limit gets prepended even though it's not in
-  // state.errors yet — the user shouldn't have to submit to see it.
+  // of the form. Over-limit is no longer an error — the claim can still
+  // submit, just gets flagged for admin attention. The inline warning
+  // (rendered below) handles that case.
   const allErrors = [
-    overLimit
-      ? `Amount ${liveAmount.toFixed(2)} exceeds the remaining limit of ${remaining!.remaining.toFixed(2)}.`
-      : null,
     state.errors?.title,
     state.errors?.chartOfAccountId,
     state.errors?.amount,
@@ -448,10 +446,11 @@ export function ClaimForm({
             </div>
           </div>
 
-          {/* Live over-limit warning. Surfaces the same check the server runs
-              so the user sees it before pressing Submit. */}
+          {/* Live over-limit warning. Submission is still allowed; the
+              claim gets flagged for admin attention. Styled amber rather
+              than destructive so the user understands they CAN submit. */}
           {overLimit && remaining ? (
-            <div className="flex items-start gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm leading-6 text-destructive">
+            <div className="flex items-start gap-2 rounded-2xl border border-amber-300/60 bg-amber-50/70 px-4 py-3 text-sm leading-6 text-amber-900">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
                 <span className="font-bold">
@@ -463,8 +462,7 @@ export function ClaimForm({
                   : remaining.period === "YEARLY"
                     ? " this year"
                     : " per claim"}
-                . Reduce the amount, choose a different account, or speak to your admin
-                to raise the cap.
+                . You can still submit — the claim will be flagged for the admin to review.
               </span>
             </div>
           ) : null}
@@ -624,7 +622,7 @@ export function ClaimForm({
     <Button
       type="submit"
       className="h-11 w-full rounded-2xl text-sm sm:h-12 sm:rounded-xl sm:text-base"
-      disabled={pending || !canSubmit || overLimit}
+      disabled={pending || !canSubmit}
     >
       {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
       Submit claim

@@ -330,6 +330,7 @@ export type XeroProjectWhereInput = {
   holidays?: Prisma.ProjectHolidayListRelationFilter
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   projectManager?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  projectManagers?: Prisma.ProjectManagerListRelationFilter
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   teams?: Prisma.TeamListRelationFilter
 }
@@ -359,6 +360,7 @@ export type XeroProjectOrderByWithRelationInput = {
   holidays?: Prisma.ProjectHolidayOrderByRelationAggregateInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
   projectManager?: Prisma.UserOrderByWithRelationInput
+  projectManagers?: Prisma.ProjectManagerOrderByRelationAggregateInput
   xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
   teams?: Prisma.TeamOrderByRelationAggregateInput
   _relevance?: Prisma.XeroProjectOrderByRelevanceInput
@@ -393,6 +395,7 @@ export type XeroProjectWhereUniqueInput = Prisma.AtLeast<{
   holidays?: Prisma.ProjectHolidayListRelationFilter
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   projectManager?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  projectManagers?: Prisma.ProjectManagerListRelationFilter
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   teams?: Prisma.TeamListRelationFilter
 }, "id" | "xeroConnectionId_xeroProjectId">
@@ -469,6 +472,7 @@ export type XeroProjectCreateInput = {
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
 }
@@ -496,6 +500,7 @@ export type XeroProjectUncheckedCreateInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -521,6 +526,7 @@ export type XeroProjectUpdateInput = {
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
 }
@@ -548,6 +554,7 @@ export type XeroProjectUncheckedUpdateInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -893,6 +900,20 @@ export type XeroProjectUpdateOneRequiredWithoutHolidaysNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.XeroProjectUpdateToOneWithWhereWithoutHolidaysInput, Prisma.XeroProjectUpdateWithoutHolidaysInput>, Prisma.XeroProjectUncheckedUpdateWithoutHolidaysInput>
 }
 
+export type XeroProjectCreateNestedOneWithoutProjectManagersInput = {
+  create?: Prisma.XOR<Prisma.XeroProjectCreateWithoutProjectManagersInput, Prisma.XeroProjectUncheckedCreateWithoutProjectManagersInput>
+  connectOrCreate?: Prisma.XeroProjectCreateOrConnectWithoutProjectManagersInput
+  connect?: Prisma.XeroProjectWhereUniqueInput
+}
+
+export type XeroProjectUpdateOneRequiredWithoutProjectManagersNestedInput = {
+  create?: Prisma.XOR<Prisma.XeroProjectCreateWithoutProjectManagersInput, Prisma.XeroProjectUncheckedCreateWithoutProjectManagersInput>
+  connectOrCreate?: Prisma.XeroProjectCreateOrConnectWithoutProjectManagersInput
+  upsert?: Prisma.XeroProjectUpsertWithoutProjectManagersInput
+  connect?: Prisma.XeroProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.XeroProjectUpdateToOneWithWhereWithoutProjectManagersInput, Prisma.XeroProjectUpdateWithoutProjectManagersInput>, Prisma.XeroProjectUncheckedUpdateWithoutProjectManagersInput>
+}
+
 export type XeroProjectCreateNestedOneWithoutAttendanceRecordsInput = {
   create?: Prisma.XOR<Prisma.XeroProjectCreateWithoutAttendanceRecordsInput, Prisma.XeroProjectUncheckedCreateWithoutAttendanceRecordsInput>
   connectOrCreate?: Prisma.XeroProjectCreateOrConnectWithoutAttendanceRecordsInput
@@ -944,6 +965,7 @@ export type XeroProjectCreateWithoutProjectManagerInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
 }
@@ -970,6 +992,7 @@ export type XeroProjectUncheckedCreateWithoutProjectManagerInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1044,6 +1067,7 @@ export type XeroProjectCreateWithoutOrganizationInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
 }
@@ -1070,6 +1094,7 @@ export type XeroProjectUncheckedCreateWithoutOrganizationInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1120,6 +1145,7 @@ export type XeroProjectCreateWithoutAssignedEmployeesInput = {
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
 }
@@ -1146,6 +1172,7 @@ export type XeroProjectUncheckedCreateWithoutAssignedEmployeesInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1186,6 +1213,7 @@ export type XeroProjectUpdateWithoutAssignedEmployeesInput = {
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
 }
@@ -1212,6 +1240,7 @@ export type XeroProjectUncheckedUpdateWithoutAssignedEmployeesInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1236,6 +1265,7 @@ export type XeroProjectCreateWithoutClaimsInput = {
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
 }
@@ -1262,6 +1292,7 @@ export type XeroProjectUncheckedCreateWithoutClaimsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1302,6 +1333,7 @@ export type XeroProjectUpdateWithoutClaimsInput = {
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
 }
@@ -1328,6 +1360,7 @@ export type XeroProjectUncheckedUpdateWithoutClaimsInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1353,6 +1386,7 @@ export type XeroProjectCreateWithoutXeroConnectionInput = {
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
 }
 
@@ -1378,6 +1412,7 @@ export type XeroProjectUncheckedCreateWithoutXeroConnectionInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1428,6 +1463,7 @@ export type XeroProjectCreateWithoutHolidaysInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
 }
@@ -1454,6 +1490,7 @@ export type XeroProjectUncheckedCreateWithoutHolidaysInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1494,6 +1531,7 @@ export type XeroProjectUpdateWithoutHolidaysInput = {
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
 }
@@ -1520,6 +1558,127 @@ export type XeroProjectUncheckedUpdateWithoutHolidaysInput = {
   attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
+  teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type XeroProjectCreateWithoutProjectManagersInput = {
+  id?: string
+  xeroProjectId?: string | null
+  name: string
+  status?: string | null
+  contactId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isManual?: boolean
+  location?: string | null
+  isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
+  attendanceRecords?: Prisma.AttendanceRecordCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutProjectInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
+  projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
+  teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
+}
+
+export type XeroProjectUncheckedCreateWithoutProjectManagersInput = {
+  id?: string
+  organizationId: string
+  xeroConnectionId?: string | null
+  xeroProjectId?: string | null
+  name: string
+  status?: string | null
+  contactId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isManual?: boolean
+  location?: string | null
+  projectManagerId?: string | null
+  isDisabled?: boolean
+  latitude?: number | null
+  longitude?: number | null
+  workingHoursStart?: string | null
+  workingHoursEnd?: string | null
+  workingDays?: string | null
+  attendanceRecords?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutProjectRefInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
+  holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type XeroProjectCreateOrConnectWithoutProjectManagersInput = {
+  where: Prisma.XeroProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.XeroProjectCreateWithoutProjectManagersInput, Prisma.XeroProjectUncheckedCreateWithoutProjectManagersInput>
+}
+
+export type XeroProjectUpsertWithoutProjectManagersInput = {
+  update: Prisma.XOR<Prisma.XeroProjectUpdateWithoutProjectManagersInput, Prisma.XeroProjectUncheckedUpdateWithoutProjectManagersInput>
+  create: Prisma.XOR<Prisma.XeroProjectCreateWithoutProjectManagersInput, Prisma.XeroProjectUncheckedCreateWithoutProjectManagersInput>
+  where?: Prisma.XeroProjectWhereInput
+}
+
+export type XeroProjectUpdateToOneWithWhereWithoutProjectManagersInput = {
+  where?: Prisma.XeroProjectWhereInput
+  data: Prisma.XOR<Prisma.XeroProjectUpdateWithoutProjectManagersInput, Prisma.XeroProjectUncheckedUpdateWithoutProjectManagersInput>
+}
+
+export type XeroProjectUpdateWithoutProjectManagersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attendanceRecords?: Prisma.AttendanceRecordUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutProjectNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
+  projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
+  teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
+}
+
+export type XeroProjectUncheckedUpdateWithoutProjectManagersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectManagerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  latitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  longitude?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  workingHoursStart?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingHoursEnd?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workingDays?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attendanceRecords?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutProjectRefNestedInput
+  assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
+  holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1544,6 +1703,7 @@ export type XeroProjectCreateWithoutAttendanceRecordsInput = {
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
   teams?: Prisma.TeamCreateNestedManyWithoutProjectInput
 }
@@ -1570,6 +1730,7 @@ export type XeroProjectUncheckedCreateWithoutAttendanceRecordsInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
   teams?: Prisma.TeamUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -1610,6 +1771,7 @@ export type XeroProjectUpdateWithoutAttendanceRecordsInput = {
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
 }
@@ -1636,6 +1798,7 @@ export type XeroProjectUncheckedUpdateWithoutAttendanceRecordsInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1661,6 +1824,7 @@ export type XeroProjectCreateWithoutTeamsInput = {
   holidays?: Prisma.ProjectHolidayCreateNestedManyWithoutProjectInput
   organization: Prisma.OrganizationCreateNestedOneWithoutProjectsInput
   projectManager?: Prisma.UserCreateNestedOneWithoutManagedProjectsInput
+  projectManagers?: Prisma.ProjectManagerCreateNestedManyWithoutProjectInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutXeroProjectsInput
 }
 
@@ -1687,6 +1851,7 @@ export type XeroProjectUncheckedCreateWithoutTeamsInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutProjectInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutProjectInput
   holidays?: Prisma.ProjectHolidayUncheckedCreateNestedManyWithoutProjectInput
+  projectManagers?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type XeroProjectCreateOrConnectWithoutTeamsInput = {
@@ -1727,6 +1892,7 @@ export type XeroProjectUpdateWithoutTeamsInput = {
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
 }
 
@@ -1753,6 +1919,7 @@ export type XeroProjectUncheckedUpdateWithoutTeamsInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type XeroProjectCreateManyProjectManagerInput = {
@@ -1796,6 +1963,7 @@ export type XeroProjectUpdateWithoutProjectManagerInput = {
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
 }
@@ -1822,6 +1990,7 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagerInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1886,6 +2055,7 @@ export type XeroProjectUpdateWithoutOrganizationInput = {
   claims?: Prisma.ClaimUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutXeroProjectsNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
 }
@@ -1912,6 +2082,7 @@ export type XeroProjectUncheckedUpdateWithoutOrganizationInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -1977,6 +2148,7 @@ export type XeroProjectUpdateWithoutXeroConnectionInput = {
   holidays?: Prisma.ProjectHolidayUpdateManyWithoutProjectNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutProjectsNestedInput
   projectManager?: Prisma.UserUpdateOneWithoutManagedProjectsNestedInput
+  projectManagers?: Prisma.ProjectManagerUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUpdateManyWithoutProjectNestedInput
 }
 
@@ -2002,6 +2174,7 @@ export type XeroProjectUncheckedUpdateWithoutXeroConnectionInput = {
   assignedEmployees?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutProjectNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutProjectNestedInput
   holidays?: Prisma.ProjectHolidayUncheckedUpdateManyWithoutProjectNestedInput
+  projectManagers?: Prisma.ProjectManagerUncheckedUpdateManyWithoutProjectNestedInput
   teams?: Prisma.TeamUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -2035,6 +2208,7 @@ export type XeroProjectCountOutputType = {
   assignedEmployees: number
   claims: number
   holidays: number
+  projectManagers: number
   teams: number
 }
 
@@ -2043,6 +2217,7 @@ export type XeroProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Exten
   assignedEmployees?: boolean | XeroProjectCountOutputTypeCountAssignedEmployeesArgs
   claims?: boolean | XeroProjectCountOutputTypeCountClaimsArgs
   holidays?: boolean | XeroProjectCountOutputTypeCountHolidaysArgs
+  projectManagers?: boolean | XeroProjectCountOutputTypeCountProjectManagersArgs
   teams?: boolean | XeroProjectCountOutputTypeCountTeamsArgs
 }
 
@@ -2087,6 +2262,13 @@ export type XeroProjectCountOutputTypeCountHolidaysArgs<ExtArgs extends runtime.
 /**
  * XeroProjectCountOutputType without action
  */
+export type XeroProjectCountOutputTypeCountProjectManagersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectManagerWhereInput
+}
+
+/**
+ * XeroProjectCountOutputType without action
+ */
 export type XeroProjectCountOutputTypeCountTeamsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TeamWhereInput
 }
@@ -2117,6 +2299,7 @@ export type XeroProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   holidays?: boolean | Prisma.XeroProject$holidaysArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   projectManager?: boolean | Prisma.XeroProject$projectManagerArgs<ExtArgs>
+  projectManagers?: boolean | Prisma.XeroProject$projectManagersArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.XeroProject$xeroConnectionArgs<ExtArgs>
   teams?: boolean | Prisma.XeroProject$teamsArgs<ExtArgs>
   _count?: boolean | Prisma.XeroProjectCountOutputTypeDefaultArgs<ExtArgs>
@@ -2153,6 +2336,7 @@ export type XeroProjectInclude<ExtArgs extends runtime.Types.Extensions.Internal
   holidays?: boolean | Prisma.XeroProject$holidaysArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   projectManager?: boolean | Prisma.XeroProject$projectManagerArgs<ExtArgs>
+  projectManagers?: boolean | Prisma.XeroProject$projectManagersArgs<ExtArgs>
   xeroConnection?: boolean | Prisma.XeroProject$xeroConnectionArgs<ExtArgs>
   teams?: boolean | Prisma.XeroProject$teamsArgs<ExtArgs>
   _count?: boolean | Prisma.XeroProjectCountOutputTypeDefaultArgs<ExtArgs>
@@ -2167,6 +2351,7 @@ export type $XeroProjectPayload<ExtArgs extends runtime.Types.Extensions.Interna
     holidays: Prisma.$ProjectHolidayPayload<ExtArgs>[]
     organization: Prisma.$OrganizationPayload<ExtArgs>
     projectManager: Prisma.$UserPayload<ExtArgs> | null
+    projectManagers: Prisma.$ProjectManagerPayload<ExtArgs>[]
     xeroConnection: Prisma.$XeroConnectionPayload<ExtArgs> | null
     teams: Prisma.$TeamPayload<ExtArgs>[]
   }
@@ -2535,6 +2720,7 @@ export interface Prisma__XeroProjectClient<T, Null = never, ExtArgs extends runt
   holidays<T extends Prisma.XeroProject$holidaysArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$holidaysArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectHolidayPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   projectManager<T extends Prisma.XeroProject$projectManagerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$projectManagerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  projectManagers<T extends Prisma.XeroProject$projectManagersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$projectManagersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectManagerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   xeroConnection<T extends Prisma.XeroProject$xeroConnectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$xeroConnectionArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   teams<T extends Prisma.XeroProject$teamsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroProject$teamsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -3044,6 +3230,30 @@ export type XeroProject$projectManagerArgs<ExtArgs extends runtime.Types.Extensi
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * XeroProject.projectManagers
+ */
+export type XeroProject$projectManagersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectManager
+   */
+  select?: Prisma.ProjectManagerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectManager
+   */
+  omit?: Prisma.ProjectManagerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectManagerInclude<ExtArgs> | null
+  where?: Prisma.ProjectManagerWhereInput
+  orderBy?: Prisma.ProjectManagerOrderByWithRelationInput | Prisma.ProjectManagerOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectManagerWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectManagerScalarFieldEnum | Prisma.ProjectManagerScalarFieldEnum[]
 }
 
 /**

@@ -76,16 +76,17 @@ const roleOptions: Exclude<RoleFilter, "ALL">[] = ["EMPLOYEE", "SUPERVISOR"]
 const payoutMethodOptions = employeePayoutMethods
 
 function getDirectSupervisor(member: OrganizationMember) {
-  // Use the first team's first chain step as the visible supervisor.
-  // Falls back to the legacy supervisorName for employees without team
-  // chains yet.
+  // Use the first team's first chain step's first approver as the
+  // visible supervisor. Falls back to the legacy supervisorName for
+  // employees without team chains yet.
   const firstChainStep = member.teams.flatMap((t) => t.chain)[0]
-  return firstChainStep?.approverName ?? member.supervisorName ?? null
+  const firstApprover = firstChainStep?.approvers[0]
+  return firstApprover?.approverName ?? member.supervisorName ?? null
 }
 
 function chainStepCount(member: OrganizationMember) {
-  // Sum of chain rows across all teams. Used by the table to surface
-  // "N-step chain" hint when more than one approver exists overall.
+  // Total number of distinct steps across all teams. Used to show
+  // "N-step chain" hint in the table.
   return member.teams.reduce((acc, t) => acc + t.chain.length, 0)
 }
 
@@ -210,6 +211,88 @@ function ProjectMultiSelect({
           Current legacy project: {legacyProjectName}
         </p>
       ) : null}
+    </div>
+  )
+}
+
+/**
+ * Per-layer multi-select supervisor picker. Renders a checkbox list of
+ * candidates for a single layer; selection is multi (any-of approval).
+ *
+ * Form data: emits one hidden input per selected userId with `name` set
+ * to `namePrefix` (e.g. `proj.<pid>.chainApprover.2`). The action reads
+ * via formData.getAll/entries — multiple values under the same name are
+ * preserved.
+ */
+function ChainLayerMultiPicker({
+  layer,
+  label,
+  candidates,
+  selectedIds,
+  disabled,
+  namePrefix,
+  onToggle,
+}: {
+  layer: number
+  label: string
+  candidates: OrganizationMember[]
+  selectedIds: string[]
+  disabled: boolean
+  namePrefix: string
+  onToggle: (userId: string) => void
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-sm font-semibold text-muted-foreground">
+        L{layer} approver
+        <span className="ml-1 font-normal text-muted-foreground/70">
+          — {label}
+        </span>
+      </label>
+      {candidates.length === 0 ? (
+        <div className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-card px-4 text-sm text-muted-foreground shadow-sm">
+          No L{layer} supervisors in this team
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-border/80 bg-card p-2 max-h-[200px] overflow-y-auto shadow-sm">
+          {candidates.map((s) => {
+            const checked = selectedIds.includes(s.id)
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onToggle(s.id)}
+                disabled={disabled}
+                className={cn(
+                  "flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition disabled:cursor-not-allowed disabled:opacity-50",
+                  checked
+                    ? "bg-primary/8 text-foreground"
+                    : "text-muted-foreground hover:bg-surface-low/80",
+                )}
+              >
+                <span className="truncate">{s.name}</span>
+                {checked ? (
+                  <span className="text-[10px] font-semibold uppercase text-primary">
+                    Selected
+                  </span>
+                ) : null}
+              </button>
+            )
+          })}
+        </div>
+      )}
+      {selectedIds.length > 0 ? (
+        <p className="text-[11px] font-normal text-muted-foreground">
+          {selectedIds.length === 1
+            ? "1 approver — they must approve."
+            : `${selectedIds.length} approvers — any one of them approves.`}
+        </p>
+      ) : null}
+      {/* One hidden input per selected user. The action receives them all
+          via formData.entries() under the same name. */}
+      {selectedIds.map((userId) => (
+        <input key={userId} type="hidden" name={namePrefix} value={userId} />
+      ))}
     </div>
   )
 }
@@ -558,14 +641,16 @@ function AddHierarchyMemberDialog({
   const [open, setOpen] = useState(false)
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([])
   /// Per-project routing config keyed by projectId. Each entry has the
-  /// chosen team, the employee's layer in that team, and the per-layer
-  /// chain pickers above them.
+  /// chosen team, the employee's layer in that team, and per-layer chain
+  /// pickers. chainApproverByLayer[layer] is a list of supervisor user ids
+  /// (any-of approval) — multiple supervisors can sit at the same layer.
   const [projectConfigs, setProjectConfigs] = useState<
-    Record<string, { teamId: string; layer: number; chainApproverByLayer: Record<number, string> }>
+    Record<string, { teamId: string; layer: number; chainApproverByLayer: Record<number, string[]> }>
   >({})
   const [addRoleValue, setAddRoleValue] = useState<"EMPLOYEE" | "SUPERVISOR">("EMPLOYEE")
   const [addPayoutMethodValue, setAddPayoutMethodValue] =
     useState<EmployeePayoutMethod>("HOURLY")
+  const [addHourlyRate, setAddHourlyRate] = useState<string>("")
   const [state, formAction, pending] = useActionState(
     createHierarchyMemberAction,
     createInitialAddHierarchyMemberFormState()
@@ -605,14 +690,16 @@ function AddHierarchyMemberDialog({
     )
   }
 
-  // For each selected project, compute layers above and check chain completeness.
+  // For each selected project, compute layers above and check chain
+  // completeness. A layer is complete when at least one supervisor has
+  // been picked for it.
   const allChainsComplete = selectedProjectIds.every((pid) => {
     const cfg = projectConfigs[pid]
     if (!cfg || !cfg.teamId) return false
     const team = teams.find((t) => t.id === cfg.teamId)
     if (!team) return false
     for (let l = cfg.layer + 1; l <= team.layerCount; l++) {
-      if (!cfg.chainApproverByLayer[l]) return false
+      if ((cfg.chainApproverByLayer[l] ?? []).length === 0) return false
     }
     return true
   })
@@ -625,6 +712,7 @@ function AddHierarchyMemberDialog({
       setProjectConfigs({})
       setAddRoleValue("EMPLOYEE")
       setAddPayoutMethodValue("HOURLY")
+      setAddHourlyRate("")
     }
 
     if (state.status === "error" && state.message) {
@@ -638,6 +726,7 @@ function AddHierarchyMemberDialog({
       setProjectConfigs({})
       setAddRoleValue("EMPLOYEE")
       setAddPayoutMethodValue("HOURLY")
+      setAddHourlyRate("")
     }
   }, [open])
 
@@ -772,10 +861,34 @@ function AddHierarchyMemberDialog({
                 </Select>
                 {addRoleValue === "SUPERVISOR" ? (
                   <p className="text-xs font-medium text-muted-foreground">
-                    Supervisors are always daily-based paid.
+                    Supervisors are always monthly-based paid.
                   </p>
                 ) : null}
               </div>
+
+              {/* Hourly rate input — only for HOURLY-paid EMPLOYEES.
+                  Required when shown; the server validates positivity. */}
+              {resolvedAddPayoutMethod === "HOURLY" ? (
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor="add-hourly-rate">Hourly rate</label>
+                  <Input
+                    id="add-hourly-rate"
+                    name="hourlyRate"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    inputMode="decimal"
+                    value={addHourlyRate}
+                    onChange={(e) => setAddHourlyRate(e.target.value)}
+                    placeholder="e.g. 12.50"
+                    disabled={pending}
+                    required
+                  />
+                  <p className="text-xs font-medium text-muted-foreground/80">
+                    Pay rate per hour for this employee.
+                  </p>
+                </div>
+              ) : null}
 
               <div className="space-y-2 text-sm font-semibold text-muted-foreground">
                 <span>Xero organization</span>
@@ -934,61 +1047,42 @@ function AddHierarchyMemberDialog({
                     ) : (
                       <div className="space-y-3">
                         <p className="text-xs font-medium text-muted-foreground/80">
-                          Approval chain (one approver per layer above)
+                          Approval chain (pick any number per layer — any one approves to advance)
                         </p>
                         {layersAbove.map((layer) => {
                           const candidates = supervisorsAtLayerInTeam(team.id, layer)
-                          const value = cfg.chainApproverByLayer[layer] ?? ""
+                          const selected = cfg.chainApproverByLayer[layer] ?? []
                           const label =
                             team.layerLabels?.[layer - 1]?.trim() ||
                             `Layer ${layer}`
                           return (
-                            <div key={layer} className="space-y-1.5">
-                              <label className="text-sm font-semibold text-muted-foreground">
-                                L{layer} approver
-                                <span className="ml-1 font-normal text-muted-foreground/70">
-                                  — {label}
-                                </span>
-                              </label>
-                              <Select
-                                value={value || undefined}
-                                onValueChange={(v) =>
-                                  setProjectConfigs((prev) => ({
+                            <ChainLayerMultiPicker
+                              key={layer}
+                              layer={layer}
+                              label={label}
+                              candidates={candidates}
+                              selectedIds={selected}
+                              disabled={pending}
+                              namePrefix={`proj.${pid}.chainApprover.${layer}`}
+                              onToggle={(uid) =>
+                                setProjectConfigs((prev) => {
+                                  const cur = prev[pid]!.chainApproverByLayer[layer] ?? []
+                                  const next = cur.includes(uid)
+                                    ? cur.filter((id) => id !== uid)
+                                    : [...cur, uid]
+                                  return {
                                     ...prev,
                                     [pid]: {
                                       ...prev[pid]!,
                                       chainApproverByLayer: {
                                         ...prev[pid]!.chainApproverByLayer,
-                                        [layer]: v,
+                                        [layer]: next,
                                       },
                                     },
-                                  }))
-                                }
-                                disabled={pending || candidates.length === 0}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue
-                                    placeholder={
-                                      candidates.length === 0
-                                        ? `No L${layer} supervisors in this team`
-                                        : "Select approver"
-                                    }
-                                  />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {candidates.map((s) => (
-                                    <SelectItem key={s.id} value={s.id}>
-                                      {s.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <input
-                                type="hidden"
-                                name={`proj.${pid}.chainApprover.${layer}`}
-                                value={value}
-                              />
-                            </div>
+                                  }
+                                })
+                              }
+                            />
                           )
                         })}
                       </div>
@@ -1056,26 +1150,31 @@ function HierarchyEditDialog({
   const [editPayoutMethodValue, setEditPayoutMethodValue] = useState<EmployeePayoutMethod>(
     member.payoutMethod
   )
+  const [editHourlyRate, setEditHourlyRate] = useState<string>(
+    member.hourlyRate != null ? member.hourlyRate.toFixed(2) : "",
+  )
   const [selectedEditProjectIds, setSelectedEditProjectIds] = useState<string[]>(
     member.projects.filter((project) => !project.id.startsWith("legacy:")).map((project) => project.id)
   )
 
   /// Per-project routing config keyed by projectId. Prefilled from the
-  /// member's existing team memberships and chain rows.
+  /// member's existing team memberships and grouped chain steps.
+  /// chainApproverByLayer[layer] is a list of supervisor user ids
+  /// (any-of approval) — multiple supervisors can sit at the same layer.
   const [projectConfigs, setProjectConfigs] = useState<
     Record<
       string,
-      { teamId: string; layer: number; chainApproverByLayer: Record<number, string> }
+      { teamId: string; layer: number; chainApproverByLayer: Record<number, string[]> }
     >
   >(() => {
     const out: Record<
       string,
-      { teamId: string; layer: number; chainApproverByLayer: Record<number, string> }
+      { teamId: string; layer: number; chainApproverByLayer: Record<number, string[]> }
     > = {}
     for (const t of member.teams) {
-      const map: Record<number, string> = {}
+      const map: Record<number, string[]> = {}
       t.chain.forEach((step, idx) => {
-        map[t.layer + idx + 1] = step.approverId
+        map[t.layer + idx + 1] = step.approvers.map((a) => a.approverId)
       })
       out[t.projectId] = {
         teamId: t.teamId,
@@ -1128,7 +1227,7 @@ function HierarchyEditDialog({
     const team = teams.find((t) => t.id === cfg.teamId)
     if (!team) return false
     for (let l = cfg.layer + 1; l <= team.layerCount; l++) {
-      if (!cfg.chainApproverByLayer[l]) return false
+      if ((cfg.chainApproverByLayer[l] ?? []).length === 0) return false
     }
     return true
   })
@@ -1149,15 +1248,18 @@ function HierarchyEditDialog({
     if (open) {
       setEditRoleValue(member.role)
       setEditPayoutMethodValue(member.payoutMethod)
+      setEditHourlyRate(
+        member.hourlyRate != null ? member.hourlyRate.toFixed(2) : "",
+      )
       setSelectedEditProjectIds(resolveSelectedProjectIds(member.projects, filteredProjects))
       const out: Record<
         string,
-        { teamId: string; layer: number; chainApproverByLayer: Record<number, string> }
+        { teamId: string; layer: number; chainApproverByLayer: Record<number, string[]> }
       > = {}
       for (const t of member.teams) {
-        const map: Record<number, string> = {}
+        const map: Record<number, string[]> = {}
         t.chain.forEach((step, idx) => {
-          map[t.layer + idx + 1] = step.approverId
+          map[t.layer + idx + 1] = step.approvers.map((a) => a.approverId)
         })
         out[t.projectId] = {
           teamId: t.teamId,
@@ -1278,10 +1380,36 @@ function HierarchyEditDialog({
                 </Select>
                 {editRoleValue === "SUPERVISOR" ? (
                   <p className="text-xs font-medium text-muted-foreground">
-                    Supervisors are always daily-based paid.
+                    Supervisors are always monthly-based paid.
                   </p>
                 ) : null}
               </div>
+
+              {/* Hourly rate input — only for HOURLY-paid EMPLOYEES.
+                  When the role flips to SUPERVISOR or the type flips to
+                  monthly-based, the input is hidden and the server clears
+                  the rate to null. */}
+              {resolvedEditPayoutMethod === "HOURLY" ? (
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor={`edit-hourly-rate-${member.id}`}>Hourly rate</label>
+                  <Input
+                    id={`edit-hourly-rate-${member.id}`}
+                    name="hourlyRate"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    inputMode="decimal"
+                    value={editHourlyRate}
+                    onChange={(e) => setEditHourlyRate(e.target.value)}
+                    placeholder="e.g. 12.50"
+                    disabled={pending}
+                    required
+                  />
+                  <p className="text-xs font-medium text-muted-foreground/80">
+                    Pay rate per hour for this employee.
+                  </p>
+                </div>
+              ) : null}
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2 text-sm font-semibold text-muted-foreground">
@@ -1443,61 +1571,42 @@ function HierarchyEditDialog({
                     ) : (
                       <div className="space-y-3">
                         <p className="text-xs font-medium text-muted-foreground/80">
-                          Approval chain (one approver per layer above)
+                          Approval chain (pick any number per layer — any one approves to advance)
                         </p>
                         {layersAbove.map((layer) => {
                           const candidates = supervisorsAtLayerInTeam(team.id, layer)
-                          const value = cfg.chainApproverByLayer[layer] ?? ""
+                          const selected = cfg.chainApproverByLayer[layer] ?? []
                           const label =
                             team.layerLabels?.[layer - 1]?.trim() ||
                             `Layer ${layer}`
                           return (
-                            <div key={layer} className="space-y-1.5">
-                              <label className="text-sm font-semibold text-muted-foreground">
-                                L{layer} approver
-                                <span className="ml-1 font-normal text-muted-foreground/70">
-                                  — {label}
-                                </span>
-                              </label>
-                              <Select
-                                value={value || undefined}
-                                onValueChange={(v) =>
-                                  setProjectConfigs((prev) => ({
+                            <ChainLayerMultiPicker
+                              key={layer}
+                              layer={layer}
+                              label={label}
+                              candidates={candidates}
+                              selectedIds={selected}
+                              disabled={pending}
+                              namePrefix={`proj.${pid}.chainApprover.${layer}`}
+                              onToggle={(uid) =>
+                                setProjectConfigs((prev) => {
+                                  const cur = prev[pid]!.chainApproverByLayer[layer] ?? []
+                                  const next = cur.includes(uid)
+                                    ? cur.filter((id) => id !== uid)
+                                    : [...cur, uid]
+                                  return {
                                     ...prev,
                                     [pid]: {
                                       ...prev[pid]!,
                                       chainApproverByLayer: {
                                         ...prev[pid]!.chainApproverByLayer,
-                                        [layer]: v,
+                                        [layer]: next,
                                       },
                                     },
-                                  }))
-                                }
-                                disabled={pending || candidates.length === 0}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue
-                                    placeholder={
-                                      candidates.length === 0
-                                        ? `No L${layer} supervisors in this team`
-                                        : "Select approver"
-                                    }
-                                  />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {candidates.map((s) => (
-                                    <SelectItem key={s.id} value={s.id}>
-                                      {s.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <input
-                                type="hidden"
-                                name={`proj.${pid}.chainApprover.${layer}`}
-                                value={value}
-                              />
-                            </div>
+                                  }
+                                })
+                              }
+                            />
                           )
                         })}
                       </div>

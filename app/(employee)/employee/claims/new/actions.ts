@@ -222,7 +222,11 @@ export async function submitClaimAction(
 
   return {
     status: "success",
-    message: "Claim submitted successfully.",
+    // When the claim exceeded the spend limit, the workflow returns a
+    // warning string we surface here so the toast says "submitted, but
+    // flagged" instead of "submitted successfully". The claim still goes
+    // through normal approval.
+    message: result.warning ?? "Claim submitted successfully.",
     values: initialClaimFormState.values,
     errors: {},
   }

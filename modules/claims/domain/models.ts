@@ -198,6 +198,10 @@ export type ClaimRecord = {
    * claims table reads this flag to decide whether to render.
    */
   awaitingAdminFinalApproval: boolean
+  /// True when the claim's amount exceeded the chart-of-account spend
+  /// limit at submission. Used by the admin queue to flag the claim with
+  /// an "Over limit" badge.
+  exceedsLimit?: boolean
 }
 
 export type CreateClaimInput = {

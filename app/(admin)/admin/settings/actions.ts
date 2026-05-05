@@ -563,8 +563,12 @@ export async function createManualProjectAction(
   }
 
   const name = String(formData.get("name") ?? "").trim()
-  const rawPm = String(formData.get("projectManagerId") ?? "").trim()
-  const projectManagerId = rawPm && rawPm !== "__none" ? rawPm : undefined
+  // Project managers — multi-select. Form sends one `projectManagerIds`
+  // entry per picked PM. Drop the legacy "__none" sentinel and any blanks.
+  const projectManagerIds = formData
+    .getAll("projectManagerIds")
+    .map((v) => String(v).trim())
+    .filter((v) => v && v !== "__none")
   const rawLat = parseFloat(String(formData.get("latitude") ?? ""))
   const rawLng = parseFloat(String(formData.get("longitude") ?? ""))
   const latitude = Number.isFinite(rawLat) ? rawLat : undefined
@@ -588,7 +592,7 @@ export async function createManualProjectAction(
     await organizationRepository.createManualProject({
       organizationId,
       name,
-      projectManagerId,
+      projectManagerIds,
       location,
       latitude,
       longitude,
@@ -608,7 +612,7 @@ export async function createManualProjectAction(
 
 export async function updateProjectAction(
   projectId: string,
-  projectManagerId: string | undefined,
+  projectManagerIds: string[] | undefined,
   location: string | undefined,
   latitude: number | null | undefined,
   longitude: number | null | undefined
@@ -642,7 +646,7 @@ export async function updateProjectAction(
     await organizationRepository.updateProjectDetails({
       projectId,
       organizationId,
-      projectManagerId: projectManagerId || undefined,
+      projectManagerIds,
       location: derivedLocation,
       latitude: latitude ?? null,
       longitude: longitude ?? null,

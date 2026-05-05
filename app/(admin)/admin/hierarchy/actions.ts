@@ -23,6 +23,7 @@ const hierarchySchema = z.object({
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
   payoutMethod: z.enum(employeePayoutMethods),
+  hourlyRate: z.number().positive().optional(),
   email: z.string().email(),
 })
 
@@ -35,7 +36,15 @@ const createMemberSchema = z.object({
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
   payoutMethod: z.enum(employeePayoutMethods),
+  hourlyRate: z.number().positive().optional(),
 })
+
+function parseHourlyRateFromForm(formData: FormData): number | undefined {
+  const raw = String(formData.get("hourlyRate") ?? "").trim()
+  if (!raw) return undefined
+  const n = Number(raw)
+  return Number.isFinite(n) && n > 0 ? n : undefined
+}
 
 /// Pull the per-project routing config out of FormData. Each project section
 /// emits hidden inputs `proj.{pid}.teamId`, `proj.{pid}.layer`, and one
@@ -123,6 +132,7 @@ export async function updateHierarchyAction(
 
   const projectIds = formData.getAll("projectIds").map(String).filter(Boolean)
   const projectAssignments = parseProjectAssignments(formData, projectIds)
+  const hourlyRate = parseHourlyRateFromForm(formData)
 
   const parsed = hierarchySchema.safeParse({
     userId: String(formData.get("userId") ?? ""),
@@ -130,6 +140,7 @@ export async function updateHierarchyAction(
     projectIds,
     jobTitle: values.jobTitle,
     payoutMethod: values.payoutMethod,
+    hourlyRate,
     email: String(formData.get("email") ?? ""),
   })
 
@@ -149,6 +160,7 @@ export async function updateHierarchyAction(
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
       payoutMethod: parsed.data.payoutMethod,
+      hourlyRate: parsed.data.hourlyRate ?? null,
       xeroConnectionId,
       projectAssignments,
     })
@@ -229,11 +241,13 @@ export async function createHierarchyMemberAction(
 
   const projectIds = formData.getAll("projectIds").map(String).filter(Boolean)
   const projectAssignments = parseProjectAssignments(formData, projectIds)
+  const hourlyRate = parseHourlyRateFromForm(formData)
 
   const parsed = createMemberSchema.safeParse({
     ...values,
     projectIds,
     payoutMethod: values.payoutMethod,
+    hourlyRate,
   })
 
   if (!parsed.success) {
@@ -255,6 +269,7 @@ export async function createHierarchyMemberAction(
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
       payoutMethod: parsed.data.payoutMethod,
+      hourlyRate: parsed.data.hourlyRate ?? null,
       xeroConnectionId,
       projectAssignments,
     })

@@ -90,6 +90,7 @@ type PrismaClaim = {
   paymentType: string
   payViaAccountId?: string | null
   claimType?: string | null
+  exceedsLimit?: boolean | null
   receiptUrl: string | null
   reviewNotes: string | null
   reviewedAt: Date | null
@@ -108,20 +109,28 @@ type PrismaClaim = {
   employee: PrismaUser
 }
 
-type ApprovalChainRow = {
+/// Module-filtered chain step with multi-approver support. Each step
+/// holds the SET of approvers eligible at that step. Any one of them
+/// approving completes the step.
+type GroupedChainStep = {
   step: number
-  approverId: string
-  approver: {
-    id: string
+  approvers: Array<{
+    approverId: string
     name: string
     email: string
     role: string
-  }
+  }>
 }
 
 /**
  * Compute the approval chain display state for a single claim.
  * Returns undefined if the employee has no chain configured (legacy path).
+ *
+ * Multi-approver semantics: when a step has N approvers and one of them
+ * acts, that step becomes "approved" and the others are marked "skipped"
+ * (silently removed from their queues — see `getClaimsForSupervisor`).
+ * The output flattens the groups into one ApprovalStepInfo per approver
+ * so existing UI code that iterates approvalChain[] continues to work.
  *
  * Chain state semantics:
  * - SUBMITTED               → step 1 is "current", later steps "upcoming"
@@ -132,7 +141,7 @@ type ApprovalChainRow = {
  *                              later "skipped"
  */
 function buildApprovalChainState(
-  steps: ApprovalChainRow[],
+  steps: GroupedChainStep[],
   claim: {
     status: string
     reviewedAt: Date | null
@@ -145,75 +154,94 @@ function buildApprovalChainState(
   const totalSteps = sorted.length
 
   // Find which chain step corresponds to the most recent reviewer (if any).
-  // Locating the reviewer in the chain is how we know how many supervisor
-  // steps have completed — the previous heuristic ("alreadyReviewedOnce")
-  // assumed at most a 2-step chain and broke for 3+. Now we walk to the
-  // exact step the reviewer occupied and treat everything ≤ that as
-  // approved.
+  // For multi-approver groups, the reviewer is anyone in the step's set.
   const reviewedStepIdx =
     claim.reviewerId !== null
-      ? sorted.findIndex((s) => s.approverId === claim.reviewerId)
+      ? sorted.findIndex((s) =>
+          s.approvers.some((a) => a.approverId === claim.reviewerId),
+        )
       : -1
 
-  // Determine the "current" step number — i.e. who's the next supervisor
-  // expected to act. A `currentStep` greater than the last step in the
-  // chain means every supervisor in the chain has approved (the claim is
-  // either fully done or sitting in PENDING awaiting the admin's final
-  // approval).
+  // Determine the "current" step number — i.e. who's the next group of
+  // approvers expected to act. currentStep beyond the last step means
+  // every group has approved (claim is APPROVED awaiting admin or fully
+  // done).
   let currentStep: number
   if (claim.status === "SUBMITTED") {
     currentStep = sorted[0]!.step
   } else if (claim.status === "PENDING") {
     if (reviewedStepIdx >= 0) {
       const next = sorted[reviewedStepIdx + 1]
-      // No next chain step → claim is now waiting for admin (no supervisor
-      // is "current" in the chain). Push currentStep past the end so every
-      // chain row falls into the "approved" branch below.
       currentStep = next ? next.step : sorted[totalSteps - 1]!.step + 1
     } else {
-      // No previous review yet → first supervisor is current.
       currentStep = sorted[0]!.step
     }
   } else if (claim.status === "APPROVED" || claim.status === "REVIEWED") {
     currentStep = sorted[totalSteps - 1]!.step + 1
   } else if (claim.status === "REJECTED") {
-    const rejectedAt = sorted.find((s) => s.approverId === claim.reviewerId)
+    const rejectedAt = sorted.find((s) =>
+      s.approvers.some((a) => a.approverId === claim.reviewerId),
+    )
     currentStep = rejectedAt?.step ?? sorted[0]!.step
   } else {
     currentStep = sorted[0]!.step
   }
 
-  const chain: ApprovalStepInfo[] = sorted.map((row) => {
-    let state: ApprovalStepState
+  // Flatten groups into per-approver entries with state. Within a step
+  // that has been approved (step < currentStep), only the actual reviewer
+  // is "approved"; the other approvers are "skipped" (they didn't act
+  // because someone else did).
+  const chain: ApprovalStepInfo[] = []
+  for (const group of sorted) {
+    let groupState: ApprovalStepState
     if (claim.status === "REJECTED") {
-      if (row.step < currentStep) state = "approved"
-      else if (row.step === currentStep) state = "rejected"
-      else state = "skipped"
-    } else if (row.step < currentStep) {
-      state = "approved"
-    } else if (row.step === currentStep) {
-      state = "current"
+      if (group.step < currentStep) groupState = "approved"
+      else if (group.step === currentStep) groupState = "rejected"
+      else groupState = "skipped"
+    } else if (group.step < currentStep) {
+      groupState = "approved"
+    } else if (group.step === currentStep) {
+      groupState = "current"
     } else {
-      state = "upcoming"
+      groupState = "upcoming"
     }
 
-    return {
-      step: row.step,
-      approverId: row.approverId,
-      name: row.approver.name,
-      email: row.approver.email,
-      role: row.approver.role as ApprovalStepInfo["role"],
-      state,
+    for (const approver of group.approvers) {
+      let entryState: ApprovalStepState = groupState
+      if (groupState === "approved" || groupState === "rejected") {
+        // Only the actual reviewer carries "approved"/"rejected" — peers
+        // in the same step that didn't act are marked "skipped".
+        if (approver.approverId !== claim.reviewerId) {
+          entryState = "skipped"
+        }
+      }
+      chain.push({
+        step: group.step,
+        approverId: approver.approverId,
+        name: approver.name,
+        email: approver.email,
+        role: approver.role as ApprovalStepInfo["role"],
+        state: entryState,
+      })
     }
-  })
+  }
 
-  const currentEntry = chain.find((c) => c.state === "current")
-  const pending: PendingApproverInfo | undefined = currentEntry
+  // PendingApproverInfo: representative of the current step. With
+  // multi-approver, we expose the FIRST approver's name as the public
+  // label, with totalSteps reflecting the count of distinct steps. The
+  // admin queue's "Awaiting X" badge will read this; if the user wants a
+  // more nuanced display ("Awaiting any of A, B, C"), it can be done in
+  // the UI by looking at the chain rows where state === "current".
+  const currentGroup = sorted.find((g) => g.step === currentStep)
+  const pending: PendingApproverInfo | undefined = currentGroup
     ? {
-        approverId: currentEntry.approverId,
-        name: currentEntry.name,
-        email: currentEntry.email,
-        step: currentEntry.step,
+        approverId: currentGroup.approvers[0]?.approverId ?? "",
+        name:
+          currentGroup.approvers.length > 1
+            ? `${currentGroup.approvers[0]?.name ?? "?"} +${currentGroup.approvers.length - 1}`
+            : currentGroup.approvers[0]?.name ?? "?",
+        email: currentGroup.approvers[0]?.email ?? "",
+        step: currentGroup.step,
         totalSteps,
       }
     : undefined
@@ -240,6 +268,10 @@ export type CreateClaimData = {
   reviewerId: string | null
   paymentType: PaymentType
   payViaAccountId?: string | null
+  /// True when the submitted amount blew past the account spend limit.
+  /// The claim is still saved; this flag is what the admin queue reads to
+  /// surface a "FLAGGED" badge.
+  exceedsLimit?: boolean
   // Claim-type + mileage snapshot fields. EXPENSE is the default and leaves
   // the mileage columns null.
   claimType?: "EXPENSE" | "MILEAGE"
@@ -331,7 +363,7 @@ function mapUser(user: PrismaUser): PortalUser {
 
 function mapClaim(
   claim: PrismaClaim,
-  chainsByEmployee?: Map<string, ApprovalChainRow[]>
+  chainsByEmployee?: Map<string, GroupedChainStep[]>
 ): ClaimRecord {
   const chainRows = chainsByEmployee?.get(claim.employeeId) ?? []
   const chainState = buildApprovalChainState(chainRows, {
@@ -390,6 +422,7 @@ function mapClaim(
     pendingApprover: chainState?.pending,
     approvalChain: chainState?.chain,
     awaitingAdminFinalApproval,
+    exceedsLimit: claim.exceedsLimit ?? false,
   }
 }
 
@@ -517,8 +550,9 @@ export const claimRepository = {
     const actionableConditions: Prisma.ClaimWhereInput[] = []
 
     if (candidateRows.length > 0) {
-      // Resolve filtered chains per (employee, project). One chain lookup
-      // per unique tuple.
+      // Resolve filtered (grouped) chains per (employee, project). One
+      // lookup per unique tuple. The supervisor's step is the step whose
+      // approvers SET contains them.
       const tupleKey = (e: string, p: string) => `${e}::${p}`
       const seenTuples = new Set<string>()
       for (const r of candidateRows) {
@@ -533,7 +567,9 @@ export const claimRepository = {
           r.team.projectId,
         )
         if (chain.length === 0) continue
-        const supervisorEntry = chain.find((s) => s.approverId === supervisor.id)
+        const supervisorEntry = chain.find((s) =>
+          s.approvers.some((a) => a.approverId === supervisor.id),
+        )
         if (!supervisorEntry) continue
 
         const baseWhere = {
@@ -542,6 +578,7 @@ export const claimRepository = {
         }
 
         if (supervisorEntry.step === 1) {
+          // First step: supervisor sees SUBMITTED + unreviewed PENDING.
           actionableConditions.push({
             ...baseWhere,
             status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
@@ -550,13 +587,15 @@ export const claimRepository = {
           continue
         }
 
-        const previousApproverId = chain[supervisorEntry.step - 2]?.approverId
-        if (!previousApproverId) continue
+        // Later step: previous step's approver SET — claim's reviewerId
+        // is in that set means previous step is done. Match any of them.
+        const prevStepApprovers = chain[supervisorEntry.step - 2]?.approvers ?? []
+        if (prevStepApprovers.length === 0) continue
 
         actionableConditions.push({
           ...baseWhere,
           status: { in: ["PENDING"] as ClaimStatus[] },
-          reviewerId: previousApproverId,
+          reviewerId: { in: prevStepApprovers.map((a) => a.approverId) },
           reviewerRole: "SUPERVISOR",
         })
       }
@@ -672,7 +711,9 @@ export const claimRepository = {
           r.team.projectId,
         )
         if (chain.length === 0) continue
-        const supervisorEntry = chain.find((s) => s.approverId === supervisor.id)
+        const supervisorEntry = chain.find((s) =>
+          s.approvers.some((a) => a.approverId === supervisor.id),
+        )
         if (!supervisorEntry) continue
 
         const baseWhere = {
@@ -688,13 +729,13 @@ export const claimRepository = {
           continue
         }
 
-        const previousApproverId = chain[supervisorEntry.step - 2]?.approverId
-        if (!previousApproverId) continue
+        const prevStepApprovers = chain[supervisorEntry.step - 2]?.approvers ?? []
+        if (prevStepApprovers.length === 0) continue
 
         conditions.push({
           ...baseWhere,
           status: { in: ["PENDING"] as ClaimStatus[] },
-          reviewerId: previousApproverId,
+          reviewerId: { in: prevStepApprovers.map((a) => a.approverId) },
           reviewerRole: "SUPERVISOR",
         })
       }
@@ -752,8 +793,8 @@ export const claimRepository = {
     })
 
     // Batch-load module-filtered approval chains per (employee, project)
-    // tuple. Each claim has its own chain because chains are project-
-    // scoped now. Legacy claims with projectId=null fall through to the
+    // tuple. Each claim has its own grouped chain (multi-approver) keyed
+    // by tuple. Legacy claims with projectId=null fall through to the
     // alphabetical-first-team fallback in resolveModuleChain.
     const tupleKey = (e: string, p: string | null) => `${e}::${p ?? ""}`
     const tuples = new Map<string, { employeeId: string; projectId: string | null }>()
@@ -763,7 +804,7 @@ export const claimRepository = {
         tuples.set(k, { employeeId: r.employeeId, projectId: r.projectId })
       }
     }
-    const chainByTuple = new Map<string, ApprovalChainRow[]>()
+    const chainByTuple = new Map<string, GroupedChainStep[]>()
     if (tuples.size > 0) {
       const resolved = await Promise.all(
         Array.from(tuples.entries()).map(async ([k, t]) => ({
@@ -780,24 +821,20 @@ export const claimRepository = {
           k,
           steps.map((s) => ({
             step: s.step,
-            approverId: s.approverId,
-            approver: {
-              id: s.approverId,
-              name: s.name,
-              email: s.email,
-              role: s.role,
-            },
+            approvers: s.approvers.map((a) => ({
+              approverId: a.approverId,
+              name: a.name,
+              email: a.email,
+              role: a.role,
+            })),
           })),
         )
       }
     }
 
-    // Wrap chainsByEmployee to look up by (employeeId, projectId) instead.
-    // mapClaim already takes a Map<string, ...> so we adapt here by keying
-    // each claim's lookup through tupleKey.
     return rows.map((row) => {
       const key = tupleKey(row.employeeId, row.projectId)
-      const single = new Map<string, ApprovalChainRow[]>()
+      const single = new Map<string, GroupedChainStep[]>()
       single.set(row.employeeId, chainByTuple.get(key) ?? [])
       return mapClaim(row, single)
     })
@@ -869,6 +906,7 @@ export const claimRepository = {
         reviewerId: data.reviewerId,
         paymentType: data.paymentType,
         payViaAccountId: data.payViaAccountId ?? null,
+        exceedsLimit: data.exceedsLimit ?? false,
         distance: data.distance,
         mileageOriginAddress: data.mileageOriginAddress,
         mileageDestinationAddress: data.mileageDestinationAddress,
@@ -1010,10 +1048,11 @@ export const claimRepository = {
     let persistedStatus: ClaimStatus
 
     if (data.supervisorOnly) {
-      // Load the employee's *module-filtered* approval chain (CLAIMS) to
-      // verify the reviewer is the expected next supervisor in line. When
-      // the last filtered supervisor approves, the claim moves to APPROVED
-      // and becomes ready for admin review.
+      // Load the employee's *module-filtered, grouped* approval chain
+      // (CLAIMS). Multi-approver semantics: the reviewer's step is the
+      // step whose approvers SET contains them. The previous reviewer's
+      // step is found the same way. When the last step's approvers set
+      // is satisfied (any of them approves), claim moves to APPROVED.
       const chain = await resolveModuleChain(
         existingClaim.employeeId,
         "CLAIMS",
@@ -1023,10 +1062,16 @@ export const claimRepository = {
       let supervisorChainComplete = true
 
       if (chain.length > 0) {
-        const reviewerStep = chain.find((s) => s.approverId === data.reviewerId)
+        const reviewerStep = chain.find((s) =>
+          s.approvers.some((a) => a.approverId === data.reviewerId),
+        )
         const reviewedStep =
           existingClaim.reviewerId !== null
-            ? chain.find((s) => s.approverId === existingClaim.reviewerId)
+            ? chain.find((s) =>
+                s.approvers.some(
+                  (a) => a.approverId === existingClaim.reviewerId,
+                ),
+              )
             : undefined
 
         let expectedStep = chain[0]!.step

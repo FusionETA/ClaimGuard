@@ -12,13 +12,13 @@ export type OtRates = {
   salaryThreshold: number
 }
 
-export const employeePayoutMethods = ["HOURLY", "DAILY_BASED"] as const
+export const employeePayoutMethods = ["HOURLY", "MONTHLY_BASED"] as const
 
 export type EmployeePayoutMethod = (typeof employeePayoutMethods)[number]
 
 export const employeePayoutMethodLabels: Record<EmployeePayoutMethod, string> = {
   HOURLY: "Hourly worker",
-  DAILY_BASED: "Daily-based paid",
+  MONTHLY_BASED: "Monthly-based paid",
 }
 
 export function resolveEmployeePayoutMethod(
@@ -26,10 +26,10 @@ export function resolveEmployeePayoutMethod(
   payoutMethod?: string | null,
 ): EmployeePayoutMethod {
   if (role === "SUPERVISOR") {
-    return "DAILY_BASED"
+    return "MONTHLY_BASED"
   }
 
-  return payoutMethod === "DAILY_BASED" ? "DAILY_BASED" : "HOURLY"
+  return payoutMethod === "MONTHLY_BASED" ? "MONTHLY_BASED" : "HOURLY"
 }
 
 export const mileageUnits = ["KM", "MILE"] as const
@@ -85,8 +85,15 @@ export type OrganizationProjectOption = {
   status?: string
   contactId?: string
   xeroConnectionId?: string
+  /// Legacy single-PM column (XeroProject.projectManagerId). Kept only to
+  /// avoid breaking older callers; all new code reads from projectManagers
+  /// (the join-table-backed array) below.
   projectManagerId?: string
   projectManagerName?: string
+  /// All project managers assigned to this project, via the ProjectManager
+  /// join table. Empty array when nobody is assigned. Each entry is a
+  /// SUPERVISOR or ADMIN user.
+  projectManagers: Array<{ userId: string; name: string }>
   location?: string
   latitude?: number
   longitude?: number
@@ -123,6 +130,13 @@ export type ApprovalChainStep = {
   approverName: string
 }
 
+/// One step of the chain. Multiple approvers per step are allowed
+/// (any-of approval) — once any of them approves, the step is done.
+export type TeamChainStep = {
+  step: number
+  approvers: Array<{ approverId: string; approverName: string }>
+}
+
 export type MemberTeamInfo = {
   membershipId: string
   teamId: string
@@ -130,9 +144,9 @@ export type MemberTeamInfo = {
   projectId: string
   projectName: string
   layer: number
-  /// Chain rows that belong to this team (one approver per layer above the
-  /// employee's layer, sorted by step ascending).
-  chain: ApprovalChainStep[]
+  /// Per-step chain entries above the employee's layer. Each step holds
+  /// the SET of approvers eligible at that step.
+  chain: TeamChainStep[]
 }
 
 export type OrganizationMember = {
@@ -147,6 +161,9 @@ export type OrganizationMember = {
   projects: AssignedProject[]
   jobTitle: string
   payoutMethod: EmployeePayoutMethod
+  /// Pay rate per hour for HOURLY employees. Always undefined for
+  /// MONTHLY_BASED employees / supervisors.
+  hourlyRate?: number
   supervisorId?: string
   supervisorName?: string
   xeroConnectionId?: string

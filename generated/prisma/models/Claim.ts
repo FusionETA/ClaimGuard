@@ -57,6 +57,7 @@ export type ClaimMinAggregateOutputType = {
   paymentType: $Enums.PaymentType | null
   payViaAccountId: string | null
   status: $Enums.ClaimStatus | null
+  exceedsLimit: boolean | null
   receiptUrl: string | null
   reviewNotes: string | null
   reviewerRole: $Enums.UserRole | null
@@ -95,6 +96,7 @@ export type ClaimMaxAggregateOutputType = {
   paymentType: $Enums.PaymentType | null
   payViaAccountId: string | null
   status: $Enums.ClaimStatus | null
+  exceedsLimit: boolean | null
   receiptUrl: string | null
   reviewNotes: string | null
   reviewerRole: $Enums.UserRole | null
@@ -133,6 +135,7 @@ export type ClaimCountAggregateOutputType = {
   paymentType: number
   payViaAccountId: number
   status: number
+  exceedsLimit: number
   receiptUrl: number
   reviewNotes: number
   reviewerRole: number
@@ -185,6 +188,7 @@ export type ClaimMinAggregateInputType = {
   paymentType?: true
   payViaAccountId?: true
   status?: true
+  exceedsLimit?: true
   receiptUrl?: true
   reviewNotes?: true
   reviewerRole?: true
@@ -223,6 +227,7 @@ export type ClaimMaxAggregateInputType = {
   paymentType?: true
   payViaAccountId?: true
   status?: true
+  exceedsLimit?: true
   receiptUrl?: true
   reviewNotes?: true
   reviewerRole?: true
@@ -261,6 +266,7 @@ export type ClaimCountAggregateInputType = {
   paymentType?: true
   payViaAccountId?: true
   status?: true
+  exceedsLimit?: true
   receiptUrl?: true
   reviewNotes?: true
   reviewerRole?: true
@@ -386,6 +392,7 @@ export type ClaimGroupByOutputType = {
   paymentType: $Enums.PaymentType
   payViaAccountId: string | null
   status: $Enums.ClaimStatus
+  exceedsLimit: boolean
   receiptUrl: string | null
   reviewNotes: string | null
   reviewerRole: $Enums.UserRole | null
@@ -447,6 +454,7 @@ export type ClaimWhereInput = {
   paymentType?: Prisma.EnumPaymentTypeFilter<"Claim"> | $Enums.PaymentType
   payViaAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
   status?: Prisma.EnumClaimStatusFilter<"Claim"> | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFilter<"Claim"> | boolean
   receiptUrl?: Prisma.StringNullableFilter<"Claim"> | string | null
   reviewNotes?: Prisma.StringNullableFilter<"Claim"> | string | null
   reviewerRole?: Prisma.EnumUserRoleNullableFilter<"Claim"> | $Enums.UserRole | null
@@ -491,6 +499,7 @@ export type ClaimOrderByWithRelationInput = {
   paymentType?: Prisma.SortOrder
   payViaAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  exceedsLimit?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewerRole?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -540,6 +549,7 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   paymentType?: Prisma.EnumPaymentTypeFilter<"Claim"> | $Enums.PaymentType
   payViaAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
   status?: Prisma.EnumClaimStatusFilter<"Claim"> | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFilter<"Claim"> | boolean
   receiptUrl?: Prisma.StringNullableFilter<"Claim"> | string | null
   reviewNotes?: Prisma.StringNullableFilter<"Claim"> | string | null
   reviewerRole?: Prisma.EnumUserRoleNullableFilter<"Claim"> | $Enums.UserRole | null
@@ -583,6 +593,7 @@ export type ClaimOrderByWithAggregationInput = {
   paymentType?: Prisma.SortOrder
   payViaAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  exceedsLimit?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewerRole?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -629,6 +640,7 @@ export type ClaimScalarWhereWithAggregatesInput = {
   paymentType?: Prisma.EnumPaymentTypeWithAggregatesFilter<"Claim"> | $Enums.PaymentType
   payViaAccountId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   status?: Prisma.EnumClaimStatusWithAggregatesFilter<"Claim"> | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolWithAggregatesFilter<"Claim"> | boolean
   receiptUrl?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   reviewNotes?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   reviewerRole?: Prisma.EnumUserRoleNullableWithAggregatesFilter<"Claim"> | $Enums.UserRole | null
@@ -663,6 +675,7 @@ export type ClaimCreateInput = {
   reviewedAt?: Date | string | null
   paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -705,6 +718,7 @@ export type ClaimUncheckedCreateInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -739,6 +753,7 @@ export type ClaimUpdateInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -781,6 +796,7 @@ export type ClaimUncheckedUpdateInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -819,6 +835,7 @@ export type ClaimCreateManyInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -853,6 +870,7 @@ export type ClaimUpdateManyMutationInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -889,6 +907,7 @@ export type ClaimUncheckedUpdateManyInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -943,6 +962,7 @@ export type ClaimCountOrderByAggregateInput = {
   paymentType?: Prisma.SortOrder
   payViaAccountId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  exceedsLimit?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrder
   reviewNotes?: Prisma.SortOrder
   reviewerRole?: Prisma.SortOrder
@@ -987,6 +1007,7 @@ export type ClaimMaxOrderByAggregateInput = {
   paymentType?: Prisma.SortOrder
   payViaAccountId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  exceedsLimit?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrder
   reviewNotes?: Prisma.SortOrder
   reviewerRole?: Prisma.SortOrder
@@ -1025,6 +1046,7 @@ export type ClaimMinOrderByAggregateInput = {
   paymentType?: Prisma.SortOrder
   payViaAccountId?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  exceedsLimit?: Prisma.SortOrder
   receiptUrl?: Prisma.SortOrder
   reviewNotes?: Prisma.SortOrder
   reviewerRole?: Prisma.SortOrder
@@ -1349,6 +1371,7 @@ export type ClaimCreateWithoutEmployeeInput = {
   reviewedAt?: Date | string | null
   paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1390,6 +1413,7 @@ export type ClaimUncheckedCreateWithoutEmployeeInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1433,6 +1457,7 @@ export type ClaimCreateWithoutReviewerInput = {
   reviewedAt?: Date | string | null
   paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1474,6 +1499,7 @@ export type ClaimUncheckedCreateWithoutReviewerInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1540,6 +1566,7 @@ export type ClaimScalarWhereInput = {
   paymentType?: Prisma.EnumPaymentTypeFilter<"Claim"> | $Enums.PaymentType
   payViaAccountId?: Prisma.StringNullableFilter<"Claim"> | string | null
   status?: Prisma.EnumClaimStatusFilter<"Claim"> | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFilter<"Claim"> | boolean
   receiptUrl?: Prisma.StringNullableFilter<"Claim"> | string | null
   reviewNotes?: Prisma.StringNullableFilter<"Claim"> | string | null
   reviewerRole?: Prisma.EnumUserRoleNullableFilter<"Claim"> | $Enums.UserRole | null
@@ -1590,6 +1617,7 @@ export type ClaimCreateWithoutOrganizationInput = {
   reviewedAt?: Date | string | null
   paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1630,6 +1658,7 @@ export type ClaimUncheckedCreateWithoutOrganizationInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1690,6 +1719,7 @@ export type ClaimCreateWithoutChartOfAccountInput = {
   reviewedAt?: Date | string | null
   paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1730,6 +1760,7 @@ export type ClaimUncheckedCreateWithoutChartOfAccountInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1774,6 +1805,7 @@ export type ClaimCreateWithoutPayViaAccountInput = {
   reviewedAt?: Date | string | null
   paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1814,6 +1846,7 @@ export type ClaimUncheckedCreateWithoutPayViaAccountInput = {
   reviewedAt?: Date | string | null
   paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1890,6 +1923,7 @@ export type ClaimCreateWithoutProjectInput = {
   reviewedAt?: Date | string | null
   paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1930,6 +1964,7 @@ export type ClaimUncheckedCreateWithoutProjectInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -1994,6 +2029,7 @@ export type ClaimCreateManyEmployeeInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -2031,6 +2067,7 @@ export type ClaimCreateManyReviewerInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -2064,6 +2101,7 @@ export type ClaimUpdateWithoutEmployeeInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2105,6 +2143,7 @@ export type ClaimUncheckedUpdateWithoutEmployeeInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2142,6 +2181,7 @@ export type ClaimUncheckedUpdateManyWithoutEmployeeInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2175,6 +2215,7 @@ export type ClaimUpdateWithoutReviewerInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2216,6 +2257,7 @@ export type ClaimUncheckedUpdateWithoutReviewerInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2253,6 +2295,7 @@ export type ClaimUncheckedUpdateManyWithoutReviewerInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2289,6 +2332,7 @@ export type ClaimCreateManyOrganizationInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -2323,6 +2367,7 @@ export type ClaimUpdateWithoutOrganizationInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2363,6 +2408,7 @@ export type ClaimUncheckedUpdateWithoutOrganizationInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2400,6 +2446,7 @@ export type ClaimUncheckedUpdateManyWithoutOrganizationInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2437,6 +2484,7 @@ export type ClaimCreateManyChartOfAccountInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -2474,6 +2522,7 @@ export type ClaimCreateManyPayViaAccountInput = {
   reviewedAt?: Date | string | null
   paymentType?: $Enums.PaymentType
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -2508,6 +2557,7 @@ export type ClaimUpdateWithoutChartOfAccountInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2548,6 +2598,7 @@ export type ClaimUncheckedUpdateWithoutChartOfAccountInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2585,6 +2636,7 @@ export type ClaimUncheckedUpdateManyWithoutChartOfAccountInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2619,6 +2671,7 @@ export type ClaimUpdateWithoutPayViaAccountInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2659,6 +2712,7 @@ export type ClaimUncheckedUpdateWithoutPayViaAccountInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2696,6 +2750,7 @@ export type ClaimUncheckedUpdateManyWithoutPayViaAccountInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2733,6 +2788,7 @@ export type ClaimCreateManyProjectInput = {
   paymentType?: $Enums.PaymentType
   payViaAccountId?: string | null
   status?: $Enums.ClaimStatus
+  exceedsLimit?: boolean
   receiptUrl?: string | null
   reviewNotes?: string | null
   reviewerRole?: $Enums.UserRole | null
@@ -2767,6 +2823,7 @@ export type ClaimUpdateWithoutProjectInput = {
   reviewedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2807,6 +2864,7 @@ export type ClaimUncheckedUpdateWithoutProjectInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2844,6 +2902,7 @@ export type ClaimUncheckedUpdateManyWithoutProjectInput = {
   paymentType?: Prisma.EnumPaymentTypeFieldUpdateOperationsInput | $Enums.PaymentType
   payViaAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumClaimStatusFieldUpdateOperationsInput | $Enums.ClaimStatus
+  exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   receiptUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerRole?: Prisma.NullableEnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole | null
@@ -2884,6 +2943,7 @@ export type ClaimSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   paymentType?: boolean
   payViaAccountId?: boolean
   status?: boolean
+  exceedsLimit?: boolean
   receiptUrl?: boolean
   reviewNotes?: boolean
   reviewerRole?: boolean
@@ -2930,6 +2990,7 @@ export type ClaimSelectScalar = {
   paymentType?: boolean
   payViaAccountId?: boolean
   status?: boolean
+  exceedsLimit?: boolean
   receiptUrl?: boolean
   reviewNotes?: boolean
   reviewerRole?: boolean
@@ -2949,7 +3010,7 @@ export type ClaimSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "claimType" | "organizationId" | "projectId" | "chartOfAccountId" | "amount" | "currency" | "spentAt" | "submittedAt" | "claimRunMonth" | "reviewedAt" | "paymentType" | "payViaAccountId" | "status" | "receiptUrl" | "reviewNotes" | "reviewerRole" | "distance" | "mileageOriginAddress" | "mileageDestinationAddress" | "mileageRateUsed" | "mileageUnitUsed" | "employeeId" | "reviewerId" | "xeroBillId" | "xeroBillRef" | "xeroSyncStatus" | "xeroSyncError" | "xeroSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["claim"]>
+export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "claimType" | "organizationId" | "projectId" | "chartOfAccountId" | "amount" | "currency" | "spentAt" | "submittedAt" | "claimRunMonth" | "reviewedAt" | "paymentType" | "payViaAccountId" | "status" | "exceedsLimit" | "receiptUrl" | "reviewNotes" | "reviewerRole" | "distance" | "mileageOriginAddress" | "mileageDestinationAddress" | "mileageRateUsed" | "mileageUnitUsed" | "employeeId" | "reviewerId" | "xeroBillId" | "xeroBillRef" | "xeroSyncStatus" | "xeroSyncError" | "xeroSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["claim"]>
 export type ClaimInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chartOfAccount?: boolean | Prisma.Claim$chartOfAccountArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -2995,6 +3056,12 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     paymentType: $Enums.PaymentType
     payViaAccountId: string | null
     status: $Enums.ClaimStatus
+    /**
+     * True when the claim's amount blew past the chart-of-account spend
+     * limit at submission time. The claim is still saved (employees can
+     * submit over-limit), but admins see a visual flag in their queue.
+     */
+    exceedsLimit: boolean
     receiptUrl: string | null
     reviewNotes: string | null
     reviewerRole: $Enums.UserRole | null
@@ -3405,6 +3472,7 @@ export interface ClaimFieldRefs {
   readonly paymentType: Prisma.FieldRef<"Claim", 'PaymentType'>
   readonly payViaAccountId: Prisma.FieldRef<"Claim", 'String'>
   readonly status: Prisma.FieldRef<"Claim", 'ClaimStatus'>
+  readonly exceedsLimit: Prisma.FieldRef<"Claim", 'Boolean'>
   readonly receiptUrl: Prisma.FieldRef<"Claim", 'String'>
   readonly reviewNotes: Prisma.FieldRef<"Claim", 'String'>
   readonly reviewerRole: Prisma.FieldRef<"Claim", 'UserRole'>

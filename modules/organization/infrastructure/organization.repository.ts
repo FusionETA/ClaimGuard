@@ -60,6 +60,26 @@ export type XeroConnectionRecord = {
 // callers below that pass a fallback positionally.
 const toNumberOr = (value: unknown, fallback: number) => toNumber(value, fallback)
 
+/// Compute the value to write into EmployeeProfile.hourlyRate based on
+/// role + payout method. Throws if HOURLY is selected but the rate is
+/// missing or non-positive. Returns null for SUPERVISOR / MONTHLY_BASED
+/// (the field stays null in those cases).
+///
+/// Returns a string ("12.50") because Prisma's Decimal column accepts a
+/// string and avoids float-rounding surprises.
+function resolveHourlyRateForWrite(
+  role: "EMPLOYEE" | "SUPERVISOR",
+  payoutMethod: EmployeePayoutMethod,
+  rate: number | null | undefined,
+): string | null {
+  const effective = resolveEmployeePayoutMethod(role, payoutMethod)
+  if (effective !== "HOURLY") return null
+  if (rate == null || !Number.isFinite(rate) || rate <= 0) {
+    throw new Error("Hourly rate is required and must be greater than zero.")
+  }
+  return rate.toFixed(2)
+}
+
 function mapOrganizationSummary(
   org?:
     | {
@@ -553,34 +573,42 @@ export const organizationRepository = {
         user.employeeProfile?.projectAssignments ?? [],
       )
 
-      // Build per-team chain map. Each chain row's teamId tells us which
-      // team it belongs to; legacy rows with teamId=null are dropped from
-      // the per-team view (they'll be cleaned up by the backfill).
+      // Build per-team chain map, grouped by step (multi-approver).
+      // Each chain row's teamId tells us which team it belongs to; legacy
+      // rows with teamId=null are dropped from the per-team view.
+      // Within a team, group by `step` so {step, approvers[]} is the
+      // shape we expose to the UI.
       const chainsByTeam = new Map<
         string,
-        Array<{ step: number; approverId: string; approverName: string }>
+        Map<number, Array<{ approverId: string; approverName: string }>>
       >()
       for (const s of user.approvalChainSteps) {
         if (!s.teamId) continue
-        const list = chainsByTeam.get(s.teamId) ?? []
-        list.push({
-          step: s.step,
-          approverId: s.approverId,
-          approverName: s.approver.name,
-        })
-        chainsByTeam.set(s.teamId, list)
+        const stepMap = chainsByTeam.get(s.teamId) ?? new Map()
+        const approvers = stepMap.get(s.step) ?? []
+        approvers.push({ approverId: s.approverId, approverName: s.approver.name })
+        stepMap.set(s.step, approvers)
+        chainsByTeam.set(s.teamId, stepMap)
       }
 
       const teams = (user.employeeProfile?.teamMemberships ?? []).map(
-        (membership) => ({
-          membershipId: membership.id,
-          teamId: membership.teamId,
-          teamName: membership.team.name,
-          projectId: membership.team.projectId,
-          projectName: membership.team.project.name,
-          layer: membership.layer,
-          chain: chainsByTeam.get(membership.teamId) ?? [],
-        }),
+        (membership) => {
+          const stepMap = chainsByTeam.get(membership.teamId) ?? new Map()
+          const stepNumbers = Array.from(stepMap.keys()).sort((a, b) => a - b)
+          const chain = stepNumbers.map((step) => ({
+            step,
+            approvers: stepMap.get(step) ?? [],
+          }))
+          return {
+            membershipId: membership.id,
+            teamId: membership.teamId,
+            teamName: membership.team.name,
+            projectId: membership.team.projectId,
+            projectName: membership.team.project.name,
+            layer: membership.layer,
+            chain,
+          }
+        },
       )
 
       return {
@@ -601,6 +629,10 @@ export const organizationRepository = {
           user.role as OrganizationMember["role"],
           user.employeeProfile?.payoutMethod,
         ),
+        hourlyRate:
+          user.employeeProfile?.hourlyRate != null
+            ? toNumber(user.employeeProfile.hourlyRate)
+            : undefined,
         supervisorId,
         supervisorName,
         xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
@@ -617,6 +649,10 @@ export const organizationRepository = {
     projectIds: string[]
     jobTitle: string
     payoutMethod: EmployeePayoutMethod
+    /// Required (positive number) when payoutMethod is HOURLY. Null /
+    /// undefined OK for MONTHLY_BASED. When the role flips to SUPERVISOR
+    /// or payoutMethod flips to MONTHLY_BASED, the rate is cleared.
+    hourlyRate?: number | null
     xeroConnectionId?: string
     /// One entry per project the employee should belong to. When provided
     /// (even as []), the employee's team memberships and chain rows are
@@ -813,6 +849,11 @@ export const organizationRepository = {
           project: primaryProjectName,
           jobTitle: data.jobTitle,
           payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
+          hourlyRate: resolveHourlyRateForWrite(
+            data.role,
+            data.payoutMethod,
+            data.hourlyRate,
+          ),
           xeroConnectionId: data.xeroConnectionId || null,
           ...(supervisorIdForProfile !== undefined
             ? { supervisorId: supervisorIdForProfile }
@@ -849,12 +890,22 @@ export const organizationRepository = {
             },
           })
           if (a.sortedChain.length > 0) {
+            // Step numbers based on unique layers, not array index, so
+            // multiple approvers at the same layer share one step.
+            const layerToStep = new Map<number, number>()
+            let stepCounter = 0
+            for (const c of a.sortedChain) {
+              if (!layerToStep.has(c.layer)) {
+                stepCounter += 1
+                layerToStep.set(c.layer, stepCounter)
+              }
+            }
             await tx.approvalChainStep.createMany({
-              data: a.sortedChain.map((c, index) => ({
+              data: a.sortedChain.map((c) => ({
                 employeeId: data.userId,
                 teamId: a.teamId,
                 approverId: c.userId,
-                step: index + 1,
+                step: layerToStep.get(c.layer)!,
               })),
             })
           }
@@ -875,6 +926,10 @@ export const organizationRepository = {
     projectIds: string[]
     jobTitle: string
     payoutMethod: EmployeePayoutMethod
+    /// Required (positive number) when payoutMethod is HOURLY. Ignored
+    /// otherwise — supervisors and MONTHLY_BASED employees don't carry
+    /// an hourly rate.
+    hourlyRate?: number | null
     xeroConnectionId?: string
     /// One entry per project the employee belongs to. Each entry pins the
     /// employee to a team in that project at a specific layer, plus an
@@ -1070,6 +1125,7 @@ export const organizationRepository = {
             jobTitle: data.jobTitle,
             supervisorId: supervisorIdForProfile,
             payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
+            hourlyRate: resolveHourlyRateForWrite(data.role, data.payoutMethod, data.hourlyRate),
             preferredCurrency: "USD",
             xeroConnectionId: data.xeroConnectionId || null,
             projectAssignments: {
@@ -1094,14 +1150,26 @@ export const organizationRepository = {
     })
 
     // Write per-team chain rows. Each project's chain is independent.
+    // Multiple approvers per layer share a single step number — they're
+    // any-of approvers (any one approves → step is done). Step numbers
+    // are assigned in layer order (1-indexed, skipping the employee's
+    // own layer).
     for (const a of validatedAssignments) {
       if (a.sortedChain.length === 0) continue
+      const layerToStep = new Map<number, number>()
+      let stepCounter = 0
+      for (const c of a.sortedChain) {
+        if (!layerToStep.has(c.layer)) {
+          stepCounter += 1
+          layerToStep.set(c.layer, stepCounter)
+        }
+      }
       await prisma.approvalChainStep.createMany({
-        data: a.sortedChain.map((c, index) => ({
+        data: a.sortedChain.map((c) => ({
           employeeId: user.id,
           teamId: a.teamId,
           approverId: c.userId,
-          step: index + 1,
+          step: layerToStep.get(c.layer)!,
         })),
       })
     }
@@ -1891,7 +1959,12 @@ export const organizationRepository = {
 
     const rows = await prisma.xeroProject.findMany({
       where: { xeroConnectionId, isDisabled: false },
-      include: { projectManager: { select: { id: true, name: true } } },
+      include: {
+        projectManager: { select: { id: true, name: true } },
+        projectManagers: {
+          include: { user: { select: { id: true, name: true } } },
+        },
+      },
       orderBy: [{ name: "asc" }],
     })
 
@@ -1904,6 +1977,10 @@ export const organizationRepository = {
       xeroConnectionId: row.xeroConnectionId ?? undefined,
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
+      projectManagers: row.projectManagers.map((pm) => ({
+        userId: pm.user.id,
+        name: pm.user.name,
+      })),
       location: row.location ?? undefined,
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
@@ -1919,6 +1996,9 @@ export const organizationRepository = {
       where: { organizationId, isDisabled: false },
       include: {
         projectManager: { select: { id: true, name: true } },
+        projectManagers: {
+          include: { user: { select: { id: true, name: true } } },
+        },
         holidays: { orderBy: { date: "asc" } },
       },
       orderBy: [{ name: "asc" }],
@@ -1933,6 +2013,10 @@ export const organizationRepository = {
       xeroConnectionId: row.xeroConnectionId ?? undefined,
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
+      projectManagers: row.projectManagers.map((pm) => ({
+        userId: pm.user.id,
+        name: pm.user.name,
+      })),
       location: row.location ?? undefined,
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
@@ -1951,7 +2035,9 @@ export const organizationRepository = {
   async createManualProject(data: {
     organizationId: string
     name: string
-    projectManagerId?: string
+    /// Multiple project managers, written into the ProjectManager join
+    /// table. Each must be a SUPERVISOR or ADMIN in the same organization.
+    projectManagerIds?: string[]
     location?: string
     latitude?: number
     longitude?: number
@@ -1959,18 +2045,22 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
-    if (data.projectManagerId) {
-      const pm = await prisma.user.findUnique({
-        where: { id: data.projectManagerId },
-        select: { organizationId: true, role: true },
+    const pmIds = Array.from(new Set(data.projectManagerIds ?? [])).filter(Boolean)
+    if (pmIds.length > 0) {
+      const pms = await prisma.user.findMany({
+        where: { id: { in: pmIds } },
+        select: { id: true, organizationId: true, role: true },
       })
-
-      if (
-        !pm ||
-        pm.organizationId !== data.organizationId ||
-        pm.role !== "SUPERVISOR"
-      ) {
-        throw new Error("Project manager must be a supervisor in this organization.")
+      if (pms.length !== pmIds.length) {
+        throw new Error("One or more project managers were not found.")
+      }
+      for (const pm of pms) {
+        if (pm.organizationId !== data.organizationId) {
+          throw new Error("Project managers must belong to this organization.")
+        }
+        if (pm.role !== "SUPERVISOR" && pm.role !== "ADMIN") {
+          throw new Error("Project managers must be SUPERVISOR or ADMIN.")
+        }
       }
     }
 
@@ -1978,13 +2068,24 @@ export const organizationRepository = {
       data: {
         organizationId: data.organizationId,
         name: data.name,
-        projectManagerId: data.projectManagerId || null,
+        // Keep the legacy single-PM column in sync with the first picked
+        // PM so older readers still see something. Eventually this column
+        // will be dropped when no callers need it.
+        projectManagerId: pmIds[0] ?? null,
         location: data.location || null,
         latitude: data.latitude ?? null,
         longitude: data.longitude ?? null,
         isManual: true,
+        projectManagers: {
+          create: pmIds.map((userId) => ({ userId })),
+        },
       },
-      include: { projectManager: { select: { id: true, name: true } } },
+      include: {
+        projectManager: { select: { id: true, name: true } },
+        projectManagers: {
+          include: { user: { select: { id: true, name: true } } },
+        },
+      },
     })
 
     return {
@@ -1992,6 +2093,10 @@ export const organizationRepository = {
       name: row.name,
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
+      projectManagers: row.projectManagers.map((pm) => ({
+        userId: pm.user.id,
+        name: pm.user.name,
+      })),
       location: row.location ?? undefined,
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
@@ -2002,7 +2107,9 @@ export const organizationRepository = {
   async updateProjectDetails(data: {
     projectId: string
     organizationId: string
-    projectManagerId?: string
+    /// When provided (even as []), replaces the project's manager set.
+    /// When undefined, the existing managers are left untouched.
+    projectManagerIds?: string[]
     location?: string
     latitude?: number | null
     longitude?: number | null
@@ -2010,29 +2117,52 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
-    if (data.projectManagerId) {
-      const pm = await prisma.user.findUnique({
-        where: { id: data.projectManagerId },
-        select: { organizationId: true, role: true },
-      })
-
-      if (
-        !pm ||
-        pm.organizationId !== data.organizationId ||
-        pm.role !== "SUPERVISOR"
-      ) {
-        throw new Error("Project manager must be a supervisor in this organization.")
+    let nextPmIds: string[] | undefined
+    if (data.projectManagerIds !== undefined) {
+      nextPmIds = Array.from(new Set(data.projectManagerIds)).filter(Boolean)
+      if (nextPmIds.length > 0) {
+        const pms = await prisma.user.findMany({
+          where: { id: { in: nextPmIds } },
+          select: { id: true, organizationId: true, role: true },
+        })
+        if (pms.length !== nextPmIds.length) {
+          throw new Error("One or more project managers were not found.")
+        }
+        for (const pm of pms) {
+          if (pm.organizationId !== data.organizationId) {
+            throw new Error("Project managers must belong to this organization.")
+          }
+          if (pm.role !== "SUPERVISOR" && pm.role !== "ADMIN") {
+            throw new Error("Project managers must be SUPERVISOR or ADMIN.")
+          }
+        }
       }
     }
 
-    await prisma.xeroProject.updateMany({
-      where: { id: data.projectId, organizationId: data.organizationId },
-      data: {
-        projectManagerId: data.projectManagerId || null,
-        location: data.location || null,
-        latitude: data.latitude ?? null,
-        longitude: data.longitude ?? null,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.xeroProject.updateMany({
+        where: { id: data.projectId, organizationId: data.organizationId },
+        data: {
+          // Keep the legacy column in sync with the first picked PM.
+          ...(nextPmIds !== undefined
+            ? { projectManagerId: nextPmIds[0] ?? null }
+            : {}),
+          location: data.location || null,
+          latitude: data.latitude ?? null,
+          longitude: data.longitude ?? null,
+        },
+      })
+
+      if (nextPmIds !== undefined) {
+        await tx.projectManager.deleteMany({
+          where: { projectId: data.projectId },
+        })
+        for (const userId of nextPmIds) {
+          await tx.projectManager.create({
+            data: { projectId: data.projectId, userId },
+          })
+        }
+      }
     })
   },
 

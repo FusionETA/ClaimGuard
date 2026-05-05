@@ -190,6 +190,143 @@ function resolveTabFromInitial(initial?: string): {
   }
 }
 
+/**
+ * Searchable multi-select dropdown. Click the trigger to open a popup
+ * with a search input and a filtered list of options; clicking an option
+ * toggles its selection. The popup auto-closes on outside-click.
+ *
+ * Use when a multi-select needs to scale past a handful of options — the
+ * search makes long supervisor / PM lists usable. For short lists, a
+ * flat checkbox group is fine.
+ */
+function SearchableMultiSelect({
+  options,
+  selectedIds,
+  onToggle,
+  disabled,
+  placeholder,
+  emptyText = "No matches",
+  noOptionsText = "Nothing to pick",
+}: {
+  options: Array<{ id: string; label: string }>
+  selectedIds: string[]
+  onToggle: (id: string) => void
+  disabled?: boolean
+  placeholder: string
+  emptyText?: string
+  noOptionsText?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+
+  const selectedOptions = options.filter((o) => selectedIds.includes(o.id))
+  const triggerLabel =
+    selectedOptions.length === 0
+      ? placeholder
+      : selectedOptions.length <= 2
+        ? selectedOptions.map((o) => o.label).join(", ")
+        : `${selectedOptions[0]!.label} +${selectedOptions.length - 1}`
+
+  const trimmedQuery = query.trim().toLowerCase()
+  const filtered = trimmedQuery
+    ? options.filter((o) => o.label.toLowerCase().includes(trimmedQuery))
+    : options
+
+  // Close on outside click. Auto-focus search when opened.
+  useEffect(() => {
+    function handleDown(event: MouseEvent) {
+      if (!containerRef.current?.contains(event.target as Node)) {
+        setOpen(false)
+        setQuery("")
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleDown)
+      // Defer focus a tick so the input is mounted.
+      const t = setTimeout(() => inputRef.current?.focus(), 10)
+      return () => {
+        document.removeEventListener("mousedown", handleDown)
+        clearTimeout(t)
+      }
+    }
+    return undefined
+  }, [open])
+
+  return (
+    <div ref={containerRef} className="relative">
+      <button
+        type="button"
+        onClick={() => !disabled && setOpen((v) => !v)}
+        disabled={disabled || options.length === 0}
+        className="flex h-10 w-full items-center justify-between gap-2 rounded-2xl border border-border/80 bg-card px-3 py-2 text-left text-sm text-foreground shadow-sm transition hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <span
+          className={cn(
+            "truncate",
+            selectedOptions.length === 0 ? "text-muted-foreground" : "",
+          )}
+        >
+          {options.length === 0 ? noOptionsText : triggerLabel}
+        </span>
+        <span className="text-[10px] font-semibold text-muted-foreground">
+          {selectedIds.length > 0 ? `${selectedIds.length} selected` : ""}
+        </span>
+      </button>
+
+      {open ? (
+        <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-50 rounded-2xl border border-border/80 bg-card p-2 shadow-panel">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search…"
+              className="h-9 w-full rounded-xl border border-border/70 bg-background pl-8 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+          </div>
+          {/* Cap at ~5 visible rows; the rest scrolls. Avoids the popup
+              ballooning when a team has many supervisors. */}
+          <div className="mt-1.5 max-h-[200px] space-y-0.5 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                {emptyText}
+              </p>
+            ) : (
+              filtered.map((o) => {
+                const checked = selectedIds.includes(o.id)
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => onToggle(o.id)}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition",
+                      checked
+                        ? "bg-primary/8 text-foreground"
+                        : "text-muted-foreground hover:bg-surface-low/80",
+                    )}
+                  >
+                    <span className="truncate">{o.label}</span>
+                    {checked ? (
+                      <span className="text-[10px] font-semibold uppercase text-primary">
+                        Selected
+                      </span>
+                    ) : null}
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function ProjectCard({
   project,
   members,
@@ -200,14 +337,22 @@ function ProjectCard({
   members: OrganizationMember[]
   onUpdate: (
     id: string,
-    projectManagerId: string | undefined,
+    projectManagerIds: string[],
     location: string | undefined,
     latitude: number | null,
     longitude: number | null
   ) => void
   onDelete?: (id: string) => void
 }) {
-  const [pmId, setPmId] = useState(project.projectManagerId ?? "")
+  // Multi-select PM state. Prefilled from the project's join-table-backed
+  // managers list; falls back to the legacy single PM if the join table is
+  // empty (handles a fresh schema before the backfill ran).
+  const [pmIds, setPmIds] = useState<string[]>(() => {
+    if (project.projectManagers && project.projectManagers.length > 0) {
+      return project.projectManagers.map((pm) => pm.userId)
+    }
+    return project.projectManagerId ? [project.projectManagerId] : []
+  })
   const [coords, setCoords] = useState<{ lat: number | null; lng: number | null }>({
     lat: project.latitude ?? null,
     lng: project.longitude ?? null,
@@ -216,10 +361,13 @@ function ProjectCard({
 
   async function handleSave() {
     setSaving(true)
-    // Server derives `location` from coords; pass undefined to let it overwrite.
-    await onUpdate(project.id, pmId || undefined, undefined, coords.lat, coords.lng)
+    await onUpdate(project.id, pmIds, undefined, coords.lat, coords.lng)
     setSaving(false)
   }
+
+  const supervisorMembers = members.filter(
+    (m) => m.role === "SUPERVISOR",
+  )
 
   return (
     <div className="rounded-[20px] border border-border/70 bg-surface-low p-4 space-y-3">
@@ -240,24 +388,28 @@ function ProjectCard({
           </button>
         ) : null}
       </div>
-      <Select
-        value={pmId || "__none"}
-        onValueChange={(v) => setPmId(v === "__none" ? "" : v)}
-      >
-        <SelectTrigger className="h-10 text-sm">
-          <SelectValue placeholder="No project manager" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__none">No project manager</SelectItem>
-          {members
-            .filter((m) => m.role === "SUPERVISOR")
-            .map((m) => (
-              <SelectItem key={m.id} value={m.id}>
-                {m.name}
-              </SelectItem>
-            ))}
-        </SelectContent>
-      </Select>
+      <div className="space-y-1.5">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          Project managers
+        </p>
+        <SearchableMultiSelect
+          options={supervisorMembers.map((m) => ({ id: m.id, label: m.name }))}
+          selectedIds={pmIds}
+          onToggle={(id) =>
+            setPmIds((prev) =>
+              prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+            )
+          }
+          placeholder="Pick project managers"
+          emptyText="No supervisor matches that name"
+          noOptionsText="No supervisors yet — add some first"
+        />
+        {pmIds.length > 0 ? (
+          <p className="text-[11px] text-muted-foreground">
+            {pmIds.length} manager{pmIds.length === 1 ? "" : "s"} selected
+          </p>
+        ) : null}
+      </div>
       <CoordinatePairInputs
         defaultLat={project.latitude ?? null}
         defaultLng={project.longitude ?? null}
@@ -450,12 +602,18 @@ export function AdminSettingsPanel({
 
   async function handleUpdateProject(
     projectId: string,
-    projectManagerId: string | undefined,
+    projectManagerIds: string[],
     location: string | undefined,
     latitude: number | null,
     longitude: number | null
   ) {
-    const result = await updateProjectAction(projectId, projectManagerId, location, latitude, longitude)
+    const result = await updateProjectAction(
+      projectId,
+      projectManagerIds,
+      location,
+      latitude,
+      longitude,
+    )
     if (result.ok) {
       toast({ title: result.message, variant: "success" })
     } else {
@@ -1499,7 +1657,12 @@ export function AdminSettingsPanel({
                       required
                     />
                     <div className="min-w-[200px] flex-1">
-                      <Select name="projectManagerId" defaultValue="__none">
+                      {/* Pick one PM at creation time. More can be added
+                          later by editing the project — that's where the
+                          full multi-select PM picker lives. The form
+                          field is named `projectManagerIds` so the action
+                          reads it as a list (with one entry). */}
+                      <Select name="projectManagerIds" defaultValue="__none">
                         <SelectTrigger className="text-sm">
                           <SelectValue placeholder="No project manager" />
                         </SelectTrigger>
