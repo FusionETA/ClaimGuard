@@ -4,10 +4,10 @@ const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "ClaimGuard",
-    short_name: "ClaimGuard",
+    name: "Workpulse",
+    short_name: "Workpulse",
     description:
-      "Responsive employee and admin claims portals with offline-friendly PWA support.",
+      "Workpulse — responsive employee and admin claims portals with offline-friendly PWA support.",
     start_url: "/",
     display: "standalone",
     background_color: "#EAF4F2",
