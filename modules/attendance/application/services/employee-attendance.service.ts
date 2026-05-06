@@ -148,10 +148,6 @@ export const employeeAttendanceService = {
     projectId: string,
     coords?: { lat: number; lng: number },
     notes?: string,
-    /// Hourly Worker selfie (data URL). Storage TBD — captured here so
-    /// the call site can wire it in once the upload target is decided.
-    /// For now we just acknowledge receipt; nothing is persisted.
-    selfie?: string,
   ) {
     const [project, orgId] = await Promise.all([
       attendanceRepository.getProjectGeoById(projectId),
@@ -163,13 +159,6 @@ export const employeeAttendanceService = {
     const fence = checkGeofence(coords ?? null, project, radius)
     if (!fence.withinRadius && !notes) {
       throw new Error(OFF_SITE_REMARK_REQUIRED)
-    }
-
-    if (selfie) {
-      // TODO(storage): upload to S3/R2/Xero file store and stash the URL
-      // on AttendanceRecord. For now the selfie is intentionally
-      // discarded — UI flow only.
-      void selfie
     }
 
     const location = coords

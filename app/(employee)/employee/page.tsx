@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/attendanc
 import { getEmployeeDashboard, getEmployeeClaimSubmissionData } from "@/modules/claims/application/services/employee-portal.service"
 import { formatCurrency } from "@/lib/utils"
 import { requirePortalSession } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 import { countPendingClaimsForSupervisor } from "@/modules/claims/application/services/claim-workflow.service"
@@ -30,15 +29,7 @@ export default async function EmployeeDashboardPage() {
   if (!data) redirect("/login")
 
   const isSupervisor = session.role === "SUPERVISOR"
-  const prisma = getPrismaClient()
-  const [
-    attendanceDashboard,
-    projects,
-    pendingApprovals,
-    pendingClaimApprovals,
-    claimSubmissionData,
-    profile,
-  ] = await Promise.all([
+  const [attendanceDashboard, projects, pendingApprovals, pendingClaimApprovals, claimSubmissionData] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
     employeeAttendanceService.getAvailableProjects(session.userId),
     isSupervisor
@@ -48,14 +39,7 @@ export default async function EmployeeDashboardPage() {
       ? countPendingClaimsForSupervisor(session.email)
       : Promise.resolve(0),
     getEmployeeClaimSubmissionData(),
-    prisma
-      ? prisma.employeeProfile.findUnique({
-          where: { userId: session.userId },
-          select: { payoutMethod: true },
-        })
-      : Promise.resolve(null),
   ])
-  const requiresSelfieOnClockIn = profile?.payoutMethod === "HOURLY"
   const clockState = deriveClockState(attendanceDashboard.todayEvents)
   const activeProject = attendanceDashboard.today?.project ?? null
   const activeLocation = attendanceDashboard.today?.location ?? null
@@ -91,7 +75,6 @@ export default async function EmployeeDashboardPage() {
           now={nowIso}
           onBreak={attendanceDashboard.today?.onBreak ?? false}
           currentBreakStartedAt={attendanceDashboard.today?.currentBreakStartedAt ?? null}
-          requiresSelfieOnClockIn={requiresSelfieOnClockIn}
         />
       </section>
 
