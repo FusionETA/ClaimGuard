@@ -407,7 +407,7 @@ export function ClockCard({
                 onValueChange={setSelected}
                 disabled={projects.length === 0}
               >
-                <SelectTrigger>
+                <SelectTrigger id="projectId">
                   <SelectValue placeholder={projects.length === 0 ? "No projects available" : "Select a project…"} />
                 </SelectTrigger>
                 <SelectContent>
