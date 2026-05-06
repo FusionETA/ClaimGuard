@@ -80,6 +80,10 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/claims",
     label: "Claims",
     icon: Receipt,
+    children: [
+      { href: "/admin/claims", label: "Queue" },
+      { href: "/admin/claims/breakdown" as Route, label: "Reports" },
+    ],
   },
   {
     // Cast to Route — next/types regenerates the Route union from app/**/page
