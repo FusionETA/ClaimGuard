@@ -19,6 +19,7 @@ import {
   EMPTY_BUCKETS,
   addBuckets,
   bucketRecord,
+  formatHm,
   parseWorkingDays,
   standardDailyMinutesFrom,
   type HoursBuckets,
@@ -799,6 +800,60 @@ export const attendanceRepository = {
           : {}),
       },
     })
+
+    // Auto-create an OT ApprovalRequest when the day's worked minutes
+    // exceed the org's daily OT threshold. Routed through the team's
+    // multi-layer chain (filtered by Team.moduleConfig.OT) — the work
+    // only buckets as OT once the chain reaches APPROVED.
+    if (durationMin && orgId) {
+      const org = await prisma.organization.findUnique({
+        where: { id: orgId },
+        select: { otEnabled: true, otDailyThresholdMinutes: true },
+      })
+      const threshold = org?.otDailyThresholdMinutes ?? 480
+      if (org?.otEnabled && durationMin > threshold) {
+        const otMinutes = durationMin - threshold
+        const existingOt = await prisma.approvalRequest.findFirst({
+          where: { employeeId, date: today, kind: "OT" },
+          select: { id: true, status: true },
+        })
+        if (!existingOt) {
+          const profile = await prisma.employeeProfile.findUnique({
+            where: { userId: employeeId },
+            select: { id: true, otPayoutMethod: true },
+          })
+          const payout =
+            profile?.otPayoutMethod === "TIME_BANK" ? "TIME_BANK" : "CASH"
+          await prisma.approvalRequest.create({
+            data: {
+              employeeId,
+              kind: "OT",
+              status: autoApprove ? "APPROVED" : "PENDING",
+              date: today,
+              eventAt: now,
+              title: `OT • ${formatHm(otMinutes)}`,
+              detail: `Worked ${formatHm(durationMin)} (threshold ${formatHm(threshold)}). Excess of ${formatHm(otMinutes)} requested as OT.`,
+              project: existing?.project ?? null,
+              otSubtype: null,
+              otPayoutMethod: payout,
+              ...(autoApprove
+                ? {
+                    reviewerId: employeeId,
+                    reviewedAt: now,
+                    reviewNotes: "Auto-approved (supervisor self-attendance)",
+                  }
+                : {}),
+            },
+          })
+          if (autoApprove && payout === "TIME_BANK" && profile) {
+            await prisma.employeeProfile.update({
+              where: { id: profile.id },
+              data: { otTimeBalanceMin: { increment: otMinutes } },
+            })
+          }
+        }
+      }
+    }
 
     return { recordId: record.id, approvalId: approval.id }
   },

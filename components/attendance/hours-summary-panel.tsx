@@ -205,16 +205,16 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
     )
   }
   return (
-    <div className="overflow-x-auto">
+    <div className="max-h-[420px] overflow-auto rounded-md border border-border/40">
       <table className="w-full min-w-[640px] text-sm">
-        <thead>
+        <thead className="sticky top-0 z-10 bg-card">
           <tr className="border-b border-border/60 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-            <th className="py-2 pr-3 font-semibold">Employee</th>
-            <th className="py-2 pr-3 text-right font-semibold">Normal</th>
-            <th className="py-2 pr-3 text-right font-semibold">OT</th>
-            <th className="py-2 pr-3 text-right font-semibold">Rest day</th>
-            <th className="py-2 pr-3 text-right font-semibold">PH</th>
-            <th className="py-2 pr-0 text-right font-semibold">Total</th>
+            <th className="bg-card py-2 pl-3 pr-3 font-semibold">Employee</th>
+            <th className="bg-card py-2 pr-3 text-right font-semibold">Normal</th>
+            <th className="bg-card py-2 pr-3 text-right font-semibold">OT</th>
+            <th className="bg-card py-2 pr-3 text-right font-semibold">Rest day</th>
+            <th className="bg-card py-2 pr-3 text-right font-semibold">PH</th>
+            <th className="bg-card py-2 pr-3 text-right font-semibold">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -227,7 +227,7 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
                   isZero ? "text-muted-foreground" : "text-foreground"
                 }`}
               >
-                <td className="py-2 pr-3">
+                <td className="py-2 pl-3 pr-3">
                   <div className="font-medium">{row.name}</div>
                   <div className="text-[10px] text-muted-foreground">
                     {row.email}
@@ -245,7 +245,7 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
                 <td className="py-2 pr-3 text-right tabular-nums">
                   {formatHm(row.buckets.publicHolidayMin)}
                 </td>
-                <td className="py-2 pr-0 text-right font-semibold tabular-nums">
+                <td className="py-2 pr-3 text-right font-semibold tabular-nums">
                   {formatHm(row.buckets.totalMin)}
                 </td>
               </tr>

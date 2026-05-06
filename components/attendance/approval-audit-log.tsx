@@ -259,17 +259,17 @@ export function ApprovalAuditLog({
               : "No rows match the current filters."}
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="max-h-[420px] overflow-auto rounded-md border border-border/40">
             <table className="w-full min-w-[860px] text-sm">
-              <thead>
+              <thead className="sticky top-0 z-10 bg-card">
                 <tr className="border-b border-border/60 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <th className="py-2 pr-3 font-semibold">Employee</th>
-                  <th className="py-2 pr-3 font-semibold">Kind</th>
-                  <th className="py-2 pr-3 font-semibold">Event</th>
-                  <th className="py-2 pr-3 font-semibold">Reviewed by</th>
-                  <th className="py-2 pr-3 font-semibold">Reviewed at</th>
-                  <th className="py-2 pr-3 text-right font-semibold">Δ vs event</th>
-                  <th className="py-2 pr-0 font-semibold">Status</th>
+                  <th className="bg-card py-2 pl-3 pr-3 font-semibold">Employee</th>
+                  <th className="bg-card py-2 pr-3 font-semibold">Kind</th>
+                  <th className="bg-card py-2 pr-3 font-semibold">Event</th>
+                  <th className="bg-card py-2 pr-3 font-semibold">Reviewed by</th>
+                  <th className="bg-card py-2 pr-3 font-semibold">Reviewed at</th>
+                  <th className="bg-card py-2 pr-3 text-right font-semibold">Δ vs event</th>
+                  <th className="bg-card py-2 pr-3 font-semibold">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -278,7 +278,7 @@ export function ApprovalAuditLog({
                     key={row.id}
                     className="border-b border-border/30 text-foreground"
                   >
-                    <td className="py-2 pr-3">
+                    <td className="py-2 pl-3 pr-3">
                       <div className="font-medium">{row.employeeName}</div>
                       {row.project ? (
                         <div className="text-[10px] text-muted-foreground">
@@ -320,7 +320,7 @@ export function ApprovalAuditLog({
                     <td className="py-2 pr-3 text-right text-xs tabular-nums">
                       {fmtDelay(row.delayMinutes)}
                     </td>
-                    <td className="py-2 pr-0">
+                    <td className="py-2 pr-3">
                       <Badge
                         variant={
                           row.status === "APPROVED" ? "approved" : "rejected"
