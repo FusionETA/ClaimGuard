@@ -467,6 +467,23 @@ export type EnumUserRoleNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumUserRoleNullableFilter<$PrismaModel>
 }
 
+export type EnumClaimApprovalDecisionFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClaimApprovalDecision | Prisma.EnumClaimApprovalDecisionFieldRefInput<$PrismaModel>
+  in?: $Enums.ClaimApprovalDecision[]
+  notIn?: $Enums.ClaimApprovalDecision[]
+  not?: Prisma.NestedEnumClaimApprovalDecisionFilter<$PrismaModel> | $Enums.ClaimApprovalDecision
+}
+
+export type EnumClaimApprovalDecisionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClaimApprovalDecision | Prisma.EnumClaimApprovalDecisionFieldRefInput<$PrismaModel>
+  in?: $Enums.ClaimApprovalDecision[]
+  notIn?: $Enums.ClaimApprovalDecision[]
+  not?: Prisma.NestedEnumClaimApprovalDecisionWithAggregatesFilter<$PrismaModel> | $Enums.ClaimApprovalDecision
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClaimApprovalDecisionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClaimApprovalDecisionFilter<$PrismaModel>
+}
+
 export type EnumLimitPeriodNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.LimitPeriod | Prisma.EnumLimitPeriodFieldRefInput<$PrismaModel> | null
   in?: $Enums.LimitPeriod[] | null
@@ -1132,6 +1149,23 @@ export type NestedEnumUserRoleNullableWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumUserRoleNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumUserRoleNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumClaimApprovalDecisionFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClaimApprovalDecision | Prisma.EnumClaimApprovalDecisionFieldRefInput<$PrismaModel>
+  in?: $Enums.ClaimApprovalDecision[]
+  notIn?: $Enums.ClaimApprovalDecision[]
+  not?: Prisma.NestedEnumClaimApprovalDecisionFilter<$PrismaModel> | $Enums.ClaimApprovalDecision
+}
+
+export type NestedEnumClaimApprovalDecisionWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ClaimApprovalDecision | Prisma.EnumClaimApprovalDecisionFieldRefInput<$PrismaModel>
+  in?: $Enums.ClaimApprovalDecision[]
+  notIn?: $Enums.ClaimApprovalDecision[]
+  not?: Prisma.NestedEnumClaimApprovalDecisionWithAggregatesFilter<$PrismaModel> | $Enums.ClaimApprovalDecision
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClaimApprovalDecisionFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClaimApprovalDecisionFilter<$PrismaModel>
 }
 
 export type NestedEnumLimitPeriodNullableFilter<$PrismaModel = never> = {

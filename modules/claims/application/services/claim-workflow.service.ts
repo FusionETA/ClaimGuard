@@ -104,14 +104,14 @@ export type ReviewClaimInput = {
   reason: string
 }
 
-export type AdminReviewClaimInput = ReviewClaimInput & {
-  /**
-   * Optional Chart-of-Account override. Admin's final review lets them
-   * recode the claim if it was filed against the wrong account; ignored on
-   * reject. Empty string is treated as "no change".
-   */
-  chartOfAccountId?: string
-}
+/**
+ * Admin's final review takes the same shape as a supervisor review now.
+ * COA changes used to live here; they were moved to the post-approval
+ * sync stage (see `syncClaimToXero`) so the chart-of-account chosen by
+ * the employee is preserved through the approval chain. The admin only
+ * recodes immediately before pushing to Xero.
+ */
+export type AdminReviewClaimInput = ReviewClaimInput
 
 export type CreateClaimInput = {
   title: string
@@ -920,17 +920,15 @@ export async function reviewClaimForAdmin({
     }
   }
 
-  // Trim + drop empty COA overrides so the repo only writes when the admin
-  // actually picked something different.
-  const overrideCoa = input.chartOfAccountId?.trim() || undefined
-
+  // COA changes are NOT allowed at the review stage anymore — they happen
+  // immediately before Xero sync (see `syncClaimToXero` below). The admin
+  // can only approve / reject here, with a review note.
   const result = await claimRepository.reviewClaim({
     claimId: parsed.data.claimId,
     status: parsed.data.decision,
     reviewNotes: parsed.data.reason || undefined,
     reviewerId: session.userId,
     supervisorOnly: false,
-    chartOfAccountId: overrideCoa,
   })
 
   if (!result.ok) {
@@ -983,4 +981,79 @@ export async function reviewClaimForAdmin({
     reviewerName: session.name,
     reason: parsed.data.reason,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Sync to Xero
+// ---------------------------------------------------------------------------
+
+/**
+ * Push a REVIEWED claim to Xero. Currently STUBBED — only flips the
+ * `xeroSyncStatus` field to SYNCED, optionally re-codes the chart of
+ * account, and records when the sync happened. The actual Xero call
+ * (createBill / spendMoney with the receipt attached) gets wired in
+ * later — until then, the claim sits in the admin's "Ready to sync"
+ * queue and disappears once they click Sync (good for E2E testing of
+ * the workflow without burning Xero API quota).
+ *
+ * Permissions: admin only.
+ */
+export type SyncClaimInput = {
+  claimId: string
+  /** Optional final-stage COA override. Empty / undefined means "no
+   *  change — keep what the employee picked at submission." */
+  chartOfAccountId?: string
+}
+
+export type SyncClaimResult =
+  | { ok: true; claimTitle: string }
+  | { ok: false; status: number; message: string }
+
+export async function syncClaimToXero({
+  session,
+  input,
+}: {
+  session: AuthenticatedSession
+  input: SyncClaimInput
+}): Promise<SyncClaimResult> {
+  if (session.role !== "ADMIN") {
+    return { ok: false, status: 403, message: "Admins only." }
+  }
+  if (!input.claimId) {
+    return { ok: false, status: 400, message: "Missing claim id." }
+  }
+
+  // STUB: real Xero call goes here. For now we just flip xeroSyncStatus
+  // and (optionally) recode the COA. When the Xero call is added, it
+  // returns a bill id we pass through `xeroBillId`.
+  const result = await claimRepository.syncClaim({
+    claimId: input.claimId,
+    chartOfAccountId: input.chartOfAccountId?.trim() || undefined,
+  })
+
+  if (!result.ok) {
+    const map = {
+      DB_UNAVAILABLE: { status: 503, message: "Database is not configured." },
+      NOT_FOUND: { status: 404, message: "Claim not found." },
+      NOT_ACTIONABLE: {
+        status: 409,
+        message:
+          "This claim isn't ready to sync — it must be REVIEWED and not yet synced.",
+      },
+    } as const
+    const m = map[result.error]
+    return { ok: false, status: m.status, message: m.message }
+  }
+
+  // Mirror reviewClaim's cache busting so admin + employee dashboards
+  // reflect the new state immediately.
+  clearEmployeeStore(result.employeeEmail)
+  try {
+    await loadEmployeeData(result.employeeEmail)
+  } catch {
+    // Non-fatal — next read goes to DB.
+  }
+  invalidateAdminStore()
+
+  return { ok: true, claimTitle: result.claimTitle }
 }

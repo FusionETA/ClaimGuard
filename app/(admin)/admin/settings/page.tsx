@@ -8,6 +8,7 @@ import {
   getAdminSettingsPageData,
   getInUseTenantIds,
 } from "@/modules/claims/application/services/admin-page-data.service"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 const XERO_PENDING_COOKIE = "claimguard_xero_pending"
 const ACTIVE_CONNECTION_COOKIE = "claimguard_active_connection"
@@ -31,6 +32,13 @@ export default async function AdminSettingsPage({
       session.activeXeroConnectionId ?? cookieConnectionId ?? undefined,
   })
   if (!data) redirect("/login")
+
+  // Pull the admin list separately so the Organization tab can render
+  // a "Manage admins" card. Empty array is fine when no org is selected.
+  const orgIdForAdmins = resolveActiveOrgId(session)
+  const admins = orgIdForAdmins
+    ? await organizationRepository.listAdminsForOrganization(orgIdForAdmins)
+    : []
 
   // OAuth callback "select-tenant" handling — read the pending cookie and
   // resolve which tenants are already in use by other orgs. Cookie/URL
@@ -67,6 +75,8 @@ export default async function AdminSettingsPage({
       customAccounts={data.customAccounts}
       projects={data.projects}
       members={data.members}
+      admins={admins}
+      currentAdminEmail={session.email}
       activeXeroConnectionId={data.activeXeroConnectionId}
       xeroStatus={typeof params.xero === "string" ? params.xero : undefined}
       xeroReason={typeof params.reason === "string" ? params.reason : undefined}

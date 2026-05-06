@@ -391,6 +391,7 @@ export const ModelName = {
   EmployeeProfile: 'EmployeeProfile',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
+  ClaimApprovalEntry: 'ClaimApprovalEntry',
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
+    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -880,6 +881,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClaimCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClaimCountAggregateOutputType> | number
+        }
+      }
+    }
+    ClaimApprovalEntry: {
+      payload: Prisma.$ClaimApprovalEntryPayload<ExtArgs>
+      fields: Prisma.ClaimApprovalEntryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClaimApprovalEntryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimApprovalEntryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClaimApprovalEntryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimApprovalEntryPayload>
+        }
+        findFirst: {
+          args: Prisma.ClaimApprovalEntryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimApprovalEntryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClaimApprovalEntryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimApprovalEntryPayload>
+        }
+        findMany: {
+          args: Prisma.ClaimApprovalEntryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimApprovalEntryPayload>[]
+        }
+        create: {
+          args: Prisma.ClaimApprovalEntryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimApprovalEntryPayload>
+        }
+        createMany: {
+          args: Prisma.ClaimApprovalEntryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ClaimApprovalEntryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimApprovalEntryPayload>
+        }
+        update: {
+          args: Prisma.ClaimApprovalEntryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimApprovalEntryPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClaimApprovalEntryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClaimApprovalEntryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ClaimApprovalEntryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimApprovalEntryPayload>
+        }
+        aggregate: {
+          args: Prisma.ClaimApprovalEntryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClaimApprovalEntry>
+        }
+        groupBy: {
+          args: Prisma.ClaimApprovalEntryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClaimApprovalEntryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClaimApprovalEntryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClaimApprovalEntryCountAggregateOutputType> | number
         }
       }
     }
@@ -1787,6 +1854,20 @@ export const ClaimScalarFieldEnum = {
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
 
 
+export const ClaimApprovalEntryScalarFieldEnum = {
+  id: 'id',
+  claimId: 'claimId',
+  stepNumber: 'stepNumber',
+  approverId: 'approverId',
+  decision: 'decision',
+  reviewedAt: 'reviewedAt',
+  reviewNotes: 'reviewNotes',
+  createdAt: 'createdAt'
+} as const
+
+export type ClaimApprovalEntryScalarFieldEnum = (typeof ClaimApprovalEntryScalarFieldEnum)[keyof typeof ClaimApprovalEntryScalarFieldEnum]
+
+
 export const ChartOfAccountScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -2116,6 +2197,16 @@ export const ClaimOrderByRelevanceFieldEnum = {
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
 
 
+export const ClaimApprovalEntryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  claimId: 'claimId',
+  approverId: 'approverId',
+  reviewNotes: 'reviewNotes'
+} as const
+
+export type ClaimApprovalEntryOrderByRelevanceFieldEnum = (typeof ClaimApprovalEntryOrderByRelevanceFieldEnum)[keyof typeof ClaimApprovalEntryOrderByRelevanceFieldEnum]
+
+
 export const ChartOfAccountOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -2366,6 +2457,13 @@ export type EnumClaimTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
+ * Reference to a field of type 'ClaimApprovalDecision'
+ */
+export type EnumClaimApprovalDecisionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimApprovalDecision'>
+    
+
+
+/**
  * Reference to a field of type 'LimitPeriod'
  */
 export type EnumLimitPeriodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LimitPeriod'>
@@ -2515,6 +2613,7 @@ export type GlobalOmitConfig = {
   employeeProfile?: Prisma.EmployeeProfileOmit
   employeeProjectAssignment?: Prisma.EmployeeProjectAssignmentOmit
   claim?: Prisma.ClaimOmit
+  claimApprovalEntry?: Prisma.ClaimApprovalEntryOmit
   chartOfAccount?: Prisma.ChartOfAccountOmit
   xeroConnection?: Prisma.XeroConnectionOmit
   xeroProject?: Prisma.XeroProjectOmit

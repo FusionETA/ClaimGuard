@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const ClaimApprovalDecision = {
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+} as const
+
+export type ClaimApprovalDecision = (typeof ClaimApprovalDecision)[keyof typeof ClaimApprovalDecision]
+
+
 export const UserRole = {
   ADMIN: 'ADMIN',
   EMPLOYEE: 'EMPLOYEE',

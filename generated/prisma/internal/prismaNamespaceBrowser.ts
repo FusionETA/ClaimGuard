@@ -58,6 +58,7 @@ export const ModelName = {
   EmployeeProfile: 'EmployeeProfile',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
+  ClaimApprovalEntry: 'ClaimApprovalEntry',
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
   XeroProject: 'XeroProject',
@@ -224,6 +225,20 @@ export const ClaimScalarFieldEnum = {
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
+
+
+export const ClaimApprovalEntryScalarFieldEnum = {
+  id: 'id',
+  claimId: 'claimId',
+  stepNumber: 'stepNumber',
+  approverId: 'approverId',
+  decision: 'decision',
+  reviewedAt: 'reviewedAt',
+  reviewNotes: 'reviewNotes',
+  createdAt: 'createdAt'
+} as const
+
+export type ClaimApprovalEntryScalarFieldEnum = (typeof ClaimApprovalEntryScalarFieldEnum)[keyof typeof ClaimApprovalEntryScalarFieldEnum]
 
 
 export const ChartOfAccountScalarFieldEnum = {
@@ -553,6 +568,16 @@ export const ClaimOrderByRelevanceFieldEnum = {
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
+
+
+export const ClaimApprovalEntryOrderByRelevanceFieldEnum = {
+  id: 'id',
+  claimId: 'claimId',
+  approverId: 'approverId',
+  reviewNotes: 'reviewNotes'
+} as const
+
+export type ClaimApprovalEntryOrderByRelevanceFieldEnum = (typeof ClaimApprovalEntryOrderByRelevanceFieldEnum)[keyof typeof ClaimApprovalEntryOrderByRelevanceFieldEnum]
 
 
 export const ChartOfAccountOrderByRelevanceFieldEnum = {

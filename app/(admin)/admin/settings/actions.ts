@@ -1601,3 +1601,82 @@ export async function deleteProjectHolidayAction(
   revalidateAdminSurfaces()
   return { ok: true, message: "Holiday removed." }
 }
+
+// ----------------------------------------------------------------------------
+// Multi-admin: create another admin for the active organization
+// ----------------------------------------------------------------------------
+
+const createAdminSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required.")
+    .email("Enter a valid email address.")
+    .toLowerCase(),
+  name: z.string().trim().min(1, "Name is required.").max(120, "Name is too long."),
+  password: z
+    .string()
+    .min(8, "Temporary password must be at least 8 characters.")
+    .max(128, "Password is too long."),
+})
+
+/**
+ * Create a new full-tier admin for the active organization. The inviting
+ * admin types the new admin's email + name + a temporary password and
+ * hands the password over out-of-band (Slack, message, phone). The new
+ * admin can change their password from their account page after first
+ * login. Currently no email is sent — the app doesn't have a mailer.
+ */
+export async function createAdminAction(
+  _previousState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return {
+      status: "error",
+      message:
+        "Pick or create an organization before adding more admins to it.",
+    }
+  }
+
+  const parsed = createAdminSchema.safeParse({
+    email: formData.get("email") ?? "",
+    name: formData.get("name") ?? "",
+    password: formData.get("password") ?? "",
+  })
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Unable to add admin.",
+    }
+  }
+
+  try {
+    await organizationRepository.createAdminForOrganization({
+      organizationId,
+      email: parsed.data.email,
+      name: parsed.data.name,
+      password: parsed.data.password,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error ? error.message : "Could not create admin.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+  return {
+    status: "success",
+    message: `New admin invited. They can sign in with the temp password.`,
+  }
+}
