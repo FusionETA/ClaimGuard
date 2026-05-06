@@ -4,7 +4,9 @@ import { useActionState, useEffect, useLayoutEffect, useRef, useState, useTransi
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
-import { CalendarDays, Clock, Download, Loader2, MapPin, Plus, Search, Trash2 } from "lucide-react"
+import { CalendarDays, Clock, Coins, Download, Loader2, MapPin, Plus, Search, Trash2 } from "lucide-react"
+
+import { CURRENCY_CATALOG } from "@/lib/currencies"
 
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import {
@@ -14,6 +16,7 @@ import {
   deleteManualProjectAction,
   saveAccountLimitAction,
   saveClaimRunSettingsAction,
+  saveCurrencySettingsAction,
   saveMileageAccountsAction,
   saveMileageDefaultsAction,
   saveOrganizationSettingsAction,
@@ -534,6 +537,10 @@ export function AdminSettingsPanel({
     saveClaimRunSettingsAction,
     initialSettingsActionState
   )
+  const [currencyState, currencyAction, currencyPending] = useActionState(
+    saveCurrencySettingsAction,
+    initialSettingsActionState
+  )
   const [xeroState, xeroAction, xeroPending] = useActionState(
     syncXeroAccountsAction,
     initialSettingsActionState
@@ -573,6 +580,7 @@ export function AdminSettingsPanel({
   useToastOnAction(organizationState)
   useToastOnAction(accountsState)
   useToastOnAction(claimRunState)
+  useToastOnAction(currencyState)
   useToastOnAction(xeroState)
   useToastOnAction(projectsState)
   useToastOnAction(selectTenantState)
@@ -836,6 +844,28 @@ export function AdminSettingsPanel({
                   )}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+
+          {/* Currency settings — drives the picker on the employee claim form. */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Coins className="h-5 w-5 text-primary" />
+                Currencies
+              </CardTitle>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Pick which currencies your employees can submit claims in, and which one is the
+                default. Receipts in any other currency will need to be converted before submission.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <CurrencySettingsForm
+                action={currencyAction}
+                pending={currencyPending}
+                initialAllowed={organization?.allowedCurrencies ?? []}
+                initialDefault={organization?.defaultCurrency}
+              />
             </CardContent>
           </Card>
 
@@ -2966,5 +2996,171 @@ function ProjectHolidaysCard({ project }: { project: OrganizationProjectOption }
         )}
       </CardContent>
     </Card>
+  )
+}
+
+// ----------------------------------------------------------------------------
+// Currency settings form
+// ----------------------------------------------------------------------------
+
+/**
+ * Searchable multi-select for the curated CURRENCY_CATALOG plus a radio
+ * for the default. The default radio is constrained to currencies that
+ * are also checked in the multi-select, matching the server-side
+ * superRefine. State is local; on submit the form posts:
+ *   - allowedCurrencies as repeated form fields
+ *   - defaultCurrency as a single radio value
+ */
+function CurrencySettingsForm({
+  action,
+  pending,
+  initialAllowed,
+  initialDefault,
+}: {
+  action: (formData: FormData) => void
+  pending: boolean
+  initialAllowed: string[]
+  initialDefault?: string
+}) {
+  const [allowed, setAllowed] = useState<string[]>(() => initialAllowed)
+  const [defaultCode, setDefaultCode] = useState<string>(
+    () => initialDefault ?? initialAllowed[0] ?? "",
+  )
+  const [search, setSearch] = useState("")
+
+  const filtered = CURRENCY_CATALOG.filter((c) => {
+    if (!search.trim()) return true
+    const q = search.trim().toLowerCase()
+    return (
+      c.code.toLowerCase().includes(q) ||
+      c.name.toLowerCase().includes(q) ||
+      c.symbol.toLowerCase().includes(q)
+    )
+  })
+
+  function toggleCurrency(code: string) {
+    setAllowed((prev) => {
+      const next = prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+      // If the just-removed code was the default, fall back to the first
+      // remaining one (or empty).
+      if (!next.includes(defaultCode)) {
+        setDefaultCode(next[0] ?? "")
+      }
+      return next
+    })
+  }
+
+  return (
+    <form action={action} className="space-y-5">
+      <div>
+        <label className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Allowed currencies
+        </label>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {allowed.length === 0
+            ? "Pick at least one currency to enable claim submission."
+            : `${allowed.length} selected — these appear in the employee's currency dropdown.`}
+        </p>
+        <div className="relative mt-3">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by code, name, or symbol"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="mt-3 max-h-[220px] overflow-y-auto rounded-2xl border border-border/60 bg-surface-low p-2">
+          {filtered.length === 0 ? (
+            <p className="px-2 py-3 text-sm text-muted-foreground">No matches.</p>
+          ) : (
+            <ul className="space-y-0.5">
+              {filtered.map((c) => {
+                const checked = allowed.includes(c.code)
+                return (
+                  <li key={c.code}>
+                    <label className="flex cursor-pointer items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-card">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleCurrency(c.code)}
+                        className="h-4 w-4 accent-primary"
+                      />
+                      <span className="font-mono text-sm font-semibold tracking-wide">
+                        {c.code}
+                      </span>
+                      <span className="flex-1 text-sm text-muted-foreground">{c.name}</span>
+                      <span className="text-sm text-muted-foreground">{c.symbol}</span>
+                    </label>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+        {allowed.map((code) => (
+          <input key={code} type="hidden" name="allowedCurrencies" value={code} />
+        ))}
+      </div>
+
+      <div>
+        <label className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Default currency
+        </label>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Used when the receipt scanner can&apos;t detect a currency. Must be one of the selected
+          codes above.
+        </p>
+        {allowed.length === 0 ? (
+          <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            Select at least one currency above first.
+          </p>
+        ) : (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {allowed.map((code) => {
+              const opt = CURRENCY_CATALOG.find((c) => c.code === code)
+              const checked = defaultCode === code
+              return (
+                <label
+                  key={code}
+                  className={
+                    "inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors " +
+                    (checked
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border/60 bg-card text-foreground hover:bg-surface-low")
+                  }
+                >
+                  <input
+                    type="radio"
+                    name="defaultCurrency"
+                    value={code}
+                    checked={checked}
+                    onChange={() => setDefaultCode(code)}
+                    className="sr-only"
+                  />
+                  <span className="font-mono font-semibold">{code}</span>
+                  {opt ? <span className="opacity-80">{opt.symbol}</span> : null}
+                </label>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          className="rounded-xl"
+          disabled={pending || allowed.length === 0 || !defaultCode}
+        >
+          {pending ? (
+            <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</>
+          ) : (
+            "Save currencies"
+          )}
+        </Button>
+      </div>
+    </form>
   )
 }

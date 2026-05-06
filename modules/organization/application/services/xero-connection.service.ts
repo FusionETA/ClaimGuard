@@ -33,7 +33,7 @@ function trimErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown Xero error."
 }
 
-async function getUsableXeroAccessToken(connectionId: string) {
+export async function getUsableXeroAccessToken(connectionId: string) {
   const connection = await organizationRepository.getXeroConnectionById(connectionId)
 
   if (!connection) {
@@ -289,8 +289,35 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
     message: "Automatic Xero bill creation is currently disabled while the final sync stage is being defined.",
   }
 
-  // Future re-enable point:
-  // const connection = await getUsableXeroAccessToken(claim.xeroConnectionId)
-  // if (!connection) { ... }
-  // const bill = await createXeroBill(...)
+  // Future re-enable point. When bill creation is turned back on, the
+  // shape is roughly:
+  //
+  //   const connection = await getUsableXeroAccessToken(claim.xeroConnectionId)
+  //   if (!connection) { ... }
+  //   const bill = await createXeroBill({
+  //     accessToken: connection.accessToken,
+  //     tenantId: connection.tenantId,
+  //     payload: { ... }
+  //   })
+  //   await claimRepository.markClaimXeroSynced({
+  //     claimId: claim.id,
+  //     xeroBillId: bill.invoiceId,
+  //     xeroBillRef: bill.invoiceNumber,
+  //   })
+  //
+  //   // Bonus: attach the receipt that was uploaded to Xero Files at
+  //   // submission time so it appears in the bill's Files panel.
+  //   if (claim.xeroFileId) {
+  //     try {
+  //       await associateFileWithInvoice({
+  //         accessToken: connection.accessToken,
+  //         tenantId: connection.tenantId,
+  //         fileId: claim.xeroFileId,
+  //         invoiceId: bill.invoiceId,
+  //       })
+  //     } catch {
+  //       // Non-fatal: bill is still created. Surface as a partial-sync
+  //       // warning if you want to track it.
+  //     }
+  //   }
 }

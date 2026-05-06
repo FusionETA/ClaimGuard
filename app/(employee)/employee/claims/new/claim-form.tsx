@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useMemo, useState } from "react"
+import { useActionState, useEffect, useMemo, useRef, useState } from "react"
 import { AlertCircle, Camera, LoaderCircle, Upload } from "lucide-react"
 
 import { submitClaimAction } from "@/app/(employee)/employee/claims/new/actions"
@@ -25,6 +25,22 @@ import type {
 } from "@/modules/claims/domain/models"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 
+/**
+ * Pre-fill values produced by the OCR + AI step (`ClaimFlow`). The form
+ * uses these as initial values, but the user can still edit any field.
+ * Sticky values from a failed submit (carried in `state.values`) always
+ * win over these so the user's last typed value isn't replaced by a
+ * stale AI suggestion.
+ */
+export type ClaimFormAiPrefill = {
+  title?: string
+  amount?: string
+  spentAt?: string
+  description?: string
+  currency?: string
+  chartOfAccountId?: string
+}
+
 export function ClaimForm({
   chartAccounts,
   mileageAccounts,
@@ -34,8 +50,14 @@ export function ClaimForm({
   claimRunPreview,
   organizationName,
   employeeProjects = [],
+  allowedCurrencies = [],
+  defaultCurrency,
   onSuccess,
   compact = false,
+  defaultClaimType,
+  aiPrefill,
+  prefilledReceiptFile,
+  onBack,
 }: {
   chartAccounts: ChartAccountWithRemainingLimit[]
   mileageAccounts: ChartAccountWithRemainingLimit[]
@@ -48,20 +70,79 @@ export function ClaimForm({
   /// list is non-empty; if it's empty (legacy / unassigned employee) the
   /// project field is hidden.
   employeeProjects?: Array<{ id: string; name: string }>
+  /// ISO 4217 codes the org admin has enabled. When non-empty, drives a
+  /// currency dropdown shown next to the amount field. Empty list keeps
+  /// the legacy single-currency behaviour (currency field hidden).
+  allowedCurrencies?: string[]
+  /// Default currency to pre-select when AI hasn't detected one.
+  defaultCurrency?: string
   onSuccess?: () => void
   compact?: boolean
+  /// When set (by ClaimFlow), forces the initial claim-type radio. The
+  /// in-form type-picker still appears so the user can flip mid-edit.
+  defaultClaimType?: "EXPENSE" | "MILEAGE"
+  /// AI-extracted defaults from the OCR step. Sticky form values still
+  /// win on a re-submit; AI is only used on first render.
+  aiPrefill?: ClaimFormAiPrefill
+  /// Receipt file already chosen in the wizard's OCR step. The form
+  /// populates its hidden file input from this on mount so the user
+  /// doesn't have to re-pick. They can still tap the upload zone to
+  /// replace it.
+  prefilledReceiptFile?: File | null
+  /// Optional back-button shown in the form header. Used by ClaimFlow
+  /// to let the user return to the receipt-upload step.
+  onBack?: () => void
 }) {
   const [state, formAction, pending] = useActionState(
     submitClaimAction,
     initialClaimFormState
   )
-  const [selectedReceiptName, setSelectedReceiptName] = useState("")
+  const [selectedReceiptName, setSelectedReceiptName] = useState(
+    prefilledReceiptFile?.name ?? "",
+  )
+  const receiptInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Carry the receipt File chosen in the OCR step into the form's hidden
+  // file input. The DataTransfer dance is the supported way to set
+  // `input.files` programmatically in modern browsers (Chrome 73+,
+  // Safari 14.1+, Firefox 62+) — needed so the submit FormData carries
+  // the file the user already picked, instead of forcing them to re-pick.
+  useEffect(() => {
+    if (!prefilledReceiptFile) return
+    const input = receiptInputRef.current
+    if (!input) return
+    try {
+      const dt = new DataTransfer()
+      dt.items.add(prefilledReceiptFile)
+      input.files = dt.files
+      setSelectedReceiptName(prefilledReceiptFile.name)
+    } catch {
+      // DataTransfer not available (very old browser). Fall back to
+      // showing the filename and letting the user re-tap to upload.
+    }
+  }, [prefilledReceiptFile])
   const [claimType, setClaimType] = useState<"EXPENSE" | "MILEAGE">(
-    state?.values?.claimType ?? "EXPENSE"
+    state?.values?.claimType ?? defaultClaimType ?? "EXPENSE"
   )
+  // String defaults across this form fall back through:
+  //   sticky value (after a failed submit) → AI prefill (first render) → ""
+  // We use `||` rather than `??` because `state.values.foo` is initialized to
+  // "" (not undefined), so `??` would never reach the AI prefill on first
+  // render. `||` correctly treats empty strings as "no sticky value yet".
   const [selectedChartAccountId, setSelectedChartAccountId] = useState(
-    state?.values?.chartOfAccountId ?? ""
+    state?.values?.chartOfAccountId || aiPrefill?.chartOfAccountId || ""
   )
+  const [currency, setCurrency] = useState<string>(() => {
+    // Preserve sticky value on resubmit; otherwise prefer AI-detected, then
+    // org default, then first allowed code, then fallback "MYR".
+    if (state?.values && "currency" in state.values && typeof (state.values as { currency?: string }).currency === "string") {
+      return (state.values as { currency?: string }).currency!
+    }
+    if (aiPrefill?.currency) return aiPrefill.currency
+    if (defaultCurrency) return defaultCurrency
+    if (allowedCurrencies.length > 0) return allowedCurrencies[0]!
+    return "MYR"
+  })
   const [paymentType, setPaymentType] = useState<"PERSONAL" | "COMPANY">(
     state?.values?.paymentType ?? "PERSONAL"
   )
@@ -74,7 +155,9 @@ export function ClaimForm({
   const [distance, setDistance] = useState(state?.values?.distance ?? "")
   // Track amount as state so we can run live limit validation while the user
   // types — a controlled input lets us re-compute `liveAmount` per keystroke.
-  const [amountInput, setAmountInput] = useState(state?.values?.amount ?? "")
+  const [amountInput, setAmountInput] = useState(
+    state?.values?.amount || aiPrefill?.amount || ""
+  )
 
   useEffect(() => {
     if (state?.values?.chartOfAccountId) {
@@ -96,9 +179,12 @@ export function ClaimForm({
   }, [state.status, onSuccess])
 
   // Re-sync amount with the server-returned sticky value after a failed submit
-  // so the form preserves the user's last typed value.
+  // so the form preserves the user's last typed value. Truthy check (not
+  // `!== undefined`) so the initial-state empty-string doesn't overwrite the
+  // AI prefill on first mount — same reasoning as the chartOfAccountId /
+  // payViaAccountId effects below.
   useEffect(() => {
-    if (state.values?.amount !== undefined) {
+    if (state.values?.amount) {
       setAmountInput(state.values.amount)
     }
   }, [state.values?.amount])
@@ -146,6 +232,26 @@ export function ClaimForm({
     (claimType === "EXPENSE" || resolvedMileageRate > 0) &&
     (paymentType !== "COMPANY" || (bankAccounts.length > 0 && payViaAccountId.length > 0))
 
+  // True when the wizard handed us prefill data but the AI couldn't extract
+  // anything meaningful (empty title/amount/date all at once). Useful so we
+  // show a friendly "fill manually" hint instead of leaving the user to
+  // wonder whether the scan worked.
+  const aiPrefillEmpty =
+    aiPrefill !== undefined &&
+    !aiPrefill.title &&
+    !aiPrefill.amount &&
+    !aiPrefill.spentAt &&
+    !aiPrefill.description
+  const aiPrefillFilledSomething =
+    aiPrefill !== undefined &&
+    Boolean(
+      aiPrefill.title ||
+        aiPrefill.amount ||
+        aiPrefill.spentAt ||
+        aiPrefill.description ||
+        aiPrefill.chartOfAccountId,
+    )
+
   // Compute the amount the user is *trying* to claim (typed amount for
   // expense, computed mileage amount otherwise) and check it against the
   // selected account's remaining limit. We use this to show a live warning
@@ -188,6 +294,26 @@ export function ClaimForm({
   // Shared field blocks used in both layouts
   const mainFields = (
     <>
+      {aiPrefillFilledSomething ? (
+        <div className="flex items-start gap-2 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 text-sm leading-6 text-foreground">
+          <span className="mt-0.5 text-primary">✨</span>
+          <span>
+            <span className="font-bold">AI filled in what it could read.</span>{" "}
+            Review the values, then add the project, account, and pay-with options below.
+          </span>
+        </div>
+      ) : null}
+
+      {aiPrefillEmpty ? (
+        <div className="flex items-start gap-2 rounded-2xl border border-amber-300/60 bg-amber-50/70 px-4 py-3 text-sm leading-6 text-amber-900">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            The receipt scan didn&rsquo;t pick up enough text to pre-fill anything. Type the
+            details manually below — the receipt photo is still attached.
+          </span>
+        </div>
+      ) : null}
+
       {/* Claim-type toggle — drives which account list is shown and which
           fields are required. */}
       <div className="space-y-2">
@@ -243,7 +369,7 @@ export function ClaimForm({
               ? "Client visit, project site travel..."
               : "Conference flight, client dinner, ride-share, office hardware..."
           }
-          defaultValue={state.values?.title ?? ""}
+          defaultValue={state.values?.title || aiPrefill?.title || ""}
           aria-invalid={Boolean(state.errors?.title)}
         />
         <FieldError message={state.errors?.title} />
@@ -415,7 +541,14 @@ export function ClaimForm({
         </>
       ) : (
         <div className="space-y-2">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div
+            className={cn(
+              "grid gap-4",
+              allowedCurrencies.length > 0
+                ? "sm:grid-cols-[1.4fr_0.8fr_1fr]"
+                : "sm:grid-cols-2",
+            )}
+          >
             <div className="space-y-2">
               <Label htmlFor="amount">Amount</Label>
               <Input
@@ -432,13 +565,32 @@ export function ClaimForm({
               <FieldError message={state.errors?.amount} />
             </div>
 
+            {allowedCurrencies.length > 0 ? (
+              <div className="space-y-2">
+                <Label htmlFor="currency">Currency</Label>
+                <input type="hidden" name="currency" value={currency} />
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger id="currency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allowedCurrencies.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
+
             <div className="space-y-2">
               <Label htmlFor="spentAt">Expense date</Label>
               <Input
                 id="spentAt"
                 name="spentAt"
                 type="date"
-                defaultValue={state.values?.spentAt ?? ""}
+                defaultValue={state.values?.spentAt || aiPrefill?.spentAt || ""}
                 className="min-w-0 max-w-full appearance-none pr-3"
                 aria-invalid={Boolean(state.errors?.spentAt)}
               />
@@ -475,7 +627,7 @@ export function ClaimForm({
           id="description"
           name="description"
           placeholder="Describe the expense and why it was necessary for business operations."
-          defaultValue={state.values?.description ?? ""}
+          defaultValue={state.values?.description || aiPrefill?.description || ""}
           aria-invalid={Boolean(state.errors?.description)}
         />
         <FieldError message={state.errors?.description} />
@@ -579,30 +731,66 @@ export function ClaimForm({
     </>
   )
 
+  // When the wizard already collected a receipt in step 2, replace the
+  // big upload zone with a compact confirmation pill — the visible UI is
+  // about telling the user "yes, your receipt is attached" rather than
+  // letting them upload again. The hidden file input still renders so the
+  // FormData carries the file on submit. To swap the photo, the user
+  // hits "Back" in the wizard.
+  const receiptAlreadyAttached = Boolean(prefilledReceiptFile)
   const receiptField = (
     <div className="space-y-2">
-      <Label htmlFor="receiptFile">Receipt photo <span className="text-muted-foreground font-normal">(optional)</span></Label>
-      <label
-        htmlFor="receiptFile"
-        className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-2xl border border-border/70 bg-card/94 px-4 py-5 text-center shadow-ambient backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-card"
-      >
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <Upload className="h-4 w-4" />
-          <span>Upload photo</span>
-          <span className="text-muted-foreground">or</span>
-          <Camera className="h-4 w-4" />
-          <span>take photo</span>
+      <Label htmlFor="receiptFile">
+        Receipt photo{" "}
+        <span className="text-muted-foreground font-normal">(optional)</span>
+      </Label>
+
+      {receiptAlreadyAttached ? (
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-300/50 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-900">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-200/70 text-emerald-900">
+            ✓
+          </span>
+          <div className="flex-1 truncate">
+            <p className="font-semibold">Receipt attached</p>
+            <p className="truncate text-xs text-emerald-900/70">
+              {selectedReceiptName || prefilledReceiptFile?.name}
+            </p>
+          </div>
+          {onBack ? (
+            <button
+              type="button"
+              onClick={onBack}
+              className="text-xs font-semibold underline underline-offset-2 hover:text-emerald-950"
+            >
+              Replace
+            </button>
+          ) : null}
         </div>
-        <p className="mt-2 text-xs leading-5 text-muted-foreground">
-          JPG, PNG, WEBP, or HEIC up to 8 MB
-        </p>
-        {selectedReceiptName ? (
-          <p className="mt-3 rounded-full bg-background px-3 py-1 text-xs font-medium text-foreground">
-            {selectedReceiptName}
+      ) : (
+        <label
+          htmlFor="receiptFile"
+          className="flex min-h-24 cursor-pointer flex-col items-center justify-center rounded-2xl border border-border/70 bg-card/94 px-4 py-5 text-center shadow-ambient backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-card"
+        >
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Upload className="h-4 w-4" />
+            <span>Upload photo</span>
+            <span className="text-muted-foreground">or</span>
+            <Camera className="h-4 w-4" />
+            <span>take photo</span>
+          </div>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">
+            JPG, PNG, WEBP, or HEIC up to 8 MB
           </p>
-        ) : null}
-      </label>
+          {selectedReceiptName ? (
+            <p className="mt-3 rounded-full bg-background px-3 py-1 text-xs font-medium text-foreground">
+              {selectedReceiptName}
+            </p>
+          ) : null}
+        </label>
+      )}
+
       <input
+        ref={receiptInputRef}
         suppressHydrationWarning
         id="receiptFile"
         name="receiptFile"
@@ -647,9 +835,37 @@ export function ClaimForm({
       </div>
     ) : null
 
+  // Optional back-link rendered at the top when ClaimFlow is in charge of
+  // step orchestration. Plain button so screen readers don't think it's
+  // submitting the form.
+  const backLink = onBack ? (
+    <button
+      type="button"
+      onClick={onBack}
+      className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+    >
+      ← Back
+    </button>
+  ) : null
+
+  // Step indicator chip — renders just above the form when ClaimFlow is
+  // active (signal: aiPrefill present OR onBack present).
+  const stepChip =
+    onBack ? (
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        Step 3 of 3 · Review &amp; submit
+      </p>
+    ) : null
+
   if (compact) {
     return (
       <form action={formAction} className="space-y-4 pb-2" suppressHydrationWarning>
+        {(backLink || stepChip) ? (
+          <div className="flex items-center justify-between">
+            {stepChip}
+            {backLink}
+          </div>
+        ) : null}
         {errorBanner}
         <div className="space-y-5 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
           {mainFields}
@@ -664,6 +880,12 @@ export function ClaimForm({
 
   return (
     <form action={formAction} className="space-y-4 sm:space-y-6" suppressHydrationWarning>
+      {(backLink || stepChip) ? (
+        <div className="flex items-center justify-between">
+          {stepChip}
+          {backLink}
+        </div>
+      ) : null}
       {errorBanner}
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <Card>
@@ -677,10 +899,12 @@ export function ClaimForm({
             <CardContent className="space-y-3 p-4 sm:space-y-4 sm:p-6">
               <div className="space-y-1">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:text-sm sm:tracking-[0.18em]">
-                  Receipt optional
+                  {receiptAlreadyAttached ? "Receipt" : "Receipt optional"}
                 </p>
                 <p className="text-xs leading-6 text-muted-foreground sm:text-sm">
-                  Upload a receipt photo now. On mobile, this can open the camera directly.
+                  {receiptAlreadyAttached
+                    ? "Already attached from the scan step. Hit Replace to swap it."
+                    : "Upload a receipt photo now. On mobile, this can open the camera directly."}
                 </p>
               </div>
               {receiptField}

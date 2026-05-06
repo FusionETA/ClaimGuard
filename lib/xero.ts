@@ -8,6 +8,11 @@ const XERO_CONNECTIONS_URL = "https://api.xero.com/connections"
 const XERO_INVOICES_URL = "https://api.xero.com/api.xro/2.0/Invoices"
 const XERO_ACCOUNTS_URL = "https://api.xero.com/api.xro/2.0/Accounts"
 const XERO_PROJECTS_URL = "https://api.xero.com/projects.xro/2.0/projects"
+const XERO_FILES_BASE_URL = "https://api.xero.com/files.xro/1.0"
+/// Top-level folder name used for receipt uploads from this app. The
+/// folder is created once per tenant on first upload; subsequent uploads
+/// reuse it.
+const XERO_FILES_FOLDER_NAME = "Claims"
 
 export type XeroTokenSet = {
   accessToken: string
@@ -70,7 +75,30 @@ function getRequiredEnv(name: string) {
 }
 
 export function getXeroScopes() {
-  return process.env.XERO_SCOPES?.trim() || "offline_access accounting.transactions accounting.contacts"
+  // `files` is required for the Xero Files API (folder + file upload +
+  // file content + invoice association). Existing connections issued
+  // before this scope was added need to disconnect and reconnect Xero
+  // for the new scope to be granted on the access token.
+  return (
+    process.env.XERO_SCOPES?.trim() ||
+    "offline_access accounting.transactions accounting.contacts accounting.attachments files"
+  )
+}
+
+/**
+ * Developer-controlled re-authorization tag. When this env var is set,
+ * connections whose `lastReauthVersion` column does not match the current
+ * value will display an "Update permissions" button in the admin UI.
+ * Bump this string any time you ship a release that requires a wider
+ * scope set (or any other change that needs the admin to re-run the
+ * OAuth flow). After each successful callback we persist this same value
+ * back into `lastReauthVersion`, which hides the button for that
+ * connection until the next bump. Empty / unset disables the feature
+ * entirely.
+ */
+export function getXeroReauthVersion(): string | null {
+  const raw = process.env.XERO_REAUTH_VERSION?.trim()
+  return raw && raw.length > 0 ? raw : null
 }
 
 export function getXeroRuntimeConfigStatus() {
@@ -423,4 +451,241 @@ export async function createXeroBill({
     invoiceId: invoice.InvoiceID,
     invoiceNumber: invoice.InvoiceNumber,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Xero Files API
+// ---------------------------------------------------------------------------
+//
+// Used to upload claim receipts to a tenant's Xero Files. The flow is:
+//   1. getOrCreateClaimsFolder(...)          → returns the folder id
+//   2. uploadFileToXero(...)                 → returns the file id + meta
+//   3. associateFileWithInvoice(...)         → links the file to the bill
+//      created via createXeroBill
+//
+// Receipt downloads from the browser go through a server-side proxy (so
+// the access token never reaches the client) — see
+// app/api/xero/files/[fileId]/content/route.ts. That route uses
+// getXeroFileContent below.
+
+export type XeroFileUploadResult = {
+  fileId: string
+  fileName: string
+  mimeType?: string
+  size?: number
+  folderId?: string
+}
+
+/**
+ * Look up — or create — the "Claims" folder in the given Xero tenant.
+ * Falls back to undefined when folder access is forbidden so callers can
+ * upload to the inbox instead. Throws on unexpected errors.
+ */
+export async function getOrCreateClaimsFolder({
+  accessToken,
+  tenantId,
+}: {
+  accessToken: string
+  tenantId: string
+}): Promise<string | undefined> {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "Xero-tenant-id": tenantId,
+    Accept: "application/json",
+  }
+
+  const listResp = await fetch(`${XERO_FILES_BASE_URL}/Folders`, {
+    method: "GET",
+    headers,
+  })
+  if (listResp.ok) {
+    const folders = (await listResp.json()) as Array<{ Id?: string; Name?: string }>
+    const existing = folders.find((f) => f.Name === XERO_FILES_FOLDER_NAME)
+    if (existing?.Id) return existing.Id
+  } else if (listResp.status === 401 || listResp.status === 403) {
+    // Tenant didn't grant Files scope. Caller should fall back to
+    // uploading without a folder (Xero inbox).
+    return undefined
+  } else {
+    const text = await listResp.text().catch(() => "")
+    throw new Error(`Xero list folders failed: ${listResp.status} ${text}`)
+  }
+
+  // Not found — create it.
+  const createResp = await fetch(`${XERO_FILES_BASE_URL}/Folders`, {
+    method: "POST",
+    headers: {
+      ...headers,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ Name: XERO_FILES_FOLDER_NAME }),
+  })
+  if (!createResp.ok) {
+    const text = await createResp.text().catch(() => "")
+    // Treat 4xx as a soft failure (e.g. folder limits). Caller will
+    // upload without a folder.
+    if (createResp.status >= 400 && createResp.status < 500) return undefined
+    throw new Error(`Xero create folder failed: ${createResp.status} ${text}`)
+  }
+  const created = (await createResp.json()) as { Id?: string }
+  return created.Id
+}
+
+/**
+ * Upload a file (receipt) into the given folder, or into the Xero Files
+ * inbox when folderId is undefined. Returns the Xero file id and basic
+ * metadata.
+ */
+export async function uploadFileToXero({
+  accessToken,
+  tenantId,
+  folderId,
+  fileBuffer,
+  fileName,
+  mimeType,
+}: {
+  accessToken: string
+  tenantId: string
+  folderId?: string
+  fileBuffer: Buffer
+  fileName: string
+  mimeType: string
+}): Promise<XeroFileUploadResult> {
+  const safeName = sanitizeFilename(fileName)
+  const url = folderId
+    ? `${XERO_FILES_BASE_URL}/Files/${folderId}`
+    : `${XERO_FILES_BASE_URL}/Files`
+
+  const boundary = `----xero-files-boundary-${randomUUID()}`
+  const CRLF = "\r\n"
+  const head =
+    `--${boundary}${CRLF}` +
+    `Content-Disposition: form-data; name="${safeName}"; filename="${safeName}"${CRLF}` +
+    `Content-Type: ${mimeType}${CRLF}${CRLF}`
+  const tail = `${CRLF}--${boundary}--${CRLF}`
+
+  const body = Buffer.concat([
+    Buffer.from(head, "utf-8"),
+    fileBuffer,
+    Buffer.from(tail, "utf-8"),
+  ])
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Xero-tenant-id": tenantId,
+      Accept: "application/json",
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
+    },
+    body,
+  })
+  if (!response.ok) {
+    const text = await response.text().catch(() => "")
+    throw new Error(`Xero file upload failed: ${response.status} ${text}`)
+  }
+  const json = (await response.json()) as {
+    Id?: string
+    Name?: string
+    MimeType?: string
+    Size?: number
+    FolderId?: string
+  }
+  if (!json.Id) {
+    throw new Error("Xero file upload succeeded but no Id was returned.")
+  }
+  return {
+    fileId: json.Id,
+    fileName: json.Name ?? safeName,
+    mimeType: json.MimeType,
+    size: json.Size,
+    folderId: json.FolderId,
+  }
+}
+
+/**
+ * Stream a file's binary content from Xero Files. Returns the body
+ * buffer plus the content type, so the caller (the proxy route) can
+ * pass them straight through to the browser.
+ */
+export async function getXeroFileContent({
+  accessToken,
+  tenantId,
+  fileId,
+}: {
+  accessToken: string
+  tenantId: string
+  fileId: string
+}): Promise<{ body: ArrayBuffer; contentType: string; contentLength?: number }> {
+  const response = await fetch(
+    `${XERO_FILES_BASE_URL}/Files/${fileId}/Content`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Xero-tenant-id": tenantId,
+      },
+    },
+  )
+  if (!response.ok) {
+    const text = await response.text().catch(() => "")
+    throw new Error(`Xero file content fetch failed: ${response.status} ${text}`)
+  }
+  const contentType = response.headers.get("content-type") ?? "application/octet-stream"
+  const contentLengthRaw = response.headers.get("content-length")
+  const contentLength = contentLengthRaw ? Number(contentLengthRaw) : undefined
+  const body = await response.arrayBuffer()
+  return { body, contentType, contentLength }
+}
+
+/**
+ * Associate a previously uploaded Xero file with an invoice (a bill in
+ * Accounts Payable terms). Soft-fails on 4xx so a partial sync doesn't
+ * block claim approval.
+ */
+export async function associateFileWithInvoice({
+  accessToken,
+  tenantId,
+  fileId,
+  invoiceId,
+}: {
+  accessToken: string
+  tenantId: string
+  fileId: string
+  invoiceId: string
+}): Promise<void> {
+  const response = await fetch(
+    `${XERO_FILES_BASE_URL}/Files/${fileId}/Associations`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Xero-tenant-id": tenantId,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ObjectId: invoiceId,
+        // Xero treats supplier bills as ACCPAY invoices, so the group
+        // here is still "Invoice".
+        ObjectGroup: "Invoice",
+      }),
+    },
+  )
+  if (!response.ok) {
+    const text = await response.text().catch(() => "")
+    throw new Error(`Xero file association failed: ${response.status} ${text}`)
+  }
+}
+
+/// Strip path separators and dangerous characters from a filename so it
+/// can be safely used in a Content-Disposition header. Falls back to a
+/// generic name if all characters are stripped.
+function sanitizeFilename(name: string): string {
+  const cleaned = name
+    .replace(/[\\/\r\n]+/g, "-")
+    .replace(/[^\w.\-]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 200)
+  return cleaned || "receipt.bin"
 }

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { ArrowRight, Plus } from "lucide-react"
 import Link from "next/link"
 
-import { ClaimForm } from "@/app/(employee)/employee/claims/new/claim-form"
+import { ClaimFlow } from "@/app/(employee)/employee/claims/new/claim-flow"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -28,6 +28,8 @@ type Props = {
   claimRunPreview?: ClaimRunPreview
   organizationName?: string
   employeeProjects?: Array<{ id: string; name: string }>
+  allowedCurrencies?: string[]
+  defaultCurrency?: string
 }
 
 export function DashboardQuickActions({
@@ -39,6 +41,8 @@ export function DashboardQuickActions({
   claimRunPreview,
   organizationName,
   employeeProjects,
+  allowedCurrencies,
+  defaultCurrency,
 }: Props) {
   const [open, setOpen] = useState(false)
 
@@ -79,7 +83,7 @@ export function DashboardQuickActions({
             className="flex-1 overflow-y-auto pr-1"
             style={{ scrollbarGutter: "stable both-edges" }}
           >
-            <ClaimForm
+            <ClaimFlow
               compact
               chartAccounts={chartAccounts}
               mileageAccounts={mileageAccounts}
@@ -89,6 +93,8 @@ export function DashboardQuickActions({
               claimRunPreview={claimRunPreview}
               organizationName={organizationName}
               employeeProjects={employeeProjects}
+              allowedCurrencies={allowedCurrencies}
+              defaultCurrency={defaultCurrency}
               onSuccess={() => setOpen(false)}
             />
           </div>

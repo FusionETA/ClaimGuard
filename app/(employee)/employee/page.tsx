@@ -166,6 +166,8 @@ export default async function EmployeeDashboardPage() {
                 claimRunPreview={claimSubmissionData?.claimRunPreview}
                 organizationName={claimSubmissionData?.organization?.name}
                 employeeProjects={claimSubmissionData?.employeeProjects ?? []}
+                allowedCurrencies={claimSubmissionData?.organization?.allowedCurrencies}
+                defaultCurrency={claimSubmissionData?.organization?.defaultCurrency}
               />
             </div>
           </CardContent>

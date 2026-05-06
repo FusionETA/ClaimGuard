@@ -1,8 +1,10 @@
 import "server-only"
 
 import { hashPassword } from "@/lib/auth/password"
+import { parseAllowedCurrencies } from "@/lib/currencies"
 import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
+import { getXeroReauthVersion } from "@/lib/xero"
 import { mapChartAccount } from "@/modules/organization/infrastructure/chart-account.mapper"
 import type {
   AdminOrganizationOption,
@@ -100,6 +102,8 @@ function mapOrganizationSummary(
         defaultMileageRate?: unknown
         mileageUnit?: string | null
         geofenceRadiusMeters?: number | null
+        allowedCurrencies?: unknown
+        defaultCurrency?: string | null
       }
     | null
 ): OrganizationSummary | undefined {
@@ -136,6 +140,11 @@ function mapOrganizationSummary(
     defaultMileageRate,
     mileageUnit: (org.mileageUnit as MileageUnit | null | undefined) === "MILE" ? "MILE" : "KM",
     geofenceRadiusMeters: org.geofenceRadiusMeters ?? 200,
+    allowedCurrencies: parseAllowedCurrencies(org.allowedCurrencies),
+    defaultCurrency:
+      typeof org.defaultCurrency === "string" && org.defaultCurrency.trim().length > 0
+        ? org.defaultCurrency.trim().toUpperCase()
+        : undefined,
   }
 }
 
@@ -515,6 +524,31 @@ export const organizationRepository = {
     await prisma.organization.update({
       where: { id: data.organizationId },
       data: { claimCutoffDay: data.claimCutoffDay },
+    })
+  },
+
+  /**
+   * Persist the org-level currency policy. Caller is expected to have
+   * already validated that every code is in the curated catalogue and
+   * that defaultCurrency ∈ allowedCurrencies — this method assumes
+   * clean input and just writes.
+   */
+  async updateOrganizationCurrencies(data: {
+    organizationId: string
+    allowedCurrencies: string[]
+    defaultCurrency: string | null
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await prisma.organization.update({
+      where: { id: data.organizationId },
+      data: {
+        allowedCurrencies: data.allowedCurrencies,
+        defaultCurrency: data.defaultCurrency,
+      },
     })
   },
 
@@ -1270,6 +1304,8 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    const requiredReauth = getXeroReauthVersion()
+
     const rows = await prisma.xeroConnection.findMany({
       where: { organizationId },
       orderBy: { createdAt: "asc" },
@@ -1280,6 +1316,7 @@ export const organizationRepository = {
         tenantType: true,
         createdAt: true,
         updatedAt: true,
+        lastReauthVersion: true,
       },
     })
 
@@ -1290,6 +1327,7 @@ export const organizationRepository = {
       tenantType: row.tenantType ?? undefined,
       connectedAt: row.createdAt.toISOString(),
       lastTokenRefreshAt: row.updatedAt.toISOString(),
+      requiresReauth: Boolean(requiredReauth) && row.lastReauthVersion !== requiredReauth,
     }))
   },
 
@@ -1306,6 +1344,8 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return null
 
+    const requiredReauth = getXeroReauthVersion()
+
     const rows = await prisma.xeroConnection.findMany({
       where: { organizationId },
       select: {
@@ -1315,6 +1355,7 @@ export const organizationRepository = {
         tenantType: true,
         createdAt: true,
         updatedAt: true,
+        lastReauthVersion: true,
       },
       orderBy: { createdAt: "asc" },
     })
@@ -1329,6 +1370,7 @@ export const organizationRepository = {
         tenantType: row.tenantType ?? undefined,
         connectedAt: row.createdAt.toISOString(),
         lastTokenRefreshAt: row.updatedAt.toISOString(),
+        requiresReauth: Boolean(requiredReauth) && row.lastReauthVersion !== requiredReauth,
       })),
     }
   },
@@ -1364,6 +1406,14 @@ export const organizationRepository = {
       update: {},
     })
 
+    // Stamp the just-completed OAuth flow with the developer's current
+    // reauth tag (if set). On any future bump of XERO_REAUTH_VERSION the
+    // mismatch will surface the "Update permissions" button until the
+    // admin re-runs the flow. Null means the feature is currently disabled
+    // in this deployment — we still write null so old marks don't leak
+    // through after the env var is cleared.
+    const reauthVersion = getXeroReauthVersion()
+
     await prisma.xeroConnection.upsert({
       where: {
         organizationId_tenantId: {
@@ -1383,6 +1433,7 @@ export const organizationRepository = {
         tokenType: data.tokenType,
         accessTokenExpiresAt: data.accessTokenExpiresAt,
         connectedByAdminId: data.connectedByAdminId,
+        lastReauthVersion: reauthVersion,
       },
       update: {
         tenantName: data.tenantName,
@@ -1393,6 +1444,7 @@ export const organizationRepository = {
         tokenType: data.tokenType,
         accessTokenExpiresAt: data.accessTokenExpiresAt,
         connectedByAdminId: data.connectedByAdminId,
+        lastReauthVersion: reauthVersion,
       },
     })
   },

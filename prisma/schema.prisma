@@ -60,6 +60,16 @@ model Organization {
   /// Defaults to 8h. Applies org-wide regardless of per-project working
   /// hours.
   otDailyThresholdMinutes  Int                 @default(480)
+  /// JSON array of ISO 4217 currency codes the admin has enabled for
+  /// expense claims (e.g. ["MYR","USD","SGD"]). Empty/null falls back to
+  /// just defaultCurrency. The employee claim form picker shows only
+  /// these codes.
+  allowedCurrencies        Json?
+  /// Default currency for new claims when the AI can't detect one and
+  /// the user hasn't picked. ISO 4217 code. Replaces the previous
+  /// hardcoded "USD". Null until the admin sets it (in which case the
+  /// claim service falls back to "MYR" for backwards-safety).
+  defaultCurrency          String?
   adminMembers             AdminOrganization[]
   chartAccounts            ChartOfAccount[]
   claims                   Claim[]
@@ -159,6 +169,10 @@ model Claim {
   reviewerId                String?
   xeroBillId                String?         @unique
   xeroBillRef               String?
+  /// Xero Files API file id. Set when the receipt was uploaded to Xero
+  /// Files (i.e. the claim's chart-of-account is connected to a Xero
+  /// tenant). Null for receipts kept on local disk.
+  xeroFileId                String?
   xeroSyncStatus            XeroSyncStatus  @default(NOT_SYNCED)
   xeroSyncError             String?         @db.Text
   xeroSyncedAt              DateTime?
@@ -244,6 +258,12 @@ model XeroConnection {
   tokenType            String
   accessTokenExpiresAt DateTime
   connectedByAdminId   String?
+  /// Records the most recent value of XERO_REAUTH_VERSION env var that the
+  /// admin completed an OAuth flow against. When the env var is bumped (e.g.
+  /// scopes expanded), connections whose lastReauthVersion no longer matches
+  /// trigger the "Update permissions" button in the admin UI. Null = never
+  /// re-auth'd (or env var was unset at the time of original connect).
+  lastReauthVersion    String?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
   chartAccounts        ChartOfAccount[]

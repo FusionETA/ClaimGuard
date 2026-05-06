@@ -1,8 +1,5 @@
 "use server"
 
-import { mkdir, writeFile } from "node:fs/promises"
-import path from "node:path"
-
 import { revalidatePath } from "next/cache"
 
 import { getCurrentSession } from "@/lib/auth/session"
@@ -21,22 +18,6 @@ const allowedReceiptTypes = new Set([
   "image/heic",
   "image/heif",
 ])
-
-function getReceiptExtension(file: File) {
-  const typeExtensionMap: Record<string, string> = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
-    "image/heic": ".heic",
-    "image/heif": ".heif",
-  }
-
-  const mappedExtension = typeExtensionMap[file.type]
-  if (mappedExtension) return mappedExtension
-
-  const originalExtension = path.extname(file.name)
-  return originalExtension || ".jpg"
-}
 
 export async function submitClaimAction(
   _previousState: ClaimFormState,
@@ -149,29 +130,13 @@ export async function submitClaimAction(
     }
   }
 
-  let receiptUrl: string | undefined
-
-  if (receiptFile instanceof File && receiptFile.size > 0) {
-    try {
-      const receiptBuffer = Buffer.from(await receiptFile.arrayBuffer())
-      const uploadsDirectory = path.join(process.cwd(), "public", "uploads", "receipts")
-      const filename = `${Date.now()}-${crypto.randomUUID()}${getReceiptExtension(receiptFile)}`
-
-      await mkdir(uploadsDirectory, { recursive: true })
-      await writeFile(path.join(uploadsDirectory, filename), receiptBuffer)
-
-      receiptUrl = `/uploads/receipts/${filename}`
-    } catch {
-      return {
-        status: "error",
-        message: "We couldn't save the receipt photo. Please try again.",
-        values,
-        errors: {
-          receiptUrl: "Receipt upload failed. Please try again.",
-        },
-      }
-    }
-  }
+  // Pass the receipt File straight to the workflow service. The service
+  // is the only layer that knows whether the chart-of-account has a Xero
+  // connection — that determines whether the receipt goes to Xero Files
+  // or local disk. Empty / no file is fine; the service treats it as
+  // "no receipt".
+  const receiptFileToStore =
+    receiptFile instanceof File && receiptFile.size > 0 ? receiptFile : undefined
 
   const result = await createClaimForEmployee({
     session,
@@ -182,7 +147,7 @@ export async function submitClaimAction(
             chartOfAccountId: parsed.data.chartOfAccountId,
             spentAt: parsed.data.spentAt,
             description: parsed.data.description,
-            receiptUrl,
+            receiptFile: receiptFileToStore,
             paymentType: parsed.data.paymentType,
             payViaAccountId: parsed.data.payViaAccountId,
             projectId: parsed.data.projectId,
@@ -197,7 +162,7 @@ export async function submitClaimAction(
             amount: parsed.data.amount,
             spentAt: parsed.data.spentAt,
             description: parsed.data.description,
-            receiptUrl,
+            receiptFile: receiptFileToStore,
             paymentType: parsed.data.paymentType,
             payViaAccountId: parsed.data.payViaAccountId,
             projectId: parsed.data.projectId,

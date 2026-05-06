@@ -122,7 +122,9 @@ export const OrganizationScalarFieldEnum = {
   defaultMileageRate: 'defaultMileageRate',
   mileageUnit: 'mileageUnit',
   otEnabled: 'otEnabled',
-  otDailyThresholdMinutes: 'otDailyThresholdMinutes'
+  otDailyThresholdMinutes: 'otDailyThresholdMinutes',
+  allowedCurrencies: 'allowedCurrencies',
+  defaultCurrency: 'defaultCurrency'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
@@ -202,6 +204,7 @@ export const ClaimScalarFieldEnum = {
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
+  xeroFileId: 'xeroFileId',
   xeroSyncStatus: 'xeroSyncStatus',
   xeroSyncError: 'xeroSyncError',
   xeroSyncedAt: 'xeroSyncedAt',
@@ -261,6 +264,7 @@ export const XeroConnectionScalarFieldEnum = {
   tokenType: 'tokenType',
   accessTokenExpiresAt: 'accessTokenExpiresAt',
   connectedByAdminId: 'connectedByAdminId',
+  lastReauthVersion: 'lastReauthVersion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -453,13 +457,31 @@ export const UserOrderByRelevanceFieldEnum = {
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
 
 
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
 export const OrganizationOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
   timezone: 'timezone',
-  bankAccount: 'bankAccount'
+  bankAccount: 'bankAccount',
+  defaultCurrency: 'defaultCurrency'
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
@@ -522,6 +544,7 @@ export const ClaimOrderByRelevanceFieldEnum = {
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
+  xeroFileId: 'xeroFileId',
   xeroSyncError: 'xeroSyncError',
   payViaAccountId: 'payViaAccountId',
   mileageDestinationAddress: 'mileageDestinationAddress',
@@ -557,7 +580,8 @@ export const XeroConnectionOrderByRelevanceFieldEnum = {
   refreshToken: 'refreshToken',
   scope: 'scope',
   tokenType: 'tokenType',
-  connectedByAdminId: 'connectedByAdminId'
+  connectedByAdminId: 'connectedByAdminId',
+  lastReauthVersion: 'lastReauthVersion'
 } as const
 
 export type XeroConnectionOrderByRelevanceFieldEnum = (typeof XeroConnectionOrderByRelevanceFieldEnum)[keyof typeof XeroConnectionOrderByRelevanceFieldEnum]
@@ -617,23 +641,6 @@ export const BreakSessionOrderByRelevanceFieldEnum = {
 } as const
 
 export type BreakSessionOrderByRelevanceFieldEnum = (typeof BreakSessionOrderByRelevanceFieldEnum)[keyof typeof BreakSessionOrderByRelevanceFieldEnum]
-
-
-export const JsonNullValueFilter = {
-  DbNull: DbNull,
-  JsonNull: JsonNull,
-  AnyNull: AnyNull
-} as const
-
-export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
-
-
-export const QueryMode = {
-  default: 'default',
-  insensitive: 'insensitive'
-} as const
-
-export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
 export const ApprovalRequestOrderByRelevanceFieldEnum = {

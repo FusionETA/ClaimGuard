@@ -25,6 +25,8 @@ export default async function EmployeeClaimsPage() {
       claimRunPreview={submissionData.claimRunPreview}
       organizationName={submissionData.organization?.name}
       employeeProjects={submissionData.employeeProjects}
+      allowedCurrencies={submissionData.organization?.allowedCurrencies}
+      defaultCurrency={submissionData.organization?.defaultCurrency}
     />
   )
 }
