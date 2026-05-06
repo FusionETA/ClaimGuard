@@ -888,6 +888,324 @@ export const claimRepository = {
     })
   },
 
+  // ----------------------------------------------------------------------
+  // Breakdown queries (admin "By project" view)
+  // ----------------------------------------------------------------------
+  //
+  // Each level returns one row per project / team / member with:
+  //   - totalAmount  Number of MYR/USD/etc. claimed (sum of Claim.amount)
+  //   - count        How many claims roll into that bucket
+  //   - statusMix    Map of ClaimStatus → count for that bucket (lets the
+  //                  UI render a small status badge strip without an extra
+  //                  round-trip).
+  //
+  // All queries are scoped by:
+  //   - organizationId (claim.organizationId)
+  //   - spentAt within [monthStart, monthEnd) — half-open on the right so a
+  //     yyyy-mm-01 → next-yyyy-mm-01 range cleanly includes the last day.
+  //
+  // We deliberately ignore claims with projectId=null in the project-level
+  // rollup (legacy / pre-projectId claims) — they wouldn't drill into any
+  // project anyway. The dashboard total card still counts them.
+
+  async getProjectsClaimBreakdown(input: {
+    organizationId: string
+    monthStart: Date
+    monthEnd: Date
+  }): Promise<
+    Array<{
+      projectId: string
+      projectName: string
+      totalAmount: number
+      count: number
+      statusMix: Record<string, number>
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    // groupBy gives us count + sum per (projectId, status). We re-group
+    // client-side into the desired { project, statusMix } shape.
+    const groups = await prisma.claim.groupBy({
+      by: ["projectId", "status"],
+      where: {
+        organizationId: input.organizationId,
+        spentAt: { gte: input.monthStart, lt: input.monthEnd },
+        projectId: { not: null },
+      },
+      _sum: { amount: true },
+      _count: { _all: true },
+    })
+
+    if (groups.length === 0) return []
+
+    const projectIds = Array.from(
+      new Set(groups.map((g) => g.projectId as string)),
+    )
+    const projects = await prisma.xeroProject.findMany({
+      where: { id: { in: projectIds } },
+      select: { id: true, name: true },
+    })
+    const nameById = new Map(projects.map((p) => [p.id, p.name]))
+
+    const acc = new Map<
+      string,
+      {
+        projectId: string
+        projectName: string
+        totalAmount: number
+        count: number
+        statusMix: Record<string, number>
+      }
+    >()
+    for (const g of groups) {
+      const pid = g.projectId as string
+      const existing =
+        acc.get(pid) ??
+        {
+          projectId: pid,
+          projectName: nameById.get(pid) ?? "(deleted project)",
+          totalAmount: 0,
+          count: 0,
+          statusMix: {} as Record<string, number>,
+        }
+      existing.totalAmount += toNumber(g._sum.amount, 0)
+      existing.count += g._count._all
+      existing.statusMix[g.status] =
+        (existing.statusMix[g.status] ?? 0) + g._count._all
+      acc.set(pid, existing)
+    }
+
+    return Array.from(acc.values()).sort((a, b) => b.totalAmount - a.totalAmount)
+  },
+
+  async getTeamsClaimBreakdown(input: {
+    organizationId: string
+    projectId: string
+    monthStart: Date
+    monthEnd: Date
+  }): Promise<
+    Array<{
+      teamId: string
+      teamName: string
+      totalAmount: number
+      count: number
+      statusMix: Record<string, number>
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    // Teams are scoped to a project. Each team has a list of employee
+    // memberships (EmployeeTeamMembership). A claim belongs to a team if
+    // (a) it's filed against the same projectId AND (b) the claim's
+    // employee is a member of that team.
+    //
+    // Strategy: load the project's teams + their memberships in one shot,
+    // then filter the period's claims by employeeId against each team's
+    // member set. That keeps it to two queries regardless of team count.
+    const teams = await prisma.team.findMany({
+      where: { projectId: input.projectId },
+      select: {
+        id: true,
+        name: true,
+        memberships: { select: { employeeProfile: { select: { userId: true } } } },
+      },
+      orderBy: { name: "asc" },
+    })
+    if (teams.length === 0) return []
+
+    const claims = await prisma.claim.findMany({
+      where: {
+        organizationId: input.organizationId,
+        projectId: input.projectId,
+        spentAt: { gte: input.monthStart, lt: input.monthEnd },
+      },
+      select: {
+        employeeId: true,
+        amount: true,
+        status: true,
+      },
+    })
+
+    return teams
+      .map((team) => {
+        const memberIds = new Set(
+          team.memberships.map((m) => m.employeeProfile.userId),
+        )
+        let totalAmount = 0
+        let count = 0
+        const statusMix: Record<string, number> = {}
+        for (const c of claims) {
+          if (!memberIds.has(c.employeeId)) continue
+          totalAmount += toNumber(c.amount, 0)
+          count += 1
+          statusMix[c.status] = (statusMix[c.status] ?? 0) + 1
+        }
+        return {
+          teamId: team.id,
+          teamName: team.name,
+          totalAmount,
+          count,
+          statusMix,
+        }
+      })
+      .sort((a, b) => b.totalAmount - a.totalAmount)
+  },
+
+  async getMembersClaimBreakdown(input: {
+    organizationId: string
+    projectId: string
+    teamId: string
+    monthStart: Date
+    monthEnd: Date
+  }): Promise<
+    Array<{
+      employeeId: string
+      employeeName: string
+      employeeEmail: string
+      totalAmount: number
+      count: number
+      statusMix: Record<string, number>
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    // Load just the team's members up-front so the result includes zero-
+    // claim members too (helps the admin spot under-spend / no-activity).
+    const team = await prisma.team.findUnique({
+      where: { id: input.teamId },
+      select: {
+        memberships: {
+          select: {
+            employeeProfile: {
+              select: {
+                userId: true,
+                user: { select: { id: true, name: true, email: true } },
+              },
+            },
+          },
+        },
+      },
+    })
+    if (!team) return []
+
+    const memberIds = team.memberships
+      .map((m) => m.employeeProfile.user?.id)
+      .filter((id): id is string => Boolean(id))
+
+    const groups = memberIds.length
+      ? await prisma.claim.groupBy({
+          by: ["employeeId", "status"],
+          where: {
+            organizationId: input.organizationId,
+            projectId: input.projectId,
+            employeeId: { in: memberIds },
+            spentAt: { gte: input.monthStart, lt: input.monthEnd },
+          },
+          _sum: { amount: true },
+          _count: { _all: true },
+        })
+      : []
+
+    const userById = new Map(
+      team.memberships
+        .filter((m) => m.employeeProfile.user)
+        .map((m) => [
+          m.employeeProfile.user!.id,
+          {
+            id: m.employeeProfile.user!.id,
+            name: m.employeeProfile.user!.name,
+            email: m.employeeProfile.user!.email,
+          },
+        ]),
+    )
+
+    const acc = new Map<
+      string,
+      {
+        employeeId: string
+        employeeName: string
+        employeeEmail: string
+        totalAmount: number
+        count: number
+        statusMix: Record<string, number>
+      }
+    >()
+
+    // Seed all members so even zero-activity ones appear.
+    for (const u of userById.values()) {
+      acc.set(u.id, {
+        employeeId: u.id,
+        employeeName: u.name,
+        employeeEmail: u.email,
+        totalAmount: 0,
+        count: 0,
+        statusMix: {},
+      })
+    }
+
+    for (const g of groups) {
+      const e = acc.get(g.employeeId)
+      if (!e) continue
+      e.totalAmount += toNumber(g._sum.amount, 0)
+      e.count += g._count._all
+      e.statusMix[g.status] = (e.statusMix[g.status] ?? 0) + g._count._all
+    }
+
+    return Array.from(acc.values()).sort(
+      (a, b) => b.totalAmount - a.totalAmount,
+    )
+  },
+
+  async getMemberClaimsForBreakdown(input: {
+    organizationId: string
+    projectId: string
+    employeeId: string
+    monthStart: Date
+    monthEnd: Date
+  }): Promise<ClaimRecord[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const rows = await prisma.claim.findMany({
+      where: {
+        organizationId: input.organizationId,
+        projectId: input.projectId,
+        employeeId: input.employeeId,
+        spentAt: { gte: input.monthStart, lt: input.monthEnd },
+      },
+      include: claimInclude,
+      orderBy: { spentAt: "desc" },
+    })
+
+    // Reuse the existing chain-resolver pattern so the row shape matches
+    // ClaimRecord and the existing claims table can be reused if wanted.
+    const chainByEmployee = new Map<string, GroupedChainStep[]>()
+    if (rows.length > 0) {
+      const steps = await resolveModuleChain(
+        input.employeeId,
+        "CLAIMS",
+        input.projectId,
+      )
+      chainByEmployee.set(
+        input.employeeId,
+        steps.map((s) => ({
+          step: s.step,
+          approvers: s.approvers.map((a) => ({
+            approverId: a.approverId,
+            name: a.name,
+            email: a.email,
+            role: a.role,
+          })),
+        })),
+      )
+    }
+
+    return rows.map((row) => mapClaim(row, chainByEmployee))
+  },
+
   async getFirstAdminId(organizationId?: string): Promise<string | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
