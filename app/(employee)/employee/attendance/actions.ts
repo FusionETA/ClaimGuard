@@ -34,6 +34,15 @@ function parseNotes(formData: FormData | undefined): string | undefined {
   return trimmed ? trimmed : undefined
 }
 
+function parseSelfie(formData: FormData | undefined): string | undefined {
+  if (!formData) return undefined
+  const raw = formData.get("selfie")
+  if (typeof raw !== "string") return undefined
+  // Expect a data URL like "data:image/jpeg;base64,…". Anything else is
+  // treated as missing.
+  return raw.startsWith("data:image/") ? raw : undefined
+}
+
 export async function clockInAction(
   _prev: ClockInState,
   formData: FormData,
@@ -43,8 +52,15 @@ export async function clockInAction(
   if (!projectId) return { error: "Pick a project before clocking in." }
   const coords = parseCoords(formData)
   const notes = parseNotes(formData)
+  const selfie = parseSelfie(formData)
   try {
-    await employeeAttendanceService.clockIn(session.userId, projectId, coords, notes)
+    await employeeAttendanceService.clockIn(
+      session.userId,
+      projectId,
+      coords,
+      notes,
+      selfie,
+    )
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Could not clock in" }
   }

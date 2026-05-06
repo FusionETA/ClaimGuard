@@ -16,6 +16,7 @@ type Props = {
   dashboard: EmployeeAttendanceDashboard
   workingHours: { start: string; end: string }
   projects: AttendanceProjectView[]
+  requiresSelfieOnClockIn: boolean
 }
 
 function fmtTime(iso: string | null) {
@@ -44,6 +45,7 @@ export function EmployeeAttendanceDashboardView({
   dashboard,
   workingHours,
   projects,
+  requiresSelfieOnClockIn,
 }: Props) {
   const state = deriveState(dashboard.todayEvents)
   const now = new Date()
@@ -86,6 +88,7 @@ export function EmployeeAttendanceDashboardView({
         now={now.toISOString()}
         onBreak={dashboard.today?.onBreak ?? false}
         currentBreakStartedAt={dashboard.today?.currentBreakStartedAt ?? null}
+        requiresSelfieOnClockIn={requiresSelfieOnClockIn}
       />
 
       {dashboard.todayEvents.length > 0 ? (
