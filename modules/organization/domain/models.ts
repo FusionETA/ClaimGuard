@@ -62,6 +62,14 @@ export type OrganizationSummary = {
   defaultMileageRate?: number
   mileageUnit: MileageUnit
   geofenceRadiusMeters: number
+  /// ISO 4217 codes the admin has enabled for this org. Drives the
+  /// employee claim form's currency picker. Empty array = nothing
+  /// configured yet.
+  allowedCurrencies: string[]
+  /// Default currency used when AI can't detect one and the user hasn't
+  /// picked. ISO 4217 code, or undefined if the admin hasn't set it
+  /// (the claim service falls back to "MYR" in that case).
+  defaultCurrency?: string
 }
 
 export type AdminOrganizationOption = {
@@ -128,6 +136,10 @@ export type XeroConnectionInfo = {
   tenantType?: string
   connectedAt: string
   lastTokenRefreshAt: string
+  /** True when the developer has bumped XERO_REAUTH_VERSION and this
+   *  connection's lastReauthVersion column doesn't match yet. Drives the
+   *  "Update permissions" button visibility in the admin UI. */
+  requiresReauth: boolean
 }
 
 export type XeroConnectionSummary = {

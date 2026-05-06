@@ -7,6 +7,7 @@ import { z } from "zod"
 import type { SettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import { clearAdminStore } from "@/lib/app-store"
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
+import { isKnownCurrency } from "@/lib/currencies"
 import type { XeroTenant } from "@/lib/xero"
 import { deleteXeroConnection } from "@/lib/xero"
 import {
@@ -30,6 +31,29 @@ const claimRunSchema = z.object({
     .min(1, "Cutoff day must be between 1 and 28.")
     .max(28, "Cutoff day must be between 1 and 28."),
 })
+
+const currencyCodeSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .refine((code) => isKnownCurrency(code), {
+    message: "Currency must be from the supported list.",
+  })
+
+const currenciesSchema = z
+  .object({
+    allowedCurrencies: z.array(currencyCodeSchema).min(1, "Pick at least one currency."),
+    defaultCurrency: currencyCodeSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (!data.allowedCurrencies.includes(data.defaultCurrency)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["defaultCurrency"],
+        message: "Default must be one of the selected currencies.",
+      })
+    }
+  })
 
 const otRateMultiplier = z.coerce
   .number({ message: "Rates must be a number." })
@@ -798,6 +822,65 @@ export async function saveClaimRunSettingsAction(
   return {
     status: "success",
     message: "Claim run cutoff updated.",
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Currency settings
+// ----------------------------------------------------------------------------
+
+/**
+ * Save the org's currency policy. The form posts:
+ *   - allowedCurrencies as repeated form fields ("USD", "MYR", ...)
+ *   - defaultCurrency as a single radio value
+ * superRefine ensures the default is in the allowed set.
+ */
+export async function saveCurrencySettingsAction(
+  _previousState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return {
+      status: "error",
+      message: "Create or assign an organization before saving currency settings.",
+    }
+  }
+
+  const allowedCurrencies = formData
+    .getAll("allowedCurrencies")
+    .map((value) => String(value).trim())
+    .filter((value) => value.length > 0)
+
+  const parsed = currenciesSchema.safeParse({
+    allowedCurrencies,
+    defaultCurrency: String(formData.get("defaultCurrency") ?? "").trim(),
+  })
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Unable to save currency settings.",
+    }
+  }
+
+  await organizationRepository.updateOrganizationCurrencies({
+    organizationId,
+    allowedCurrencies: parsed.data.allowedCurrencies,
+    defaultCurrency: parsed.data.defaultCurrency,
+  })
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+
+  return {
+    status: "success",
+    message: "Currency settings saved.",
   }
 }
 

@@ -73,6 +73,7 @@ export type OrganizationMinAggregateOutputType = {
   mileageUnit: $Enums.MileageUnit | null
   otEnabled: boolean | null
   otDailyThresholdMinutes: number | null
+  defaultCurrency: string | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -96,6 +97,7 @@ export type OrganizationMaxAggregateOutputType = {
   mileageUnit: $Enums.MileageUnit | null
   otEnabled: boolean | null
   otDailyThresholdMinutes: number | null
+  defaultCurrency: string | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -119,6 +121,8 @@ export type OrganizationCountAggregateOutputType = {
   mileageUnit: number
   otEnabled: number
   otDailyThresholdMinutes: number
+  allowedCurrencies: number
+  defaultCurrency: number
   _all: number
 }
 
@@ -170,6 +174,7 @@ export type OrganizationMinAggregateInputType = {
   mileageUnit?: true
   otEnabled?: true
   otDailyThresholdMinutes?: true
+  defaultCurrency?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -193,6 +198,7 @@ export type OrganizationMaxAggregateInputType = {
   mileageUnit?: true
   otEnabled?: true
   otDailyThresholdMinutes?: true
+  defaultCurrency?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -216,6 +222,8 @@ export type OrganizationCountAggregateInputType = {
   mileageUnit?: true
   otEnabled?: true
   otDailyThresholdMinutes?: true
+  allowedCurrencies?: true
+  defaultCurrency?: true
   _all?: true
 }
 
@@ -326,6 +334,8 @@ export type OrganizationGroupByOutputType = {
   mileageUnit: $Enums.MileageUnit
   otEnabled: boolean
   otDailyThresholdMinutes: number
+  allowedCurrencies: runtime.JsonValue | null
+  defaultCurrency: string | null
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -372,6 +382,8 @@ export type OrganizationWhereInput = {
   mileageUnit?: Prisma.EnumMileageUnitFilter<"Organization"> | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   otDailyThresholdMinutes?: Prisma.IntFilter<"Organization"> | number
+  allowedCurrencies?: Prisma.JsonNullableFilter<"Organization">
+  defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
@@ -401,6 +413,8 @@ export type OrganizationOrderByWithRelationInput = {
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
+  allowedCurrencies?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
   adminMembers?: Prisma.AdminOrganizationOrderByRelationAggregateInput
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
@@ -434,6 +448,8 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   mileageUnit?: Prisma.EnumMileageUnitFilter<"Organization"> | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   otDailyThresholdMinutes?: Prisma.IntFilter<"Organization"> | number
+  allowedCurrencies?: Prisma.JsonNullableFilter<"Organization">
+  defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
@@ -463,6 +479,8 @@ export type OrganizationOrderByWithAggregationInput = {
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
+  allowedCurrencies?: Prisma.SortOrderInput | Prisma.SortOrder
+  defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -494,6 +512,8 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   mileageUnit?: Prisma.EnumMileageUnitWithAggregatesFilter<"Organization"> | $Enums.MileageUnit
   otEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   otDailyThresholdMinutes?: Prisma.IntWithAggregatesFilter<"Organization"> | number
+  allowedCurrencies?: Prisma.JsonNullableWithAggregatesFilter<"Organization">
+  defaultCurrency?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
 }
 
 export type OrganizationCreateInput = {
@@ -517,6 +537,8 @@ export type OrganizationCreateInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -546,6 +568,8 @@ export type OrganizationUncheckedCreateInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -575,6 +599,8 @@ export type OrganizationUpdateInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -604,6 +630,8 @@ export type OrganizationUncheckedUpdateInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -633,6 +661,8 @@ export type OrganizationCreateManyInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -656,6 +686,8 @@ export type OrganizationUpdateManyMutationInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -679,6 +711,8 @@ export type OrganizationUncheckedUpdateManyInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type OrganizationNullableScalarRelationFilter = {
@@ -713,6 +747,8 @@ export type OrganizationCountOrderByAggregateInput = {
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
+  allowedCurrencies?: Prisma.SortOrder
+  defaultCurrency?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
@@ -749,6 +785,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
+  defaultCurrency?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -772,6 +809,7 @@ export type OrganizationMinOrderByAggregateInput = {
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
+  defaultCurrency?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
@@ -933,6 +971,8 @@ export type OrganizationCreateWithoutUsersInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -961,6 +1001,8 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1005,6 +1047,8 @@ export type OrganizationUpdateWithoutUsersInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1033,6 +1077,8 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1061,6 +1107,8 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -1089,6 +1137,8 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1133,6 +1183,8 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -1161,6 +1213,8 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1189,6 +1243,8 @@ export type OrganizationCreateWithoutClaimsInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -1217,6 +1273,8 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1261,6 +1319,8 @@ export type OrganizationUpdateWithoutClaimsInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -1289,6 +1349,8 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1317,6 +1379,8 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
@@ -1345,6 +1409,8 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1389,6 +1455,8 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
@@ -1417,6 +1485,8 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1445,6 +1515,8 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1473,6 +1545,8 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1517,6 +1591,8 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1545,6 +1621,8 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1573,6 +1651,8 @@ export type OrganizationCreateWithoutProjectsInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1601,6 +1681,8 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1645,6 +1727,8 @@ export type OrganizationUpdateWithoutProjectsInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1673,6 +1757,8 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1777,6 +1863,8 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   mileageUnit?: boolean
   otEnabled?: boolean
   otDailyThresholdMinutes?: boolean
+  allowedCurrencies?: boolean
+  defaultCurrency?: boolean
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
@@ -1809,9 +1897,11 @@ export type OrganizationSelectScalar = {
   mileageUnit?: boolean
   otEnabled?: boolean
   otDailyThresholdMinutes?: boolean
+  allowedCurrencies?: boolean
+  defaultCurrency?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "timezone" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "otDailyThresholdMinutes", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "timezone" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "otDailyThresholdMinutes" | "allowedCurrencies" | "defaultCurrency", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
@@ -1858,6 +1948,20 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
      * hours.
      */
     otDailyThresholdMinutes: number
+    /**
+     * JSON array of ISO 4217 currency codes the admin has enabled for
+     * expense claims (e.g. ["MYR","USD","SGD"]). Empty/null falls back to
+     * just defaultCurrency. The employee claim form picker shows only
+     * these codes.
+     */
+    allowedCurrencies: runtime.JsonValue | null
+    /**
+     * Default currency for new claims when the AI can't detect one and
+     * the user hasn't picked. ISO 4217 code. Replaces the previous
+     * hardcoded "USD". Null until the admin sets it (in which case the
+     * claim service falls back to "MYR" for backwards-safety).
+     */
+    defaultCurrency: string | null
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -2253,6 +2357,8 @@ export interface OrganizationFieldRefs {
   readonly mileageUnit: Prisma.FieldRef<"Organization", 'MileageUnit'>
   readonly otEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly otDailyThresholdMinutes: Prisma.FieldRef<"Organization", 'Int'>
+  readonly allowedCurrencies: Prisma.FieldRef<"Organization", 'Json'>
+  readonly defaultCurrency: Prisma.FieldRef<"Organization", 'String'>
 }
     
 

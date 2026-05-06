@@ -4,10 +4,12 @@ import { z } from "zod"
 
 import { clearEmployeeStore } from "@/lib/app-store"
 import type { AuthenticatedSession } from "@/lib/auth/types"
+import { isKnownCurrency, SYSTEM_FALLBACK_CURRENCY } from "@/lib/currencies"
 import { loadEmployeeData } from "@/lib/load-user-data"
 import { computeMileageAmount, resolveMileageRate } from "@/lib/mileage"
 import { sendPushToUser } from "@/lib/web-push"
 import { invalidateAdminStore } from "@/modules/claims/application/services/admin-portal.service"
+import { storeReceiptForClaim } from "@/modules/claims/application/services/claim-receipts.service"
 import { claimMatchesStatusFilter } from "@/modules/claims/domain/models"
 import type {
   ClaimRecord,
@@ -43,6 +45,11 @@ const baseClaimSchema = z.object({
   /// Project this claim is filed against. Required when the employee has
   /// any project assignments — drives module-aware approval routing.
   projectId: z.string().optional(),
+  /// ISO 4217 currency code chosen on the form. Validated server-side
+  /// against the org's allowedCurrencies list before insert. Optional in
+  /// the schema so older form callers that don't ship it still work; the
+  /// service falls back to org.defaultCurrency, then to MYR.
+  currency: z.string().trim().toUpperCase().optional(),
 })
 
 const expenseClaimSchema = baseClaimSchema.extend({
@@ -112,7 +119,14 @@ export type CreateClaimInput = {
   amount?: string | number
   spentAt: string
   description: string
+  /// Pre-uploaded receipt URL. Kept for backwards-compat with callers
+  /// that still pass a URL. New employee-portal callers pass
+  /// `receiptFile` instead and the workflow handles upload.
   receiptUrl?: string
+  /// Receipt file to upload. The service decides where it goes (Xero
+  /// Files vs local disk) based on the chart-of-account's Xero
+  /// connection. Empty / undefined means "no receipt for this claim".
+  receiptFile?: File
   paymentType?: "PERSONAL" | "COMPANY"
   payViaAccountId?: string
   /// Project the claim is filed against. Required when the employee has
@@ -610,6 +624,62 @@ export async function createClaimForEmployee({
     }
   }
 
+  // Store the receipt — to Xero Files when the COA is Xero-connected,
+  // local disk otherwise. Pre-uploaded receiptUrl from older callers
+  // still wins if they passed one. New employee-portal submissions go
+  // through this path with a File object. (receiptFile reads off the
+  // raw input rather than parsed.data because the Zod schema doesn't
+  // model File — passing it through would double the schema's complexity
+  // for no validation benefit.)
+  let storedReceiptUrl = parsed.data.receiptUrl?.trim() || undefined
+  let storedXeroFileId: string | null = null
+  let receiptStorageWarning: string | undefined
+  const receiptFile =
+    input.receiptFile instanceof File ? input.receiptFile : undefined
+  if (!storedReceiptUrl && receiptFile) {
+    try {
+      const stored = await storeReceiptForClaim({
+        receiptFile,
+        xeroConnectionId: chartOfAccount.xeroConnectionId,
+      })
+      storedReceiptUrl = stored.receiptUrl
+      storedXeroFileId = stored.xeroFileId
+      if (stored.warning) receiptStorageWarning = stored.warning
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Receipt upload failed."
+      return {
+        ok: false,
+        status: 400,
+        message,
+        values: input,
+        fieldErrors: { receiptUrl: message },
+      }
+    }
+  }
+
+  // Resolve the currency for this claim with this precedence:
+  //   1. Form-supplied value, if it's a known ISO code AND the org has
+  //      it in its allowedCurrencies list (or hasn't set a list yet).
+  //   2. Org's defaultCurrency.
+  //   3. System fallback (MYR).
+  // The form layer enforces the list visually, but we re-validate
+  // server-side so a tampered request can't slip through.
+  const orgAllowed = organization.allowedCurrencies
+  const submittedCurrency = parsed.data.currency
+  let resolvedCurrency: string
+  if (
+    submittedCurrency &&
+    isKnownCurrency(submittedCurrency) &&
+    (orgAllowed.length === 0 || orgAllowed.includes(submittedCurrency))
+  ) {
+    resolvedCurrency = submittedCurrency
+  } else if (organization.defaultCurrency) {
+    resolvedCurrency = organization.defaultCurrency
+  } else {
+    resolvedCurrency = SYSTEM_FALLBACK_CURRENCY
+  }
+
   const ok = await claimRepository.createClaim({
     claimNumber: `CLM-${Date.now().toString().slice(-5)}`,
     title: parsed.data.title,
@@ -618,10 +688,11 @@ export async function createClaimForEmployee({
     projectId: parsed.data.projectId ?? null,
     chartOfAccountId: parsed.data.chartOfAccountId,
     amount: finalAmount.toFixed(2),
-    currency: "USD",
+    currency: resolvedCurrency,
     spentAt: new Date(parsed.data.spentAt),
     claimRunMonth: claimRunMonth.targetMonth,
-    receiptUrl: parsed.data.receiptUrl || undefined,
+    receiptUrl: storedReceiptUrl,
+    xeroFileId: storedXeroFileId,
     employeeId,
     reviewerId,
     paymentType: parsed.data.paymentType,
@@ -661,7 +732,16 @@ export async function createClaimForEmployee({
     // Push notifications should never block a successful claim submission.
   }
 
-  return { ok: true, warning: exceedsLimitMessage }
+  // Combine the two possible warnings (over-limit and receipt-fallback)
+  // into one user-facing message. Both are non-fatal; the claim is saved.
+  const combinedWarning = [exceedsLimitMessage, receiptStorageWarning]
+    .filter(Boolean)
+    .join(" ")
+    .trim()
+  return {
+    ok: true,
+    warning: combinedWarning ? combinedWarning : undefined,
+  }
 }
 
 export function calculateClaimRunMonth({

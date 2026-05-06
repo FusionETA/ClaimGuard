@@ -37,6 +37,7 @@ export type XeroConnectionMinAggregateOutputType = {
   tokenType: string | null
   accessTokenExpiresAt: Date | null
   connectedByAdminId: string | null
+  lastReauthVersion: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +55,7 @@ export type XeroConnectionMaxAggregateOutputType = {
   tokenType: string | null
   accessTokenExpiresAt: Date | null
   connectedByAdminId: string | null
+  lastReauthVersion: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -71,6 +73,7 @@ export type XeroConnectionCountAggregateOutputType = {
   tokenType: number
   accessTokenExpiresAt: number
   connectedByAdminId: number
+  lastReauthVersion: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -90,6 +93,7 @@ export type XeroConnectionMinAggregateInputType = {
   tokenType?: true
   accessTokenExpiresAt?: true
   connectedByAdminId?: true
+  lastReauthVersion?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -107,6 +111,7 @@ export type XeroConnectionMaxAggregateInputType = {
   tokenType?: true
   accessTokenExpiresAt?: true
   connectedByAdminId?: true
+  lastReauthVersion?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -124,6 +129,7 @@ export type XeroConnectionCountAggregateInputType = {
   tokenType?: true
   accessTokenExpiresAt?: true
   connectedByAdminId?: true
+  lastReauthVersion?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -214,6 +220,7 @@ export type XeroConnectionGroupByOutputType = {
   tokenType: string
   accessTokenExpiresAt: Date
   connectedByAdminId: string | null
+  lastReauthVersion: string | null
   createdAt: Date
   updatedAt: Date
   _count: XeroConnectionCountAggregateOutputType | null
@@ -252,6 +259,7 @@ export type XeroConnectionWhereInput = {
   tokenType?: Prisma.StringFilter<"XeroConnection"> | string
   accessTokenExpiresAt?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   connectedByAdminId?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  lastReauthVersion?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   createdAt?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
@@ -274,6 +282,7 @@ export type XeroConnectionOrderByWithRelationInput = {
   tokenType?: Prisma.SortOrder
   accessTokenExpiresAt?: Prisma.SortOrder
   connectedByAdminId?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastReauthVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
@@ -301,6 +310,7 @@ export type XeroConnectionWhereUniqueInput = Prisma.AtLeast<{
   tokenType?: Prisma.StringFilter<"XeroConnection"> | string
   accessTokenExpiresAt?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   connectedByAdminId?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  lastReauthVersion?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   createdAt?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
@@ -323,6 +333,7 @@ export type XeroConnectionOrderByWithAggregationInput = {
   tokenType?: Prisma.SortOrder
   accessTokenExpiresAt?: Prisma.SortOrder
   connectedByAdminId?: Prisma.SortOrderInput | Prisma.SortOrder
+  lastReauthVersion?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.XeroConnectionCountOrderByAggregateInput
@@ -346,6 +357,7 @@ export type XeroConnectionScalarWhereWithAggregatesInput = {
   tokenType?: Prisma.StringWithAggregatesFilter<"XeroConnection"> | string
   accessTokenExpiresAt?: Prisma.DateTimeWithAggregatesFilter<"XeroConnection"> | Date | string
   connectedByAdminId?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
+  lastReauthVersion?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"XeroConnection"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"XeroConnection"> | Date | string
 }
@@ -361,6 +373,7 @@ export type XeroConnectionCreateInput = {
   scope: string
   tokenType: string
   accessTokenExpiresAt: Date | string
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
@@ -383,6 +396,7 @@ export type XeroConnectionUncheckedCreateInput = {
   tokenType: string
   accessTokenExpiresAt: Date | string
   connectedByAdminId?: string | null
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
@@ -401,6 +415,7 @@ export type XeroConnectionUpdateInput = {
   scope?: Prisma.StringFieldUpdateOperationsInput | string
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
@@ -423,6 +438,7 @@ export type XeroConnectionUncheckedUpdateInput = {
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
@@ -443,6 +459,7 @@ export type XeroConnectionCreateManyInput = {
   tokenType: string
   accessTokenExpiresAt: Date | string
   connectedByAdminId?: string | null
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -458,6 +475,7 @@ export type XeroConnectionUpdateManyMutationInput = {
   scope?: Prisma.StringFieldUpdateOperationsInput | string
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -475,6 +493,7 @@ export type XeroConnectionUncheckedUpdateManyInput = {
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -518,6 +537,7 @@ export type XeroConnectionCountOrderByAggregateInput = {
   tokenType?: Prisma.SortOrder
   accessTokenExpiresAt?: Prisma.SortOrder
   connectedByAdminId?: Prisma.SortOrder
+  lastReauthVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -535,6 +555,7 @@ export type XeroConnectionMaxOrderByAggregateInput = {
   tokenType?: Prisma.SortOrder
   accessTokenExpiresAt?: Prisma.SortOrder
   connectedByAdminId?: Prisma.SortOrder
+  lastReauthVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -552,6 +573,7 @@ export type XeroConnectionMinOrderByAggregateInput = {
   tokenType?: Prisma.SortOrder
   accessTokenExpiresAt?: Prisma.SortOrder
   connectedByAdminId?: Prisma.SortOrder
+  lastReauthVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -699,6 +721,7 @@ export type XeroConnectionCreateWithoutConnectedByAdminInput = {
   scope: string
   tokenType: string
   accessTokenExpiresAt: Date | string
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
@@ -719,6 +742,7 @@ export type XeroConnectionUncheckedCreateWithoutConnectedByAdminInput = {
   scope: string
   tokenType: string
   accessTokenExpiresAt: Date | string
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
@@ -768,6 +792,7 @@ export type XeroConnectionScalarWhereInput = {
   tokenType?: Prisma.StringFilter<"XeroConnection"> | string
   accessTokenExpiresAt?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   connectedByAdminId?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
+  lastReauthVersion?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   createdAt?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"XeroConnection"> | Date | string
 }
@@ -783,6 +808,7 @@ export type XeroConnectionCreateWithoutOrganizationInput = {
   scope: string
   tokenType: string
   accessTokenExpiresAt: Date | string
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
@@ -803,6 +829,7 @@ export type XeroConnectionUncheckedCreateWithoutOrganizationInput = {
   tokenType: string
   accessTokenExpiresAt: Date | string
   connectedByAdminId?: string | null
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
@@ -847,6 +874,7 @@ export type XeroConnectionCreateWithoutEmployeeProfilesInput = {
   scope: string
   tokenType: string
   accessTokenExpiresAt: Date | string
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
@@ -868,6 +896,7 @@ export type XeroConnectionUncheckedCreateWithoutEmployeeProfilesInput = {
   tokenType: string
   accessTokenExpiresAt: Date | string
   connectedByAdminId?: string | null
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
@@ -901,6 +930,7 @@ export type XeroConnectionUpdateWithoutEmployeeProfilesInput = {
   scope?: Prisma.StringFieldUpdateOperationsInput | string
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
@@ -922,6 +952,7 @@ export type XeroConnectionUncheckedUpdateWithoutEmployeeProfilesInput = {
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
@@ -939,6 +970,7 @@ export type XeroConnectionCreateWithoutChartAccountsInput = {
   scope: string
   tokenType: string
   accessTokenExpiresAt: Date | string
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutXeroConnectionInput
@@ -960,6 +992,7 @@ export type XeroConnectionUncheckedCreateWithoutChartAccountsInput = {
   tokenType: string
   accessTokenExpiresAt: Date | string
   connectedByAdminId?: string | null
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutXeroConnectionInput
@@ -993,6 +1026,7 @@ export type XeroConnectionUpdateWithoutChartAccountsInput = {
   scope?: Prisma.StringFieldUpdateOperationsInput | string
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutXeroConnectionNestedInput
@@ -1014,6 +1048,7 @@ export type XeroConnectionUncheckedUpdateWithoutChartAccountsInput = {
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionNestedInput
@@ -1031,6 +1066,7 @@ export type XeroConnectionCreateWithoutXeroProjectsInput = {
   scope: string
   tokenType: string
   accessTokenExpiresAt: Date | string
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
@@ -1052,6 +1088,7 @@ export type XeroConnectionUncheckedCreateWithoutXeroProjectsInput = {
   tokenType: string
   accessTokenExpiresAt: Date | string
   connectedByAdminId?: string | null
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
@@ -1085,6 +1122,7 @@ export type XeroConnectionUpdateWithoutXeroProjectsInput = {
   scope?: Prisma.StringFieldUpdateOperationsInput | string
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
@@ -1106,6 +1144,7 @@ export type XeroConnectionUncheckedUpdateWithoutXeroProjectsInput = {
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
@@ -1124,6 +1163,7 @@ export type XeroConnectionCreateManyConnectedByAdminInput = {
   scope: string
   tokenType: string
   accessTokenExpiresAt: Date | string
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1139,6 +1179,7 @@ export type XeroConnectionUpdateWithoutConnectedByAdminInput = {
   scope?: Prisma.StringFieldUpdateOperationsInput | string
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
@@ -1159,6 +1200,7 @@ export type XeroConnectionUncheckedUpdateWithoutConnectedByAdminInput = {
   scope?: Prisma.StringFieldUpdateOperationsInput | string
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
@@ -1178,6 +1220,7 @@ export type XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminInput = {
   scope?: Prisma.StringFieldUpdateOperationsInput | string
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1194,6 +1237,7 @@ export type XeroConnectionCreateManyOrganizationInput = {
   tokenType: string
   accessTokenExpiresAt: Date | string
   connectedByAdminId?: string | null
+  lastReauthVersion?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1209,6 +1253,7 @@ export type XeroConnectionUpdateWithoutOrganizationInput = {
   scope?: Prisma.StringFieldUpdateOperationsInput | string
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
@@ -1229,6 +1274,7 @@ export type XeroConnectionUncheckedUpdateWithoutOrganizationInput = {
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
@@ -1248,6 +1294,7 @@ export type XeroConnectionUncheckedUpdateManyWithoutOrganizationInput = {
   tokenType?: Prisma.StringFieldUpdateOperationsInput | string
   accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1314,6 +1361,7 @@ export type XeroConnectionSelect<ExtArgs extends runtime.Types.Extensions.Intern
   tokenType?: boolean
   accessTokenExpiresAt?: boolean
   connectedByAdminId?: boolean
+  lastReauthVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   chartAccounts?: boolean | Prisma.XeroConnection$chartAccountsArgs<ExtArgs>
@@ -1339,11 +1387,12 @@ export type XeroConnectionSelectScalar = {
   tokenType?: boolean
   accessTokenExpiresAt?: boolean
   connectedByAdminId?: boolean
+  lastReauthVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type XeroConnectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "provider" | "organizationId" | "tenantId" | "tenantName" | "tenantType" | "accessToken" | "refreshToken" | "scope" | "tokenType" | "accessTokenExpiresAt" | "connectedByAdminId" | "createdAt" | "updatedAt", ExtArgs["result"]["xeroConnection"]>
+export type XeroConnectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "provider" | "organizationId" | "tenantId" | "tenantName" | "tenantType" | "accessToken" | "refreshToken" | "scope" | "tokenType" | "accessTokenExpiresAt" | "connectedByAdminId" | "lastReauthVersion" | "createdAt" | "updatedAt", ExtArgs["result"]["xeroConnection"]>
 export type XeroConnectionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chartAccounts?: boolean | Prisma.XeroConnection$chartAccountsArgs<ExtArgs>
   employeeProfiles?: boolean | Prisma.XeroConnection$employeeProfilesArgs<ExtArgs>
@@ -1375,6 +1424,14 @@ export type $XeroConnectionPayload<ExtArgs extends runtime.Types.Extensions.Inte
     tokenType: string
     accessTokenExpiresAt: Date
     connectedByAdminId: string | null
+    /**
+     * Records the most recent value of XERO_REAUTH_VERSION env var that the
+     * admin completed an OAuth flow against. When the env var is bumped (e.g.
+     * scopes expanded), connections whose lastReauthVersion no longer matches
+     * trigger the "Update permissions" button in the admin UI. Null = never
+     * re-auth'd (or env var was unset at the time of original connect).
+     */
+    lastReauthVersion: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["xeroConnection"]>
@@ -1763,6 +1820,7 @@ export interface XeroConnectionFieldRefs {
   readonly tokenType: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly accessTokenExpiresAt: Prisma.FieldRef<"XeroConnection", 'DateTime'>
   readonly connectedByAdminId: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly lastReauthVersion: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly createdAt: Prisma.FieldRef<"XeroConnection", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"XeroConnection", 'DateTime'>
 }

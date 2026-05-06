@@ -272,6 +272,9 @@ export type CreateClaimData = {
   /// The claim is still saved; this flag is what the admin queue reads to
   /// surface a "FLAGGED" badge.
   exceedsLimit?: boolean
+  /// Xero file id when the receipt was uploaded to Xero Files. Null for
+  /// receipts kept on local disk (custom-account claims).
+  xeroFileId?: string | null
   // Claim-type + mileage snapshot fields. EXPENSE is the default and leaves
   // the mileage columns null.
   claimType?: "EXPENSE" | "MILEAGE"
@@ -319,6 +322,12 @@ export type ClaimForXeroSync = {
   currency: string
   spentAt: Date
   xeroBillId: string | null
+  /// Set when the receipt was uploaded to Xero Files at submission time.
+  /// When the bill-creation flow is re-enabled, call
+  /// associateFileWithInvoice({ fileId: xeroFileId, invoiceId: bill.invoiceId })
+  /// after the bill is created so the receipt shows up in the bill's
+  /// Files panel in Xero.
+  xeroFileId: string | null
   chartOfAccount?: {
     code: string
     name: string
@@ -664,6 +673,45 @@ export const claimRepository = {
    * just the employee user-id and the claim title, without hydrating the full
    * claim payload.
    */
+  /// Look up the minimum data needed to serve a Xero Files proxy request:
+  /// the claim's id, employee, project, organisation, and the chart-of-
+  /// account's Xero connection (so we can fetch a fresh access token for
+  /// the right tenant). Returns null when no claim references this file
+  /// id — caller responds with 404.
+  async getClaimByXeroFileId(xeroFileId: string): Promise<{
+    id: string
+    employeeId: string
+    projectId: string | null
+    organizationId: string | null
+    chartOfAccountId: string | null
+    xeroConnectionId: string | null
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.claim.findFirst({
+      where: { xeroFileId },
+      select: {
+        id: true,
+        employeeId: true,
+        projectId: true,
+        organizationId: true,
+        chartOfAccountId: true,
+        chartOfAccount: {
+          select: { xeroConnectionId: true },
+        },
+      },
+    })
+    if (!row) return null
+    return {
+      id: row.id,
+      employeeId: row.employeeId,
+      projectId: row.projectId,
+      organizationId: row.organizationId,
+      chartOfAccountId: row.chartOfAccountId,
+      xeroConnectionId: row.chartOfAccount?.xeroConnectionId ?? null,
+    }
+  },
+
   async getClaimNotificationSnapshot(
     claimId: string
   ): Promise<{ employeeId: string; title: string } | null> {
@@ -907,6 +955,7 @@ export const claimRepository = {
         paymentType: data.paymentType,
         payViaAccountId: data.payViaAccountId ?? null,
         exceedsLimit: data.exceedsLimit ?? false,
+        xeroFileId: data.xeroFileId ?? null,
         distance: data.distance,
         mileageOriginAddress: data.mileageOriginAddress,
         mileageDestinationAddress: data.mileageDestinationAddress,
@@ -1165,6 +1214,7 @@ export const claimRepository = {
         currency: true,
         spentAt: true,
         xeroBillId: true,
+        xeroFileId: true,
         chartOfAccount: {
           select: {
             code: true,
@@ -1191,6 +1241,7 @@ export const claimRepository = {
       currency: claim.currency,
       spentAt: claim.spentAt,
       xeroBillId: claim.xeroBillId,
+      xeroFileId: claim.xeroFileId,
       chartOfAccount: claim.chartOfAccount,
       employee: claim.employee,
     }
