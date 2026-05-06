@@ -1026,13 +1026,36 @@ export const attendanceRepository = {
 
   // ── Supervisor ────────────────────────────────────────────────────────
 
+  /// Returns the userIds of every employee this supervisor could ever
+  /// approve for. Sourced from two places:
+  ///   1. ApprovalChainStep rows where this user is the approver — the
+  ///      authoritative multi-layer chain. This is what `reviewApproval`
+  ///      and `currentStepApproverIds` filter against downstream.
+  ///   2. EmployeeProfile.supervisorId — the legacy single-pointer field
+  ///      kept for backwards compat with rows created before the
+  ///      multi-layer chain existed.
+  /// The union is the right "could see" set; the per-request filter
+  /// `currentStepApproverIds.includes(supervisorId)` then narrows it to
+  /// "is it your step right now".
   async getTeamMemberIds(supervisorId: string): Promise<string[]> {
     const prisma = getClient()
-    const profiles = await prisma.employeeProfile.findMany({
-      where: { supervisorId },
-      select: { userId: true },
-    })
-    return profiles.map((p) => p.userId)
+    const [profiles, chain] = await Promise.all([
+      prisma.employeeProfile.findMany({
+        where: { supervisorId },
+        select: { userId: true },
+      }),
+      prisma.approvalChainStep.findMany({
+        where: { approverId: supervisorId },
+        distinct: ["employeeId"],
+        select: { employeeId: true },
+      }),
+    ])
+    return Array.from(
+      new Set([
+        ...profiles.map((p) => p.userId),
+        ...chain.map((c) => c.employeeId),
+      ]),
+    )
   },
 
   async getTeamOverview(supervisorId: string): Promise<SupervisorTeamOverview> {
