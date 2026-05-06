@@ -25,6 +25,7 @@ model User {
   attendance             AttendanceRecord[]  @relation("EmployeeAttendance")
   claims                 Claim[]             @relation("EmployeeClaims")
   reviews                Claim[]             @relation("AdminReviews")
+  claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
   supervisedProfiles     EmployeeProfile[]   @relation("SupervisorReports")
   employeeProfile        EmployeeProfile?    @relation("EmployeeProfileUser")
   projectManagerOf       ProjectManager[]    @relation("ProjectManagerOf")
@@ -203,6 +204,7 @@ model Claim {
   payViaAccount             ChartOfAccount? @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
   project                   XeroProject?    @relation("ClaimProject", fields: [projectId], references: [id])
   reviewer                  User?           @relation("AdminReviews", fields: [reviewerId], references: [id])
+  approvalEntries           ClaimApprovalEntry[]
 
   @@index([organizationId, submittedAt])
   @@index([chartOfAccountId])
@@ -212,6 +214,41 @@ model Claim {
   @@index([xeroSyncStatus])
   @@index([reviewerId], map: "Claim_reviewerId_fkey")
   @@index([projectId])
+}
+
+/// Per-step approval / rejection history for a claim. Inserted by the
+/// supervisor review path each time someone in the chain acts. Lets the
+/// UI accurately render which specific approver clicked Approve at each
+/// step (vs. peers who didn't act, vs. the latest-only `Claim.reviewerId`
+/// snapshot which gets overwritten).
+///
+/// Notes:
+///   - `stepNumber` matches the chain template's step number — multi-
+///     approver-per-step still produces ONE entry (the actor); the
+///     unique constraint allows different approvers in the same step,
+///     but the supervisor path only writes one when the step is satisfied.
+///   - The admin's final review is NOT logged here; it's shown
+///     separately as the REVIEWED badge on the claim summary.
+model ClaimApprovalEntry {
+  id          String       @id @default(cuid())
+  claimId     String
+  stepNumber  Int
+  approverId  String
+  decision    ClaimApprovalDecision
+  reviewedAt  DateTime     @default(now())
+  reviewNotes String?      @db.Text
+  createdAt   DateTime     @default(now())
+  claim       Claim        @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  approver    User         @relation("UserApprovalEntries", fields: [approverId], references: [id])
+
+  @@unique([claimId, stepNumber, approverId])
+  @@index([claimId])
+  @@index([approverId])
+}
+
+enum ClaimApprovalDecision {
+  APPROVED
+  REJECTED
 }
 
 model ChartOfAccount {

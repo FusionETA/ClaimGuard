@@ -441,6 +441,110 @@ export const organizationRepository = {
     return mapOrganizationSummary(organization)!
   },
 
+  /**
+   * List every admin tied to an organization. Two paths union'd:
+   *   - User.organizationId === orgId (admins whose home org is this one).
+   *   - Anyone joined via AdminOrganization (multi-org admins).
+   * De-duplicated by user id, ordered by createdAt ascending so the
+   * earliest admin appears first.
+   */
+  async listAdminsForOrganization(organizationId: string): Promise<
+    Array<{
+      id: string
+      email: string
+      name: string
+      createdAt: string
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const rows = await prisma.user.findMany({
+      where: {
+        role: "ADMIN",
+        OR: [
+          { organizationId },
+          { adminOrganizations: { some: { organizationId } } },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "asc" },
+    })
+
+    return rows.map((u) => ({
+      id: u.id,
+      email: u.email,
+      name: u.name,
+      createdAt: u.createdAt.toISOString(),
+    }))
+  },
+
+  /**
+   * Create a new admin user tied to the given organization. The caller
+   * (a server action) must have already verified the requesting user is
+   * an admin in this org.
+   *
+   * `password` is the temporary password the inviting admin types on the
+   * form — the new admin should change it on first login. We hash it
+   * before persisting (lib/auth/password's hashPassword is the same
+   * helper used by the original admin signup flow).
+   *
+   * Throws on email collision (Prisma unique constraint surfaces as a
+   * code "P2002" — caller maps that to a friendly message).
+   */
+  async createAdminForOrganization(input: {
+    organizationId: string
+    email: string
+    name: string
+    password: string
+  }): Promise<{ id: string; email: string; name: string }> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    const email = input.email.trim().toLowerCase()
+    const name = input.name.trim()
+
+    const existing = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, role: true },
+    })
+    if (existing) {
+      throw new Error(
+        existing.role === "ADMIN"
+          ? "An admin with that email already exists."
+          : "A user with that email already exists.",
+      )
+    }
+
+    const created = await prisma.user.create({
+      data: {
+        email,
+        name,
+        passwordHash: hashPassword(input.password),
+        role: "ADMIN",
+        // Tying the new admin to the same org via both columns matches
+        // how the primary admin is represented (organizationId set) AND
+        // adds the AdminOrganization join row that drives multi-org
+        // admins. The "primary admin" of the org is whoever has
+        // organizationId set; everyone else is a join-row only.
+        organizationId: input.organizationId,
+        adminOrganizations: {
+          create: { organizationId: input.organizationId },
+        },
+      },
+      select: { id: true, email: true, name: true },
+    })
+
+    return created
+  },
+
   async updateOrganizationName(data: {
     adminId: string
     organizationId: string

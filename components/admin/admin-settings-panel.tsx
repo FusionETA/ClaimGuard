@@ -4,7 +4,7 @@ import { useActionState, useEffect, useLayoutEffect, useRef, useState, useTransi
 import { createPortal } from "react-dom"
 import Link from "next/link"
 import { useSearchParams, useRouter } from "next/navigation"
-import { CalendarDays, Clock, Coins, Download, Loader2, MapPin, Plus, Search, Trash2 } from "lucide-react"
+import { CalendarDays, Clock, Coins, Download, Loader2, MapPin, Plus, Search, Trash2, UserPlus } from "lucide-react"
 
 import { CURRENCY_CATALOG } from "@/lib/currencies"
 
@@ -14,6 +14,7 @@ import {
   createManualProjectAction,
   deleteCustomAccountAction,
   deleteManualProjectAction,
+  createAdminAction,
   saveAccountLimitAction,
   saveClaimRunSettingsAction,
   saveCurrencySettingsAction,
@@ -452,6 +453,8 @@ export function AdminSettingsPanel({
   timezone,
   initialTab,
   initialSection,
+  admins = [],
+  currentAdminEmail,
 }: {
   admin: AdminProfile
   organization?: OrganizationSummary
@@ -469,6 +472,13 @@ export function AdminSettingsPanel({
   timezone: string
   initialTab?: string
   initialSection?: string
+  /// Existing admins of the active org. Rendered as a list in the
+  /// Organization tab. Each row shows email + name + a (You) tag for
+  /// the currently logged-in admin.
+  admins?: Array<{ id: string; email: string; name: string; createdAt: string }>
+  /// Email of the currently logged-in admin — used to flag "(You)" in
+  /// the admin list and avoid showing a "remove me" UI for self.
+  currentAdminEmail?: string
 }) {
   const { toast } = useToast()
   const initialResolved = resolveTabFromInitial(initialTab)
@@ -541,6 +551,10 @@ export function AdminSettingsPanel({
     saveCurrencySettingsAction,
     initialSettingsActionState
   )
+  const [createAdminState, createAdminAction_, createAdminPending] = useActionState(
+    createAdminAction,
+    initialSettingsActionState
+  )
   const [xeroState, xeroAction, xeroPending] = useActionState(
     syncXeroAccountsAction,
     initialSettingsActionState
@@ -581,6 +595,7 @@ export function AdminSettingsPanel({
   useToastOnAction(accountsState)
   useToastOnAction(claimRunState)
   useToastOnAction(currencyState)
+  useToastOnAction(createAdminState)
   useToastOnAction(xeroState)
   useToastOnAction(projectsState)
   useToastOnAction(selectTenantState)
@@ -865,6 +880,28 @@ export function AdminSettingsPanel({
                 pending={currencyPending}
                 initialAllowed={organization?.allowedCurrencies ?? []}
                 initialDefault={organization?.defaultCurrency}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Admins — manage who has full admin access to this org. */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-primary" />
+                Admins
+              </CardTitle>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                People who can review claims, sync to Xero, manage settings, and invite further
+                admins. New admins get full equal-tier access.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <AdminsManagerSection
+                admins={admins}
+                currentAdminEmail={currentAdminEmail}
+                action={createAdminAction_}
+                pending={createAdminPending}
               />
             </CardContent>
           </Card>
@@ -3162,5 +3199,162 @@ function CurrencySettingsForm({
         </Button>
       </div>
     </form>
+  )
+}
+
+// ----------------------------------------------------------------------------
+// Admins manager section
+// ----------------------------------------------------------------------------
+
+/**
+ * Admin list + invite form, rendered inside the Admins card on the
+ * Organization tab.
+ *
+ * Form posts via the existing useActionState wired in the parent. After
+ * a successful create the toast appears (parent calls useToastOnAction)
+ * and we clear the form locally so the admin can invite another. The
+ * server-action revalidatePath causes the list to refresh on the next
+ * RSC pass.
+ */
+function AdminsManagerSection({
+  admins,
+  currentAdminEmail,
+  action,
+  pending,
+}: {
+  admins: Array<{ id: string; email: string; name: string; createdAt: string }>
+  currentAdminEmail?: string
+  action: (formData: FormData) => void
+  pending: boolean
+}) {
+  const formRef = useRef<HTMLFormElement | null>(null)
+  // Wraps the action so we can clear the form after a successful submit.
+  // useActionState's value updates on the parent — here we only care
+  // about resetting the inputs.
+  function handleAction(formData: FormData) {
+    action(formData)
+    // Optimistically clear the form. If the server action errors out,
+    // the parent toast still surfaces the message; the admin retypes.
+    formRef.current?.reset()
+  }
+
+  return (
+    <div className="space-y-5">
+      {/* Existing admins list */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Current admins ({admins.length})
+        </p>
+        {admins.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">
+            No admins configured for this org yet.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1.5">
+            {admins.map((a) => {
+              const isYou =
+                currentAdminEmail &&
+                a.email.toLowerCase() === currentAdminEmail.toLowerCase()
+              return (
+                <li
+                  key={a.id}
+                  className="flex items-center gap-3 rounded-xl border border-border/60 bg-surface-low px-3 py-2 text-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-foreground">
+                      {a.name}
+                      {isYou ? (
+                        <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                          You
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">{a.email}</p>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Invite form */}
+      <div className="rounded-2xl border border-border/60 bg-surface-low p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Add another admin
+        </p>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          We don&rsquo;t send invite emails yet. Create with a temporary password and share it with
+          them out-of-band; they can change it after their first sign-in.
+        </p>
+
+        <form
+          ref={formRef}
+          action={handleAction}
+          className="mt-3 grid gap-3 sm:grid-cols-2"
+        >
+          <div className="space-y-1.5">
+            <label htmlFor="newAdminName" className="text-sm font-semibold text-muted-foreground">Full name</label>
+            <Input
+              id="newAdminName"
+              name="name"
+              type="text"
+              required
+              maxLength={120}
+              disabled={pending}
+              placeholder="Jane Doe"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="newAdminEmail" className="text-sm font-semibold text-muted-foreground">Email</label>
+            <Input
+              id="newAdminEmail"
+              name="email"
+              type="email"
+              required
+              autoComplete="off"
+              disabled={pending}
+              placeholder="jane@company.com"
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:col-span-2">
+            <label htmlFor="newAdminPassword" className="text-sm font-semibold text-muted-foreground">Temporary password</label>
+            <Input
+              id="newAdminPassword"
+              name="password"
+              type="text"
+              required
+              minLength={8}
+              maxLength={128}
+              autoComplete="off"
+              disabled={pending}
+              placeholder="At least 8 characters"
+            />
+            <p className="text-xs text-muted-foreground">
+              Visible on screen so you can copy it before sending. The new admin should change it
+              after first sign-in.
+            </p>
+          </div>
+
+          <div className="sm:col-span-2 sm:justify-self-end">
+            <Button type="submit" className="rounded-xl" disabled={pending}>
+              {pending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding…
+                </>
+              ) : (
+                <>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Add admin
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
   )
 }

@@ -53,6 +53,23 @@ export type EmployeeProjectAssignment = Prisma.EmployeeProjectAssignmentModel
  */
 export type Claim = Prisma.ClaimModel
 /**
+ * Model ClaimApprovalEntry
+ * Per-step approval / rejection history for a claim. Inserted by the
+ * supervisor review path each time someone in the chain acts. Lets the
+ * UI accurately render which specific approver clicked Approve at each
+ * step (vs. peers who didn't act, vs. the latest-only `Claim.reviewerId`
+ * snapshot which gets overwritten).
+ * 
+ * Notes:
+ * - `stepNumber` matches the chain template's step number — multi-
+ * approver-per-step still produces ONE entry (the actor); the
+ * unique constraint allows different approvers in the same step,
+ * but the supervisor path only writes one when the step is satisfied.
+ * - The admin's final review is NOT logged here; it's shown
+ * separately as the REVIEWED badge on the claim summary.
+ */
+export type ClaimApprovalEntry = Prisma.ClaimApprovalEntryModel
+/**
  * Model ChartOfAccount
  * 
  */

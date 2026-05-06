@@ -107,6 +107,16 @@ type PrismaClaim = {
   chartOfAccount: PrismaChartAccount | null
   payViaAccount?: PrismaChartAccount | null
   employee: PrismaUser
+  /// Per-step audit entries. Optional because old claim selects without
+  /// the include don't return them; the chain renderer treats absent
+  /// entries as "legacy claim, unknown actor".
+  approvalEntries?: Array<{
+    stepNumber: number
+    approverId: string
+    decision: string
+    reviewedAt: Date
+    reviewNotes: string | null
+  }>
 }
 
 /// Module-filtered chain step with multi-approver support. Each step
@@ -146,12 +156,36 @@ function buildApprovalChainState(
     status: string
     reviewedAt: Date | null
     reviewerId: string | null
+    /// Per-step audit entries. When present, drive the per-approver
+    /// state (so we know exactly who acted at each step). When absent
+    /// (legacy claims, before the audit table existed), fall back to
+    /// the heuristic that "all approvers in a passed step are approved".
+    approvalEntries?: Array<{
+      stepNumber: number
+      approverId: string
+      decision: string
+      reviewedAt: Date
+    }>
   }
 ): { chain: ApprovalStepInfo[]; pending?: PendingApproverInfo } | undefined {
   if (steps.length === 0) return undefined
 
   const sorted = [...steps].sort((a, b) => a.step - b.step)
   const totalSteps = sorted.length
+
+  // Index entries by (step, approverId) for O(1) lookups.
+  const entryByKey = new Map<
+    string,
+    { decision: string; reviewedAt: Date }
+  >()
+  const stepsWithEntries = new Set<number>()
+  for (const e of claim.approvalEntries ?? []) {
+    entryByKey.set(`${e.stepNumber}::${e.approverId}`, {
+      decision: e.decision,
+      reviewedAt: e.reviewedAt,
+    })
+    stepsWithEntries.add(e.stepNumber)
+  }
 
   // Find which chain step corresponds to the most recent reviewer (if any).
   // For multi-approver groups, the reviewer is anyone in the step's set.
@@ -187,34 +221,48 @@ function buildApprovalChainState(
     currentStep = sorted[0]!.step
   }
 
-  // Flatten groups into per-approver entries with state. Within a step
-  // that has been approved (step < currentStep), only the actual reviewer
-  // is "approved"; the other approvers are "skipped" (they didn't act
-  // because someone else did).
+  // Flatten groups into per-approver entries with state. Logic:
+  //   - If we have an audit entry for this approver+step → use the
+  //     entry's decision (APPROVED → "approved", REJECTED → "rejected")
+  //     and surface its timestamp.
+  //   - Else if the step has ANY entry → this approver is a peer who
+  //     didn't act → "skipped".
+  //   - Else (no entries for this step at all): legacy claim. If the
+  //     step has been passed (step < currentStep), mark as "approved"
+  //     with no timestamp (we don't know who acted). Otherwise use
+  //     the position-based fallback ("current"/"upcoming"/"rejected").
   const chain: ApprovalStepInfo[] = []
   for (const group of sorted) {
-    let groupState: ApprovalStepState
-    if (claim.status === "REJECTED") {
-      if (group.step < currentStep) groupState = "approved"
-      else if (group.step === currentStep) groupState = "rejected"
-      else groupState = "skipped"
-    } else if (group.step < currentStep) {
-      groupState = "approved"
-    } else if (group.step === currentStep) {
-      groupState = "current"
-    } else {
-      groupState = "upcoming"
-    }
+    const stepHasEntries = stepsWithEntries.has(group.step)
 
     for (const approver of group.approvers) {
-      let entryState: ApprovalStepState = groupState
-      if (groupState === "approved" || groupState === "rejected") {
-        // Only the actual reviewer carries "approved"/"rejected" — peers
-        // in the same step that didn't act are marked "skipped".
-        if (approver.approverId !== claim.reviewerId) {
-          entryState = "skipped"
-        }
+      const myEntry = entryByKey.get(`${group.step}::${approver.approverId}`)
+
+      let entryState: ApprovalStepState
+      let reviewedAt: string | undefined
+
+      if (myEntry) {
+        // Authoritative audit row — use it.
+        entryState = myEntry.decision === "APPROVED" ? "approved" : "rejected"
+        reviewedAt = myEntry.reviewedAt.toISOString()
+      } else if (stepHasEntries) {
+        // Peer in a step that someone else acted on.
+        entryState = "skipped"
+      } else if (claim.status === "REJECTED") {
+        if (group.step < currentStep) entryState = "approved"
+        else if (group.step === currentStep) entryState = "rejected"
+        else entryState = "skipped"
+      } else if (group.step < currentStep) {
+        // Legacy passed step (no audit history). Mark as approved
+        // without a timestamp — we genuinely don't know which person
+        // in this group clicked Approve.
+        entryState = "approved"
+      } else if (group.step === currentStep) {
+        entryState = "current"
+      } else {
+        entryState = "upcoming"
       }
+
       chain.push({
         step: group.step,
         approverId: approver.approverId,
@@ -222,6 +270,7 @@ function buildApprovalChainState(
         email: approver.email,
         role: approver.role as ApprovalStepInfo["role"],
         state: entryState,
+        reviewedAt,
       })
     }
   }
@@ -291,12 +340,6 @@ export type ReviewClaimData = {
   reviewNotes?: string
   reviewerId: string
   supervisorOnly?: boolean
-  /**
-   * Optional COA override — admins can swap the chart of account when
-   * giving final review (e.g. recoding a misclassified expense). Ignored
-   * on the supervisor branch.
-   */
-  chartOfAccountId?: string
 }
 
 export type ReviewClaimResult =
@@ -379,6 +422,7 @@ function mapClaim(
     status: claim.status,
     reviewedAt: claim.reviewedAt,
     reviewerId: claim.reviewerId,
+    approvalEntries: claim.approvalEntries ?? [],
   })
 
   // Admin's final review gate. A claim is ready when:
@@ -462,6 +506,12 @@ const claimInclude = {
     },
   },
   reviewer: true,
+  // Per-step approval audit entries — let the chain renderer pinpoint
+  // exactly which approver acted at each step, rather than guessing
+  // from the latest-only `Claim.reviewerId` snapshot.
+  approvalEntries: {
+    orderBy: { reviewedAt: "asc" },
+  },
 } as const
 
 export const claimRepository = {
@@ -844,6 +894,81 @@ export const claimRepository = {
     // tuple. Each claim has its own grouped chain (multi-approver) keyed
     // by tuple. Legacy claims with projectId=null fall through to the
     // alphabetical-first-team fallback in resolveModuleChain.
+    const tupleKey = (e: string, p: string | null) => `${e}::${p ?? ""}`
+    const tuples = new Map<string, { employeeId: string; projectId: string | null }>()
+    for (const r of rows) {
+      const k = tupleKey(r.employeeId, r.projectId)
+      if (!tuples.has(k)) {
+        tuples.set(k, { employeeId: r.employeeId, projectId: r.projectId })
+      }
+    }
+    const chainByTuple = new Map<string, GroupedChainStep[]>()
+    if (tuples.size > 0) {
+      const resolved = await Promise.all(
+        Array.from(tuples.entries()).map(async ([k, t]) => ({
+          k,
+          steps: await resolveModuleChain(
+            t.employeeId,
+            "CLAIMS",
+            t.projectId ?? undefined,
+          ),
+        })),
+      )
+      for (const { k, steps } of resolved) {
+        chainByTuple.set(
+          k,
+          steps.map((s) => ({
+            step: s.step,
+            approvers: s.approvers.map((a) => ({
+              approverId: a.approverId,
+              name: a.name,
+              email: a.email,
+              role: a.role,
+            })),
+          })),
+        )
+      }
+    }
+
+    return rows.map((row) => {
+      const key = tupleKey(row.employeeId, row.projectId)
+      const single = new Map<string, GroupedChainStep[]>()
+      single.set(row.employeeId, chainByTuple.get(key) ?? [])
+      return mapClaim(row, single)
+    })
+  },
+
+  /**
+   * Claims that have cleared admin review and are waiting to be pushed
+   * to Xero. Used by the admin "Ready to sync" page. Order: oldest
+   * reviewedAt first so claims that have been waiting longest sync
+   * first.
+   */
+  async getClaimsAwaitingSync(
+    organizationId: string,
+    xeroConnectionId?: string,
+  ): Promise<ClaimRecord[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const rows = await prisma.claim.findMany({
+      where: {
+        organizationId,
+        status: "REVIEWED",
+        xeroSyncStatus: "NOT_SYNCED",
+        ...(xeroConnectionId
+          ? { employee: { employeeProfile: { xeroConnectionId } } }
+          : {}),
+      },
+      include: claimInclude,
+      orderBy: { reviewedAt: "asc" },
+    })
+
+    if (rows.length === 0) return []
+
+    // Reuse the same chain-resolver pattern used by getClaimsForOrganization
+    // so the row shape matches ClaimRecord and the existing claim row UI
+    // can be reused.
     const tupleKey = (e: string, p: string | null) => `${e}::${p ?? ""}`
     const tuples = new Map<string, { employeeId: string; projectId: string | null }>()
     for (const r of rows) {
@@ -1427,6 +1552,7 @@ export const claimRepository = {
       )
 
       let supervisorChainComplete = true
+      let actedStepNumber: number | null = null
 
       if (chain.length > 0) {
         const reviewerStep = chain.find((s) =>
@@ -1454,11 +1580,15 @@ export const claimRepository = {
         }
 
         supervisorChainComplete = reviewerStep.step === chain[chain.length - 1]!.step
+        actedStepNumber = reviewerStep.step
       } else {
         // Legacy path: no chain steps — fall back to supervisorId check.
         if (existingClaim.employee.employeeProfile?.supervisorId !== data.reviewerId) {
           return { ok: false, error: "NOT_FOUND" }
         }
+        // Synthetic single-step chain — log it as step 1 so the audit
+        // record is consistent with multi-step chains.
+        actedStepNumber = 1
       }
 
       const nextStatus = decideNextClaimStatus({
@@ -1467,25 +1597,67 @@ export const claimRepository = {
         supervisorChainComplete,
       })
       persistedStatus = nextStatus
+      const reviewedAt = new Date()
 
       await prisma.claim.update({
         where: { id: data.claimId },
         data: {
           status: nextStatus,
           reviewNotes: data.reviewNotes || null,
-          reviewedAt: new Date(),
+          reviewedAt,
           reviewerId: data.reviewerId,
           // Snapshot the reviewer's role at decision time so the UI can
           // filter and label "approved/rejected by supervisor" later.
           reviewerRole: "SUPERVISOR",
         },
       })
+
+      // Per-step audit entry. One row per supervisor decision so the
+      // chain renderer can show *exactly* who acted at each step (vs.
+      // who was eligible but didn't). Multi-approver-per-step still
+      // produces a single entry — the actor; peers stay un-recorded.
+      //
+      // The `as` cast is a transient workaround: the sandbox can't run
+      // `npx prisma generate`, so the generated client's PrismaClient
+      // type doesn't know about `claimApprovalEntry` yet. Once the user
+      // runs `npx prisma generate` locally the cast becomes a no-op.
+      if (actedStepNumber !== null) {
+        const prismaWithEntries = prisma as unknown as {
+          claimApprovalEntry: {
+            upsert: (args: unknown) => Promise<unknown>
+          }
+        }
+        await prismaWithEntries.claimApprovalEntry.upsert({
+          where: {
+            claimId_stepNumber_approverId: {
+              claimId: data.claimId,
+              stepNumber: actedStepNumber,
+              approverId: data.reviewerId,
+            },
+          },
+          create: {
+            claimId: data.claimId,
+            stepNumber: actedStepNumber,
+            approverId: data.reviewerId,
+            decision: data.status === "APPROVED" ? "APPROVED" : "REJECTED",
+            reviewedAt,
+            reviewNotes: data.reviewNotes || null,
+          },
+          // Idempotent: if somehow the same approver is re-recorded for
+          // the same step (e.g. retry), update the timestamp + decision.
+          update: {
+            decision: data.status === "APPROVED" ? "APPROVED" : "REJECTED",
+            reviewedAt,
+            reviewNotes: data.reviewNotes || null,
+          },
+        })
+      }
     } else {
-      // Admin review — always terminal. Admin can also swap the chart of
-      // account at this point (e.g. recoding a misfiled expense) by passing
-      // `chartOfAccountId`. We only honor the COA override on approve; on
-      // reject it would be a rejected claim with a freshly-changed COA,
-      // which is confusing.
+      // Admin review — always terminal. COA changes used to live here
+      // but were moved to the sync stage (`syncClaim` below): the admin
+      // recodes immediately before pushing to Xero, not at review time.
+      // This keeps the chart-of-account chosen by the employee visible
+      // through the approval chain and only changes if Xero needs it.
       const finalStatus = decideNextClaimStatus({
         decision: data.status,
         reviewerKind: "ADMIN",
@@ -1500,9 +1672,6 @@ export const claimRepository = {
           reviewedAt: new Date(),
           reviewerId: data.reviewerId,
           reviewerRole: "ADMIN",
-          ...(finalStatus === "REVIEWED" && data.chartOfAccountId
-            ? { chartOfAccountId: data.chartOfAccountId }
-            : {}),
         },
       })
     }
@@ -1514,6 +1683,79 @@ export const claimRepository = {
       employeeUserId: existingClaim.employeeId,
       claimTitle: existingClaim.title,
       claimStatus: persistedStatus,
+    }
+  },
+
+  /**
+   * Mark a REVIEWED claim as synced to Xero. The admin can pass a final
+   * `chartOfAccountId` override here — this is the ONLY place a COA can
+   * be changed after the claim left the employee's hands. The optional
+   * `xeroBillId` / `xeroBillRef` come from the Xero create-bill response;
+   * the route currently stubs them out and lets the real Xero call get
+   * wired in later (see syncClaimToXero in claim-workflow.service.ts).
+   *
+   * Pre-conditions:
+   *   - claim exists
+   *   - status === REVIEWED (admin has approved it)
+   *   - xeroSyncStatus === NOT_SYNCED (idempotent: already-synced is a noop)
+   */
+  async syncClaim(data: {
+    claimId: string
+    chartOfAccountId?: string
+    xeroBillId?: string | null
+    xeroBillRef?: string | null
+  }): Promise<
+    | {
+        ok: true
+        employeeEmail: string
+        employeeUserId: string
+        claimTitle: string
+      }
+    | { ok: false; error: "DB_UNAVAILABLE" | "NOT_FOUND" | "NOT_ACTIONABLE" }
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return { ok: false, error: "DB_UNAVAILABLE" }
+
+    const existing = await prisma.claim.findUnique({
+      where: { id: data.claimId },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        xeroSyncStatus: true,
+        employeeId: true,
+        employee: { select: { email: true } },
+      },
+    })
+    if (!existing) return { ok: false, error: "NOT_FOUND" }
+    if (existing.status !== "REVIEWED") {
+      return { ok: false, error: "NOT_ACTIONABLE" }
+    }
+    if (existing.xeroSyncStatus === "SYNCED") {
+      return { ok: false, error: "NOT_ACTIONABLE" }
+    }
+
+    await prisma.claim.update({
+      where: { id: data.claimId },
+      data: {
+        xeroSyncStatus: "SYNCED",
+        xeroSyncedAt: new Date(),
+        xeroSyncError: null,
+        ...(data.chartOfAccountId
+          ? { chartOfAccountId: data.chartOfAccountId }
+          : {}),
+        ...(data.xeroBillId !== undefined ? { xeroBillId: data.xeroBillId } : {}),
+        ...(data.xeroBillRef !== undefined
+          ? { xeroBillRef: data.xeroBillRef }
+          : {}),
+      },
+    })
+
+    return {
+      ok: true,
+      employeeEmail: existing.employee.email,
+      employeeUserId: existing.employeeId,
+      claimTitle: existing.title,
     }
   },
 

@@ -107,7 +107,6 @@ function AdminFinalApprovalDialog({
     createInitialReviewClaimFormState()
   )
 
-  const [coa, setCoa] = useState<string>(claim.chartOfAccount?.id ?? "")
   const [reason, setReason] = useState("")
   // The decision is set by which submit button the admin clicks; both
   // buttons live in the same form so we toggle this hidden input value.
@@ -116,11 +115,10 @@ function AdminFinalApprovalDialog({
   // Reset local state when the dialog re-opens for a new claim.
   useEffect(() => {
     if (open) {
-      setCoa(claim.chartOfAccount?.id ?? "")
       setReason("")
       setPendingDecision("APPROVED")
     }
-  }, [open, claim.id, claim.chartOfAccount?.id])
+  }, [open, claim.id])
 
   useToastOnAction(state)
 
@@ -137,7 +135,8 @@ function AdminFinalApprovalDialog({
         <DialogHeader>
           <DialogTitle>Review claim</DialogTitle>
           <DialogDescription>
-            Recode the Chart of Account if needed, then approve or reject.
+            Approve or reject this claim. Chart-of-account changes happen at
+            the Sync stage, not here.
           </DialogDescription>
         </DialogHeader>
 
@@ -159,42 +158,21 @@ function AdminFinalApprovalDialog({
             <input type="hidden" name="decision" value={pendingDecision} />
 
             <div className="space-y-2">
-              <Label htmlFor="coa-select">Chart of account</Label>
-              {chartAccounts.length === 0 ? (
-                <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/50 dark:bg-amber-900/20 dark:text-amber-300">
-                  No selectable chart accounts configured. Add some in{" "}
-                  <a href="/admin/settings?tab=accounts" className="font-semibold underline">
-                    Settings → Accounts
-                  </a>
-                  .
-                </p>
-              ) : (
-                <Select
-                  value={coa}
-                  onValueChange={setCoa}
-                  // Send the COA value with the form via a hidden input below.
-                >
-                  <SelectTrigger id="coa-select">
-                    <SelectValue placeholder="Select chart of account" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {chartAccounts.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.code} · {account.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              <input type="hidden" name="chartOfAccountId" value={coa} />
-              {claim.chartOfAccount && coa !== claim.chartOfAccount.id ? (
-                <p className="text-xs text-muted-foreground">
-                  Originally filed under{" "}
+              <Label>Chart of account (filed under)</Label>
+              <div className="rounded-lg border border-border/60 bg-surface-low px-3 py-2 text-sm">
+                {claim.chartOfAccount ? (
                   <span className="font-semibold text-foreground">
                     {claim.chartOfAccount.code} · {claim.chartOfAccount.name}
                   </span>
-                </p>
-              ) : null}
+                ) : (
+                  <span className="italic text-muted-foreground">
+                    No account assigned
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                You can recode this when you sync the claim to Xero.
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -392,8 +370,11 @@ function ApprovalChainList({ chain }: { chain: ApprovalStepInfo[] }) {
                 : UserCircle2
 
         return (
+          // Composite key — multi-approver-per-step means several rows
+          // share `step.step`, so the step number alone isn't unique.
+          // approverId disambiguates within the same step.
           <li
-            key={step.step}
+            key={`${step.step}-${step.approverId}`}
             className="flex items-center gap-3 rounded-xl border border-border/60 px-3 py-2"
           >
             <span
@@ -409,13 +390,30 @@ function ApprovalChainList({ chain }: { chain: ApprovalStepInfo[] }) {
               <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
                 Step {step.step} · {step.role}
               </p>
+              {/* When we have an audit timestamp, surface it under the
+                  approver's name so admins can see exactly when each
+                  step was acted on. Older claims (no audit history) won't
+                  have a timestamp; the line just hides. */}
+              {step.reviewedAt &&
+              (step.state === "approved" || step.state === "rejected") ? (
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  {step.state === "approved" ? "Approved" : "Rejected"} on{" "}
+                  {new Intl.DateTimeFormat("en-MY", {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }).format(new Date(step.reviewedAt))}
+                </p>
+              ) : null}
             </div>
             <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               {step.state === "approved" && "Approved"}
               {step.state === "current" && "Pending"}
               {step.state === "upcoming" && "Upcoming"}
               {step.state === "rejected" && "Rejected"}
-              {step.state === "skipped" && "Skipped"}
+              {/* Renamed from "SKIPPED" — the old word made it look like
+                  a peer's approval *failed*. "Did not act" is accurate:
+                  someone else in the same step approved first. */}
+              {step.state === "skipped" && "Did not act"}
             </span>
           </li>
         )
