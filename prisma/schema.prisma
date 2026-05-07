@@ -8,31 +8,31 @@ datasource db {
 }
 
 model User {
-  id                     String              @id @default(cuid())
-  email                  String              @unique
+  id                     String               @id @default(cuid())
+  email                  String               @unique
   name                   String
   role                   UserRole
   organizationId         String?
   passwordHash           String
   avatarUrl              String?
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
-  adminOrganizations     AdminOrganization[] @relation("AdminOrganizations")
-  approvalChainApprovals ApprovalChainStep[] @relation("ApproverChain")
-  approvalChainSteps     ApprovalChainStep[] @relation("EmployeeChain")
-  approvals              ApprovalRequest[]   @relation("EmployeeApprovals")
-  approvalReviews        ApprovalRequest[]   @relation("ReviewerApprovals")
-  attendance             AttendanceRecord[]  @relation("EmployeeAttendance")
-  claims                 Claim[]             @relation("EmployeeClaims")
-  reviews                Claim[]             @relation("AdminReviews")
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  adminOrganizations     AdminOrganization[]  @relation("AdminOrganizations")
+  approvalChainApprovals ApprovalChainStep[]  @relation("ApproverChain")
+  approvalChainSteps     ApprovalChainStep[]  @relation("EmployeeChain")
+  approvals              ApprovalRequest[]    @relation("EmployeeApprovals")
+  approvalReviews        ApprovalRequest[]    @relation("ReviewerApprovals")
+  attendance             AttendanceRecord[]   @relation("EmployeeAttendance")
+  claims                 Claim[]              @relation("EmployeeClaims")
+  reviews                Claim[]              @relation("AdminReviews")
   claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
-  supervisedProfiles     EmployeeProfile[]   @relation("SupervisorReports")
-  employeeProfile        EmployeeProfile?    @relation("EmployeeProfileUser")
-  projectManagerOf       ProjectManager[]    @relation("ProjectManagerOf")
+  supervisedProfiles     EmployeeProfile[]    @relation("SupervisorReports")
+  employeeProfile        EmployeeProfile?     @relation("EmployeeProfileUser")
+  projectManagerOf       ProjectManager[]     @relation("ProjectManagerOf")
   pushSubscriptions      PushSubscription[]
-  organization           Organization?       @relation(fields: [organizationId], references: [id])
-  xeroConnections        XeroConnection[]    @relation("XeroConnectedBy")
-  managedProjects        XeroProject[]       @relation("ProjectManager")
+  organization           Organization?        @relation(fields: [organizationId], references: [id])
+  xeroConnections        XeroConnection[]     @relation("XeroConnectedBy")
+  managedProjects        XeroProject[]        @relation("ProjectManager")
 
   @@index([organizationId])
 }
@@ -45,7 +45,6 @@ model Organization {
   updatedAt                DateTime            @updatedAt
   workingHoursEnd          String              @default("18:00")
   workingHoursStart        String              @default("09:00")
-  timezone                 String              @default("Asia/Kuala_Lumpur")
   bankAccount              String?
   otRateNormalDay          Decimal             @default(1.50) @db.Decimal(4, 2)
   otRatePublicHoliday      Decimal             @default(3.00) @db.Decimal(4, 2)
@@ -57,6 +56,7 @@ model Organization {
   defaultMileageRate       Decimal?            @db.Decimal(10, 4)
   mileageUnit              MileageUnit         @default(KM)
   otEnabled                Boolean             @default(true)
+  timezone                 String              @default("Asia/Kuala_Lumpur")
   /// Daily working minutes after which extra time becomes OT-eligible.
   /// Defaults to 8h. Applies org-wide regardless of per-project working
   /// hours.
@@ -150,42 +150,38 @@ model EmployeeProjectAssignment {
 }
 
 model Claim {
-  id                        String          @id @default(cuid())
-  claimNumber               String          @unique
+  id                        String               @id @default(cuid())
+  claimNumber               String               @unique
   title                     String
-  description               String          @db.Text
+  description               String               @db.Text
   category                  ClaimCategory
   organizationId            String?
   chartOfAccountId          String?
-  amount                    Decimal         @db.Decimal(12, 2)
-  currency                  String          @default("USD")
+  amount                    Decimal              @db.Decimal(12, 2)
+  currency                  String               @default("USD")
   spentAt                   DateTime
-  submittedAt               DateTime        @default(now())
+  submittedAt               DateTime             @default(now())
   claimRunMonth             DateTime?
   reviewedAt                DateTime?
-  status                    ClaimStatus     @default(PENDING)
+  status                    ClaimStatus          @default(PENDING)
   receiptUrl                String?
-  reviewNotes               String?         @db.Text
+  reviewNotes               String?              @db.Text
   employeeId                String
   reviewerId                String?
-  xeroBillId                String?         @unique
+  xeroBillId                String?              @unique
   xeroBillRef               String?
-  /// Xero Files API file id. Set when the receipt was uploaded to Xero
-  /// Files (i.e. the claim's chart-of-account is connected to a Xero
-  /// tenant). Null for receipts kept on local disk.
-  xeroFileId                String?
-  xeroSyncStatus            XeroSyncStatus  @default(NOT_SYNCED)
-  xeroSyncError             String?         @db.Text
+  xeroSyncStatus            XeroSyncStatus       @default(NOT_SYNCED)
+  xeroSyncError             String?              @db.Text
   xeroSyncedAt              DateTime?
-  createdAt                 DateTime        @default(now())
-  updatedAt                 DateTime        @updatedAt
+  createdAt                 DateTime             @default(now())
+  updatedAt                 DateTime             @updatedAt
   payViaAccountId           String?
-  paymentType               PaymentType     @default(PERSONAL)
-  claimType                 ClaimType       @default(EXPENSE)
-  distance                  Decimal?        @db.Decimal(10, 2)
+  paymentType               PaymentType          @default(PERSONAL)
+  claimType                 ClaimType            @default(EXPENSE)
+  distance                  Decimal?             @db.Decimal(10, 2)
   mileageDestinationAddress String?
   mileageOriginAddress      String?
-  mileageRateUsed           Decimal?        @db.Decimal(10, 4)
+  mileageRateUsed           Decimal?             @db.Decimal(10, 4)
   mileageUnitUsed           MileageUnit?
   reviewerRole              UserRole?
   /// Project this claim is filed against. Drives approval routing — when
@@ -197,13 +193,17 @@ model Claim {
   /// True when the claim's amount blew past the chart-of-account spend
   /// limit at submission time. The claim is still saved (employees can
   /// submit over-limit), but admins see a visual flag in their queue.
-  exceedsLimit              Boolean         @default(false)
-  chartOfAccount            ChartOfAccount? @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
-  employee                  User            @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
-  organization              Organization?   @relation(fields: [organizationId], references: [id])
-  payViaAccount             ChartOfAccount? @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
-  project                   XeroProject?    @relation("ClaimProject", fields: [projectId], references: [id])
-  reviewer                  User?           @relation("AdminReviews", fields: [reviewerId], references: [id])
+  exceedsLimit              Boolean              @default(false)
+  /// Xero Files API file id. Set when the receipt was uploaded to Xero
+  /// Files (i.e. the claim's chart-of-account is connected to a Xero
+  /// tenant). Null for receipts kept on local disk.
+  xeroFileId                String?
+  chartOfAccount            ChartOfAccount?      @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
+  employee                  User                 @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
+  organization              Organization?        @relation(fields: [organizationId], references: [id])
+  payViaAccount             ChartOfAccount?      @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
+  project                   XeroProject?         @relation("ClaimProject", fields: [projectId], references: [id])
+  reviewer                  User?                @relation("AdminReviews", fields: [reviewerId], references: [id])
   approvalEntries           ClaimApprovalEntry[]
 
   @@index([organizationId, submittedAt])
@@ -223,32 +223,27 @@ model Claim {
 /// snapshot which gets overwritten).
 ///
 /// Notes:
-///   - `stepNumber` matches the chain template's step number — multi-
-///     approver-per-step still produces ONE entry (the actor); the
-///     unique constraint allows different approvers in the same step,
-///     but the supervisor path only writes one when the step is satisfied.
-///   - The admin's final review is NOT logged here; it's shown
-///     separately as the REVIEWED badge on the claim summary.
+/// - `stepNumber` matches the chain template's step number — multi-
+/// approver-per-step still produces ONE entry (the actor); the
+/// unique constraint allows different approvers in the same step,
+/// but the supervisor path only writes one when the step is satisfied.
+/// - The admin's final review is NOT logged here; it's shown
+/// separately as the REVIEWED badge on the claim summary.
 model ClaimApprovalEntry {
-  id          String       @id @default(cuid())
+  id          String                @id @default(cuid())
   claimId     String
   stepNumber  Int
   approverId  String
   decision    ClaimApprovalDecision
-  reviewedAt  DateTime     @default(now())
-  reviewNotes String?      @db.Text
-  createdAt   DateTime     @default(now())
-  claim       Claim        @relation(fields: [claimId], references: [id], onDelete: Cascade)
-  approver    User         @relation("UserApprovalEntries", fields: [approverId], references: [id])
+  reviewedAt  DateTime              @default(now())
+  reviewNotes String?               @db.Text
+  createdAt   DateTime              @default(now())
+  approver    User                  @relation("UserApprovalEntries", fields: [approverId], references: [id])
+  claim       Claim                 @relation(fields: [claimId], references: [id], onDelete: Cascade)
 
   @@unique([claimId, stepNumber, approverId])
   @@index([claimId])
   @@index([approverId])
-}
-
-enum ClaimApprovalDecision {
-  APPROVED
-  REJECTED
 }
 
 model ChartOfAccount {
@@ -295,14 +290,14 @@ model XeroConnection {
   tokenType            String
   accessTokenExpiresAt DateTime
   connectedByAdminId   String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
   /// Records the most recent value of XERO_REAUTH_VERSION env var that the
   /// admin completed an OAuth flow against. When the env var is bumped (e.g.
   /// scopes expanded), connections whose lastReauthVersion no longer matches
   /// trigger the "Update permissions" button in the admin UI. Null = never
   /// re-auth'd (or env var was unset at the time of original connect).
   lastReauthVersion    String?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
   chartAccounts        ChartOfAccount[]
   employeeProfiles     EmployeeProfile[]
   connectedByAdmin     User?             @relation("XeroConnectedBy", fields: [connectedByAdminId], references: [id])
@@ -416,36 +411,36 @@ model BreakSession {
 }
 
 model ApprovalRequest {
-  id           String         @id @default(cuid())
-  employeeId   String
-  reviewerId   String?
-  kind         ApprovalKind
-  status       ApprovalStatus @default(PENDING)
-  date         DateTime
-  eventAt      DateTime?
-  title        String
-  detail       String         @db.Text
-  location     String?
-  otSubtype    OTSubtype?
-  /// Snapshot of the employee's OT payout method at submission time.
-  /// Locks payout treatment so a later profile change cannot rewrite
-  /// already-submitted history. Null for non-OT requests.
-  otPayoutMethod OtPayoutMethod?
-  lateMinutes  Int?
-  offsetRef    String?
-  reviewNotes  String?        @db.Text
-  submittedAt  DateTime       @default(now())
-  reviewedAt   DateTime?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  project      String?
+  id             String          @id @default(cuid())
+  employeeId     String
+  reviewerId     String?
+  kind           ApprovalKind
+  status         ApprovalStatus  @default(PENDING)
+  date           DateTime
+  eventAt        DateTime?
+  title          String
+  detail         String          @db.Text
+  location       String?
+  otSubtype      OTSubtype?
+  lateMinutes    Int?
+  offsetRef      String?
+  reviewNotes    String?         @db.Text
+  submittedAt    DateTime        @default(now())
+  reviewedAt     DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  project        String?
   /// Per-step approval history. Array<{ step: number; approverId: string;
   /// approverName: string; reviewedAt: string; status: "APPROVED" |
   /// "REJECTED"; notes: string | null }>. Null for auto-approved requests
   /// and rows created before the multi-layer chain was introduced.
-  chainHistory Json?
-  employee    User           @relation("EmployeeApprovals", fields: [employeeId], references: [id], onDelete: Cascade)
-  reviewer    User?          @relation("ReviewerApprovals", fields: [reviewerId], references: [id])
+  chainHistory   Json?
+  /// Snapshot of the employee's OT payout method at submission time.
+  /// Locks payout treatment so a later profile change cannot rewrite
+  /// already-submitted history. Null for non-OT requests.
+  otPayoutMethod OtPayoutMethod?
+  employee       User            @relation("EmployeeApprovals", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer       User?           @relation("ReviewerApprovals", fields: [reviewerId], references: [id])
 
   @@index([employeeId, date])
   @@index([status, date])
@@ -512,6 +507,11 @@ model EmployeeTeamMembership {
 
   @@unique([employeeProfileId, teamId])
   @@index([teamId, layer])
+}
+
+enum ClaimApprovalDecision {
+  APPROVED
+  REJECTED
 }
 
 enum UserRole {

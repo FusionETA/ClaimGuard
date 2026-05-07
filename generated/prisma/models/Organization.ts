@@ -60,7 +60,6 @@ export type OrganizationMinAggregateOutputType = {
   updatedAt: Date | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
-  timezone: string | null
   bankAccount: string | null
   otRateNormalDay: runtime.Decimal | null
   otRatePublicHoliday: runtime.Decimal | null
@@ -72,6 +71,7 @@ export type OrganizationMinAggregateOutputType = {
   defaultMileageRate: runtime.Decimal | null
   mileageUnit: $Enums.MileageUnit | null
   otEnabled: boolean | null
+  timezone: string | null
   otDailyThresholdMinutes: number | null
   defaultCurrency: string | null
 }
@@ -84,7 +84,6 @@ export type OrganizationMaxAggregateOutputType = {
   updatedAt: Date | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
-  timezone: string | null
   bankAccount: string | null
   otRateNormalDay: runtime.Decimal | null
   otRatePublicHoliday: runtime.Decimal | null
@@ -96,6 +95,7 @@ export type OrganizationMaxAggregateOutputType = {
   defaultMileageRate: runtime.Decimal | null
   mileageUnit: $Enums.MileageUnit | null
   otEnabled: boolean | null
+  timezone: string | null
   otDailyThresholdMinutes: number | null
   defaultCurrency: string | null
 }
@@ -108,7 +108,6 @@ export type OrganizationCountAggregateOutputType = {
   updatedAt: number
   workingHoursEnd: number
   workingHoursStart: number
-  timezone: number
   bankAccount: number
   otRateNormalDay: number
   otRatePublicHoliday: number
@@ -120,6 +119,7 @@ export type OrganizationCountAggregateOutputType = {
   defaultMileageRate: number
   mileageUnit: number
   otEnabled: number
+  timezone: number
   otDailyThresholdMinutes: number
   allowedCurrencies: number
   defaultCurrency: number
@@ -161,7 +161,6 @@ export type OrganizationMinAggregateInputType = {
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
-  timezone?: true
   bankAccount?: true
   otRateNormalDay?: true
   otRatePublicHoliday?: true
@@ -173,6 +172,7 @@ export type OrganizationMinAggregateInputType = {
   defaultMileageRate?: true
   mileageUnit?: true
   otEnabled?: true
+  timezone?: true
   otDailyThresholdMinutes?: true
   defaultCurrency?: true
 }
@@ -185,7 +185,6 @@ export type OrganizationMaxAggregateInputType = {
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
-  timezone?: true
   bankAccount?: true
   otRateNormalDay?: true
   otRatePublicHoliday?: true
@@ -197,6 +196,7 @@ export type OrganizationMaxAggregateInputType = {
   defaultMileageRate?: true
   mileageUnit?: true
   otEnabled?: true
+  timezone?: true
   otDailyThresholdMinutes?: true
   defaultCurrency?: true
 }
@@ -209,7 +209,6 @@ export type OrganizationCountAggregateInputType = {
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
-  timezone?: true
   bankAccount?: true
   otRateNormalDay?: true
   otRatePublicHoliday?: true
@@ -221,6 +220,7 @@ export type OrganizationCountAggregateInputType = {
   defaultMileageRate?: true
   mileageUnit?: true
   otEnabled?: true
+  timezone?: true
   otDailyThresholdMinutes?: true
   allowedCurrencies?: true
   defaultCurrency?: true
@@ -321,7 +321,6 @@ export type OrganizationGroupByOutputType = {
   updatedAt: Date
   workingHoursEnd: string
   workingHoursStart: string
-  timezone: string
   bankAccount: string | null
   otRateNormalDay: runtime.Decimal
   otRatePublicHoliday: runtime.Decimal
@@ -333,6 +332,7 @@ export type OrganizationGroupByOutputType = {
   defaultMileageRate: runtime.Decimal | null
   mileageUnit: $Enums.MileageUnit
   otEnabled: boolean
+  timezone: string
   otDailyThresholdMinutes: number
   allowedCurrencies: runtime.JsonValue | null
   defaultCurrency: string | null
@@ -369,7 +369,6 @@ export type OrganizationWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
-  timezone?: Prisma.StringFilter<"Organization"> | string
   bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
   otRateNormalDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -381,6 +380,7 @@ export type OrganizationWhereInput = {
   defaultMileageRate?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFilter<"Organization"> | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  timezone?: Prisma.StringFilter<"Organization"> | string
   otDailyThresholdMinutes?: Prisma.IntFilter<"Organization"> | number
   allowedCurrencies?: Prisma.JsonNullableFilter<"Organization">
   defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
@@ -400,7 +400,6 @@ export type OrganizationOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -412,6 +411,7 @@ export type OrganizationOrderByWithRelationInput = {
   defaultMileageRate?: Prisma.SortOrderInput | Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   allowedCurrencies?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -435,7 +435,6 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
-  timezone?: Prisma.StringFilter<"Organization"> | string
   bankAccount?: Prisma.StringNullableFilter<"Organization"> | string | null
   otRateNormalDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -447,6 +446,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   defaultMileageRate?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFilter<"Organization"> | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  timezone?: Prisma.StringFilter<"Organization"> | string
   otDailyThresholdMinutes?: Prisma.IntFilter<"Organization"> | number
   allowedCurrencies?: Prisma.JsonNullableFilter<"Organization">
   defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
@@ -466,7 +466,6 @@ export type OrganizationOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrderInput | Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -478,6 +477,7 @@ export type OrganizationOrderByWithAggregationInput = {
   defaultMileageRate?: Prisma.SortOrderInput | Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   allowedCurrencies?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -499,7 +499,6 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringWithAggregatesFilter<"Organization"> | string
-  timezone?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   bankAccount?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   otRateNormalDay?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -511,6 +510,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   defaultMileageRate?: Prisma.DecimalNullableWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitWithAggregatesFilter<"Organization"> | $Enums.MileageUnit
   otEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  timezone?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   otDailyThresholdMinutes?: Prisma.IntWithAggregatesFilter<"Organization"> | number
   allowedCurrencies?: Prisma.JsonNullableWithAggregatesFilter<"Organization">
   defaultCurrency?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
@@ -524,7 +524,6 @@ export type OrganizationCreateInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -536,6 +535,7 @@ export type OrganizationCreateInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -555,7 +555,6 @@ export type OrganizationUncheckedCreateInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -567,6 +566,7 @@ export type OrganizationUncheckedCreateInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -586,7 +586,6 @@ export type OrganizationUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -598,6 +597,7 @@ export type OrganizationUpdateInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -617,7 +617,6 @@ export type OrganizationUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -629,6 +628,7 @@ export type OrganizationUncheckedUpdateInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -648,7 +648,6 @@ export type OrganizationCreateManyInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -660,6 +659,7 @@ export type OrganizationCreateManyInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -673,7 +673,6 @@ export type OrganizationUpdateManyMutationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -685,6 +684,7 @@ export type OrganizationUpdateManyMutationInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -698,7 +698,6 @@ export type OrganizationUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -710,6 +709,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -734,7 +734,6 @@ export type OrganizationCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -746,6 +745,7 @@ export type OrganizationCountOrderByAggregateInput = {
   defaultMileageRate?: Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   allowedCurrencies?: Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrder
@@ -772,7 +772,6 @@ export type OrganizationMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -784,6 +783,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   defaultMileageRate?: Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrder
 }
@@ -796,7 +796,6 @@ export type OrganizationMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  timezone?: Prisma.SortOrder
   bankAccount?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
   otRatePublicHoliday?: Prisma.SortOrder
@@ -808,6 +807,7 @@ export type OrganizationMinOrderByAggregateInput = {
   defaultMileageRate?: Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
+  timezone?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrder
 }
@@ -958,7 +958,6 @@ export type OrganizationCreateWithoutUsersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -970,6 +969,7 @@ export type OrganizationCreateWithoutUsersInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -988,7 +988,6 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1000,6 +999,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1034,7 +1034,6 @@ export type OrganizationUpdateWithoutUsersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1046,6 +1045,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1064,7 +1064,6 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1076,6 +1075,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1094,7 +1094,6 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1106,6 +1105,7 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1124,7 +1124,6 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1136,6 +1135,7 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1170,7 +1170,6 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1182,6 +1181,7 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1200,7 +1200,6 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1212,6 +1211,7 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1230,7 +1230,6 @@ export type OrganizationCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1242,6 +1241,7 @@ export type OrganizationCreateWithoutClaimsInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1260,7 +1260,6 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1272,6 +1271,7 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1306,7 +1306,6 @@ export type OrganizationUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1318,6 +1317,7 @@ export type OrganizationUpdateWithoutClaimsInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1336,7 +1336,6 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1348,6 +1347,7 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1366,7 +1366,6 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1378,6 +1377,7 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1396,7 +1396,6 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1408,6 +1407,7 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1442,7 +1442,6 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1454,6 +1453,7 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1472,7 +1472,6 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1484,6 +1483,7 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1502,7 +1502,6 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1514,6 +1513,7 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1532,7 +1532,6 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1544,6 +1543,7 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1578,7 +1578,6 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1590,6 +1589,7 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1608,7 +1608,6 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1620,6 +1619,7 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1638,7 +1638,6 @@ export type OrganizationCreateWithoutProjectsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1650,6 +1649,7 @@ export type OrganizationCreateWithoutProjectsInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1668,7 +1668,6 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  timezone?: string
   bankAccount?: string | null
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1680,6 +1679,7 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
+  timezone?: string
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
@@ -1714,7 +1714,6 @@ export type OrganizationUpdateWithoutProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1726,6 +1725,7 @@ export type OrganizationUpdateWithoutProjectsInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1744,7 +1744,6 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   bankAccount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1756,6 +1755,7 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1850,7 +1850,6 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   updatedAt?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
-  timezone?: boolean
   bankAccount?: boolean
   otRateNormalDay?: boolean
   otRatePublicHoliday?: boolean
@@ -1862,6 +1861,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   defaultMileageRate?: boolean
   mileageUnit?: boolean
   otEnabled?: boolean
+  timezone?: boolean
   otDailyThresholdMinutes?: boolean
   allowedCurrencies?: boolean
   defaultCurrency?: boolean
@@ -1884,7 +1884,6 @@ export type OrganizationSelectScalar = {
   updatedAt?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
-  timezone?: boolean
   bankAccount?: boolean
   otRateNormalDay?: boolean
   otRatePublicHoliday?: boolean
@@ -1896,12 +1895,13 @@ export type OrganizationSelectScalar = {
   defaultMileageRate?: boolean
   mileageUnit?: boolean
   otEnabled?: boolean
+  timezone?: boolean
   otDailyThresholdMinutes?: boolean
   allowedCurrencies?: boolean
   defaultCurrency?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "timezone" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "otDailyThresholdMinutes" | "allowedCurrencies" | "defaultCurrency", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "bankAccount" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "otDailyThresholdMinutes" | "allowedCurrencies" | "defaultCurrency", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
@@ -1930,7 +1930,6 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     updatedAt: Date
     workingHoursEnd: string
     workingHoursStart: string
-    timezone: string
     bankAccount: string | null
     otRateNormalDay: runtime.Decimal
     otRatePublicHoliday: runtime.Decimal
@@ -1942,6 +1941,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     defaultMileageRate: runtime.Decimal | null
     mileageUnit: $Enums.MileageUnit
     otEnabled: boolean
+    timezone: string
     /**
      * Daily working minutes after which extra time becomes OT-eligible.
      * Defaults to 8h. Applies org-wide regardless of per-project working
@@ -2344,7 +2344,6 @@ export interface OrganizationFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly workingHoursEnd: Prisma.FieldRef<"Organization", 'String'>
   readonly workingHoursStart: Prisma.FieldRef<"Organization", 'String'>
-  readonly timezone: Prisma.FieldRef<"Organization", 'String'>
   readonly bankAccount: Prisma.FieldRef<"Organization", 'String'>
   readonly otRateNormalDay: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly otRatePublicHoliday: Prisma.FieldRef<"Organization", 'Decimal'>
@@ -2356,6 +2355,7 @@ export interface OrganizationFieldRefs {
   readonly defaultMileageRate: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly mileageUnit: Prisma.FieldRef<"Organization", 'MileageUnit'>
   readonly otEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly timezone: Prisma.FieldRef<"Organization", 'String'>
   readonly otDailyThresholdMinutes: Prisma.FieldRef<"Organization", 'Int'>
   readonly allowedCurrencies: Prisma.FieldRef<"Organization", 'Json'>
   readonly defaultCurrency: Prisma.FieldRef<"Organization", 'String'>

@@ -1738,7 +1738,6 @@ export const OrganizationScalarFieldEnum = {
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  timezone: 'timezone',
   bankAccount: 'bankAccount',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
@@ -1750,6 +1749,7 @@ export const OrganizationScalarFieldEnum = {
   defaultMileageRate: 'defaultMileageRate',
   mileageUnit: 'mileageUnit',
   otEnabled: 'otEnabled',
+  timezone: 'timezone',
   otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   allowedCurrencies: 'allowedCurrencies',
   defaultCurrency: 'defaultCurrency'
@@ -1832,7 +1832,6 @@ export const ClaimScalarFieldEnum = {
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
-  xeroFileId: 'xeroFileId',
   xeroSyncStatus: 'xeroSyncStatus',
   xeroSyncError: 'xeroSyncError',
   xeroSyncedAt: 'xeroSyncedAt',
@@ -1848,7 +1847,8 @@ export const ClaimScalarFieldEnum = {
   mileageUnitUsed: 'mileageUnitUsed',
   reviewerRole: 'reviewerRole',
   projectId: 'projectId',
-  exceedsLimit: 'exceedsLimit'
+  exceedsLimit: 'exceedsLimit',
+  xeroFileId: 'xeroFileId'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
@@ -1906,9 +1906,9 @@ export const XeroConnectionScalarFieldEnum = {
   tokenType: 'tokenType',
   accessTokenExpiresAt: 'accessTokenExpiresAt',
   connectedByAdminId: 'connectedByAdminId',
-  lastReauthVersion: 'lastReauthVersion',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  lastReauthVersion: 'lastReauthVersion'
 } as const
 
 export type XeroConnectionScalarFieldEnum = (typeof XeroConnectionScalarFieldEnum)[keyof typeof XeroConnectionScalarFieldEnum]
@@ -2002,7 +2002,6 @@ export const ApprovalRequestScalarFieldEnum = {
   detail: 'detail',
   location: 'location',
   otSubtype: 'otSubtype',
-  otPayoutMethod: 'otPayoutMethod',
   lateMinutes: 'lateMinutes',
   offsetRef: 'offsetRef',
   reviewNotes: 'reviewNotes',
@@ -2011,7 +2010,8 @@ export const ApprovalRequestScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   project: 'project',
-  chainHistory: 'chainHistory'
+  chainHistory: 'chainHistory',
+  otPayoutMethod: 'otPayoutMethod'
 } as const
 
 export type ApprovalRequestScalarFieldEnum = (typeof ApprovalRequestScalarFieldEnum)[keyof typeof ApprovalRequestScalarFieldEnum]
@@ -2121,8 +2121,8 @@ export const OrganizationOrderByRelevanceFieldEnum = {
   name: 'name',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  timezone: 'timezone',
   bankAccount: 'bankAccount',
+  timezone: 'timezone',
   defaultCurrency: 'defaultCurrency'
 } as const
 
@@ -2186,12 +2186,12 @@ export const ClaimOrderByRelevanceFieldEnum = {
   reviewerId: 'reviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
-  xeroFileId: 'xeroFileId',
   xeroSyncError: 'xeroSyncError',
   payViaAccountId: 'payViaAccountId',
   mileageDestinationAddress: 'mileageDestinationAddress',
   mileageOriginAddress: 'mileageOriginAddress',
-  projectId: 'projectId'
+  projectId: 'projectId',
+  xeroFileId: 'xeroFileId'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
