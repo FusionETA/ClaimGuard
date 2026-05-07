@@ -1,7 +1,8 @@
 "use client"
 
-import { useActionState, useEffect, useState, useTransition } from "react"
-import { Coffee, Fingerprint, LogOut } from "lucide-react"
+import { useActionState, useEffect, useRef, useState, useTransition } from "react"
+import { createPortal } from "react-dom"
+import { Camera, Coffee, Fingerprint, LogOut, RotateCcw, X } from "lucide-react"
 
 import { Card } from "@/components/attendance/ui/card"
 import {
@@ -77,6 +78,8 @@ type Props = {
   onBreak: boolean
   /** ISO timestamp of the currently-open break, if any (for the "On break since…" label). */
   currentBreakStartedAt: string | null
+  /** When true (Hourly Workers), the clock-in flow gates on a selfie capture. */
+  requiresSelfieOnClockIn: boolean
 }
 
 function ClockInButton({ pending }: { pending: boolean }) {
@@ -171,6 +174,7 @@ export function ClockCard({
   now,
   onBreak,
   currentBreakStartedAt,
+  requiresSelfieOnClockIn,
 }: Props) {
   const [selected, setSelected] = useState("")
   const [result, formAction] = useActionState<ClockInState, FormData>(
@@ -189,6 +193,10 @@ export function ClockCard({
   const [isResolving, setIsResolving] = useState(false)
   const [employeeCoords, setEmployeeCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [gpsState, setGpsState] = useState<"idle" | "locating" | "ok" | "denied">("idle")
+  /// FormData held in flight while the selfie modal is open. Once the
+  /// employee confirms the photo, the data URL is attached and the rest of
+  /// the clock-in flow (geofence check / remark / dispatch) runs.
+  const [selfiePending, setSelfiePending] = useState<FormData | null>(null)
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -234,10 +242,21 @@ export function ClockCard({
 
   async function handleClockIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (isResolving || pendingAction) return
+    if (isResolving || pendingAction || selfiePending) return
+    const formData = new FormData(e.currentTarget)
+    if (requiresSelfieOnClockIn && !formData.get("selfie")) {
+      // Pause here, ask the employee to take a selfie. The rest of the
+      // flow (GPS, geofence, remark, dispatch) resumes from
+      // proceedClockIn() once the photo is confirmed.
+      setSelfiePending(formData)
+      return
+    }
+    await proceedClockIn(formData)
+  }
+
+  async function proceedClockIn(formData: FormData) {
     setIsResolving(true)
     try {
-      const formData = new FormData(e.currentTarget)
       const project = projects.find((p) => p.id === selected) ?? null
       await attachCoords(formData)
       fallbackCoordsFromState(formData, employeeCoords)
@@ -261,6 +280,18 @@ export function ClockCard({
     } finally {
       setIsResolving(false)
     }
+  }
+
+  function onSelfieConfirmed(dataUrl: string) {
+    if (!selfiePending) return
+    selfiePending.set("selfie", dataUrl)
+    const fd = selfiePending
+    setSelfiePending(null)
+    void proceedClockIn(fd)
+  }
+
+  function onSelfieCancelled() {
+    setSelfiePending(null)
   }
 
   async function handleClockOut(e: React.FormEvent<HTMLFormElement>) {
@@ -437,6 +468,12 @@ export function ClockCard({
             ) : null}
           </div>
           <ClockInButton pending={isPending || isResolving} />
+          {requiresSelfieOnClockIn ? (
+            <p className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+              <Camera className="h-3 w-3" />
+              You&apos;ll be asked for a selfie before clocking in
+            </p>
+          ) : null}
           {result.error ? (
             <p className="text-xs font-semibold text-destructive">{result.error}</p>
           ) : null}
@@ -479,7 +516,198 @@ export function ClockCard({
           error={remarkError}
         />
       ) : null}
+
+      {selfiePending ? (
+        <SelfieCaptureModal
+          onConfirm={onSelfieConfirmed}
+          onCancel={onSelfieCancelled}
+        />
+      ) : null}
     </Card>
+  )
+}
+
+function SelfieCaptureModal({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: (dataUrl: string) => void
+  onCancel: () => void
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [captured, setCaptured] = useState<string | null>(null)
+  const [starting, setStarting] = useState(true)
+  // Portal target — only available on the client. Without this the modal
+  // renders inside the ClockCard, which can be clipped by parent
+  // overflow / transformed by ancestor styles, causing the bottom of the
+  // dialog to be hidden behind the card below.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  useEffect(() => {
+    let cancelled = false
+    let activeStream: MediaStream | null = null
+    async function start() {
+      if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+        setError("Camera not supported on this device.")
+        setStarting(false)
+        return
+      }
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } },
+          audio: false,
+        })
+        if (cancelled) {
+          s.getTracks().forEach((t) => t.stop())
+          return
+        }
+        activeStream = s
+        setStream(s)
+        if (videoRef.current) {
+          videoRef.current.srcObject = s
+          await videoRef.current.play().catch(() => undefined)
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error && err.name === "NotAllowedError"
+            ? "Camera permission denied. Enable it in your browser settings to clock in."
+            : "Couldn't open the camera. Try again.",
+        )
+      } finally {
+        if (!cancelled) setStarting(false)
+      }
+    }
+    void start()
+    return () => {
+      cancelled = true
+      if (activeStream) activeStream.getTracks().forEach((t) => t.stop())
+    }
+  }, [])
+
+  function capture() {
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    if (!video || !canvas) return
+    const w = video.videoWidth || 720
+    const h = video.videoHeight || 720
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+    // Mirror the front-facing capture so the saved photo matches what the
+    // employee sees in the preview (browsers flip the live video, not the
+    // canvas frame).
+    ctx.save()
+    ctx.translate(w, 0)
+    ctx.scale(-1, 1)
+    ctx.drawImage(video, 0, 0, w, h)
+    ctx.restore()
+    setCaptured(canvas.toDataURL("image/jpeg", 0.85))
+  }
+
+  function retake() {
+    setCaptured(null)
+  }
+
+  function confirm() {
+    if (!captured) return
+    if (stream) stream.getTracks().forEach((t) => t.stop())
+    onConfirm(captured)
+  }
+
+  if (!mounted) return null
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-background/80 p-4 backdrop-blur-sm"
+    >
+      <div className="my-auto w-full max-w-md overflow-hidden rounded-[24px] border border-border/60 bg-card shadow-xl">
+        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+          <div>
+            <p className="text-sm font-bold text-foreground">Take a selfie</p>
+            <p className="text-[11px] text-muted-foreground">
+              Required for hourly worker clock-in
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full p-1.5 text-muted-foreground hover:bg-muted"
+            aria-label="Cancel selfie"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="relative aspect-square w-full bg-black">
+          {error ? (
+            <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm font-semibold text-destructive">
+              {error}
+            </div>
+          ) : captured ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={captured}
+              alt="Selfie preview"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              playsInline
+              muted
+              autoPlay
+              className="h-full w-full -scale-x-100 object-cover"
+            />
+          )}
+          {starting && !error ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-xs font-semibold text-white">
+              Starting camera…
+            </div>
+          ) : null}
+          <canvas ref={canvasRef} className="hidden" />
+        </div>
+
+        <div className="flex gap-2 border-t border-border/60 p-3">
+          {captured ? (
+            <>
+              <button
+                type="button"
+                onClick={retake}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-[14px] border border-border/70 bg-card py-2.5 text-xs font-bold text-foreground hover:bg-muted"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Retake
+              </button>
+              <button
+                type="button"
+                onClick={confirm}
+                className="flex-1 rounded-[14px] bg-primary py-2.5 text-xs font-bold text-primary-foreground hover:bg-primary/90"
+              >
+                Use this photo
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={capture}
+              disabled={starting || !!error}
+              className="flex flex-1 items-center justify-center gap-2 rounded-[14px] bg-primary py-2.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              <Camera className="h-4 w-4" />
+              Capture
+            </button>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body,
   )
 }
 
