@@ -51,6 +51,8 @@ export type AttendanceRecordMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   projectId: string | null
+  xeroSelfieFileId: string | null
+  selfieUploadedAt: Date | null
 }
 
 export type AttendanceRecordMaxAggregateOutputType = {
@@ -68,6 +70,8 @@ export type AttendanceRecordMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   projectId: string | null
+  xeroSelfieFileId: string | null
+  selfieUploadedAt: Date | null
 }
 
 export type AttendanceRecordCountAggregateOutputType = {
@@ -85,6 +89,8 @@ export type AttendanceRecordCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   projectId: number
+  xeroSelfieFileId: number
+  selfieUploadedAt: number
   _all: number
 }
 
@@ -114,6 +120,8 @@ export type AttendanceRecordMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   projectId?: true
+  xeroSelfieFileId?: true
+  selfieUploadedAt?: true
 }
 
 export type AttendanceRecordMaxAggregateInputType = {
@@ -131,6 +139,8 @@ export type AttendanceRecordMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   projectId?: true
+  xeroSelfieFileId?: true
+  selfieUploadedAt?: true
 }
 
 export type AttendanceRecordCountAggregateInputType = {
@@ -148,6 +158,8 @@ export type AttendanceRecordCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   projectId?: true
+  xeroSelfieFileId?: true
+  selfieUploadedAt?: true
   _all?: true
 }
 
@@ -252,6 +264,8 @@ export type AttendanceRecordGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   projectId: string | null
+  xeroSelfieFileId: string | null
+  selfieUploadedAt: Date | null
   _count: AttendanceRecordCountAggregateOutputType | null
   _avg: AttendanceRecordAvgAggregateOutputType | null
   _sum: AttendanceRecordSumAggregateOutputType | null
@@ -292,6 +306,8 @@ export type AttendanceRecordWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  xeroSelfieFileId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
   breaks?: Prisma.BreakSessionListRelationFilter
@@ -312,6 +328,8 @@ export type AttendanceRecordOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSelfieFileId?: Prisma.SortOrderInput | Prisma.SortOrder
+  selfieUploadedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   employee?: Prisma.UserOrderByWithRelationInput
   projectRef?: Prisma.XeroProjectOrderByWithRelationInput
   breaks?: Prisma.BreakSessionOrderByRelationAggregateInput
@@ -337,6 +355,8 @@ export type AttendanceRecordWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  xeroSelfieFileId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
   breaks?: Prisma.BreakSessionListRelationFilter
@@ -357,6 +377,8 @@ export type AttendanceRecordOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSelfieFileId?: Prisma.SortOrderInput | Prisma.SortOrder
+  selfieUploadedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AttendanceRecordCountOrderByAggregateInput
   _avg?: Prisma.AttendanceRecordAvgOrderByAggregateInput
   _max?: Prisma.AttendanceRecordMaxOrderByAggregateInput
@@ -382,6 +404,8 @@ export type AttendanceRecordScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AttendanceRecord"> | Date | string
   projectId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
+  xeroSelfieFileId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
+  selfieUploadedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AttendanceRecord"> | Date | string | null
 }
 
 export type AttendanceRecordCreateInput = {
@@ -397,6 +421,8 @@ export type AttendanceRecordCreateInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
@@ -417,6 +443,8 @@ export type AttendanceRecordUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
@@ -433,6 +461,8 @@ export type AttendanceRecordUpdateInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
@@ -453,6 +483,8 @@ export type AttendanceRecordUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
@@ -471,6 +503,8 @@ export type AttendanceRecordCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
 }
 
 export type AttendanceRecordUpdateManyMutationInput = {
@@ -486,6 +520,8 @@ export type AttendanceRecordUpdateManyMutationInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AttendanceRecordUncheckedUpdateManyInput = {
@@ -503,6 +539,8 @@ export type AttendanceRecordUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AttendanceRecordListRelationFilter = {
@@ -541,6 +579,8 @@ export type AttendanceRecordCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
+  xeroSelfieFileId?: Prisma.SortOrder
+  selfieUploadedAt?: Prisma.SortOrder
 }
 
 export type AttendanceRecordAvgOrderByAggregateInput = {
@@ -563,6 +603,8 @@ export type AttendanceRecordMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
+  xeroSelfieFileId?: Prisma.SortOrder
+  selfieUploadedAt?: Prisma.SortOrder
 }
 
 export type AttendanceRecordMinOrderByAggregateInput = {
@@ -580,6 +622,8 @@ export type AttendanceRecordMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
+  xeroSelfieFileId?: Prisma.SortOrder
+  selfieUploadedAt?: Prisma.SortOrder
 }
 
 export type AttendanceRecordSumOrderByAggregateInput = {
@@ -715,6 +759,8 @@ export type AttendanceRecordCreateWithoutEmployeeInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
 }
@@ -733,6 +779,8 @@ export type AttendanceRecordUncheckedCreateWithoutEmployeeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
@@ -780,6 +828,8 @@ export type AttendanceRecordScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  xeroSelfieFileId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
 }
 
 export type AttendanceRecordCreateWithoutProjectRefInput = {
@@ -795,6 +845,8 @@ export type AttendanceRecordCreateWithoutProjectRefInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
 }
@@ -813,6 +865,8 @@ export type AttendanceRecordUncheckedCreateWithoutProjectRefInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
@@ -855,6 +909,8 @@ export type AttendanceRecordCreateWithoutBreaksInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
 }
@@ -874,6 +930,8 @@ export type AttendanceRecordUncheckedCreateWithoutBreaksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
 }
 
 export type AttendanceRecordCreateOrConnectWithoutBreaksInput = {
@@ -905,6 +963,8 @@ export type AttendanceRecordUpdateWithoutBreaksInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
 }
@@ -924,6 +984,8 @@ export type AttendanceRecordUncheckedUpdateWithoutBreaksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AttendanceRecordCreateManyEmployeeInput = {
@@ -940,6 +1002,8 @@ export type AttendanceRecordCreateManyEmployeeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
 }
 
 export type AttendanceRecordUpdateWithoutEmployeeInput = {
@@ -955,6 +1019,8 @@ export type AttendanceRecordUpdateWithoutEmployeeInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
 }
@@ -973,6 +1039,8 @@ export type AttendanceRecordUncheckedUpdateWithoutEmployeeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
@@ -990,6 +1058,8 @@ export type AttendanceRecordUncheckedUpdateManyWithoutEmployeeInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AttendanceRecordCreateManyProjectRefInput = {
@@ -1006,6 +1076,8 @@ export type AttendanceRecordCreateManyProjectRefInput = {
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  xeroSelfieFileId?: string | null
+  selfieUploadedAt?: Date | string | null
 }
 
 export type AttendanceRecordUpdateWithoutProjectRefInput = {
@@ -1021,6 +1093,8 @@ export type AttendanceRecordUpdateWithoutProjectRefInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
 }
@@ -1039,6 +1113,8 @@ export type AttendanceRecordUncheckedUpdateWithoutProjectRefInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
@@ -1056,6 +1132,8 @@ export type AttendanceRecordUncheckedUpdateManyWithoutProjectRefInput = {
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 
@@ -1104,6 +1182,8 @@ export type AttendanceRecordSelect<ExtArgs extends runtime.Types.Extensions.Inte
   createdAt?: boolean
   updatedAt?: boolean
   projectId?: boolean
+  xeroSelfieFileId?: boolean
+  selfieUploadedAt?: boolean
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
   breaks?: boolean | Prisma.AttendanceRecord$breaksArgs<ExtArgs>
@@ -1127,9 +1207,11 @@ export type AttendanceRecordSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   projectId?: boolean
+  xeroSelfieFileId?: boolean
+  selfieUploadedAt?: boolean
 }
 
-export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "durationMin" | "lateByMin" | "location" | "project" | "status" | "notes" | "createdAt" | "updatedAt" | "projectId", ExtArgs["result"]["attendanceRecord"]>
+export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "durationMin" | "lateByMin" | "location" | "project" | "status" | "notes" | "createdAt" | "updatedAt" | "projectId" | "xeroSelfieFileId" | "selfieUploadedAt", ExtArgs["result"]["attendanceRecord"]>
 export type AttendanceRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
@@ -1159,6 +1241,17 @@ export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.In
     createdAt: Date
     updatedAt: Date
     projectId: string | null
+    /**
+     * Xero Files API file ID for the clock-in selfie. Null when no
+     * selfie was captured (Office Workers, or upload failed). Cleared
+     * by the prune cron after the retention window.
+     */
+    xeroSelfieFileId: string | null
+    /**
+     * When the file was uploaded to Xero. Independent from timeIn so
+     * re-clocks (re-upload) reset the retention window.
+     */
+    selfieUploadedAt: Date | null
   }, ExtArgs["result"]["attendanceRecord"]>
   composites: {}
 }
@@ -1545,6 +1638,8 @@ export interface AttendanceRecordFieldRefs {
   readonly createdAt: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly projectId: Prisma.FieldRef<"AttendanceRecord", 'String'>
+  readonly xeroSelfieFileId: Prisma.FieldRef<"AttendanceRecord", 'String'>
+  readonly selfieUploadedAt: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
 }
     
 

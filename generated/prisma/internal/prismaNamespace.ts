@@ -1973,7 +1973,9 @@ export const AttendanceRecordScalarFieldEnum = {
   notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  projectId: 'projectId'
+  projectId: 'projectId',
+  xeroSelfieFileId: 'xeroSelfieFileId',
+  selfieUploadedAt: 'selfieUploadedAt'
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
@@ -2281,7 +2283,8 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
   location: 'location',
   project: 'project',
   notes: 'notes',
-  projectId: 'projectId'
+  projectId: 'projectId',
+  xeroSelfieFileId: 'xeroSelfieFileId'
 } as const
 
 export type AttendanceRecordOrderByRelevanceFieldEnum = (typeof AttendanceRecordOrderByRelevanceFieldEnum)[keyof typeof AttendanceRecordOrderByRelevanceFieldEnum]

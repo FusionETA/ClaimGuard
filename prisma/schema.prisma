@@ -388,6 +388,13 @@ model AttendanceRecord {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
   projectId   String?
+  /// Xero Files API file ID for the clock-in selfie. Null when no
+  /// selfie was captured (Office Workers, or upload failed). Cleared
+  /// by the prune cron after the retention window.
+  xeroSelfieFileId String?
+  /// When the file was uploaded to Xero. Independent from timeIn so
+  /// re-clocks (re-upload) reset the retention window.
+  selfieUploadedAt DateTime?
   employee    User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
   projectRef  XeroProject?     @relation("AttendanceRecordProject", fields: [projectId], references: [id])
   breaks      BreakSession[]
@@ -396,6 +403,7 @@ model AttendanceRecord {
   @@index([employeeId, date])
   @@index([status, date])
   @@index([projectId])
+  @@index([selfieUploadedAt])
 }
 
 model BreakSession {

@@ -481,12 +481,14 @@ export type XeroFileUploadResult = {
  * Falls back to undefined when folder access is forbidden so callers can
  * upload to the inbox instead. Throws on unexpected errors.
  */
-export async function getOrCreateClaimsFolder({
+async function getOrCreateXeroFolder({
   accessToken,
   tenantId,
+  folderName,
 }: {
   accessToken: string
   tenantId: string
+  folderName: string
 }): Promise<string | undefined> {
   const headers = {
     Authorization: `Bearer ${accessToken}`,
@@ -500,7 +502,7 @@ export async function getOrCreateClaimsFolder({
   })
   if (listResp.ok) {
     const folders = (await listResp.json()) as Array<{ Id?: string; Name?: string }>
-    const existing = folders.find((f) => f.Name === XERO_FILES_FOLDER_NAME)
+    const existing = folders.find((f) => f.Name === folderName)
     if (existing?.Id) return existing.Id
   } else if (listResp.status === 401 || listResp.status === 403) {
     // Tenant didn't grant Files scope. Caller should fall back to
@@ -518,7 +520,7 @@ export async function getOrCreateClaimsFolder({
       ...headers,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ Name: XERO_FILES_FOLDER_NAME }),
+    body: JSON.stringify({ Name: folderName }),
   })
   if (!createResp.ok) {
     const text = await createResp.text().catch(() => "")
@@ -529,6 +531,52 @@ export async function getOrCreateClaimsFolder({
   }
   const created = (await createResp.json()) as { Id?: string }
   return created.Id
+}
+
+export async function getOrCreateClaimsFolder(args: {
+  accessToken: string
+  tenantId: string
+}): Promise<string | undefined> {
+  return getOrCreateXeroFolder({ ...args, folderName: XERO_FILES_FOLDER_NAME })
+}
+
+const XERO_ATTENDANCE_SELFIE_FOLDER_NAME = "Attendance Selfie"
+
+export async function getOrCreateAttendanceSelfieFolder(args: {
+  accessToken: string
+  tenantId: string
+}): Promise<string | undefined> {
+  return getOrCreateXeroFolder({
+    ...args,
+    folderName: XERO_ATTENDANCE_SELFIE_FOLDER_NAME,
+  })
+}
+
+/**
+ * Delete a file from Xero Files. Throws on non-2xx so the caller (e.g.
+ * the retention cron) can log per-file failures and keep going.
+ */
+export async function deleteXeroFile({
+  accessToken,
+  tenantId,
+  fileId,
+}: {
+  accessToken: string
+  tenantId: string
+  fileId: string
+}): Promise<void> {
+  const resp = await fetch(`${XERO_FILES_BASE_URL}/Files/${fileId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Xero-tenant-id": tenantId,
+    },
+  })
+  // 404 means the file is already gone — treat as success so reruns
+  // don't spam errors.
+  if (resp.ok || resp.status === 404) return
+  const text = await resp.text().catch(() => "")
+  throw new Error(`Xero file delete failed: ${resp.status} ${text}`)
 }
 
 /**

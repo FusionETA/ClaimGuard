@@ -1,6 +1,11 @@
 import "server-only"
 
 import { DEFAULT_GEOFENCE_RADIUS_METERS, checkGeofence } from "@/lib/geo"
+import { getPrismaClient } from "@/lib/prisma"
+import {
+  getOrCreateAttendanceSelfieFolder,
+  uploadFileToXero,
+} from "@/lib/xero"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type {
   ApprovalRequestView,
@@ -9,6 +14,7 @@ import type {
   EmployeeAttendanceDashboard,
 } from "@/modules/attendance/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
 
 const ARCHIVED_XERO_STATUSES = new Set(["CLOSED", "ARCHIVED"])
 
@@ -49,6 +55,85 @@ async function enforceGeofenceForActiveRecord(
   if (!fence.withinRadius && !notes) {
     throw new Error(OFF_SITE_REMARK_REQUIRED)
   }
+}
+
+/// Decode a `data:image/jpeg;base64,…` URL and upload it to the org's
+/// Xero "Attendance Selfie" folder, then attach the resulting file ID
+/// to the AttendanceRecord. Skips silently when the employee isn't
+/// hourly, has no Xero connection, or the data URL is malformed —
+/// the caller wraps in try/catch so a thrown error never blocks the
+/// clock-in itself.
+async function uploadSelfieToXero({
+  employeeId,
+  attendanceRecordId,
+  dataUrl,
+}: {
+  employeeId: string
+  attendanceRecordId: string
+  dataUrl: string
+}): Promise<void> {
+  const prisma = getPrismaClient()
+  if (!prisma) return
+
+  const profile = await prisma.employeeProfile.findUnique({
+    where: { userId: employeeId },
+    select: { payoutMethod: true, xeroConnectionId: true, employeeId: true },
+  })
+  if (!profile || profile.payoutMethod !== "HOURLY") return
+
+  // Resolve a Xero connection: profile preference, else org's first.
+  let connectionId: string | null = profile.xeroConnectionId ?? null
+  if (!connectionId) {
+    const user = await prisma.user.findUnique({
+      where: { id: employeeId },
+      select: { organizationId: true },
+    })
+    if (user?.organizationId) {
+      const conn = await prisma.xeroConnection.findFirst({
+        where: { organizationId: user.organizationId },
+        orderBy: { createdAt: "asc" },
+        select: { id: true },
+      })
+      connectionId = conn?.id ?? null
+    }
+  }
+  if (!connectionId) return
+
+  // data URL → Buffer
+  const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(dataUrl)
+  if (!match) return
+  const mimeType = match[1] ?? "image/jpeg"
+  const fileBuffer = Buffer.from(match[2] ?? "", "base64")
+  if (fileBuffer.length === 0) return
+
+  const token = await getUsableXeroAccessToken(connectionId)
+  if (!token) return
+
+  const folderId = await getOrCreateAttendanceSelfieFolder({
+    accessToken: token.accessToken,
+    tenantId: token.tenantId,
+  })
+
+  const ext = mimeType === "image/png" ? "png" : "jpg"
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-")
+  const fileName = `${profile.employeeId}_${stamp}.${ext}`
+
+  const upload = await uploadFileToXero({
+    accessToken: token.accessToken,
+    tenantId: token.tenantId,
+    folderId,
+    fileBuffer,
+    fileName,
+    mimeType,
+  })
+
+  await prisma.attendanceRecord.update({
+    where: { id: attendanceRecordId },
+    data: {
+      xeroSelfieFileId: upload.fileId,
+      selfieUploadedAt: new Date(),
+    },
+  })
 }
 
 export const employeeAttendanceService = {
@@ -165,23 +250,34 @@ export const employeeAttendanceService = {
       throw new Error(OFF_SITE_REMARK_REQUIRED)
     }
 
-    if (selfie) {
-      // TODO(storage): upload to S3/R2/Xero file store and stash the URL
-      // on AttendanceRecord. For now the selfie is intentionally
-      // discarded — UI flow only.
-      void selfie
-    }
-
     const location = coords
       ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
       : undefined
-    return attendanceRepository.clockIn(
+    const result = await attendanceRepository.clockIn(
       employeeId,
       project.name,
       location,
       projectId,
       notes,
     )
+
+    // Hourly Worker selfie → Xero Files. Inline (Vercel can't fire-
+    // and-forget) so this adds ~1–2s to clock-in latency in the happy
+    // path. Failures here are logged and swallowed: clocking in must
+    // succeed even when Xero is misconfigured / rate-limited / down.
+    if (selfie) {
+      try {
+        await uploadSelfieToXero({
+          employeeId,
+          attendanceRecordId: result.recordId,
+          dataUrl: selfie,
+        })
+      } catch (err) {
+        console.error("[clockIn] selfie upload failed", err)
+      }
+    }
+
+    return result
   },
 
   async clockOut(
