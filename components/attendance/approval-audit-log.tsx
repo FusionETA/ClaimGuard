@@ -8,6 +8,7 @@ import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/attendance/ui/input"
 import { Label } from "@/components/attendance/ui/label"
+import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
 import {
   Select,
   SelectContent,
@@ -39,6 +40,7 @@ export type AuditLogRow = {
   project: string | null
   title: string
   chainHistory: AuditChainEntry[] | null
+  selfieAttendanceRecordId: string | null
 }
 
 type LoadAction = (
@@ -279,12 +281,22 @@ export function ApprovalAuditLog({
                     className="border-b border-border/30 text-foreground"
                   >
                     <td className="py-2 pl-3 pr-3">
-                      <div className="font-medium">{row.employeeName}</div>
-                      {row.project ? (
-                        <div className="text-[10px] text-muted-foreground">
-                          {row.project}
+                      <div className="flex items-center gap-2">
+                        {row.selfieAttendanceRecordId ? (
+                          <SelfieThumbnail
+                            recordId={row.selfieAttendanceRecordId}
+                            size={36}
+                          />
+                        ) : null}
+                        <div>
+                          <div className="font-medium">{row.employeeName}</div>
+                          {row.project ? (
+                            <div className="text-[10px] text-muted-foreground">
+                              {row.project}
+                            </div>
+                          ) : null}
                         </div>
-                      ) : null}
+                      </div>
                     </td>
                     <td className="py-2 pr-3 text-xs">{KIND_LABEL[row.kind]}</td>
                     <td className="py-2 pr-3 text-xs tabular-nums">

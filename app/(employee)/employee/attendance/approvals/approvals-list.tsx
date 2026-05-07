@@ -7,6 +7,7 @@ import { Badge } from "@/components/attendance/ui/badge"
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/attendance/ui/input"
+import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
 import { otSubtypeMeta } from "@/modules/attendance/domain/metadata"
 import { cn } from "@/lib/utils"
@@ -139,56 +140,63 @@ export function ApprovalsList({ items }: Props) {
           {filtered.map((r) => (
             <Card key={r.id}>
               <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      {r.kind === "OT" ? (
-                        <>
-                          <Badge variant="overtime">
-                            {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"}
-                          </Badge>
-                          {r.otPayoutMethod ? (
-                            <Badge variant="outline" className="font-semibold">
-                              {r.otPayoutMethod === "TIME_BANK" ? "Time bank" : "Cash"}
-                            </Badge>
-                          ) : null}
-                        </>
-                      ) : (
-                        <Badge
-                          variant={
-                            r.kind === "CLOCK_IN"
-                              ? "clocked-in"
-                              : r.kind === "CLOCK_OUT"
-                                ? "clocked-out"
-                                : "pending"
-                          }
-                        >
-                          {CLOCK_LABEL[r.kind] ?? "Clock"}
-                        </Badge>
-                      )}
-                      <span className="text-xs font-semibold text-muted-foreground">
-                        {r.date}
-                      </span>
-                      {r.kind === "CLOCK_IN" && r.lateMinutes && r.lateMinutes > 0 ? (
-                        <Badge variant="late" className="font-bold">
-                          ⚠ LATE · {r.lateMinutes}m
+                <div className="flex items-center gap-2">
+                  {r.kind === "OT" ? (
+                    <>
+                      <Badge variant="overtime">
+                        {r.otSubtype ? otSubtypeMeta[r.otSubtype].label : "OT"}
+                      </Badge>
+                      {r.otPayoutMethod ? (
+                        <Badge variant="outline" className="font-semibold">
+                          {r.otPayoutMethod === "TIME_BANK" ? "Time bank" : "Cash"}
                         </Badge>
                       ) : null}
-                      {r.kind === "CLOCK_IN" && !r.lateMinutes ? (() => {
-                        const early = parseEarlyMinutes(r.title)
-                        return early ? (
-                          <Badge variant="on-time" className="font-bold">
-                            EARLY · {early}m
-                          </Badge>
-                        ) : null
-                      })() : null}
-                      {r.totalSteps > 1 && r.currentStep ? (
-                        <Badge variant="pending" className="font-semibold">
-                          Step {r.currentStep} of {r.totalSteps}
-                        </Badge>
-                      ) : null}
-                    </div>
-                    <p className="mt-2 text-sm font-bold text-foreground">{r.employeeName}</p>
+                    </>
+                  ) : (
+                    <Badge
+                      variant={
+                        r.kind === "CLOCK_IN"
+                          ? "clocked-in"
+                          : r.kind === "CLOCK_OUT"
+                            ? "clocked-out"
+                            : "pending"
+                      }
+                    >
+                      {CLOCK_LABEL[r.kind] ?? "Clock"}
+                    </Badge>
+                  )}
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    {r.date}
+                  </span>
+                  {r.kind === "CLOCK_IN" && r.lateMinutes && r.lateMinutes > 0 ? (
+                    <Badge variant="late" className="font-bold">
+                      ⚠ LATE · {r.lateMinutes}m
+                    </Badge>
+                  ) : null}
+                  {r.kind === "CLOCK_IN" && !r.lateMinutes ? (() => {
+                    const early = parseEarlyMinutes(r.title)
+                    return early ? (
+                      <Badge variant="on-time" className="font-bold">
+                        EARLY · {early}m
+                      </Badge>
+                    ) : null
+                  })() : null}
+                  {r.totalSteps > 1 && r.currentStep ? (
+                    <Badge variant="pending" className="font-semibold">
+                      Step {r.currentStep} of {r.totalSteps}
+                    </Badge>
+                  ) : null}
+                </div>
+                <div className="mt-2 flex items-start gap-3">
+                  {r.selfieAttendanceRecordId ? (
+                    <SelfieThumbnail
+                      recordId={r.selfieAttendanceRecordId}
+                      size={100}
+                      className="rounded-lg"
+                    />
+                  ) : null}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-foreground">{r.employeeName}</p>
                     <p className="mt-0.5 text-sm font-semibold text-foreground">{r.title}</p>
                     {(() => {
                       const parsed = parseApprovalDetail(r.detail)
