@@ -78,13 +78,16 @@ function expectedTimeOnLocalDay(now: Date, hhmm: string, tz: string): Date {
  * the matching AttendanceRecord.lateByMin so the supervisor still sees the
  * Late badge.
  */
+/// Joins each CLOCK_IN view to its AttendanceRecord to fill two fields
+/// in one query: lateMinutes (legacy backfill) and
+/// selfieAttendanceRecordId (drives the supervisor/admin selfie
+/// thumbnail). Always runs for CLOCK_IN views — bails early when the
+/// view list contains none.
 async function backfillLateMinutes(
   views: ApprovalRequestView[],
   prisma: ReturnType<typeof getClient>,
 ): Promise<ApprovalRequestView[]> {
-  const targets = views.filter(
-    (v) => v.kind === "CLOCK_IN" && v.lateMinutes == null,
-  )
+  const targets = views.filter((v) => v.kind === "CLOCK_IN")
   if (targets.length === 0) return views
   const records = await prisma.attendanceRecord.findMany({
     where: {
@@ -93,16 +96,41 @@ async function backfillLateMinutes(
         date: new Date(`${t.date}T00:00:00.000Z`),
       })),
     },
-    select: { employeeId: true, date: true, lateByMin: true },
+    select: {
+      id: true,
+      employeeId: true,
+      date: true,
+      lateByMin: true,
+      xeroSelfieFileId: true,
+    },
   })
-  const lookup = new Map<string, number | null>()
+  type Meta = {
+    recordId: string
+    lateByMin: number | null
+    xeroSelfieFileId: string | null
+  }
+  const lookup = new Map<string, Meta>()
   for (const r of records) {
-    lookup.set(`${r.employeeId}|${r.date.toISOString().slice(0, 10)}`, r.lateByMin)
+    lookup.set(`${r.employeeId}|${r.date.toISOString().slice(0, 10)}`, {
+      recordId: r.id,
+      lateByMin: r.lateByMin,
+      xeroSelfieFileId: r.xeroSelfieFileId,
+    })
   }
   return views.map((v) => {
-    if (v.kind !== "CLOCK_IN" || v.lateMinutes != null) return v
-    const lateByMin = lookup.get(`${v.employeeId}|${v.date}`) ?? null
-    return lateByMin && lateByMin > 0 ? { ...v, lateMinutes: lateByMin } : v
+    if (v.kind !== "CLOCK_IN") return v
+    const meta = lookup.get(`${v.employeeId}|${v.date}`)
+    if (!meta) return v
+    return {
+      ...v,
+      lateMinutes:
+        v.lateMinutes != null
+          ? v.lateMinutes
+          : meta.lateByMin && meta.lateByMin > 0
+            ? meta.lateByMin
+            : v.lateMinutes,
+      selfieAttendanceRecordId: meta.xeroSelfieFileId ? meta.recordId : null,
+    }
   })
 }
 
@@ -221,6 +249,9 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
     submittedAt: r.submittedAt.toISOString(),
     reviewedAt: r.reviewedAt?.toISOString() ?? null,
     chainHistory: parseChainHistory(r.chainHistory),
+    // Populated by attachSelfieRefs() when needed; defaults to null
+    // so callers that skip the attach can still consume views safely.
+    selfieAttendanceRecordId: null,
     // Defaults — populated by attachChainContext when needed.
     currentStep: r.status === "PENDING" ? 1 : null,
     totalSteps: 1,
@@ -1832,6 +1863,7 @@ export const attendanceRepository = {
       project: string | null
       title: string
       chainHistory: ChainHistoryEntry[] | null
+      selfieAttendanceRecordId: string | null
     }>
   > {
     const prisma = getClient()
@@ -1860,12 +1892,42 @@ export const attendanceRepository = {
         reviewer: { select: { name: true } },
       },
     })
+
+    // Look up selfie attachments for the CLOCK_IN rows in one query.
+    const clockInRows = rows.filter((r) => r.kind === "CLOCK_IN")
+    let selfieByKey = new Map<string, string>()
+    if (clockInRows.length > 0) {
+      const records = await prisma.attendanceRecord.findMany({
+        where: {
+          OR: clockInRows.map((r) => ({
+            employeeId: r.employeeId,
+            date: startOfDay(r.date),
+          })),
+        },
+        select: {
+          id: true,
+          employeeId: true,
+          date: true,
+          xeroSelfieFileId: true,
+        },
+      })
+      selfieByKey = new Map(
+        records
+          .filter((r) => !!r.xeroSelfieFileId)
+          .map((r) => [
+            `${r.employeeId}|${r.date.toISOString().slice(0, 10)}`,
+            r.id,
+          ]),
+      )
+    }
+
     return rows.map((r) => {
       const reviewedAt = r.reviewedAt!
       const delayMinutes =
         r.eventAt && reviewedAt
           ? Math.round((reviewedAt.getTime() - r.eventAt.getTime()) / 60000)
           : null
+      const dateKey = `${r.employeeId}|${r.date.toISOString().slice(0, 10)}`
       return {
         id: r.id,
         kind: r.kind as ApprovalKind,
@@ -1880,6 +1942,8 @@ export const attendanceRepository = {
         project: r.project,
         title: r.title,
         chainHistory: parseChainHistory(r.chainHistory),
+        selfieAttendanceRecordId:
+          r.kind === "CLOCK_IN" ? selfieByKey.get(dateKey) ?? null : null,
       }
     })
   },

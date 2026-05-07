@@ -62,6 +62,11 @@ export type ApprovalRequestView = {
   /// CASH or TIME_BANK snapshot for OT requests. Null for non-OT or legacy
   /// rows submitted before the snapshot was added.
   otPayoutMethod: "CASH" | "TIME_BANK" | null
+  /// AttendanceRecord id whose selfie can be fetched via
+  /// /api/attendance/selfie/{id}. Null when there's no selfie attached
+  /// (Office Workers, Hourly Workers whose upload failed, or non-CLOCK_IN
+  /// kinds). Drives whether the UI shows the thumbnail.
+  selfieAttendanceRecordId: string | null
   lateMinutes: number | null
   offsetRef: string | null
   reviewNotes: string | null
