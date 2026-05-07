@@ -197,6 +197,9 @@ export function ClockCard({
   /// employee confirms the photo, the data URL is attached and the rest of
   /// the clock-in flow (geofence check / remark / dispatch) runs.
   const [selfiePending, setSelfiePending] = useState<FormData | null>(null)
+  /// Client-side validation message for the project picker. Cleared as
+  /// soon as the user picks a project.
+  const [projectError, setProjectError] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -243,6 +246,11 @@ export function ClockCard({
   async function handleClockIn(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (isResolving || pendingAction || selfiePending) return
+    if (!selected) {
+      setProjectError("Please select a project before clocking in.")
+      return
+    }
+    setProjectError(null)
     const formData = new FormData(e.currentTarget)
     if (requiresSelfieOnClockIn && !formData.get("selfie")) {
       // Pause here, ask the employee to take a selfie. The rest of the
@@ -435,7 +443,10 @@ export function ClockCard({
               <Select
                 name="projectId"
                 value={selected}
-                onValueChange={setSelected}
+                onValueChange={(value) => {
+                  setSelected(value)
+                  setProjectError(null)
+                }}
                 disabled={projects.length === 0}
               >
                 <SelectTrigger id="projectId">
@@ -453,6 +464,11 @@ export function ClockCard({
             {projects.length === 0 ? (
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Ask your admin to assign you to a project.
+              </p>
+            ) : null}
+            {projectError ? (
+              <p className="mt-1 text-[11px] font-semibold text-destructive">
+                {projectError}
               </p>
             ) : null}
             {selected ? (
