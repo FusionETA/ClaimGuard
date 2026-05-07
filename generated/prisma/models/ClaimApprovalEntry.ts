@@ -252,8 +252,8 @@ export type ClaimApprovalEntryWhereInput = {
   reviewedAt?: Prisma.DateTimeFilter<"ClaimApprovalEntry"> | Date | string
   reviewNotes?: Prisma.StringNullableFilter<"ClaimApprovalEntry"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ClaimApprovalEntry"> | Date | string
-  claim?: Prisma.XOR<Prisma.ClaimScalarRelationFilter, Prisma.ClaimWhereInput>
   approver?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  claim?: Prisma.XOR<Prisma.ClaimScalarRelationFilter, Prisma.ClaimWhereInput>
 }
 
 export type ClaimApprovalEntryOrderByWithRelationInput = {
@@ -265,8 +265,8 @@ export type ClaimApprovalEntryOrderByWithRelationInput = {
   reviewedAt?: Prisma.SortOrder
   reviewNotes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  claim?: Prisma.ClaimOrderByWithRelationInput
   approver?: Prisma.UserOrderByWithRelationInput
+  claim?: Prisma.ClaimOrderByWithRelationInput
   _relevance?: Prisma.ClaimApprovalEntryOrderByRelevanceInput
 }
 
@@ -283,8 +283,8 @@ export type ClaimApprovalEntryWhereUniqueInput = Prisma.AtLeast<{
   reviewedAt?: Prisma.DateTimeFilter<"ClaimApprovalEntry"> | Date | string
   reviewNotes?: Prisma.StringNullableFilter<"ClaimApprovalEntry"> | string | null
   createdAt?: Prisma.DateTimeFilter<"ClaimApprovalEntry"> | Date | string
-  claim?: Prisma.XOR<Prisma.ClaimScalarRelationFilter, Prisma.ClaimWhereInput>
   approver?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  claim?: Prisma.XOR<Prisma.ClaimScalarRelationFilter, Prisma.ClaimWhereInput>
 }, "id" | "claimId_stepNumber_approverId">
 
 export type ClaimApprovalEntryOrderByWithAggregationInput = {
@@ -324,8 +324,8 @@ export type ClaimApprovalEntryCreateInput = {
   reviewedAt?: Date | string
   reviewNotes?: string | null
   createdAt?: Date | string
-  claim: Prisma.ClaimCreateNestedOneWithoutApprovalEntriesInput
   approver: Prisma.UserCreateNestedOneWithoutClaimApprovalEntriesInput
+  claim: Prisma.ClaimCreateNestedOneWithoutApprovalEntriesInput
 }
 
 export type ClaimApprovalEntryUncheckedCreateInput = {
@@ -346,8 +346,8 @@ export type ClaimApprovalEntryUpdateInput = {
   reviewedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  claim?: Prisma.ClaimUpdateOneRequiredWithoutApprovalEntriesNestedInput
   approver?: Prisma.UserUpdateOneRequiredWithoutClaimApprovalEntriesNestedInput
+  claim?: Prisma.ClaimUpdateOneRequiredWithoutApprovalEntriesNestedInput
 }
 
 export type ClaimApprovalEntryUncheckedUpdateInput = {
@@ -740,8 +740,8 @@ export type ClaimApprovalEntrySelect<ExtArgs extends runtime.Types.Extensions.In
   reviewedAt?: boolean
   reviewNotes?: boolean
   createdAt?: boolean
-  claim?: boolean | Prisma.ClaimDefaultArgs<ExtArgs>
   approver?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  claim?: boolean | Prisma.ClaimDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["claimApprovalEntry"]>
 
 
@@ -759,15 +759,15 @@ export type ClaimApprovalEntrySelectScalar = {
 
 export type ClaimApprovalEntryOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimId" | "stepNumber" | "approverId" | "decision" | "reviewedAt" | "reviewNotes" | "createdAt", ExtArgs["result"]["claimApprovalEntry"]>
 export type ClaimApprovalEntryInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  claim?: boolean | Prisma.ClaimDefaultArgs<ExtArgs>
   approver?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  claim?: boolean | Prisma.ClaimDefaultArgs<ExtArgs>
 }
 
 export type $ClaimApprovalEntryPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ClaimApprovalEntry"
   objects: {
-    claim: Prisma.$ClaimPayload<ExtArgs>
     approver: Prisma.$UserPayload<ExtArgs>
+    claim: Prisma.$ClaimPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1118,8 +1118,8 @@ readonly fields: ClaimApprovalEntryFieldRefs;
  */
 export interface Prisma__ClaimApprovalEntryClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  claim<T extends Prisma.ClaimDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClaimDefaultArgs<ExtArgs>>): Prisma.Prisma__ClaimClient<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   approver<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  claim<T extends Prisma.ClaimDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClaimDefaultArgs<ExtArgs>>): Prisma.Prisma__ClaimClient<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

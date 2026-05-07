@@ -17,6 +17,9 @@ const QUICK_LOGINS = [
   { label: "Supervisor", email: "supervisor@gmail.com", password: "ChangeMe123!" },
   { label: "Rachel (Employee)", email: "rachel@test.com", password: "qwertyasd" },
   { label: "ZR Chen (Employee)", email: "zrchen2004@gmail.com", password: "qwertyasd" },
+  { label: "Attendance PM", email: "atdnpm@test.com", password: "11111111" },
+  { label: "Attendance SPV", email: "atdnspv@test.com", password: "11111111" },
+  { label: "Attendance EMP", email: "atdnemp@test.com", password: "11111111" },
 ]
 
 export function LoginForm() {

@@ -18,10 +18,12 @@ import { adminAttendanceService } from "@/modules/attendance/application/service
 import type { RollCallPerson } from "@/modules/attendance/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
+import { loadSelfieStorageStatsAction } from "./actions"
 import {
   loadApprovalAuditLogForProjectAction,
   loadOrgHoursSummaryForProjectAction,
 } from "./hours-summary-actions"
+import { SelfieStorageCard } from "./selfie-storage-card"
 
 function startOfMonthIso(): string {
   const d = new Date()
@@ -48,32 +50,40 @@ export default async function AdminAttendancePage({
       : null
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
-  const [overview, stats, rollCall, initialHoursSummary, projects, initialAudit] =
-    await Promise.all([
-      adminAttendanceService.getOrgOverview(orgId, projectIdParam),
-      adminAttendanceService.getAggregateStats(
-        new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-        new Date(),
-        orgId,
-        projectIdParam,
-      ),
-      adminAttendanceService.getTodayRollCall(orgId, projectIdParam),
-      adminAttendanceService.getOrgHoursSummary(
-        orgId,
-        new Date(initialFrom),
-        new Date(initialTo),
-        projectIdParam,
-      ),
-      orgId
-        ? organizationRepository.getProjectsForOrganization(orgId)
-        : Promise.resolve([]),
-      adminAttendanceService.getApprovalAuditLog(
-        orgId,
-        new Date(initialFrom),
-        new Date(initialTo),
-        projectIdParam,
-      ),
-    ])
+  const [
+    overview,
+    stats,
+    rollCall,
+    initialHoursSummary,
+    projects,
+    initialAudit,
+    selfieStats,
+  ] = await Promise.all([
+    adminAttendanceService.getOrgOverview(orgId, projectIdParam),
+    adminAttendanceService.getAggregateStats(
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      new Date(),
+      orgId,
+      projectIdParam,
+    ),
+    adminAttendanceService.getTodayRollCall(orgId, projectIdParam),
+    adminAttendanceService.getOrgHoursSummary(
+      orgId,
+      new Date(initialFrom),
+      new Date(initialTo),
+      projectIdParam,
+    ),
+    orgId
+      ? organizationRepository.getProjectsForOrganization(orgId)
+      : Promise.resolve([]),
+    adminAttendanceService.getApprovalAuditLog(
+      orgId,
+      new Date(initialFrom),
+      new Date(initialTo),
+      projectIdParam,
+    ),
+    loadSelfieStorageStatsAction(),
+  ])
 
   const presentRate =
     overview.headcount > 0
@@ -266,6 +276,12 @@ export default async function AdminAttendancePage({
         initialRows={initialAudit}
         loadAction={auditAction}
         projectId={projectIdParam}
+      />
+
+      <SelfieStorageCard
+        initialStats={selfieStats}
+        defaultFrom={initialFrom}
+        defaultTo={initialTo}
       />
     </div>
   )

@@ -7,21 +7,23 @@ import { formatHm } from "@/modules/attendance/domain/hours-summary"
 import { EmployeeAttendanceDashboardView } from "./dashboard-view"
 import { loadMyHoursSummaryAction } from "./hours-summary-actions"
 
-async function loadOtTimeBalance(userId: string): Promise<{
+async function loadEmployeeProfileExtras(userId: string): Promise<{
   otPayoutMethod: "CASH" | "TIME_BANK"
   otTimeBalanceMin: number
+  requiresSelfieOnClockIn: boolean
 } | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
   const profile = await prisma.employeeProfile.findUnique({
     where: { userId },
-    select: { otPayoutMethod: true, otTimeBalanceMin: true },
+    select: { otPayoutMethod: true, otTimeBalanceMin: true, payoutMethod: true },
   })
   if (!profile) return null
   return {
     otPayoutMethod:
       profile.otPayoutMethod === "TIME_BANK" ? "TIME_BANK" : "CASH",
     otTimeBalanceMin: profile.otTimeBalanceMin,
+    requiresSelfieOnClockIn: profile.payoutMethod === "HOURLY",
   }
 }
 
@@ -40,7 +42,7 @@ export default async function EmployeeAttendancePage() {
   const session = await requirePortalSession("EMPLOYEE")
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
-  const [dashboard, workingHours, projects, hoursSummary, otBalance] = await Promise.all([
+  const [dashboard, workingHours, projects, hoursSummary, profileExtras] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
     employeeAttendanceService.getWorkingHours(session.userId),
     employeeAttendanceService.getAvailableProjects(session.userId),
@@ -49,7 +51,7 @@ export default async function EmployeeAttendancePage() {
       new Date(initialFrom),
       new Date(initialTo),
     ),
-    loadOtTimeBalance(session.userId),
+    loadEmployeeProfileExtras(session.userId),
   ])
 
   return (
@@ -59,6 +61,7 @@ export default async function EmployeeAttendancePage() {
         dashboard={dashboard}
         workingHours={workingHours}
         projects={projects}
+        requiresSelfieOnClockIn={profileExtras?.requiresSelfieOnClockIn ?? false}
       />
       <HoursSummaryPanel
         title="My hours summary"
@@ -67,13 +70,13 @@ export default async function EmployeeAttendancePage() {
         initialData={hoursSummary}
         loadAction={loadMyHoursSummaryAction}
       />
-      {otBalance?.otPayoutMethod === "TIME_BANK" ? (
+      {profileExtras?.otPayoutMethod === "TIME_BANK" ? (
         <div className="rounded-xl border border-amber-300/60 bg-amber-50/60 p-4 text-sm dark:bg-amber-950/30">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
             OT time bank
           </p>
           <p className="mt-1 text-2xl font-bold text-amber-700 dark:text-amber-300">
-            {formatHm(otBalance.otTimeBalanceMin)}
+            {formatHm(profileExtras.otTimeBalanceMin)}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Approved overtime is banked as time-off minutes that you can
