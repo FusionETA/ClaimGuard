@@ -26,7 +26,6 @@ model User {
   claims                 Claim[]              @relation("EmployeeClaims")
   reviews                Claim[]              @relation("AdminReviews")
   claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
-  supervisedProfiles     EmployeeProfile[]    @relation("SupervisorReports")
   employeeProfile        EmployeeProfile?     @relation("EmployeeProfileUser")
   projectManagerOf       ProjectManager[]     @relation("ProjectManagerOf")
   pushSubscriptions      PushSubscription[]
@@ -45,7 +44,6 @@ model Organization {
   updatedAt                DateTime            @updatedAt
   workingHoursEnd          String              @default("18:00")
   workingHoursStart        String              @default("09:00")
-  bankAccount              String?
   otRateNormalDay          Decimal             @default(1.50) @db.Decimal(4, 2)
   otRatePublicHoliday      Decimal             @default(3.00) @db.Decimal(4, 2)
   otRateRestDay            Decimal             @default(2.00) @db.Decimal(4, 2)
@@ -108,9 +106,7 @@ model EmployeeProfile {
   id                 String                      @id @default(cuid())
   userId             String                      @unique
   employeeId         String                      @unique
-  project            String                      @map("department")
   jobTitle           String
-  supervisorId       String?
   payoutMethod       PayoutMethod?
   preferredCurrency  String                      @default("USD")
   xeroConnectionId   String?
@@ -125,13 +121,11 @@ model EmployeeProfile {
   otPayoutMethod     OtPayoutMethod              @default(CASH)
   /// Cumulative banked OT minutes for TIME_BANK Office Workers.
   otTimeBalanceMin   Int                         @default(0)
-  supervisor         User?                       @relation("SupervisorReports", fields: [supervisorId], references: [id])
   user               User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
   xeroConnection     XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
   projectAssignments EmployeeProjectAssignment[]
   teamMemberships    EmployeeTeamMembership[]
 
-  @@index([supervisorId])
   @@index([xeroConnectionId])
 }
 
@@ -317,7 +311,6 @@ model XeroProject {
   xeroProjectId     String?
   name              String
   status            String?
-  contactId         String?
   createdAt         DateTime                    @default(now())
   updatedAt         DateTime                    @updatedAt
   isManual          Boolean                     @default(false)
@@ -374,30 +367,30 @@ model ProjectManager {
 }
 
 model AttendanceRecord {
-  id          String           @id @default(cuid())
-  employeeId  String
-  date        DateTime
-  timeIn      DateTime?
-  timeOut     DateTime?
-  durationMin Int?
-  lateByMin   Int?
-  location    String?
-  project     String?
-  status      AttendanceStatus @default(MISSING)
-  notes       String?          @db.Text
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  projectId   String?
+  id               String           @id @default(cuid())
+  employeeId       String
+  date             DateTime
+  timeIn           DateTime?
+  timeOut          DateTime?
+  durationMin      Int?
+  lateByMin        Int?
+  location         String?
+  project          String?
+  status           AttendanceStatus @default(MISSING)
+  notes            String?          @db.Text
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  projectId        String?
+  /// When the file was uploaded to Xero. Independent from timeIn so
+  /// re-clocks (re-upload) reset the retention window.
+  selfieUploadedAt DateTime?
   /// Xero Files API file ID for the clock-in selfie. Null when no
   /// selfie was captured (Office Workers, or upload failed). Cleared
   /// by the prune cron after the retention window.
   xeroSelfieFileId String?
-  /// When the file was uploaded to Xero. Independent from timeIn so
-  /// re-clocks (re-upload) reset the retention window.
-  selfieUploadedAt DateTime?
-  employee    User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
-  projectRef  XeroProject?     @relation("AttendanceRecordProject", fields: [projectId], references: [id])
-  breaks      BreakSession[]
+  employee         User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
+  projectRef       XeroProject?     @relation("AttendanceRecordProject", fields: [projectId], references: [id])
+  breaks           BreakSession[]
 
   @@unique([employeeId, date])
   @@index([employeeId, date])

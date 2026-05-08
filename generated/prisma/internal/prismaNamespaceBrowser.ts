@@ -111,7 +111,6 @@ export const OrganizationScalarFieldEnum = {
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  bankAccount: 'bankAccount',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
   otRateRestDay: 'otRateRestDay',
@@ -157,9 +156,7 @@ export const EmployeeProfileScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   employeeId: 'employeeId',
-  project: 'project',
   jobTitle: 'jobTitle',
-  supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId',
@@ -294,7 +291,6 @@ export const XeroProjectScalarFieldEnum = {
   xeroProjectId: 'xeroProjectId',
   name: 'name',
   status: 'status',
-  contactId: 'contactId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isManual: 'isManual',
@@ -347,8 +343,8 @@ export const AttendanceRecordScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   projectId: 'projectId',
-  xeroSelfieFileId: 'xeroSelfieFileId',
-  selfieUploadedAt: 'selfieUploadedAt'
+  selfieUploadedAt: 'selfieUploadedAt',
+  xeroSelfieFileId: 'xeroSelfieFileId'
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
@@ -496,7 +492,6 @@ export const OrganizationOrderByRelevanceFieldEnum = {
   name: 'name',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  bankAccount: 'bankAccount',
   timezone: 'timezone',
   defaultCurrency: 'defaultCurrency'
 } as const
@@ -528,9 +523,7 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   id: 'id',
   userId: 'userId',
   employeeId: 'employeeId',
-  project: 'project',
   jobTitle: 'jobTitle',
-  supervisorId: 'supervisorId',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId'
 } as const
@@ -621,7 +614,6 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   xeroProjectId: 'xeroProjectId',
   name: 'name',
   status: 'status',
-  contactId: 'contactId',
   location: 'location',
   projectManagerId: 'projectManagerId',
   workingHoursStart: 'workingHoursStart',
