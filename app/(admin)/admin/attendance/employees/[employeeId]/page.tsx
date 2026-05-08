@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react"
 
 import { EmployeeDetailView } from "@/components/attendance/employee-detail-view"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
-import { requirePortalSession } from "@/lib/auth/session"
+import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 
 import { loadEmployeeHoursSummaryAction } from "../../hours-summary-actions"
@@ -31,7 +31,8 @@ export default async function AdminEmployeeDetailPage({
   const initialTo = todayIso()
   const [data, hoursSummary] = await Promise.all([
     adminAttendanceService.getEmployeeDetail(
-      session.organizationId ?? null,
+      // Honour the dropdown-selected company; falls back to the home org.
+      resolveActiveOrgId(session) ?? null,
       employeeId,
     ),
     adminAttendanceService.getEmployeeHoursSummary(
