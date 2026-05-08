@@ -1129,8 +1129,17 @@ export const claimRepository = {
     // Strategy: load the project's teams + their memberships in one shot,
     // then filter the period's claims by employeeId against each team's
     // member set. That keeps it to two queries regardless of team count.
+    // Org-scope the team query through the project relation. Without
+    // this, a stale `?project=` URL param from a previous active company
+    // would still return that other org's teams (with empty claim
+    // counts, since the claim query below IS org-scoped) — which looks
+    // to the admin like "Globe has a Team A even though I never made
+    // one". Cross-org team rows simply can't appear here.
     const teams = await prisma.team.findMany({
-      where: { projectId: input.projectId },
+      where: {
+        projectId: input.projectId,
+        project: { organizationId: input.organizationId },
+      },
       select: {
         id: true,
         name: true,
@@ -1199,8 +1208,16 @@ export const claimRepository = {
 
     // Load just the team's members up-front so the result includes zero-
     // claim members too (helps the admin spot under-spend / no-activity).
-    const team = await prisma.team.findUnique({
-      where: { id: input.teamId },
+    // Org-scope the team lookup so a stale `?team=` URL param from another
+    // active company can't surface here. findFirst (not findUnique) is
+    // used because the org-scope filter relies on a relation traversal
+    // that findUnique doesn't support.
+    const team = await prisma.team.findFirst({
+      where: {
+        id: input.teamId,
+        projectId: input.projectId,
+        project: { organizationId: input.organizationId },
+      },
       select: {
         memberships: {
           select: {
