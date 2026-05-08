@@ -95,12 +95,16 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     icon: CalendarDays,
   },
   {
-    href: "/admin/hierarchy",
+    // Parent navigates to the first child (Company Structure), matching
+    // the order shown in the dropdown. Clicking parent → first child is
+    // the standard admin-nav pattern; without this the parent would
+    // always land on /admin/hierarchy (Employees) regardless of order.
+    href: "/admin/company-structure" as Route,
     label: "Hierarchy",
     icon: Network,
     children: [
-      { href: "/admin/hierarchy", label: "Employees" },
       { href: "/admin/company-structure" as Route, label: "Company Structure" },
+      { href: "/admin/hierarchy" as Route, label: "Employees" },
     ],
   },
   {
@@ -109,10 +113,12 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     icon: Settings2,
     children: [
       { href: "/admin/settings?tab=organization", label: "Organization" },
+      { href: "/admin/settings?tab=claims", label: "Claims" },
       { href: "/admin/settings?tab=accounts", label: "Accounts" },
       { href: "/admin/settings?tab=projects", label: "Projects" },
       { href: "/admin/settings?tab=work-schedule", label: "Work Schedule" },
       { href: "/admin/settings?tab=leave", label: "Leave" },
+      { href: "/admin/settings?tab=api", label: "API" },
     ],
   },
 ]

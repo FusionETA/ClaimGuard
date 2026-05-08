@@ -382,6 +382,7 @@ export type OrganizationWhereInput = {
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
+  apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -412,6 +413,7 @@ export type OrganizationOrderByWithRelationInput = {
   users?: Prisma.UserOrderByRelationAggregateInput
   xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
   projects?: Prisma.XeroProjectOrderByRelationAggregateInput
+  apiIntegrations?: Prisma.ApiIntegrationOrderByRelationAggregateInput
   _relevance?: Prisma.OrganizationOrderByRelevanceInput
 }
 
@@ -446,6 +448,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
+  apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
 }, "id" | "name">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -532,6 +535,7 @@ export type OrganizationCreateInput = {
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -562,6 +566,7 @@ export type OrganizationUncheckedCreateInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -592,6 +597,7 @@ export type OrganizationUpdateInput = {
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -622,6 +628,7 @@ export type OrganizationUncheckedUpdateInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -856,6 +863,20 @@ export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
+export type OrganizationCreateNestedOneWithoutApiIntegrationsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutApiIntegrationsInput, Prisma.OrganizationUncheckedCreateWithoutApiIntegrationsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutApiIntegrationsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutApiIntegrationsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutApiIntegrationsInput, Prisma.OrganizationUncheckedCreateWithoutApiIntegrationsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutApiIntegrationsInput
+  upsert?: Prisma.OrganizationUpsertWithoutApiIntegrationsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutApiIntegrationsInput, Prisma.OrganizationUpdateWithoutApiIntegrationsInput>, Prisma.OrganizationUncheckedUpdateWithoutApiIntegrationsInput>
+}
+
 export type OrganizationCreateNestedOneWithoutAdminMembersInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAdminMembersInput, Prisma.OrganizationUncheckedCreateWithoutAdminMembersInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAdminMembersInput
@@ -955,6 +976,7 @@ export type OrganizationCreateWithoutUsersInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -984,6 +1006,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -1029,6 +1052,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -1056,6 +1080,143 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutApiIntegrationsInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
+  otEnabled?: boolean
+  timezone?: string
+  otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
+  adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
+  id?: string
+  name: string
+  claimCutoffDay?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workingHoursEnd?: string
+  workingHoursStart?: string
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: number
+  defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: $Enums.MileageUnit
+  otEnabled?: boolean
+  timezone?: string
+  otDailyThresholdMinutes?: number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: string | null
+  adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutApiIntegrationsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutApiIntegrationsInput, Prisma.OrganizationUncheckedCreateWithoutApiIntegrationsInput>
+}
+
+export type OrganizationUpsertWithoutApiIntegrationsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutApiIntegrationsInput, Prisma.OrganizationUncheckedUpdateWithoutApiIntegrationsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutApiIntegrationsInput, Prisma.OrganizationUncheckedCreateWithoutApiIntegrationsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutApiIntegrationsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutApiIntegrationsInput, Prisma.OrganizationUncheckedUpdateWithoutApiIntegrationsInput>
+}
+
+export type OrganizationUpdateWithoutApiIntegrationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
+  workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
+  defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1087,6 +1248,7 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
@@ -1116,6 +1278,7 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAdminMembersInput = {
@@ -1161,6 +1324,7 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
@@ -1190,6 +1354,7 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutClaimsInput = {
@@ -1219,6 +1384,7 @@ export type OrganizationCreateWithoutClaimsInput = {
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutClaimsInput = {
@@ -1248,6 +1414,7 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutClaimsInput = {
@@ -1293,6 +1460,7 @@ export type OrganizationUpdateWithoutClaimsInput = {
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutClaimsInput = {
@@ -1322,6 +1490,7 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutChartAccountsInput = {
@@ -1351,6 +1520,7 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
@@ -1380,6 +1550,7 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutChartAccountsInput = {
@@ -1425,6 +1596,7 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
@@ -1454,6 +1626,7 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutXeroConnectionsInput = {
@@ -1483,6 +1656,7 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
@@ -1512,6 +1686,7 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutXeroConnectionsInput = {
@@ -1557,6 +1732,7 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
@@ -1586,6 +1762,7 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProjectsInput = {
@@ -1615,6 +1792,7 @@ export type OrganizationCreateWithoutProjectsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProjectsInput = {
@@ -1644,6 +1822,7 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProjectsInput = {
@@ -1689,6 +1868,7 @@ export type OrganizationUpdateWithoutProjectsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProjectsInput = {
@@ -1718,6 +1898,7 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -1732,6 +1913,7 @@ export type OrganizationCountOutputType = {
   users: number
   xeroConnections: number
   projects: number
+  apiIntegrations: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1741,6 +1923,7 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   users?: boolean | OrganizationCountOutputTypeCountUsersArgs
   xeroConnections?: boolean | OrganizationCountOutputTypeCountXeroConnectionsArgs
   projects?: boolean | OrganizationCountOutputTypeCountProjectsArgs
+  apiIntegrations?: boolean | OrganizationCountOutputTypeCountApiIntegrationsArgs
 }
 
 /**
@@ -1795,6 +1978,13 @@ export type OrganizationCountOutputTypeCountProjectsArgs<ExtArgs extends runtime
   where?: Prisma.XeroProjectWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountApiIntegrationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApiIntegrationWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1824,6 +2014,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
+  apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -1861,6 +2052,7 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
+  apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -1873,6 +2065,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     users: Prisma.$UserPayload<ExtArgs>[]
     xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
     projects: Prisma.$XeroProjectPayload<ExtArgs>[]
+    apiIntegrations: Prisma.$ApiIntegrationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2259,6 +2452,7 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   users<T extends Prisma.Organization$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   xeroConnections<T extends Prisma.Organization$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.Organization$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  apiIntegrations<T extends Prisma.Organization$apiIntegrationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$apiIntegrationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApiIntegrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2798,6 +2992,30 @@ export type Organization$projectsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.XeroProjectScalarFieldEnum | Prisma.XeroProjectScalarFieldEnum[]
+}
+
+/**
+ * Organization.apiIntegrations
+ */
+export type Organization$apiIntegrationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ApiIntegration
+   */
+  select?: Prisma.ApiIntegrationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ApiIntegration
+   */
+  omit?: Prisma.ApiIntegrationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApiIntegrationInclude<ExtArgs> | null
+  where?: Prisma.ApiIntegrationWhereInput
+  orderBy?: Prisma.ApiIntegrationOrderByWithRelationInput | Prisma.ApiIntegrationOrderByWithRelationInput[]
+  cursor?: Prisma.ApiIntegrationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApiIntegrationScalarFieldEnum | Prisma.ApiIntegrationScalarFieldEnum[]
 }
 
 /**

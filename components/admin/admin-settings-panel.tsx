@@ -41,6 +41,7 @@ import {
 import { XeroConnectionCard } from "@/components/admin/xero-connection-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ApiIntegrationsTab } from "@/components/admin/api-integrations-tab"
 import { ComingSoonCard } from "@/components/ui/coming-soon-card"
 import { Input } from "@/components/ui/input"
 import {
@@ -63,7 +64,7 @@ import type {
   XeroConnectionSummary,
 } from "@/modules/organization/domain/models"
 
-type TabKey = "organization" | "accounts" | "projects" | "work-schedule" | "leave"
+type TabKey = "organization" | "claims" | "accounts" | "projects" | "work-schedule" | "leave" | "api"
 type WorkScheduleSection = "ot-rates" | "calendar"
 
 /** Lat/Lng pair inputs used for project geofence setup.
@@ -177,8 +178,11 @@ function resolveTabFromInitial(initial?: string): {
 } {
   switch (initial) {
     case "organization":
-    case "runs": // legacy → moved into Organization
       return { tab: "organization", accountsSub: "selectable" }
+    case "claims":
+    case "runs": // legacy → moved into the Claims tab
+    case "currencies": // legacy alias for Claims tab
+      return { tab: "claims", accountsSub: "selectable" }
     case "accounts":
       return { tab: "accounts", accountsSub: "selectable" }
     case "banks": // legacy → Accounts → Bank pill
@@ -192,6 +196,8 @@ function resolveTabFromInitial(initial?: string): {
       return { tab: "work-schedule", accountsSub: "selectable" }
     case "leave":
       return { tab: "leave", accountsSub: "selectable" }
+    case "api":
+      return { tab: "api", accountsSub: "selectable" }
     default:
       return { tab: "organization", accountsSub: "selectable" }
   }
@@ -455,6 +461,7 @@ export function AdminSettingsPanel({
   initialSection,
   admins = [],
   currentAdminEmail,
+  apiIntegrations = [],
 }: {
   admin: AdminProfile
   organization?: OrganizationSummary
@@ -479,6 +486,16 @@ export function AdminSettingsPanel({
   /// Email of the currently logged-in admin — used to flag "(You)" in
   /// the admin list and avoid showing a "remove me" UI for self.
   currentAdminEmail?: string
+  /// External API tokens for the active org. Rendered in the API tab.
+  apiIntegrations?: Array<{
+    id: string
+    name: string
+    tokenPrefix: string
+    scopes: string[]
+    active: boolean
+    createdAt: string
+    lastUsedAt: string | null
+  }>
 }) {
   const { toast } = useToast()
   const initialResolved = resolveTabFromInitial(initialTab)
@@ -651,10 +668,12 @@ export function AdminSettingsPanel({
 
   const settingsTabs = [
     ["organization", "Organization"],
+    ["claims", "Claims"],
     ["accounts", "Accounts"],
     ["projects", "Projects"],
     ["work-schedule", "Work Schedule"],
     ["leave", "Leave"],
+    ["api", "API"],
   ] as const
 
   const accountsSubTabs = [
@@ -828,7 +847,35 @@ export function AdminSettingsPanel({
             </CardContent>
           </Card>
 
-          {/* Claim run cutoff — moved here from the standalone "Claim runs" tab. */}
+          {/* Admins — manage who has full admin access to this org. */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-primary" />
+                Admins
+              </CardTitle>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                People who can review claims, sync to Xero, manage settings, and invite further
+                admins. New admins get full equal-tier access.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <AdminsManagerSection
+                admins={admins}
+                currentAdminEmail={currentAdminEmail}
+                action={createAdminAction_}
+                pending={createAdminPending}
+              />
+            </CardContent>
+          </Card>
+
+        </div>
+      ) : null}
+
+      {activeTab === "claims" ? (
+        <div className="space-y-6">
+          {/* Claim run cutoff — moved out of the Organization tab to keep
+              that page focused on identity / admins / Xero. */}
           <Card>
             <CardHeader>
               <CardTitle>Claim run cutoff</CardTitle>
@@ -883,29 +930,6 @@ export function AdminSettingsPanel({
               />
             </CardContent>
           </Card>
-
-          {/* Admins — manage who has full admin access to this org. */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserPlus className="h-5 w-5 text-primary" />
-                Admins
-              </CardTitle>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                People who can review claims, sync to Xero, manage settings, and invite further
-                admins. New admins get full equal-tier access.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <AdminsManagerSection
-                admins={admins}
-                currentAdminEmail={currentAdminEmail}
-                action={createAdminAction_}
-                pending={createAdminPending}
-              />
-            </CardContent>
-          </Card>
-
         </div>
       ) : null}
 
@@ -1856,6 +1880,10 @@ export function AdminSettingsPanel({
           title="Leave"
           body="Leave applications and balances will live here. Coming as a separate module."
         />
+      ) : null}
+
+      {activeTab === "api" ? (
+        <ApiIntegrationsTab integrations={apiIntegrations} />
       ) : null}
     </div>
   )
