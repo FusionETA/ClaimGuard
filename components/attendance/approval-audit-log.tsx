@@ -105,6 +105,16 @@ export function ApprovalAuditLog({
   const [kindFilter, setKindFilter] = useState<KindFilter>("ALL")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
 
+  // Mirror server-supplied rows whenever the parent re-renders with a
+  // new payload. Without this sync, useState(initialRows) only fires on
+  // first mount, so switching the active company at the page level
+  // doesn't update the audit log table — the parent re-fetches but the
+  // component keeps its stale state. setRows on the same reference is
+  // a no-op so this doesn't cause extra re-renders.
+  useEffect(() => {
+    setRows(initialRows)
+  }, [initialRows])
+
   // Refetch when the parent's project filter changes.
   useEffect(() => {
     if (appliedProjectId === projectId) return

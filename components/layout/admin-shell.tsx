@@ -3,7 +3,7 @@
 import type { Route } from "next"
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname, useSearchParams } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useActionState, useEffect, useState, useTransition } from "react"
 import {
   CalendarClock,
@@ -163,6 +163,7 @@ export function AdminShell({
   activeOrganizationId,
 }: AdminShellProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const [switchPending, startSwitch] = useTransition()
   const [adminOrganizations, setAdminOrganizations] = useState<
@@ -212,7 +213,17 @@ export function AdminShell({
 
   function handleOrgSwitch(orgId: string) {
     setResolvedActiveOrganizationId(orgId)
-    startSwitch(() => switchActiveOrganizationAction(orgId))
+    startSwitch(async () => {
+      await switchActiveOrganizationAction(orgId)
+      // The action's revalidatePath() marks the server cache as stale
+      // but the *client* router still has the previous RSC payload
+      // cached. Without router.refresh() the dropdown label updates
+      // but the page contents (attendance overview, claims, etc.) stay
+      // showing the old org's data until the user navigates somewhere.
+      // Calling refresh() here forces a fresh server render of the
+      // current route with the new activeOrganizationId.
+      router.refresh()
+    })
   }
 
   // Add-company dialog state. The form lives inline in the header so the

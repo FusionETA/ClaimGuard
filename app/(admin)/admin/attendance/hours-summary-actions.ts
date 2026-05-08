@@ -1,6 +1,6 @@
 "use server"
 
-import { requirePortalSession } from "@/lib/auth/session"
+import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 
 function parseRange(fromIso: string, toIso: string): { from: Date; to: Date } {
@@ -20,8 +20,13 @@ export async function loadOrgHoursSummaryAction(
 ) {
   const session = await requirePortalSession("ADMIN")
   const { from, to } = parseRange(fromIso, toIso)
+  // resolveActiveOrgId honours the dropdown-selected company
+  // (`activeOrganizationId`) and falls back to the admin's home org.
+  // Using session.organizationId directly would lock this query to the
+  // home org regardless of which company the admin selected — that was
+  // the bug behind "audit log doesn't filter by selected company".
   return adminAttendanceService.getOrgHoursSummary(
-    session.organizationId ?? null,
+    resolveActiveOrgId(session) ?? null,
     from,
     to,
     projectId ?? null,
@@ -65,8 +70,10 @@ export async function loadApprovalAuditLogAction(
 ) {
   const session = await requirePortalSession("ADMIN")
   const { from, to } = parseRange(fromIso, toIso)
+  // resolveActiveOrgId — see loadOrgHoursSummaryAction above for why this
+  // matters. Without it, the audit log ignored the company-switcher.
   return adminAttendanceService.getApprovalAuditLog(
-    session.organizationId ?? null,
+    resolveActiveOrgId(session) ?? null,
     from,
     to,
     projectId ?? null,

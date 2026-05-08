@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useTransition } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
@@ -74,6 +74,13 @@ export function HoursSummaryPanel({
   const [data, setData] = useState<HoursSummaryData>(initialData)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
+
+  // Mirror server-supplied data whenever the parent re-renders with a
+  // new payload (e.g. after an active-company switch). Without this,
+  // useState(initialData) only takes effect on first mount.
+  useEffect(() => {
+    setData(initialData)
+  }, [initialData])
 
   const sortedEmployees = useMemo(
     () =>

@@ -45,10 +45,16 @@ export default async function AdminClaimsSyncPage() {
 
   const [claims, chartAccounts] = await Promise.all([
     claimRepository.getClaimsAwaitingSync(organizationId, xeroConnectionId),
-    organizationRepository.getSelectableChartAccountsForEmployee({
+    // Pull EVERY selectable account for the active org, not the
+    // employee-scoped variant. The latter filters by xeroConnectionId
+    // and returns "custom accounts only" (xeroConnectionId IS NULL)
+    // when the connection arg is undefined — that wrongly hides Xero-
+    // imported accounts from the admin's recode dropdown. The admin
+    // here is recoding a reviewed claim before pushing it to Xero, so
+    // they need the full selectable list scoped only by org.
+    organizationRepository.getSelectableChartAccountsForOrganization(
       organizationId,
-      xeroConnectionId,
-    }),
+    ),
   ])
 
   return (

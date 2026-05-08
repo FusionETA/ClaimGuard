@@ -19,6 +19,12 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
 import { getPrismaClient } from "@/lib/prisma"
 
 const XERO_PENDING_COOKIE = "claimguard_xero_pending"
+// Cookie that persists the admin's currently-selected Xero connection id
+// across requests. Multiple admin pages read this as a fallback when the
+// session's activeXeroConnectionId isn't set. When the active org changes,
+// the cookie has to be deleted too — otherwise pages pick up a connection
+// id that belongs to the previous org and queries return zero rows.
+const ACTIVE_CONNECTION_COOKIE = "claimguard_active_connection"
 
 const organizationSchema = z.object({
   organizationName: z.string().optional(),
@@ -280,6 +286,15 @@ export async function switchActiveOrganizationAction(
     activeOrganizationId: organizationId,
     activeXeroConnectionId: undefined,
   })
+
+  // Also delete the active-connection cookie. Several admin pages read it
+  // as a fallback when the session value is undefined; if we leave it
+  // pointing at the previous org's connection, queries on the new org
+  // will mismatch and return zero rows (e.g. "No selectable accounts
+  // configured" on the Sync page).
+  const cookieStore = await cookies()
+  cookieStore.delete(ACTIVE_CONNECTION_COOKIE)
+
   clearAdminStore(session.email)
   revalidatePath("/admin", "layout")
 }

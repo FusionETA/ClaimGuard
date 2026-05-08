@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 
 import {
   createInitialAddHierarchyMemberFormState,
@@ -660,6 +661,7 @@ function AddHierarchyMemberDialog({
     createHierarchyMemberAction,
     createInitialAddHierarchyMemberFormState()
   )
+  const router = useRouter()
 
   const xeroConnectionId = xeroConnection?.id ?? ""
   const filteredProjects = xeroConnectionId
@@ -719,12 +721,18 @@ function AddHierarchyMemberDialog({
       setAddPayoutMethodValue("HOURLY")
       setAddHourlyRate("")
       setAddOtPayoutMethod("CASH")
+      // The server action calls revalidatePath() but the client RSC
+      // payload still has the old member list cached. router.refresh()
+      // forces Next.js to re-fetch the current route so the new
+      // employee row shows up immediately, instead of staying invisible
+      // until the user navigates away and back.
+      router.refresh()
     }
 
     if (state.status === "error" && state.message) {
       toast({ title: state.message, variant: "error" })
     }
-  }, [state.status, state.message, toast])
+  }, [state.status, state.message, toast, router])
 
   useEffect(() => {
     if (open) {
@@ -1182,6 +1190,7 @@ function HierarchyEditDialog({
     [member, xeroConnectionId]
   )
   const [state, formAction, pending] = useActionState(updateHierarchyAction, initialState)
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [editRoleValue, setEditRoleValue] = useState<"EMPLOYEE" | "SUPERVISOR">(member.role)
   const [editPayoutMethodValue, setEditPayoutMethodValue] = useState<EmployeePayoutMethod>(
@@ -1276,12 +1285,16 @@ function HierarchyEditDialog({
     if (state.status === "success") {
       toast({ title: state.message, variant: "success" })
       setOpen(false)
+      // See AddHierarchyMemberDialog — server-side revalidatePath() alone
+      // doesn't bust the client RSC cache, so the edited row would keep
+      // showing pre-edit values until navigation. Refresh explicitly.
+      router.refresh()
     }
 
     if (state.status === "error" && state.message) {
       toast({ title: state.message, variant: "error" })
     }
-  }, [state.status, state.message, toast])
+  }, [state.status, state.message, toast, router])
 
   // Reset on open/member change
   useEffect(() => {
