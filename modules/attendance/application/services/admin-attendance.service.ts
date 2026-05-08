@@ -22,8 +22,10 @@ export const adminAttendanceService = {
   async getTodayRollCall(
     orgId: string | null,
     projectId?: string | null,
+    teamId?: string | null,
+    q?: string | null,
   ): Promise<TodayRollCall> {
-    return attendanceRepository.getTodayRollCall(orgId, projectId)
+    return attendanceRepository.getTodayRollCall(orgId, projectId, teamId, q)
   },
 
   async getAllPendingApprovals(orgId: string | null): Promise<ApprovalRequestView[]> {
@@ -70,12 +72,42 @@ export const adminAttendanceService = {
     from: Date,
     to: Date,
     projectId?: string | null,
+    teamId?: string | null,
+    q?: string | null,
   ) {
-    return attendanceRepository.getHoursSummary({ orgId, from, to, projectId })
+    return attendanceRepository.getHoursSummary({
+      orgId,
+      from,
+      to,
+      projectId,
+      teamId,
+      q,
+    })
   },
 
   async getEmployeeHoursSummary(employeeId: string, from: Date, to: Date) {
     return attendanceRepository.getHoursSummary({ employeeId, from, to })
+  },
+
+  async getDailyActivity(
+    orgId: string | null,
+    projectId?: string | null,
+    teamId?: string | null,
+    q?: string | null,
+  ) {
+    return attendanceRepository.getDailyActivity(orgId, projectId, teamId, q)
+  },
+
+  async getSupervisorPerformance(args: {
+    orgId: string | null
+    from: Date
+    to: Date
+    slaMinutes: number
+    projectId?: string | null
+    teamId?: string | null
+    q?: string | null
+  }) {
+    return attendanceRepository.getSupervisorPerformance(args)
   },
 
   async getApprovalAuditLog(
@@ -83,7 +115,16 @@ export const adminAttendanceService = {
     from: Date,
     to: Date,
     projectId?: string | null,
+    teamId?: string | null,
+    q?: string | null,
   ) {
-    return attendanceRepository.getApprovalAuditLog({ orgId, from, to, projectId })
+    return attendanceRepository.getApprovalAuditLog({
+      orgId,
+      from,
+      to,
+      projectId,
+      teamId,
+      q,
+    })
   },
 }

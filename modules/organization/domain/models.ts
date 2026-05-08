@@ -69,6 +69,11 @@ export type OrganizationSummary = {
   /// picked. ISO 4217 code, or undefined if the admin hasn't set it
   /// (the claim service falls back to "MYR" in that case).
   defaultCurrency?: string
+  /// When true, the attendance Trends tab renders the supervisor
+  /// performance card. When false the card is hidden entirely.
+  supervisorReportEnabled: boolean
+  /// SLA in minutes for flagging an approval as "slow" (event-to-review).
+  supervisorSlaMinutes: number
 }
 
 export type AdminOrganizationOption = {

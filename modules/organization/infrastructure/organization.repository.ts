@@ -102,6 +102,8 @@ function mapOrganizationSummary(
         geofenceRadiusMeters?: number | null
         allowedCurrencies?: unknown
         defaultCurrency?: string | null
+        supervisorReportEnabled?: boolean | null
+        supervisorSlaMinutes?: number | null
       }
     | null
 ): OrganizationSummary | undefined {
@@ -142,6 +144,8 @@ function mapOrganizationSummary(
       typeof org.defaultCurrency === "string" && org.defaultCurrency.trim().length > 0
         ? org.defaultCurrency.trim().toUpperCase()
         : undefined,
+    supervisorReportEnabled: org.supervisorReportEnabled ?? true,
+    supervisorSlaMinutes: org.supervisorSlaMinutes ?? 60,
   }
 }
 
@@ -2080,6 +2084,28 @@ export const organizationRepository = {
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
       isManual: row.isManual,
+    }))
+  },
+
+  async listTeamsForOrganization(
+    organizationId: string,
+    projectId?: string | null,
+  ): Promise<Array<{ id: string; name: string; projectId: string; projectName: string }>> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const rows = await prisma.team.findMany({
+      where: {
+        project: { organizationId, isDisabled: false },
+        ...(projectId ? { projectId } : {}),
+      },
+      include: { project: { select: { id: true, name: true } } },
+      orderBy: [{ project: { name: "asc" } }, { name: "asc" }],
+    })
+    return rows.map((t) => ({
+      id: t.id,
+      name: t.name,
+      projectId: t.projectId,
+      projectName: t.project.name,
     }))
   },
 
