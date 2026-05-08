@@ -30,7 +30,6 @@ import {
   defaultModuleConfig,
   resolveAssignedProjects,
   resolveEmployeePayoutMethod,
-  resolvePrimaryProjectName,
   trimModuleConfig,
   validateModuleConfig,
 } from "@/modules/organization/domain/models"
@@ -90,7 +89,6 @@ function mapOrganizationSummary(
         id: string
         name: string
         claimCutoffDay: number
-        bankAccount?: string | null
         otRateNormalDay?: unknown
         otRateRestDay?: unknown
         otRatePublicHoliday?: unknown
@@ -122,7 +120,6 @@ function mapOrganizationSummary(
     id: org.id,
     name: org.name,
     claimCutoffDay: org.claimCutoffDay,
-    bankAccount: org.bankAccount ?? undefined,
     otRates: {
       normalDay: toNumberOr(org.otRateNormalDay, DEFAULT_OT_RATES.normalDay),
       restDay: toNumberOr(org.otRateRestDay, DEFAULT_OT_RATES.restDay),
@@ -149,11 +146,9 @@ function mapOrganizationSummary(
 }
 
 function mapAssignedProjects(
-  legacyProject: string | null | undefined,
   assignments: Array<{ project: { id: string; name: string } }> = [],
 ): AssignedProject[] {
   return resolveAssignedProjects(
-    legacyProject,
     assignments.map((assignment) => assignment.project),
   )
 }
@@ -578,21 +573,6 @@ export const organizationRepository = {
     return mapOrganizationSummary(organization)!
   },
 
-  async updateOrganizationBankAccount(data: {
-    organizationId: string
-    bankAccount: string
-  }): Promise<void> {
-    const prisma = getPrismaClient()
-    if (!prisma) {
-      throw new Error("Database is not configured.")
-    }
-
-    await prisma.organization.update({
-      where: { id: data.organizationId },
-      data: { bankAccount: data.bankAccount },
-    })
-  },
-
   async updateOrganizationOtRates(data: {
     organizationId: string
     rates: OtRates
@@ -686,7 +666,6 @@ export const organizationRepository = {
               },
               orderBy: { createdAt: "asc" },
             },
-            supervisor: true,
             xeroConnection: { select: { id: true, tenantName: true } },
             teamMemberships: {
               include: {
@@ -712,10 +691,7 @@ export const organizationRepository = {
     })
 
     return rows.map((user) => {
-      const supervisorId = user.employeeProfile?.supervisorId ?? undefined
-      const supervisorName = user.employeeProfile?.supervisor?.name ?? undefined
       const assignedProjects = mapAssignedProjects(
-        user.employeeProfile?.project,
         user.employeeProfile?.projectAssignments ?? [],
       )
 
@@ -765,10 +741,6 @@ export const organizationRepository = {
         organizationId: user.organizationId ?? undefined,
         organizationName: user.organization?.name ?? undefined,
         employeeId: user.employeeProfile?.employeeId ?? "N/A",
-        project: resolvePrimaryProjectName(
-          user.employeeProfile?.project,
-          user.employeeProfile?.projectAssignments?.map((assignment) => assignment.project) ?? [],
-        ),
         projects: assignedProjects,
         jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
         payoutMethod: resolveEmployeePayoutMethod(
@@ -782,8 +754,6 @@ export const organizationRepository = {
           user.employeeProfile?.hourlyRate != null
             ? toNumber(user.employeeProfile.hourlyRate)
             : undefined,
-        supervisorId,
-        supervisorName,
         xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
         xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
         teams,
@@ -865,11 +835,6 @@ export const organizationRepository = {
     if (assignedProjects.length !== data.projectIds.length) {
       throw new Error("Selected projects must belong to this organization.")
     }
-
-    const assignedProjectById = new Map(assignedProjects.map((project) => [project.id, project]))
-    const primaryProjectName = data.projectIds
-      .map((projectId) => assignedProjectById.get(projectId)?.name)
-      .find(Boolean) ?? ""
 
     // Validate per-project assignments if provided.
     type ValidatedAssignment = {
@@ -973,23 +938,6 @@ export const organizationRepository = {
     })
     if (!profile) throw new Error("Employee profile not found.")
 
-    // Pick a deterministic supervisorId for legacy callers (alphabetically-
-    // first project's lowest-layer approver). Only updated when assignments
-    // are explicitly being rewritten.
-    let supervisorIdForProfile: string | null | undefined
-    if (validatedAssignments !== undefined) {
-      if (validatedAssignments.length === 0) {
-        supervisorIdForProfile = null
-      } else {
-        const byProject = [...validatedAssignments].sort((x, y) => {
-          const xName = assignedProjectById.get(x.projectId)?.name ?? ""
-          const yName = assignedProjectById.get(y.projectId)?.name ?? ""
-          return xName.localeCompare(yName)
-        })
-        supervisorIdForProfile = byProject[0]!.lowestLayerApproverId
-      }
-    }
-
     await prisma.$transaction(async (tx) => {
       await tx.user.update({
         where: { id: data.userId },
@@ -998,7 +946,6 @@ export const organizationRepository = {
       await tx.employeeProfile.update({
         where: { userId: data.userId },
         data: {
-          project: primaryProjectName,
           jobTitle: data.jobTitle,
           payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
           otPayoutMethod:
@@ -1011,9 +958,6 @@ export const organizationRepository = {
             data.hourlyRate,
           ),
           xeroConnectionId: data.xeroConnectionId || null,
-          ...(supervisorIdForProfile !== undefined
-            ? { supervisorId: supervisorIdForProfile }
-            : {}),
         },
       })
       await tx.employeeProjectAssignment.deleteMany({
@@ -1156,11 +1100,6 @@ export const organizationRepository = {
       throw new Error("Selected projects must belong to this organization.")
     }
 
-    const assignedProjectById = new Map(assignedProjects.map((project) => [project.id, project]))
-    const primaryProjectName = data.projectIds
-      .map((projectId) => assignedProjectById.get(projectId)?.name)
-      .find(Boolean) ?? ""
-
     // Validate per-project assignments. Each must reference a project the
     // employee is assigned to, point at a real team in that project, and
     // every chain approver must be a member of that team at the claimed
@@ -1256,19 +1195,6 @@ export const organizationRepository = {
       }
     }
 
-    // Pick a representative supervisor pointer for legacy callers reading
-    // EmployeeProfile.supervisorId. Use the lowest-layer approver from the
-    // alphabetically-first project (so the value is deterministic).
-    const supervisorIdForProfile = (() => {
-      if (validatedAssignments.length === 0) return null
-      const byProject = [...validatedAssignments].sort((x, y) => {
-        const xName = assignedProjectById.get(x.projectId)?.name ?? ""
-        const yName = assignedProjectById.get(y.projectId)?.name ?? ""
-        return xName.localeCompare(yName)
-      })
-      return byProject[0]!.lowestLayerApproverId
-    })()
-
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -1279,9 +1205,7 @@ export const organizationRepository = {
         employeeProfile: {
           create: {
             employeeId: data.employeeId,
-            project: primaryProjectName,
             jobTitle: data.jobTitle,
-            supervisorId: supervisorIdForProfile,
             payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
             otPayoutMethod:
               resolveEmployeePayoutMethod(data.role, data.payoutMethod) === "MONTHLY_BASED"
@@ -1378,10 +1302,6 @@ export const organizationRepository = {
       }
     }
 
-    // First approver in the chain is also the direct supervisor — keep
-    // employeeProfile.supervisorId in sync so callers reading it stay correct.
-    const newSupervisorId = data.approverIds[0] ?? null
-
     await prisma.$transaction([
       prisma.approvalChainStep.deleteMany({ where: { employeeId: data.employeeId } }),
       ...data.approverIds.map((approverId, index) =>
@@ -1393,10 +1313,6 @@ export const organizationRepository = {
           },
         })
       ),
-      prisma.employeeProfile.update({
-        where: { userId: data.employeeId },
-        data: { supervisorId: newSupervisorId },
-      }),
     ])
   },
 
@@ -2153,7 +2069,6 @@ export const organizationRepository = {
       xeroProjectId: row.xeroProjectId ?? undefined,
       name: row.name,
       status: row.status ?? undefined,
-      contactId: row.contactId ?? undefined,
       xeroConnectionId: row.xeroConnectionId ?? undefined,
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
@@ -2189,7 +2104,6 @@ export const organizationRepository = {
       xeroProjectId: row.xeroProjectId ?? undefined,
       name: row.name,
       status: row.status ?? undefined,
-      contactId: row.contactId ?? undefined,
       xeroConnectionId: row.xeroConnectionId ?? undefined,
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
@@ -2365,7 +2279,6 @@ export const organizationRepository = {
       xeroProjectId: string
       name: string
       status?: string
-      contactId?: string
     }>
   }): Promise<void> {
     const prisma = getPrismaClient()
@@ -2388,13 +2301,11 @@ export const organizationRepository = {
             xeroProjectId: project.xeroProjectId,
             name: project.name,
             status: project.status,
-            contactId: project.contactId,
             isManual: false,
           },
           update: {
             name: project.name,
             status: project.status,
-            contactId: project.contactId,
           },
         })
       )
@@ -2428,8 +2339,6 @@ export const organizationRepository = {
       where: { userId: employeeUserId },
       select: {
         id: true,
-        project: true,
-        user: { select: { organizationId: true } },
         projectAssignments: {
           select: { project: { select: { id: true, name: true } } },
           orderBy: { project: { name: "asc" } },
@@ -2450,18 +2359,6 @@ export const organizationRepository = {
         id: t.team.project.id,
         name: t.team.project.name,
       })
-    }
-
-    // Legacy free-string project: resolve to a XeroProject by (org, name).
-    const legacy = profile.project?.trim()
-    if (legacy && profile.user.organizationId) {
-      const match = await prisma.xeroProject.findFirst({
-        where: { organizationId: profile.user.organizationId, name: legacy },
-        select: { id: true, name: true },
-      })
-      if (match && !byId.has(match.id)) {
-        byId.set(match.id, match)
-      }
     }
 
     return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name))

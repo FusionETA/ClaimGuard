@@ -26,7 +26,6 @@ model User {
   claims                 Claim[]              @relation("EmployeeClaims")
   reviews                Claim[]              @relation("AdminReviews")
   claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
-  supervisedProfiles     EmployeeProfile[]    @relation("SupervisorReports")
   employeeProfile        EmployeeProfile?     @relation("EmployeeProfileUser")
   projectManagerOf       ProjectManager[]     @relation("ProjectManagerOf")
   pushSubscriptions      PushSubscription[]
@@ -45,7 +44,6 @@ model Organization {
   updatedAt                DateTime            @updatedAt
   workingHoursEnd          String              @default("18:00")
   workingHoursStart        String              @default("09:00")
-  bankAccount              String?
   otRateNormalDay          Decimal             @default(1.50) @db.Decimal(4, 2)
   otRatePublicHoliday      Decimal             @default(3.00) @db.Decimal(4, 2)
   otRateRestDay            Decimal             @default(2.00) @db.Decimal(4, 2)
@@ -77,6 +75,62 @@ model Organization {
   users                    User[]
   xeroConnections          XeroConnection[]
   projects                 XeroProject[]
+  apiIntegrations          ApiIntegration[]
+}
+
+/// External-system API tokens. Each row is a tenant's bearer credential
+/// for calling /api/v1 routes. Tokens are stored only as bcrypt-style
+/// hashes — the raw token is shown once on creation and never again.
+///
+/// Each token is permanently scoped to a single Organization, so server
+/// logic can resolve `orgId` from the token alone — clients never pass
+/// it. Permissions are gated by `scopes` (a JSON string array such as
+/// ["employees:read","employees:write","claims:read"]).
+model ApiIntegration {
+  id             String              @id @default(cuid())
+  name           String              // human-readable label, e.g. "Acme HR portal"
+  tokenHash      String              @unique
+  /// Short prefix of the raw token, kept in plaintext for UX so the admin
+  /// can identify a token in the list ("wp_live_********abcd"). Never the
+  /// full token.
+  tokenPrefix    String
+  organizationId String
+  /// Stored as a JSON string array. Mirrors the curated scope set in
+  /// `lib/api-auth.ts`. Empty array means the token can authenticate but
+  /// not access any resource — admin must add scopes to enable it.
+  scopes         Json
+  active         Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  lastUsedAt     DateTime?
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  auditLogs      ApiAuditLog[]
+
+  @@index([organizationId])
+  @@index([tokenHash])
+}
+
+/// Audit trail for /api/v1 requests. One row per request, written after
+/// auth resolves (so unauthenticated requests don't pollute the log).
+/// Retained for forensic/compliance review; the admin's API tab can
+/// surface a recent slice of this.
+model ApiAuditLog {
+  id            String         @id @default(cuid())
+  integrationId String
+  method        String         // GET, POST, PATCH, DELETE
+  path          String         @db.VarChar(500)
+  statusCode    Int
+  /// IP of the caller from x-forwarded-for or request remote address.
+  /// Stored as text because IPv6 + proxy chains make a fixed type
+  /// inconvenient.
+  ip            String?        @db.VarChar(64)
+  /// Compact summary if the request errored. Successful requests leave
+  /// this null.
+  errorMessage  String?        @db.Text
+  createdAt     DateTime       @default(now())
+  integration   ApiIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([integrationId, createdAt])
+  @@index([createdAt])
 }
 
 model AdminOrganization {
@@ -108,9 +162,7 @@ model EmployeeProfile {
   id                 String                      @id @default(cuid())
   userId             String                      @unique
   employeeId         String                      @unique
-  project            String                      @map("department")
   jobTitle           String
-  supervisorId       String?
   payoutMethod       PayoutMethod?
   preferredCurrency  String                      @default("USD")
   xeroConnectionId   String?
@@ -125,13 +177,11 @@ model EmployeeProfile {
   otPayoutMethod     OtPayoutMethod              @default(CASH)
   /// Cumulative banked OT minutes for TIME_BANK Office Workers.
   otTimeBalanceMin   Int                         @default(0)
-  supervisor         User?                       @relation("SupervisorReports", fields: [supervisorId], references: [id])
   user               User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
   xeroConnection     XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
   projectAssignments EmployeeProjectAssignment[]
   teamMemberships    EmployeeTeamMembership[]
 
-  @@index([supervisorId])
   @@index([xeroConnectionId])
 }
 
@@ -162,12 +212,18 @@ model Claim {
   spentAt                   DateTime
   submittedAt               DateTime             @default(now())
   claimRunMonth             DateTime?
-  reviewedAt                DateTime?
+  /// Latest review timestamp. The column gets overwritten on each
+  /// supervisor decision and finally on admin review — it's a "last
+  /// seen by reviewer" snapshot, not a per-step audit. The full
+  /// per-step history lives in `ClaimApprovalEntry`.
+  lastReviewedAt            DateTime?            @map("reviewedAt")
   status                    ClaimStatus          @default(PENDING)
   receiptUrl                String?
   reviewNotes               String?              @db.Text
   employeeId                String
-  reviewerId                String?
+  /// Latest reviewer's user id (overwritten on each step). For per-step
+  /// "who acted at step N" use `ClaimApprovalEntry`.
+  lastReviewerId            String?              @map("reviewerId")
   xeroBillId                String?              @unique
   xeroBillRef               String?
   xeroSyncStatus            XeroSyncStatus       @default(NOT_SYNCED)
@@ -203,7 +259,7 @@ model Claim {
   organization              Organization?        @relation(fields: [organizationId], references: [id])
   payViaAccount             ChartOfAccount?      @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
   project                   XeroProject?         @relation("ClaimProject", fields: [projectId], references: [id])
-  reviewer                  User?                @relation("AdminReviews", fields: [reviewerId], references: [id])
+  reviewer                  User?                @relation("AdminReviews", fields: [lastReviewerId], references: [id])
   approvalEntries           ClaimApprovalEntry[]
 
   @@index([organizationId, submittedAt])
@@ -212,7 +268,7 @@ model Claim {
   @@index([payViaAccountId], map: "Claim_payViaAccountId_fkey")
   @@index([status, submittedAt])
   @@index([xeroSyncStatus])
-  @@index([reviewerId], map: "Claim_reviewerId_fkey")
+  @@index([lastReviewerId], map: "Claim_reviewerId_fkey")
   @@index([projectId])
 }
 
@@ -317,7 +373,6 @@ model XeroProject {
   xeroProjectId     String?
   name              String
   status            String?
-  contactId         String?
   createdAt         DateTime                    @default(now())
   updatedAt         DateTime                    @updatedAt
   isManual          Boolean                     @default(false)

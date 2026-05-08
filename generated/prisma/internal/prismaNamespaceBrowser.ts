@@ -53,6 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
+  ApiIntegration: 'ApiIntegration',
+  ApiAuditLog: 'ApiAuditLog',
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
@@ -111,7 +113,6 @@ export const OrganizationScalarFieldEnum = {
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  bankAccount: 'bankAccount',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
   otRateRestDay: 'otRateRestDay',
@@ -129,6 +130,35 @@ export const OrganizationScalarFieldEnum = {
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const ApiIntegrationScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  organizationId: 'organizationId',
+  scopes: 'scopes',
+  active: 'active',
+  createdAt: 'createdAt',
+  lastUsedAt: 'lastUsedAt'
+} as const
+
+export type ApiIntegrationScalarFieldEnum = (typeof ApiIntegrationScalarFieldEnum)[keyof typeof ApiIntegrationScalarFieldEnum]
+
+
+export const ApiAuditLogScalarFieldEnum = {
+  id: 'id',
+  integrationId: 'integrationId',
+  method: 'method',
+  path: 'path',
+  statusCode: 'statusCode',
+  ip: 'ip',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type ApiAuditLogScalarFieldEnum = (typeof ApiAuditLogScalarFieldEnum)[keyof typeof ApiAuditLogScalarFieldEnum]
 
 
 export const AdminOrganizationScalarFieldEnum = {
@@ -157,9 +187,7 @@ export const EmployeeProfileScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   employeeId: 'employeeId',
-  project: 'project',
   jobTitle: 'jobTitle',
-  supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId',
@@ -197,12 +225,12 @@ export const ClaimScalarFieldEnum = {
   spentAt: 'spentAt',
   submittedAt: 'submittedAt',
   claimRunMonth: 'claimRunMonth',
-  reviewedAt: 'reviewedAt',
+  lastReviewedAt: 'lastReviewedAt',
   status: 'status',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
-  reviewerId: 'reviewerId',
+  lastReviewerId: 'lastReviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
   xeroSyncStatus: 'xeroSyncStatus',
@@ -294,7 +322,6 @@ export const XeroProjectScalarFieldEnum = {
   xeroProjectId: 'xeroProjectId',
   name: 'name',
   status: 'status',
-  contactId: 'contactId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isManual: 'isManual',
@@ -496,12 +523,34 @@ export const OrganizationOrderByRelevanceFieldEnum = {
   name: 'name',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  bankAccount: 'bankAccount',
   timezone: 'timezone',
   defaultCurrency: 'defaultCurrency'
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
+
+
+export const ApiIntegrationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  organizationId: 'organizationId'
+} as const
+
+export type ApiIntegrationOrderByRelevanceFieldEnum = (typeof ApiIntegrationOrderByRelevanceFieldEnum)[keyof typeof ApiIntegrationOrderByRelevanceFieldEnum]
+
+
+export const ApiAuditLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  integrationId: 'integrationId',
+  method: 'method',
+  path: 'path',
+  ip: 'ip',
+  errorMessage: 'errorMessage'
+} as const
+
+export type ApiAuditLogOrderByRelevanceFieldEnum = (typeof ApiAuditLogOrderByRelevanceFieldEnum)[keyof typeof ApiAuditLogOrderByRelevanceFieldEnum]
 
 
 export const AdminOrganizationOrderByRelevanceFieldEnum = {
@@ -528,9 +577,7 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   id: 'id',
   userId: 'userId',
   employeeId: 'employeeId',
-  project: 'project',
   jobTitle: 'jobTitle',
-  supervisorId: 'supervisorId',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId'
 } as const
@@ -558,7 +605,7 @@ export const ClaimOrderByRelevanceFieldEnum = {
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
-  reviewerId: 'reviewerId',
+  lastReviewerId: 'lastReviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
   xeroSyncError: 'xeroSyncError',
@@ -621,7 +668,6 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   xeroProjectId: 'xeroProjectId',
   name: 'name',
   status: 'status',
-  contactId: 'contactId',
   location: 'location',
   projectManagerId: 'projectManagerId',
   workingHoursStart: 'workingHoursStart',

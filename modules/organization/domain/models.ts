@@ -56,7 +56,6 @@ export type OrganizationSummary = {
   id: string
   name: string
   claimCutoffDay: number
-  bankAccount?: string
   otRates: OtRates
   otEnabled: boolean
   defaultMileageRate?: number
@@ -103,7 +102,6 @@ export type OrganizationProjectOption = {
   xeroProjectId?: string
   name: string
   status?: string
-  contactId?: string
   xeroConnectionId?: string
   /// Legacy single-PM column (XeroProject.projectManagerId). Kept only to
   /// avoid breaking older callers; all new code reads from projectManagers
@@ -181,7 +179,6 @@ export type OrganizationMember = {
   organizationId?: string
   organizationName?: string
   employeeId: string
-  project: string
   projects: AssignedProject[]
   jobTitle: string
   payoutMethod: EmployeePayoutMethod
@@ -190,8 +187,6 @@ export type OrganizationMember = {
   /// Pay rate per hour for HOURLY employees. Always undefined for
   /// MONTHLY_BASED employees / supervisors.
   hourlyRate?: number
-  supervisorId?: string
-  supervisorName?: string
   xeroConnectionId?: string
   xeroConnectionName?: string
   /// One team membership per project the employee is in. Each membership
@@ -201,7 +196,6 @@ export type OrganizationMember = {
 }
 
 export function resolveAssignedProjects(
-  legacyProject: string | null | undefined,
   assignedProjects: Array<{ id: string; name: string }> = [],
 ): AssignedProject[] {
   const seen = new Set<string>()
@@ -214,19 +208,13 @@ export function resolveAssignedProjects(
     projects.push({ id: project.id, name })
   }
 
-  const normalizedLegacy = legacyProject?.trim()
-  if (normalizedLegacy && !projects.some((project) => project.name === normalizedLegacy)) {
-    projects.unshift({ id: `legacy:${normalizedLegacy}`, name: normalizedLegacy })
-  }
-
   return projects
 }
 
 export function resolvePrimaryProjectName(
-  legacyProject: string | null | undefined,
   assignedProjects: Array<{ id: string; name: string }> = [],
 ): string {
-  return resolveAssignedProjects(legacyProject, assignedProjects)[0]?.name ?? "Unknown"
+  return resolveAssignedProjects(assignedProjects)[0]?.name ?? "Unknown"
 }
 
 // ---------------------------------------------------------------------------

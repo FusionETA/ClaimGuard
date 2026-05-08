@@ -113,13 +113,11 @@ export async function updateHierarchyAction(
   const values = {
     role,
     organizationId: "",
-    project: String(formData.get("project") ?? "").trim(),
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
     payoutMethod: resolveEmployeePayoutMethod(
       role,
       String(formData.get("payoutMethod") ?? "").trim()
     ),
-    supervisorId: "",
     xeroConnectionId: xeroConnectionId ?? "",
   }
   const session = await getCurrentSession()
@@ -204,10 +202,8 @@ export async function updateHierarchyAction(
     ...createInitialHierarchyFormState({
       role: parsed.data.role,
       organizationId,
-      project: values.project,
       jobTitle: parsed.data.jobTitle,
       payoutMethod: parsed.data.payoutMethod,
-      supervisorId: "",
       xeroConnectionId: xeroConnectionId ?? "",
     }),
     status: "success",
@@ -228,13 +224,11 @@ export async function createHierarchyMemberAction(
     employeeId: String(formData.get("employeeId") ?? "").trim(),
     role,
     organizationId: "",
-    project: String(formData.get("project") ?? "").trim(),
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
     payoutMethod: resolveEmployeePayoutMethod(
       role,
       String(formData.get("payoutMethod") ?? "").trim()
     ),
-    supervisorId: "",
     xeroConnectionId: xeroConnectionId ?? "",
   }
   const session = await getCurrentSession()

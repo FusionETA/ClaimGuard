@@ -719,15 +719,17 @@ export async function createClaimForEmployee({
   invalidateAdminStore()
 
   try {
-    const supervisorId = await claimRepository.getSupervisorIdForUser(employeeId)
+    const firstStepApproverIds = await claimRepository.getFirstStepApproverIdsForUser(employeeId)
 
-    if (supervisorId) {
-      await sendPushToUser(supervisorId, {
-        title: "New Claim Submitted",
-        body: `${session.name} submitted "${parsed.data.title}" for review.`,
-        url: "/employee/review",
-      })
-    }
+    await Promise.all(
+      firstStepApproverIds.map((approverId) =>
+        sendPushToUser(approverId, {
+          title: "New Claim Submitted",
+          body: `${session.name} submitted "${parsed.data.title}" for review.`,
+          url: "/employee/review",
+        }),
+      ),
+    )
   } catch {
     // Push notifications should never block a successful claim submission.
   }

@@ -148,7 +148,7 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
   // ── 1. Project claims breakdown ────────────────────────────────────────────
   const projectMap = new Map<string, ProjectClaimSpend>()
   for (const c of monthClaims) {
-    const project = c.employee?.employeeProfile?.project?.trim() || "Unassigned"
+    const project = c.project?.name?.trim() || "Unassigned"
     const amount = num(c.amount)
     const row = projectMap.get(project) ?? { project, totalAmount: 0, claimCount: 0 }
     row.totalAmount += amount
@@ -164,7 +164,7 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
   for (const r of attendanceRecords) {
     const project =
       r.project?.trim() ||
-      r.employee?.employeeProfile?.project?.trim() ||
+      r.projectRef?.name?.trim() ||
       "Unassigned"
     const row =
       attendanceMap.get(project) ??
@@ -203,10 +203,18 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
     reviewerStats.set(r.reviewerId, stats)
   }
 
-  // Pending OT count per supervisor (the configured supervisor for the employee)
+  // Pending OT count per supervisor — derived from each employee's first
+  // approval chain step (the team chain replaces the legacy single-pointer
+  // EmployeeProfile.supervisorId).
+  const firstStepApproverByEmployee = new Map<string, string>()
+  for (const row of chainStepRows) {
+    if (!firstStepApproverByEmployee.has(row.employeeId)) {
+      firstStepApproverByEmployee.set(row.employeeId, row.approverId)
+    }
+  }
   const pendingPerSupervisor = new Map<string, number>()
   for (const r of otPending) {
-    const sid = r.employee?.employeeProfile?.supervisorId
+    const sid = firstStepApproverByEmployee.get(r.employeeId)
     if (!sid) continue
     pendingPerSupervisor.set(sid, (pendingPerSupervisor.get(sid) ?? 0) + 1)
   }
@@ -286,11 +294,11 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
     }
   >()
   for (const claim of rejectedClaims) {
-    if (!claim.reviewerId) continue
+    if (!claim.lastReviewerId) continue
     const chain = chainsByEmployee.get(claim.employeeId)
     if (!chain || chain.length < 2) continue // need at least 2 layers to "overturn"
 
-    const rejecterStep = chain.find((s) => s.approverId === claim.reviewerId)
+    const rejecterStep = chain.find((s) => s.approverId === claim.lastReviewerId)
     if (!rejecterStep || rejecterStep.step < 2) continue
 
     const layer1 = chain.find((s) => s.step === chain[0]!.step) // step 1 (lowest step number)

@@ -386,6 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
+  ApiIntegration: 'ApiIntegration',
+  ApiAuditLog: 'ApiAuditLog',
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
@@ -418,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
+    modelProps: "user" | "organization" | "apiIntegration" | "apiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -551,6 +553,138 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.OrganizationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.OrganizationCountAggregateOutputType> | number
+        }
+      }
+    }
+    ApiIntegration: {
+      payload: Prisma.$ApiIntegrationPayload<ExtArgs>
+      fields: Prisma.ApiIntegrationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ApiIntegrationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiIntegrationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ApiIntegrationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiIntegrationPayload>
+        }
+        findFirst: {
+          args: Prisma.ApiIntegrationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiIntegrationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ApiIntegrationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiIntegrationPayload>
+        }
+        findMany: {
+          args: Prisma.ApiIntegrationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiIntegrationPayload>[]
+        }
+        create: {
+          args: Prisma.ApiIntegrationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiIntegrationPayload>
+        }
+        createMany: {
+          args: Prisma.ApiIntegrationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ApiIntegrationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiIntegrationPayload>
+        }
+        update: {
+          args: Prisma.ApiIntegrationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiIntegrationPayload>
+        }
+        deleteMany: {
+          args: Prisma.ApiIntegrationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ApiIntegrationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ApiIntegrationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiIntegrationPayload>
+        }
+        aggregate: {
+          args: Prisma.ApiIntegrationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateApiIntegration>
+        }
+        groupBy: {
+          args: Prisma.ApiIntegrationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApiIntegrationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ApiIntegrationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApiIntegrationCountAggregateOutputType> | number
+        }
+      }
+    }
+    ApiAuditLog: {
+      payload: Prisma.$ApiAuditLogPayload<ExtArgs>
+      fields: Prisma.ApiAuditLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ApiAuditLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiAuditLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ApiAuditLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiAuditLogPayload>
+        }
+        findFirst: {
+          args: Prisma.ApiAuditLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiAuditLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ApiAuditLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiAuditLogPayload>
+        }
+        findMany: {
+          args: Prisma.ApiAuditLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiAuditLogPayload>[]
+        }
+        create: {
+          args: Prisma.ApiAuditLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiAuditLogPayload>
+        }
+        createMany: {
+          args: Prisma.ApiAuditLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ApiAuditLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiAuditLogPayload>
+        }
+        update: {
+          args: Prisma.ApiAuditLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiAuditLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.ApiAuditLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ApiAuditLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ApiAuditLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ApiAuditLogPayload>
+        }
+        aggregate: {
+          args: Prisma.ApiAuditLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateApiAuditLog>
+        }
+        groupBy: {
+          args: Prisma.ApiAuditLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApiAuditLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ApiAuditLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ApiAuditLogCountAggregateOutputType> | number
         }
       }
     }
@@ -1738,7 +1872,6 @@ export const OrganizationScalarFieldEnum = {
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  bankAccount: 'bankAccount',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
   otRateRestDay: 'otRateRestDay',
@@ -1756,6 +1889,35 @@ export const OrganizationScalarFieldEnum = {
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const ApiIntegrationScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  organizationId: 'organizationId',
+  scopes: 'scopes',
+  active: 'active',
+  createdAt: 'createdAt',
+  lastUsedAt: 'lastUsedAt'
+} as const
+
+export type ApiIntegrationScalarFieldEnum = (typeof ApiIntegrationScalarFieldEnum)[keyof typeof ApiIntegrationScalarFieldEnum]
+
+
+export const ApiAuditLogScalarFieldEnum = {
+  id: 'id',
+  integrationId: 'integrationId',
+  method: 'method',
+  path: 'path',
+  statusCode: 'statusCode',
+  ip: 'ip',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type ApiAuditLogScalarFieldEnum = (typeof ApiAuditLogScalarFieldEnum)[keyof typeof ApiAuditLogScalarFieldEnum]
 
 
 export const AdminOrganizationScalarFieldEnum = {
@@ -1784,9 +1946,7 @@ export const EmployeeProfileScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   employeeId: 'employeeId',
-  project: 'project',
   jobTitle: 'jobTitle',
-  supervisorId: 'supervisorId',
   payoutMethod: 'payoutMethod',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId',
@@ -1824,12 +1984,12 @@ export const ClaimScalarFieldEnum = {
   spentAt: 'spentAt',
   submittedAt: 'submittedAt',
   claimRunMonth: 'claimRunMonth',
-  reviewedAt: 'reviewedAt',
+  lastReviewedAt: 'lastReviewedAt',
   status: 'status',
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
-  reviewerId: 'reviewerId',
+  lastReviewerId: 'lastReviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
   xeroSyncStatus: 'xeroSyncStatus',
@@ -1921,7 +2081,6 @@ export const XeroProjectScalarFieldEnum = {
   xeroProjectId: 'xeroProjectId',
   name: 'name',
   status: 'status',
-  contactId: 'contactId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isManual: 'isManual',
@@ -2123,12 +2282,34 @@ export const OrganizationOrderByRelevanceFieldEnum = {
   name: 'name',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  bankAccount: 'bankAccount',
   timezone: 'timezone',
   defaultCurrency: 'defaultCurrency'
 } as const
 
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
+
+
+export const ApiIntegrationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  organizationId: 'organizationId'
+} as const
+
+export type ApiIntegrationOrderByRelevanceFieldEnum = (typeof ApiIntegrationOrderByRelevanceFieldEnum)[keyof typeof ApiIntegrationOrderByRelevanceFieldEnum]
+
+
+export const ApiAuditLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  integrationId: 'integrationId',
+  method: 'method',
+  path: 'path',
+  ip: 'ip',
+  errorMessage: 'errorMessage'
+} as const
+
+export type ApiAuditLogOrderByRelevanceFieldEnum = (typeof ApiAuditLogOrderByRelevanceFieldEnum)[keyof typeof ApiAuditLogOrderByRelevanceFieldEnum]
 
 
 export const AdminOrganizationOrderByRelevanceFieldEnum = {
@@ -2155,9 +2336,7 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   id: 'id',
   userId: 'userId',
   employeeId: 'employeeId',
-  project: 'project',
   jobTitle: 'jobTitle',
-  supervisorId: 'supervisorId',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId'
 } as const
@@ -2185,7 +2364,7 @@ export const ClaimOrderByRelevanceFieldEnum = {
   receiptUrl: 'receiptUrl',
   reviewNotes: 'reviewNotes',
   employeeId: 'employeeId',
-  reviewerId: 'reviewerId',
+  lastReviewerId: 'lastReviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
   xeroSyncError: 'xeroSyncError',
@@ -2248,7 +2427,6 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   xeroProjectId: 'xeroProjectId',
   name: 'name',
   status: 'status',
-  contactId: 'contactId',
   location: 'location',
   projectManagerId: 'projectManagerId',
   workingHoursStart: 'workingHoursStart',
@@ -2611,6 +2789,8 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   organization?: Prisma.OrganizationOmit
+  apiIntegration?: Prisma.ApiIntegrationOmit
+  apiAuditLog?: Prisma.ApiAuditLogOmit
   adminOrganization?: Prisma.AdminOrganizationOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
   employeeProfile?: Prisma.EmployeeProfileOmit

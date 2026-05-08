@@ -38,24 +38,22 @@ type PrismaUser = {
   } | null
   employeeProfile: {
     employeeId: string
-    project: string
     jobTitle: string
-    supervisorId: string | null
     projectAssignments?: Array<{
       project: {
         id: string
         name: string
       }
     }>
-    supervisor?: {
-      name: string
-      email: string
-    } | null
     payoutMethod: string | null
     preferredCurrency: string
     xeroConnectionId?: string | null
     xeroConnection?: { tenantName: string } | null
   } | null
+  approvalChainSteps?: Array<{
+    step: number
+    approver: { name: string; email: string }
+  }>
 }
 
 type PrismaChartAccount = {
@@ -93,8 +91,8 @@ type PrismaClaim = {
   exceedsLimit?: boolean | null
   receiptUrl: string | null
   reviewNotes: string | null
-  reviewedAt: Date | null
-  reviewerId: string | null
+  lastReviewedAt: Date | null
+  lastReviewerId: string | null
   reviewerRole: string | null
   employeeId: string
   distance?: { toString(): string } | number | string | null
@@ -143,19 +141,19 @@ type GroupedChainStep = {
  * so existing UI code that iterates approvalChain[] continues to work.
  *
  * Chain state semantics:
- * - SUBMITTED               → step 1 is "current", later steps "upcoming"
- * - PENDING (no reviewedAt) → step 1 is "current" (legacy)
- * - PENDING (reviewedAt set)→ step 1 "approved", step 2 "current", later "upcoming"
- * - APPROVED/REVIEWED       → all steps "approved"
- * - REJECTED                → reviewer's step "rejected", earlier "approved",
- *                              later "skipped"
+ * - SUBMITTED                   → step 1 is "current", later steps "upcoming"
+ * - PENDING (no lastReviewedAt) → step 1 is "current" (legacy)
+ * - PENDING (lastReviewedAt set)→ step 1 "approved", step 2 "current", later "upcoming"
+ * - APPROVED/REVIEWED           → all steps "approved"
+ * - REJECTED                    → reviewer's step "rejected", earlier "approved",
+ *                                 later "skipped"
  */
 function buildApprovalChainState(
   steps: GroupedChainStep[],
   claim: {
     status: string
-    reviewedAt: Date | null
-    reviewerId: string | null
+    lastReviewedAt: Date | null
+    lastReviewerId: string | null
     /// Per-step audit entries. When present, drive the per-approver
     /// state (so we know exactly who acted at each step). When absent
     /// (legacy claims, before the audit table existed), fall back to
@@ -190,9 +188,9 @@ function buildApprovalChainState(
   // Find which chain step corresponds to the most recent reviewer (if any).
   // For multi-approver groups, the reviewer is anyone in the step's set.
   const reviewedStepIdx =
-    claim.reviewerId !== null
+    claim.lastReviewerId !== null
       ? sorted.findIndex((s) =>
-          s.approvers.some((a) => a.approverId === claim.reviewerId),
+          s.approvers.some((a) => a.approverId === claim.lastReviewerId),
         )
       : -1
 
@@ -214,7 +212,7 @@ function buildApprovalChainState(
     currentStep = sorted[totalSteps - 1]!.step + 1
   } else if (claim.status === "REJECTED") {
     const rejectedAt = sorted.find((s) =>
-      s.approvers.some((a) => a.approverId === claim.reviewerId),
+      s.approvers.some((a) => a.approverId === claim.lastReviewerId),
     )
     currentStep = rejectedAt?.step ?? sorted[0]!.step
   } else {
@@ -383,9 +381,15 @@ export type ClaimForXeroSync = {
 
 function mapUser(user: PrismaUser): PortalUser {
   const assignedProjects = resolveAssignedProjects(
-    user.employeeProfile?.project,
     user.employeeProfile?.projectAssignments?.map((assignment) => assignment.project) ?? [],
   )
+
+  // Derive the visible "Reports to" supervisor from the first step of the
+  // employee's approval chain. Multi-approver step → first listed approver.
+  const sortedSteps = (user.approvalChainSteps ?? [])
+    .slice()
+    .sort((a, b) => a.step - b.step)
+  const firstApprover = sortedSteps[0]?.approver
 
   return {
     name: user.name,
@@ -395,14 +399,13 @@ function mapUser(user: PrismaUser): PortalUser {
     organizationId: user.organizationId ?? undefined,
     organizationName: user.organization?.name ?? undefined,
     project: resolvePrimaryProjectName(
-      user.employeeProfile?.project,
       user.employeeProfile?.projectAssignments?.map((assignment) => assignment.project) ?? [],
     ),
     projects: assignedProjects.map((project) => project.name),
     jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
     initials: buildInitials(user.name),
-    supervisorEmail: user.employeeProfile?.supervisor?.email ?? undefined,
-    supervisorName: user.employeeProfile?.supervisor?.name ?? undefined,
+    supervisorEmail: firstApprover?.email ?? undefined,
+    supervisorName: firstApprover?.name ?? undefined,
     payoutMethod: resolveEmployeePayoutMethod(
       user.role === "SUPERVISOR" ? "SUPERVISOR" : "EMPLOYEE",
       user.employeeProfile?.payoutMethod,
@@ -420,8 +423,8 @@ function mapClaim(
   const chainRows = chainsByEmployee?.get(claim.employeeId) ?? []
   const chainState = buildApprovalChainState(chainRows, {
     status: claim.status,
-    reviewedAt: claim.reviewedAt,
-    reviewerId: claim.reviewerId,
+    lastReviewedAt: claim.lastReviewedAt,
+    lastReviewerId: claim.lastReviewerId,
     approvalEntries: claim.approvalEntries ?? [],
   })
 
@@ -462,7 +465,7 @@ function mapClaim(
       claim.reviewerRole === "SUPERVISOR" || claim.reviewerRole === "ADMIN"
         ? claim.reviewerRole
         : undefined,
-    reviewedAt: claim.reviewedAt?.toISOString(),
+    reviewedAt: claim.lastReviewedAt?.toISOString(),
     distance: toNumber(claim.distance ?? null),
     mileageOriginAddress: claim.mileageOriginAddress ?? undefined,
     mileageDestinationAddress: claim.mileageDestinationAddress ?? undefined,
@@ -499,16 +502,22 @@ const claimInclude = {
             },
             orderBy: { createdAt: "asc" },
           },
-          supervisor: true,
           xeroConnection: { select: { tenantName: true } },
         },
+      },
+      approvalChainSteps: {
+        select: {
+          step: true,
+          approver: { select: { name: true, email: true } },
+        },
+        orderBy: { step: "asc" },
       },
     },
   },
   reviewer: true,
   // Per-step approval audit entries — let the chain renderer pinpoint
   // exactly which approver acted at each step, rather than guessing
-  // from the latest-only `Claim.reviewerId` snapshot.
+  // from the latest-only `Claim.lastReviewerId` snapshot.
   approvalEntries: {
     orderBy: { reviewedAt: "asc" },
   },
@@ -536,9 +545,15 @@ export const claimRepository = {
               },
               orderBy: { createdAt: "asc" },
             },
-            supervisor: true,
             xeroConnection: { select: { tenantName: true } },
           },
+        },
+        approvalChainSteps: {
+          select: {
+            step: true,
+            approver: { select: { name: true, email: true } },
+          },
+          orderBy: { step: "asc" },
         },
       },
     })
@@ -641,12 +656,12 @@ export const claimRepository = {
           actionableConditions.push({
             ...baseWhere,
             status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
-            reviewedAt: null,
+            lastReviewedAt: null,
           })
           continue
         }
 
-        // Later step: previous step's approver SET — claim's reviewerId
+        // Later step: previous step's approver SET — claim's lastReviewerId
         // is in that set means previous step is done. Match any of them.
         const prevStepApprovers = chain[supervisorEntry.step - 2]?.approvers ?? []
         if (prevStepApprovers.length === 0) continue
@@ -654,7 +669,7 @@ export const claimRepository = {
         actionableConditions.push({
           ...baseWhere,
           status: { in: ["PENDING"] as ClaimStatus[] },
-          reviewerId: { in: prevStepApprovers.map((a) => a.approverId) },
+          lastReviewerId: { in: prevStepApprovers.map((a) => a.approverId) },
           reviewerRole: "SUPERVISOR",
         })
       }
@@ -674,7 +689,7 @@ export const claimRepository = {
             employeeId: r.employeeId,
             projectId: null,
             status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
-            reviewedAt: null,
+            lastReviewedAt: null,
           })
         }
         // Legacy multi-step chains weren't in scope for the test data;
@@ -682,33 +697,13 @@ export const claimRepository = {
       }
     }
 
-    if (actionableConditions.length > 0) {
-      const rows = await prisma.claim.findMany({
-        where: { OR: actionableConditions },
-        include: claimInclude,
-        orderBy: { submittedAt: "desc" },
-      })
-      return rows.map((row) => mapClaim(row))
-    }
+    if (actionableConditions.length === 0) return []
 
-    // ── Legacy fallback ──────────────────────────────────────────────────────
-    // Employees that pre-date ApprovalChainStep still have supervisorId set.
-    // Treat them as a 1-step chain: show SUBMITTED or unreviewed PENDING claims.
     const rows = await prisma.claim.findMany({
-      where: {
-        status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
-        reviewedAt: null,
-        organizationId: supervisor.organizationId ?? undefined,
-        employee: {
-          employeeProfile: {
-            supervisorId: supervisor.id,
-          },
-        },
-      },
+      where: { OR: actionableConditions },
       include: claimInclude,
       orderBy: { submittedAt: "desc" },
     })
-
     return rows.map((row) => mapClaim(row))
   },
 
@@ -822,7 +817,7 @@ export const claimRepository = {
           conditions.push({
             ...baseWhere,
             status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
-            reviewedAt: null,
+            lastReviewedAt: null,
           })
           continue
         }
@@ -833,7 +828,7 @@ export const claimRepository = {
         conditions.push({
           ...baseWhere,
           status: { in: ["PENDING"] as ClaimStatus[] },
-          reviewerId: { in: prevStepApprovers.map((a) => a.approverId) },
+          lastReviewerId: { in: prevStepApprovers.map((a) => a.approverId) },
           reviewerRole: "SUPERVISOR",
         })
       }
@@ -850,26 +845,15 @@ export const claimRepository = {
             employeeId: r.employeeId,
             projectId: null,
             status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
-            reviewedAt: null,
+            lastReviewedAt: null,
           })
         }
       }
     }
 
-    if (conditions.length > 0) {
-      return prisma.claim.count({ where: { OR: conditions } })
-    }
+    if (conditions.length === 0) return 0
 
-    return prisma.claim.count({
-      where: {
-        status: { in: ["SUBMITTED", "PENDING"] as ClaimStatus[] },
-        reviewedAt: null,
-        organizationId: supervisor.organizationId ?? undefined,
-        employee: {
-          employeeProfile: { supervisorId: supervisor.id },
-        },
-      },
-    })
+    return prisma.claim.count({ where: { OR: conditions } })
   },
 
   async getClaimsForOrganization(
@@ -941,7 +925,7 @@ export const claimRepository = {
   /**
    * Claims that have cleared admin review and are waiting to be pushed
    * to Xero. Used by the admin "Ready to sync" page. Order: oldest
-   * reviewedAt first so claims that have been waiting longest sync
+   * lastReviewedAt first so claims that have been waiting longest sync
    * first.
    */
   async getClaimsAwaitingSync(
@@ -961,7 +945,7 @@ export const claimRepository = {
           : {}),
       },
       include: claimInclude,
-      orderBy: { reviewedAt: "asc" },
+      orderBy: { lastReviewedAt: "asc" },
     })
 
     if (rows.length === 0) return []
@@ -1378,16 +1362,19 @@ export const claimRepository = {
     return row?.id ?? null
   },
 
-  async getSupervisorIdForUser(userId: string): Promise<string | null> {
+  /// Returns the user IDs of every layer-1 approver across every team chain
+  /// the employee participates in. Used by the claim-submission push notifier
+  /// to alert the people who'll see the claim first.
+  async getFirstStepApproverIdsForUser(userId: string): Promise<string[]> {
     const prisma = getPrismaClient()
-    if (!prisma) return null
+    if (!prisma) return []
 
-    const row = await prisma.employeeProfile.findUnique({
-      where: { userId },
-      select: { supervisorId: true },
+    const rows = await prisma.approvalChainStep.findMany({
+      where: { employeeId: userId, step: 1 },
+      select: { approverId: true },
     })
 
-    return row?.supervisorId ?? null
+    return Array.from(new Set(rows.map((r) => r.approverId)))
   },
 
   async createClaim(data: CreateClaimData): Promise<boolean> {
@@ -1411,7 +1398,7 @@ export const claimRepository = {
         claimRunMonth: data.claimRunMonth,
         receiptUrl: data.receiptUrl,
         employeeId: data.employeeId,
-        reviewerId: data.reviewerId,
+        lastReviewerId: data.reviewerId,
         paymentType: data.paymentType,
         payViaAccountId: data.payViaAccountId ?? null,
         exceedsLimit: data.exceedsLimit ?? false,
@@ -1515,19 +1502,14 @@ export const claimRepository = {
         id: true,
         title: true,
         status: true,
-        reviewedAt: true,
-        reviewerId: true,
+        lastReviewedAt: true,
+        lastReviewerId: true,
         employeeId: true,
         projectId: true,
         paymentType: true,
         employee: {
           select: {
             email: true,
-            employeeProfile: {
-              select: {
-                supervisorId: true,
-              },
-            },
           },
         },
       },
@@ -1576,16 +1558,16 @@ export const claimRepository = {
           s.approvers.some((a) => a.approverId === data.reviewerId),
         )
         const reviewedStep =
-          existingClaim.reviewerId !== null
+          existingClaim.lastReviewerId !== null
             ? chain.find((s) =>
                 s.approvers.some(
-                  (a) => a.approverId === existingClaim.reviewerId,
+                  (a) => a.approverId === existingClaim.lastReviewerId,
                 ),
               )
             : undefined
 
         let expectedStep = chain[0]!.step
-        if (existingClaim.status === "PENDING" && existingClaim.reviewedAt !== null) {
+        if (existingClaim.status === "PENDING" && existingClaim.lastReviewedAt !== null) {
           if (!reviewedStep) {
             return { ok: false, error: "NOT_FOUND" }
           }
@@ -1599,13 +1581,10 @@ export const claimRepository = {
         supervisorChainComplete = reviewerStep.step === chain[chain.length - 1]!.step
         actedStepNumber = reviewerStep.step
       } else {
-        // Legacy path: no chain steps — fall back to supervisorId check.
-        if (existingClaim.employee.employeeProfile?.supervisorId !== data.reviewerId) {
-          return { ok: false, error: "NOT_FOUND" }
-        }
-        // Synthetic single-step chain — log it as step 1 so the audit
-        // record is consistent with multi-step chains.
-        actedStepNumber = 1
+        // Orphaned employee: no chain at all → reject. Every employee should
+        // be in at least one team after the legacy-fallback removal; this
+        // guards the rare case where a chain row has been wiped.
+        return { ok: false, error: "NOT_FOUND" }
       }
 
       const nextStatus = decideNextClaimStatus({
@@ -1621,8 +1600,8 @@ export const claimRepository = {
         data: {
           status: nextStatus,
           reviewNotes: data.reviewNotes || null,
-          reviewedAt,
-          reviewerId: data.reviewerId,
+          lastReviewedAt: reviewedAt,
+          lastReviewerId: data.reviewerId,
           // Snapshot the reviewer's role at decision time so the UI can
           // filter and label "approved/rejected by supervisor" later.
           reviewerRole: "SUPERVISOR",
@@ -1686,8 +1665,8 @@ export const claimRepository = {
         data: {
           status: finalStatus,
           reviewNotes: data.reviewNotes || null,
-          reviewedAt: new Date(),
-          reviewerId: data.reviewerId,
+          lastReviewedAt: new Date(),
+          lastReviewerId: data.reviewerId,
           reviewerRole: "ADMIN",
         },
       })

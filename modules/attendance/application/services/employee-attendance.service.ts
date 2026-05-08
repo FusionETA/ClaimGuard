@@ -13,7 +13,6 @@ import type {
   AttendanceRecordView,
   EmployeeAttendanceDashboard,
 } from "@/modules/attendance/domain/models"
-import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
 
 const ARCHIVED_XERO_STATUSES = new Set(["CLOSED", "ARCHIVED"])
@@ -194,38 +193,16 @@ export const employeeAttendanceService = {
     const data = await attendanceRepository.getEmployeeProjectAssignments(employeeId)
     if (!data || !data.organizationId) return []
 
-    if (data.assignments.length > 0) {
-      return data.assignments
-        .filter((project) =>
-          !project.status || !ARCHIVED_XERO_STATUSES.has(project.status.toUpperCase())
-        )
-        .map((project) => ({
-          id: project.id,
-          name: project.name,
-          latitude: project.latitude,
-          longitude: project.longitude,
-        }))
-    }
-
-    const legacyProject = data.legacyProject?.trim()
-    if (legacyProject) {
-      const projects = await organizationRepository.getProjectsForOrganization(
-        data.organizationId
+    return data.assignments
+      .filter((project) =>
+        !project.status || !ARCHIVED_XERO_STATUSES.has(project.status.toUpperCase())
       )
-      return projects
-        .filter((project) => project.name === legacyProject)
-        .filter((project) =>
-          !project.status || !ARCHIVED_XERO_STATUSES.has(project.status.toUpperCase())
-        )
-        .map((project) => ({
-          id: project.id,
-          name: project.name,
-          latitude: project.latitude ?? null,
-          longitude: project.longitude ?? null,
-        }))
-    }
-
-    return []
+      .map((project) => ({
+        id: project.id,
+        name: project.name,
+        latitude: project.latitude,
+        longitude: project.longitude,
+      }))
   },
 
   async clockIn(

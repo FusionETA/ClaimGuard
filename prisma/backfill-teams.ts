@@ -82,7 +82,6 @@ async function main() {
       select: {
         id: true,
         userId: true,
-        project: true,
         user: {
           select: { id: true, name: true, role: true, organizationId: true },
         },
@@ -144,22 +143,6 @@ async function main() {
     for (const project of projects) {
       for (const assignment of project.assignedEmployees) {
         addToProject(project.id, assignment.employeeProfileId)
-      }
-    }
-
-    // Legacy `project` string → project id by (org, name) match.
-    const projectByOrgAndName = new Map<string, string>() // `${orgId}|${trimmedName}` → projectId
-    for (const project of projects) {
-      projectByOrgAndName.set(`${project.organizationId}|${project.name.trim()}`, project.id)
-    }
-    for (const profile of profiles) {
-      const legacy = profile.project?.trim()
-      if (!legacy) continue
-      const orgId = profile.user.organizationId
-      if (!orgId) continue
-      const matchProjectId = projectByOrgAndName.get(`${orgId}|${legacy}`)
-      if (matchProjectId) {
-        addToProject(matchProjectId, profile.id)
       }
     }
 
