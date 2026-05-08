@@ -48,6 +48,29 @@ export type ApiIntegration = Prisma.ApiIntegrationModel
  */
 export type ApiAuditLog = Prisma.ApiAuditLogModel
 /**
+ * Model MasterApiKey
+ * Partner-level "platform" credential. One row per integration partner
+ * (e.g. Acme HR portal). The partner uses this to call the
+ * /api/v1/admin/* endpoints — most importantly to provision a new
+ * Workpulse Organization on behalf of one of THEIR end-customers, which
+ * returns a per-org `ApiIntegration` token in the response.
+ * 
+ * Master keys never call /api/v1/<resource> directly — those routes
+ * always require a per-org token. This separation means a leaked master
+ * key cannot read any tenant's data: it can only create new tenants.
+ * 
+ * Token format: `wp_master_<64 hex chars>`. Stored as SHA-256 hash.
+ */
+export type MasterApiKey = Prisma.MasterApiKeyModel
+/**
+ * Model MasterApiAuditLog
+ * Audit trail for /api/v1/admin/* requests authenticated by a master
+ * key. Kept separate from `ApiAuditLog` because those rows are scoped
+ * to a specific Organization/integration; master-key calls aren't (the
+ * org may not exist yet).
+ */
+export type MasterApiAuditLog = Prisma.MasterApiAuditLogModel
+/**
  * Model AdminOrganization
  * 
  */

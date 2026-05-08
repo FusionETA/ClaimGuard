@@ -161,22 +161,44 @@ export async function writeAuditLog(args: {
 }
 
 /**
+ * Shape of the route context Next.js 15+ App Router passes to dynamic
+ * route handlers as the second arg. `params` is async — Next started
+ * making this a Promise so request streaming can begin before the
+ * router resolves the segment values.
+ */
+type NextRouteContext<P extends Record<string, string | string[]> = Record<string, string | string[]>> = {
+  params: Promise<P>
+}
+
+/**
  * Wrap a route handler so the boilerplate (auth, audit, JSON
  * serialisation, no-store cache header) lives in one place. Usage:
  *
  *   export const GET = handleApiRequest(["employees:read"], async (req, ctx) => {
  *     // ctx.integration.organizationId is the resolved org
+ *     // ctx.params is whatever the dynamic route segment(s) resolved to
  *     return NextResponse.json({ ... })
  *   })
+ *
+ * `ctx.params` is the resolved Next.js `params` object — already awaited
+ * so handlers don't have to. Empty object on non-dynamic routes (the
+ * top-level `/api/v1/employees` POST has no segments, so `ctx.params`
+ * is `{}`). Dynamic routes like `/api/v1/employees/[id]` get
+ * `ctx.params.id`.
  */
-export function handleApiRequest(
+export function handleApiRequest<
+  P extends Record<string, string | string[]> = Record<string, string | string[]>,
+>(
   requiredScopes: ApiScope[],
   handler: (
     request: NextRequest,
-    context: { integration: AuthenticatedIntegration },
+    context: { integration: AuthenticatedIntegration; params: P },
   ) => Promise<NextResponse>,
 ) {
-  return async function wrappedHandler(request: NextRequest): Promise<NextResponse> {
+  return async function wrappedHandler(
+    request: NextRequest,
+    routeContext?: NextRouteContext<P>,
+  ): Promise<NextResponse> {
     const auth = await authenticateApiRequest(request, requiredScopes)
 
     const ip =
@@ -189,10 +211,19 @@ export function handleApiRequest(
       return withApiHeaders(auth.response)
     }
 
+    // Resolve dynamic-route params once. Static routes pass no second
+    // arg; dynamic ones pass `{ params: Promise<...> }`.
+    const params = (routeContext?.params
+      ? await routeContext.params
+      : ({} as P))
+
     let response: NextResponse
     let errorMessage: string | null = null
     try {
-      response = await handler(request, { integration: auth.integration })
+      response = await handler(request, {
+        integration: auth.integration,
+        params,
+      })
     } catch (error) {
       errorMessage = error instanceof Error ? error.message : String(error)
       console.error(

@@ -178,6 +178,11 @@ export type MemberTeamInfo = {
 
 export type OrganizationMember = {
   id: string
+  /// `EmployeeProfile.id` for this member. Different from `employeeId`
+  /// (the human-readable code like "EMP-001") and from `id` (the User
+  /// id). The external API surfaces this so partners can call
+  /// `POST /api/v1/teams/[id]/members` (which keys on profile id).
+  employeeProfileId?: string
   name: string
   email: string
   role: "EMPLOYEE" | "SUPERVISOR"

@@ -739,6 +739,10 @@ export const organizationRepository = {
 
       return {
         id: user.id,
+        // Surface the EmployeeProfile id so external API consumers can
+        // pass it to `POST /api/v1/teams/[id]/members`. UI consumers
+        // ignore this field.
+        employeeProfileId: user.employeeProfile?.id,
         name: user.name,
         email: user.email,
         role: user.role as OrganizationMember["role"],
@@ -2298,6 +2302,51 @@ export const organizationRepository = {
     })
   },
 
+  /**
+   * Hard-delete an employee/supervisor from an organization. Removes the
+   * `User` row, which cascades through EmployeeProfile,
+   * EmployeeProjectAssignment, EmployeeTeamMembership, and any chain rows
+   * that reference the user. Used by the external API's
+   * `DELETE /api/v1/employees/[id]`.
+   *
+   * Org-scoped: returns `{ ok: false }` if the user isn't a member of the
+   * given organization (either by `User.organizationId` or via a join
+   * row), so a partner token can't reach into another tenant's data by
+   * guessing user ids.
+   */
+  async deleteOrganizationMember(input: {
+    userId: string
+    organizationId: string
+  }): Promise<{ ok: boolean }> {
+    const prisma = getPrismaClient()
+    if (!prisma) return { ok: false }
+
+    // Ownership check — the user must belong to this org. We accept
+    // either `organizationId` set directly OR an AdminOrganization join
+    // row pointing at the org (multi-org admins). Employees only ever
+    // have the direct column set.
+    const user = await prisma.user.findFirst({
+      where: {
+        id: input.userId,
+        OR: [
+          { organizationId: input.organizationId },
+          { adminOrganizations: { some: { organizationId: input.organizationId } } },
+        ],
+      },
+      select: { id: true, role: true },
+    })
+    if (!user) return { ok: false }
+
+    // Refuse to delete an ADMIN through this method — admins are managed
+    // through the multi-admin flow, not the employees endpoint. Letting
+    // the partner accidentally nuke an admin via the wrong endpoint
+    // would be very bad.
+    if (user.role === "ADMIN") return { ok: false }
+
+    await prisma.user.delete({ where: { id: user.id } })
+    return { ok: true }
+  },
+
   async upsertProjectsFromXero(data: {
     xeroConnectionId: string
     organizationId: string
@@ -2695,7 +2744,13 @@ export const organizationRepository = {
     if (!prisma) throw new Error("Database is not configured.")
     const membership = await prisma.employeeTeamMembership.findUnique({
       where: { id: data.membershipId },
-      select: { id: true, team: { select: { project: { select: { organizationId: true } } } } },
+      select: {
+        id: true,
+        employeeProfileId: true,
+        teamId: true,
+        team: { select: { project: { select: { organizationId: true } } } },
+        employeeProfile: { select: { user: { select: { id: true } } } },
+      },
     })
     if (
       !membership ||
@@ -2703,7 +2758,149 @@ export const organizationRepository = {
     ) {
       throw new Error("Membership not found.")
     }
-    await prisma.employeeTeamMembership.delete({ where: { id: membership.id } })
+
+    // Wipe the per-(employee, team) chain rows alongside the membership so
+    // we don't leave dangling approval chains pointing at a team the
+    // employee no longer belongs to.
+    await prisma.$transaction([
+      prisma.approvalChainStep.deleteMany({
+        where: {
+          teamId: membership.teamId,
+          employeeId: membership.employeeProfile.user.id,
+        },
+      }),
+      prisma.employeeTeamMembership.delete({ where: { id: membership.id } }),
+    ])
+  },
+
+  /**
+   * Replace the approval chain for one (employee, team) tuple. Used by
+   * `POST /api/v1/teams/[id]/members` to set a member's chain at the
+   * same time as assigning them. Mirrors the chain-write logic that
+   * lives inside `updateOrganizationMember` but factored out so the
+   * external API can call it directly without going through the heavier
+   * full-employee-update path.
+   *
+   * Step numbering is layer-derived (unique layers → unique step
+   * numbers), so multiple approvers at the same layer share a step
+   * (any-of approval semantics).
+   */
+  async setTeamMembershipChain(data: {
+    organizationId: string
+    teamId: string
+    /// `userId` of the employee whose chain we're rewriting (NOT the
+    /// EmployeeProfile id — chain rows are keyed by User id).
+    employeeId: string
+    chainApprovers: Array<{ layer: number; userId: string }>
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    // Verify (a) team belongs to this org, (b) employee is a member.
+    const team = await prisma.team.findFirst({
+      where: { id: data.teamId, project: { organizationId: data.organizationId } },
+      select: { id: true, layerCount: true },
+    })
+    if (!team) throw new Error("Team not found.")
+
+    const member = await prisma.employeeTeamMembership.findFirst({
+      where: {
+        teamId: team.id,
+        employeeProfile: { user: { id: data.employeeId } },
+      },
+      select: { id: true },
+    })
+    if (!member) {
+      throw new Error("Employee is not a member of this team.")
+    }
+
+    // Validate all approvers exist + belong to org + are SUPERVISOR/ADMIN.
+    if (data.chainApprovers.length > 0) {
+      const ids = Array.from(new Set(data.chainApprovers.map((a) => a.userId)))
+      const approvers = await prisma.user.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, organizationId: true, role: true },
+      })
+      if (approvers.length !== ids.length) {
+        throw new Error("One or more approvers could not be found.")
+      }
+      for (const a of approvers) {
+        if (a.organizationId !== data.organizationId) {
+          throw new Error("Approvers must belong to the same organization.")
+        }
+        if (a.role !== "SUPERVISOR" && a.role !== "ADMIN") {
+          throw new Error("Approvers must be supervisors or admins.")
+        }
+      }
+      for (const a of data.chainApprovers) {
+        if (a.layer < 1 || a.layer > team.layerCount) {
+          throw new Error(
+            `Approver layer ${a.layer} is out of range 1..${team.layerCount}.`,
+          )
+        }
+      }
+    }
+
+    // Sort by layer so lower-layer approvers get lower step numbers.
+    const sorted = [...data.chainApprovers].sort((a, b) => a.layer - b.layer)
+    const layerToStep = new Map<number, number>()
+    let stepCounter = 0
+    for (const c of sorted) {
+      if (!layerToStep.has(c.layer)) {
+        stepCounter += 1
+        layerToStep.set(c.layer, stepCounter)
+      }
+    }
+
+    await prisma.$transaction([
+      prisma.approvalChainStep.deleteMany({
+        where: { employeeId: data.employeeId, teamId: team.id },
+      }),
+      ...(sorted.length > 0
+        ? [
+            prisma.approvalChainStep.createMany({
+              data: sorted.map((c) => ({
+                employeeId: data.employeeId,
+                teamId: team.id,
+                approverId: c.userId,
+                step: layerToStep.get(c.layer)!,
+              })),
+            }),
+          ]
+        : []),
+    ])
+  },
+
+  /**
+   * Read back the per-(employee, team) chain for one membership. Used
+   * by GET /api/v1/teams/[id]/members so the partner sees the chain
+   * alongside the layer.
+   */
+  async getTeamMembershipChain(data: {
+    organizationId: string
+    teamId: string
+    employeeId: string
+  }): Promise<Array<{ step: number; approverId: string; approverName: string }>> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    // Org-scope check via the team
+    const team = await prisma.team.findFirst({
+      where: { id: data.teamId, project: { organizationId: data.organizationId } },
+      select: { id: true },
+    })
+    if (!team) return []
+
+    const rows = await prisma.approvalChainStep.findMany({
+      where: { teamId: team.id, employeeId: data.employeeId },
+      orderBy: { step: "asc" },
+      include: { approver: { select: { id: true, name: true } } },
+    })
+    return rows.map((r) => ({
+      step: r.step,
+      approverId: r.approver.id,
+      approverName: r.approver.name,
+    }))
   },
 
   /// Supervisor picker: every SUPERVISOR-role user assigned to `projectId`,

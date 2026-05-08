@@ -187,6 +187,7 @@ function clampInt(
  */
 function toExternalEmployee(member: {
   id: string
+  employeeProfileId?: string
   name: string
   email: string
   role: "EMPLOYEE" | "SUPERVISOR"
@@ -207,6 +208,9 @@ function toExternalEmployee(member: {
 }) {
   return {
     id: member.id,
+    // EmployeeProfile id — partners need this for
+    // POST /api/v1/teams/[id]/members.
+    employeeProfileId: member.employeeProfileId ?? null,
     name: member.name,
     email: member.email,
     role: member.role,

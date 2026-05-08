@@ -1,7 +1,10 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Copy, KeyRound, Loader2, Plus, ShieldX, Trash2 } from "lucide-react"
+// `Plus` icon import dropped while self-service token creation is hidden
+// (see top-of-component comment). Re-add it when uncommenting the "New
+// token" button.
+import { Copy, KeyRound, Loader2, ShieldX, Trash2 } from "lucide-react"
 
 import {
   createApiTokenAction,
@@ -53,9 +56,21 @@ const SCOPE_DESCRIPTIONS: Record<ApiScope, string> = {
 }
 
 /**
- * Settings → API tab. Shows existing integration tokens, lets the admin
- * create new ones (raw token shown once on creation), revoke / re-enable
- * existing ones, and delete dead ones permanently.
+ * Settings → API tab.
+ *
+ * CURRENT BEHAVIOUR (May 2026): admin-driven token creation is HIDDEN.
+ * Tokens are now provisioned automatically by integration partners via
+ * `POST /api/v1/admin/organizations` (master-key flow). The admin sees
+ * any tokens that exist for their org (read-only list + emergency
+ * revoke), but can't mint new ones from this UI.
+ *
+ * FUTURE: when we let direct customers do their own integrations
+ * (without going through a partner), uncomment the "New token" button
+ * + the <CreateTokenDialog /> + <RevealedTokenDialog /> blocks below
+ * and the existing flow will work as-is. The server actions
+ * (createApiTokenAction etc.) are still wired up — only the UI affordance
+ * is hidden. May want to gate it on a per-org "self-service integrations"
+ * flag at that point so partner-managed orgs stay locked.
  *
  * No useActionState here because we need access to the action's return
  * value (the secret token) immediately on success — and useActionState
@@ -68,12 +83,14 @@ export function ApiIntegrationsTab({
   integrations: Integration[]
 }) {
   const { toast } = useToast()
-  const [createOpen, setCreateOpen] = useState(false)
-  const [revealedToken, setRevealedToken] = useState<{
-    name: string
-    token: string
-    prefix: string
-  } | null>(null)
+  // Re-enable when self-service token creation comes back. Kept as
+  // commented-out scaffolding so the switch is a one-line revert.
+  // const [createOpen, setCreateOpen] = useState(false)
+  // const [revealedToken, setRevealedToken] = useState<{
+  //   name: string
+  //   token: string
+  //   prefix: string
+  // } | null>(null)
   const [pending, startTransition] = useTransition()
 
   return (
@@ -90,11 +107,18 @@ export function ApiIntegrationsTab({
               <code className="rounded bg-surface-low px-1 py-0.5 text-xs">
                 /api/v1
               </code>
-              . Each token is permanently scoped to this organisation and the
-              scopes you select below. The raw secret is shown once on
-              creation — copy it then. We only store its hash.
+              . Tokens are issued automatically by your integration partner
+              when this organisation is provisioned — you can review and
+              revoke them here, but new tokens are minted on the partner&rsquo;s
+              side. Self-service token creation will be enabled in a future
+              release for clients running their own direct integrations.
             </p>
           </div>
+          {/*
+            Hidden until self-service integrations land. Re-enable by
+            uncommenting this button + the CreateTokenDialog + RevealedTokenDialog
+            blocks at the bottom of this component, plus the createOpen /
+            revealedToken state hooks above.
           <Button
             type="button"
             onClick={() => setCreateOpen(true)}
@@ -103,12 +127,14 @@ export function ApiIntegrationsTab({
             <Plus className="mr-1.5 h-4 w-4" />
             New token
           </Button>
+          */}
         </CardHeader>
         <CardContent>
           {integrations.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-border/60 bg-surface-low px-4 py-6 text-center text-sm text-muted-foreground">
-              No API tokens yet. Create one to let an external system push
-              data into this organisation.
+              No API tokens issued for this organisation yet. Tokens are
+              created automatically when an integration partner provisions
+              your account.
             </p>
           ) : (
             <ul className="space-y-2">
@@ -154,6 +180,11 @@ export function ApiIntegrationsTab({
         </CardContent>
       </Card>
 
+      {/*
+        Self-service token creation flow — disabled for now (see header
+        comment). Both dialogs stay in the file so re-enabling is a pure
+        uncomment job.
+
       <CreateTokenDialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
@@ -167,6 +198,7 @@ export function ApiIntegrationsTab({
         revealed={revealedToken}
         onClose={() => setRevealedToken(null)}
       />
+      */}
     </div>
   )
 }
@@ -496,3 +528,10 @@ function RevealedTokenDialog({
     </Dialog>
   )
 }
+
+// Keep references alive so the lint pass doesn't flag the hidden dialog
+// components as unused exports while self-service token creation is
+// disabled. Removing this once the dialogs are rendered again is safe —
+// they'll be referenced from JSX directly.
+void CreateTokenDialog
+void RevealedTokenDialog

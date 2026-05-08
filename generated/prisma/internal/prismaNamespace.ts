@@ -388,6 +388,8 @@ export const ModelName = {
   Organization: 'Organization',
   ApiIntegration: 'ApiIntegration',
   ApiAuditLog: 'ApiAuditLog',
+  MasterApiKey: 'MasterApiKey',
+  MasterApiAuditLog: 'MasterApiAuditLog',
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
@@ -420,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "apiIntegration" | "apiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
+    modelProps: "user" | "organization" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -685,6 +687,138 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ApiAuditLogCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ApiAuditLogCountAggregateOutputType> | number
+        }
+      }
+    }
+    MasterApiKey: {
+      payload: Prisma.$MasterApiKeyPayload<ExtArgs>
+      fields: Prisma.MasterApiKeyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MasterApiKeyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiKeyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MasterApiKeyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiKeyPayload>
+        }
+        findFirst: {
+          args: Prisma.MasterApiKeyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiKeyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MasterApiKeyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiKeyPayload>
+        }
+        findMany: {
+          args: Prisma.MasterApiKeyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiKeyPayload>[]
+        }
+        create: {
+          args: Prisma.MasterApiKeyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiKeyPayload>
+        }
+        createMany: {
+          args: Prisma.MasterApiKeyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.MasterApiKeyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiKeyPayload>
+        }
+        update: {
+          args: Prisma.MasterApiKeyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiKeyPayload>
+        }
+        deleteMany: {
+          args: Prisma.MasterApiKeyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MasterApiKeyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.MasterApiKeyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiKeyPayload>
+        }
+        aggregate: {
+          args: Prisma.MasterApiKeyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMasterApiKey>
+        }
+        groupBy: {
+          args: Prisma.MasterApiKeyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MasterApiKeyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MasterApiKeyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MasterApiKeyCountAggregateOutputType> | number
+        }
+      }
+    }
+    MasterApiAuditLog: {
+      payload: Prisma.$MasterApiAuditLogPayload<ExtArgs>
+      fields: Prisma.MasterApiAuditLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MasterApiAuditLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiAuditLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MasterApiAuditLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiAuditLogPayload>
+        }
+        findFirst: {
+          args: Prisma.MasterApiAuditLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiAuditLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MasterApiAuditLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiAuditLogPayload>
+        }
+        findMany: {
+          args: Prisma.MasterApiAuditLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiAuditLogPayload>[]
+        }
+        create: {
+          args: Prisma.MasterApiAuditLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiAuditLogPayload>
+        }
+        createMany: {
+          args: Prisma.MasterApiAuditLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.MasterApiAuditLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiAuditLogPayload>
+        }
+        update: {
+          args: Prisma.MasterApiAuditLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiAuditLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.MasterApiAuditLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MasterApiAuditLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.MasterApiAuditLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MasterApiAuditLogPayload>
+        }
+        aggregate: {
+          args: Prisma.MasterApiAuditLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMasterApiAuditLog>
+        }
+        groupBy: {
+          args: Prisma.MasterApiAuditLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MasterApiAuditLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MasterApiAuditLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MasterApiAuditLogCountAggregateOutputType> | number
         }
       }
     }
@@ -1902,7 +2036,8 @@ export const ApiIntegrationScalarFieldEnum = {
   scopes: 'scopes',
   active: 'active',
   createdAt: 'createdAt',
-  lastUsedAt: 'lastUsedAt'
+  lastUsedAt: 'lastUsedAt',
+  issuedByMasterKeyId: 'issuedByMasterKeyId'
 } as const
 
 export type ApiIntegrationScalarFieldEnum = (typeof ApiIntegrationScalarFieldEnum)[keyof typeof ApiIntegrationScalarFieldEnum]
@@ -1920,6 +2055,35 @@ export const ApiAuditLogScalarFieldEnum = {
 } as const
 
 export type ApiAuditLogScalarFieldEnum = (typeof ApiAuditLogScalarFieldEnum)[keyof typeof ApiAuditLogScalarFieldEnum]
+
+
+export const MasterApiKeyScalarFieldEnum = {
+  id: 'id',
+  partnerName: 'partnerName',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  active: 'active',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  lastUsedAt: 'lastUsedAt'
+} as const
+
+export type MasterApiKeyScalarFieldEnum = (typeof MasterApiKeyScalarFieldEnum)[keyof typeof MasterApiKeyScalarFieldEnum]
+
+
+export const MasterApiAuditLogScalarFieldEnum = {
+  id: 'id',
+  masterKeyId: 'masterKeyId',
+  method: 'method',
+  path: 'path',
+  statusCode: 'statusCode',
+  ip: 'ip',
+  createdOrganizationId: 'createdOrganizationId',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type MasterApiAuditLogScalarFieldEnum = (typeof MasterApiAuditLogScalarFieldEnum)[keyof typeof MasterApiAuditLogScalarFieldEnum]
 
 
 export const AdminOrganizationScalarFieldEnum = {
@@ -2296,7 +2460,8 @@ export const ApiIntegrationOrderByRelevanceFieldEnum = {
   name: 'name',
   tokenHash: 'tokenHash',
   tokenPrefix: 'tokenPrefix',
-  organizationId: 'organizationId'
+  organizationId: 'organizationId',
+  issuedByMasterKeyId: 'issuedByMasterKeyId'
 } as const
 
 export type ApiIntegrationOrderByRelevanceFieldEnum = (typeof ApiIntegrationOrderByRelevanceFieldEnum)[keyof typeof ApiIntegrationOrderByRelevanceFieldEnum]
@@ -2312,6 +2477,30 @@ export const ApiAuditLogOrderByRelevanceFieldEnum = {
 } as const
 
 export type ApiAuditLogOrderByRelevanceFieldEnum = (typeof ApiAuditLogOrderByRelevanceFieldEnum)[keyof typeof ApiAuditLogOrderByRelevanceFieldEnum]
+
+
+export const MasterApiKeyOrderByRelevanceFieldEnum = {
+  id: 'id',
+  partnerName: 'partnerName',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  notes: 'notes'
+} as const
+
+export type MasterApiKeyOrderByRelevanceFieldEnum = (typeof MasterApiKeyOrderByRelevanceFieldEnum)[keyof typeof MasterApiKeyOrderByRelevanceFieldEnum]
+
+
+export const MasterApiAuditLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  masterKeyId: 'masterKeyId',
+  method: 'method',
+  path: 'path',
+  ip: 'ip',
+  createdOrganizationId: 'createdOrganizationId',
+  errorMessage: 'errorMessage'
+} as const
+
+export type MasterApiAuditLogOrderByRelevanceFieldEnum = (typeof MasterApiAuditLogOrderByRelevanceFieldEnum)[keyof typeof MasterApiAuditLogOrderByRelevanceFieldEnum]
 
 
 export const AdminOrganizationOrderByRelevanceFieldEnum = {
@@ -2793,6 +2982,8 @@ export type GlobalOmitConfig = {
   organization?: Prisma.OrganizationOmit
   apiIntegration?: Prisma.ApiIntegrationOmit
   apiAuditLog?: Prisma.ApiAuditLogOmit
+  masterApiKey?: Prisma.MasterApiKeyOmit
+  masterApiAuditLog?: Prisma.MasterApiAuditLogOmit
   adminOrganization?: Prisma.AdminOrganizationOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
   employeeProfile?: Prisma.EmployeeProfileOmit

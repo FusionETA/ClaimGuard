@@ -42,7 +42,9 @@ import {
 import { XeroConnectionCard } from "@/components/admin/xero-connection-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ApiIntegrationsTab } from "@/components/admin/api-integrations-tab"
+// API tab hidden — re-enable alongside the pill in `settingsTabs` and the
+// activeTab === "api" render block below.
+// import { ApiIntegrationsTab } from "@/components/admin/api-integrations-tab"
 import { ComingSoonCard } from "@/components/ui/coming-soon-card"
 import { Input } from "@/components/ui/input"
 import {
@@ -498,6 +500,11 @@ export function AdminSettingsPanel({
     lastUsedAt: string | null
   }>
 }) {
+  // `apiIntegrations` is still loaded by the settings page but unused
+  // here while the API tab is hidden. Keep the prop accepted so the
+  // page → panel data flow stays untouched; reference it via `void` to
+  // silence the unused-prop lint warning.
+  void apiIntegrations
   const { toast } = useToast()
   const initialResolved = resolveTabFromInitial(initialTab)
   const [activeTab, setActiveTab] = useState<TabKey>(initialResolved.tab)
@@ -678,7 +685,9 @@ export function AdminSettingsPanel({
     ["projects", "Projects"],
     ["work-schedule", "Work Schedule"],
     ["leave", "Leave"],
-    ["api", "API"],
+    // API tab hidden — tokens are auto-issued by the partner master-key
+    // flow. Re-enable when self-service integrations ship.
+    // ["api", "API"],
   ] as const
 
   const accountsSubTabs = [
@@ -1892,9 +1901,17 @@ export function AdminSettingsPanel({
         />
       ) : null}
 
+      {/*
+        API tab hidden — tokens are auto-issued via the partner master-key
+        flow (POST /api/v1/admin/organizations). The TabKey type still
+        includes "api" and the page still loads `apiIntegrations` so that
+        re-enabling is a one-block uncomment + restoring the pill in
+        `settingsTabs` and the sidebar entry in admin-shell.tsx.
+
       {activeTab === "api" ? (
         <ApiIntegrationsTab integrations={apiIntegrations} />
       ) : null}
+      */}
     </div>
   )
 }

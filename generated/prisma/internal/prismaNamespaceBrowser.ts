@@ -55,6 +55,8 @@ export const ModelName = {
   Organization: 'Organization',
   ApiIntegration: 'ApiIntegration',
   ApiAuditLog: 'ApiAuditLog',
+  MasterApiKey: 'MasterApiKey',
+  MasterApiAuditLog: 'MasterApiAuditLog',
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
   EmployeeProfile: 'EmployeeProfile',
@@ -143,7 +145,8 @@ export const ApiIntegrationScalarFieldEnum = {
   scopes: 'scopes',
   active: 'active',
   createdAt: 'createdAt',
-  lastUsedAt: 'lastUsedAt'
+  lastUsedAt: 'lastUsedAt',
+  issuedByMasterKeyId: 'issuedByMasterKeyId'
 } as const
 
 export type ApiIntegrationScalarFieldEnum = (typeof ApiIntegrationScalarFieldEnum)[keyof typeof ApiIntegrationScalarFieldEnum]
@@ -161,6 +164,35 @@ export const ApiAuditLogScalarFieldEnum = {
 } as const
 
 export type ApiAuditLogScalarFieldEnum = (typeof ApiAuditLogScalarFieldEnum)[keyof typeof ApiAuditLogScalarFieldEnum]
+
+
+export const MasterApiKeyScalarFieldEnum = {
+  id: 'id',
+  partnerName: 'partnerName',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  active: 'active',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  lastUsedAt: 'lastUsedAt'
+} as const
+
+export type MasterApiKeyScalarFieldEnum = (typeof MasterApiKeyScalarFieldEnum)[keyof typeof MasterApiKeyScalarFieldEnum]
+
+
+export const MasterApiAuditLogScalarFieldEnum = {
+  id: 'id',
+  masterKeyId: 'masterKeyId',
+  method: 'method',
+  path: 'path',
+  statusCode: 'statusCode',
+  ip: 'ip',
+  createdOrganizationId: 'createdOrganizationId',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+} as const
+
+export type MasterApiAuditLogScalarFieldEnum = (typeof MasterApiAuditLogScalarFieldEnum)[keyof typeof MasterApiAuditLogScalarFieldEnum]
 
 
 export const AdminOrganizationScalarFieldEnum = {
@@ -537,7 +569,8 @@ export const ApiIntegrationOrderByRelevanceFieldEnum = {
   name: 'name',
   tokenHash: 'tokenHash',
   tokenPrefix: 'tokenPrefix',
-  organizationId: 'organizationId'
+  organizationId: 'organizationId',
+  issuedByMasterKeyId: 'issuedByMasterKeyId'
 } as const
 
 export type ApiIntegrationOrderByRelevanceFieldEnum = (typeof ApiIntegrationOrderByRelevanceFieldEnum)[keyof typeof ApiIntegrationOrderByRelevanceFieldEnum]
@@ -553,6 +586,30 @@ export const ApiAuditLogOrderByRelevanceFieldEnum = {
 } as const
 
 export type ApiAuditLogOrderByRelevanceFieldEnum = (typeof ApiAuditLogOrderByRelevanceFieldEnum)[keyof typeof ApiAuditLogOrderByRelevanceFieldEnum]
+
+
+export const MasterApiKeyOrderByRelevanceFieldEnum = {
+  id: 'id',
+  partnerName: 'partnerName',
+  tokenHash: 'tokenHash',
+  tokenPrefix: 'tokenPrefix',
+  notes: 'notes'
+} as const
+
+export type MasterApiKeyOrderByRelevanceFieldEnum = (typeof MasterApiKeyOrderByRelevanceFieldEnum)[keyof typeof MasterApiKeyOrderByRelevanceFieldEnum]
+
+
+export const MasterApiAuditLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  masterKeyId: 'masterKeyId',
+  method: 'method',
+  path: 'path',
+  ip: 'ip',
+  createdOrganizationId: 'createdOrganizationId',
+  errorMessage: 'errorMessage'
+} as const
+
+export type MasterApiAuditLogOrderByRelevanceFieldEnum = (typeof MasterApiAuditLogOrderByRelevanceFieldEnum)[keyof typeof MasterApiAuditLogOrderByRelevanceFieldEnum]
 
 
 export const AdminOrganizationOrderByRelevanceFieldEnum = {

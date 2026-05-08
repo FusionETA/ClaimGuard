@@ -109,11 +109,17 @@ model ApiIntegration {
   active         Boolean       @default(true)
   createdAt      DateTime      @default(now())
   lastUsedAt     DateTime?
-  auditLogs      ApiAuditLog[]
-  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// When non-null, this integration was auto-issued by a partner via
+  /// `POST /api/v1/admin/organizations` (see MasterApiKey). Null when
+  /// the admin created the token manually through Settings → API.
+  issuedByMasterKeyId String?
+  auditLogs         ApiAuditLog[]
+  organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  issuedByMasterKey MasterApiKey?  @relation(fields: [issuedByMasterKeyId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([tokenHash])
+  @@index([issuedByMasterKeyId])
 }
 
 /// Audit trail for /api/v1 requests. One row per request, written after
@@ -137,6 +143,57 @@ model ApiAuditLog {
   integration   ApiIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
 
   @@index([integrationId, createdAt])
+  @@index([createdAt])
+}
+
+/// Partner-level "platform" credential. One row per integration partner
+/// (e.g. Acme HR portal). The partner uses this to call the
+/// /api/v1/admin/* endpoints — most importantly to provision a new
+/// Workpulse Organization on behalf of one of THEIR end-customers, which
+/// returns a per-org `ApiIntegration` token in the response.
+///
+/// Master keys never call /api/v1/<resource> directly — those routes
+/// always require a per-org token. This separation means a leaked master
+/// key cannot read any tenant's data: it can only create new tenants.
+///
+/// Token format: `wp_master_<64 hex chars>`. Stored as SHA-256 hash.
+model MasterApiKey {
+  id           String              @id @default(cuid())
+  partnerName  String              // human-readable, e.g. "Acme HR portal"
+  tokenHash    String              @unique
+  tokenPrefix  String              // "wp_master_xxxx" first 14 chars for visual ID
+  active       Boolean             @default(true)
+  /// Optional internal notes — contract id, contact email, etc. Never
+  /// surfaced to the partner.
+  notes        String?             @db.Text
+  createdAt    DateTime            @default(now())
+  lastUsedAt   DateTime?
+  issuedIntegrations ApiIntegration[]
+  auditLogs          MasterApiAuditLog[]
+
+  @@index([tokenHash])
+}
+
+/// Audit trail for /api/v1/admin/* requests authenticated by a master
+/// key. Kept separate from `ApiAuditLog` because those rows are scoped
+/// to a specific Organization/integration; master-key calls aren't (the
+/// org may not exist yet).
+model MasterApiAuditLog {
+  id           String       @id @default(cuid())
+  masterKeyId  String
+  method       String
+  path         String       @db.VarChar(500)
+  statusCode   Int
+  ip           String?      @db.VarChar(64)
+  /// When the call successfully provisioned a new organization, this is
+  /// set to the new org's id so the audit log can link back to the
+  /// tenant the master key created.
+  createdOrganizationId String?
+  errorMessage String?      @db.Text
+  createdAt    DateTime     @default(now())
+  masterKey    MasterApiKey @relation(fields: [masterKeyId], references: [id], onDelete: Cascade)
+
+  @@index([masterKeyId, createdAt])
   @@index([createdAt])
 }
 
