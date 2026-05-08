@@ -11,13 +11,13 @@ import { getPrismaClient } from "@/lib/prisma"
 
 export type ExecMonthClaimRow = {
   amount: { toString(): string } | number | string
-  employee: { employeeProfile: { project: string } | null } | null
+  project: { name: string } | null
 }
 
 export type ExecAttendanceRecordRow = {
   status: string
   project: string | null
-  employee: { employeeProfile: { project: string } | null } | null
+  projectRef: { name: string } | null
 }
 
 export type ExecOtReviewedRow = {
@@ -28,12 +28,7 @@ export type ExecOtReviewedRow = {
 }
 
 export type ExecOtPendingRow = {
-  employee: {
-    employeeProfile: {
-      supervisorId: string | null
-      supervisor: { id: string; name: string } | null
-    } | null
-  } | null
+  employeeId: string
 }
 
 export type ExecStalePendingClaimRow = {
@@ -53,7 +48,7 @@ export type ExecRunClaimRow = {
 export type ExecRejectedClaimRow = {
   id: string
   employeeId: string
-  reviewerId: string | null
+  lastReviewerId: string | null
 }
 
 export type ExecChainStepRow = {
@@ -79,9 +74,7 @@ export const executiveOverviewRepository = {
       },
       select: {
         amount: true,
-        employee: {
-          select: { employeeProfile: { select: { project: true } } },
-        },
+        project: { select: { name: true } },
       },
     })
   },
@@ -101,9 +94,7 @@ export const executiveOverviewRepository = {
       select: {
         status: true,
         project: true,
-        employee: {
-          select: { employeeProfile: { select: { project: true } } },
-        },
+        projectRef: { select: { name: true } },
       },
     })
   },
@@ -140,16 +131,7 @@ export const executiveOverviewRepository = {
         employee: { organizationId: orgId },
       },
       select: {
-        employee: {
-          select: {
-            employeeProfile: {
-              select: {
-                supervisorId: true,
-                supervisor: { select: { id: true, name: true } },
-              },
-            },
-          },
-        },
+        employeeId: true,
       },
     })
   },
@@ -216,9 +198,9 @@ export const executiveOverviewRepository = {
       where: {
         organizationId: orgId,
         status: "REJECTED",
-        reviewedAt: { gte: since },
+        lastReviewedAt: { gte: since },
       },
-      select: { id: true, employeeId: true, reviewerId: true },
+      select: { id: true, employeeId: true, lastReviewerId: true },
     })
   },
 

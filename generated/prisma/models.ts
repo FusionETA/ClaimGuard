@@ -10,6 +10,8 @@
  */
 export type * from './models/User'
 export type * from './models/Organization'
+export type * from './models/ApiIntegration'
+export type * from './models/ApiAuditLog'
 export type * from './models/AdminOrganization'
 export type * from './models/PushSubscription'
 export type * from './models/EmployeeProfile'

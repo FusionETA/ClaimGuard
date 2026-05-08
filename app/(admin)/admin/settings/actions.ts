@@ -5,11 +5,14 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import type { SettingsActionState } from "@/app/(admin)/admin/settings/form-state"
+import { generateApiToken } from "@/lib/api-auth"
+import { isKnownApiScope, type ApiScope } from "@/lib/api-scopes"
 import { clearAdminStore } from "@/lib/app-store"
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
 import { isKnownCurrency } from "@/lib/currencies"
 import type { XeroTenant } from "@/lib/xero"
 import { deleteXeroConnection } from "@/lib/xero"
+import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import {
   disconnectXeroConnection,
   syncOrganizationChartAccounts,
@@ -737,61 +740,6 @@ export async function deleteManualProjectAction(
   revalidateAdminSurfaces()
 
   return { ok: true, message: "Project deleted." }
-}
-
-export async function saveBankAccountAction(
-  _previousState: SettingsActionState,
-  formData: FormData
-): Promise<SettingsActionState> {
-  const session = await getCurrentSession()
-
-  if (!session || session.role !== "ADMIN") {
-    return { status: "error", message: "Session expired. Please log in again." }
-  }
-
-  const organizationId = resolveActiveOrgId(session)
-  if (!organizationId) {
-    return { status: "error", message: "Create an organization before adding a bank account." }
-  }
-
-  const bankAccount = String(formData.get("bankAccount") ?? "").trim()
-
-  try {
-    await organizationRepository.updateOrganizationBankAccount({
-      organizationId,
-      bankAccount,
-    })
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Unable to save bank account.",
-    }
-  }
-
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
-
-  return { status: "success", message: "Bank account saved." }
-}
-
-export async function deleteBankAccountAction(): Promise<{ ok: boolean; message: string }> {
-  const session = await getCurrentSession()
-
-  if (!session || session.role !== "ADMIN") {
-    return { ok: false, message: "Session expired. Please log in again." }
-  }
-
-  const organizationId = resolveActiveOrgId(session)
-  if (!organizationId) {
-    return { ok: false, message: "No organization found." }
-  }
-
-  await organizationRepository.updateOrganizationBankAccount({ organizationId, bankAccount: "" })
-
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
-
-  return { ok: true, message: "Bank account cleared." }
 }
 
 export async function saveClaimRunSettingsAction(
@@ -1694,4 +1642,159 @@ export async function createAdminAction(
     status: "success",
     message: `New admin invited. They can sign in with the temp password.`,
   }
+}
+
+// ----------------------------------------------------------------------------
+// External API integrations
+// ----------------------------------------------------------------------------
+
+const apiTokenCreateSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters.")
+    .max(80, "Name is too long."),
+  scopes: z
+    .array(z.string())
+    .min(1, "Pick at least one scope.")
+    .refine(
+      (scopes) => scopes.every((s) => isKnownApiScope(s)),
+      { message: "One or more scopes are not recognised." },
+    ),
+})
+
+/**
+ * Create a new API token for the active organisation. Returns the raw
+ * token in `secretToken` — this is the ONLY time the raw value is
+ * exposed; the admin must copy it now or revoke and recreate. The
+ * persisted row stores only the SHA-256 hash.
+ *
+ * Token shape: `wp_live_<32 hex chars>`. Prefix `wp_live_` is just a
+ * branding signal so a leaked credential is recognisable in logs/code.
+ */
+export async function createApiTokenAction(formData: FormData): Promise<{
+  ok: boolean
+  message: string
+  /** Only present on success — show in UI exactly once, then forget. */
+  secretToken?: string
+  /** Last 4 chars of the secret — useful for the post-create dialog. */
+  prefix?: string
+}> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return {
+      ok: false,
+      message: "Pick or create an organization before adding API tokens.",
+    }
+  }
+
+  const scopesRaw = formData.getAll("scopes").map(String).filter(Boolean)
+  const parsed = apiTokenCreateSchema.safeParse({
+    name: formData.get("name") ?? "",
+    scopes: scopesRaw,
+  })
+
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Could not create token.",
+    }
+  }
+
+  const { raw, hash, prefix } = generateApiToken()
+
+  try {
+    await apiIntegrationRepository.create({
+      organizationId,
+      name: parsed.data.name,
+      tokenHash: hash,
+      tokenPrefix: prefix,
+      // Cast is safe — the schema refine guaranteed every entry is a
+      // known scope.
+      scopes: parsed.data.scopes as ApiScope[],
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error ? error.message : "Could not create token.",
+    }
+  }
+
+  revalidateAdminSurfaces()
+
+  return {
+    ok: true,
+    message: "Token created. Copy the secret now — it won't be shown again.",
+    secretToken: raw,
+    prefix,
+  }
+}
+
+/** Toggle an integration's `active` flag without deleting it. Useful if
+ *  you want to pause an integration temporarily without re-issuing a
+ *  token to the partner. */
+export async function setApiTokenActiveAction(input: {
+  integrationId: string
+  active: boolean
+}): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { ok: false, message: "No active organization." }
+  }
+
+  const result = await apiIntegrationRepository.setActive({
+    organizationId,
+    integrationId: input.integrationId,
+    active: input.active,
+  })
+
+  if (!result.ok) {
+    return { ok: false, message: "Token not found." }
+  }
+
+  revalidateAdminSurfaces()
+  return {
+    ok: true,
+    message: input.active ? "Token re-enabled." : "Token revoked.",
+  }
+}
+
+/** Hard delete — also drops the audit log rows for that integration via
+ *  cascade. Prefer `setApiTokenActiveAction(false)` if you might want to
+ *  re-enable later. */
+export async function deleteApiTokenAction(input: {
+  integrationId: string
+}): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { ok: false, message: "No active organization." }
+  }
+
+  const result = await apiIntegrationRepository.deleteForOrganization({
+    organizationId,
+    integrationId: input.integrationId,
+  })
+
+  if (!result.ok) {
+    return { ok: false, message: "Token not found." }
+  }
+
+  revalidateAdminSurfaces()
+  return { ok: true, message: "Token deleted." }
 }

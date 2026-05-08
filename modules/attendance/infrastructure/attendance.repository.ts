@@ -446,7 +446,6 @@ export const attendanceRepository = {
    */
   async getEmployeeProjectAssignments(employeeId: string): Promise<{
     organizationId: string | null
-    legacyProject: string | null
     assignments: Array<{
       id: string
       name: string
@@ -462,7 +461,6 @@ export const attendanceRepository = {
         organizationId: true,
         employeeProfile: {
           select: {
-            project: true,
             projectAssignments: {
               select: {
                 project: {
@@ -484,7 +482,6 @@ export const attendanceRepository = {
     if (!user) return null
     return {
       organizationId: user.organizationId ?? null,
-      legacyProject: user.employeeProfile?.project ?? null,
       assignments: (user.employeeProfile?.projectAssignments ?? []).map(
         (assignment) => assignment.project
       ),
@@ -1058,46 +1055,31 @@ export const attendanceRepository = {
   // ── Supervisor ────────────────────────────────────────────────────────
 
   /// Returns the userIds of every employee this supervisor could ever
-  /// approve for. Sourced from two places:
-  ///   1. ApprovalChainStep rows where this user is the approver — the
-  ///      authoritative multi-layer chain. This is what `reviewApproval`
-  ///      and `currentStepApproverIds` filter against downstream.
-  ///   2. EmployeeProfile.supervisorId — the legacy single-pointer field
-  ///      kept for backwards compat with rows created before the
-  ///      multi-layer chain existed.
-  /// The union is the right "could see" set; the per-request filter
-  /// `currentStepApproverIds.includes(supervisorId)` then narrows it to
-  /// "is it your step right now".
+  /// approve for, sourced from ApprovalChainStep rows where this user is
+  /// the approver. This is the authoritative multi-layer chain — the
+  /// per-request filter `currentStepApproverIds.includes(supervisorId)`
+  /// then narrows it to "is it your step right now".
   async getTeamMemberIds(supervisorId: string): Promise<string[]> {
     const prisma = getClient()
-    const [profiles, chain] = await Promise.all([
-      prisma.employeeProfile.findMany({
-        where: { supervisorId },
-        select: { userId: true },
-      }),
-      prisma.approvalChainStep.findMany({
-        where: { approverId: supervisorId },
-        distinct: ["employeeId"],
-        select: { employeeId: true },
-      }),
-    ])
-    return Array.from(
-      new Set([
-        ...profiles.map((p) => p.userId),
-        ...chain.map((c) => c.employeeId),
-      ]),
-    )
+    const chain = await prisma.approvalChainStep.findMany({
+      where: { approverId: supervisorId },
+      distinct: ["employeeId"],
+      select: { employeeId: true },
+    })
+    return Array.from(new Set(chain.map((c) => c.employeeId)))
   },
 
   async getTeamOverview(supervisorId: string): Promise<SupervisorTeamOverview> {
     const prisma = getClient()
     const today = startOfDay(new Date())
 
-    const profiles = await prisma.employeeProfile.findMany({
-      where: { supervisorId },
-      include: { user: { select: { id: true, name: true } } },
-    })
-    const memberIds = profiles.map((p) => p.userId)
+    const memberIds = await this.getTeamMemberIds(supervisorId)
+    const users = memberIds.length
+      ? await prisma.user.findMany({
+          where: { id: { in: memberIds } },
+          select: { id: true, name: true },
+        })
+      : []
 
     const todays = memberIds.length
       ? await prisma.attendanceRecord.findMany({
@@ -1124,11 +1106,11 @@ export const attendanceRepository = {
       lateToday,
       onLeaveToday,
       pendingApprovals,
-      team: profiles.map((p) => ({
-        employeeId: p.userId,
-        name: p.user.name,
-        initials: buildInitials(p.user.name),
-        today: byMember.get(p.userId) ? attendanceToView(byMember.get(p.userId)!) : null,
+      team: users.map((u) => ({
+        employeeId: u.id,
+        name: u.name,
+        initials: buildInitials(u.name),
+        today: byMember.get(u.id) ? attendanceToView(byMember.get(u.id)!) : null,
       })),
     }
   },
@@ -1180,13 +1162,22 @@ export const attendanceRepository = {
           select: {
             employeeId: true,
             jobTitle: true,
-            project: true,
-            supervisor: { select: { name: true } },
+            projectAssignments: {
+              select: { project: { select: { name: true } } },
+              orderBy: { createdAt: "asc" },
+              take: 1,
+            },
           },
+        },
+        approvalChainSteps: {
+          where: { step: 1 },
+          select: { approver: { select: { name: true } } },
+          take: 1,
         },
       },
     })
     if (!user) return null
+    const primaryProject = user.employeeProfile?.projectAssignments?.[0]?.project?.name ?? null
     return {
       id: user.id,
       name: user.name,
@@ -1194,10 +1185,10 @@ export const attendanceRepository = {
       role: user.role,
       initials: buildInitials(user.name),
       jobTitle: user.employeeProfile?.jobTitle ?? null,
-      project: user.employeeProfile?.project ?? null,
+      project: primaryProject,
       employeeIdRef: user.employeeProfile?.employeeId ?? null,
       organizationId: user.organizationId,
-      supervisorName: user.employeeProfile?.supervisor?.name ?? null,
+      supervisorName: user.approvalChainSteps?.[0]?.approver.name ?? null,
     }
   },
 
@@ -1225,7 +1216,15 @@ export const attendanceRepository = {
         name: true,
         email: true,
         role: true,
-        employeeProfile: { select: { jobTitle: true, project: true } },
+        employeeProfile: {
+          select: {
+            jobTitle: true,
+            projectAssignments: {
+              select: { project: { select: { name: true } } },
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        },
       },
     })
     if (users.length === 0) return []
@@ -1236,6 +1235,10 @@ export const attendanceRepository = {
     const byUser = new Map(records.map((r) => [r.employeeId, r]))
     return users.map((u) => {
       const today = byUser.get(u.id)
+      const projectName =
+        u.employeeProfile?.projectAssignments
+          ?.map((a) => a.project.name)
+          .join(", ") || null
       return {
         id: u.id,
         name: u.name,
@@ -1243,7 +1246,7 @@ export const attendanceRepository = {
         role: u.role,
         initials: buildInitials(u.name),
         jobTitle: u.employeeProfile?.jobTitle ?? null,
-        project: u.employeeProfile?.project ?? null,
+        project: projectName,
         todayStatus: (today?.status as AttendanceStatus | undefined) ?? null,
         todayTimeIn: today?.timeIn?.toISOString() ?? null,
       }
@@ -1575,7 +1578,14 @@ export const attendanceRepository = {
           id: true,
           name: true,
           employeeProfile: {
-            select: { employeeId: true, project: true, jobTitle: true },
+            select: {
+              employeeId: true,
+              jobTitle: true,
+              projectAssignments: {
+                select: { project: { select: { name: true } } },
+                orderBy: { createdAt: "asc" },
+              },
+            },
           },
         },
         orderBy: { name: "asc" },
@@ -1609,7 +1619,10 @@ export const attendanceRepository = {
       name: e.name,
       employeeId: e.employeeProfile?.employeeId ?? "",
       jobTitle: e.employeeProfile?.jobTitle ?? "",
-      project: e.employeeProfile?.project ?? "",
+      project:
+        e.employeeProfile?.projectAssignments
+          ?.map((a) => a.project.name)
+          .join(", ") ?? "",
       lateByMin: record?.lateByMin ?? undefined,
       timeIn: record?.timeIn?.toISOString() ?? undefined,
     })

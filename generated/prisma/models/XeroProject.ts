@@ -43,7 +43,6 @@ export type XeroProjectMinAggregateOutputType = {
   xeroProjectId: string | null
   name: string | null
   status: string | null
-  contactId: string | null
   createdAt: Date | null
   updatedAt: Date | null
   isManual: boolean | null
@@ -64,7 +63,6 @@ export type XeroProjectMaxAggregateOutputType = {
   xeroProjectId: string | null
   name: string | null
   status: string | null
-  contactId: string | null
   createdAt: Date | null
   updatedAt: Date | null
   isManual: boolean | null
@@ -85,7 +83,6 @@ export type XeroProjectCountAggregateOutputType = {
   xeroProjectId: number
   name: number
   status: number
-  contactId: number
   createdAt: number
   updatedAt: number
   isManual: number
@@ -118,7 +115,6 @@ export type XeroProjectMinAggregateInputType = {
   xeroProjectId?: true
   name?: true
   status?: true
-  contactId?: true
   createdAt?: true
   updatedAt?: true
   isManual?: true
@@ -139,7 +135,6 @@ export type XeroProjectMaxAggregateInputType = {
   xeroProjectId?: true
   name?: true
   status?: true
-  contactId?: true
   createdAt?: true
   updatedAt?: true
   isManual?: true
@@ -160,7 +155,6 @@ export type XeroProjectCountAggregateInputType = {
   xeroProjectId?: true
   name?: true
   status?: true
-  contactId?: true
   createdAt?: true
   updatedAt?: true
   isManual?: true
@@ -268,7 +262,6 @@ export type XeroProjectGroupByOutputType = {
   xeroProjectId: string | null
   name: string
   status: string | null
-  contactId: string | null
   createdAt: Date
   updatedAt: Date
   isManual: boolean
@@ -312,7 +305,6 @@ export type XeroProjectWhereInput = {
   xeroProjectId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   name?: Prisma.StringFilter<"XeroProject"> | string
   status?: Prisma.StringNullableFilter<"XeroProject"> | string | null
-  contactId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   createdAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
   isManual?: Prisma.BoolFilter<"XeroProject"> | boolean
@@ -342,7 +334,6 @@ export type XeroProjectOrderByWithRelationInput = {
   xeroProjectId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
-  contactId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
@@ -377,7 +368,6 @@ export type XeroProjectWhereUniqueInput = Prisma.AtLeast<{
   xeroProjectId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   name?: Prisma.StringFilter<"XeroProject"> | string
   status?: Prisma.StringNullableFilter<"XeroProject"> | string | null
-  contactId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   createdAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
   isManual?: Prisma.BoolFilter<"XeroProject"> | boolean
@@ -407,7 +397,6 @@ export type XeroProjectOrderByWithAggregationInput = {
   xeroProjectId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
-  contactId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
@@ -436,7 +425,6 @@ export type XeroProjectScalarWhereWithAggregatesInput = {
   xeroProjectId?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
   name?: Prisma.StringWithAggregatesFilter<"XeroProject"> | string
   status?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
-  contactId?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"XeroProject"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"XeroProject"> | Date | string
   isManual?: Prisma.BoolWithAggregatesFilter<"XeroProject"> | boolean
@@ -455,7 +443,6 @@ export type XeroProjectCreateInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -484,7 +471,6 @@ export type XeroProjectUncheckedCreateInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -509,7 +495,6 @@ export type XeroProjectUpdateInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -538,7 +523,6 @@ export type XeroProjectUncheckedUpdateInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -565,7 +549,6 @@ export type XeroProjectCreateManyInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -584,7 +567,6 @@ export type XeroProjectUpdateManyMutationInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -604,7 +586,6 @@ export type XeroProjectUncheckedUpdateManyInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -656,7 +637,6 @@ export type XeroProjectCountOrderByAggregateInput = {
   xeroProjectId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  contactId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
@@ -682,7 +662,6 @@ export type XeroProjectMaxOrderByAggregateInput = {
   xeroProjectId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  contactId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
@@ -703,7 +682,6 @@ export type XeroProjectMinOrderByAggregateInput = {
   xeroProjectId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  contactId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   isManual?: Prisma.SortOrder
@@ -949,7 +927,6 @@ export type XeroProjectCreateWithoutProjectManagerInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -977,7 +954,6 @@ export type XeroProjectUncheckedCreateWithoutProjectManagerInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1032,7 +1008,6 @@ export type XeroProjectScalarWhereInput = {
   xeroProjectId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   name?: Prisma.StringFilter<"XeroProject"> | string
   status?: Prisma.StringNullableFilter<"XeroProject"> | string | null
-  contactId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   createdAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
   isManual?: Prisma.BoolFilter<"XeroProject"> | boolean
@@ -1051,7 +1026,6 @@ export type XeroProjectCreateWithoutOrganizationInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1078,7 +1052,6 @@ export type XeroProjectUncheckedCreateWithoutOrganizationInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1129,7 +1102,6 @@ export type XeroProjectCreateWithoutAssignedEmployeesInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1157,7 +1129,6 @@ export type XeroProjectUncheckedCreateWithoutAssignedEmployeesInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1197,7 +1168,6 @@ export type XeroProjectUpdateWithoutAssignedEmployeesInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1225,7 +1195,6 @@ export type XeroProjectUncheckedUpdateWithoutAssignedEmployeesInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1249,7 +1218,6 @@ export type XeroProjectCreateWithoutClaimsInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1277,7 +1245,6 @@ export type XeroProjectUncheckedCreateWithoutClaimsInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1317,7 +1284,6 @@ export type XeroProjectUpdateWithoutClaimsInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1345,7 +1311,6 @@ export type XeroProjectUncheckedUpdateWithoutClaimsInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1369,7 +1334,6 @@ export type XeroProjectCreateWithoutXeroConnectionInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1396,7 +1360,6 @@ export type XeroProjectUncheckedCreateWithoutXeroConnectionInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1447,7 +1410,6 @@ export type XeroProjectCreateWithoutHolidaysInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1475,7 +1437,6 @@ export type XeroProjectUncheckedCreateWithoutHolidaysInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1515,7 +1476,6 @@ export type XeroProjectUpdateWithoutHolidaysInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1543,7 +1503,6 @@ export type XeroProjectUncheckedUpdateWithoutHolidaysInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1567,7 +1526,6 @@ export type XeroProjectCreateWithoutProjectManagersInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1595,7 +1553,6 @@ export type XeroProjectUncheckedCreateWithoutProjectManagersInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1635,7 +1592,6 @@ export type XeroProjectUpdateWithoutProjectManagersInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1663,7 +1619,6 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagersInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1687,7 +1642,6 @@ export type XeroProjectCreateWithoutAttendanceRecordsInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1715,7 +1669,6 @@ export type XeroProjectUncheckedCreateWithoutAttendanceRecordsInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1755,7 +1708,6 @@ export type XeroProjectUpdateWithoutAttendanceRecordsInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1783,7 +1735,6 @@ export type XeroProjectUncheckedUpdateWithoutAttendanceRecordsInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1807,7 +1758,6 @@ export type XeroProjectCreateWithoutTeamsInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1835,7 +1785,6 @@ export type XeroProjectUncheckedCreateWithoutTeamsInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1875,7 +1824,6 @@ export type XeroProjectUpdateWithoutTeamsInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1903,7 +1851,6 @@ export type XeroProjectUncheckedUpdateWithoutTeamsInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1929,7 +1876,6 @@ export type XeroProjectCreateManyProjectManagerInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -1947,7 +1893,6 @@ export type XeroProjectUpdateWithoutProjectManagerInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1975,7 +1920,6 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagerInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2001,7 +1945,6 @@ export type XeroProjectUncheckedUpdateManyWithoutProjectManagerInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2020,7 +1963,6 @@ export type XeroProjectCreateManyOrganizationInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -2039,7 +1981,6 @@ export type XeroProjectUpdateWithoutOrganizationInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2066,7 +2007,6 @@ export type XeroProjectUncheckedUpdateWithoutOrganizationInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2092,7 +2032,6 @@ export type XeroProjectUncheckedUpdateManyWithoutOrganizationInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2112,7 +2051,6 @@ export type XeroProjectCreateManyXeroConnectionInput = {
   xeroProjectId?: string | null
   name: string
   status?: string | null
-  contactId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   isManual?: boolean
@@ -2131,7 +2069,6 @@ export type XeroProjectUpdateWithoutXeroConnectionInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2158,7 +2095,6 @@ export type XeroProjectUncheckedUpdateWithoutXeroConnectionInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2184,7 +2120,6 @@ export type XeroProjectUncheckedUpdateManyWithoutXeroConnectionInput = {
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isManual?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2281,7 +2216,6 @@ export type XeroProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   xeroProjectId?: boolean
   name?: boolean
   status?: boolean
-  contactId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   isManual?: boolean
@@ -2314,7 +2248,6 @@ export type XeroProjectSelectScalar = {
   xeroProjectId?: boolean
   name?: boolean
   status?: boolean
-  contactId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   isManual?: boolean
@@ -2328,7 +2261,7 @@ export type XeroProjectSelectScalar = {
   workingDays?: boolean
 }
 
-export type XeroProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroProjectId" | "name" | "status" | "contactId" | "createdAt" | "updatedAt" | "isManual" | "location" | "projectManagerId" | "isDisabled" | "latitude" | "longitude" | "workingHoursStart" | "workingHoursEnd" | "workingDays", ExtArgs["result"]["xeroProject"]>
+export type XeroProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroProjectId" | "name" | "status" | "createdAt" | "updatedAt" | "isManual" | "location" | "projectManagerId" | "isDisabled" | "latitude" | "longitude" | "workingHoursStart" | "workingHoursEnd" | "workingDays", ExtArgs["result"]["xeroProject"]>
 export type XeroProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendanceRecords?: boolean | Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>
   claims?: boolean | Prisma.XeroProject$claimsArgs<ExtArgs>
@@ -2362,7 +2295,6 @@ export type $XeroProjectPayload<ExtArgs extends runtime.Types.Extensions.Interna
     xeroProjectId: string | null
     name: string
     status: string | null
-    contactId: string | null
     createdAt: Date
     updatedAt: Date
     isManual: boolean
@@ -2758,7 +2690,6 @@ export interface XeroProjectFieldRefs {
   readonly xeroProjectId: Prisma.FieldRef<"XeroProject", 'String'>
   readonly name: Prisma.FieldRef<"XeroProject", 'String'>
   readonly status: Prisma.FieldRef<"XeroProject", 'String'>
-  readonly contactId: Prisma.FieldRef<"XeroProject", 'String'>
   readonly createdAt: Prisma.FieldRef<"XeroProject", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"XeroProject", 'DateTime'>
   readonly isManual: Prisma.FieldRef<"XeroProject", 'Boolean'>

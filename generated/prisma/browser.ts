@@ -28,6 +28,26 @@ export type User = Prisma.UserModel
  */
 export type Organization = Prisma.OrganizationModel
 /**
+ * Model ApiIntegration
+ * External-system API tokens. Each row is a tenant's bearer credential
+ * for calling /api/v1 routes. Tokens are stored only as bcrypt-style
+ * hashes — the raw token is shown once on creation and never again.
+ * 
+ * Each token is permanently scoped to a single Organization, so server
+ * logic can resolve `orgId` from the token alone — clients never pass
+ * it. Permissions are gated by `scopes` (a JSON string array such as
+ * ["employees:read","employees:write","claims:read"]).
+ */
+export type ApiIntegration = Prisma.ApiIntegrationModel
+/**
+ * Model ApiAuditLog
+ * Audit trail for /api/v1 requests. One row per request, written after
+ * auth resolves (so unauthenticated requests don't pollute the log).
+ * Retained for forensic/compliance review; the admin's API tab can
+ * surface a recent slice of this.
+ */
+export type ApiAuditLog = Prisma.ApiAuditLogModel
+/**
  * Model AdminOrganization
  * 
  */

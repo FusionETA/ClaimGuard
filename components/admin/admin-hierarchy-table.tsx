@@ -81,11 +81,10 @@ const payoutMethodOptions = employeePayoutMethods
 
 function getDirectSupervisor(member: OrganizationMember) {
   // Use the first team's first chain step's first approver as the
-  // visible supervisor. Falls back to the legacy supervisorName for
-  // employees without team chains yet.
+  // visible supervisor.
   const firstChainStep = member.teams.flatMap((t) => t.chain)[0]
   const firstApprover = firstChainStep?.approvers[0]
-  return firstApprover?.approverName ?? member.supervisorName ?? null
+  return firstApprover?.approverName ?? null
 }
 
 function chainStepCount(member: OrganizationMember) {
@@ -123,7 +122,6 @@ function ProjectMultiSelect({
   onToggle,
   disabled,
   helperText,
-  legacyProjectName,
 }: {
   inputName: string
   projects: OrganizationProjectOption[]
@@ -131,7 +129,6 @@ function ProjectMultiSelect({
   onToggle: (projectId: string) => void
   disabled?: boolean
   helperText?: string
-  legacyProjectName?: string
 }) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -210,11 +207,6 @@ function ProjectMultiSelect({
         </div>
       )}
       {helperText ? <p className="text-xs font-medium text-muted-foreground">{helperText}</p> : null}
-      {legacyProjectName ? (
-        <p className="text-xs font-medium text-muted-foreground">
-          Current legacy project: {legacyProjectName}
-        </p>
-      ) : null}
     </div>
   )
 }
@@ -1181,10 +1173,8 @@ function HierarchyEditDialog({
       createInitialHierarchyFormState({
         role: member.role,
         organizationId: member.organizationId ?? "",
-        project: member.project,
         jobTitle: member.jobTitle,
         payoutMethod: member.payoutMethod,
-        supervisorId: member.supervisorId ?? "",
         xeroConnectionId,
       }),
     [member, xeroConnectionId]
@@ -1203,7 +1193,7 @@ function HierarchyEditDialog({
     member.otPayoutMethod,
   )
   const [selectedEditProjectIds, setSelectedEditProjectIds] = useState<string[]>(
-    member.projects.filter((project) => !project.id.startsWith("legacy:")).map((project) => project.id)
+    member.projects.map((project) => project.id)
   )
 
   /// Per-project routing config keyed by projectId. Prefilled from the
@@ -1507,9 +1497,6 @@ function HierarchyEditDialog({
                     projects={filteredProjects}
                     selectedProjectIds={selectedEditProjectIds}
                     disabled={pending}
-                    legacyProjectName={
-                      member.projects.find((project) => project.id.startsWith("legacy:"))?.name
-                    }
                     onToggle={(projectId) =>
                       setSelectedEditProjectIds((current) =>
                         current.includes(projectId)
