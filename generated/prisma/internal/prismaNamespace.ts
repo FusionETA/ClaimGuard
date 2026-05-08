@@ -1885,7 +1885,9 @@ export const OrganizationScalarFieldEnum = {
   timezone: 'timezone',
   otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   allowedCurrencies: 'allowedCurrencies',
-  defaultCurrency: 'defaultCurrency'
+  defaultCurrency: 'defaultCurrency',
+  supervisorReportEnabled: 'supervisorReportEnabled',
+  supervisorSlaMinutes: 'supervisorSlaMinutes'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]

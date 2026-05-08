@@ -23,6 +23,7 @@ import {
   saveOrganizationSettingsAction,
   saveOtRatesAction,
   toggleOrgOtAction,
+  saveSupervisorReportSettingsAction,
   saveGeofenceRadiusAction,
   saveOrgTimezoneAction,
   saveOrgWorkingHoursAction,
@@ -65,7 +66,7 @@ import type {
 } from "@/modules/organization/domain/models"
 
 type TabKey = "organization" | "claims" | "accounts" | "projects" | "work-schedule" | "leave" | "api"
-type WorkScheduleSection = "ot-rates" | "calendar"
+type WorkScheduleSection = "ot-rates" | "calendar" | "attendance"
 
 /** Lat/Lng pair inputs used for project geofence setup.
  *  - In edit (controlled) mode: pass defaultLat/defaultLng + onChange.
@@ -504,7 +505,11 @@ export function AdminSettingsPanel({
     initialResolved.accountsSub
   )
   const [workScheduleSection, setWorkScheduleSection] = useState<WorkScheduleSection>(
-    initialSection === "calendar" ? "calendar" : "ot-rates"
+    initialSection === "calendar"
+      ? "calendar"
+      : initialSection === "attendance"
+        ? "attendance"
+        : "ot-rates"
   )
 
   useEffect(() => {
@@ -1842,6 +1847,7 @@ export function AdminSettingsPanel({
               [
                 ["ot-rates", "OT Rates"],
                 ["calendar", "Calendar"],
+                ["attendance", "Attendance"],
               ] as const
             ).map(([value, label]) => (
               <Link
@@ -1865,11 +1871,15 @@ export function AdminSettingsPanel({
               <OrgOtToggleCard organization={organization} />
               <OtRatesCard organization={organization} />
             </>
-          ) : (
+          ) : workScheduleSection === "calendar" ? (
             <>
               <OrgWorkingHoursCard initial={workingHours} />
               <OrgTimezoneCard initial={timezone} />
               <ProjectCalendarPanel projects={projects} orgWorkingHours={workingHours} />
+            </>
+          ) : (
+            <>
+              <SupervisorReportCard organization={organization} />
             </>
           )}
         </div>
@@ -2296,6 +2306,119 @@ function OrgOtToggleCard({ organization }: { organization?: OrganizationSummary 
             )}
           />
         </button>
+      </CardContent>
+    </Card>
+  )
+}
+
+function SupervisorReportCard({
+  organization,
+}: {
+  organization?: OrganizationSummary
+}) {
+  const { toast } = useToast()
+  const [pending, startTransition] = useTransition()
+  const [enabled, setEnabled] = useState<boolean>(
+    organization?.supervisorReportEnabled ?? true,
+  )
+  const [slaInput, setSlaInput] = useState<string>(
+    String(organization?.supervisorSlaMinutes ?? 60),
+  )
+
+  useEffect(() => {
+    setEnabled(organization?.supervisorReportEnabled ?? true)
+    setSlaInput(String(organization?.supervisorSlaMinutes ?? 60))
+  }, [organization?.supervisorReportEnabled, organization?.supervisorSlaMinutes])
+
+  function persist(nextEnabled: boolean, nextSla: number) {
+    startTransition(async () => {
+      const result = await saveSupervisorReportSettingsAction(nextEnabled, nextSla)
+      if (!result.ok) {
+        toast({ title: result.message, variant: "error" })
+        // Revert local state on failure.
+        setEnabled(organization?.supervisorReportEnabled ?? true)
+        setSlaInput(String(organization?.supervisorSlaMinutes ?? 60))
+      } else {
+        toast({ title: result.message, variant: "success" })
+      }
+    })
+  }
+
+  function handleToggle(next: boolean) {
+    setEnabled(next)
+    const sla = Number.parseInt(slaInput, 10)
+    persist(next, Number.isFinite(sla) && sla > 0 ? sla : 60)
+  }
+
+  function handleSlaBlur() {
+    const sla = Number.parseInt(slaInput, 10)
+    if (!Number.isFinite(sla) || sla < 1 || sla > 24 * 60) {
+      toast({ title: "SLA must be between 1 and 1440 minutes.", variant: "error" })
+      setSlaInput(String(organization?.supervisorSlaMinutes ?? 60))
+      return
+    }
+    if (sla === (organization?.supervisorSlaMinutes ?? 60)) return
+    persist(enabled, sla)
+  }
+
+  return (
+    <Card>
+      <CardContent className="space-y-4 py-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              Supervisor performance report
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Adds a card to the attendance Trends tab showing supervisors with
+              slow approvals (above the SLA below) and any rejections in the
+              selected range.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            disabled={pending}
+            onClick={() => handleToggle(!enabled)}
+            className={cn(
+              "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors",
+              enabled ? "bg-primary" : "bg-border",
+              pending && "opacity-60",
+            )}
+          >
+            <span
+              className={cn(
+                "inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform",
+                enabled ? "translate-x-5" : "translate-x-0.5",
+              )}
+            />
+          </button>
+        </div>
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor="supervisor-sla"
+            className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+          >
+            Slow approval SLA (minutes)
+          </label>
+          <Input
+            id="supervisor-sla"
+            type="number"
+            min={1}
+            max={1440}
+            step={1}
+            className="h-9 w-[120px]"
+            value={slaInput}
+            onChange={(e) => setSlaInput(e.target.value)}
+            onBlur={handleSlaBlur}
+            disabled={pending || !enabled}
+          />
+          <span className="text-xs text-muted-foreground">
+            Default 60 min. Decisions reviewed past this threshold count as
+            slow.
+          </span>
+        </div>
       </CardContent>
     </Card>
   )

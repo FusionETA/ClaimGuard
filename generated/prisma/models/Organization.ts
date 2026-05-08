@@ -37,6 +37,7 @@ export type OrganizationAvgAggregateOutputType = {
   geofenceRadiusMeters: number | null
   defaultMileageRate: runtime.Decimal | null
   otDailyThresholdMinutes: number | null
+  supervisorSlaMinutes: number | null
 }
 
 export type OrganizationSumAggregateOutputType = {
@@ -50,6 +51,7 @@ export type OrganizationSumAggregateOutputType = {
   geofenceRadiusMeters: number | null
   defaultMileageRate: runtime.Decimal | null
   otDailyThresholdMinutes: number | null
+  supervisorSlaMinutes: number | null
 }
 
 export type OrganizationMinAggregateOutputType = {
@@ -73,6 +75,8 @@ export type OrganizationMinAggregateOutputType = {
   timezone: string | null
   otDailyThresholdMinutes: number | null
   defaultCurrency: string | null
+  supervisorReportEnabled: boolean | null
+  supervisorSlaMinutes: number | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -96,6 +100,8 @@ export type OrganizationMaxAggregateOutputType = {
   timezone: string | null
   otDailyThresholdMinutes: number | null
   defaultCurrency: string | null
+  supervisorReportEnabled: boolean | null
+  supervisorSlaMinutes: number | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -120,6 +126,8 @@ export type OrganizationCountAggregateOutputType = {
   otDailyThresholdMinutes: number
   allowedCurrencies: number
   defaultCurrency: number
+  supervisorReportEnabled: number
+  supervisorSlaMinutes: number
   _all: number
 }
 
@@ -135,6 +143,7 @@ export type OrganizationAvgAggregateInputType = {
   geofenceRadiusMeters?: true
   defaultMileageRate?: true
   otDailyThresholdMinutes?: true
+  supervisorSlaMinutes?: true
 }
 
 export type OrganizationSumAggregateInputType = {
@@ -148,6 +157,7 @@ export type OrganizationSumAggregateInputType = {
   geofenceRadiusMeters?: true
   defaultMileageRate?: true
   otDailyThresholdMinutes?: true
+  supervisorSlaMinutes?: true
 }
 
 export type OrganizationMinAggregateInputType = {
@@ -171,6 +181,8 @@ export type OrganizationMinAggregateInputType = {
   timezone?: true
   otDailyThresholdMinutes?: true
   defaultCurrency?: true
+  supervisorReportEnabled?: true
+  supervisorSlaMinutes?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -194,6 +206,8 @@ export type OrganizationMaxAggregateInputType = {
   timezone?: true
   otDailyThresholdMinutes?: true
   defaultCurrency?: true
+  supervisorReportEnabled?: true
+  supervisorSlaMinutes?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -218,6 +232,8 @@ export type OrganizationCountAggregateInputType = {
   otDailyThresholdMinutes?: true
   allowedCurrencies?: true
   defaultCurrency?: true
+  supervisorReportEnabled?: true
+  supervisorSlaMinutes?: true
   _all?: true
 }
 
@@ -329,6 +345,8 @@ export type OrganizationGroupByOutputType = {
   otDailyThresholdMinutes: number
   allowedCurrencies: runtime.JsonValue | null
   defaultCurrency: string | null
+  supervisorReportEnabled: boolean
+  supervisorSlaMinutes: number
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -376,13 +394,15 @@ export type OrganizationWhereInput = {
   otDailyThresholdMinutes?: Prisma.IntFilter<"Organization"> | number
   allowedCurrencies?: Prisma.JsonNullableFilter<"Organization">
   defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
+  supervisorReportEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  supervisorSlaMinutes?: Prisma.IntFilter<"Organization"> | number
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
+  apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
-  apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -407,13 +427,15 @@ export type OrganizationOrderByWithRelationInput = {
   otDailyThresholdMinutes?: Prisma.SortOrder
   allowedCurrencies?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
+  supervisorReportEnabled?: Prisma.SortOrder
+  supervisorSlaMinutes?: Prisma.SortOrder
   adminMembers?: Prisma.AdminOrganizationOrderByRelationAggregateInput
+  apiIntegrations?: Prisma.ApiIntegrationOrderByRelationAggregateInput
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
   users?: Prisma.UserOrderByRelationAggregateInput
   xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
   projects?: Prisma.XeroProjectOrderByRelationAggregateInput
-  apiIntegrations?: Prisma.ApiIntegrationOrderByRelationAggregateInput
   _relevance?: Prisma.OrganizationOrderByRelevanceInput
 }
 
@@ -442,13 +464,15 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   otDailyThresholdMinutes?: Prisma.IntFilter<"Organization"> | number
   allowedCurrencies?: Prisma.JsonNullableFilter<"Organization">
   defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
+  supervisorReportEnabled?: Prisma.BoolFilter<"Organization"> | boolean
+  supervisorSlaMinutes?: Prisma.IntFilter<"Organization"> | number
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
+  apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
-  apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
 }, "id" | "name">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -473,6 +497,8 @@ export type OrganizationOrderByWithAggregationInput = {
   otDailyThresholdMinutes?: Prisma.SortOrder
   allowedCurrencies?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
+  supervisorReportEnabled?: Prisma.SortOrder
+  supervisorSlaMinutes?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -505,6 +531,8 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   otDailyThresholdMinutes?: Prisma.IntWithAggregatesFilter<"Organization"> | number
   allowedCurrencies?: Prisma.JsonNullableWithAggregatesFilter<"Organization">
   defaultCurrency?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
+  supervisorReportEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
+  supervisorSlaMinutes?: Prisma.IntWithAggregatesFilter<"Organization"> | number
 }
 
 export type OrganizationCreateInput = {
@@ -529,13 +557,15 @@ export type OrganizationCreateInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -560,13 +590,15 @@ export type OrganizationUncheckedCreateInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -591,13 +623,15 @@ export type OrganizationUpdateInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -622,13 +656,15 @@ export type OrganizationUncheckedUpdateInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -653,6 +689,8 @@ export type OrganizationCreateManyInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -677,6 +715,8 @@ export type OrganizationUpdateManyMutationInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -701,6 +741,8 @@ export type OrganizationUncheckedUpdateManyInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type OrganizationNullableScalarRelationFilter = {
@@ -736,6 +778,8 @@ export type OrganizationCountOrderByAggregateInput = {
   otDailyThresholdMinutes?: Prisma.SortOrder
   allowedCurrencies?: Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrder
+  supervisorReportEnabled?: Prisma.SortOrder
+  supervisorSlaMinutes?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
@@ -749,6 +793,7 @@ export type OrganizationAvgOrderByAggregateInput = {
   geofenceRadiusMeters?: Prisma.SortOrder
   defaultMileageRate?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
+  supervisorSlaMinutes?: Prisma.SortOrder
 }
 
 export type OrganizationMaxOrderByAggregateInput = {
@@ -772,6 +817,8 @@ export type OrganizationMaxOrderByAggregateInput = {
   timezone?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrder
+  supervisorReportEnabled?: Prisma.SortOrder
+  supervisorSlaMinutes?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -795,6 +842,8 @@ export type OrganizationMinOrderByAggregateInput = {
   timezone?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrder
+  supervisorReportEnabled?: Prisma.SortOrder
+  supervisorSlaMinutes?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
@@ -808,6 +857,7 @@ export type OrganizationSumOrderByAggregateInput = {
   geofenceRadiusMeters?: Prisma.SortOrder
   defaultMileageRate?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
+  supervisorSlaMinutes?: Prisma.SortOrder
 }
 
 export type OrganizationScalarRelationFilter = {
@@ -971,12 +1021,14 @@ export type OrganizationCreateWithoutUsersInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -1001,12 +1053,14 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -1047,12 +1101,14 @@ export type OrganizationUpdateWithoutUsersInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -1077,12 +1133,14 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutApiIntegrationsInput = {
@@ -1107,6 +1165,8 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1137,6 +1197,8 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1183,6 +1245,8 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1213,6 +1277,8 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1243,12 +1309,14 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
@@ -1273,12 +1341,14 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAdminMembersInput = {
@@ -1319,12 +1389,14 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
@@ -1349,12 +1421,14 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutClaimsInput = {
@@ -1379,12 +1453,14 @@ export type OrganizationCreateWithoutClaimsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutClaimsInput = {
@@ -1409,12 +1485,14 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutClaimsInput = {
@@ -1455,12 +1533,14 @@ export type OrganizationUpdateWithoutClaimsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutClaimsInput = {
@@ -1485,12 +1565,14 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutChartAccountsInput = {
@@ -1515,12 +1597,14 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
@@ -1545,12 +1629,14 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutChartAccountsInput = {
@@ -1591,12 +1677,14 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
@@ -1621,12 +1709,14 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutXeroConnectionsInput = {
@@ -1651,12 +1741,14 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
@@ -1681,12 +1773,14 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutXeroConnectionsInput = {
@@ -1727,12 +1821,14 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
@@ -1757,12 +1853,14 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProjectsInput = {
@@ -1787,12 +1885,14 @@ export type OrganizationCreateWithoutProjectsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProjectsInput = {
@@ -1817,12 +1917,14 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProjectsInput = {
@@ -1863,12 +1965,14 @@ export type OrganizationUpdateWithoutProjectsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProjectsInput = {
@@ -1893,12 +1997,14 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
+  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
-  apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -1908,22 +2014,22 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
 
 export type OrganizationCountOutputType = {
   adminMembers: number
+  apiIntegrations: number
   chartAccounts: number
   claims: number
   users: number
   xeroConnections: number
   projects: number
-  apiIntegrations: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | OrganizationCountOutputTypeCountAdminMembersArgs
+  apiIntegrations?: boolean | OrganizationCountOutputTypeCountApiIntegrationsArgs
   chartAccounts?: boolean | OrganizationCountOutputTypeCountChartAccountsArgs
   claims?: boolean | OrganizationCountOutputTypeCountClaimsArgs
   users?: boolean | OrganizationCountOutputTypeCountUsersArgs
   xeroConnections?: boolean | OrganizationCountOutputTypeCountXeroConnectionsArgs
   projects?: boolean | OrganizationCountOutputTypeCountProjectsArgs
-  apiIntegrations?: boolean | OrganizationCountOutputTypeCountApiIntegrationsArgs
 }
 
 /**
@@ -1941,6 +2047,13 @@ export type OrganizationCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types
  */
 export type OrganizationCountOutputTypeCountAdminMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AdminOrganizationWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountApiIntegrationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ApiIntegrationWhereInput
 }
 
 /**
@@ -1978,13 +2091,6 @@ export type OrganizationCountOutputTypeCountProjectsArgs<ExtArgs extends runtime
   where?: Prisma.XeroProjectWhereInput
 }
 
-/**
- * OrganizationCountOutputType without action
- */
-export type OrganizationCountOutputTypeCountApiIntegrationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ApiIntegrationWhereInput
-}
-
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2008,13 +2114,15 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   otDailyThresholdMinutes?: boolean
   allowedCurrencies?: boolean
   defaultCurrency?: boolean
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: boolean
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
+  apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
-  apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -2042,17 +2150,19 @@ export type OrganizationSelectScalar = {
   otDailyThresholdMinutes?: boolean
   allowedCurrencies?: boolean
   defaultCurrency?: boolean
+  supervisorReportEnabled?: boolean
+  supervisorSlaMinutes?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "otDailyThresholdMinutes" | "allowedCurrencies" | "defaultCurrency", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "otDailyThresholdMinutes" | "allowedCurrencies" | "defaultCurrency" | "supervisorReportEnabled" | "supervisorSlaMinutes", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
+  apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
-  apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -2060,12 +2170,12 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "Organization"
   objects: {
     adminMembers: Prisma.$AdminOrganizationPayload<ExtArgs>[]
+    apiIntegrations: Prisma.$ApiIntegrationPayload<ExtArgs>[]
     chartAccounts: Prisma.$ChartOfAccountPayload<ExtArgs>[]
     claims: Prisma.$ClaimPayload<ExtArgs>[]
     users: Prisma.$UserPayload<ExtArgs>[]
     xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
     projects: Prisma.$XeroProjectPayload<ExtArgs>[]
-    apiIntegrations: Prisma.$ApiIntegrationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2106,6 +2216,17 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
      * claim service falls back to "MYR" for backwards-safety).
      */
     defaultCurrency: string | null
+    /**
+     * When true, the admin attendance Trends tab renders the supervisor
+     * performance card listing supervisors with slow approvals (any
+     * decision exceeding `supervisorSlaMinutes`) and any rejections.
+     */
+    supervisorReportEnabled: boolean
+    /**
+     * SLA threshold (in minutes) used to flag a supervisor approval as
+     * "slow" in the supervisor performance card. Defaults to 60.
+     */
+    supervisorSlaMinutes: number
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -2447,12 +2568,12 @@ readonly fields: OrganizationFieldRefs;
 export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   adminMembers<T extends Prisma.Organization$adminMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$adminMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  apiIntegrations<T extends Prisma.Organization$apiIntegrationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$apiIntegrationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApiIntegrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chartAccounts<T extends Prisma.Organization$chartAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$chartAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claims<T extends Prisma.Organization$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   users<T extends Prisma.Organization$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   xeroConnections<T extends Prisma.Organization$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.Organization$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  apiIntegrations<T extends Prisma.Organization$apiIntegrationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$apiIntegrationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApiIntegrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2503,6 +2624,8 @@ export interface OrganizationFieldRefs {
   readonly otDailyThresholdMinutes: Prisma.FieldRef<"Organization", 'Int'>
   readonly allowedCurrencies: Prisma.FieldRef<"Organization", 'Json'>
   readonly defaultCurrency: Prisma.FieldRef<"Organization", 'String'>
+  readonly supervisorReportEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
+  readonly supervisorSlaMinutes: Prisma.FieldRef<"Organization", 'Int'>
 }
     
 
@@ -2875,6 +2998,30 @@ export type Organization$adminMembersArgs<ExtArgs extends runtime.Types.Extensio
 }
 
 /**
+ * Organization.apiIntegrations
+ */
+export type Organization$apiIntegrationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ApiIntegration
+   */
+  select?: Prisma.ApiIntegrationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ApiIntegration
+   */
+  omit?: Prisma.ApiIntegrationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ApiIntegrationInclude<ExtArgs> | null
+  where?: Prisma.ApiIntegrationWhereInput
+  orderBy?: Prisma.ApiIntegrationOrderByWithRelationInput | Prisma.ApiIntegrationOrderByWithRelationInput[]
+  cursor?: Prisma.ApiIntegrationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ApiIntegrationScalarFieldEnum | Prisma.ApiIntegrationScalarFieldEnum[]
+}
+
+/**
  * Organization.chartAccounts
  */
 export type Organization$chartAccountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2992,30 +3139,6 @@ export type Organization$projectsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.XeroProjectScalarFieldEnum | Prisma.XeroProjectScalarFieldEnum[]
-}
-
-/**
- * Organization.apiIntegrations
- */
-export type Organization$apiIntegrationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the ApiIntegration
-   */
-  select?: Prisma.ApiIntegrationSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the ApiIntegration
-   */
-  omit?: Prisma.ApiIntegrationOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ApiIntegrationInclude<ExtArgs> | null
-  where?: Prisma.ApiIntegrationWhereInput
-  orderBy?: Prisma.ApiIntegrationOrderByWithRelationInput | Prisma.ApiIntegrationOrderByWithRelationInput[]
-  cursor?: Prisma.ApiIntegrationWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.ApiIntegrationScalarFieldEnum | Prisma.ApiIntegrationScalarFieldEnum[]
 }
 
 /**

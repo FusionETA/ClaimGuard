@@ -69,13 +69,20 @@ model Organization {
   /// hardcoded "USD". Null until the admin sets it (in which case the
   /// claim service falls back to "MYR" for backwards-safety).
   defaultCurrency          String?
+  /// When true, the admin attendance Trends tab renders the supervisor
+  /// performance card listing supervisors with slow approvals (any
+  /// decision exceeding `supervisorSlaMinutes`) and any rejections.
+  supervisorReportEnabled  Boolean             @default(true)
+  /// SLA threshold (in minutes) used to flag a supervisor approval as
+  /// "slow" in the supervisor performance card. Defaults to 60.
+  supervisorSlaMinutes     Int                 @default(60)
   adminMembers             AdminOrganization[]
+  apiIntegrations          ApiIntegration[]
   chartAccounts            ChartOfAccount[]
   claims                   Claim[]
   users                    User[]
   xeroConnections          XeroConnection[]
   projects                 XeroProject[]
-  apiIntegrations          ApiIntegration[]
 }
 
 /// External-system API tokens. Each row is a tenant's bearer credential
@@ -87,9 +94,9 @@ model Organization {
 /// it. Permissions are gated by `scopes` (a JSON string array such as
 /// ["employees:read","employees:write","claims:read"]).
 model ApiIntegration {
-  id             String              @id @default(cuid())
-  name           String              // human-readable label, e.g. "Acme HR portal"
-  tokenHash      String              @unique
+  id             String        @id @default(cuid())
+  name           String
+  tokenHash      String        @unique
   /// Short prefix of the raw token, kept in plaintext for UX so the admin
   /// can identify a token in the list ("wp_live_********abcd"). Never the
   /// full token.
@@ -99,11 +106,11 @@ model ApiIntegration {
   /// `lib/api-auth.ts`. Empty array means the token can authenticate but
   /// not access any resource — admin must add scopes to enable it.
   scopes         Json
-  active         Boolean             @default(true)
-  createdAt      DateTime            @default(now())
+  active         Boolean       @default(true)
+  createdAt      DateTime      @default(now())
   lastUsedAt     DateTime?
-  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   auditLogs      ApiAuditLog[]
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([tokenHash])
@@ -116,7 +123,7 @@ model ApiIntegration {
 model ApiAuditLog {
   id            String         @id @default(cuid())
   integrationId String
-  method        String         // GET, POST, PATCH, DELETE
+  method        String
   path          String         @db.VarChar(500)
   statusCode    Int
   /// IP of the caller from x-forwarded-for or request remote address.

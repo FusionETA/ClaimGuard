@@ -1255,6 +1255,43 @@ export async function toggleOrgOtAction(
   return { ok: true, message: enabled ? "Overtime enabled." : "Overtime disabled." }
 }
 
+export async function saveSupervisorReportSettingsAction(
+  enabled: boolean,
+  slaMinutes: number,
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+  if (!Number.isFinite(slaMinutes) || slaMinutes < 1 || slaMinutes > 24 * 60) {
+    return { ok: false, message: "SLA minutes must be between 1 and 1440." }
+  }
+  const prisma = getPrismaClient()
+  if (!prisma) return { ok: false, message: "Database is not configured." }
+
+  try {
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: {
+        supervisorReportEnabled: enabled,
+        supervisorSlaMinutes: Math.round(slaMinutes),
+      },
+    })
+  } catch (error) {
+    return {
+      ok: false,
+      message:
+        error instanceof Error ? error.message : "Unable to save supervisor report settings.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidateAdminSurfaces()
+  return { ok: true, message: "Supervisor report settings saved." }
+}
+
 export async function saveGeofenceRadiusAction(
   meters: number
 ): Promise<{ ok: boolean; message: string }> {
