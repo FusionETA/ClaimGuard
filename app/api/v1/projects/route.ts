@@ -135,7 +135,5 @@ function toExternalProject(p: OrganizationProjectOption) {
     workingDays: p.workingDays ?? null,
     projectManagers: p.projectManagers,
     holidays: p.holidays ?? [],
-    xeroConnectionId: p.xeroConnectionId ?? null,
-    xeroProjectId: p.xeroProjectId ?? null,
   }
 }

@@ -23,7 +23,7 @@ import { toExternalClaim } from "./_shared"
  *
  * That's a separate scope's worth of code and warrants its own session.
  * Until then, claims must be created through the employee portal; the
- * API surface focuses on observation + admin actions (review/sync).
+ * API surface focuses on observation + admin actions (review).
  *
  * Org isolation: scoped by `ctx.integration.organizationId`.
  */

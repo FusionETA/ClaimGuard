@@ -123,7 +123,6 @@ function toExternalAccount(a: ChartOfAccountOption) {
     isSelectable: a.isSelectable,
     isBankAccount: a.isBankAccount,
     isDisabled: a.isDisabled,
-    xeroConnectionId: a.xeroConnectionId ?? null,
     limit:
       a.limitAmount === undefined
         ? null

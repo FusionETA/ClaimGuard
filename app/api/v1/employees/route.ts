@@ -72,7 +72,6 @@ const createEmployeeSchema = z.object({
   payoutMethod: z.enum(employeePayoutMethods),
   otPayoutMethod: z.enum(otPayoutMethods).default("CASH"),
   hourlyRate: z.number().positive().optional(),
-  xeroConnectionId: z.string().optional(),
   projectIds: z.array(z.string()).default([]),
   projectAssignments: z.array(projectAssignmentSchema).default([]),
 })
@@ -91,7 +90,6 @@ const createEmployeeSchema = z.object({
  *   {
  *     name, email, password, employeeId, role,
  *     jobTitle, payoutMethod, otPayoutMethod, hourlyRate?,
- *     xeroConnectionId?,
  *     projectIds: string[],
  *     projectAssignments: [
  *       { projectId, teamId, layer, chainApprovers: [{layer, userId}, ...] }
@@ -134,8 +132,9 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
       ? "TIME_BANK"
       : "CASH"
 
+  let created: { id: string }
   try {
-    await organizationRepository.createOrganizationMember({
+    created = await organizationRepository.createOrganizationMember({
       name: parsed.data.name,
       email: parsed.data.email,
       password: parsed.data.password,
@@ -147,7 +146,6 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
       payoutMethod,
       otPayoutMethod,
       hourlyRate: parsed.data.hourlyRate ?? null,
-      xeroConnectionId: parsed.data.xeroConnectionId,
       projectAssignments: parsed.data.projectAssignments,
     })
   } catch (error) {
@@ -161,7 +159,24 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
     )
   }
 
-  return NextResponse.json({ ok: true }, { status: 201 })
+  // Return the freshly-projected row so the partner can hydrate their
+  // local cache without a follow-up GET. Same pattern PATCH uses — there's
+  // no per-id repo method, so we project from the list endpoint's output.
+  const all = await organizationRepository.getOrganizationMembers(
+    ctx.integration.organizationId,
+  )
+  const member = all.find((m) => m.id === created.id)
+
+  return NextResponse.json(
+    { data: member ? toExternalEmployee(member) : { id: created.id } },
+    {
+      status: 201,
+      headers: {
+        // REST convention: point the partner at the canonical resource URL.
+        Location: `/api/v1/employees/${created.id}`,
+      },
+    },
+  )
 })
 
 // ---------------------------------------------------------------------------
@@ -196,7 +211,6 @@ function toExternalEmployee(member: {
   payoutMethod: string
   otPayoutMethod: string
   hourlyRate?: number
-  xeroConnectionId?: string
   projects: Array<{ id: string; name: string }>
   teams: Array<{
     teamId: string
