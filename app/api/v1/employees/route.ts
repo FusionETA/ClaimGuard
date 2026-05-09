@@ -134,8 +134,9 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
       ? "TIME_BANK"
       : "CASH"
 
+  let created: { id: string }
   try {
-    await organizationRepository.createOrganizationMember({
+    created = await organizationRepository.createOrganizationMember({
       name: parsed.data.name,
       email: parsed.data.email,
       password: parsed.data.password,
@@ -161,7 +162,25 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
     )
   }
 
-  return NextResponse.json({ ok: true }, { status: 201 })
+  // Re-project the freshly-created member through the same shape the
+  // list/get endpoints use, so the partner gets back exactly what they'd
+  // see on a follow-up GET — without having to make that extra round
+  // trip. `id` is the User id (used as the employee path param on
+  // /api/v1/employees/[id]); `employeeProfileId` is the EmployeeProfile
+  // id that team-membership endpoints take.
+  const refreshed = await organizationRepository.getOrganizationMembers(
+    ctx.integration.organizationId,
+  )
+  const member = refreshed.find((m) => m.id === created.id)
+
+  return NextResponse.json(
+    {
+      data: member
+        ? toExternalEmployee(member)
+        : { id: created.id, employeeProfileId: null },
+    },
+    { status: 201 },
+  )
 })
 
 // ---------------------------------------------------------------------------
