@@ -2303,6 +2303,134 @@ export const organizationRepository = {
   },
 
   /**
+   * Remove a single employee from a project. Drops the
+   * `EmployeeProjectAssignment` row + any
+   * `EmployeeTeamMembership` rows in teams that belong to the project
+   * + any approval-chain rows tied to those team memberships. The whole
+   * thing runs in one transaction so the row set never ends up half-
+   * deleted.
+   *
+   * Idempotent — re-removing an already-removed assignment is a no-op.
+   * Used by the company-structure UI's "Unassigned employees" section to
+   * back out an employee that was added by mistake.
+   */
+  async removeEmployeeFromProject(data: {
+    organizationId: string
+    employeeProfileId: string
+    projectId: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    // Verify both rows belong to the org before mutating.
+    const [profile, project] = await Promise.all([
+      prisma.employeeProfile.findUnique({
+        where: { id: data.employeeProfileId },
+        select: {
+          id: true,
+          userId: true,
+          user: { select: { organizationId: true } },
+        },
+      }),
+      prisma.xeroProject.findFirst({
+        where: { id: data.projectId, organizationId: data.organizationId },
+        select: { id: true },
+      }),
+    ])
+
+    if (!profile || profile.user.organizationId !== data.organizationId) {
+      throw new Error("Employee not found in this organization.")
+    }
+    if (!project) {
+      throw new Error("Project not found in this organization.")
+    }
+
+    // Find all team memberships this employee has in teams that belong
+    // to the project we're removing them from.
+    const memberships = await prisma.employeeTeamMembership.findMany({
+      where: {
+        employeeProfileId: data.employeeProfileId,
+        team: { projectId: data.projectId },
+      },
+      select: { id: true, teamId: true },
+    })
+
+    await prisma.$transaction([
+      // Chain rows are keyed on (teamId, employeeId=userId). Drop those
+      // first so we don't leave dangling approver references.
+      prisma.approvalChainStep.deleteMany({
+        where: {
+          employeeId: profile.userId,
+          teamId: { in: memberships.map((m) => m.teamId) },
+        },
+      }),
+      prisma.employeeTeamMembership.deleteMany({
+        where: { id: { in: memberships.map((m) => m.id) } },
+      }),
+      prisma.employeeProjectAssignment.deleteMany({
+        where: {
+          employeeProfileId: data.employeeProfileId,
+          projectId: data.projectId,
+        },
+      }),
+    ])
+  },
+
+  /**
+   * Add a single employee to a project (creates an
+   * `EmployeeProjectAssignment` row). Idempotent — re-adding an existing
+   * assignment is a no-op thanks to the unique constraint
+   * `(employeeProfileId, projectId)`. The team-membership / chain rows
+   * are NOT touched here; team assignment happens separately via
+   * `assignTeamMember`. Used by the company-structure UI's "Add employee
+   * to project" affordance.
+   *
+   * Throws when the profile or project don't exist in this organization
+   * — that's a real data error, not an idempotent retry.
+   */
+  async addEmployeeToProject(data: {
+    organizationId: string
+    employeeProfileId: string
+    projectId: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const [profile, project] = await Promise.all([
+      prisma.employeeProfile.findUnique({
+        where: { id: data.employeeProfileId },
+        select: { id: true, user: { select: { organizationId: true } } },
+      }),
+      prisma.xeroProject.findFirst({
+        where: { id: data.projectId, organizationId: data.organizationId },
+        select: { id: true },
+      }),
+    ])
+
+    if (!profile || profile.user.organizationId !== data.organizationId) {
+      throw new Error("Employee not found in this organization.")
+    }
+    if (!project) {
+      throw new Error("Project not found in this organization.")
+    }
+
+    // Upsert keyed on the unique pair so re-adding is a no-op.
+    await prisma.employeeProjectAssignment.upsert({
+      where: {
+        employeeProfileId_projectId: {
+          employeeProfileId: data.employeeProfileId,
+          projectId: data.projectId,
+        },
+      },
+      create: {
+        employeeProfileId: data.employeeProfileId,
+        projectId: data.projectId,
+      },
+      update: {},
+    })
+  },
+
+  /**
    * Hard-delete an employee/supervisor from an organization. Removes the
    * `User` row, which cascades through EmployeeProfile,
    * EmployeeProjectAssignment, EmployeeTeamMembership, and any chain rows
@@ -2520,6 +2648,56 @@ export const organizationRepository = {
     }))
 
     return { ...summary, members }
+  },
+
+  /**
+   * Same shape as `getTeam()` but for every team in the org. Used by the
+   * admin company-structure page so we can render team rosters inline
+   * without N+1 round-trips. One query, joins everything in.
+   */
+  async listTeamsWithMembers(organizationId: string): Promise<TeamDetail[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const rows = await prisma.team.findMany({
+      where: { project: { organizationId } },
+      include: {
+        project: { select: { id: true, name: true } },
+        memberships: {
+          include: {
+            employeeProfile: {
+              select: {
+                id: true,
+                userId: true,
+                user: { select: { id: true, name: true, role: true } },
+              },
+            },
+          },
+          orderBy: [{ layer: "asc" }],
+        },
+      },
+      orderBy: [{ project: { name: "asc" } }, { name: "asc" }],
+    })
+
+    return rows.map((row) => {
+      const summary = mapTeamSummary({
+        ...row,
+        _count: { memberships: row.memberships.length },
+      })
+      const members: TeamMembership[] = row.memberships.map((m) => ({
+        id: m.id,
+        employeeProfileId: m.employeeProfileId,
+        userId: m.employeeProfile.userId,
+        name: m.employeeProfile.user.name,
+        role:
+          m.employeeProfile.user.role === "SUPERVISOR"
+            ? "SUPERVISOR"
+            : "EMPLOYEE",
+        layer: m.layer,
+        teamId: m.teamId,
+      }))
+      return { ...summary, members }
+    })
   },
 
   async createTeam(data: {

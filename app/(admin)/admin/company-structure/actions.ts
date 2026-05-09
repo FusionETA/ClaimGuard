@@ -44,10 +44,20 @@ const createTeamSchema = z.object({
   layerLabels: z.array(z.string()).optional(),
 })
 
+/**
+ * Create-team returns the new team's id on success so the UI can flip
+ * the editor from "create" to "edit" mode without the admin having to
+ * find and click the new team in the list. `BaseFormState` is widened
+ * with `createdTeamId` for that purpose.
+ */
+export type CreateTeamActionState = BaseFormState & {
+  createdTeamId?: string
+}
+
 export async function createTeamAction(
-  _previousState: BaseFormState,
+  _previousState: CreateTeamActionState,
   formData: FormData,
-): Promise<BaseFormState> {
+): Promise<CreateTeamActionState> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") {
     return { status: "error", message: "Session expired. Please log in again." }
@@ -77,8 +87,9 @@ export async function createTeamAction(
 
   const moduleConfig = parseModuleConfigFromForm(formData, parsed.data.layerCount)
 
+  let created: { id: string }
   try {
-    await organizationRepository.createTeam({
+    created = await organizationRepository.createTeam({
       organizationId,
       projectId: parsed.data.projectId,
       name: parsed.data.name,
@@ -98,7 +109,11 @@ export async function createTeamAction(
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
 
-  return { status: "success", message: "Team created." }
+  return {
+    status: "success",
+    message: "Team created.",
+    createdTeamId: created.id,
+  }
 }
 
 const updateTeamSchema = z.object({
@@ -160,6 +175,299 @@ export async function updateTeamAction(
   revalidatePath("/admin/hierarchy")
 
   return { status: "success", message: "Team updated." }
+}
+
+/**
+ * Replace the project's manager set. Mirrors the project-edit form's
+ * manager picker but exposed inline on the company-structure left
+ * column. The repo enforces "SUPERVISOR or ADMIN only" and "must belong
+ * to this organization" — the picker UI will pre-filter to those roles
+ * but the server-side check is the source of truth.
+ */
+const setProjectManagersSchema = z.object({
+  projectId: z.string().min(1),
+  /// userIds (NOT employeeProfileIds) — managers are User-row roles, not
+  /// EmployeeProfile rows. The picker passes user.id values.
+  managerUserIds: z.array(z.string().min(1)),
+})
+
+export async function setProjectManagersAction(
+  _previousState: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "Set up your organization in settings first." }
+  }
+
+  const parsed = setProjectManagersSchema.safeParse({
+    projectId: String(formData.get("projectId") ?? ""),
+    // FormData carries multiple values under one key as separate entries;
+    // use getAll() so a 0-, 1-, or N-manager picker all serialize cleanly.
+    managerUserIds: formData.getAll("managerUserIds").map((v) => String(v)),
+  })
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid managers payload.",
+    }
+  }
+
+  try {
+    await organizationRepository.updateProjectDetails({
+      projectId: parsed.data.projectId,
+      organizationId,
+      projectManagerIds: parsed.data.managerUserIds,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error ? error.message : "Unable to update project managers.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidatePath("/admin")
+  revalidatePath("/admin/company-structure")
+  revalidatePath("/admin/hierarchy")
+
+  return { status: "success", message: "Project managers updated." }
+}
+
+/**
+ * Remove an employee from a project. Cascades through team memberships
+ * + chain rows in the same project (defensive — by usage this is called
+ * from the "unassigned employees" section, where the employee should
+ * have no team memberships, but the cascade keeps things safe under
+ * concurrent edits).
+ */
+const removeEmployeeFromProjectSchema = z.object({
+  projectId: z.string().min(1),
+  employeeProfileId: z.string().min(1),
+})
+
+export async function removeEmployeeFromProjectAction(
+  _previousState: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "Set up your organization in settings first." }
+  }
+
+  const parsed = removeEmployeeFromProjectSchema.safeParse({
+    projectId: String(formData.get("projectId") ?? ""),
+    employeeProfileId: String(formData.get("employeeProfileId") ?? ""),
+  })
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid request.",
+    }
+  }
+
+  try {
+    await organizationRepository.removeEmployeeFromProject({
+      organizationId,
+      projectId: parsed.data.projectId,
+      employeeProfileId: parsed.data.employeeProfileId,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unable to remove employee from project.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidatePath("/admin")
+  revalidatePath("/admin/company-structure")
+  revalidatePath("/admin/hierarchy")
+
+  return { status: "success", message: "Employee removed from project." }
+}
+
+/**
+ * Add an employee to a project. Creates the EmployeeProjectAssignment
+ * row only — team assignment is a separate step (see
+ * `assignTeamMemberAction`). Idempotent at the repo level (upsert on
+ * the unique pair).
+ */
+const addEmployeeToProjectSchema = z.object({
+  projectId: z.string().min(1),
+  employeeProfileId: z.string().min(1),
+})
+
+export async function addEmployeeToProjectAction(
+  _previousState: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "Set up your organization in settings first." }
+  }
+
+  const parsed = addEmployeeToProjectSchema.safeParse({
+    projectId: String(formData.get("projectId") ?? ""),
+    employeeProfileId: String(formData.get("employeeProfileId") ?? ""),
+  })
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid assignment.",
+    }
+  }
+
+  try {
+    await organizationRepository.addEmployeeToProject({
+      organizationId,
+      projectId: parsed.data.projectId,
+      employeeProfileId: parsed.data.employeeProfileId,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message:
+        error instanceof Error ? error.message : "Unable to add employee to project.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidatePath("/admin")
+  revalidatePath("/admin/company-structure")
+  revalidatePath("/admin/hierarchy")
+
+  return { status: "success", message: "Employee added to project." }
+}
+
+/**
+ * Add a member to a team OR move an existing member to a different
+ * layer. The underlying `assignTeamMember` repo method is an upsert keyed
+ * on (employeeProfileId, teamId), so passing an existing pair simply
+ * updates the layer field. Approval-chain rows are intentionally left
+ * untouched on layer change — phase 1 keeps the existing chain and lets
+ * the admin fix it via the per-employee form if it no longer makes
+ * sense.
+ */
+const assignMemberSchema = z.object({
+  teamId: z.string().min(1),
+  employeeProfileId: z.string().min(1),
+  layer: z.number().int().min(1).max(10),
+})
+
+export async function assignTeamMemberAction(
+  _previousState: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "Set up your organization in settings first." }
+  }
+
+  const layerRaw = Number(formData.get("layer") ?? 1)
+  const parsed = assignMemberSchema.safeParse({
+    teamId: String(formData.get("teamId") ?? ""),
+    employeeProfileId: String(formData.get("employeeProfileId") ?? ""),
+    layer: Number.isFinite(layerRaw) ? layerRaw : 1,
+  })
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid assignment.",
+    }
+  }
+
+  try {
+    await organizationRepository.assignTeamMember({
+      organizationId,
+      employeeProfileId: parsed.data.employeeProfileId,
+      teamId: parsed.data.teamId,
+      layer: parsed.data.layer,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unable to update team member.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidatePath("/admin")
+  revalidatePath("/admin/company-structure")
+  revalidatePath("/admin/hierarchy")
+
+  return { status: "success", message: "Member updated." }
+}
+
+const removeMemberSchema = z.object({
+  membershipId: z.string().min(1),
+})
+
+export async function removeTeamMemberAction(
+  _previousState: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "Set up your organization in settings first." }
+  }
+
+  const parsed = removeMemberSchema.safeParse({
+    membershipId: String(formData.get("membershipId") ?? ""),
+  })
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Missing membership id.",
+    }
+  }
+
+  try {
+    // Repo does the org-scope check + cascades chain rows for this
+    // (employee, team) tuple in the same transaction.
+    await organizationRepository.removeTeamMember({
+      organizationId,
+      membershipId: parsed.data.membershipId,
+    })
+  } catch (error) {
+    return {
+      status: "error",
+      message: error instanceof Error ? error.message : "Unable to remove member.",
+    }
+  }
+
+  clearAdminStore(session.email)
+  revalidatePath("/admin")
+  revalidatePath("/admin/company-structure")
+  revalidatePath("/admin/hierarchy")
+
+  return { status: "success", message: "Member removed." }
 }
 
 export async function deleteTeamAction(

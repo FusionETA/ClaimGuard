@@ -17,6 +17,7 @@ import type {
   OrganizationMember,
   OrganizationProjectOption,
   OrganizationSummary,
+  TeamDetail,
   TeamSummary,
   XeroConnectionInfo,
   XeroConnectionSummary,
@@ -224,28 +225,42 @@ export async function getInUseTenantIds(
 export type AdminCompanyStructurePageData = {
   organizationName: string
   projects: OrganizationProjectOption[]
-  teams: TeamSummary[]
+  /// Teams with their member rosters joined in (one query upstream). The
+  /// inline "Members" UI in the team detail panel reads `team.members`
+  /// directly — no per-team round-trip needed.
+  teams: TeamDetail[]
+  /// Org-wide member list. Used as the picker source for both the
+  /// project-managers picker (left column) and the team-members picker
+  /// (middle column). Filtering to project-only / not-already-in-team
+  /// happens in the component.
+  members: OrganizationMember[]
 }
 
 /**
  * Combined data for `/admin/company-structure`. Returns null when the admin
  * has no active organisation yet (the page should redirect to /login or show
  * an empty-state).
+ *
+ * `teams` carries members inline so the page can render rosters without
+ * extra round-trips, and `members` is the org-wide pool used by both the
+ * project-managers picker and the team-members picker.
  */
 export async function getAdminCompanyStructurePageData(input: {
   organizationId: string | undefined
 }): Promise<AdminCompanyStructurePageData | null> {
   if (!input.organizationId) return null
 
-  const [organization, projects, teams] = await Promise.all([
+  const [organization, projects, teams, members] = await Promise.all([
     organizationRepository.getOrganizationById(input.organizationId),
     organizationRepository.getProjectsForOrganization(input.organizationId),
-    organizationRepository.listTeams(input.organizationId),
+    organizationRepository.listTeamsWithMembers(input.organizationId),
+    organizationRepository.getOrganizationMembers(input.organizationId),
   ])
 
   return {
     organizationName: organization?.name ?? "",
     projects,
     teams,
+    members,
   }
 }

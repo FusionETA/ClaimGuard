@@ -18,6 +18,7 @@ export default async function AdminCompanyStructurePage() {
       organizationName={data.organizationName}
       projects={data.projects}
       teams={data.teams}
+      members={data.members}
     />
   )
 }
