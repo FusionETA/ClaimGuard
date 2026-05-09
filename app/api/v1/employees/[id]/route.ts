@@ -104,6 +104,23 @@ export const PATCH = handleApiRequest<RouteParams>(
       return jsonError(400, "Invalid JSON body.")
     }
 
+    // Defensive: a partner that accidentally POSTs a create-payload to
+    // PATCH (or vice-versa) will otherwise get a confusing
+    // "unrecognized key" Zod error. Surface a clearer message instead
+    // — these fields are ONLY accepted on POST /api/v1/employees.
+    if (body && typeof body === "object") {
+      const b = body as Record<string, unknown>
+      const createOnly = ["password", "name", "email", "employeeId"].filter(
+        (k) => k in b,
+      )
+      if (createOnly.length > 0) {
+        return jsonError(
+          400,
+          `Field${createOnly.length === 1 ? "" : "s"} ${createOnly.join(", ")} cannot be updated via PATCH. Use POST /api/v1/employees to create a new member, or omit ${createOnly.length === 1 ? "this field" : "these fields"} to update.`,
+        )
+      }
+    }
+
     const parsed = updateEmployeeSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
