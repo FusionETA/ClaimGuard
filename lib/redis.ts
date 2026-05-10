@@ -38,7 +38,17 @@ export function getRedis(): Redis | null {
   }
 
   try {
-    client = new Redis(url, {
+    // Parse the URL ourselves with WHATWG URL instead of letting
+    // ioredis call Node's deprecated `url.parse()` internally
+    // (DEP0169 in Node 22+). Same behavior, no deprecation warning.
+    const parsed = parseRedisUrl(url)
+    client = new Redis({
+      host: parsed.host,
+      port: parsed.port,
+      db: parsed.db,
+      username: parsed.username,
+      password: parsed.password,
+      tls: parsed.tls,
       // Don't queue commands while disconnected — fail fast so the
       // cache layer can fall back to the loader instead of stalling
       // the request waiting for reconnect.
@@ -76,4 +86,41 @@ export function getRedis(): Redis | null {
 export function key(...segments: Array<string | number>): string {
   const prefix = process.env.REDIS_KEY_PREFIX?.trim() || "workpulse"
   return [prefix, ...segments].join(":")
+}
+
+/**
+ * Parse a `redis://` or `rediss://` URL using the modern WHATWG `URL`
+ * API and project it into the discrete fields ioredis expects. Avoids
+ * the legacy `url.parse()` call inside ioredis that triggers
+ * Node 22's DEP0169 deprecation warning.
+ */
+function parseRedisUrl(rawUrl: string): {
+  host: string
+  port: number
+  db: number
+  username: string | undefined
+  password: string | undefined
+  tls: Record<string, never> | undefined
+} {
+  const u = new URL(rawUrl)
+
+  // Path is "/<db>" or "/" or "". Strip the leading slash and parse;
+  // fall back to db 0 when missing or non-numeric.
+  const dbFromPath = Number.parseInt(u.pathname.replace(/^\//, ""), 10)
+  const db = Number.isFinite(dbFromPath) ? dbFromPath : 0
+
+  // `rediss://` (note the double-s) means TLS. Empty object is the
+  // ioredis convention for "use TLS with default settings".
+  const tls = u.protocol === "rediss:" ? {} : undefined
+
+  return {
+    host: u.hostname,
+    port: u.port ? Number.parseInt(u.port, 10) : 6379,
+    db,
+    // Treat empty strings as "not provided" — ioredis ignores
+    // undefined fields, but empty strings would override other auth.
+    username: u.username ? decodeURIComponent(u.username) : undefined,
+    password: u.password ? decodeURIComponent(u.password) : undefined,
+    tls,
+  }
 }
