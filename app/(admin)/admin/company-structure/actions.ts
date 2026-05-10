@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
-import { clearAdminStore } from "@/lib/app-store"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import type { BaseFormState } from "@/lib/form-state"
 import {
   defaultModuleConfig,
@@ -104,7 +104,6 @@ export async function createTeamAction(
     }
   }
 
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
@@ -169,10 +168,10 @@ export async function updateTeamAction(
     }
   }
 
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
+  await bustOrgConfigCaches({ organizationId })
 
   return { status: "success", message: "Team updated." }
 }
@@ -232,10 +231,10 @@ export async function setProjectManagersAction(
     }
   }
 
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
+  await bustOrgConfigCaches({ organizationId })
 
   return { status: "success", message: "Project managers updated." }
 }
@@ -292,10 +291,10 @@ export async function removeEmployeeFromProjectAction(
     }
   }
 
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
+  await bustOrgConfigCaches({ organizationId })
 
   return { status: "success", message: "Employee removed from project." }
 }
@@ -349,10 +348,10 @@ export async function addEmployeeToProjectAction(
     }
   }
 
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
+  await bustOrgConfigCaches({ organizationId })
 
   return { status: "success", message: "Employee added to project." }
 }
@@ -413,10 +412,10 @@ export async function assignTeamMemberAction(
     }
   }
 
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
+  await bustOrgConfigCaches({ organizationId })
 
   return { status: "success", message: "Member updated." }
 }
@@ -462,10 +461,10 @@ export async function removeTeamMemberAction(
     }
   }
 
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
+  await bustOrgConfigCaches({ organizationId })
 
   return { status: "success", message: "Member removed." }
 }
@@ -497,7 +496,6 @@ export async function deleteTeamAction(
     }
   }
 
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
 

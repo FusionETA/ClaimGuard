@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { getCurrentSession } from "@/lib/auth/session"
+import { bustClaimCaches } from "@/lib/cache-invalidation"
 import {
   createClaimForEmployee,
   createClaimSchema,
@@ -184,6 +185,16 @@ export async function submitClaimAction(
   revalidatePath("/employee/claims")
   revalidatePath("/admin")
   revalidatePath("/admin/claims")
+
+  // Bust Redis claim caches for this org. Scope to this user since the
+  // submission only affects their per-user history; the admin queue
+  // pattern (org:{id}:claims:*) is also covered by the helper.
+  if (session.organizationId) {
+    await bustClaimCaches({
+      organizationId: session.organizationId,
+      userId: session.userId,
+    })
+  }
 
   return {
     status: "success",

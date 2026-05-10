@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import type { OrganizationProjectOption } from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
@@ -110,6 +111,8 @@ export const PATCH = handleApiRequest<RouteParams>(
       return jsonError(409, message)
     }
 
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
+
     const refreshed = await organizationRepository.getProjectsForOrganization(
       ctx.integration.organizationId,
     )
@@ -155,6 +158,9 @@ export const DELETE = handleApiRequest<RouteParams>(
       projectId: id,
       organizationId: ctx.integration.organizationId,
     })
+
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
+
     return NextResponse.json({ ok: true })
   },
 )

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustClaimCaches } from "@/lib/cache-invalidation"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 
 import { toExternalClaim } from "../../_shared"
@@ -118,6 +119,10 @@ export const POST = handleApiRequest<RouteParams>(
       }
       return jsonError(m.status, m.message)
     }
+
+    // Bust Redis claim caches for this org so the next admin or
+    // employee read sees the post-review state.
+    await bustClaimCaches({ organizationId: ctx.integration.organizationId })
 
     // Refetch + project the post-review claim so the partner doesn't
     // need a separate GET to see the new status.

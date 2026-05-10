@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import {
   mileageUnits,
   type OrganizationSummary,
@@ -190,6 +191,10 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
       )
     }
   }
+
+  // Bust admin page-data + per-user form-helper caches for this org so
+  // the next read picks up the changed settings.
+  await bustOrgConfigCaches({ organizationId: orgId })
 
   // Refetch + project the post-write state.
   const refreshed = await organizationRepository.getOrganizationById(orgId)

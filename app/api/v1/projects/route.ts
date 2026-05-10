@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import type { OrganizationProjectOption } from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
@@ -92,6 +93,8 @@ export const POST = handleApiRequest(["projects:write"], async (request, ctx) =>
       latitude: parsed.data.latitude,
       longitude: parsed.data.longitude,
     })
+
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
 
     // `createManualProject` returns the create-shape projection; refetch
     // the full org list so we can return the same external shape every

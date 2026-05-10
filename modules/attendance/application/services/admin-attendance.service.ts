@@ -1,5 +1,7 @@
 import "server-only"
 
+import { getOrSetCache } from "@/lib/cache"
+import { key } from "@/lib/redis"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type {
   AdminOrgOverview,
@@ -11,12 +13,26 @@ import {
   loadOrgEmployeeListForAdmin,
 } from "./employee-detail-loader"
 
+/**
+ * Build a stable, cache-safe segment from a nullable filter value.
+ * Cache keys must be deterministic — two requests with the same logical
+ * filter must hash to the same key. `null`/`undefined`/empty-string are
+ * normalised to a single sentinel ("_") so they don't fork the cache.
+ */
+function seg(v: string | null | undefined): string {
+  return v && v.length > 0 ? v : "_"
+}
+
 export const adminAttendanceService = {
   async getOrgOverview(
     orgId: string | null,
     projectId?: string | null,
   ): Promise<AdminOrgOverview> {
-    return attendanceRepository.getOrgOverview(orgId, projectId)
+    return getOrSetCache(
+      key("org", seg(orgId), "attendance", "overview", seg(projectId)),
+      60,
+      () => attendanceRepository.getOrgOverview(orgId, projectId),
+    )
   },
 
   async getTodayRollCall(
@@ -25,11 +41,30 @@ export const adminAttendanceService = {
     teamId?: string | null,
     q?: string | null,
   ): Promise<TodayRollCall> {
-    return attendanceRepository.getTodayRollCall(orgId, projectId, teamId, q)
+    // "Today" — include date so caches don't survive a midnight rollover.
+    const today = new Date().toISOString().slice(0, 10)
+    return getOrSetCache(
+      key(
+        "org",
+        seg(orgId),
+        "attendance",
+        "rollcall",
+        today,
+        seg(projectId),
+        seg(teamId),
+        seg(q),
+      ),
+      60,
+      () => attendanceRepository.getTodayRollCall(orgId, projectId, teamId, q),
+    )
   },
 
   async getAllPendingApprovals(orgId: string | null): Promise<ApprovalRequestView[]> {
-    return attendanceRepository.getAllPendingApprovals(orgId)
+    return getOrSetCache(
+      key("org", seg(orgId), "attendance", "pending-approvals"),
+      60,
+      () => attendanceRepository.getAllPendingApprovals(orgId),
+    )
   },
 
   async getAggregateStats(
@@ -44,11 +79,29 @@ export const adminAttendanceService = {
     totalOnLeave: number
     pendingOT: number
   }> {
-    return attendanceRepository.getAggregateStats(from, to, orgId, projectId)
+    return getOrSetCache(
+      key(
+        "org",
+        seg(orgId),
+        "attendance",
+        "stats",
+        from.toISOString(),
+        to.toISOString(),
+        seg(projectId),
+      ),
+      60,
+      () => attendanceRepository.getAggregateStats(from, to, orgId, projectId),
+    )
   },
 
   async getWorkingHours(orgId: string | null): Promise<{ start: string; end: string }> {
-    return attendanceRepository.getWorkingHours(orgId)
+    // Working hours change rarely — longer TTL (10min). Mutation
+    // invalidates explicitly via `setWorkingHoursAction`.
+    return getOrSetCache(
+      key("org", seg(orgId), "attendance", "working-hours"),
+      600,
+      () => attendanceRepository.getWorkingHours(orgId),
+    )
   },
 
   async setWorkingHours(orgId: string, start: string, end: string): Promise<void> {

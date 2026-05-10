@@ -1,14 +1,13 @@
 import "server-only"
 
+import { randomBytes } from "node:crypto"
+
 import { z } from "zod"
 
-import { clearEmployeeStore } from "@/lib/app-store"
 import type { AuthenticatedSession } from "@/lib/auth/types"
 import { isKnownCurrency, SYSTEM_FALLBACK_CURRENCY } from "@/lib/currencies"
-import { loadEmployeeData } from "@/lib/load-user-data"
 import { computeMileageAmount, resolveMileageRate } from "@/lib/mileage"
 import { sendPushToUser } from "@/lib/web-push"
-import { invalidateAdminStore } from "@/modules/claims/application/services/admin-portal.service"
 import { storeReceiptForClaim } from "@/modules/claims/application/services/claim-receipts.service"
 import { claimMatchesStatusFilter } from "@/modules/claims/domain/models"
 import type {
@@ -681,7 +680,12 @@ export async function createClaimForEmployee({
   }
 
   const ok = await claimRepository.createClaim({
-    claimNumber: `CLM-${Date.now().toString().slice(-5)}`,
+    // Full ms timestamp + 4 hex chars (16 bits of randomness) so two
+    // concurrent submissions can't collide on the @unique claimNumber.
+    // The previous `slice(-5)` of the timestamp wrapped every 100s and
+    // collided in the same millisecond — surfaced to users as a
+    // confusing 503 from the unique-constraint violation.
+    claimNumber: `CLM-${Date.now()}-${randomBytes(2).toString("hex")}`,
     title: parsed.data.title,
     description: parsed.data.description,
     organizationId: session.organizationId,
@@ -714,9 +718,6 @@ export async function createClaimForEmployee({
       values: input,
     }
   }
-
-  await loadEmployeeData(session.email)
-  invalidateAdminStore()
 
   try {
     const firstStepApproverIds = await claimRepository.getFirstStepApproverIdsForUser(employeeId)
@@ -854,16 +855,6 @@ export async function reviewClaimForSupervisor({
     }
   }
 
-  clearEmployeeStore(result.employeeEmail)
-
-  try {
-    await loadEmployeeData(result.employeeEmail)
-  } catch {
-    // If cache refresh fails, the next page/API read will load from DB directly.
-  }
-
-  invalidateAdminStore()
-
   try {
     await sendPushToUser(result.employeeUserId, {
       title: "Claim Updated",
@@ -954,16 +945,6 @@ export async function reviewClaimForAdmin({
     }
   }
 
-  clearEmployeeStore(result.employeeEmail)
-
-  try {
-    await loadEmployeeData(result.employeeEmail)
-  } catch {
-    // Cache refresh failure is non-fatal — next read will go to DB.
-  }
-
-  invalidateAdminStore()
-
   try {
     await sendPushToUser(result.employeeUserId, {
       title: "Claim Updated",
@@ -1046,16 +1027,6 @@ export async function syncClaimToXero({
     const m = map[result.error]
     return { ok: false, status: m.status, message: m.message }
   }
-
-  // Mirror reviewClaim's cache busting so admin + employee dashboards
-  // reflect the new state immediately.
-  clearEmployeeStore(result.employeeEmail)
-  try {
-    await loadEmployeeData(result.employeeEmail)
-  } catch {
-    // Non-fatal — next read goes to DB.
-  }
-  invalidateAdminStore()
 
   return { ok: true, claimTitle: result.claimTitle }
 }

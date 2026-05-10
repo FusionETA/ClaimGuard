@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -155,6 +156,8 @@ export const POST = handleApiRequest<RouteParams>(
         return jsonError(409, message)
       }
     }
+
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
 
     const chain = await organizationRepository.getTeamMembershipChain({
       organizationId: ctx.integration.organizationId,

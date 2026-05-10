@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getCurrentSession } from "@/lib/auth/session"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { disconnectXeroConnection } from "@/modules/organization/application/services/xero-connection.service"
 
 export async function DELETE(
@@ -26,6 +27,11 @@ export async function DELETE(
   if (!result.ok) {
     return NextResponse.json({ error: result.message }, { status: 400 })
   }
+
+  // Disconnecting Xero changes the org's Xero connection state, which
+  // affects chart accounts, projects, and the admin settings page-data
+  // cache. Sweep org config keys so the next read reflects the change.
+  await bustOrgConfigCaches({ organizationId: session.organizationId })
 
   return NextResponse.json({ message: result.message })
 }

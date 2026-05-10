@@ -3,16 +3,30 @@
 import { revalidatePath } from "next/cache"
 
 import { requirePortalSession } from "@/lib/auth/session"
+import { bustAttendanceCaches } from "@/lib/cache-invalidation"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 
 export type ClockInState = { error?: string }
 
-function revalidateAll() {
+/**
+ * Bust both Next.js render cache and Redis attendance caches after a
+ * clock-in / clock-out / break event. Pass the employee's userId so we
+ * can target their per-user keys precisely; orgId is optional and
+ * widens the bust to the org-level admin caches when provided.
+ */
+async function revalidateAll(args: {
+  userId: string
+  organizationId?: string
+}) {
   revalidatePath("/employee")
   revalidatePath("/employee/attendance")
   revalidatePath("/employee/attendance/team")
   revalidatePath("/employee/attendance/approvals")
   revalidatePath("/admin/attendance")
+  await bustAttendanceCaches({
+    employeeUserId: args.userId,
+    organizationId: args.organizationId,
+  })
 }
 
 function parseCoords(
@@ -64,7 +78,10 @@ export async function clockInAction(
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Could not clock in" }
   }
-  revalidateAll()
+  await revalidateAll({
+    userId: session.userId,
+    organizationId: session.organizationId,
+  })
   return {}
 }
 
@@ -73,7 +90,10 @@ export async function clockOutAction(formData?: FormData) {
   const coords = parseCoords(formData)
   const notes = parseNotes(formData)
   await employeeAttendanceService.clockOut(session.userId, coords, notes)
-  revalidateAll()
+  await revalidateAll({
+    userId: session.userId,
+    organizationId: session.organizationId,
+  })
 }
 
 export async function startBreakAction(formData?: FormData) {
@@ -81,7 +101,10 @@ export async function startBreakAction(formData?: FormData) {
   const coords = parseCoords(formData)
   const notes = parseNotes(formData)
   await employeeAttendanceService.startBreak(session.userId, coords, notes)
-  revalidateAll()
+  await revalidateAll({
+    userId: session.userId,
+    organizationId: session.organizationId,
+  })
 }
 
 export async function endBreakAction(formData?: FormData) {
@@ -89,5 +112,8 @@ export async function endBreakAction(formData?: FormData) {
   const coords = parseCoords(formData)
   const notes = parseNotes(formData)
   await employeeAttendanceService.endBreak(session.userId, coords, notes)
-  revalidateAll()
+  await revalidateAll({
+    userId: session.userId,
+    organizationId: session.organizationId,
+  })
 }

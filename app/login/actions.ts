@@ -14,7 +14,6 @@ import {
   getCurrentSession,
   getHomePathForRole,
 } from "@/lib/auth/session"
-import { clearAdminStore, clearEmployeeStore } from "@/lib/app-store"
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address."),
@@ -70,17 +69,6 @@ export async function loginAction(
 }
 
 export async function logoutAction() {
-  // Clear this user's data from the in-memory store.
-  const session = await getCurrentSession()
-
-  if (session) {
-    if (session.role === "EMPLOYEE" || session.role === "SUPERVISOR") {
-      clearEmployeeStore(session.email)
-    } else {
-      clearAdminStore()
-    }
-  }
-
   await clearUserSession()
   redirect("/login")
 }

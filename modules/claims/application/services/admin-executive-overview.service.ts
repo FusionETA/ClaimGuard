@@ -1,7 +1,9 @@
 import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getOrSetCache } from "@/lib/cache"
 import { toNumber } from "@/lib/decimal"
+import { key } from "@/lib/redis"
 import { executiveOverviewRepository } from "@/modules/claims/infrastructure/executive-overview.repository"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -112,6 +114,23 @@ export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOvervie
     }
   }
 
+  // Month boundary (YYYY-MM) is part of the key so a month rollover
+  // surfaces fresh data without waiting for TTL. Stale-pending counts +
+  // OT lookbacks are 30/60/90-day windows that slide daily, but the
+  // 60s TTL bounds that staleness — admins viewing the overview see at
+  // most a 1-minute lag even on a heavily-cached page.
+  const now = new Date()
+  const monthKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`
+  return getOrSetCache(
+    key("org", orgId, "exec-overview", monthKey),
+    60,
+    () => loadAdminExecutiveOverview(orgId),
+  )
+}
+
+async function loadAdminExecutiveOverview(
+  orgId: string,
+): Promise<AdminExecutiveOverview> {
   const now = new Date()
   const monthStart = startOfMonth(now)
   const monthEnd = endOfMonth(now)

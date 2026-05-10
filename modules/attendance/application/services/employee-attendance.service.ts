@@ -1,7 +1,9 @@
 import "server-only"
 
+import { getOrSetCache } from "@/lib/cache"
 import { DEFAULT_GEOFENCE_RADIUS_METERS, checkGeofence } from "@/lib/geo"
 import { getPrismaClient } from "@/lib/prisma"
+import { key } from "@/lib/redis"
 import {
   getOrCreateAttendanceSelfieFolder,
   uploadFileToXero,
@@ -137,39 +139,48 @@ async function uploadSelfieToXero({
 
 export const employeeAttendanceService = {
   async getEmployeeDashboard(employeeId: string): Promise<EmployeeAttendanceDashboard> {
-    const [today, weekToDate, todayEvents, recentOT, orgId, todayProjectId] =
-      await Promise.all([
-        attendanceRepository.getTodayAttendance(employeeId),
-        attendanceRepository.getWeekAttendance(employeeId),
-        attendanceRepository.getTodayEvents(employeeId),
-        attendanceRepository.getEmployeeOTApprovals(employeeId),
-        attendanceRepository.getOrganizationIdForUser(employeeId),
-        attendanceRepository.getTodayProjectId(employeeId),
-      ])
+    // Today-scoped — include the day in the key so a midnight rollover
+    // doesn't surface yesterday's "today" within the 60s TTL window.
+    const today = new Date().toISOString().slice(0, 10)
+    return getOrSetCache(
+      key("user", employeeId, "attendance", "dashboard", today),
+      60,
+      async () => {
+        const [today, weekToDate, todayEvents, recentOT, orgId, todayProjectId] =
+          await Promise.all([
+            attendanceRepository.getTodayAttendance(employeeId),
+            attendanceRepository.getWeekAttendance(employeeId),
+            attendanceRepository.getTodayEvents(employeeId),
+            attendanceRepository.getEmployeeOTApprovals(employeeId),
+            attendanceRepository.getOrganizationIdForUser(employeeId),
+            attendanceRepository.getTodayProjectId(employeeId),
+          ])
 
-    const geofenceRadiusMeters = await resolveGeofenceRadius(orgId)
+        const geofenceRadiusMeters = await resolveGeofenceRadius(orgId)
 
-    let activeProjectCoords:
-      | { latitude: number | null; longitude: number | null }
-      | null = null
-    if (todayProjectId) {
-      const project = await attendanceRepository.getProjectGeoById(todayProjectId)
-      if (project) {
-        activeProjectCoords = {
-          latitude: project.latitude,
-          longitude: project.longitude,
+        let activeProjectCoords:
+          | { latitude: number | null; longitude: number | null }
+          | null = null
+        if (todayProjectId) {
+          const project = await attendanceRepository.getProjectGeoById(todayProjectId)
+          if (project) {
+            activeProjectCoords = {
+              latitude: project.latitude,
+              longitude: project.longitude,
+            }
+          }
         }
-      }
-    }
 
-    return {
-      today,
-      weekToDate,
-      todayEvents,
-      recentOT,
-      geofenceRadiusMeters,
-      activeProjectCoords,
-    }
+        return {
+          today,
+          weekToDate,
+          todayEvents,
+          recentOT,
+          geofenceRadiusMeters,
+          activeProjectCoords,
+        }
+      },
+    )
   },
 
   async getEmployeeHistory(
@@ -177,11 +188,26 @@ export const employeeAttendanceService = {
     from: Date,
     to: Date,
   ): Promise<AttendanceRecordView[]> {
-    return attendanceRepository.getAttendanceHistory(employeeId, from, to)
+    return getOrSetCache(
+      key(
+        "user",
+        employeeId,
+        "attendance",
+        "history",
+        from.toISOString(),
+        to.toISOString(),
+      ),
+      60,
+      () => attendanceRepository.getAttendanceHistory(employeeId, from, to),
+    )
   },
 
   async getEmployeeOTRecords(employeeId: string): Promise<ApprovalRequestView[]> {
-    return attendanceRepository.getEmployeeOTApprovals(employeeId)
+    return getOrSetCache(
+      key("user", employeeId, "attendance", "ot-records"),
+      60,
+      () => attendanceRepository.getEmployeeOTApprovals(employeeId),
+    )
   },
 
   async getWorkingHours(employeeId: string): Promise<{ start: string; end: string }> {

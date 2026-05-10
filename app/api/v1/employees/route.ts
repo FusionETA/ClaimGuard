@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import {
   employeePayoutMethods,
   otPayoutMethods,
@@ -158,6 +159,8 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
       { status: 409 },
     )
   }
+
+  await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
 
   // Return the freshly-projected row so the partner can hydrate their
   // local cache without a follow-up GET. Same pattern PATCH uses — there's

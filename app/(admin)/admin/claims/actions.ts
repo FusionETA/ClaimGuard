@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache"
 import {
   type ReviewClaimFormState,
 } from "@/app/(admin)/admin/claims/form-state"
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { bustClaimCaches } from "@/lib/cache-invalidation"
 import {
   reviewClaimForAdmin,
   reviewClaimForSupervisor,
@@ -62,6 +63,12 @@ export async function adminFinalReviewClaimAction(
   revalidatePath("/employee")
   revalidatePath("/employee/claims")
   revalidatePath("/employee/review")
+
+  // Bust Redis claim caches for this org. The admin doesn't know which
+  // employee owns the claim from session alone, so we let the helper
+  // sweep the org's per-user keys via wildcard.
+  const orgId = resolveActiveOrgId(session)
+  if (orgId) await bustClaimCaches({ organizationId: orgId })
 
   return {
     status: "success",
@@ -123,6 +130,12 @@ export async function reviewClaimAction(
   revalidatePath("/employee/claims")
   revalidatePath("/employee/review")
 
+  // Bust Redis claim caches for this org (any user could be the claim
+  // owner; supervisor doesn't carry that info from session).
+  if (session.organizationId) {
+    await bustClaimCaches({ organizationId: session.organizationId })
+  }
+
   return {
     status: "success",
     message:
@@ -170,6 +183,9 @@ export async function syncClaimAction(input: {
   revalidatePath("/admin/claims")
   revalidatePath("/employee")
   revalidatePath("/employee/claims")
+
+  const orgId = resolveActiveOrgId(session)
+  if (orgId) await bustClaimCaches({ organizationId: orgId })
 
   return { ok: true, message: `Synced "${result.claimTitle}".` }
 }
@@ -244,6 +260,9 @@ export async function syncClaimsBulkAction(input: {
     revalidatePath("/admin/claims")
     revalidatePath("/employee")
     revalidatePath("/employee/claims")
+
+    const orgId = resolveActiveOrgId(session)
+    if (orgId) await bustClaimCaches({ organizationId: orgId })
   }
 
   const failedCount = failures.length

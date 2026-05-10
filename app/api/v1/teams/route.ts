@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import {
   defaultModuleConfig,
   teamModules,
@@ -100,6 +101,8 @@ export const POST = handleApiRequest(["teams:write"], async (request, ctx) => {
       moduleConfig,
       layerLabels: parsed.data.layerLabels ?? null,
     })
+
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
 
     return NextResponse.json({ data: toExternalTeam(created) }, { status: 201 })
   } catch (error) {

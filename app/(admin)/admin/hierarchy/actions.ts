@@ -9,8 +9,8 @@ import {
   type AddHierarchyMemberFormState,
   type HierarchyFormState,
 } from "@/app/(admin)/admin/hierarchy/form-state"
-import { clearAdminStore, clearEmployeeStore } from "@/lib/app-store"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import {
   employeePayoutMethods,
   otPayoutMethods,
@@ -189,14 +189,18 @@ export async function updateHierarchyAction(
     }
   }
 
-  clearEmployeeStore(parsed.data.email)
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/hierarchy")
   revalidatePath("/admin/company-structure")
   revalidatePath("/employee")
   revalidatePath("/employee/account")
   revalidatePath("/employee/review")
+
+  // Bust admin page-data + per-user form-helper caches for the org so
+  // the new/edited member shows up everywhere on next navigation.
+  if (organizationId) {
+    await bustOrgConfigCaches({ organizationId })
+  }
 
   return {
     ...createInitialHierarchyFormState({
@@ -301,10 +305,13 @@ export async function createHierarchyMemberAction(
     }
   }
 
-  clearAdminStore(session.email)
   revalidatePath("/admin")
   revalidatePath("/admin/hierarchy")
   revalidatePath("/admin/company-structure")
+
+  if (organizationId) {
+    await bustOrgConfigCaches({ organizationId })
+  }
 
   return {
     ...createInitialAddHierarchyMemberFormState(),

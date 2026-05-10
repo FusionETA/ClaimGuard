@@ -1,5 +1,7 @@
 import "server-only"
 
+import { getOrSetCache } from "@/lib/cache"
+import { key } from "@/lib/redis"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 import {
   getAdminClaimsQueue,
@@ -117,6 +119,24 @@ export type AdminHierarchyPageData = {
 export async function getAdminHierarchyPageData(input: {
   organizationId: string | undefined
 }): Promise<AdminHierarchyPageData | null> {
+  // No org context — fall straight through to the loader (no caching
+  // for unauthed/unscoped reads).
+  if (!input.organizationId) {
+    return loadAdminHierarchyPageData(input)
+  }
+  // 5-min TTL — hierarchy + projects + Xero connections change rarely
+  // during a normal admin session. `bustOrgConfigCaches` invalidates
+  // this on hierarchy / settings / project mutations.
+  return getOrSetCache(
+    key("org", input.organizationId, "config", "page", "hierarchy"),
+    300,
+    () => loadAdminHierarchyPageData(input),
+  )
+}
+
+async function loadAdminHierarchyPageData(input: {
+  organizationId: string | undefined
+}): Promise<AdminHierarchyPageData | null> {
   const members = await getOrganizationHierarchy()
   if (members === null) return null
 
@@ -158,6 +178,35 @@ export type AdminSettingsPageData = {
 }
 
 export async function getAdminSettingsPageData(input: {
+  adminEmail: string
+  organizationId: string | undefined
+  preferredConnectionId: string | undefined
+}): Promise<AdminSettingsPageData | null> {
+  if (!input.organizationId) {
+    return loadAdminSettingsPageData(input)
+  }
+  // Cache key has to encode both org AND admin email AND preferred Xero
+  // connection — the same org viewed by two admins, or with different
+  // active connections, can resolve to different settings (Xero
+  // chart-of-accounts is connection-scoped). 5-min TTL is fine because
+  // settings change infrequently and the bust helper sweeps the org
+  // namespace on any settings/chart-account/project mutation.
+  return getOrSetCache(
+    key(
+      "org",
+      input.organizationId,
+      "config",
+      "page",
+      "settings",
+      input.adminEmail,
+      input.preferredConnectionId ?? "_none",
+    ),
+    300,
+    () => loadAdminSettingsPageData(input),
+  )
+}
+
+async function loadAdminSettingsPageData(input: {
   adminEmail: string
   organizationId: string | undefined
   preferredConnectionId: string | undefined
@@ -250,11 +299,21 @@ export async function getAdminCompanyStructurePageData(input: {
 }): Promise<AdminCompanyStructurePageData | null> {
   if (!input.organizationId) return null
 
+  return getOrSetCache(
+    key("org", input.organizationId, "config", "page", "company-structure"),
+    300,
+    () => loadAdminCompanyStructurePageData(input.organizationId!),
+  )
+}
+
+async function loadAdminCompanyStructurePageData(
+  organizationId: string,
+): Promise<AdminCompanyStructurePageData | null> {
   const [organization, projects, teams, members] = await Promise.all([
-    organizationRepository.getOrganizationById(input.organizationId),
-    organizationRepository.getProjectsForOrganization(input.organizationId),
-    organizationRepository.listTeamsWithMembers(input.organizationId),
-    organizationRepository.getOrganizationMembers(input.organizationId),
+    organizationRepository.getOrganizationById(organizationId),
+    organizationRepository.getProjectsForOrganization(organizationId),
+    organizationRepository.listTeamsWithMembers(organizationId),
+    organizationRepository.getOrganizationMembers(organizationId),
   ])
 
   return {

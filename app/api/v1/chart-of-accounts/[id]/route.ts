@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { toNumber } from "@/lib/decimal"
 import {
   limitPeriods,
@@ -170,6 +171,8 @@ export const PATCH = handleApiRequest<RouteParams>(
       }
     }
 
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
+
     // Refetch + project so the response reflects the post-write state.
     const refreshed =
       await organizationRepository.getSelectableChartAccountsForOrganization(
@@ -215,6 +218,9 @@ export const DELETE = handleApiRequest<RouteParams>(
       id,
       organizationId: ctx.integration.organizationId,
     })
+
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
+
     return NextResponse.json({ ok: true })
   },
 )

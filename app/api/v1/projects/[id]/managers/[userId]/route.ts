@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -55,6 +56,8 @@ export const DELETE = handleApiRequest<RouteParams>(
         error instanceof Error ? error.message : "Could not remove manager."
       return jsonError(409, message)
     }
+
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
 
     return NextResponse.json({ ok: true })
   },

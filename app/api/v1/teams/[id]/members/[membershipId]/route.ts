@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -106,6 +107,8 @@ export const PATCH = handleApiRequest<RouteParams>(
       }
     }
 
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
+
     // Refetch the now-updated member + chain so the response reflects
     // post-write state.
     const refreshedTeam = await organizationRepository.getTeam(
@@ -175,6 +178,8 @@ export const DELETE = handleApiRequest<RouteParams>(
       }
       return jsonError(409, message)
     }
+
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
 
     return NextResponse.json({ ok: true })
   },

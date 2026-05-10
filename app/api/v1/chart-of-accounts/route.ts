@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { toNumber } from "@/lib/decimal"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
@@ -92,6 +93,7 @@ export const POST = handleApiRequest(
         type: parsed.data.type?.trim(),
         isSelectable: parsed.data.isSelectable ?? true,
       })
+      await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
       return NextResponse.json(
         { data: toExternalAccount(created) },
         { status: 201 },

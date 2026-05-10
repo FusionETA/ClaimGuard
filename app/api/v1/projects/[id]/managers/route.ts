@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -107,6 +108,8 @@ export const PUT = handleApiRequest<RouteParams>(
         error instanceof Error ? error.message : "Could not update managers."
       return jsonError(409, message)
     }
+
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
 
     const refreshed = await organizationRepository.getProjectsForOrganization(
       ctx.integration.organizationId,

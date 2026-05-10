@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import {
   teamModules,
   type TeamDetail,
@@ -98,6 +99,8 @@ export const PATCH = handleApiRequest<RouteParams>(
         moduleConfig: parsed.data.moduleConfig,
       })
 
+      await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
+
       return NextResponse.json({ data: toExternalTeamSummary(updated) })
     } catch (error) {
       const message =
@@ -131,6 +134,7 @@ export const DELETE = handleApiRequest<RouteParams>(
         organizationId: ctx.integration.organizationId,
         teamId: id,
       })
+      await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
       return NextResponse.json({ ok: true })
     } catch (error) {
       const message =

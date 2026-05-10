@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { requirePortalSession } from "@/lib/auth/session"
+import { bustAttendanceCaches } from "@/lib/cache-invalidation"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 
 const reviewSchema = z.object({
@@ -40,6 +41,14 @@ export async function reviewApprovalAction(
   revalidatePath("/employee/attendance/approvals")
   revalidatePath("/employee/attendance/team")
   revalidatePath("/admin/attendance")
+
+  // Approval review affects org-wide pending-approvals + the requesting
+  // employee's per-user OT records. We don't have the requester's
+  // userId here without an extra query, so we sweep the org level —
+  // per-user keys expire on TTL anyway.
+  if (session.organizationId) {
+    await bustAttendanceCaches({ organizationId: session.organizationId })
+  }
 
   return { ok: true }
 }

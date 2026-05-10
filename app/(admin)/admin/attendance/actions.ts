@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { bustAttendanceCaches } from "@/lib/cache-invalidation"
 import { getPrismaClient } from "@/lib/prisma"
 import { deleteXeroFile } from "@/lib/xero"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
@@ -55,6 +56,11 @@ export async function setWorkingHoursAction(
 
   revalidatePath("/admin/attendance")
   revalidatePath("/employee/attendance")
+
+  // Working hours change affects every employee's clock-in math, so we
+  // sweep the org-level attendance keys. Per-user keys expire on TTL —
+  // we don't iterate every employee here.
+  await bustAttendanceCaches({ organizationId })
 
   return { ok: true }
 }

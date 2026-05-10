@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import {
   employeePayoutMethods,
   otPayoutMethods,
@@ -192,6 +193,8 @@ export const PATCH = handleApiRequest<RouteParams>(
       return jsonError(409, message)
     }
 
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
+
     // Return the freshly-projected row so the caller doesn't need a
     // follow-up GET.
     const refreshed = await organizationRepository.getOrganizationMembers(
@@ -229,6 +232,8 @@ export const DELETE = handleApiRequest<RouteParams>(
       // mode opaque to id-probing.
       return jsonError(404, "Employee not found in this organization.")
     }
+
+    await bustOrgConfigCaches({ organizationId: ctx.integration.organizationId })
 
     return NextResponse.json({ ok: true })
   },

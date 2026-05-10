@@ -1,9 +1,8 @@
 import "server-only"
 
-import { getEmployeeStore, clearEmployeeStore } from "@/lib/app-store"
-import { loadEmployeeData } from "@/lib/load-user-data"
+import { getOrSetCache } from "@/lib/cache"
 import { getCurrentSession } from "@/lib/auth/session"
-import { isStoreExpired } from "@/lib/app-store"
+import { key } from "@/lib/redis"
 import {
   buildEmployeeDashboard,
 } from "@/modules/claims/application/services/claim-analytics"
@@ -17,79 +16,153 @@ import type {
   EmployeeAccountData,
   EmployeeClaimSubmissionData,
   EmployeeDashboardData,
+  PortalUser,
 } from "@/modules/claims/domain/models"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
- * Resolves the current employee's store entry.
- * Returns null if there is no valid session or the employee cannot be found.
- * Pages are responsible for calling redirect() when null is returned.
+ * All employee-portal reads go through Redis (when configured) or
+ * straight to the repos (graceful fallback). The previous in-memory
+ * `app-store` layer was removed because it introduced cross-worker
+ * inconsistency and a stale-data feedback loop into Redis: when a
+ * mutation busted Redis but didn't touch the per-process memory store,
+ * the next read would refill Redis with stale data from memory. With
+ * memory gone, Redis is the single source of truth for cached reads.
  */
-async function getStore() {
+
+/**
+ * Resolve the current session and confirm it's an employee/supervisor.
+ * Returns null when there's no session or the role is wrong — pages
+ * call redirect() on null. Centralising the role check keeps each
+ * service method short.
+ */
+async function requireEmployeeSession() {
   const session = await getCurrentSession()
-
-  if (!session || (session.role !== "EMPLOYEE" && session.role !== "SUPERVISOR")) {
-    return null
-  }
-
-  let store = getEmployeeStore(session.email)
-
-  // Evict if the cached entry has passed its TTL.
-  if (store && isStoreExpired(store.cachedAt)) {
-    clearEmployeeStore(session.email)
-    store = null
-  }
-
-  if (!store) {
-    // Server restart cleared memory — reload from DB transparently.
-    await loadEmployeeData(session.email)
-    store = getEmployeeStore(session.email)
-  }
-
-  return store ?? null
+  if (!session) return null
+  if (session.role !== "EMPLOYEE" && session.role !== "SUPERVISOR") return null
+  return session
 }
 
 export async function getEmployeeDashboard(): Promise<EmployeeDashboardData | null> {
-  const store = await getStore()
-  if (!store) return null
-  const organization = store.employee.organizationId
-    ? await organizationRepository.getOrganizationById(store.employee.organizationId)
-    : null
-  return buildEmployeeDashboard(store.employee, store.claims, organization ?? undefined)
+  const session = await requireEmployeeSession()
+  if (!session) return null
+
+  return getOrSetCache(
+    key(
+      "org",
+      session.organizationId ?? "_none",
+      "user",
+      session.userId,
+      "claims",
+      "dashboard",
+    ),
+    60,
+    async () => {
+      // Two independent reads, run in parallel: the employee profile
+      // (for header chrome + xeroConnectionId) and their claims (for
+      // the analytics block below).
+      const [employee, claims] = await Promise.all([
+        claimRepository.getEmployeeWithProfile(session.email),
+        claimRepository.getClaimsByEmployee(session.email),
+      ])
+      if (!employee) return null
+      const organization = employee.organizationId
+        ? await organizationRepository.getOrganizationById(employee.organizationId)
+        : null
+      return buildEmployeeDashboard(employee, claims, organization ?? undefined)
+    },
+  )
 }
 
 export async function getEmployeeClaimHistory(): Promise<ClaimRecord[] | null> {
-  const store = await getStore()
-  if (!store) return null
-  return store.claims
+  const session = await requireEmployeeSession()
+  if (!session) return null
+
+  return getOrSetCache(
+    key(
+      "org",
+      session.organizationId ?? "_none",
+      "user",
+      session.userId,
+      "claims",
+      "history",
+    ),
+    60,
+    () => claimRepository.getClaimsByEmployee(session.email),
+  )
 }
 
 export async function getEmployeeAccount(): Promise<EmployeeAccountData | null> {
-  const store = await getStore()
-  if (!store) return null
-  const organization = store.employee.organizationId
-    ? await organizationRepository.getOrganizationById(store.employee.organizationId)
-    : null
-  return {
-    employee: store.employee,
-    organization: organization ?? undefined,
-    preferences: {
-      notifications: true,
-      weeklyDigest: true,
-      expensePolicyVersion: "2026.1",
+  const session = await requireEmployeeSession()
+  if (!session) return null
+
+  // Profile + org change rarely (hierarchy edits, org settings) so
+  // 5-min TTL is fine. The "config" namespace marks this for
+  // invalidation by `bustOrgConfigCaches` on hierarchy/settings
+  // mutations.
+  return getOrSetCache(
+    key(
+      "org",
+      session.organizationId ?? "_none",
+      "user",
+      session.userId,
+      "config",
+      "account",
+    ),
+    300,
+    async () => {
+      const employee = await claimRepository.getEmployeeWithProfile(session.email)
+      if (!employee) return null
+      const organization = employee.organizationId
+        ? await organizationRepository.getOrganizationById(employee.organizationId)
+        : null
+      return {
+        employee,
+        organization: organization ?? undefined,
+        preferences: {
+          notifications: true,
+          weeklyDigest: true,
+          expensePolicyVersion: "2026.1",
+        },
+      }
     },
-  }
+  )
 }
 
 export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSubmissionData | null> {
-  const store = await getStore()
-  if (!store) return null
+  const session = await requireEmployeeSession()
+  if (!session) return null
 
-  if (!store.employee.organizationId) {
+  // 60s TTL because the spend-limit math depends on the user's recent
+  // claims — too long and a freshly-submitted claim's limit math goes
+  // stale. `bustClaimCaches` includes this user's submission-data key
+  // pattern so claim mutations invalidate it explicitly; org-config
+  // mutations bust it via `bustOrgConfigCaches`.
+  return getOrSetCache(
+    key(
+      "org",
+      session.organizationId ?? "_none",
+      "user",
+      session.userId,
+      "config",
+      "claim-submission-data",
+    ),
+    60,
+    () => loadEmployeeClaimSubmissionData(session.email),
+  )
+}
+
+async function loadEmployeeClaimSubmissionData(
+  email: string,
+): Promise<EmployeeClaimSubmissionData | null> {
+  const employee = await claimRepository.getEmployeeWithProfile(email)
+  if (!employee) return null
+
+  if (!employee.organizationId) {
     return {
-      employee: store.employee,
+      employee,
       chartAccounts: [],
       mileageAccounts: [],
       bankAccounts: [],
@@ -98,23 +171,23 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
   }
 
   const employeeUserId = await claimRepository.getUserId(
-    store.employee.email,
-    "EMPLOYEE"
+    employee.email,
+    "EMPLOYEE",
   )
 
   const [organization, chartAccounts, mileageAccounts, bankAccounts, employeeProjects] = await Promise.all([
-    organizationRepository.getOrganizationById(store.employee.organizationId),
+    organizationRepository.getOrganizationById(employee.organizationId),
     organizationRepository.getSelectableChartAccountsForEmployee({
-      organizationId: store.employee.organizationId,
-      xeroConnectionId: store.employee.xeroConnectionId,
+      organizationId: employee.organizationId,
+      xeroConnectionId: employee.xeroConnectionId,
     }),
     organizationRepository.getMileageChartAccountsForEmployee({
-      organizationId: store.employee.organizationId,
-      xeroConnectionId: store.employee.xeroConnectionId,
+      organizationId: employee.organizationId,
+      xeroConnectionId: employee.xeroConnectionId,
     }),
     organizationRepository.getSelectedBankAccountsForOrganization({
-      organizationId: store.employee.organizationId,
-      xeroConnectionId: store.employee.xeroConnectionId,
+      organizationId: employee.organizationId,
+      xeroConnectionId: employee.xeroConnectionId,
     }),
     employeeUserId
       ? organizationRepository.getProjectsForEmployee(employeeUserId)
@@ -128,17 +201,17 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
   // bucket, then look up each account's used-amount in O(1).
   const decoratedChart = await decorateAccountsWithLimits({
     accounts: chartAccounts,
-    organizationId: store.employee.organizationId,
+    organizationId: employee.organizationId,
     employeeId: employeeUserId ?? undefined,
   })
   const decoratedMileage = await decorateAccountsWithLimits({
     accounts: mileageAccounts,
-    organizationId: store.employee.organizationId,
+    organizationId: employee.organizationId,
     employeeId: employeeUserId ?? undefined,
   })
 
   return {
-    employee: store.employee,
+    employee,
     organization: organization ?? undefined,
     chartAccounts: decoratedChart,
     mileageAccounts: decoratedMileage,

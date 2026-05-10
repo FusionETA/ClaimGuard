@@ -7,7 +7,7 @@ import { z } from "zod"
 import type { SettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import { generateApiToken } from "@/lib/api-auth"
 import { isKnownApiScope, type ApiScope } from "@/lib/api-scopes"
-import { clearAdminStore } from "@/lib/app-store"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
 import { isKnownCurrency } from "@/lib/currencies"
 import type { XeroTenant } from "@/lib/xero"
@@ -85,7 +85,15 @@ const otRatesSchema = z.object({
     .max(24, "OT threshold cannot exceed 24 hours."),
 })
 
-function revalidateAdminSurfaces() {
+/**
+ * Revalidate Next.js render cache + bust Redis config caches for an
+ * org. Pass `organizationId` whenever the calling action has it
+ * resolved — that lets us nuke `org:{id}:config:*` keys (admin page
+ * data, form helpers) so the next page load reflects the change. When
+ * orgId isn't available (e.g. session-level mutation), only Next.js
+ * paths are revalidated.
+ */
+async function revalidateAdminSurfaces(organizationId?: string) {
   revalidatePath("/admin")
   revalidatePath("/admin/settings")
   revalidatePath("/admin/hierarchy")
@@ -93,6 +101,9 @@ function revalidateAdminSurfaces() {
   revalidatePath("/employee/account")
   revalidatePath("/employee/claims")
   revalidatePath("/employee/claims/new")
+  if (organizationId) {
+    await bustOrgConfigCaches({ organizationId })
+  }
 }
 
 export async function saveOrganizationSettingsAction(
@@ -149,8 +160,7 @@ export async function saveOrganizationSettingsAction(
         }
   )
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return {
     status: "success",
@@ -182,8 +192,7 @@ export async function syncXeroAccountsAction(
 
   const result = await syncOrganizationChartAccounts(connectionId)
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(resolveActiveOrgId(session) ?? undefined)
 
   return {
     status: result.ok ? "success" : "error",
@@ -215,8 +224,7 @@ export async function syncXeroProjectsAction(
 
   const result = await syncOrganizationProjects(connectionId)
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(resolveActiveOrgId(session) ?? undefined)
 
   return {
     status: result.ok ? "success" : "error",
@@ -258,8 +266,7 @@ export async function saveSelectableAccountsAction(
     chartAccountIds,
   })
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return {
     status: "success",
@@ -298,7 +305,6 @@ export async function switchActiveOrganizationAction(
   const cookieStore = await cookies()
   cookieStore.delete(ACTIVE_CONNECTION_COOKIE)
 
-  clearAdminStore(session.email)
   revalidatePath("/admin", "layout")
 }
 
@@ -341,8 +347,7 @@ export async function createCustomAccountAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Custom account created." }
 }
@@ -373,8 +378,7 @@ export async function deleteCustomAccountAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { ok: true, message: "Custom account deleted." }
 }
@@ -481,8 +485,7 @@ export async function selectXeroTenantAction(
 
   cookieStore.delete(XERO_PENDING_COOKIE)
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Xero organisation connected successfully." }
 }
@@ -507,8 +510,7 @@ export async function disconnectXeroAction(
   })
 
   if (result.ok) {
-    clearAdminStore(session.email)
-    revalidateAdminSurfaces()
+      await revalidateAdminSurfaces(organizationId)
   }
 
   return result
@@ -552,8 +554,13 @@ export async function createOrganizationAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  // Org was just created — resolve the freshly-set activeOrganizationId
+  // from the updated session to bust the new org's config caches (none
+  // exist yet, but this future-proofs against late writes).
+  const refreshedSession = await getCurrentSession()
+  await revalidateAdminSurfaces(
+    refreshedSession ? resolveActiveOrgId(refreshedSession) ?? undefined : undefined,
+  )
 
   return { status: "success", message: "Organization created." }
 }
@@ -587,8 +594,7 @@ export async function saveSelectedBankAccountsAction(
     chartAccountIds,
   })
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Bank accounts updated." }
 }
@@ -650,8 +656,7 @@ export async function createManualProjectAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Project created." }
 }
@@ -704,8 +709,7 @@ export async function updateProjectAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { ok: true, message: "Project updated." }
 }
@@ -736,8 +740,7 @@ export async function deleteManualProjectAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { ok: true, message: "Project deleted." }
 }
@@ -779,8 +782,7 @@ export async function saveClaimRunSettingsAction(
     claimCutoffDay: parsed.data.claimCutoffDay,
   })
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return {
     status: "success",
@@ -838,8 +840,7 @@ export async function saveCurrencySettingsAction(
     defaultCurrency: parsed.data.defaultCurrency,
   })
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return {
     status: "success",
@@ -907,8 +908,7 @@ export async function saveMileageDefaultsAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Mileage defaults saved." }
 }
@@ -971,8 +971,7 @@ export async function saveMileageAccountsAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Mileage claim accounts saved." }
 }
@@ -1062,8 +1061,7 @@ export async function saveAccountLimitAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Account limit updated." }
 }
@@ -1123,8 +1121,7 @@ export async function saveOtRatesAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return {
     status: "success",
@@ -1185,8 +1182,7 @@ export async function saveOrgWorkingHoursAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Default working hours saved." }
 }
 
@@ -1221,8 +1217,7 @@ export async function saveOrgTimezoneAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Timezone saved." }
 }
 
@@ -1250,8 +1245,7 @@ export async function toggleOrgOtAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: enabled ? "Overtime enabled." : "Overtime disabled." }
 }
 
@@ -1287,8 +1281,7 @@ export async function saveSupervisorReportSettingsAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Supervisor report settings saved." }
 }
 
@@ -1319,8 +1312,7 @@ export async function saveGeofenceRadiusAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: `Geofence radius set to ${Math.round(meters)} m.` }
 }
 
@@ -1372,8 +1364,7 @@ export async function saveProjectCalendarAction(
     }
   }
 
-  clearAdminStore(ctx.session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(ctx.organizationId)
   return { ok: true, message: "Calendar saved." }
 }
 
@@ -1406,7 +1397,7 @@ export async function addProjectHolidayAction(
     }
   }
 
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(ctx.organizationId)
   return { ok: true, message: "Holiday added." }
 }
 
@@ -1561,7 +1552,7 @@ export async function importProjectHolidaysAction(
   }
 
   const sourceLabel = usedSource === "calendarific" ? "Calendarific" : "date.nager.at"
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(ctx.organizationId)
   return {
     ok: true,
     message: `Imported ${imported} holidays for ${countryCode} ${year} (${sourceLabel}).`,
@@ -1598,7 +1589,7 @@ export async function deleteProjectHolidayAction(
     }
   }
 
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Holiday removed." }
 }
 
@@ -1673,8 +1664,7 @@ export async function createAdminAction(
     }
   }
 
-  clearAdminStore(session.email)
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
   return {
     status: "success",
     message: `New admin invited. They can sign in with the temp password.`,
@@ -1763,7 +1753,7 @@ export async function createApiTokenAction(formData: FormData): Promise<{
     }
   }
 
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
 
   return {
     ok: true,
@@ -1800,7 +1790,7 @@ export async function setApiTokenActiveAction(input: {
     return { ok: false, message: "Token not found." }
   }
 
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
   return {
     ok: true,
     message: input.active ? "Token re-enabled." : "Token revoked.",
@@ -1832,6 +1822,6 @@ export async function deleteApiTokenAction(input: {
     return { ok: false, message: "Token not found." }
   }
 
-  revalidateAdminSurfaces()
+  await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Token deleted." }
 }
