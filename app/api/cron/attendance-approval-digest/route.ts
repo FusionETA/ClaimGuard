@@ -146,22 +146,35 @@ export async function POST(request: NextRequest) {
       continue
     }
 
-    // Within working hours — group by reviewer and apply digest rules.
+    // Within working hours — group by ELIGIBLE approver and apply digest rules.
+    //
+    // `reviewerId` is only populated after someone acts on the approval
+    // (the user who approved/rejected it). For pending rows it's null.
+    // The field we actually want is `currentStepApproverIds`: the list
+    // of supervisors who CAN review the current step. Any of them can
+    // act, and we should push to all of them so they all see the
+    // "you have N waiting" digest.
+    //
+    // A single approval may appear in multiple supervisors' groups —
+    // that's intentional: each is independently responsible.
     type Group = { reviewerId: string; count: number; oldestAtMs: number }
     const groups = new Map<string, Group>()
     for (const row of approvals) {
-      if (!row.reviewerId) continue
+      const eligibleApproverIds = row.currentStepApproverIds ?? []
+      if (eligibleApproverIds.length === 0) continue // no assigned approver
       const ms = parseAgeMs(row.eventAt ?? row.date)
-      const existing = groups.get(row.reviewerId)
-      if (existing) {
-        existing.count += 1
-        if (ms < existing.oldestAtMs) existing.oldestAtMs = ms
-      } else {
-        groups.set(row.reviewerId, {
-          reviewerId: row.reviewerId,
-          count: 1,
-          oldestAtMs: ms,
-        })
+      for (const approverId of eligibleApproverIds) {
+        const existing = groups.get(approverId)
+        if (existing) {
+          existing.count += 1
+          if (ms < existing.oldestAtMs) existing.oldestAtMs = ms
+        } else {
+          groups.set(approverId, {
+            reviewerId: approverId,
+            count: 1,
+            oldestAtMs: ms,
+          })
+        }
       }
     }
 
