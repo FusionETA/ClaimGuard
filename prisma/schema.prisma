@@ -23,6 +23,7 @@ model User {
   approvals              ApprovalRequest[]    @relation("EmployeeApprovals")
   approvalReviews        ApprovalRequest[]    @relation("ReviewerApprovals")
   attendance             AttendanceRecord[]   @relation("EmployeeAttendance")
+  attendanceEdits        AttendanceEditLog[]  @relation("AttendanceEditLogActor")
   claims                 Claim[]              @relation("EmployeeClaims")
   reviews                Claim[]              @relation("AdminReviews")
   claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
@@ -72,7 +73,7 @@ model Organization {
   /// When true, the admin attendance Trends tab renders the supervisor
   /// performance card listing supervisors with slow approvals (any
   /// decision exceeding `supervisorSlaMinutes`) and any rejections.
-  supervisorReportEnabled  Boolean             @default(true)
+  supervisorReportEnabled  Boolean             @default(false)
   /// SLA threshold (in minutes) used to flag a supervisor approval as
   /// "slow" in the supervisor performance card. Defaults to 60.
   supervisorSlaMinutes     Int                 @default(60)
@@ -94,28 +95,28 @@ model Organization {
 /// it. Permissions are gated by `scopes` (a JSON string array such as
 /// ["employees:read","employees:write","claims:read"]).
 model ApiIntegration {
-  id             String        @id @default(cuid())
-  name           String
-  tokenHash      String        @unique
+  id                  String        @id @default(cuid())
+  name                String
+  tokenHash           String        @unique
   /// Short prefix of the raw token, kept in plaintext for UX so the admin
   /// can identify a token in the list ("wp_live_********abcd"). Never the
   /// full token.
-  tokenPrefix    String
-  organizationId String
+  tokenPrefix         String
+  organizationId      String
   /// Stored as a JSON string array. Mirrors the curated scope set in
   /// `lib/api-auth.ts`. Empty array means the token can authenticate but
   /// not access any resource — admin must add scopes to enable it.
-  scopes         Json
-  active         Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  lastUsedAt     DateTime?
+  scopes              Json
+  active              Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  lastUsedAt          DateTime?
   /// When non-null, this integration was auto-issued by a partner via
   /// `POST /api/v1/admin/organizations` (see MasterApiKey). Null when
   /// the admin created the token manually through Settings → API.
   issuedByMasterKeyId String?
-  auditLogs         ApiAuditLog[]
-  organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  issuedByMasterKey MasterApiKey?  @relation(fields: [issuedByMasterKeyId], references: [id], onDelete: SetNull)
+  auditLogs           ApiAuditLog[]
+  issuedByMasterKey   MasterApiKey? @relation(fields: [issuedByMasterKeyId], references: [id])
+  organization        Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([tokenHash])
@@ -158,16 +159,16 @@ model ApiAuditLog {
 ///
 /// Token format: `wp_master_<64 hex chars>`. Stored as SHA-256 hash.
 model MasterApiKey {
-  id           String              @id @default(cuid())
-  partnerName  String              // human-readable, e.g. "Acme HR portal"
-  tokenHash    String              @unique
-  tokenPrefix  String              // "wp_master_xxxx" first 14 chars for visual ID
-  active       Boolean             @default(true)
+  id                 String              @id @default(cuid())
+  partnerName        String
+  tokenHash          String              @unique
+  tokenPrefix        String
+  active             Boolean             @default(true)
   /// Optional internal notes — contract id, contact email, etc. Never
   /// surfaced to the partner.
-  notes        String?             @db.Text
-  createdAt    DateTime            @default(now())
-  lastUsedAt   DateTime?
+  notes              String?             @db.Text
+  createdAt          DateTime            @default(now())
+  lastUsedAt         DateTime?
   issuedIntegrations ApiIntegration[]
   auditLogs          MasterApiAuditLog[]
 
@@ -179,19 +180,19 @@ model MasterApiKey {
 /// to a specific Organization/integration; master-key calls aren't (the
 /// org may not exist yet).
 model MasterApiAuditLog {
-  id           String       @id @default(cuid())
-  masterKeyId  String
-  method       String
-  path         String       @db.VarChar(500)
-  statusCode   Int
-  ip           String?      @db.VarChar(64)
+  id                    String       @id @default(cuid())
+  masterKeyId           String
+  method                String
+  path                  String       @db.VarChar(500)
+  statusCode            Int
+  ip                    String?      @db.VarChar(64)
   /// When the call successfully provisioned a new organization, this is
   /// set to the new org's id so the audit log can link back to the
   /// tenant the master key created.
   createdOrganizationId String?
-  errorMessage String?      @db.Text
-  createdAt    DateTime     @default(now())
-  masterKey    MasterApiKey @relation(fields: [masterKeyId], references: [id], onDelete: Cascade)
+  errorMessage          String?      @db.Text
+  createdAt             DateTime     @default(now())
+  masterKey             MasterApiKey @relation(fields: [masterKeyId], references: [id], onDelete: Cascade)
 
   @@index([masterKeyId, createdAt])
   @@index([createdAt])
@@ -503,7 +504,16 @@ model AttendanceRecord {
   location         String?
   project          String?
   status           AttendanceStatus @default(MISSING)
+  /// System-captured context for the day — off-site warnings prepended
+  /// during clock-in/out, etc. Not directly editable by the employee
+  /// (those edits go to `remark` instead). Shown to supervisors in the
+  /// team detail view.
   notes            String?          @db.Text
+  /// Employee's free-form remark about their shift. Set via the clock-
+  /// out summary popup or the dashboard remark card. Kept separate from
+  /// `notes` so off-site context never bleeds into the employee's own
+  /// commentary (and vice-versa).
+  remark           String?          @db.Text
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   projectId        String?
@@ -517,12 +527,46 @@ model AttendanceRecord {
   employee         User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
   projectRef       XeroProject?     @relation("AttendanceRecordProject", fields: [projectId], references: [id])
   breaks           BreakSession[]
+  editLogs         AttendanceEditLog[]
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
   @@index([status, date])
   @@index([projectId])
   @@index([selfieUploadedAt])
+}
+
+/// Audit trail of supervisor/admin/employee edits to AttendanceRecord
+/// fields. One row per save action — captures before/after values for
+/// timeIn, timeOut, status, and notes so the change history is fully
+/// reconstructable. `source` tags which UI path produced the edit.
+model AttendanceEditLog {
+  id                 String            @id @default(cuid())
+  attendanceRecordId String
+  editedById         String
+  /// Snapshot of the editor's role at the time of the edit so the trail
+  /// stays meaningful even if the user's role changes later.
+  editorRole         UserRole
+  reason             String?           @db.Text
+  prevTimeIn         DateTime?
+  nextTimeIn         DateTime?
+  prevTimeOut        DateTime?
+  nextTimeOut        DateTime?
+  prevStatus         AttendanceStatus?
+  nextStatus         AttendanceStatus?
+  prevNotes          String?           @db.Text
+  nextNotes          String?           @db.Text
+  prevRemark         String?           @db.Text
+  nextRemark         String?           @db.Text
+  /// "DIRECT_EDIT" | "APPROVE_OVERRIDE" | "EMPLOYEE_REMARK"
+  source             String
+  createdAt          DateTime          @default(now())
+
+  attendanceRecord   AttendanceRecord  @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  editor             User              @relation("AttendanceEditLogActor", fields: [editedById], references: [id])
+
+  @@index([attendanceRecordId, createdAt])
+  @@index([editedById, createdAt])
 }
 
 model BreakSession {

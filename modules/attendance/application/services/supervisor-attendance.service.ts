@@ -34,7 +34,39 @@ export const supervisorAttendanceService = {
     supervisorId: string,
     approvalId: string,
     status: "APPROVED" | "REJECTED",
+    options?: { notes?: string | null; overrideEventAt?: Date | null },
   ): Promise<void> {
-    await attendanceRepository.reviewApproval(approvalId, supervisorId, status)
+    await attendanceRepository.reviewApproval(
+      approvalId,
+      supervisorId,
+      status,
+      options?.notes ?? undefined,
+      options?.overrideEventAt ?? null,
+    )
+  },
+
+  async overrideAttendanceTimes(
+    supervisorId: string,
+    args: {
+      attendanceRecordId: string
+      employeeId: string
+      timeIn?: Date | null
+      timeOut?: Date | null
+      reason?: string | null
+    },
+  ): Promise<void> {
+    await attendanceRepository.assertSupervisorCanEditEmployee(
+      supervisorId,
+      args.employeeId,
+    )
+    await attendanceRepository.overrideAttendanceTimes({
+      attendanceRecordId: args.attendanceRecordId,
+      editorId: supervisorId,
+      editorRole: "SUPERVISOR",
+      source: "DIRECT_EDIT",
+      timeIn: args.timeIn,
+      timeOut: args.timeOut,
+      reason: args.reason,
+    })
   },
 }

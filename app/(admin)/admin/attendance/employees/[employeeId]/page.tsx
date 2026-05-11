@@ -54,7 +54,7 @@ export default async function AdminEmployeeDetailPage({
         <ArrowLeft className="h-3.5 w-3.5" />
         Back to employees
       </Link>
-      <EmployeeDetailView data={data} />
+      <EmployeeDetailView data={data} viewerRole="ADMIN" />
       <HoursSummaryPanel
         title="Hours summary"
         initialFrom={initialFrom}

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select"
 import type {
   AttendanceProjectView,
+  AttendanceRecordView,
 } from "@/modules/attendance/domain/models"
 import { checkGeofence, type GeofenceCheck } from "@/lib/geo"
 
@@ -23,7 +24,9 @@ import {
   endBreakAction,
   startBreakAction,
   type ClockInState,
+  updateTodayRemarkAction,
 } from "./actions"
+import { ClockOutSummaryDialog } from "./clock-out-summary-dialog"
 
 async function attachCoords(formData: FormData): Promise<void> {
   if (typeof navigator === "undefined" || !navigator.geolocation) return
@@ -80,6 +83,8 @@ type Props = {
   currentBreakStartedAt: string | null
   /** When true (Hourly Workers), the clock-in flow gates on a selfie capture. */
   requiresSelfieOnClockIn: boolean
+  /** Today's full attendance record — drives the clock-out confirmation dialog. */
+  todayRecord: AttendanceRecordView | null
 }
 
 function ClockInButton({ pending }: { pending: boolean }) {
@@ -175,6 +180,7 @@ export function ClockCard({
   onBreak,
   currentBreakStartedAt,
   requiresSelfieOnClockIn,
+  todayRecord,
 }: Props) {
   const [selected, setSelected] = useState("")
   const [result, formAction] = useActionState<ClockInState, FormData>(
@@ -183,6 +189,53 @@ export function ClockCard({
   )
   const [isPending, startTransition] = useTransition()
   const [isClockOutPending, startClockOutTransition] = useTransition()
+  // Pending clock-out: the formData has been built (coords resolved,
+  // off-site remark captured if needed) but the server hasn't been
+  // called yet. The summary dialog opens to let the employee review and
+  // optionally attach an adjustment request; only Looks good / Submit
+  // request actually commits. Closing the dialog cancels the clock-out.
+  const [clockOutDraft, setClockOutDraft] = useState<{
+    formData: FormData
+  } | null>(null)
+  const [clockOutCommitError, setClockOutCommitError] = useState<string | null>(
+    null,
+  )
+
+  function prepareClockOut(formData: FormData) {
+    setClockOutCommitError(null)
+    setClockOutDraft({ formData })
+  }
+
+  function cancelClockOutDraft() {
+    if (isClockOutPending) return
+    setClockOutDraft(null)
+    setClockOutCommitError(null)
+  }
+
+  function commitClockOut(adjustmentRequest: string | null) {
+    if (!clockOutDraft) return
+    const fd = clockOutDraft.formData
+    startClockOutTransition(async () => {
+      const result = await clockOutAction(fd)
+      if (result.error) {
+        setClockOutCommitError(result.error)
+        return
+      }
+      if (adjustmentRequest && result.summary?.recordId) {
+        const remarkForm = new FormData()
+        remarkForm.set("recordId", result.summary.recordId)
+        remarkForm.set("remark", adjustmentRequest)
+        const remarkResult = await updateTodayRemarkAction({}, remarkForm)
+        if (remarkResult.error) {
+          // Clock-out already committed; just surface the remark error.
+          setClockOutCommitError(remarkResult.error)
+          return
+        }
+      }
+      setClockOutDraft(null)
+      setClockOutCommitError(null)
+    })
+  }
   const [isBreakPending, startBreakTransition] = useTransition()
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [remark, setRemark] = useState("")
@@ -235,7 +288,7 @@ export function ClockCard({
     if (action.kind === "CLOCK_IN") {
       startTransition(() => formAction(action.formData))
     } else if (action.kind === "CLOCK_OUT") {
-      startClockOutTransition(() => clockOutAction(action.formData))
+      prepareClockOut(action.formData)
     } else if (action.kind === "BREAK_START") {
       startBreakTransition(() => startBreakAction(action.formData))
     } else {
@@ -316,7 +369,7 @@ export function ClockCard({
         geofenceRadiusMeters,
       )
       if (fence.withinRadius) {
-        startClockOutTransition(() => clockOutAction(formData))
+        prepareClockOut(formData)
         return
       }
       setRemark("")
@@ -395,6 +448,7 @@ export function ClockCard({
   })
 
   return (
+    <>
     <Card className="p-5">
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -540,6 +594,14 @@ export function ClockCard({
         />
       ) : null}
     </Card>
+    <ClockOutSummaryDialog
+      todayRecord={clockOutDraft ? todayRecord : null}
+      pending={isClockOutPending}
+      error={clockOutCommitError}
+      onConfirm={commitClockOut}
+      onClose={cancelClockOutDraft}
+    />
+    </>
   )
 }
 

@@ -145,6 +145,14 @@ export type ProjectManager = Prisma.ProjectManagerModel
  */
 export type AttendanceRecord = Prisma.AttendanceRecordModel
 /**
+ * Model AttendanceEditLog
+ * Audit trail of supervisor/admin/employee edits to AttendanceRecord
+ * fields. One row per save action — captures before/after values for
+ * timeIn, timeOut, status, and notes so the change history is fully
+ * reconstructable. `source` tags which UI path produced the edit.
+ */
+export type AttendanceEditLog = Prisma.AttendanceEditLogModel
+/**
  * Model BreakSession
  * 
  */

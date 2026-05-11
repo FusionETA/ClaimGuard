@@ -226,8 +226,8 @@ export type ApiIntegrationWhereInput = {
   lastUsedAt?: Prisma.DateTimeNullableFilter<"ApiIntegration"> | Date | string | null
   issuedByMasterKeyId?: Prisma.StringNullableFilter<"ApiIntegration"> | string | null
   auditLogs?: Prisma.ApiAuditLogListRelationFilter
-  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   issuedByMasterKey?: Prisma.XOR<Prisma.MasterApiKeyNullableScalarRelationFilter, Prisma.MasterApiKeyWhereInput> | null
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
 export type ApiIntegrationOrderByWithRelationInput = {
@@ -242,8 +242,8 @@ export type ApiIntegrationOrderByWithRelationInput = {
   lastUsedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   issuedByMasterKeyId?: Prisma.SortOrderInput | Prisma.SortOrder
   auditLogs?: Prisma.ApiAuditLogOrderByRelationAggregateInput
-  organization?: Prisma.OrganizationOrderByWithRelationInput
   issuedByMasterKey?: Prisma.MasterApiKeyOrderByWithRelationInput
+  organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.ApiIntegrationOrderByRelevanceInput
 }
 
@@ -262,8 +262,8 @@ export type ApiIntegrationWhereUniqueInput = Prisma.AtLeast<{
   lastUsedAt?: Prisma.DateTimeNullableFilter<"ApiIntegration"> | Date | string | null
   issuedByMasterKeyId?: Prisma.StringNullableFilter<"ApiIntegration"> | string | null
   auditLogs?: Prisma.ApiAuditLogListRelationFilter
-  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   issuedByMasterKey?: Prisma.XOR<Prisma.MasterApiKeyNullableScalarRelationFilter, Prisma.MasterApiKeyWhereInput> | null
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id" | "tokenHash">
 
 export type ApiIntegrationOrderByWithAggregationInput = {
@@ -308,8 +308,8 @@ export type ApiIntegrationCreateInput = {
   createdAt?: Date | string
   lastUsedAt?: Date | string | null
   auditLogs?: Prisma.ApiAuditLogCreateNestedManyWithoutIntegrationInput
-  organization: Prisma.OrganizationCreateNestedOneWithoutApiIntegrationsInput
   issuedByMasterKey?: Prisma.MasterApiKeyCreateNestedOneWithoutIssuedIntegrationsInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutApiIntegrationsInput
 }
 
 export type ApiIntegrationUncheckedCreateInput = {
@@ -336,8 +336,8 @@ export type ApiIntegrationUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastUsedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   auditLogs?: Prisma.ApiAuditLogUpdateManyWithoutIntegrationNestedInput
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutApiIntegrationsNestedInput
   issuedByMasterKey?: Prisma.MasterApiKeyUpdateOneWithoutIssuedIntegrationsNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutApiIntegrationsNestedInput
 }
 
 export type ApiIntegrationUncheckedUpdateInput = {
@@ -628,8 +628,8 @@ export type ApiIntegrationCreateWithoutAuditLogsInput = {
   active?: boolean
   createdAt?: Date | string
   lastUsedAt?: Date | string | null
-  organization: Prisma.OrganizationCreateNestedOneWithoutApiIntegrationsInput
   issuedByMasterKey?: Prisma.MasterApiKeyCreateNestedOneWithoutIssuedIntegrationsInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutApiIntegrationsInput
 }
 
 export type ApiIntegrationUncheckedCreateWithoutAuditLogsInput = {
@@ -670,8 +670,8 @@ export type ApiIntegrationUpdateWithoutAuditLogsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   lastUsedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutApiIntegrationsNestedInput
   issuedByMasterKey?: Prisma.MasterApiKeyUpdateOneWithoutIssuedIntegrationsNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutApiIntegrationsNestedInput
 }
 
 export type ApiIntegrationUncheckedUpdateWithoutAuditLogsInput = {
@@ -882,8 +882,8 @@ export type ApiIntegrationSelect<ExtArgs extends runtime.Types.Extensions.Intern
   lastUsedAt?: boolean
   issuedByMasterKeyId?: boolean
   auditLogs?: boolean | Prisma.ApiIntegration$auditLogsArgs<ExtArgs>
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   issuedByMasterKey?: boolean | Prisma.ApiIntegration$issuedByMasterKeyArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.ApiIntegrationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["apiIntegration"]>
 
@@ -905,8 +905,8 @@ export type ApiIntegrationSelectScalar = {
 export type ApiIntegrationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "tokenHash" | "tokenPrefix" | "organizationId" | "scopes" | "active" | "createdAt" | "lastUsedAt" | "issuedByMasterKeyId", ExtArgs["result"]["apiIntegration"]>
 export type ApiIntegrationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   auditLogs?: boolean | Prisma.ApiIntegration$auditLogsArgs<ExtArgs>
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   issuedByMasterKey?: boolean | Prisma.ApiIntegration$issuedByMasterKeyArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   _count?: boolean | Prisma.ApiIntegrationCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -914,8 +914,8 @@ export type $ApiIntegrationPayload<ExtArgs extends runtime.Types.Extensions.Inte
   name: "ApiIntegration"
   objects: {
     auditLogs: Prisma.$ApiAuditLogPayload<ExtArgs>[]
-    organization: Prisma.$OrganizationPayload<ExtArgs>
     issuedByMasterKey: Prisma.$MasterApiKeyPayload<ExtArgs> | null
+    organization: Prisma.$OrganizationPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1284,8 +1284,8 @@ readonly fields: ApiIntegrationFieldRefs;
 export interface Prisma__ApiIntegrationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   auditLogs<T extends Prisma.ApiIntegration$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApiIntegration$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApiAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   issuedByMasterKey<T extends Prisma.ApiIntegration$issuedByMasterKeyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ApiIntegration$issuedByMasterKeyArgs<ExtArgs>>): Prisma.Prisma__MasterApiKeyClient<runtime.Types.Result.GetResult<Prisma.$MasterApiKeyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

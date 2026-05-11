@@ -69,6 +69,7 @@ export const ModelName = {
   ProjectHoliday: 'ProjectHoliday',
   ProjectManager: 'ProjectManager',
   AttendanceRecord: 'AttendanceRecord',
+  AttendanceEditLog: 'AttendanceEditLog',
   BreakSession: 'BreakSession',
   ApprovalRequest: 'ApprovalRequest',
   ApprovalChainStep: 'ApprovalChainStep',
@@ -405,6 +406,7 @@ export const AttendanceRecordScalarFieldEnum = {
   project: 'project',
   status: 'status',
   notes: 'notes',
+  remark: 'remark',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   projectId: 'projectId',
@@ -413,6 +415,29 @@ export const AttendanceRecordScalarFieldEnum = {
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
+
+
+export const AttendanceEditLogScalarFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId',
+  editedById: 'editedById',
+  editorRole: 'editorRole',
+  reason: 'reason',
+  prevTimeIn: 'prevTimeIn',
+  nextTimeIn: 'nextTimeIn',
+  prevTimeOut: 'prevTimeOut',
+  nextTimeOut: 'nextTimeOut',
+  prevStatus: 'prevStatus',
+  nextStatus: 'nextStatus',
+  prevNotes: 'prevNotes',
+  nextNotes: 'nextNotes',
+  prevRemark: 'prevRemark',
+  nextRemark: 'nextRemark',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type AttendanceEditLogScalarFieldEnum = (typeof AttendanceEditLogScalarFieldEnum)[keyof typeof AttendanceEditLogScalarFieldEnum]
 
 
 export const BreakSessionScalarFieldEnum = {
@@ -761,11 +786,27 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
   location: 'location',
   project: 'project',
   notes: 'notes',
+  remark: 'remark',
   projectId: 'projectId',
   xeroSelfieFileId: 'xeroSelfieFileId'
 } as const
 
 export type AttendanceRecordOrderByRelevanceFieldEnum = (typeof AttendanceRecordOrderByRelevanceFieldEnum)[keyof typeof AttendanceRecordOrderByRelevanceFieldEnum]
+
+
+export const AttendanceEditLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId',
+  editedById: 'editedById',
+  reason: 'reason',
+  prevNotes: 'prevNotes',
+  nextNotes: 'nextNotes',
+  prevRemark: 'prevRemark',
+  nextRemark: 'nextRemark',
+  source: 'source'
+} as const
+
+export type AttendanceEditLogOrderByRelevanceFieldEnum = (typeof AttendanceEditLogOrderByRelevanceFieldEnum)[keyof typeof AttendanceEditLogOrderByRelevanceFieldEnum]
 
 
 export const BreakSessionOrderByRelevanceFieldEnum = {

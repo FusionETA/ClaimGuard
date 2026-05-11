@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/attendance/ui/avatar"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
+import { OverrideTimesDialog } from "@/components/attendance/override-times-dialog"
 import {
   approvalStatusMeta,
   attendanceStatusMeta,
@@ -47,10 +48,19 @@ function fmtTime(iso: string | null) {
 export type { EmployeeDetailData } from "@/modules/attendance/domain/models"
 import type { EmployeeDetailData } from "@/modules/attendance/domain/models"
 
-export function EmployeeDetailView({ data }: { data: EmployeeDetailData }) {
+export function EmployeeDetailView({
+  data,
+  viewerRole,
+}: {
+  data: EmployeeDetailData
+  /** Role of the user viewing this page. Only SUPERVISOR or ADMIN
+   *  see the "Edit times" affordance. */
+  viewerRole?: "ADMIN" | "SUPERVISOR" | "EMPLOYEE"
+}) {
   const { profile, todayRecord, todayEvents, monthSummary, history, otRecords } = data
   const monthHours = Math.floor(monthSummary.totalMin / 60)
   const monthMins = monthSummary.totalMin % 60
+  const canEdit = viewerRole === "SUPERVISOR" || viewerRole === "ADMIN"
 
   return (
     <div className="space-y-5">
@@ -106,13 +116,24 @@ export function EmployeeDetailView({ data }: { data: EmployeeDetailData }) {
           </p>
           {todayRecord ? (
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-bold text-foreground">
                   {fmtTime(todayRecord.timeIn)} – {fmtTime(todayRecord.timeOut)}
                 </p>
-                <Badge variant={STATUS_VARIANT[todayRecord.status] as never}>
-                  {attendanceStatusMeta[todayRecord.status].label}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={STATUS_VARIANT[todayRecord.status] as never}>
+                    {attendanceStatusMeta[todayRecord.status].label}
+                  </Badge>
+                  {canEdit ? (
+                    <OverrideTimesDialog
+                      recordId={todayRecord.id}
+                      employeeId={todayRecord.employeeId}
+                      initialTimeIn={todayRecord.timeIn}
+                      initialTimeOut={todayRecord.timeOut}
+                      contextLabel={`Today · ${todayRecord.date}`}
+                    />
+                  ) : null}
+                </div>
               </div>
               {todayRecord.project ? (
                 <p className="text-xs text-muted-foreground">🛠 {todayRecord.project}</p>
@@ -127,6 +148,12 @@ export function EmployeeDetailView({ data }: { data: EmployeeDetailData }) {
                 <div className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
                   <p className="font-bold">⚠ Off-site events</p>
                   <pre className="mt-1 whitespace-pre-wrap font-sans">{todayRecord.notes}</pre>
+                </div>
+              ) : null}
+              {todayRecord.remark ? (
+                <div className="rounded-md border border-sky-200 bg-sky-50 p-2 text-xs text-sky-900">
+                  <p className="font-bold">✏️ Adjustment request</p>
+                  <pre className="mt-1 whitespace-pre-wrap font-sans">{todayRecord.remark}</pre>
                 </div>
               ) : null}
             </div>
@@ -253,10 +280,25 @@ export function EmployeeDetailView({ data }: { data: EmployeeDetailData }) {
                         {r.notes.split("\n").length > 1 ? "s" : ""}
                       </p>
                     ) : null}
+                    {r.remark ? (
+                      <p className="mt-1 text-[11px] font-semibold text-sky-700">
+                        ✏️ Adjustment request
+                      </p>
+                    ) : null}
                   </div>
                   <Badge variant={STATUS_VARIANT[r.status] as never}>
                     {attendanceStatusMeta[r.status].label}
                   </Badge>
+                  {canEdit ? (
+                    <OverrideTimesDialog
+                      recordId={r.id}
+                      employeeId={r.employeeId}
+                      initialTimeIn={r.timeIn}
+                      initialTimeOut={r.timeOut}
+                      triggerLabel="Edit"
+                      contextLabel={`Record · ${r.date}`}
+                    />
+                  ) : null}
                 </div>
               ))}
             </div>

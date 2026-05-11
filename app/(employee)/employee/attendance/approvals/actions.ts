@@ -10,6 +10,10 @@ import { supervisorAttendanceService } from "@/modules/attendance/application/se
 const reviewSchema = z.object({
   approvalId: z.string().min(1),
   status: z.enum(["APPROVED", "REJECTED"]),
+  // <input type="datetime-local"> → "YYYY-MM-DDTHH:MM". Empty string is
+  // treated as "no override" so existing UIs keep working unchanged.
+  overrideEventAt: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
 })
 
 export type ReviewApprovalState = {
@@ -26,16 +30,28 @@ export async function reviewApprovalAction(
   const parsed = reviewSchema.safeParse({
     approvalId: formData.get("approvalId"),
     status: formData.get("status"),
+    overrideEventAt: formData.get("overrideEventAt"),
+    notes: formData.get("notes"),
   })
 
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" }
   }
 
+  let overrideEventAt: Date | null = null
+  if (parsed.data.overrideEventAt) {
+    const d = new Date(parsed.data.overrideEventAt)
+    if (!Number.isNaN(d.getTime())) overrideEventAt = d
+  }
+
   await supervisorAttendanceService.reviewApproval(
     session.userId,
     parsed.data.approvalId,
     parsed.data.status,
+    {
+      notes: parsed.data.notes ?? null,
+      overrideEventAt,
+    },
   )
 
   revalidatePath("/employee/attendance/approvals")

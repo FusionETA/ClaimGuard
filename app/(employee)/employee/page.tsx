@@ -92,6 +92,7 @@ export default async function EmployeeDashboardPage() {
           onBreak={attendanceDashboard.today?.onBreak ?? false}
           currentBreakStartedAt={attendanceDashboard.today?.currentBreakStartedAt ?? null}
           requiresSelfieOnClockIn={requiresSelfieOnClockIn}
+          todayRecord={attendanceDashboard.today}
         />
       </section>
 

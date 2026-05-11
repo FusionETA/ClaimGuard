@@ -28,7 +28,7 @@ export default async function SupervisorEmployeeDetailPage({
         <ArrowLeft className="h-3.5 w-3.5" />
         Back to team
       </Link>
-      <EmployeeDetailView data={data} />
+      <EmployeeDetailView data={data} viewerRole="SUPERVISOR" />
     </div>
   )
 }

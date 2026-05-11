@@ -220,6 +220,7 @@ export type UserWhereInput = {
   approvals?: Prisma.ApprovalRequestListRelationFilter
   approvalReviews?: Prisma.ApprovalRequestListRelationFilter
   attendance?: Prisma.AttendanceRecordListRelationFilter
+  attendanceEdits?: Prisma.AttendanceEditLogListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   reviews?: Prisma.ClaimListRelationFilter
   claimApprovalEntries?: Prisma.ClaimApprovalEntryListRelationFilter
@@ -247,6 +248,7 @@ export type UserOrderByWithRelationInput = {
   approvals?: Prisma.ApprovalRequestOrderByRelationAggregateInput
   approvalReviews?: Prisma.ApprovalRequestOrderByRelationAggregateInput
   attendance?: Prisma.AttendanceRecordOrderByRelationAggregateInput
+  attendanceEdits?: Prisma.AttendanceEditLogOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
   reviews?: Prisma.ClaimOrderByRelationAggregateInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryOrderByRelationAggregateInput
@@ -278,6 +280,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   approvals?: Prisma.ApprovalRequestListRelationFilter
   approvalReviews?: Prisma.ApprovalRequestListRelationFilter
   attendance?: Prisma.AttendanceRecordListRelationFilter
+  attendanceEdits?: Prisma.AttendanceEditLogListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   reviews?: Prisma.ClaimListRelationFilter
   claimApprovalEntries?: Prisma.ClaimApprovalEntryListRelationFilter
@@ -334,6 +337,7 @@ export type UserCreateInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -361,6 +365,7 @@ export type UserUncheckedCreateInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -386,6 +391,7 @@ export type UserUpdateInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -413,6 +419,7 @@ export type UserUncheckedUpdateInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -724,6 +731,20 @@ export type UserUpdateOneRequiredWithoutAttendanceNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAttendanceInput, Prisma.UserUpdateWithoutAttendanceInput>, Prisma.UserUncheckedUpdateWithoutAttendanceInput>
 }
 
+export type UserCreateNestedOneWithoutAttendanceEditsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAttendanceEditsInput, Prisma.UserUncheckedCreateWithoutAttendanceEditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAttendanceEditsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAttendanceEditsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAttendanceEditsInput, Prisma.UserUncheckedCreateWithoutAttendanceEditsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAttendanceEditsInput
+  upsert?: Prisma.UserUpsertWithoutAttendanceEditsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAttendanceEditsInput, Prisma.UserUpdateWithoutAttendanceEditsInput>, Prisma.UserUncheckedUpdateWithoutAttendanceEditsInput>
+}
+
 export type UserCreateNestedOneWithoutApprovalsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutApprovalsInput, Prisma.UserUncheckedCreateWithoutApprovalsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutApprovalsInput
@@ -797,6 +818,7 @@ export type UserCreateWithoutOrganizationInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -822,6 +844,7 @@ export type UserUncheckedCreateWithoutOrganizationInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -887,6 +910,7 @@ export type UserCreateWithoutAdminOrganizationsInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -913,6 +937,7 @@ export type UserUncheckedCreateWithoutAdminOrganizationsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -953,6 +978,7 @@ export type UserUpdateWithoutAdminOrganizationsInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -979,6 +1005,7 @@ export type UserUncheckedUpdateWithoutAdminOrganizationsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -1004,6 +1031,7 @@ export type UserCreateWithoutPushSubscriptionsInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -1030,6 +1058,7 @@ export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -1070,6 +1099,7 @@ export type UserUpdateWithoutPushSubscriptionsInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -1096,6 +1126,7 @@ export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -1120,6 +1151,7 @@ export type UserCreateWithoutEmployeeProfileInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -1146,6 +1178,7 @@ export type UserUncheckedCreateWithoutEmployeeProfileInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -1186,6 +1219,7 @@ export type UserUpdateWithoutEmployeeProfileInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -1212,6 +1246,7 @@ export type UserUncheckedUpdateWithoutEmployeeProfileInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -1236,6 +1271,7 @@ export type UserCreateWithoutClaimsInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
   employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
@@ -1262,6 +1298,7 @@ export type UserUncheckedCreateWithoutClaimsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
   employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
@@ -1291,6 +1328,7 @@ export type UserCreateWithoutReviewsInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
   employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
@@ -1317,6 +1355,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
   employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
@@ -1357,6 +1396,7 @@ export type UserUpdateWithoutClaimsInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
   employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
@@ -1383,6 +1423,7 @@ export type UserUncheckedUpdateWithoutClaimsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
   employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
@@ -1418,6 +1459,7 @@ export type UserUpdateWithoutReviewsInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
   employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
@@ -1444,6 +1486,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
   employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
@@ -1468,6 +1511,7 @@ export type UserCreateWithoutClaimApprovalEntriesInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
@@ -1494,6 +1538,7 @@ export type UserUncheckedCreateWithoutClaimApprovalEntriesInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
@@ -1534,6 +1579,7 @@ export type UserUpdateWithoutClaimApprovalEntriesInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
@@ -1560,6 +1606,7 @@ export type UserUncheckedUpdateWithoutClaimApprovalEntriesInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
@@ -1584,6 +1631,7 @@ export type UserCreateWithoutXeroConnectionsInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -1610,6 +1658,7 @@ export type UserUncheckedCreateWithoutXeroConnectionsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -1650,6 +1699,7 @@ export type UserUpdateWithoutXeroConnectionsInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -1676,6 +1726,7 @@ export type UserUncheckedUpdateWithoutXeroConnectionsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -1700,6 +1751,7 @@ export type UserCreateWithoutManagedProjectsInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -1726,6 +1778,7 @@ export type UserUncheckedCreateWithoutManagedProjectsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -1766,6 +1819,7 @@ export type UserUpdateWithoutManagedProjectsInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -1792,6 +1846,7 @@ export type UserUncheckedUpdateWithoutManagedProjectsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -1816,6 +1871,7 @@ export type UserCreateWithoutProjectManagerOfInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -1842,6 +1898,7 @@ export type UserUncheckedCreateWithoutProjectManagerOfInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -1882,6 +1939,7 @@ export type UserUpdateWithoutProjectManagerOfInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -1908,6 +1966,7 @@ export type UserUncheckedUpdateWithoutProjectManagerOfInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -1931,6 +1990,7 @@ export type UserCreateWithoutAttendanceInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -1957,6 +2017,7 @@ export type UserUncheckedCreateWithoutAttendanceInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -1997,6 +2058,7 @@ export type UserUpdateWithoutAttendanceInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -2023,6 +2085,127 @@ export type UserUncheckedUpdateWithoutAttendanceInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+}
+
+export type UserCreateWithoutAttendanceEditsInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+}
+
+export type UserUncheckedCreateWithoutAttendanceEditsInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+}
+
+export type UserCreateOrConnectWithoutAttendanceEditsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAttendanceEditsInput, Prisma.UserUncheckedCreateWithoutAttendanceEditsInput>
+}
+
+export type UserUpsertWithoutAttendanceEditsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAttendanceEditsInput, Prisma.UserUncheckedUpdateWithoutAttendanceEditsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAttendanceEditsInput, Prisma.UserUncheckedCreateWithoutAttendanceEditsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAttendanceEditsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAttendanceEditsInput, Prisma.UserUncheckedUpdateWithoutAttendanceEditsInput>
+}
+
+export type UserUpdateWithoutAttendanceEditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAttendanceEditsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -2047,6 +2230,7 @@ export type UserCreateWithoutApprovalsInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -2073,6 +2257,7 @@ export type UserUncheckedCreateWithoutApprovalsInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -2102,6 +2287,7 @@ export type UserCreateWithoutApprovalReviewsInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -2128,6 +2314,7 @@ export type UserUncheckedCreateWithoutApprovalReviewsInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -2168,6 +2355,7 @@ export type UserUpdateWithoutApprovalsInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -2194,6 +2382,7 @@ export type UserUncheckedUpdateWithoutApprovalsInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -2229,6 +2418,7 @@ export type UserUpdateWithoutApprovalReviewsInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -2255,6 +2445,7 @@ export type UserUncheckedUpdateWithoutApprovalReviewsInput = {
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -2279,6 +2470,7 @@ export type UserCreateWithoutApprovalChainApprovalsInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -2305,6 +2497,7 @@ export type UserUncheckedCreateWithoutApprovalChainApprovalsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -2334,6 +2527,7 @@ export type UserCreateWithoutApprovalChainStepsInput = {
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
@@ -2360,6 +2554,7 @@ export type UserUncheckedCreateWithoutApprovalChainStepsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
   attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
   reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
@@ -2400,6 +2595,7 @@ export type UserUpdateWithoutApprovalChainApprovalsInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -2426,6 +2622,7 @@ export type UserUncheckedUpdateWithoutApprovalChainApprovalsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -2461,6 +2658,7 @@ export type UserUpdateWithoutApprovalChainStepsInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -2487,6 +2685,7 @@ export type UserUncheckedUpdateWithoutApprovalChainStepsInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -2523,6 +2722,7 @@ export type UserUpdateWithoutOrganizationInput = {
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
@@ -2548,6 +2748,7 @@ export type UserUncheckedUpdateWithoutOrganizationInput = {
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
   attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
   reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
   claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
@@ -2581,6 +2782,7 @@ export type UserCountOutputType = {
   approvals: number
   approvalReviews: number
   attendance: number
+  attendanceEdits: number
   claims: number
   reviews: number
   claimApprovalEntries: number
@@ -2597,6 +2799,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   approvals?: boolean | UserCountOutputTypeCountApprovalsArgs
   approvalReviews?: boolean | UserCountOutputTypeCountApprovalReviewsArgs
   attendance?: boolean | UserCountOutputTypeCountAttendanceArgs
+  attendanceEdits?: boolean | UserCountOutputTypeCountAttendanceEditsArgs
   claims?: boolean | UserCountOutputTypeCountClaimsArgs
   reviews?: boolean | UserCountOutputTypeCountReviewsArgs
   claimApprovalEntries?: boolean | UserCountOutputTypeCountClaimApprovalEntriesArgs
@@ -2656,6 +2859,13 @@ export type UserCountOutputTypeCountApprovalReviewsArgs<ExtArgs extends runtime.
  */
 export type UserCountOutputTypeCountAttendanceArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AttendanceRecordWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAttendanceEditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AttendanceEditLogWhereInput
 }
 
 /**
@@ -2724,6 +2934,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
   approvalReviews?: boolean | Prisma.User$approvalReviewsArgs<ExtArgs>
   attendance?: boolean | Prisma.User$attendanceArgs<ExtArgs>
+  attendanceEdits?: boolean | Prisma.User$attendanceEditsArgs<ExtArgs>
   claims?: boolean | Prisma.User$claimsArgs<ExtArgs>
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
   claimApprovalEntries?: boolean | Prisma.User$claimApprovalEntriesArgs<ExtArgs>
@@ -2758,6 +2969,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
   approvalReviews?: boolean | Prisma.User$approvalReviewsArgs<ExtArgs>
   attendance?: boolean | Prisma.User$attendanceArgs<ExtArgs>
+  attendanceEdits?: boolean | Prisma.User$attendanceEditsArgs<ExtArgs>
   claims?: boolean | Prisma.User$claimsArgs<ExtArgs>
   reviews?: boolean | Prisma.User$reviewsArgs<ExtArgs>
   claimApprovalEntries?: boolean | Prisma.User$claimApprovalEntriesArgs<ExtArgs>
@@ -2779,6 +2991,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     approvals: Prisma.$ApprovalRequestPayload<ExtArgs>[]
     approvalReviews: Prisma.$ApprovalRequestPayload<ExtArgs>[]
     attendance: Prisma.$AttendanceRecordPayload<ExtArgs>[]
+    attendanceEdits: Prisma.$AttendanceEditLogPayload<ExtArgs>[]
     claims: Prisma.$ClaimPayload<ExtArgs>[]
     reviews: Prisma.$ClaimPayload<ExtArgs>[]
     claimApprovalEntries: Prisma.$ClaimApprovalEntryPayload<ExtArgs>[]
@@ -3145,6 +3358,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   approvals<T extends Prisma.User$approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvalReviews<T extends Prisma.User$approvalReviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalReviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   attendance<T extends Prisma.User$attendanceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$attendanceArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  attendanceEdits<T extends Prisma.User$attendanceEditsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$attendanceEditsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceEditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claims<T extends Prisma.User$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.User$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claimApprovalEntries<T extends Prisma.User$claimApprovalEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$claimApprovalEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimApprovalEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3681,6 +3895,30 @@ export type User$attendanceArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.AttendanceRecordScalarFieldEnum | Prisma.AttendanceRecordScalarFieldEnum[]
+}
+
+/**
+ * User.attendanceEdits
+ */
+export type User$attendanceEditsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AttendanceEditLog
+   */
+  select?: Prisma.AttendanceEditLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AttendanceEditLog
+   */
+  omit?: Prisma.AttendanceEditLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AttendanceEditLogInclude<ExtArgs> | null
+  where?: Prisma.AttendanceEditLogWhereInput
+  orderBy?: Prisma.AttendanceEditLogOrderByWithRelationInput | Prisma.AttendanceEditLogOrderByWithRelationInput[]
+  cursor?: Prisma.AttendanceEditLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AttendanceEditLogScalarFieldEnum | Prisma.AttendanceEditLogScalarFieldEnum[]
 }
 
 /**
