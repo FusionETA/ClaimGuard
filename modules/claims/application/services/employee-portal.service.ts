@@ -98,10 +98,10 @@ export async function getEmployeeAccount(): Promise<EmployeeAccountData | null> 
   const session = await requireEmployeeSession()
   if (!session) return null
 
-  // Profile + org change rarely (hierarchy edits, org settings) so
-  // 5-min TTL is fine. The "config" namespace marks this for
-  // invalidation by `bustOrgConfigCaches` on hierarchy/settings
-  // mutations.
+  // Profile + org change rarely (hierarchy edits, org settings). 30-
+  // min TTL — the "config" namespace is busted by `bustOrgConfigCaches`
+  // on every hierarchy/settings change, so the TTL only matters if a
+  // bust slips past (which our audit covered).
   return getOrSetCache(
     key(
       "org",
@@ -111,7 +111,7 @@ export async function getEmployeeAccount(): Promise<EmployeeAccountData | null> 
       "config",
       "account",
     ),
-    300,
+    1800,
     async () => {
       const employee = await claimRepository.getEmployeeWithProfile(session.email)
       if (!employee) return null
@@ -135,11 +135,11 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
   const session = await requireEmployeeSession()
   if (!session) return null
 
-  // 60s TTL because the spend-limit math depends on the user's recent
-  // claims — too long and a freshly-submitted claim's limit math goes
-  // stale. `bustClaimCaches` includes this user's submission-data key
-  // pattern so claim mutations invalidate it explicitly; org-config
-  // mutations bust it via `bustOrgConfigCaches`.
+  // 30-min TTL. Although this includes spend-limit math derived from
+  // recent claims, `bustClaimCaches` busts this key on every claim
+  // mutation so the next form load is always fresh. The longer TTL is
+  // safe because the bust is the primary invalidation path, not the
+  // TTL.
   return getOrSetCache(
     key(
       "org",
@@ -149,7 +149,7 @@ export async function getEmployeeClaimSubmissionData(): Promise<EmployeeClaimSub
       "config",
       "claim-submission-data",
     ),
-    60,
+    1800,
     () => loadEmployeeClaimSubmissionData(session.email),
   )
 }
