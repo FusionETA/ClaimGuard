@@ -57,6 +57,7 @@ import {
   otPayoutMethods,
   resolveEmployeePayoutMethod,
 } from "@/modules/organization/domain/models"
+import type { EmployeePolicy } from "@/modules/policy/domain/models"
 
 type AdminHierarchyTableProps = {
   members: OrganizationMember[]
@@ -64,6 +65,11 @@ type AdminHierarchyTableProps = {
   xeroConnections: XeroConnectionInfo[]
   organizationName: string
   teams: TeamSummary[]
+  /// Org's employee policies. Active (non-archived) entries populate the
+  /// "Policy" dropdown in the Add/Edit member dialogs. When empty the
+  /// dropdown falls back to the legacy "Hourly / Office" hardcoded
+  /// options for back-compat with orgs that haven't been backfilled yet.
+  policies?: EmployeePolicy[]
 }
 
 type RoleFilter = "ALL" | "EMPLOYEE" | "SUPERVISOR"
@@ -299,6 +305,7 @@ export function AdminHierarchyTable({
   xeroConnections,
   organizationName,
   teams,
+  policies = [],
 }: AdminHierarchyTableProps) {
   const supervisors = members.filter((member) => member.role === "SUPERVISOR")
   const [page, setPage] = useState(1)
@@ -533,6 +540,7 @@ export function AdminHierarchyTable({
             xeroDisplayName={xeroDisplayName}
             teams={teams}
             allMembers={members}
+            policies={policies}
           />
         </CardHeader>
         <CardContent className="space-y-4 p-0">
@@ -541,7 +549,7 @@ export function AdminHierarchyTable({
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Employee type</TableHead>
+                <TableHead>Policy</TableHead>
                 <TableHead>Xero org</TableHead>
                 <TableHead>Project</TableHead>
                 <TableHead>Job title</TableHead>
@@ -572,7 +580,7 @@ export function AdminHierarchyTable({
                         </div>
                       </TableCell>
                       <TableCell>{member.role === "SUPERVISOR" ? "Supervisor Employee" : "Basic Employee"}</TableCell>
-                      <TableCell>{employeePayoutMethodLabels[member.payoutMethod]}</TableCell>
+                      <TableCell>{member.policyName ?? employeePayoutMethodLabels[member.payoutMethod]}</TableCell>
                       <TableCell>{member.xeroConnectionName ?? "—"}</TableCell>
                       <TableCell>{formatAssignedProjects(member) || "—"}</TableCell>
                       <TableCell>{member.jobTitle}</TableCell>
@@ -595,6 +603,7 @@ export function AdminHierarchyTable({
                           xeroDisplayName={xeroDisplayName}
                           teams={teams}
                           allMembers={members}
+                          policies={policies}
                         />
                       </TableCell>
                     </TableRow>
@@ -625,6 +634,7 @@ function AddHierarchyMemberDialog({
   xeroDisplayName,
   teams,
   allMembers,
+  policies,
 }: {
   supervisors: OrganizationMember[]
   projects: OrganizationProjectOption[]
@@ -632,6 +642,7 @@ function AddHierarchyMemberDialog({
   xeroDisplayName: string
   teams: TeamSummary[]
   allMembers: OrganizationMember[]
+  policies: EmployeePolicy[]
 }) {
   const { toast } = useToast()
   const [open, setOpen] = useState(false)
@@ -644,6 +655,25 @@ function AddHierarchyMemberDialog({
     Record<string, { teamId: string; layer: number; chainApproverByLayer: Record<number, string[]> }>
   >({})
   const [addRoleValue, setAddRoleValue] = useState<"EMPLOYEE" | "SUPERVISOR">("EMPLOYEE")
+  const activePolicies = useMemo(
+    () => policies.filter((p) => !p.archived),
+    [policies],
+  )
+  const defaultPolicyId = useMemo(
+    () =>
+      activePolicies.find((p) => p.isDefault)?.id ?? activePolicies[0]?.id ?? "",
+    [activePolicies],
+  )
+  const [addPolicyId, setAddPolicyId] = useState<string>(defaultPolicyId)
+  useEffect(() => {
+    if (!addPolicyId && defaultPolicyId) {
+      setAddPolicyId(defaultPolicyId)
+    }
+  }, [defaultPolicyId, addPolicyId])
+  const selectedAddPolicy = activePolicies.find((p) => p.id === addPolicyId)
+  // When no policies exist yet (e.g. an org that hasn't been backfilled),
+  // fall back to the legacy "Hourly / Office" dropdown via these state
+  // values so the form still works.
   const [addPayoutMethodValue, setAddPayoutMethodValue] =
     useState<EmployeePayoutMethod>("HOURLY")
   const [addHourlyRate, setAddHourlyRate] = useState<string>("")
@@ -659,10 +689,19 @@ function AddHierarchyMemberDialog({
   const filteredProjects = xeroConnectionId
     ? projects.filter((p) => p.xeroConnectionId === xeroConnectionId)
     : projects
+  // The chosen policy is the source of truth for salary/OT. When no
+  // policies exist (legacy orgs), we still honor the manual dropdown.
+  const policyDrivenPayout: EmployeePayoutMethod | undefined =
+    selectedAddPolicy?.salaryType
+  const policyDrivenOt: OtPayoutMethod | undefined = selectedAddPolicy?.otMethod
   const resolvedAddPayoutMethod = resolveEmployeePayoutMethod(
     addRoleValue,
-    addPayoutMethodValue
+    policyDrivenPayout ?? addPayoutMethodValue
   )
+  const resolvedAddOtPayoutMethod: OtPayoutMethod =
+    resolvedAddPayoutMethod === "MONTHLY_BASED"
+      ? policyDrivenOt ?? addOtPayoutMethod
+      : "CASH"
 
   const projectsById = useMemo(
     () => new Map(filteredProjects.map((p) => [p.id, p])),
@@ -847,31 +886,67 @@ function AddHierarchyMemberDialog({
                 </label>
               </div>
 
-              <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-                <label htmlFor="add-payout-method">Employee type</label>
-                <input type="hidden" name="payoutMethod" value={resolvedAddPayoutMethod} />
-                <Select
-                  value={resolvedAddPayoutMethod}
-                  onValueChange={(value) => setAddPayoutMethodValue(value as EmployeePayoutMethod)}
-                  disabled={pending || addRoleValue === "SUPERVISOR"}
-                >
-                  <SelectTrigger id="add-payout-method">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {payoutMethodOptions.map((method) => (
-                      <SelectItem key={method} value={method}>
-                        {employeePayoutMethodLabels[method]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {addRoleValue === "SUPERVISOR" ? (
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Supervisors are always monthly-based paid.
+              <input type="hidden" name="payoutMethod" value={resolvedAddPayoutMethod} />
+              <input type="hidden" name="otPayoutMethod" value={resolvedAddOtPayoutMethod} />
+              {activePolicies.length > 0 ? (
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor="add-policy-id">Employee policy</label>
+                  <input type="hidden" name="policyId" value={addPolicyId} />
+                  <Select
+                    value={addPolicyId}
+                    onValueChange={(value) => setAddPolicyId(value)}
+                    disabled={pending}
+                  >
+                    <SelectTrigger id="add-policy-id">
+                      <SelectValue placeholder="Pick a policy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activePolicies.map((policy) => (
+                        <SelectItem key={policy.id} value={policy.id}>
+                          {policy.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedAddPolicy ? (
+                    <p className="text-xs font-normal text-muted-foreground">
+                      {employeePayoutMethodLabels[selectedAddPolicy.salaryType]} · OT paid as{" "}
+                      {otPayoutMethodLabels[selectedAddPolicy.otMethod].toLowerCase()}
+                      {addRoleValue === "SUPERVISOR"
+                        ? " · supervisors are always paid monthly"
+                        : ""}
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor="add-payout-method">Employee type</label>
+                  <Select
+                    value={resolvedAddPayoutMethod}
+                    onValueChange={(value) => setAddPayoutMethodValue(value as EmployeePayoutMethod)}
+                    disabled={pending || addRoleValue === "SUPERVISOR"}
+                  >
+                    <SelectTrigger id="add-payout-method">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {payoutMethodOptions.map((method) => (
+                        <SelectItem key={method} value={method}>
+                          {employeePayoutMethodLabels[method]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {addRoleValue === "SUPERVISOR" ? (
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Supervisors are always monthly-based paid.
+                    </p>
+                  ) : null}
+                  <p className="text-xs font-normal text-muted-foreground">
+                    Create an Employee policy in Settings → Policies to replace this hardcoded picker.
                   </p>
-                ) : null}
-              </div>
+                </div>
+              )}
 
               {/* Hourly rate input — only for HOURLY-paid EMPLOYEES.
                   Required when shown; the server validates positivity. */}
@@ -897,13 +972,13 @@ function AddHierarchyMemberDialog({
                 </div>
               ) : null}
 
-              {/* OT payout method — only for Office Workers. Hourly Workers
-                  always cash out. Once an OT request is submitted, the
-                  payout method is locked to whatever this is at that time. */}
-              {resolvedAddPayoutMethod === "MONTHLY_BASED" ? (
+              {/* OT payout method — only for Office Workers, only when no
+                  policy is driving the selection. Hourly Workers always
+                  cash out. */}
+              {resolvedAddPayoutMethod === "MONTHLY_BASED" &&
+              activePolicies.length === 0 ? (
                 <div className="space-y-2 text-sm font-semibold text-muted-foreground">
                   <label htmlFor="add-ot-payout">OT payout method</label>
-                  <input type="hidden" name="otPayoutMethod" value={addOtPayoutMethod} />
                   <Select
                     value={addOtPayoutMethod}
                     onValueChange={(v) => setAddOtPayoutMethod(v as OtPayoutMethod)}
@@ -1157,6 +1232,7 @@ function HierarchyEditDialog({
   xeroDisplayName,
   teams,
   allMembers,
+  policies,
 }: {
   member: OrganizationMember
   supervisors: OrganizationMember[]
@@ -1165,6 +1241,7 @@ function HierarchyEditDialog({
   xeroDisplayName: string
   teams: TeamSummary[]
   allMembers: OrganizationMember[]
+  policies: EmployeePolicy[]
 }) {
   const { toast } = useToast()
   const xeroConnectionId = xeroConnection?.id ?? ""
@@ -1192,6 +1269,18 @@ function HierarchyEditDialog({
   const [editOtPayoutMethod, setEditOtPayoutMethod] = useState<OtPayoutMethod>(
     member.otPayoutMethod,
   )
+  const activePolicies = useMemo(
+    () => policies.filter((p) => !p.archived),
+    [policies],
+  )
+  const fallbackPolicyId = useMemo(
+    () => activePolicies.find((p) => p.isDefault)?.id ?? activePolicies[0]?.id ?? "",
+    [activePolicies],
+  )
+  const [editPolicyId, setEditPolicyId] = useState<string>(
+    member.policyId ?? fallbackPolicyId,
+  )
+  const selectedEditPolicy = activePolicies.find((p) => p.id === editPolicyId)
   const [selectedEditProjectIds, setSelectedEditProjectIds] = useState<string[]>(
     member.projects.map((project) => project.id)
   )
@@ -1223,10 +1312,17 @@ function HierarchyEditDialog({
     }
     return out
   })
+  const policyDrivenEditPayout: EmployeePayoutMethod | undefined =
+    selectedEditPolicy?.salaryType
+  const policyDrivenEditOt: OtPayoutMethod | undefined = selectedEditPolicy?.otMethod
   const resolvedEditPayoutMethod = resolveEmployeePayoutMethod(
     editRoleValue,
-    editPayoutMethodValue
+    policyDrivenEditPayout ?? editPayoutMethodValue
   )
+  const resolvedEditOtPayoutMethod: OtPayoutMethod =
+    resolvedEditPayoutMethod === "MONTHLY_BASED"
+      ? policyDrivenEditOt ?? editOtPayoutMethod
+      : "CASH"
 
   const filteredProjects = useMemo(() => {
     return xeroConnectionId
@@ -1295,6 +1391,7 @@ function HierarchyEditDialog({
         member.hourlyRate != null ? member.hourlyRate.toFixed(2) : "",
       )
       setEditOtPayoutMethod(member.otPayoutMethod)
+      setEditPolicyId(member.policyId ?? fallbackPolicyId)
       setSelectedEditProjectIds(resolveSelectedProjectIds(member.projects, filteredProjects))
       const out: Record<
         string,
@@ -1403,31 +1500,67 @@ function HierarchyEditDialog({
                 </label>
               </div>
 
-              <div className="space-y-2 text-sm font-semibold text-muted-foreground">
-                <label htmlFor={`edit-payout-method-${member.id}`}>Employee type</label>
-                <input type="hidden" name="payoutMethod" value={resolvedEditPayoutMethod} />
-                <Select
-                  value={resolvedEditPayoutMethod}
-                  onValueChange={(value) => setEditPayoutMethodValue(value as EmployeePayoutMethod)}
-                  disabled={pending || editRoleValue === "SUPERVISOR"}
-                >
-                  <SelectTrigger id={`edit-payout-method-${member.id}`}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {payoutMethodOptions.map((method) => (
-                      <SelectItem key={method} value={method}>
-                        {employeePayoutMethodLabels[method]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {editRoleValue === "SUPERVISOR" ? (
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Supervisors are always monthly-based paid.
+              <input type="hidden" name="payoutMethod" value={resolvedEditPayoutMethod} />
+              <input type="hidden" name="otPayoutMethod" value={resolvedEditOtPayoutMethod} />
+              {activePolicies.length > 0 ? (
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor={`edit-policy-${member.id}`}>Employee policy</label>
+                  <input type="hidden" name="policyId" value={editPolicyId} />
+                  <Select
+                    value={editPolicyId}
+                    onValueChange={(v) => setEditPolicyId(v)}
+                    disabled={pending}
+                  >
+                    <SelectTrigger id={`edit-policy-${member.id}`}>
+                      <SelectValue placeholder="Pick a policy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {activePolicies.map((policy) => (
+                        <SelectItem key={policy.id} value={policy.id}>
+                          {policy.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedEditPolicy ? (
+                    <p className="text-xs font-normal text-muted-foreground">
+                      {employeePayoutMethodLabels[selectedEditPolicy.salaryType]} · OT paid as{" "}
+                      {otPayoutMethodLabels[selectedEditPolicy.otMethod].toLowerCase()}
+                      {editRoleValue === "SUPERVISOR"
+                        ? " · supervisors are always paid monthly"
+                        : ""}
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="space-y-2 text-sm font-semibold text-muted-foreground">
+                  <label htmlFor={`edit-payout-method-${member.id}`}>Employee type</label>
+                  <Select
+                    value={resolvedEditPayoutMethod}
+                    onValueChange={(value) => setEditPayoutMethodValue(value as EmployeePayoutMethod)}
+                    disabled={pending || editRoleValue === "SUPERVISOR"}
+                  >
+                    <SelectTrigger id={`edit-payout-method-${member.id}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {payoutMethodOptions.map((method) => (
+                        <SelectItem key={method} value={method}>
+                          {employeePayoutMethodLabels[method]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {editRoleValue === "SUPERVISOR" ? (
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Supervisors are always monthly-based paid.
+                    </p>
+                  ) : null}
+                  <p className="text-xs font-normal text-muted-foreground">
+                    Create an Employee policy in Settings → Policies to replace this hardcoded picker.
                   </p>
-                ) : null}
-              </div>
+                </div>
+              )}
 
               {/* Hourly rate input — only for HOURLY-paid EMPLOYEES.
                   When the role flips to SUPERVISOR or the type flips to
@@ -1455,10 +1588,10 @@ function HierarchyEditDialog({
                 </div>
               ) : null}
 
-              {resolvedEditPayoutMethod === "MONTHLY_BASED" ? (
+              {resolvedEditPayoutMethod === "MONTHLY_BASED" &&
+              activePolicies.length === 0 ? (
                 <div className="space-y-2 text-sm font-semibold text-muted-foreground">
                   <label htmlFor={`edit-ot-payout-${member.id}`}>OT payout method</label>
-                  <input type="hidden" name="otPayoutMethod" value={editOtPayoutMethod} />
                   <Select
                     value={editOtPayoutMethod}
                     onValueChange={(v) => setEditOtPayoutMethod(v as OtPayoutMethod)}

@@ -73,6 +73,11 @@ const createEmployeeSchema = z.object({
   payoutMethod: z.enum(employeePayoutMethods),
   otPayoutMethod: z.enum(otPayoutMethods).default("CASH"),
   hourlyRate: z.number().positive().optional(),
+  /// Optional employee policy. When provided, the policy's salaryType
+  /// and otMethod override the `payoutMethod` / `otPayoutMethod` fields
+  /// above. Legacy callers that omit this still work via the seeded
+  /// "Hourly Worker" / "Office Worker" defaults.
+  policyId: z.string().min(1).optional(),
   projectIds: z.array(z.string()).default([]),
   projectAssignments: z.array(projectAssignmentSchema).default([]),
 })
@@ -147,6 +152,7 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
       payoutMethod,
       otPayoutMethod,
       hourlyRate: parsed.data.hourlyRate ?? null,
+      policyId: parsed.data.policyId,
       projectAssignments: parsed.data.projectAssignments,
     })
   } catch (error) {
@@ -214,6 +220,8 @@ function toExternalEmployee(member: {
   payoutMethod: string
   otPayoutMethod: string
   hourlyRate?: number
+  policyId?: string
+  policyName?: string
   projects: Array<{ id: string; name: string }>
   teams: Array<{
     teamId: string
@@ -236,6 +244,9 @@ function toExternalEmployee(member: {
     payoutMethod: member.payoutMethod,
     otPayoutMethod: member.otPayoutMethod,
     hourlyRate: member.hourlyRate ?? null,
+    policy: member.policyId
+      ? { id: member.policyId, name: member.policyName ?? null }
+      : null,
     projects: member.projects,
     teams: member.teams.map((t) => ({
       teamId: t.teamId,

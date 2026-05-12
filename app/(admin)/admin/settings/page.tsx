@@ -10,6 +10,7 @@ import {
 } from "@/modules/claims/application/services/admin-page-data.service"
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 
 const XERO_PENDING_COOKIE = "claimguard_xero_pending"
 const ACTIVE_CONNECTION_COOKIE = "claimguard_active_connection"
@@ -44,6 +45,10 @@ export default async function AdminSettingsPage({
   // External API tokens for the API tab. Same pattern — empty when no org.
   const apiIntegrations = orgIdForAdmins
     ? await apiIntegrationRepository.listForOrganization(orgIdForAdmins)
+    : []
+
+  const policies = orgIdForAdmins
+    ? await policyRepository.listForOrganization(orgIdForAdmins)
     : []
 
   // OAuth callback "select-tenant" handling — read the pending cookie and
@@ -83,6 +88,7 @@ export default async function AdminSettingsPage({
       members={data.members}
       admins={admins}
       apiIntegrations={apiIntegrations}
+      policies={policies}
       currentAdminEmail={session.email}
       activeXeroConnectionId={data.activeXeroConnectionId}
       xeroStatus={typeof params.xero === "string" ? params.xero : undefined}

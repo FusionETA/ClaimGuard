@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
+  EmployeePolicy: 'EmployeePolicy',
   ApiIntegration: 'ApiIntegration',
   ApiAuditLog: 'ApiAuditLog',
   MasterApiKey: 'MasterApiKey',
@@ -143,6 +144,25 @@ export const OrganizationScalarFieldEnum = {
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const EmployeePolicyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description',
+  isDefault: 'isDefault',
+  archivedAt: 'archivedAt',
+  canAccessAttendance: 'canAccessAttendance',
+  canAccessClaims: 'canAccessClaims',
+  canAccessLeave: 'canAccessLeave',
+  salaryType: 'salaryType',
+  otMethod: 'otMethod',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeePolicyScalarFieldEnum = (typeof EmployeePolicyScalarFieldEnum)[keyof typeof EmployeePolicyScalarFieldEnum]
 
 
 export const ApiIntegrationScalarFieldEnum = {
@@ -238,7 +258,8 @@ export const EmployeeProfileScalarFieldEnum = {
   updatedAt: 'updatedAt',
   hourlyRate: 'hourlyRate',
   otPayoutMethod: 'otPayoutMethod',
-  otTimeBalanceMin: 'otTimeBalanceMin'
+  otTimeBalanceMin: 'otTimeBalanceMin',
+  policyId: 'policyId'
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
@@ -853,6 +874,16 @@ export const OrganizationOrderByRelevanceFieldEnum = {
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
 
 
+export const EmployeePolicyOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description'
+} as const
+
+export type EmployeePolicyOrderByRelevanceFieldEnum = (typeof EmployeePolicyOrderByRelevanceFieldEnum)[keyof typeof EmployeePolicyOrderByRelevanceFieldEnum]
+
+
 export const ApiIntegrationOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
@@ -927,7 +958,8 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   employeeId: 'employeeId',
   jobTitle: 'jobTitle',
   preferredCurrency: 'preferredCurrency',
-  xeroConnectionId: 'xeroConnectionId'
+  xeroConnectionId: 'xeroConnectionId',
+  policyId: 'policyId'
 } as const
 
 export type EmployeeProfileOrderByRelevanceFieldEnum = (typeof EmployeeProfileOrderByRelevanceFieldEnum)[keyof typeof EmployeeProfileOrderByRelevanceFieldEnum]

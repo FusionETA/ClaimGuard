@@ -28,6 +28,20 @@ export type User = Prisma.UserModel
  */
 export type Organization = Prisma.OrganizationModel
 /**
+ * Model EmployeePolicy
+ * Admin-defined classification for an employee. Replaces the previous
+ * hardcoded "Hourly Worker" / "Office Worker" pair. An organization can
+ * have any number of policies. Each EmployeeProfile is assigned to one
+ * policy via `policyId`. The policy controls:
+ * - which employee modules are visible (Attendance / Claims / Leave)
+ * - salary type (HOURLY vs MONTHLY) — drives hourly-rate validation and
+ * clock-in selfie capture
+ * - OT method (CASH vs TIME_BANK)
+ * Two policies are seeded per org during the migration so existing
+ * behavior is preserved at cutover.
+ */
+export type EmployeePolicy = Prisma.EmployeePolicyModel
+/**
  * Model ApiIntegration
  * External-system API tokens. Each row is a tenant's bearer credential
  * for calling /api/v1 routes. Tokens are stored only as bcrypt-style

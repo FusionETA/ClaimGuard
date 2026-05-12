@@ -1,0 +1,111 @@
+import "dotenv/config"
+
+import { PrismaMariaDb } from "@prisma/adapter-mariadb"
+
+import { getDatabaseConnectionConfig } from "../lib/database-config"
+import { PrismaClient } from "../generated/prisma/client"
+
+/**
+ * Backfill: for every Organization, create two seeded EmployeePolicy rows
+ * that mirror the legacy hardcoded "Hourly Worker" / "Office Worker"
+ * behavior, then assign each EmployeeProfile to whichever policy matches
+ * its existing payoutMethod + otPayoutMethod combination.
+ *
+ * Idempotent: re-running will not duplicate policies (matched by
+ * organizationId+name) and skips profiles already assigned to a policy.
+ *
+ * Run AFTER `prisma db push` so the new columns/table exist.
+ */
+
+const HOURLY_NAME = "Hourly Worker"
+const OFFICE_NAME = "Office Worker"
+
+async function main() {
+  const config = getDatabaseConnectionConfig()
+  if (!config) {
+    throw new Error(
+      "Missing MySQL connection variables. Copy .env.example to .env first.",
+    )
+  }
+  const adapter = new PrismaMariaDb({
+    host: config.host,
+    port: config.port,
+    user: config.user,
+    password: config.password,
+    database: config.database,
+    ssl: config.ssl,
+    connectionLimit: 5,
+  })
+  const prisma = new PrismaClient({ adapter })
+
+  const orgs = await prisma.organization.findMany({ select: { id: true, name: true } })
+  console.log(`Found ${orgs.length} organization(s).`)
+
+  for (const org of orgs) {
+    const hourly = await prisma.employeePolicy.upsert({
+      where: { organizationId_name: { organizationId: org.id, name: HOURLY_NAME } },
+      update: {},
+      create: {
+        organizationId: org.id,
+        name: HOURLY_NAME,
+        description: "Default policy for hourly-paid field workers. Selfie required at clock-in. OT paid out as cash.",
+        isDefault: true,
+        canAccessAttendance: true,
+        canAccessClaims: true,
+        canAccessLeave: true,
+        salaryType: "HOURLY",
+        otMethod: "CASH",
+      },
+    })
+
+    const office = await prisma.employeePolicy.upsert({
+      where: { organizationId_name: { organizationId: org.id, name: OFFICE_NAME } },
+      update: {},
+      create: {
+        organizationId: org.id,
+        name: OFFICE_NAME,
+        description: "Default policy for monthly-salaried office staff. OT accrues to the time-balance bank.",
+        isDefault: false,
+        canAccessAttendance: true,
+        canAccessClaims: true,
+        canAccessLeave: true,
+        salaryType: "MONTHLY_BASED",
+        otMethod: "TIME_BANK",
+      },
+    })
+
+    // Assign every unassigned profile in this org to one of the two
+    // seeded policies, based on its existing payoutMethod.
+    const profiles = await prisma.employeeProfile.findMany({
+      where: {
+        policyId: null,
+        user: { organizationId: org.id },
+      },
+      select: { id: true, payoutMethod: true, otPayoutMethod: true },
+    })
+
+    let hourlyCount = 0
+    let officeCount = 0
+    for (const profile of profiles) {
+      const targetId =
+        profile.payoutMethod === "MONTHLY_BASED" ? office.id : hourly.id
+      await prisma.employeeProfile.update({
+        where: { id: profile.id },
+        data: { policyId: targetId },
+      })
+      if (targetId === hourly.id) hourlyCount++
+      else officeCount++
+    }
+
+    console.log(
+      `Org "${org.name}": seeded policies ✓ — assigned ${hourlyCount} hourly, ${officeCount} office.`,
+    )
+  }
+
+  await prisma.$disconnect()
+}
+
+main().catch((error) => {
+  console.error(error)
+  process.exit(1)
+})

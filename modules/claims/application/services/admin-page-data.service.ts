@@ -26,6 +26,8 @@ import type {
 } from "@/modules/organization/domain/models"
 import { getXeroConnectionSummary } from "@/modules/organization/application/services/xero-connection.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
+import type { EmployeePolicy } from "@/modules/policy/domain/models"
 
 /**
  * Page-data services. Each function returns the full bag of data that one
@@ -114,6 +116,7 @@ export type AdminHierarchyPageData = {
   xeroConnections: XeroConnectionInfo[]
   organizationName: string
   teams: TeamSummary[]
+  policies: EmployeePolicy[]
 }
 
 export async function getAdminHierarchyPageData(input: {
@@ -141,7 +144,7 @@ async function loadAdminHierarchyPageData(input: {
   const members = await getOrganizationHierarchy()
   if (members === null) return null
 
-  const [organization, projects, xeroConnections, teams] = await Promise.all([
+  const [organization, projects, xeroConnections, teams, policies] = await Promise.all([
     input.organizationId
       ? organizationRepository.getOrganizationById(input.organizationId)
       : Promise.resolve(null),
@@ -154,6 +157,9 @@ async function loadAdminHierarchyPageData(input: {
     input.organizationId
       ? organizationRepository.listTeams(input.organizationId)
       : Promise.resolve<TeamSummary[]>([]),
+    input.organizationId
+      ? policyRepository.listForOrganization(input.organizationId)
+      : Promise.resolve<EmployeePolicy[]>([]),
   ])
 
   return {
@@ -162,6 +168,7 @@ async function loadAdminHierarchyPageData(input: {
     xeroConnections,
     organizationName: organization?.name ?? "",
     teams,
+    policies,
   }
 }
 

@@ -491,10 +491,6 @@ export type ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.ApiIntegrationScalarWhereInput | Prisma.ApiIntegrationScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type ApiIntegrationCreateNestedOneWithoutAuditLogsInput = {
   create?: Prisma.XOR<Prisma.ApiIntegrationCreateWithoutAuditLogsInput, Prisma.ApiIntegrationUncheckedCreateWithoutAuditLogsInput>
   connectOrCreate?: Prisma.ApiIntegrationCreateOrConnectWithoutAuditLogsInput

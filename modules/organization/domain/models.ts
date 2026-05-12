@@ -199,6 +199,13 @@ export type OrganizationMember = {
   hourlyRate?: number
   xeroConnectionId?: string
   xeroConnectionName?: string
+  /// Assigned employee policy. Drives the salary/OT/module-access fields
+  /// above; the admin UI shows a Policy dropdown instead of the legacy
+  /// pair of "Employee type" / "OT payout" selectors. May be null for
+  /// legacy rows that pre-date the backfill — those keep working via
+  /// the denormalized `payoutMethod`/`otPayoutMethod` columns.
+  policyId?: string
+  policyName?: string
   /// One team membership per project the employee is in. Each membership
   /// carries its own chain. Empty when the employee has no team yet
   /// (e.g. before backfill).

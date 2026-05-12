@@ -118,6 +118,7 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
       { href: "/admin/settings?tab=projects", label: "Projects" },
       { href: "/admin/settings?tab=work-schedule", label: "Work Schedule" },
       { href: "/admin/settings?tab=leave", label: "Leave" },
+      { href: "/admin/settings?tab=policies", label: "Policies" },
       // API tab hidden — tokens are auto-issued by the partner master-key
       // flow (POST /api/v1/admin/organizations). Re-enable when self-service
       // integrations ship for direct customers.

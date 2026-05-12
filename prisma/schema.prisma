@@ -82,12 +82,48 @@ model Organization {
   apiIntegrations          ApiIntegration[]
   chartAccounts            ChartOfAccount[]
   claims                   Claim[]
+  employeePolicies         EmployeePolicy[]
   PayrollCompanyInfo       PayrollCompanyInfo?
   PayrollRun               PayrollRun[]
   PayrollSettings          PayrollSettings?
   users                    User[]
   xeroConnections          XeroConnection[]
   projects                 XeroProject[]
+}
+
+/// Admin-defined classification for an employee. Replaces the previous
+/// hardcoded "Hourly Worker" / "Office Worker" pair. An organization can
+/// have any number of policies. Each EmployeeProfile is assigned to one
+/// policy via `policyId`. The policy controls:
+///   - which employee modules are visible (Attendance / Claims / Leave)
+///   - salary type (HOURLY vs MONTHLY) — drives hourly-rate validation and
+///     clock-in selfie capture
+///   - OT method (CASH vs TIME_BANK)
+/// Two policies are seeded per org during the migration so existing
+/// behavior is preserved at cutover.
+model EmployeePolicy {
+  id                   String           @id @default(cuid())
+  organizationId       String
+  name                 String
+  description          String?
+  /// Exactly one policy per org should be the default (used when creating
+  /// a new employee through the admin UI / API without specifying one).
+  isDefault            Boolean          @default(false)
+  /// Soft-archive. Archived policies are hidden from new assignments but
+  /// kept around so historical employee snapshots stay readable.
+  archivedAt           DateTime?
+  canAccessAttendance  Boolean          @default(true)
+  canAccessClaims      Boolean          @default(true)
+  canAccessLeave       Boolean          @default(true)
+  salaryType           PayoutMethod     @default(HOURLY)
+  otMethod             OtPayoutMethod   @default(CASH)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees            EmployeeProfile[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, isDefault])
 }
 
 /// External-system API tokens. Each row is a tenant's bearer credential
@@ -246,6 +282,13 @@ model EmployeeProfile {
   otPayoutMethod       OtPayoutMethod              @default(CASH)
   /// Cumulative banked OT minutes for TIME_BANK Office Workers.
   otTimeBalanceMin     Int                         @default(0)
+  /// Employee policy assignment. Drives module visibility and is the
+  /// admin-facing source of truth for salary type + OT method. The
+  /// denormalized columns `payoutMethod` and `otPayoutMethod` above are
+  /// kept in sync with the assigned policy on every write so legacy
+  /// attendance/payroll code paths keep working unchanged.
+  policyId             String?
+  policy               EmployeePolicy?             @relation(fields: [policyId], references: [id], onDelete: SetNull)
   user                 User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
   xeroConnection       XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
   projectAssignments   EmployeeProjectAssignment[]
@@ -256,6 +299,7 @@ model EmployeeProfile {
   Payslip              Payslip[]
 
   @@index([xeroConnectionId])
+  @@index([policyId])
 }
 
 model EmployeeProjectAssignment {

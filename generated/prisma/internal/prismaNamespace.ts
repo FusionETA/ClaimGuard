@@ -386,6 +386,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Organization: 'Organization',
+  EmployeePolicy: 'EmployeePolicy',
   ApiIntegration: 'ApiIntegration',
   ApiAuditLog: 'ApiAuditLog',
   MasterApiKey: 'MasterApiKey',
@@ -431,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollCompanyInfo" | "payrollProfile" | "payrollRun" | "payrollRunAdjustment" | "payrollRunClaim" | "payrollSettings" | "payslip" | "payslipLineItem"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollCompanyInfo" | "payrollProfile" | "payrollRun" | "payrollRunAdjustment" | "payrollRunClaim" | "payrollSettings" | "payslip" | "payslipLineItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -564,6 +565,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.OrganizationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.OrganizationCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeePolicy: {
+      payload: Prisma.$EmployeePolicyPayload<ExtArgs>
+      fields: Prisma.EmployeePolicyFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeePolicyFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeePolicyPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeePolicyFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeePolicyPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeePolicyFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeePolicyPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeePolicyFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeePolicyPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeePolicyFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeePolicyPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeePolicyCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeePolicyPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeePolicyCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeePolicyDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeePolicyPayload>
+        }
+        update: {
+          args: Prisma.EmployeePolicyUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeePolicyPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeePolicyDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeePolicyUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeePolicyUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeePolicyPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeePolicyAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeePolicy>
+        }
+        groupBy: {
+          args: Prisma.EmployeePolicyGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeePolicyGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeePolicyCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeePolicyCountAggregateOutputType> | number
         }
       }
     }
@@ -2630,6 +2697,25 @@ export const OrganizationScalarFieldEnum = {
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
 
 
+export const EmployeePolicyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description',
+  isDefault: 'isDefault',
+  archivedAt: 'archivedAt',
+  canAccessAttendance: 'canAccessAttendance',
+  canAccessClaims: 'canAccessClaims',
+  canAccessLeave: 'canAccessLeave',
+  salaryType: 'salaryType',
+  otMethod: 'otMethod',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeePolicyScalarFieldEnum = (typeof EmployeePolicyScalarFieldEnum)[keyof typeof EmployeePolicyScalarFieldEnum]
+
+
 export const ApiIntegrationScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -2723,7 +2809,8 @@ export const EmployeeProfileScalarFieldEnum = {
   updatedAt: 'updatedAt',
   hourlyRate: 'hourlyRate',
   otPayoutMethod: 'otPayoutMethod',
-  otTimeBalanceMin: 'otTimeBalanceMin'
+  otTimeBalanceMin: 'otTimeBalanceMin',
+  policyId: 'policyId'
 } as const
 
 export type EmployeeProfileScalarFieldEnum = (typeof EmployeeProfileScalarFieldEnum)[keyof typeof EmployeeProfileScalarFieldEnum]
@@ -3338,6 +3425,16 @@ export const OrganizationOrderByRelevanceFieldEnum = {
 export type OrganizationOrderByRelevanceFieldEnum = (typeof OrganizationOrderByRelevanceFieldEnum)[keyof typeof OrganizationOrderByRelevanceFieldEnum]
 
 
+export const EmployeePolicyOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description'
+} as const
+
+export type EmployeePolicyOrderByRelevanceFieldEnum = (typeof EmployeePolicyOrderByRelevanceFieldEnum)[keyof typeof EmployeePolicyOrderByRelevanceFieldEnum]
+
+
 export const ApiIntegrationOrderByRelevanceFieldEnum = {
   id: 'id',
   name: 'name',
@@ -3412,7 +3509,8 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   employeeId: 'employeeId',
   jobTitle: 'jobTitle',
   preferredCurrency: 'preferredCurrency',
-  xeroConnectionId: 'xeroConnectionId'
+  xeroConnectionId: 'xeroConnectionId',
+  policyId: 'policyId'
 } as const
 
 export type EmployeeProfileOrderByRelevanceFieldEnum = (typeof EmployeeProfileOrderByRelevanceFieldEnum)[keyof typeof EmployeeProfileOrderByRelevanceFieldEnum]
@@ -4090,6 +4188,7 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   organization?: Prisma.OrganizationOmit
+  employeePolicy?: Prisma.EmployeePolicyOmit
   apiIntegration?: Prisma.ApiIntegrationOmit
   apiAuditLog?: Prisma.ApiAuditLogOmit
   masterApiKey?: Prisma.MasterApiKeyOmit

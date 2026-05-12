@@ -74,6 +74,9 @@ const updateEmployeeSchema = z
     payoutMethod: z.enum(employeePayoutMethods).optional(),
     otPayoutMethod: z.enum(otPayoutMethods).optional(),
     hourlyRate: z.number().positive().nullable().optional(),
+    /// Assign the employee to an existing Employee Policy. When provided,
+    /// the policy's salaryType + otMethod override payoutMethod/otPayoutMethod.
+    policyId: z.string().min(1).nullable().optional(),
     /// Legacy direct project assignment list. Most partners should use
     /// `projectAssignments` (which carries team + chain) instead — but
     /// kept supported because the admin form still emits both shapes.
@@ -185,6 +188,10 @@ export const PATCH = handleApiRequest<RouteParams>(
         // external API can't set or change it, but the field still
         // exists on the underlying repo input. Pass through unchanged.
         xeroConnectionId: existing.xeroConnectionId,
+        policyId:
+          parsed.data.policyId === undefined
+            ? undefined
+            : parsed.data.policyId,
         projectAssignments: parsed.data.projectAssignments,
       })
     } catch (error) {
@@ -259,6 +266,8 @@ function toExternalEmployee(member: {
   otPayoutMethod: string
   hourlyRate?: number
   xeroConnectionId?: string  // present on input shape but not surfaced
+  policyId?: string
+  policyName?: string
   projects: Array<{ id: string; name: string }>
   teams: Array<{
     teamId: string
@@ -279,6 +288,9 @@ function toExternalEmployee(member: {
     payoutMethod: member.payoutMethod,
     otPayoutMethod: member.otPayoutMethod,
     hourlyRate: member.hourlyRate ?? null,
+    policy: member.policyId
+      ? { id: member.policyId, name: member.policyName ?? null }
+      : null,
     projects: member.projects,
     teams: member.teams.map((t) => ({
       teamId: t.teamId,

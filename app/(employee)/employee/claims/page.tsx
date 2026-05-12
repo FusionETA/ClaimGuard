@@ -5,8 +5,10 @@ import {
   getEmployeeClaimHistory,
   getEmployeeClaimSubmissionData,
 } from "@/modules/claims/application/services/employee-portal.service"
+import { requireModuleAccess } from "@/modules/policy/application/guards"
 
 export default async function EmployeeClaimsPage() {
+  await requireModuleAccess("claims")
   const [claims, submissionData] = await Promise.all([
     getEmployeeClaimHistory(),
     getEmployeeClaimSubmissionData(),

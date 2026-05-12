@@ -115,6 +115,14 @@ type EmployeeShellProps = {
   children: React.ReactNode
   user: AuthenticatedSession
   organizationName?: string
+  /// Effective module-access flags from the employee's assigned policy.
+  /// When undefined, all modules are visible (legacy behavior for orgs
+  /// that pre-date policy assignment).
+  moduleAccess?: {
+    attendance: boolean
+    claims: boolean
+    leave: boolean
+  }
 }
 
 const APPROVALS_HREF = "/employee/attendance/approvals"
@@ -135,6 +143,7 @@ export function EmployeeShell({
   children,
   user,
   organizationName,
+  moduleAccess,
 }: EmployeeShellProps) {
   const pathname = usePathname()
   const [displayOrganizationName, setDisplayOrganizationName] = useState(
@@ -179,9 +188,15 @@ export function EmployeeShell({
     return () => controller.abort()
   }, [organizationName, user.role])
 
-  const visibleNav = employeeNav.filter(
-    (item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR"
-  )
+  const visibleNav = employeeNav
+    .filter((item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR")
+    .filter((item) => {
+      if (!moduleAccess) return true
+      if (item.href === ATTENDANCE_HREF) return moduleAccess.attendance
+      if (item.href === CLAIMS_HREF) return moduleAccess.claims
+      if (item.href === "/employee/leave") return moduleAccess.leave
+      return true
+    })
   const hasPendingApprovals = pendingApprovals > 0
   const hasPendingClaimApprovals = pendingClaimApprovals > 0
 
