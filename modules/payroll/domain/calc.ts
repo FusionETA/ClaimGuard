@@ -3,7 +3,7 @@
  * I/O. The orchestrator (`calcPayslip`) takes plain inputs and returns
  * the full set of payslip numbers that the repo persists.
  *
- * Scope: v1 = basic pay, OT, fixed allowances, EPF (stepped + foreign
+ * Scope: v1 = basic pay, OT, fixed adjustments, EPF (stepped + foreign
  * worker branch), SOCSO (cat 1 / cat 2 with cap), EIS (with cap),
  * proration. PCB and HRDF are deferred to v2; their helpers return 0.
  *
@@ -11,6 +11,7 @@
  * Employees' Social Security Act 1969, EIS Act 2017.
  */
 
+import { PAYROLL_ADJUSTMENT_CATEGORY_META } from "@/modules/payroll/domain/models"
 import type {
   FixedAllowance,
   PayrollProfileData,
@@ -339,11 +340,12 @@ export function calcOtPay(input: {
 
 // ─── Allowances / deductions ─────────────────────────────────────────────
 
-/** Sum a list of fixed allowances. Defensive: trims out negatives. */
+/** Sum recurring positive earnings. Defensive: trims out negatives. */
 export function sumAllowances(items: FixedAllowance[]): number {
   let total = 0
   for (const item of items) {
-    if (item.amount > 0) total += item.amount
+    const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[item.category]
+    if (meta?.kind !== "DEDUCTION" && item.amount > 0) total += item.amount
   }
   return round2(total)
 }
@@ -553,28 +555,54 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     otRatePublicHoliday: settings.otRatePublicHoliday,
   })
 
-  // 4. Fixed allowances → line items.
+  // 4. Fixed adjustments → line items.
   const lineItems: CalcPayslipResult["lineItems"] = []
   let totalAllowances = 0
+  let totalRecurringDeductions = 0
+  let totalRecurringReimbursements = 0
+  let epfAdjustmentBase = 0
+  let socsoAdjustmentBase = 0
+  let eisAdjustmentBase = 0
+  let pcbAdjustmentBase = 0
   for (const a of profile.fixedAllowances) {
     if (a.amount <= 0) continue
+    const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[a.category]
+    if (!meta) continue
     const amt = round2(a.amount * proratedFactor)
-    totalAllowances += amt
+    if (meta.kind === "DEDUCTION") {
+      totalRecurringDeductions += amt
+      if (meta.reducesBase) {
+        if (meta.subjectToEpf) epfAdjustmentBase -= amt
+        if (meta.subjectToSocso) socsoAdjustmentBase -= amt
+        if (meta.subjectToEis) eisAdjustmentBase -= amt
+        if (meta.subjectToPcb) pcbAdjustmentBase -= amt
+      }
+    } else if (meta.kind === "REIMBURSEMENT") {
+      totalRecurringReimbursements += amt
+    } else {
+      totalAllowances += amt
+      if (meta.subjectToEpf) epfAdjustmentBase += amt
+      if (meta.subjectToSocso) socsoAdjustmentBase += amt
+      if (meta.subjectToEis) eisAdjustmentBase += amt
+      if (meta.subjectToPcb) pcbAdjustmentBase += amt
+    }
     lineItems.push({
-      kind: "ALLOWANCE",
-      label: a.name || "Allowance",
+      kind: meta.kind,
+      label: a.name || meta.label,
       amount: amt,
-      subjectToEpf: true,
-      subjectToSocso: true,
-      subjectToEis: true,
-      subjectToPcb: true,
+      subjectToEpf: meta.subjectToEpf,
+      subjectToSocso: meta.subjectToSocso,
+      subjectToEis: meta.subjectToEis,
+      subjectToPcb: meta.subjectToPcb,
     })
   }
   totalAllowances = round2(totalAllowances)
+  totalRecurringDeductions = round2(totalRecurringDeductions)
+  totalRecurringReimbursements = round2(totalRecurringReimbursements)
 
   // 5. Reimbursements (Phase 5 — approved claims). Not wage-like, so
   // not subject to statutory contributions.
-  let totalReimbursements = 0
+  let totalReimbursements = totalRecurringReimbursements
   for (const r of input.reimbursements ?? []) {
     totalReimbursements += r.amount
     lineItems.push({
@@ -592,7 +620,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
 
   // 6. Manual deductions + unpaid-leave deduction.
   const unpaidLeaveDeduction = round2(input.unpaidLeaveDeduction ?? 0)
-  let totalDeductions = unpaidLeaveDeduction
+  let totalDeductions = round2(unpaidLeaveDeduction + totalRecurringDeductions)
   for (const d of input.manualDeductions ?? []) {
     if (d.amount <= 0) continue
     totalDeductions += d.amount
@@ -608,26 +636,33 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   }
   totalDeductions = round2(totalDeductions)
 
-  // 7. Statutory wage (excludes reimbursements + deductions).
-  const statutoryWage = round2(proratedPay + otPay + totalAllowances)
+  // 7. Statutory wages. Different agencies use different wage bases:
+  // EPF excludes OT, while SOCSO/EIS/PCB include OT. Category metadata
+  // controls whether each fixed adjustment participates in each base.
+  const epfWage = round2(Math.max(0, proratedPay + epfAdjustmentBase))
+  const socsoWage = round2(
+    Math.max(0, proratedPay + otPay + socsoAdjustmentBase),
+  )
+  const eisWage = round2(Math.max(0, proratedPay + otPay + eisAdjustmentBase))
+  const pcbWage = round2(Math.max(0, proratedPay + otPay + pcbAdjustmentBase))
 
   // 8. EPF / SOCSO / EIS.
-  const isMalaysianOrPr =
-    (profile.nationality ?? "").toLowerCase().trim() === "malaysian" ||
-    profile.hasPr === true
+  // Citizenship detection — accept multiple spellings/variants
+  // case-insensitively. "Malaysia" (country) and "Malaysian"
+  // (adjective) both count as citizenship; "my" / "mys" / "kl" are
+  // common shorthand on imported spreadsheets.
+  const isMalaysianCitizen = isMalaysianNationality(profile.nationality)
+  const isMalaysianOrPr = isMalaysianCitizen || profile.hasPr === true
 
   const employeeRate =
     profile.epfEmployeeRate || settings.defaultEpfEmployeeRate
-
-  const isMalaysianCitizen =
-    (profile.nationality ?? "").toLowerCase().trim() === "malaysian"
   const ageAtPeriodEnd = ageAtEndOfPeriod(
     profile.dateOfBirth,
     periodYear,
     periodMonth,
   )
   const epf = calcEpf({
-    wage: statutoryWage,
+    wage: epfWage,
     employeeRate,
     employeeVoluntary: profile.epfEmployeeVoluntary,
     employerVoluntary: profile.epfEmployerVoluntary,
@@ -639,12 +674,12 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   })
 
   const socso = calcSocso({
-    wage: statutoryWage,
+    wage: socsoWage,
     scheme: profile.socsoScheme,
   })
 
   const eis = calcEis({
-    wage: statutoryWage,
+    wage: eisWage,
     contributeToEis: profile.contributeToEis && isMalaysianOrPr,
   })
 
@@ -661,7 +696,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     ? calcPcb({
         isResident: profile.isResident,
         periodMonth,
-        thisMonthTaxable: statutoryWage, // prorated + OT + allowances
+        thisMonthTaxable: pcbWage,
         thisMonthEpf: epf.employee,
         ytdTaxable: input.ytdTaxable ?? 0,
         ytdEpf: input.ytdEpf ?? 0,
@@ -747,7 +782,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     epfRatesSnapshot: epfSnapshotRates({
       branch: epf.branch,
       profileEmployeeRate: employeeRate,
-      wage: statutoryWage,
+      wage: epfWage,
       voluntaryEmployee: profile.epfEmployeeVoluntary,
       voluntaryEmployer: profile.epfEmployerVoluntary,
     }),
@@ -835,6 +870,35 @@ function ageAtEndOfPeriod(
 // ─── Tiny rounding helper ───────────────────────────────────────────────
 
 /** Round to 4 decimal places — used for the proratedFactor column. */
+/**
+ * Detect Malaysian citizenship from the `nationality` free-text field
+ * on a payroll profile. Accepts a few common spellings/variants
+ * case-insensitively:
+ *
+ *   - "Malaysian" (adjective — what the template uses)
+ *   - "Malaysia"  (country name — common when imported from a HR CSV)
+ *   - "MY" / "MYS" (ISO country codes)
+ *   - "warganegara malaysia" / "rakyat malaysia" (BM)
+ *
+ * Returns false for blank values, non-Malaysian nationalities, or
+ * unrecognised strings. Used by EPF + HRDF + PCB branch resolvers
+ * and the Statutory tab branch display.
+ */
+export function isMalaysianNationality(
+  nationality: string | null | undefined,
+): boolean {
+  const v = (nationality ?? "").toLowerCase().trim()
+  if (v === "") return false
+  return (
+    v === "malaysian" ||
+    v === "malaysia" ||
+    v === "my" ||
+    v === "mys" ||
+    v.includes("warganegara malaysia") ||
+    v.includes("rakyat malaysia")
+  )
+}
+
 function round4(n: number): number {
   if (!Number.isFinite(n)) return 0
   return Math.round(n * 10_000) / 10_000

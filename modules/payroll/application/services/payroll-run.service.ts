@@ -340,7 +340,11 @@ export async function generatePayrollPayslips(input: {
       ...e.profile,
       fixedAllowances: [
         ...e.profile.fixedAllowances,
-        ...adjAllowances.map((a) => ({ name: a.label, amount: a.amount })),
+        ...adjAllowances.map((a) => ({
+          category: "allowance_standard" as const,
+          name: a.label,
+          amount: a.amount,
+        })),
       ],
     }
 

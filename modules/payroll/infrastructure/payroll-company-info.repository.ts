@@ -67,6 +67,12 @@ function mapPayrollCompanyInfo(row: any): PayrollCompanyInfoData {
     taxAgentLicenceNo: row.taxAgentLicenceNo ?? null,
     taxAgentPhone: row.taxAgentPhone ?? null,
     taxAgentEmail: row.taxAgentEmail ?? null,
+    taxAgentFirmName: row.taxAgentFirmName ?? null,
+    taxAgentFirmAddressLine1: row.taxAgentFirmAddressLine1 ?? null,
+    taxAgentFirmAddressLine2: row.taxAgentFirmAddressLine2 ?? null,
+    taxAgentFirmPostcode: row.taxAgentFirmPostcode ?? null,
+    taxAgentFirmCity: row.taxAgentFirmCity ?? null,
+    taxAgentFirmState: row.taxAgentFirmState ?? null,
     declarantName: row.declarantName ?? null,
     declarantIdType: row.declarantIdType ?? null,
     declarantIdNumber: row.declarantIdNumber ?? null,
@@ -105,6 +111,12 @@ function toUpsertData(
   copy("taxAgentLicenceNo")
   copy("taxAgentPhone")
   copy("taxAgentEmail")
+  copy("taxAgentFirmName")
+  copy("taxAgentFirmAddressLine1")
+  copy("taxAgentFirmAddressLine2")
+  copy("taxAgentFirmPostcode")
+  copy("taxAgentFirmCity")
+  copy("taxAgentFirmState")
   copy("declarantName")
   copy("declarantIdType")
   copy("declarantIdNumber")

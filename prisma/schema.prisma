@@ -956,9 +956,9 @@ model PayrollProfile {
   /// Required when salaryType=HOURLY. RM per hour.
   hourlyRate    Decimal?   @db.Decimal(12, 2)
 
-  /// Fixed allowances applied to every payroll run as base earnings.
-  /// JSON shape: [{ name: "Parking Allowance", amount: 200 }, ...].
-  /// One-off allowances are added per-run via PayslipLineItem.
+  /// Fixed adjustments applied to every payroll run.
+  /// JSON shape: [{ category: "allowance_parking", name: "Parking Allowance", amount: 200 }, ...].
+  /// One-off adjustments are added per-run via PayslipLineItem.
   fixedAllowances Json?
 
   // ── EMPLOYMENT DATES ──
@@ -1069,6 +1069,12 @@ model PayrollCompanyInfo {
   taxAgentLicenceNo String?
   taxAgentPhone     String?
   taxAgentEmail     String?
+  taxAgentFirmName         String?
+  taxAgentFirmAddressLine1 String?
+  taxAgentFirmAddressLine2 String?
+  taxAgentFirmPostcode     String?
+  taxAgentFirmCity         String?
+  taxAgentFirmState        String?
 
   // Declarant (signs Form E)
   declarantName     String?
@@ -1169,7 +1175,7 @@ model PayrollRunClaim {
 ///
 /// One row per (runId, employeeProfileId). Admins fill these in from
 /// the per-employee adjustment page; the generator merges them in
-/// alongside fixed allowances (from PayrollProfile) and reimbursements
+/// alongside fixed adjustments (from PayrollProfile) and reimbursements
 /// (from PayrollRunClaim).
 model PayrollRunAdjustment {
   id                String          @id @default(cuid())
@@ -1184,9 +1190,9 @@ model PayrollRunAdjustment {
   otRestHours   Decimal @default(0) @db.Decimal(8, 2)
   otPublicHours Decimal @default(0) @db.Decimal(8, 2)
 
-  /// JSON array of one-off allowances + deductions for this run only:
+  /// JSON array of one-off adjustments for this run only:
   /// `[{ kind: "ALLOWANCE" | "DEDUCTION", label, amount }]`. Stacked on
-  /// top of the PayrollProfile's fixedAllowances.
+  /// top of the PayrollProfile's fixed adjustments.
   manualLineItems Json @default("[]")
 
   /// Pre-computed unpaid-leave deduction (currency). Manual entry

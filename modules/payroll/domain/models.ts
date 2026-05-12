@@ -94,15 +94,400 @@ export type ChildRelief = {
   pcbDeduction: ChildPcbDeductionLevel
 }
 
-// ─── Fixed allowance JSON shape ──────────────────────────────────────────
+// ─── Fixed adjustment JSON shape ─────────────────────────────────────────
+
+export const payrollAdjustmentCategories = [
+  "allowance_standard",
+  "allowance_travel_official",
+  "allowance_travel_private",
+  "allowance_parking",
+  "allowance_meal",
+  "allowance_childcare",
+  "allowance_phone_bill",
+  "allowance_phone_fixed",
+  "wages_bonus_annual",
+  "wages_bonus_non_annual",
+  "wages_commission",
+  "wages_incentive",
+  "wages_arrears",
+  "wages_overtime",
+  "wages_service_charge",
+  "wages_leave_pay",
+  "wages_gratuity",
+  "wages_director_fee",
+  "wages_expense_claim",
+  "bik_car",
+  "bik_medical",
+  "bik_award",
+  "bik_living_accommodation",
+  "bik_share_scheme",
+  "bik_other_exempt",
+  "deduct_unpaid_leave",
+  "deduct_salary_adjustment",
+  "deduct_advance",
+  "deduct_cp38",
+  "deduct_zakat",
+  "deduct_tp1",
+] as const
+export type PayrollAdjustmentCategory =
+  (typeof payrollAdjustmentCategories)[number]
+
+export type PayrollAdjustmentCategoryMeta = {
+  code: PayrollAdjustmentCategory
+  label: string
+  group: "Allowances / Recurring Monthly" | "Remuneration" | "Benefits-in-kind / Perquisites" | "Deductions"
+  kind: "ALLOWANCE" | "DEDUCTION" | "REIMBURSEMENT"
+  subjectToEpf: boolean
+  subjectToSocso: boolean
+  subjectToEis: boolean
+  subjectToPcb: boolean
+  taxExemptLimit?: number
+  reducesBase?: boolean
+  referenceOnly?: boolean
+  offsetsPcb?: boolean
+}
+
+export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
+  PayrollAdjustmentCategory,
+  PayrollAdjustmentCategoryMeta
+> = {
+  allowance_standard: {
+    code: "allowance_standard",
+    label: "Standard Allowance",
+    group: "Allowances / Recurring Monthly",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  allowance_travel_official: {
+    code: "allowance_travel_official",
+    label: "Travel/Petrol/Toll (Official Duty)",
+    group: "Allowances / Recurring Monthly",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+    taxExemptLimit: 6000,
+  },
+  allowance_travel_private: {
+    code: "allowance_travel_private",
+    label: "Travel/Petrol Allowance (Private Use/Commuting)",
+    group: "Allowances / Recurring Monthly",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  allowance_parking: {
+    code: "allowance_parking",
+    label: "Parking Allowance",
+    group: "Allowances / Recurring Monthly",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: false,
+  },
+  allowance_meal: {
+    code: "allowance_meal",
+    label: "Meal Allowance",
+    group: "Allowances / Recurring Monthly",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: false,
+  },
+  allowance_childcare: {
+    code: "allowance_childcare",
+    label: "Childcare Allowance",
+    group: "Allowances / Recurring Monthly",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+    taxExemptLimit: 3000,
+  },
+  allowance_phone_bill: {
+    code: "allowance_phone_bill",
+    label: "Phone/Internet Bill Payment",
+    group: "Allowances / Recurring Monthly",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: false,
+  },
+  allowance_phone_fixed: {
+    code: "allowance_phone_fixed",
+    label: "Phone Allowance (Fixed)",
+    group: "Allowances / Recurring Monthly",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  wages_bonus_annual: {
+    code: "wages_bonus_annual",
+    label: "Annual Bonus",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+  },
+  wages_bonus_non_annual: {
+    code: "wages_bonus_non_annual",
+    label: "Non-Annual Bonus",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  wages_commission: {
+    code: "wages_commission",
+    label: "Commission",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  wages_incentive: {
+    code: "wages_incentive",
+    label: "Incentive",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  wages_arrears: {
+    code: "wages_arrears",
+    label: "Arrears of Wages",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  wages_overtime: {
+    code: "wages_overtime",
+    label: "Overtime",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  wages_service_charge: {
+    code: "wages_service_charge",
+    label: "Service Charge",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  wages_leave_pay: {
+    code: "wages_leave_pay",
+    label: "Unutilized Leave Pay",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+  },
+  wages_gratuity: {
+    code: "wages_gratuity",
+    label: "Gratuity",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+  },
+  wages_director_fee: {
+    code: "wages_director_fee",
+    label: "Director Fee",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+  },
+  wages_expense_claim: {
+    code: "wages_expense_claim",
+    label: "Expense Claim",
+    group: "Remuneration",
+    kind: "REIMBURSEMENT",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+  },
+  bik_car: {
+    code: "bik_car",
+    label: "Car/Petrol BIK",
+    group: "Benefits-in-kind / Perquisites",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+  },
+  bik_medical: {
+    code: "bik_medical",
+    label: "Medical/Dental Benefit",
+    group: "Benefits-in-kind / Perquisites",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+  },
+  bik_award: {
+    code: "bik_award",
+    label: "Awards/Rewards",
+    group: "Benefits-in-kind / Perquisites",
+    kind: "ALLOWANCE",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+    taxExemptLimit: 2000,
+  },
+  bik_living_accommodation: {
+    code: "bik_living_accommodation",
+    label: "Living Accommodation",
+    group: "Benefits-in-kind / Perquisites",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+  },
+  bik_share_scheme: {
+    code: "bik_share_scheme",
+    label: "Share Scheme",
+    group: "Benefits-in-kind / Perquisites",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+  },
+  bik_other_exempt: {
+    code: "bik_other_exempt",
+    label: "Other Tax Exempt Benefit",
+    group: "Benefits-in-kind / Perquisites",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+  },
+  deduct_unpaid_leave: {
+    code: "deduct_unpaid_leave",
+    label: "Unpaid Leave deduction",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+    reducesBase: true,
+  },
+  deduct_salary_adjustment: {
+    code: "deduct_salary_adjustment",
+    label: "Salary Adjustment",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+    reducesBase: true,
+  },
+  deduct_advance: {
+    code: "deduct_advance",
+    label: "Advance Deduction",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: true,
+    subjectToSocso: true,
+    subjectToEis: true,
+    subjectToPcb: true,
+    reducesBase: true,
+  },
+  deduct_cp38: {
+    code: "deduct_cp38",
+    label: "CP38 Deduction",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    referenceOnly: true,
+  },
+  deduct_zakat: {
+    code: "deduct_zakat",
+    label: "Zakat Deduction",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    offsetsPcb: true,
+  },
+  deduct_tp1: {
+    code: "deduct_tp1",
+    label: "TP1/TP3 Deduction",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    referenceOnly: true,
+  },
+}
+
+export const payrollAdjustmentCategoryGroups = [
+  "Allowances / Recurring Monthly",
+  "Remuneration",
+  "Benefits-in-kind / Perquisites",
+  "Deductions",
+] as const
 
 /**
- * Recurring per-month allowance applied to every payroll run for an
+ * Recurring per-month adjustment applied to every payroll run for an
  * employee. Compared to a PayslipLineItem (which is per-payslip), this
- * is the "template" version that auto-creates ALLOWANCE line items on
- * each new run.
+ * is the template version that auto-creates line items on each run.
+ * Legacy saved rows without `category` are treated as Standard
+ * Allowance by repositories and actions.
  */
 export type FixedAllowance = {
+  category: PayrollAdjustmentCategory
   name: string
   amount: number
 }

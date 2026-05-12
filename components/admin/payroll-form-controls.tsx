@@ -15,6 +15,13 @@ import { cn } from "@/lib/utils"
 
 const EMPTY_SELECT_VALUE = "__payroll_empty__"
 
+type SelectOption = {
+  disabled?: boolean
+  groupLabel?: boolean
+  label: React.ReactNode
+  value: string
+}
+
 type NativeSelectProps = Omit<
   React.SelectHTMLAttributes<HTMLSelectElement>,
   "children"
@@ -37,29 +44,7 @@ export function NativeSelect({
   onChange,
   value,
 }: NativeSelectProps) {
-  const options = useMemo(
-    () =>
-      React.Children.toArray(children)
-        .filter(React.isValidElement)
-        .map((child) => {
-          const props = child.props as {
-            children?: React.ReactNode
-            disabled?: boolean
-            value?: string | number
-          }
-          const optionValue =
-            props.value === undefined
-              ? String(props.children ?? "")
-              : String(props.value)
-
-          return {
-            disabled: props.disabled,
-            label: props.children,
-            value: optionValue,
-          }
-        }),
-    [children],
-  )
+  const options = useMemo(() => parseSelectOptions(children), [children])
   const isControlled = value !== undefined
   const [localValue, setLocalValue] = useState(String(defaultValue ?? ""))
   const selectedValue = isControlled ? String(value ?? "") : localValue
@@ -95,6 +80,11 @@ export function NativeSelect({
               key={option.value === "" ? EMPTY_SELECT_VALUE : option.value}
               value={option.value === "" ? EMPTY_SELECT_VALUE : option.value}
               disabled={option.disabled}
+              className={
+                option.groupLabel
+                  ? "pointer-events-none mt-1 bg-transparent text-[11px] font-bold uppercase tracking-wide text-muted-foreground"
+                  : undefined
+              }
             >
               {option.label}
             </SelectItem>
@@ -103,6 +93,43 @@ export function NativeSelect({
       </Select>
     </>
   )
+}
+
+function parseSelectOptions(children: React.ReactNode): SelectOption[] {
+  const out: SelectOption[] = []
+  React.Children.toArray(children)
+    .filter(React.isValidElement)
+    .forEach((child, index) => {
+      const props = child.props as {
+        children?: React.ReactNode
+        disabled?: boolean
+        label?: React.ReactNode
+        value?: string | number
+      }
+
+      if (props.label !== undefined) {
+        out.push({
+          disabled: true,
+          groupLabel: true,
+          label: props.label,
+          value: `__payroll_group_${index}__`,
+        })
+        out.push(...parseSelectOptions(props.children))
+        return
+      }
+
+      const optionValue =
+        props.value === undefined
+          ? String(props.children ?? "")
+          : String(props.value)
+
+      out.push({
+        disabled: props.disabled,
+        label: props.children,
+        value: optionValue,
+      })
+    })
+  return out
 }
 
 export function Toggle(props: {

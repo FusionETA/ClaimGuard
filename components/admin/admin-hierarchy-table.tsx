@@ -13,6 +13,7 @@ import {
 } from "@/app/(admin)/admin/hierarchy/actions"
 import { CheckSquare, ChevronDown, Loader2, Search, Square } from "lucide-react"
 
+import { ImportPayrollEmployeesButton } from "@/components/admin/import-payroll-employees-button"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
@@ -533,15 +534,18 @@ export function AdminHierarchyTable({
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-4 p-5 pb-3 sm:p-6 sm:pb-4">
           <CardTitle className="text-xl">Team hierarchy</CardTitle>
-          <AddHierarchyMemberDialog
-            supervisors={supervisors}
-            projects={projects}
-            xeroConnection={xeroConnection}
-            xeroDisplayName={xeroDisplayName}
-            teams={teams}
-            allMembers={members}
-            policies={policies}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <ImportPayrollEmployeesButton />
+            <AddHierarchyMemberDialog
+              supervisors={supervisors}
+              projects={projects}
+              xeroConnection={xeroConnection}
+              xeroDisplayName={xeroDisplayName}
+              teams={teams}
+              allMembers={members}
+              policies={policies}
+            />
+          </div>
         </CardHeader>
         <CardContent className="space-y-4 p-0">
           <Table>

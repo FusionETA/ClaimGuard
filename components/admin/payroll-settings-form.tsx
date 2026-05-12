@@ -395,12 +395,17 @@ function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
             />
           </Field>
           <Field label="Reference type">
-            <DatalistInput
+            <NativeSelect
               name="referenceType"
-              listId="reference-type-options"
               defaultValue={c?.referenceType ?? ""}
-              options={REFERENCE_TYPE_OPTIONS}
-            />
+            >
+              <option value="">-</option>
+              {REFERENCE_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </NativeSelect>
           </Field>
           <Field label="Reference No.">
             <Input
@@ -409,28 +414,43 @@ function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
             />
           </Field>
           <Field label="Employer category">
-            <DatalistInput
+            <NativeSelect
               name="employerCategory"
-              listId="employer-category-options"
               defaultValue={c?.employerCategory ?? ""}
-              options={EMPLOYER_CATEGORY_OPTIONS}
-            />
+            >
+              <option value="">-</option>
+              {EMPLOYER_CATEGORY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </NativeSelect>
           </Field>
           <Field label="Employer status">
-            <DatalistInput
+            <NativeSelect
               name="employerStatus"
-              listId="employer-status-options"
               defaultValue={c?.employerStatus ?? ""}
-              options={EMPLOYER_STATUS_OPTIONS}
-            />
+            >
+              <option value="">-</option>
+              {EMPLOYER_STATUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </NativeSelect>
           </Field>
           <Field label="CP8D furnish type" className="md:col-span-2">
-            <DatalistInput
+            <NativeSelect
               name="cp8dFurnishType"
-              listId="cp8d-furnish-type-options"
               defaultValue={c?.cp8dFurnishType ?? ""}
-              options={CP8D_FURNISH_TYPE_OPTIONS}
-            />
+            >
+              <option value="">-</option>
+              {CP8D_FURNISH_TYPE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </NativeSelect>
           </Field>
         </CardContent>
       </Card>
@@ -538,6 +558,42 @@ function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
               defaultValue={c?.taxAgentEmail ?? ""}
             />
           </Field>
+          <Field label="Firm name" className="md:col-span-2">
+            <Input
+              name="taxAgentFirmName"
+              defaultValue={c?.taxAgentFirmName ?? ""}
+            />
+          </Field>
+          <Field label="Firm address line 1" className="md:col-span-2">
+            <Input
+              name="taxAgentFirmAddressLine1"
+              defaultValue={c?.taxAgentFirmAddressLine1 ?? ""}
+            />
+          </Field>
+          <Field label="Firm address line 2" className="md:col-span-2">
+            <Input
+              name="taxAgentFirmAddressLine2"
+              defaultValue={c?.taxAgentFirmAddressLine2 ?? ""}
+            />
+          </Field>
+          <Field label="Firm postcode">
+            <Input
+              name="taxAgentFirmPostcode"
+              defaultValue={c?.taxAgentFirmPostcode ?? ""}
+            />
+          </Field>
+          <Field label="Firm city">
+            <Input
+              name="taxAgentFirmCity"
+              defaultValue={c?.taxAgentFirmCity ?? ""}
+            />
+          </Field>
+          <Field label="Firm state" className="md:col-span-2">
+            <Input
+              name="taxAgentFirmState"
+              defaultValue={c?.taxAgentFirmState ?? ""}
+            />
+          </Field>
         </CardContent>
       </Card>
 
@@ -610,34 +666,5 @@ function Field({
       <Label className="text-xs">{label}</Label>
       {children}
     </div>
-  )
-}
-
-/**
- * Plain input with an attached <datalist>. Lets admins pick from a
- * curated list of LHDN codes OR type a custom value — handy because
- * LHDN's published values shift slightly across publications.
- */
-function DatalistInput(props: {
-  name: string
-  listId: string
-  defaultValue: string
-  options: Array<{ value: string; label: string }>
-}) {
-  return (
-    <>
-      <Input
-        name={props.name}
-        list={props.listId}
-        defaultValue={props.defaultValue}
-      />
-      <datalist id={props.listId}>
-        {props.options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </datalist>
-    </>
   )
 }

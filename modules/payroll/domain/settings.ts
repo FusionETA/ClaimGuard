@@ -89,6 +89,12 @@ export type PayrollCompanyInfoData = {
   taxAgentLicenceNo: string | null
   taxAgentPhone: string | null
   taxAgentEmail: string | null
+  taxAgentFirmName: string | null
+  taxAgentFirmAddressLine1: string | null
+  taxAgentFirmAddressLine2: string | null
+  taxAgentFirmPostcode: string | null
+  taxAgentFirmCity: string | null
+  taxAgentFirmState: string | null
 
   // Declarant
   declarantName: string | null
@@ -104,8 +110,8 @@ export type PayrollCompanyInfoData = {
 
 /**
  * Reference type codes — Form E "Reference No." prefix. These are the
- * LHDN-recognised codes; we list a curated set as a starter (admin can
- * still type a custom value if needed).
+ * LHDN-recognised codes; we list the curated set used by the settings
+ * dropdown.
  */
 export const REFERENCE_TYPE_OPTIONS: Array<{ value: string; label: string }> = [
   { value: "01 - SG", label: "01 - SG (Individual non-business)" },

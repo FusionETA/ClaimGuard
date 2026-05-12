@@ -12,6 +12,8 @@ import {
   idTypes,
   maritalStatuses,
   paymentMethods,
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  payrollAdjustmentCategories,
   salaryTypes,
   socsoSchemes,
   type FixedAllowance,
@@ -369,19 +371,27 @@ function parseChildReliefFromForm(formData: FormData) {
 }
 
 /**
- * Parse fixed allowances from form data. Field naming:
- *   `allowance0.name` / `allowance0.amount`, `allowance1.name` / ...
- * Supports up to 20 allowance slots.
+ * Parse fixed adjustments from form data. Field naming:
+ *   `allowance0.category` / `allowance0.name` / `allowance0.amount`,
+ *   `allowance1.category` / ...
+ * Supports up to 20 recurring adjustment slots.
  */
 function parseFixedAllowancesFromForm(formData: FormData): FixedAllowance[] {
   const out: FixedAllowance[] = []
   for (let i = 0; i < 20; i += 1) {
-    const name = String(formData.get(`allowance${i}.name`) ?? "").trim()
+    const categoryRaw = String(
+      formData.get(`allowance${i}.category`) ?? "allowance_standard",
+    ).trim()
+    const category = payrollAdjustmentCategories.includes(categoryRaw as never)
+      ? (categoryRaw as FixedAllowance["category"])
+      : "allowance_standard"
+    const fallbackLabel = PAYROLL_ADJUSTMENT_CATEGORY_META[category].label
+    const name =
+      String(formData.get(`allowance${i}.name`) ?? "").trim() || fallbackLabel
     const amountRaw = formData.get(`allowance${i}.amount`)
-    if (!name) continue
     const amount = Number(amountRaw)
     if (!Number.isFinite(amount)) continue
-    out.push({ name, amount })
+    out.push({ category, name, amount })
   }
   return out
 }

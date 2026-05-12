@@ -2,6 +2,11 @@ import "server-only"
 
 import { getPrismaClient } from "@/lib/prisma"
 import { toNumber } from "@/lib/decimal"
+import {
+  isPayrollProfileComplete,
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  payrollAdjustmentCategories,
+} from "@/modules/payroll/domain/models"
 import type {
   ChildRelief,
   FixedAllowance,
@@ -9,7 +14,6 @@ import type {
   PayrollEmployeeRow,
   PayrollProfileData,
 } from "@/modules/payroll/domain/models"
-import { isPayrollProfileComplete } from "@/modules/payroll/domain/models"
 
 /**
  * Prisma-side repository for `PayrollProfile`. Projects Prisma rows
@@ -490,11 +494,23 @@ function parseFixedAllowancesJson(raw: unknown): FixedAllowance[] {
     .map((entry) => {
       if (!entry || typeof entry !== "object") return null
       const e = entry as Record<string, unknown>
-      const name = typeof e.name === "string" ? e.name.trim() : ""
       const amount =
         typeof e.amount === "number" ? e.amount : Number(e.amount)
-      if (!name || !Number.isFinite(amount)) return null
-      return { name, amount } satisfies FixedAllowance
+      const categoryRaw =
+        typeof e.category === "string" ? e.category : "allowance_standard"
+      const category = payrollAdjustmentCategories.includes(categoryRaw as never)
+        ? (categoryRaw as FixedAllowance["category"])
+        : "allowance_standard"
+      const name =
+        typeof e.name === "string"
+          ? e.name.trim() || PAYROLL_ADJUSTMENT_CATEGORY_META[category].label
+          : PAYROLL_ADJUSTMENT_CATEGORY_META[category].label
+      if (!Number.isFinite(amount)) return null
+      return {
+        category,
+        name,
+        amount,
+      } satisfies FixedAllowance
     })
     .filter((x): x is FixedAllowance => x !== null)
 }

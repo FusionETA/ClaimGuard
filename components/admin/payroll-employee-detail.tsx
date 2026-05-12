@@ -29,10 +29,14 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
+import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
 import {
   ID_TYPE_LABELS,
   MARITAL_STATUS_LABELS,
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
   PAYMENT_METHOD_LABELS,
+  payrollAdjustmentCategoryGroups,
+  payrollAdjustmentCategories,
   SALARY_TYPE_LABELS,
   SOCSO_SCHEME_LABELS,
   childAbilityStatuses,
@@ -610,7 +614,14 @@ function EmploymentTab(props: {
   )
 
   function addAllowance() {
-    setAllowances((a) => [...a, { name: "", amount: 0 }])
+    setAllowances((a) => [
+      ...a,
+      {
+        category: "allowance_standard",
+        name: PAYROLL_ADJUSTMENT_CATEGORY_META.allowance_standard.label,
+        amount: 0,
+      },
+    ])
   }
   function removeAllowance(i: number) {
     setAllowances((a) => a.filter((_, idx) => idx !== i))
@@ -675,63 +686,32 @@ function EmploymentTab(props: {
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
           <div>
-            <CardTitle className="text-base">Fixed allowances</CardTitle>
+            <CardTitle className="text-base">Fixed adjustments</CardTitle>
             <CardDescription>
-              Recurring allowances added to every payroll run (e.g.
-              parking, broadband, travel).
+              Recurring monthly additions or deductions added to every
+              payroll run with the right statutory treatment.
             </CardDescription>
           </div>
           <Button type="button" size="sm" variant="ghost" onClick={addAllowance}>
             <Plus className="h-3.5 w-3.5" />
-            Add allowance
+            Add adjustment
           </Button>
         </CardHeader>
         <CardContent className="space-y-2">
           {allowances.length === 0 ? (
             <p className="text-xs text-muted-foreground">
-              No fixed allowances. Click &ldquo;Add allowance&rdquo; to
-              create one (e.g. &ldquo;Parking Allowance&rdquo; +200).
+              No fixed adjustments. Add one for recurring monthly
+              allowances, remuneration, benefits, or deductions.
             </p>
           ) : (
             allowances.map((a, i) => (
-              <div
+              <FixedAdjustmentRow
                 key={i}
-                className="grid items-end gap-3 rounded-lg border border-border/60 bg-muted/30 p-3 md:grid-cols-[1fr_180px_auto]"
-              >
-                <Field label="Name">
-                  <Input
-                    name={`allowance${i}.name`}
-                    value={a.name}
-                    onChange={(e) =>
-                      patchAllowance(i, { name: e.target.value })
-                    }
-                    placeholder="Parking Allowance"
-                  />
-                </Field>
-                <Field label="Amount (MYR / month)">
-                  <Input
-                    name={`allowance${i}.amount`}
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={String(a.amount)}
-                    onChange={(e) =>
-                      patchAllowance(i, {
-                        amount: Number(e.target.value) || 0,
-                      })
-                    }
-                  />
-                </Field>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => removeAllowance(i)}
-                  className="text-destructive"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+                adjustment={a}
+                index={i}
+                onChange={(patch) => patchAllowance(i, patch)}
+                onRemove={() => removeAllowance(i)}
+              />
             ))
           )}
         </CardContent>
@@ -764,9 +744,9 @@ function EmploymentTab(props: {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Grouping & reporting</CardTitle>
+          <CardTitle className="text-base">Grouping</CardTitle>
           <CardDescription>
-            Free-text labels for filtering payroll reports.
+            Free-text tags for reports and filtering.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
@@ -786,7 +766,7 @@ function EmploymentTab(props: {
             <Input
               name="workSchedule"
               defaultValue={props.profile?.workSchedule ?? ""}
-              placeholder="Mon-Fri 9-6"
+              placeholder="Office / Shift A"
             />
           </Field>
           <Field label="Payroll policy">
@@ -798,8 +778,7 @@ function EmploymentTab(props: {
           <Field label="Payroll cycle">
             <Input
               name="payrollCycle"
-              defaultValue={props.profile?.payrollCycle ?? ""}
-              placeholder="Monthly"
+              defaultValue={props.profile?.payrollCycle ?? "Monthly"}
             />
           </Field>
         </CardContent>
@@ -807,10 +786,10 @@ function EmploymentTab(props: {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Previous employment</CardTitle>
+          <CardTitle className="text-base">Previous employment (TP3)</CardTitle>
           <CardDescription>
-            Optional. Used for TP3 carry-over and YTD PCB calculation in
-            v2.
+            Optional carry-over figures for PCB estimation when an
+            employee joins mid-year.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
@@ -823,7 +802,7 @@ function EmploymentTab(props: {
               defaultValue={props.profile?.prevEmploymentYear ?? ""}
             />
           </Field>
-          <Field label="Total remuneration (MYR)">
+          <Field label="Remuneration (MYR)">
             <Input
               name="prevRemuneration"
               type="number"
@@ -853,6 +832,116 @@ function EmploymentTab(props: {
   )
 }
 
+function FixedAdjustmentRow({
+  adjustment,
+  index,
+  onChange,
+  onRemove,
+}: {
+  adjustment: FixedAllowance
+  index: number
+  onChange: (patch: Partial<FixedAllowance>) => void
+  onRemove: () => void
+}) {
+  const category =
+    PAYROLL_ADJUSTMENT_CATEGORY_META[adjustment.category] ??
+    PAYROLL_ADJUSTMENT_CATEGORY_META.allowance_standard
+  const statutory = [
+    category.subjectToEpf ? "EPF" : null,
+    category.subjectToSocso ? "SOCSO" : null,
+    category.subjectToEis ? "EIS" : null,
+    category.subjectToPcb ? "PCB" : null,
+  ].filter(Boolean)
+
+  return (
+    <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
+      <div className="grid items-end gap-3 md:grid-cols-[1.4fr_1fr_180px_auto]">
+        <Field label="Category">
+          <NativeSelect
+            name={`allowance${index}.category`}
+            value={adjustment.category}
+            onChange={(e) => {
+              const next = e.target.value as FixedAllowance["category"]
+              onChange({
+                category: next,
+                name: PAYROLL_ADJUSTMENT_CATEGORY_META[next].label,
+              })
+            }}
+          >
+            {payrollAdjustmentCategoryGroups.map((group) => (
+              <optgroup key={group} label={group}>
+                {payrollAdjustmentCategories
+                  .filter(
+                    (code) =>
+                      PAYROLL_ADJUSTMENT_CATEGORY_META[code].group === group,
+                  )
+                  .map((code) => (
+                    <option key={code} value={code}>
+                      {PAYROLL_ADJUSTMENT_CATEGORY_META[code].label}
+                    </option>
+                  ))}
+              </optgroup>
+            ))}
+          </NativeSelect>
+        </Field>
+        <Field label="Display name">
+          <Input
+            name={`allowance${index}.name`}
+            value={adjustment.name}
+            onChange={(e) => onChange({ name: e.target.value })}
+            placeholder={category.label}
+          />
+        </Field>
+        <Field label="Amount (MYR / month)">
+          <Input
+            name={`allowance${index}.amount`}
+            type="number"
+            step="0.01"
+            min="0"
+            value={String(adjustment.amount)}
+            onChange={(e) =>
+              onChange({
+                amount: Number(e.target.value) || 0,
+              })
+            }
+          />
+        </Field>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={onRemove}
+          className="text-destructive"
+          title="Remove adjustment"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+        <span className="rounded-full bg-background px-2 py-0.5 font-medium text-foreground">
+          {category.kind === "DEDUCTION"
+            ? category.reducesBase
+              ? "Deduction - reduces base"
+              : "Deduction"
+            : category.kind === "REIMBURSEMENT"
+              ? "Reimbursement"
+              : "Earning"}
+        </span>
+        <span>
+          Statutory: {statutory.length > 0 ? statutory.join(", ") : "none"}
+        </span>
+        {category.taxExemptLimit ? (
+          <span>
+            Tax exempt limit: RM{category.taxExemptLimit.toLocaleString()}/year
+          </span>
+        ) : null}
+        {category.referenceOnly ? <span>Reference only</span> : null}
+        {category.offsetsPcb ? <span>Offsets PCB</span> : null}
+      </div>
+    </div>
+  )
+}
+
 // ─── Statutory tab ────────────────────────────────────────────────────────
 
 function StatutoryTab(props: {
@@ -869,8 +958,13 @@ function StatutoryTab(props: {
   // Branch detection — drives the read-only employer-rate display +
   // foreign-worker banners. Same logic as the calc engine, so what
   // admins see here matches what'll actually be calculated.
-  const isMalaysianCitizen =
-    (props.profile?.nationality ?? "").toLowerCase().trim() === "malaysian"
+  // Citizenship detection — uses the same logic as the calc engine
+  // so what the admin sees here is what'll actually fire on Generate.
+  // Accepts "Malaysian" / "Malaysia" / "MY" / "MYS" / BM variants,
+  // case-insensitively.
+  const isMalaysianCitizen = isMalaysianNationality(
+    props.profile?.nationality,
+  )
   const isMalaysianOrPr = isMalaysianCitizen || props.profile?.hasPr === true
   const isForeignWorker = !isMalaysianOrPr
   const epfMemberBefore1998 = props.profile?.epfMemberBefore1998 ?? false

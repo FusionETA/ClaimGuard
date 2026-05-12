@@ -52,6 +52,12 @@ export type PayrollCompanyInfoMinAggregateOutputType = {
   taxAgentLicenceNo: string | null
   taxAgentPhone: string | null
   taxAgentEmail: string | null
+  taxAgentFirmName: string | null
+  taxAgentFirmAddressLine1: string | null
+  taxAgentFirmAddressLine2: string | null
+  taxAgentFirmPostcode: string | null
+  taxAgentFirmCity: string | null
+  taxAgentFirmState: string | null
   declarantName: string | null
   declarantIdType: $Enums.IdType | null
   declarantIdNumber: string | null
@@ -85,6 +91,12 @@ export type PayrollCompanyInfoMaxAggregateOutputType = {
   taxAgentLicenceNo: string | null
   taxAgentPhone: string | null
   taxAgentEmail: string | null
+  taxAgentFirmName: string | null
+  taxAgentFirmAddressLine1: string | null
+  taxAgentFirmAddressLine2: string | null
+  taxAgentFirmPostcode: string | null
+  taxAgentFirmCity: string | null
+  taxAgentFirmState: string | null
   declarantName: string | null
   declarantIdType: $Enums.IdType | null
   declarantIdNumber: string | null
@@ -118,6 +130,12 @@ export type PayrollCompanyInfoCountAggregateOutputType = {
   taxAgentLicenceNo: number
   taxAgentPhone: number
   taxAgentEmail: number
+  taxAgentFirmName: number
+  taxAgentFirmAddressLine1: number
+  taxAgentFirmAddressLine2: number
+  taxAgentFirmPostcode: number
+  taxAgentFirmCity: number
+  taxAgentFirmState: number
   declarantName: number
   declarantIdType: number
   declarantIdNumber: number
@@ -153,6 +171,12 @@ export type PayrollCompanyInfoMinAggregateInputType = {
   taxAgentLicenceNo?: true
   taxAgentPhone?: true
   taxAgentEmail?: true
+  taxAgentFirmName?: true
+  taxAgentFirmAddressLine1?: true
+  taxAgentFirmAddressLine2?: true
+  taxAgentFirmPostcode?: true
+  taxAgentFirmCity?: true
+  taxAgentFirmState?: true
   declarantName?: true
   declarantIdType?: true
   declarantIdNumber?: true
@@ -186,6 +210,12 @@ export type PayrollCompanyInfoMaxAggregateInputType = {
   taxAgentLicenceNo?: true
   taxAgentPhone?: true
   taxAgentEmail?: true
+  taxAgentFirmName?: true
+  taxAgentFirmAddressLine1?: true
+  taxAgentFirmAddressLine2?: true
+  taxAgentFirmPostcode?: true
+  taxAgentFirmCity?: true
+  taxAgentFirmState?: true
   declarantName?: true
   declarantIdType?: true
   declarantIdNumber?: true
@@ -219,6 +249,12 @@ export type PayrollCompanyInfoCountAggregateInputType = {
   taxAgentLicenceNo?: true
   taxAgentPhone?: true
   taxAgentEmail?: true
+  taxAgentFirmName?: true
+  taxAgentFirmAddressLine1?: true
+  taxAgentFirmAddressLine2?: true
+  taxAgentFirmPostcode?: true
+  taxAgentFirmCity?: true
+  taxAgentFirmState?: true
   declarantName?: true
   declarantIdType?: true
   declarantIdNumber?: true
@@ -325,6 +361,12 @@ export type PayrollCompanyInfoGroupByOutputType = {
   taxAgentLicenceNo: string | null
   taxAgentPhone: string | null
   taxAgentEmail: string | null
+  taxAgentFirmName: string | null
+  taxAgentFirmAddressLine1: string | null
+  taxAgentFirmAddressLine2: string | null
+  taxAgentFirmPostcode: string | null
+  taxAgentFirmCity: string | null
+  taxAgentFirmState: string | null
   declarantName: string | null
   declarantIdType: $Enums.IdType | null
   declarantIdNumber: string | null
@@ -379,6 +421,12 @@ export type PayrollCompanyInfoWhereInput = {
   taxAgentLicenceNo?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentPhone?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentEmail?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmAddressLine1?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmAddressLine2?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmPostcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmCity?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmState?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantIdType?: Prisma.EnumIdTypeNullableFilter<"PayrollCompanyInfo"> | $Enums.IdType | null
   declarantIdNumber?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
@@ -413,6 +461,12 @@ export type PayrollCompanyInfoOrderByWithRelationInput = {
   taxAgentLicenceNo?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantName?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantIdType?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -451,6 +505,12 @@ export type PayrollCompanyInfoWhereUniqueInput = Prisma.AtLeast<{
   taxAgentLicenceNo?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentPhone?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentEmail?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmAddressLine1?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmAddressLine2?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmPostcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmCity?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmState?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantIdType?: Prisma.EnumIdTypeNullableFilter<"PayrollCompanyInfo"> | $Enums.IdType | null
   declarantIdNumber?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
@@ -485,6 +545,12 @@ export type PayrollCompanyInfoOrderByWithAggregationInput = {
   taxAgentLicenceNo?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantName?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantIdType?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -524,6 +590,12 @@ export type PayrollCompanyInfoScalarWhereWithAggregatesInput = {
   taxAgentLicenceNo?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   taxAgentPhone?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   taxAgentEmail?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmName?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmAddressLine1?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmAddressLine2?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmPostcode?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmCity?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmState?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   declarantName?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   declarantIdType?: Prisma.EnumIdTypeNullableWithAggregatesFilter<"PayrollCompanyInfo"> | $Enums.IdType | null
   declarantIdNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
@@ -556,6 +628,12 @@ export type PayrollCompanyInfoCreateInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
@@ -590,6 +668,12 @@ export type PayrollCompanyInfoUncheckedCreateInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
@@ -622,6 +706,12 @@ export type PayrollCompanyInfoUpdateInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -656,6 +746,12 @@ export type PayrollCompanyInfoUncheckedUpdateInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -689,6 +785,12 @@ export type PayrollCompanyInfoCreateManyInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
@@ -721,6 +823,12 @@ export type PayrollCompanyInfoUpdateManyMutationInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -754,6 +862,12 @@ export type PayrollCompanyInfoUncheckedUpdateManyInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -798,6 +912,12 @@ export type PayrollCompanyInfoCountOrderByAggregateInput = {
   taxAgentLicenceNo?: Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrder
   declarantName?: Prisma.SortOrder
   declarantIdType?: Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrder
@@ -831,6 +951,12 @@ export type PayrollCompanyInfoMaxOrderByAggregateInput = {
   taxAgentLicenceNo?: Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrder
   declarantName?: Prisma.SortOrder
   declarantIdType?: Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrder
@@ -864,6 +990,12 @@ export type PayrollCompanyInfoMinOrderByAggregateInput = {
   taxAgentLicenceNo?: Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrder
   declarantName?: Prisma.SortOrder
   declarantIdType?: Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrder
@@ -928,6 +1060,12 @@ export type PayrollCompanyInfoCreateWithoutOrganizationInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
@@ -960,6 +1098,12 @@ export type PayrollCompanyInfoUncheckedCreateWithoutOrganizationInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
@@ -1008,6 +1152,12 @@ export type PayrollCompanyInfoUpdateWithoutOrganizationInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1040,6 +1190,12 @@ export type PayrollCompanyInfoUncheckedUpdateWithoutOrganizationInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1075,6 +1231,12 @@ export type PayrollCompanyInfoSelect<ExtArgs extends runtime.Types.Extensions.In
   taxAgentLicenceNo?: boolean
   taxAgentPhone?: boolean
   taxAgentEmail?: boolean
+  taxAgentFirmName?: boolean
+  taxAgentFirmAddressLine1?: boolean
+  taxAgentFirmAddressLine2?: boolean
+  taxAgentFirmPostcode?: boolean
+  taxAgentFirmCity?: boolean
+  taxAgentFirmState?: boolean
   declarantName?: boolean
   declarantIdType?: boolean
   declarantIdNumber?: boolean
@@ -1111,6 +1273,12 @@ export type PayrollCompanyInfoSelectScalar = {
   taxAgentLicenceNo?: boolean
   taxAgentPhone?: boolean
   taxAgentEmail?: boolean
+  taxAgentFirmName?: boolean
+  taxAgentFirmAddressLine1?: boolean
+  taxAgentFirmAddressLine2?: boolean
+  taxAgentFirmPostcode?: boolean
+  taxAgentFirmCity?: boolean
+  taxAgentFirmState?: boolean
   declarantName?: boolean
   declarantIdType?: boolean
   declarantIdNumber?: boolean
@@ -1119,7 +1287,7 @@ export type PayrollCompanyInfoSelectScalar = {
   updatedAt?: boolean
 }
 
-export type PayrollCompanyInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employerName" | "employerTin" | "registrationNo" | "referenceType" | "referenceNo" | "employerCategory" | "employerStatus" | "cp8dFurnishType" | "addressLine1" | "addressLine2" | "postcode" | "city" | "state" | "country" | "phone" | "handphone" | "email" | "taxAgentName" | "taxAgentTin" | "taxAgentLicenceNo" | "taxAgentPhone" | "taxAgentEmail" | "declarantName" | "declarantIdType" | "declarantIdNumber" | "declarantPosition" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollCompanyInfo"]>
+export type PayrollCompanyInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employerName" | "employerTin" | "registrationNo" | "referenceType" | "referenceNo" | "employerCategory" | "employerStatus" | "cp8dFurnishType" | "addressLine1" | "addressLine2" | "postcode" | "city" | "state" | "country" | "phone" | "handphone" | "email" | "taxAgentName" | "taxAgentTin" | "taxAgentLicenceNo" | "taxAgentPhone" | "taxAgentEmail" | "taxAgentFirmName" | "taxAgentFirmAddressLine1" | "taxAgentFirmAddressLine2" | "taxAgentFirmPostcode" | "taxAgentFirmCity" | "taxAgentFirmState" | "declarantName" | "declarantIdType" | "declarantIdNumber" | "declarantPosition" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollCompanyInfo"]>
 export type PayrollCompanyInfoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -1154,6 +1322,12 @@ export type $PayrollCompanyInfoPayload<ExtArgs extends runtime.Types.Extensions.
     taxAgentLicenceNo: string | null
     taxAgentPhone: string | null
     taxAgentEmail: string | null
+    taxAgentFirmName: string | null
+    taxAgentFirmAddressLine1: string | null
+    taxAgentFirmAddressLine2: string | null
+    taxAgentFirmPostcode: string | null
+    taxAgentFirmCity: string | null
+    taxAgentFirmState: string | null
     declarantName: string | null
     declarantIdType: $Enums.IdType | null
     declarantIdNumber: string | null
@@ -1554,6 +1728,12 @@ export interface PayrollCompanyInfoFieldRefs {
   readonly taxAgentLicenceNo: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly taxAgentPhone: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly taxAgentEmail: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmName: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmAddressLine1: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmAddressLine2: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmPostcode: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmCity: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmState: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly declarantName: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly declarantIdType: Prisma.FieldRef<"PayrollCompanyInfo", 'IdType'>
   readonly declarantIdNumber: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
