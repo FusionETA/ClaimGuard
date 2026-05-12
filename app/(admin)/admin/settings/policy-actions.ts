@@ -5,10 +5,7 @@ import { z } from "zod"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
-import {
-  employeePayoutMethods,
-  otPayoutMethods,
-} from "@/modules/organization/domain/models"
+import { employeePayoutMethods } from "@/modules/organization/domain/models"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 
 const baseSchema = z.object({
@@ -18,8 +15,18 @@ const baseSchema = z.object({
   canAccessClaims: z.boolean(),
   canAccessLeave: z.boolean(),
   salaryType: z.enum(employeePayoutMethods),
-  otMethod: z.enum(otPayoutMethods),
+  /// `NONE` means OT is disabled entirely; otherwise we record CASH or
+  /// TIME_BANK and OT is enabled.
+  otMode: z.enum(["NONE", "CASH", "TIME_BANK"]),
 })
+
+function splitOtMode(mode: "NONE" | "CASH" | "TIME_BANK"): {
+  otEnabled: boolean
+  otMethod: "CASH" | "TIME_BANK"
+} {
+  if (mode === "NONE") return { otEnabled: false, otMethod: "CASH" }
+  return { otEnabled: true, otMethod: mode }
+}
 
 export type PolicyActionState = {
   status: "idle" | "success" | "error"
@@ -61,13 +68,14 @@ export async function createPolicyAction(
     canAccessClaims: parseBoolFlag(formData, "canAccessClaims"),
     canAccessLeave: parseBoolFlag(formData, "canAccessLeave"),
     salaryType: String(formData.get("salaryType") ?? "HOURLY"),
-    otMethod: String(formData.get("otMethod") ?? "CASH"),
+    otMode: String(formData.get("otMode") ?? "CASH"),
   })
 
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid policy." }
   }
 
+  const ot = splitOtMode(parsed.data.otMode)
   try {
     await policyRepository.create({
       organizationId: orgIdOrError,
@@ -77,7 +85,8 @@ export async function createPolicyAction(
       canAccessClaims: parsed.data.canAccessClaims,
       canAccessLeave: parsed.data.canAccessLeave,
       salaryType: parsed.data.salaryType,
-      otMethod: parsed.data.otMethod,
+      otEnabled: ot.otEnabled,
+      otMethod: ot.otMethod,
     })
   } catch (error) {
     return {
@@ -109,13 +118,14 @@ export async function updatePolicyAction(
     canAccessClaims: parseBoolFlag(formData, "canAccessClaims"),
     canAccessLeave: parseBoolFlag(formData, "canAccessLeave"),
     salaryType: String(formData.get("salaryType") ?? "HOURLY"),
-    otMethod: String(formData.get("otMethod") ?? "CASH"),
+    otMode: String(formData.get("otMode") ?? "CASH"),
   })
 
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid policy." }
   }
 
+  const ot = splitOtMode(parsed.data.otMode)
   try {
     await policyRepository.update({
       id,
@@ -126,7 +136,8 @@ export async function updatePolicyAction(
       canAccessClaims: parsed.data.canAccessClaims,
       canAccessLeave: parsed.data.canAccessLeave,
       salaryType: parsed.data.salaryType,
-      otMethod: parsed.data.otMethod,
+      otEnabled: ot.otEnabled,
+      otMethod: ot.otMethod,
     })
   } catch (error) {
     return {

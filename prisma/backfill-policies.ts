@@ -54,6 +54,7 @@ async function main() {
         canAccessClaims: true,
         canAccessLeave: true,
         salaryType: "HOURLY",
+        otEnabled: true,
         otMethod: "CASH",
       },
     })
@@ -70,6 +71,7 @@ async function main() {
         canAccessClaims: true,
         canAccessLeave: true,
         salaryType: "MONTHLY_BASED",
+        otEnabled: true,
         otMethod: "TIME_BANK",
       },
     })

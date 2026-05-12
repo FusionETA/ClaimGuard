@@ -116,6 +116,9 @@ model EmployeePolicy {
   canAccessClaims      Boolean          @default(true)
   canAccessLeave       Boolean          @default(true)
   salaryType           PayoutMethod     @default(HOURLY)
+  /// When false, employees on this policy cannot file OT at all — the
+  /// OT method below is ignored and OT-related UI is hidden.
+  otEnabled            Boolean          @default(true)
   otMethod             OtPayoutMethod   @default(CASH)
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt

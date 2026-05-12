@@ -44,6 +44,7 @@ export type EmployeePolicyMinAggregateOutputType = {
   canAccessClaims: boolean | null
   canAccessLeave: boolean | null
   salaryType: $Enums.PayoutMethod | null
+  otEnabled: boolean | null
   otMethod: $Enums.OtPayoutMethod | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -60,6 +61,7 @@ export type EmployeePolicyMaxAggregateOutputType = {
   canAccessClaims: boolean | null
   canAccessLeave: boolean | null
   salaryType: $Enums.PayoutMethod | null
+  otEnabled: boolean | null
   otMethod: $Enums.OtPayoutMethod | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -76,6 +78,7 @@ export type EmployeePolicyCountAggregateOutputType = {
   canAccessClaims: number
   canAccessLeave: number
   salaryType: number
+  otEnabled: number
   otMethod: number
   createdAt: number
   updatedAt: number
@@ -94,6 +97,7 @@ export type EmployeePolicyMinAggregateInputType = {
   canAccessClaims?: true
   canAccessLeave?: true
   salaryType?: true
+  otEnabled?: true
   otMethod?: true
   createdAt?: true
   updatedAt?: true
@@ -110,6 +114,7 @@ export type EmployeePolicyMaxAggregateInputType = {
   canAccessClaims?: true
   canAccessLeave?: true
   salaryType?: true
+  otEnabled?: true
   otMethod?: true
   createdAt?: true
   updatedAt?: true
@@ -126,6 +131,7 @@ export type EmployeePolicyCountAggregateInputType = {
   canAccessClaims?: true
   canAccessLeave?: true
   salaryType?: true
+  otEnabled?: true
   otMethod?: true
   createdAt?: true
   updatedAt?: true
@@ -215,6 +221,7 @@ export type EmployeePolicyGroupByOutputType = {
   canAccessClaims: boolean
   canAccessLeave: boolean
   salaryType: $Enums.PayoutMethod
+  otEnabled: boolean
   otMethod: $Enums.OtPayoutMethod
   createdAt: Date
   updatedAt: Date
@@ -252,6 +259,7 @@ export type EmployeePolicyWhereInput = {
   canAccessClaims?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   canAccessLeave?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   salaryType?: Prisma.EnumPayoutMethodFilter<"EmployeePolicy"> | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFilter<"EmployeePolicy"> | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
@@ -270,6 +278,7 @@ export type EmployeePolicyOrderByWithRelationInput = {
   canAccessClaims?: Prisma.SortOrder
   canAccessLeave?: Prisma.SortOrder
   salaryType?: Prisma.SortOrder
+  otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -293,6 +302,7 @@ export type EmployeePolicyWhereUniqueInput = Prisma.AtLeast<{
   canAccessClaims?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   canAccessLeave?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   salaryType?: Prisma.EnumPayoutMethodFilter<"EmployeePolicy"> | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFilter<"EmployeePolicy"> | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
@@ -311,6 +321,7 @@ export type EmployeePolicyOrderByWithAggregationInput = {
   canAccessClaims?: Prisma.SortOrder
   canAccessLeave?: Prisma.SortOrder
   salaryType?: Prisma.SortOrder
+  otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -333,6 +344,7 @@ export type EmployeePolicyScalarWhereWithAggregatesInput = {
   canAccessClaims?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   canAccessLeave?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   salaryType?: Prisma.EnumPayoutMethodWithAggregatesFilter<"EmployeePolicy"> | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   otMethod?: Prisma.EnumOtPayoutMethodWithAggregatesFilter<"EmployeePolicy"> | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeePolicy"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeePolicy"> | Date | string
@@ -348,6 +360,7 @@ export type EmployeePolicyCreateInput = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: $Enums.PayoutMethod
+  otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -366,6 +379,7 @@ export type EmployeePolicyUncheckedCreateInput = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: $Enums.PayoutMethod
+  otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -382,6 +396,7 @@ export type EmployeePolicyUpdateInput = {
   canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
   canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
   salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -400,6 +415,7 @@ export type EmployeePolicyUncheckedUpdateInput = {
   canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
   canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
   salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -417,6 +433,7 @@ export type EmployeePolicyCreateManyInput = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: $Enums.PayoutMethod
+  otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -432,6 +449,7 @@ export type EmployeePolicyUpdateManyMutationInput = {
   canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
   canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
   salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -448,6 +466,7 @@ export type EmployeePolicyUncheckedUpdateManyInput = {
   canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
   canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
   salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -485,6 +504,7 @@ export type EmployeePolicyCountOrderByAggregateInput = {
   canAccessClaims?: Prisma.SortOrder
   canAccessLeave?: Prisma.SortOrder
   salaryType?: Prisma.SortOrder
+  otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -501,6 +521,7 @@ export type EmployeePolicyMaxOrderByAggregateInput = {
   canAccessClaims?: Prisma.SortOrder
   canAccessLeave?: Prisma.SortOrder
   salaryType?: Prisma.SortOrder
+  otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -517,6 +538,7 @@ export type EmployeePolicyMinOrderByAggregateInput = {
   canAccessClaims?: Prisma.SortOrder
   canAccessLeave?: Prisma.SortOrder
   salaryType?: Prisma.SortOrder
+  otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -607,6 +629,7 @@ export type EmployeePolicyCreateWithoutOrganizationInput = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: $Enums.PayoutMethod
+  otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -623,6 +646,7 @@ export type EmployeePolicyUncheckedCreateWithoutOrganizationInput = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: $Enums.PayoutMethod
+  otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -669,6 +693,7 @@ export type EmployeePolicyScalarWhereInput = {
   canAccessClaims?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   canAccessLeave?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   salaryType?: Prisma.EnumPayoutMethodFilter<"EmployeePolicy"> | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFilter<"EmployeePolicy"> | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
@@ -684,6 +709,7 @@ export type EmployeePolicyCreateWithoutEmployeesInput = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: $Enums.PayoutMethod
+  otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -701,6 +727,7 @@ export type EmployeePolicyUncheckedCreateWithoutEmployeesInput = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: $Enums.PayoutMethod
+  otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -732,6 +759,7 @@ export type EmployeePolicyUpdateWithoutEmployeesInput = {
   canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
   canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
   salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -749,6 +777,7 @@ export type EmployeePolicyUncheckedUpdateWithoutEmployeesInput = {
   canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
   canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
   salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -764,6 +793,7 @@ export type EmployeePolicyCreateManyOrganizationInput = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: $Enums.PayoutMethod
+  otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -779,6 +809,7 @@ export type EmployeePolicyUpdateWithoutOrganizationInput = {
   canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
   canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
   salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -795,6 +826,7 @@ export type EmployeePolicyUncheckedUpdateWithoutOrganizationInput = {
   canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
   canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
   salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -811,6 +843,7 @@ export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationInput = {
   canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
   canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
   salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -858,6 +891,7 @@ export type EmployeePolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: boolean
+  otEnabled?: boolean
   otMethod?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -879,12 +913,13 @@ export type EmployeePolicySelectScalar = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: boolean
+  otEnabled?: boolean
   otMethod?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otMethod" | "createdAt" | "updatedAt", ExtArgs["result"]["employeePolicy"]>
+export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otEnabled" | "otMethod" | "createdAt" | "updatedAt", ExtArgs["result"]["employeePolicy"]>
 export type EmployeePolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
@@ -916,6 +951,11 @@ export type $EmployeePolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
     canAccessClaims: boolean
     canAccessLeave: boolean
     salaryType: $Enums.PayoutMethod
+    /**
+     * When false, employees on this policy cannot file OT at all — the
+     * OT method below is ignored and OT-related UI is hidden.
+     */
+    otEnabled: boolean
     otMethod: $Enums.OtPayoutMethod
     createdAt: Date
     updatedAt: Date
@@ -1300,6 +1340,7 @@ export interface EmployeePolicyFieldRefs {
   readonly canAccessClaims: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly canAccessLeave: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly salaryType: Prisma.FieldRef<"EmployeePolicy", 'PayoutMethod'>
+  readonly otEnabled: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly otMethod: Prisma.FieldRef<"EmployeePolicy", 'OtPayoutMethod'>
   readonly createdAt: Prisma.FieldRef<"EmployeePolicy", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EmployeePolicy", 'DateTime'>

@@ -18,6 +18,7 @@ type PolicyRow = {
   canAccessClaims: boolean
   canAccessLeave: boolean
   salaryType: EmployeePayoutMethod
+  otEnabled: boolean
   otMethod: OtPayoutMethod
 }
 
@@ -33,6 +34,7 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     canAccessClaims: row.canAccessClaims,
     canAccessLeave: row.canAccessLeave,
     salaryType: row.salaryType,
+    otEnabled: row.otEnabled,
     otMethod: row.otMethod,
     employeeCount,
   }
@@ -46,6 +48,7 @@ export type PolicyCreateInput = {
   canAccessClaims: boolean
   canAccessLeave: boolean
   salaryType: EmployeePayoutMethod
+  otEnabled: boolean
   otMethod: OtPayoutMethod
   isDefault?: boolean
 }
@@ -59,6 +62,7 @@ export type PolicyUpdateInput = {
   canAccessClaims?: boolean
   canAccessLeave?: boolean
   salaryType?: EmployeePayoutMethod
+  otEnabled?: boolean
   otMethod?: OtPayoutMethod
 }
 
@@ -123,6 +127,7 @@ export const policyRepository = {
           canAccessClaims: input.canAccessClaims,
           canAccessLeave: input.canAccessLeave,
           salaryType: input.salaryType,
+          otEnabled: input.otEnabled,
           otMethod: input.otMethod,
           isDefault,
         },
@@ -151,6 +156,7 @@ export const policyRepository = {
           canAccessClaims: input.canAccessClaims ?? undefined,
           canAccessLeave: input.canAccessLeave ?? undefined,
           salaryType: input.salaryType ?? undefined,
+          otEnabled: input.otEnabled ?? undefined,
           otMethod: input.otMethod ?? undefined,
         },
       })

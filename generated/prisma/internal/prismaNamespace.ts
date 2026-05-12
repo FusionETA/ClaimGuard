@@ -2708,6 +2708,7 @@ export const EmployeePolicyScalarFieldEnum = {
   canAccessClaims: 'canAccessClaims',
   canAccessLeave: 'canAccessLeave',
   salaryType: 'salaryType',
+  otEnabled: 'otEnabled',
   otMethod: 'otMethod',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

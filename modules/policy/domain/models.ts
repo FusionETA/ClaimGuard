@@ -19,6 +19,10 @@ export type EmployeePolicy = {
   canAccessClaims: boolean
   canAccessLeave: boolean
   salaryType: EmployeePayoutMethod
+  /// When false, OT is disabled entirely for employees on this policy.
+  /// `otMethod` is still stored (for legacy continuity) but the OT
+  /// dropdown / approval UI is hidden and the value is ignored.
+  otEnabled: boolean
   otMethod: OtPayoutMethod
   /// Number of employees currently assigned. Populated by the
   /// `listForOrganization` query; undefined elsewhere.

@@ -910,8 +910,10 @@ function AddHierarchyMemberDialog({
                   </Select>
                   {selectedAddPolicy ? (
                     <p className="text-xs font-normal text-muted-foreground">
-                      {employeePayoutMethodLabels[selectedAddPolicy.salaryType]} · OT paid as{" "}
-                      {otPayoutMethodLabels[selectedAddPolicy.otMethod].toLowerCase()}
+                      {employeePayoutMethodLabels[selectedAddPolicy.salaryType]} ·{" "}
+                      {selectedAddPolicy.otEnabled
+                        ? `OT paid as ${otPayoutMethodLabels[selectedAddPolicy.otMethod].toLowerCase()}`
+                        : "OT disabled"}
                       {addRoleValue === "SUPERVISOR"
                         ? " · supervisors are always paid monthly"
                         : ""}
@@ -1524,8 +1526,10 @@ function HierarchyEditDialog({
                   </Select>
                   {selectedEditPolicy ? (
                     <p className="text-xs font-normal text-muted-foreground">
-                      {employeePayoutMethodLabels[selectedEditPolicy.salaryType]} · OT paid as{" "}
-                      {otPayoutMethodLabels[selectedEditPolicy.otMethod].toLowerCase()}
+                      {employeePayoutMethodLabels[selectedEditPolicy.salaryType]} ·{" "}
+                      {selectedEditPolicy.otEnabled
+                        ? `OT paid as ${otPayoutMethodLabels[selectedEditPolicy.otMethod].toLowerCase()}`
+                        : "OT disabled"}
                       {editRoleValue === "SUPERVISOR"
                         ? " · supervisors are always paid monthly"
                         : ""}

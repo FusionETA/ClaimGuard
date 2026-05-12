@@ -41,10 +41,20 @@ const SALARY_OPTIONS: ReadonlyArray<{ value: EmployeePayoutMethod; label: string
   { value: "MONTHLY_BASED", label: employeePayoutMethodLabels.MONTHLY_BASED },
 ]
 
-const OT_OPTIONS: ReadonlyArray<{ value: OtPayoutMethod; label: string }> = [
+type OtMode = "NONE" | OtPayoutMethod
+
+const OT_OPTIONS: ReadonlyArray<{ value: OtMode; label: string }> = [
+  { value: "NONE", label: "No OT (disabled)" },
   { value: "CASH", label: otPayoutMethodLabels.CASH },
   { value: "TIME_BANK", label: otPayoutMethodLabels.TIME_BANK },
 ]
+
+function policyToOtMode(policy: {
+  otEnabled: boolean
+  otMethod: OtPayoutMethod
+}): OtMode {
+  return policy.otEnabled ? policy.otMethod : "NONE"
+}
 
 export function EmployeePoliciesTab({
   policies,
@@ -184,7 +194,11 @@ function PolicyRow({
             </div>
             <div>
               <dt className="font-semibold text-foreground/80">OT</dt>
-              <dd>{otPayoutMethodLabels[policy.otMethod]}</dd>
+              <dd>
+                {policy.otEnabled
+                  ? otPayoutMethodLabels[policy.otMethod]
+                  : "Disabled"}
+              </dd>
             </div>
             <div>
               <dt className="font-semibold text-foreground/80">Modules</dt>
@@ -260,8 +274,8 @@ function PolicyEditorCard({
   const [salaryType, setSalaryType] = useState<EmployeePayoutMethod>(
     policy?.salaryType ?? "HOURLY",
   )
-  const [otMethod, setOtMethod] = useState<OtPayoutMethod>(
-    policy?.otMethod ?? "CASH",
+  const [otMode, setOtMode] = useState<OtMode>(
+    policy ? policyToOtMode(policy) : "CASH",
   )
 
   if (state.status === "success" && !pending) {
@@ -364,9 +378,9 @@ function PolicyEditorCard({
             <label className="space-y-2 text-sm font-semibold text-muted-foreground">
               <span>OT method</span>
               <Select
-                name="otMethod"
-                value={otMethod}
-                onValueChange={(v) => setOtMethod(v as OtPayoutMethod)}
+                name="otMode"
+                value={otMode}
+                onValueChange={(v) => setOtMode(v as OtMode)}
                 disabled={pending}
               >
                 <SelectTrigger>
@@ -381,7 +395,9 @@ function PolicyEditorCard({
                 </SelectContent>
               </Select>
               <p className="text-xs font-normal text-muted-foreground">
-                Cash = paid out via payroll. Time balance = accrued as time-off minutes.
+                Cash = paid out via payroll. Time balance = accrued as
+                time-off minutes. No OT = employees on this policy cannot
+                file OT at all.
               </p>
             </label>
           </div>
