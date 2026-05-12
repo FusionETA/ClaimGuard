@@ -28,19 +28,31 @@ import {
 } from "./actions"
 import { ClockOutSummaryDialog } from "./clock-out-summary-dialog"
 
-async function attachCoords(formData: FormData): Promise<void> {
+/**
+ * Best-effort coord refresh on click. Awaits at most `timeoutMs` for a
+ * fresh fix and accepts cached fixes up to `maxAgeMs` old, so the
+ * button doesn't block on a slow GPS lock when the watcher already has
+ * a usable position. The watcher (see `useEffect` below) keeps
+ * `employeeCoords` warm; this is just a top-up before submitting.
+ */
+async function attachCoords(
+  formData: FormData,
+  timeoutMs = 1500,
+  maxAgeMs = 30_000,
+): Promise<void> {
   if (typeof navigator === "undefined" || !navigator.geolocation) return
   try {
     const position = await new Promise<GeolocationPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
-        timeout: 8000,
-        maximumAge: 0,
+        timeout: timeoutMs,
+        maximumAge: maxAgeMs,
       })
     })
     formData.set("lat", String(position.coords.latitude))
     formData.set("lng", String(position.coords.longitude))
   } catch {
-    // GPS denied/unavailable/timed out — proceed without coords
+    // GPS denied/unavailable/timed out — the caller will fall back to
+    // the watched `employeeCoords` if available.
   }
 }
 
@@ -48,6 +60,27 @@ function readCoordsFrom(formData: FormData): { lat: number; lng: number } | null
   const lat = parseFloat(String(formData.get("lat") ?? ""))
   const lng = parseFloat(String(formData.get("lng") ?? ""))
   return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null
+}
+
+/**
+ * Resolve coords for a submission as quickly as possible.
+ *
+ * The watcher already keeps `watched` warm (see watchPosition effect),
+ * so when it's available we skip `getCurrentPosition` entirely and the
+ * button submits with zero GPS wait. Only when there's no watched fix
+ * do we fall back to a short-timeout `getCurrentPosition` call.
+ */
+async function resolveCoordsForSubmit(
+  formData: FormData,
+  watched: { lat: number; lng: number } | null,
+): Promise<void> {
+  if (readCoordsFrom(formData) !== null) return
+  if (watched) {
+    formData.set("lat", String(watched.lat))
+    formData.set("lng", String(watched.lng))
+    return
+  }
+  await attachCoords(formData)
 }
 
 function fallbackCoordsFromState(
@@ -260,6 +293,19 @@ export function ClockCard({
       return
     }
     setGpsState("locating")
+    // Fast first read — accept any cached fix the OS already has so the
+    // button feels ready almost immediately. Falls through silently if
+    // the cache is empty; the watcher below will catch the fresh fix.
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setEmployeeCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setGpsState("ok")
+      },
+      () => {
+        // ignore — `watchPosition` handles the eventual error/denied state
+      },
+      { enableHighAccuracy: false, timeout: 2000, maximumAge: Infinity },
+    )
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         setEmployeeCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
@@ -319,8 +365,7 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const project = projects.find((p) => p.id === selected) ?? null
-      await attachCoords(formData)
-      fallbackCoordsFromState(formData, employeeCoords)
+      await resolveCoordsForSubmit(formData, employeeCoords)
       const fence = checkGeofence(
         readCoordsFrom(formData),
         project ?? { latitude: null, longitude: null },
@@ -361,8 +406,7 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const formData = new FormData(e.currentTarget)
-      await attachCoords(formData)
-      fallbackCoordsFromState(formData, employeeCoords)
+      await resolveCoordsForSubmit(formData, employeeCoords)
       const fence = checkGeofence(
         readCoordsFrom(formData),
         { latitude: activeProjectLat, longitude: activeProjectLng },
@@ -394,8 +438,7 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const formData = new FormData(e.currentTarget)
-      await attachCoords(formData)
-      fallbackCoordsFromState(formData, employeeCoords)
+      await resolveCoordsForSubmit(formData, employeeCoords)
       const fence = checkGeofence(
         readCoordsFrom(formData),
         { latitude: activeProjectLat, longitude: activeProjectLng },

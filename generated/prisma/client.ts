@@ -172,8 +172,8 @@ export type AttendanceRecord = Prisma.AttendanceRecordModel
  * Model AttendanceEditLog
  * Audit trail of supervisor/admin/employee edits to AttendanceRecord
  * fields. One row per save action — captures before/after values for
- * timeIn, timeOut, status, and notes so the change history is fully
- * reconstructable. `source` tags which UI path produced the edit.
+ * timeIn, timeOut, status, notes, and remark so the change history is
+ * fully reconstructable. `source` tags which UI path produced the edit.
  */
 export type AttendanceEditLog = Prisma.AttendanceEditLogModel
 /**
@@ -207,3 +207,43 @@ export type Team = Prisma.TeamModel
  * belongs to at most one layer per team.
  */
 export type EmployeeTeamMembership = Prisma.EmployeeTeamMembershipModel
+/**
+ * Model PayrollCompanyInfo
+ * 
+ */
+export type PayrollCompanyInfo = Prisma.PayrollCompanyInfoModel
+/**
+ * Model PayrollProfile
+ * 
+ */
+export type PayrollProfile = Prisma.PayrollProfileModel
+/**
+ * Model PayrollRun
+ * 
+ */
+export type PayrollRun = Prisma.PayrollRunModel
+/**
+ * Model PayrollRunAdjustment
+ * 
+ */
+export type PayrollRunAdjustment = Prisma.PayrollRunAdjustmentModel
+/**
+ * Model PayrollRunClaim
+ * 
+ */
+export type PayrollRunClaim = Prisma.PayrollRunClaimModel
+/**
+ * Model PayrollSettings
+ * 
+ */
+export type PayrollSettings = Prisma.PayrollSettingsModel
+/**
+ * Model Payslip
+ * 
+ */
+export type Payslip = Prisma.PayslipModel
+/**
+ * Model PayslipLineItem
+ * 
+ */
+export type PayslipLineItem = Prisma.PayslipLineItemModel

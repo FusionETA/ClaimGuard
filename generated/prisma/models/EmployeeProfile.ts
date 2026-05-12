@@ -280,6 +280,10 @@ export type EmployeeProfileWhereInput = {
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentListRelationFilter
   teamMemberships?: Prisma.EmployeeTeamMembershipListRelationFilter
+  PayrollProfile?: Prisma.XOR<Prisma.PayrollProfileNullableScalarRelationFilter, Prisma.PayrollProfileWhereInput> | null
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentListRelationFilter
+  PayrollRunClaim?: Prisma.PayrollRunClaimListRelationFilter
+  Payslip?: Prisma.PayslipListRelationFilter
 }
 
 export type EmployeeProfileOrderByWithRelationInput = {
@@ -299,6 +303,10 @@ export type EmployeeProfileOrderByWithRelationInput = {
   xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentOrderByRelationAggregateInput
   teamMemberships?: Prisma.EmployeeTeamMembershipOrderByRelationAggregateInput
+  PayrollProfile?: Prisma.PayrollProfileOrderByWithRelationInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentOrderByRelationAggregateInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimOrderByRelationAggregateInput
+  Payslip?: Prisma.PayslipOrderByRelationAggregateInput
   _relevance?: Prisma.EmployeeProfileOrderByRelevanceInput
 }
 
@@ -322,6 +330,10 @@ export type EmployeeProfileWhereUniqueInput = Prisma.AtLeast<{
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   projectAssignments?: Prisma.EmployeeProjectAssignmentListRelationFilter
   teamMemberships?: Prisma.EmployeeTeamMembershipListRelationFilter
+  PayrollProfile?: Prisma.XOR<Prisma.PayrollProfileNullableScalarRelationFilter, Prisma.PayrollProfileWhereInput> | null
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentListRelationFilter
+  PayrollRunClaim?: Prisma.PayrollRunClaimListRelationFilter
+  Payslip?: Prisma.PayslipListRelationFilter
 }, "id" | "userId" | "employeeId">
 
 export type EmployeeProfileOrderByWithAggregationInput = {
@@ -377,6 +389,10 @@ export type EmployeeProfileCreateInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateInput = {
@@ -394,6 +410,10 @@ export type EmployeeProfileUncheckedCreateInput = {
   otTimeBalanceMin?: number
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileUpdateInput = {
@@ -411,6 +431,10 @@ export type EmployeeProfileUpdateInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateInput = {
@@ -428,6 +452,10 @@ export type EmployeeProfileUncheckedUpdateInput = {
   otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateManyInput = {
@@ -664,6 +692,62 @@ export type EmployeeProfileUpdateOneRequiredWithoutTeamMembershipsNestedInput = 
   update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeProfileUpdateToOneWithWhereWithoutTeamMembershipsInput, Prisma.EmployeeProfileUpdateWithoutTeamMembershipsInput>, Prisma.EmployeeProfileUncheckedUpdateWithoutTeamMembershipsInput>
 }
 
+export type EmployeeProfileCreateNestedOneWithoutPayrollProfileInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollProfileInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollProfileInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutPayrollProfileInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+}
+
+export type EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollProfileInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollProfileInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutPayrollProfileInput
+  upsert?: Prisma.EmployeeProfileUpsertWithoutPayrollProfileInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeProfileUpdateToOneWithWhereWithoutPayrollProfileInput, Prisma.EmployeeProfileUpdateWithoutPayrollProfileInput>, Prisma.EmployeeProfileUncheckedUpdateWithoutPayrollProfileInput>
+}
+
+export type EmployeeProfileCreateNestedOneWithoutPayrollRunAdjustmentInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollRunAdjustmentInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollRunAdjustmentInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutPayrollRunAdjustmentInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+}
+
+export type EmployeeProfileUpdateOneRequiredWithoutPayrollRunAdjustmentNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollRunAdjustmentInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollRunAdjustmentInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutPayrollRunAdjustmentInput
+  upsert?: Prisma.EmployeeProfileUpsertWithoutPayrollRunAdjustmentInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeProfileUpdateToOneWithWhereWithoutPayrollRunAdjustmentInput, Prisma.EmployeeProfileUpdateWithoutPayrollRunAdjustmentInput>, Prisma.EmployeeProfileUncheckedUpdateWithoutPayrollRunAdjustmentInput>
+}
+
+export type EmployeeProfileCreateNestedOneWithoutPayrollRunClaimInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollRunClaimInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollRunClaimInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutPayrollRunClaimInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+}
+
+export type EmployeeProfileUpdateOneRequiredWithoutPayrollRunClaimNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollRunClaimInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollRunClaimInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutPayrollRunClaimInput
+  upsert?: Prisma.EmployeeProfileUpsertWithoutPayrollRunClaimInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeProfileUpdateToOneWithWhereWithoutPayrollRunClaimInput, Prisma.EmployeeProfileUpdateWithoutPayrollRunClaimInput>, Prisma.EmployeeProfileUncheckedUpdateWithoutPayrollRunClaimInput>
+}
+
+export type EmployeeProfileCreateNestedOneWithoutPayslipInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayslipInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayslipInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutPayslipInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+}
+
+export type EmployeeProfileUpdateOneRequiredWithoutPayslipNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayslipInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayslipInput>
+  connectOrCreate?: Prisma.EmployeeProfileCreateOrConnectWithoutPayslipInput
+  upsert?: Prisma.EmployeeProfileUpsertWithoutPayslipInput
+  connect?: Prisma.EmployeeProfileWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeProfileUpdateToOneWithWhereWithoutPayslipInput, Prisma.EmployeeProfileUpdateWithoutPayslipInput>, Prisma.EmployeeProfileUncheckedUpdateWithoutPayslipInput>
+}
+
 export type EmployeeProfileCreateWithoutUserInput = {
   id?: string
   employeeId: string
@@ -678,6 +762,10 @@ export type EmployeeProfileCreateWithoutUserInput = {
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutUserInput = {
@@ -694,6 +782,10 @@ export type EmployeeProfileUncheckedCreateWithoutUserInput = {
   otTimeBalanceMin?: number
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutUserInput = {
@@ -726,6 +818,10 @@ export type EmployeeProfileUpdateWithoutUserInput = {
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutUserInput = {
@@ -742,6 +838,10 @@ export type EmployeeProfileUncheckedUpdateWithoutUserInput = {
   otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutProjectAssignmentsInput = {
@@ -758,6 +858,10 @@ export type EmployeeProfileCreateWithoutProjectAssignmentsInput = {
   user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
   teamMemberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutProjectAssignmentsInput = {
@@ -774,6 +878,10 @@ export type EmployeeProfileUncheckedCreateWithoutProjectAssignmentsInput = {
   otPayoutMethod?: $Enums.OtPayoutMethod
   otTimeBalanceMin?: number
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutProjectAssignmentsInput = {
@@ -806,6 +914,10 @@ export type EmployeeProfileUpdateWithoutProjectAssignmentsInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutProjectAssignmentsInput = {
@@ -822,6 +934,10 @@ export type EmployeeProfileUncheckedUpdateWithoutProjectAssignmentsInput = {
   otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateWithoutXeroConnectionInput = {
@@ -838,6 +954,10 @@ export type EmployeeProfileCreateWithoutXeroConnectionInput = {
   user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutXeroConnectionInput = {
@@ -854,6 +974,10 @@ export type EmployeeProfileUncheckedCreateWithoutXeroConnectionInput = {
   otTimeBalanceMin?: number
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutXeroConnectionInput = {
@@ -914,6 +1038,10 @@ export type EmployeeProfileCreateWithoutTeamMembershipsInput = {
   user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
   xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileUncheckedCreateWithoutTeamMembershipsInput = {
@@ -930,6 +1058,10 @@ export type EmployeeProfileUncheckedCreateWithoutTeamMembershipsInput = {
   otPayoutMethod?: $Enums.OtPayoutMethod
   otTimeBalanceMin?: number
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
 }
 
 export type EmployeeProfileCreateOrConnectWithoutTeamMembershipsInput = {
@@ -962,6 +1094,10 @@ export type EmployeeProfileUpdateWithoutTeamMembershipsInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutTeamMembershipsInput = {
@@ -978,6 +1114,394 @@ export type EmployeeProfileUncheckedUpdateWithoutTeamMembershipsInput = {
   otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileCreateWithoutPayrollProfileInput = {
+  id?: string
+  employeeId: string
+  jobTitle: string
+  payoutMethod?: $Enums.PayoutMethod | null
+  preferredCurrency?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: $Enums.OtPayoutMethod
+  otTimeBalanceMin?: number
+  user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileUncheckedCreateWithoutPayrollProfileInput = {
+  id?: string
+  userId: string
+  employeeId: string
+  jobTitle: string
+  payoutMethod?: $Enums.PayoutMethod | null
+  preferredCurrency?: string
+  xeroConnectionId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: $Enums.OtPayoutMethod
+  otTimeBalanceMin?: number
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileCreateOrConnectWithoutPayrollProfileInput = {
+  where: Prisma.EmployeeProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollProfileInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollProfileInput>
+}
+
+export type EmployeeProfileUpsertWithoutPayrollProfileInput = {
+  update: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutPayrollProfileInput, Prisma.EmployeeProfileUncheckedUpdateWithoutPayrollProfileInput>
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollProfileInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollProfileInput>
+  where?: Prisma.EmployeeProfileWhereInput
+}
+
+export type EmployeeProfileUpdateToOneWithWhereWithoutPayrollProfileInput = {
+  where?: Prisma.EmployeeProfileWhereInput
+  data: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutPayrollProfileInput, Prisma.EmployeeProfileUncheckedUpdateWithoutPayrollProfileInput>
+}
+
+export type EmployeeProfileUpdateWithoutPayrollProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileUncheckedUpdateWithoutPayrollProfileInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileCreateWithoutPayrollRunAdjustmentInput = {
+  id?: string
+  employeeId: string
+  jobTitle: string
+  payoutMethod?: $Enums.PayoutMethod | null
+  preferredCurrency?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: $Enums.OtPayoutMethod
+  otTimeBalanceMin?: number
+  user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileUncheckedCreateWithoutPayrollRunAdjustmentInput = {
+  id?: string
+  userId: string
+  employeeId: string
+  jobTitle: string
+  payoutMethod?: $Enums.PayoutMethod | null
+  preferredCurrency?: string
+  xeroConnectionId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: $Enums.OtPayoutMethod
+  otTimeBalanceMin?: number
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileCreateOrConnectWithoutPayrollRunAdjustmentInput = {
+  where: Prisma.EmployeeProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollRunAdjustmentInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollRunAdjustmentInput>
+}
+
+export type EmployeeProfileUpsertWithoutPayrollRunAdjustmentInput = {
+  update: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutPayrollRunAdjustmentInput, Prisma.EmployeeProfileUncheckedUpdateWithoutPayrollRunAdjustmentInput>
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollRunAdjustmentInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollRunAdjustmentInput>
+  where?: Prisma.EmployeeProfileWhereInput
+}
+
+export type EmployeeProfileUpdateToOneWithWhereWithoutPayrollRunAdjustmentInput = {
+  where?: Prisma.EmployeeProfileWhereInput
+  data: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutPayrollRunAdjustmentInput, Prisma.EmployeeProfileUncheckedUpdateWithoutPayrollRunAdjustmentInput>
+}
+
+export type EmployeeProfileUpdateWithoutPayrollRunAdjustmentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileUncheckedUpdateWithoutPayrollRunAdjustmentInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileCreateWithoutPayrollRunClaimInput = {
+  id?: string
+  employeeId: string
+  jobTitle: string
+  payoutMethod?: $Enums.PayoutMethod | null
+  preferredCurrency?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: $Enums.OtPayoutMethod
+  otTimeBalanceMin?: number
+  user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipCreateNestedManyWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileUncheckedCreateWithoutPayrollRunClaimInput = {
+  id?: string
+  userId: string
+  employeeId: string
+  jobTitle: string
+  payoutMethod?: $Enums.PayoutMethod | null
+  preferredCurrency?: string
+  xeroConnectionId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: $Enums.OtPayoutMethod
+  otTimeBalanceMin?: number
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileCreateOrConnectWithoutPayrollRunClaimInput = {
+  where: Prisma.EmployeeProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollRunClaimInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollRunClaimInput>
+}
+
+export type EmployeeProfileUpsertWithoutPayrollRunClaimInput = {
+  update: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutPayrollRunClaimInput, Prisma.EmployeeProfileUncheckedUpdateWithoutPayrollRunClaimInput>
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayrollRunClaimInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayrollRunClaimInput>
+  where?: Prisma.EmployeeProfileWhereInput
+}
+
+export type EmployeeProfileUpdateToOneWithWhereWithoutPayrollRunClaimInput = {
+  where?: Prisma.EmployeeProfileWhereInput
+  data: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutPayrollRunClaimInput, Prisma.EmployeeProfileUncheckedUpdateWithoutPayrollRunClaimInput>
+}
+
+export type EmployeeProfileUpdateWithoutPayrollRunClaimInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileUncheckedUpdateWithoutPayrollRunClaimInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileCreateWithoutPayslipInput = {
+  id?: string
+  employeeId: string
+  jobTitle: string
+  payoutMethod?: $Enums.PayoutMethod | null
+  preferredCurrency?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: $Enums.OtPayoutMethod
+  otTimeBalanceMin?: number
+  user: Prisma.UserCreateNestedOneWithoutEmployeeProfileInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimCreateNestedManyWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileUncheckedCreateWithoutPayslipInput = {
+  id?: string
+  userId: string
+  employeeId: string
+  jobTitle: string
+  payoutMethod?: $Enums.PayoutMethod | null
+  preferredCurrency?: string
+  xeroConnectionId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: $Enums.OtPayoutMethod
+  otTimeBalanceMin?: number
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedCreateNestedOneWithoutEmployeeProfileInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedCreateNestedManyWithoutEmployeeProfileInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedCreateNestedManyWithoutEmployeeProfileInput
+}
+
+export type EmployeeProfileCreateOrConnectWithoutPayslipInput = {
+  where: Prisma.EmployeeProfileWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayslipInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayslipInput>
+}
+
+export type EmployeeProfileUpsertWithoutPayslipInput = {
+  update: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutPayslipInput, Prisma.EmployeeProfileUncheckedUpdateWithoutPayslipInput>
+  create: Prisma.XOR<Prisma.EmployeeProfileCreateWithoutPayslipInput, Prisma.EmployeeProfileUncheckedCreateWithoutPayslipInput>
+  where?: Prisma.EmployeeProfileWhereInput
+}
+
+export type EmployeeProfileUpdateToOneWithWhereWithoutPayslipInput = {
+  where?: Prisma.EmployeeProfileWhereInput
+  data: Prisma.XOR<Prisma.EmployeeProfileUpdateWithoutPayslipInput, Prisma.EmployeeProfileUncheckedUpdateWithoutPayslipInput>
+}
+
+export type EmployeeProfileUpdateWithoutPayslipInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
+}
+
+export type EmployeeProfileUncheckedUpdateWithoutPayslipInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  payoutMethod?: Prisma.NullableEnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  otPayoutMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
+  projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileCreateManyXeroConnectionInput = {
@@ -1008,6 +1532,10 @@ export type EmployeeProfileUpdateWithoutXeroConnectionInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutEmployeeProfileNestedInput
   projectAssignments?: Prisma.EmployeeProjectAssignmentUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateWithoutXeroConnectionInput = {
@@ -1024,6 +1552,10 @@ export type EmployeeProfileUncheckedUpdateWithoutXeroConnectionInput = {
   otTimeBalanceMin?: Prisma.IntFieldUpdateOperationsInput | number
   projectAssignments?: Prisma.EmployeeProjectAssignmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
   teamMemberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollProfile?: Prisma.PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput
+  PayrollRunAdjustment?: Prisma.PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  PayrollRunClaim?: Prisma.PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileNestedInput
+  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutEmployeeProfileNestedInput
 }
 
 export type EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionInput = {
@@ -1048,11 +1580,17 @@ export type EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionInput = {
 export type EmployeeProfileCountOutputType = {
   projectAssignments: number
   teamMemberships: number
+  PayrollRunAdjustment: number
+  PayrollRunClaim: number
+  Payslip: number
 }
 
 export type EmployeeProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   projectAssignments?: boolean | EmployeeProfileCountOutputTypeCountProjectAssignmentsArgs
   teamMemberships?: boolean | EmployeeProfileCountOutputTypeCountTeamMembershipsArgs
+  PayrollRunAdjustment?: boolean | EmployeeProfileCountOutputTypeCountPayrollRunAdjustmentArgs
+  PayrollRunClaim?: boolean | EmployeeProfileCountOutputTypeCountPayrollRunClaimArgs
+  Payslip?: boolean | EmployeeProfileCountOutputTypeCountPayslipArgs
 }
 
 /**
@@ -1079,6 +1617,27 @@ export type EmployeeProfileCountOutputTypeCountTeamMembershipsArgs<ExtArgs exten
   where?: Prisma.EmployeeTeamMembershipWhereInput
 }
 
+/**
+ * EmployeeProfileCountOutputType without action
+ */
+export type EmployeeProfileCountOutputTypeCountPayrollRunAdjustmentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PayrollRunAdjustmentWhereInput
+}
+
+/**
+ * EmployeeProfileCountOutputType without action
+ */
+export type EmployeeProfileCountOutputTypeCountPayrollRunClaimArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PayrollRunClaimWhereInput
+}
+
+/**
+ * EmployeeProfileCountOutputType without action
+ */
+export type EmployeeProfileCountOutputTypeCountPayslipArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PayslipWhereInput
+}
+
 
 export type EmployeeProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1097,6 +1656,10 @@ export type EmployeeProfileSelect<ExtArgs extends runtime.Types.Extensions.Inter
   xeroConnection?: boolean | Prisma.EmployeeProfile$xeroConnectionArgs<ExtArgs>
   projectAssignments?: boolean | Prisma.EmployeeProfile$projectAssignmentsArgs<ExtArgs>
   teamMemberships?: boolean | Prisma.EmployeeProfile$teamMembershipsArgs<ExtArgs>
+  PayrollProfile?: boolean | Prisma.EmployeeProfile$PayrollProfileArgs<ExtArgs>
+  PayrollRunAdjustment?: boolean | Prisma.EmployeeProfile$PayrollRunAdjustmentArgs<ExtArgs>
+  PayrollRunClaim?: boolean | Prisma.EmployeeProfile$PayrollRunClaimArgs<ExtArgs>
+  Payslip?: boolean | Prisma.EmployeeProfile$PayslipArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeProfileCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employeeProfile"]>
 
@@ -1123,6 +1686,10 @@ export type EmployeeProfileInclude<ExtArgs extends runtime.Types.Extensions.Inte
   xeroConnection?: boolean | Prisma.EmployeeProfile$xeroConnectionArgs<ExtArgs>
   projectAssignments?: boolean | Prisma.EmployeeProfile$projectAssignmentsArgs<ExtArgs>
   teamMemberships?: boolean | Prisma.EmployeeProfile$teamMembershipsArgs<ExtArgs>
+  PayrollProfile?: boolean | Prisma.EmployeeProfile$PayrollProfileArgs<ExtArgs>
+  PayrollRunAdjustment?: boolean | Prisma.EmployeeProfile$PayrollRunAdjustmentArgs<ExtArgs>
+  PayrollRunClaim?: boolean | Prisma.EmployeeProfile$PayrollRunClaimArgs<ExtArgs>
+  Payslip?: boolean | Prisma.EmployeeProfile$PayslipArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeProfileCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -1133,6 +1700,10 @@ export type $EmployeeProfilePayload<ExtArgs extends runtime.Types.Extensions.Int
     xeroConnection: Prisma.$XeroConnectionPayload<ExtArgs> | null
     projectAssignments: Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>[]
     teamMemberships: Prisma.$EmployeeTeamMembershipPayload<ExtArgs>[]
+    PayrollProfile: Prisma.$PayrollProfilePayload<ExtArgs> | null
+    PayrollRunAdjustment: Prisma.$PayrollRunAdjustmentPayload<ExtArgs>[]
+    PayrollRunClaim: Prisma.$PayrollRunClaimPayload<ExtArgs>[]
+    Payslip: Prisma.$PayslipPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1503,6 +2074,10 @@ export interface Prisma__EmployeeProfileClient<T, Null = never, ExtArgs extends 
   xeroConnection<T extends Prisma.EmployeeProfile$xeroConnectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$xeroConnectionArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   projectAssignments<T extends Prisma.EmployeeProfile$projectAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$projectAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProjectAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   teamMemberships<T extends Prisma.EmployeeProfile$teamMembershipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$teamMembershipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeTeamMembershipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  PayrollProfile<T extends Prisma.EmployeeProfile$PayrollProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$PayrollProfileArgs<ExtArgs>>): Prisma.Prisma__PayrollProfileClient<runtime.Types.Result.GetResult<Prisma.$PayrollProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  PayrollRunAdjustment<T extends Prisma.EmployeeProfile$PayrollRunAdjustmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$PayrollRunAdjustmentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollRunAdjustmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  PayrollRunClaim<T extends Prisma.EmployeeProfile$PayrollRunClaimArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$PayrollRunClaimArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollRunClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  Payslip<T extends Prisma.EmployeeProfile$PayslipArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfile$PayslipArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1956,6 +2531,97 @@ export type EmployeeProfile$teamMembershipsArgs<ExtArgs extends runtime.Types.Ex
   take?: number
   skip?: number
   distinct?: Prisma.EmployeeTeamMembershipScalarFieldEnum | Prisma.EmployeeTeamMembershipScalarFieldEnum[]
+}
+
+/**
+ * EmployeeProfile.PayrollProfile
+ */
+export type EmployeeProfile$PayrollProfileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PayrollProfile
+   */
+  select?: Prisma.PayrollProfileSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PayrollProfile
+   */
+  omit?: Prisma.PayrollProfileOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PayrollProfileInclude<ExtArgs> | null
+  where?: Prisma.PayrollProfileWhereInput
+}
+
+/**
+ * EmployeeProfile.PayrollRunAdjustment
+ */
+export type EmployeeProfile$PayrollRunAdjustmentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PayrollRunAdjustment
+   */
+  select?: Prisma.PayrollRunAdjustmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PayrollRunAdjustment
+   */
+  omit?: Prisma.PayrollRunAdjustmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PayrollRunAdjustmentInclude<ExtArgs> | null
+  where?: Prisma.PayrollRunAdjustmentWhereInput
+  orderBy?: Prisma.PayrollRunAdjustmentOrderByWithRelationInput | Prisma.PayrollRunAdjustmentOrderByWithRelationInput[]
+  cursor?: Prisma.PayrollRunAdjustmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PayrollRunAdjustmentScalarFieldEnum | Prisma.PayrollRunAdjustmentScalarFieldEnum[]
+}
+
+/**
+ * EmployeeProfile.PayrollRunClaim
+ */
+export type EmployeeProfile$PayrollRunClaimArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PayrollRunClaim
+   */
+  select?: Prisma.PayrollRunClaimSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PayrollRunClaim
+   */
+  omit?: Prisma.PayrollRunClaimOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PayrollRunClaimInclude<ExtArgs> | null
+  where?: Prisma.PayrollRunClaimWhereInput
+  orderBy?: Prisma.PayrollRunClaimOrderByWithRelationInput | Prisma.PayrollRunClaimOrderByWithRelationInput[]
+  cursor?: Prisma.PayrollRunClaimWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PayrollRunClaimScalarFieldEnum | Prisma.PayrollRunClaimScalarFieldEnum[]
+}
+
+/**
+ * EmployeeProfile.Payslip
+ */
+export type EmployeeProfile$PayslipArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Payslip
+   */
+  select?: Prisma.PayslipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Payslip
+   */
+  omit?: Prisma.PayslipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PayslipInclude<ExtArgs> | null
+  where?: Prisma.PayslipWhereInput
+  orderBy?: Prisma.PayslipOrderByWithRelationInput | Prisma.PayslipOrderByWithRelationInput[]
+  cursor?: Prisma.PayslipWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PayslipScalarFieldEnum | Prisma.PayslipScalarFieldEnum[]
 }
 
 /**

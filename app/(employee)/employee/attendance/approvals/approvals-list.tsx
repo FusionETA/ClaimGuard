@@ -6,6 +6,7 @@ import { Search } from "lucide-react"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
+import { DateTimeField } from "@/components/attendance/datetime-field"
 import { Input } from "@/components/attendance/ui/input"
 import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
@@ -280,17 +281,16 @@ export function ApprovalsList({ items }: Props) {
                 </div>
                 {(r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT") &&
                 overrides[r.id] !== undefined ? (
-                  <div className="mt-3 rounded-md border border-border/60 bg-secondary/20 px-3 py-2">
-                    <label className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <div className="mt-3 space-y-2 rounded-xl border border-border/60 bg-secondary/20 px-3 py-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Adjusted time
-                    </label>
-                    <Input
-                      type="datetime-local"
+                    </p>
+                    <DateTimeField
                       value={overrides[r.id] ?? ""}
-                      onChange={(e) => setOverrideValue(r.id, e.target.value)}
-                      className="mt-1 h-9"
+                      onChange={(v) => setOverrideValue(r.id, v)}
+                      compact
                     />
-                    <p className="mt-1 text-[10px] text-muted-foreground">
+                    <p className="text-[10px] text-muted-foreground">
                       Approving will set the record&apos;s{" "}
                       {r.kind === "CLOCK_IN" ? "clock-in" : "clock-out"} to this
                       value instead of the submitted timestamp.

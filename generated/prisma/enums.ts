@@ -155,3 +155,99 @@ export const OtPayoutMethod = {
 } as const
 
 export type OtPayoutMethod = (typeof OtPayoutMethod)[keyof typeof OtPayoutMethod]
+
+
+export const PayslipLineItem_kind = {
+  ALLOWANCE: 'ALLOWANCE',
+  DEDUCTION: 'DEDUCTION',
+  REIMBURSEMENT: 'REIMBURSEMENT'
+} as const
+
+export type PayslipLineItem_kind = (typeof PayslipLineItem_kind)[keyof typeof PayslipLineItem_kind]
+
+
+export const PayrollProfile_gender = {
+  MALE: 'MALE',
+  FEMALE: 'FEMALE'
+} as const
+
+export type PayrollProfile_gender = (typeof PayrollProfile_gender)[keyof typeof PayrollProfile_gender]
+
+
+export const PayrollRun_status = {
+  DRAFT: 'DRAFT',
+  SUBMITTED: 'SUBMITTED'
+} as const
+
+export type PayrollRun_status = (typeof PayrollRun_status)[keyof typeof PayrollRun_status]
+
+
+export const PayrollSettings_workingDaysRule = {
+  CALENDAR: 'CALENDAR',
+  TWENTY_SIX: 'TWENTY_SIX'
+} as const
+
+export type PayrollSettings_workingDaysRule = (typeof PayrollSettings_workingDaysRule)[keyof typeof PayrollSettings_workingDaysRule]
+
+
+export const Payslip_snapshotSalaryType = {
+  MONTHLY: 'MONTHLY',
+  HOURLY: 'HOURLY'
+} as const
+
+export type Payslip_snapshotSalaryType = (typeof Payslip_snapshotSalaryType)[keyof typeof Payslip_snapshotSalaryType]
+
+
+export const PayrollProfile_idType = {
+  NRIC: 'NRIC',
+  PASSPORT: 'PASSPORT',
+  ARMY_NO: 'ARMY_NO',
+  POLICE_NO: 'POLICE_NO'
+} as const
+
+export type PayrollProfile_idType = (typeof PayrollProfile_idType)[keyof typeof PayrollProfile_idType]
+
+
+export const PayrollProfile_maritalStatus = {
+  SINGLE: 'SINGLE',
+  MARRIED: 'MARRIED',
+  DIVORCED: 'DIVORCED',
+  WIDOWED: 'WIDOWED'
+} as const
+
+export type PayrollProfile_maritalStatus = (typeof PayrollProfile_maritalStatus)[keyof typeof PayrollProfile_maritalStatus]
+
+
+export const PayrollCompanyInfo_declarantIdType = {
+  NRIC: 'NRIC',
+  PASSPORT: 'PASSPORT',
+  ARMY_NO: 'ARMY_NO',
+  POLICE_NO: 'POLICE_NO'
+} as const
+
+export type PayrollCompanyInfo_declarantIdType = (typeof PayrollCompanyInfo_declarantIdType)[keyof typeof PayrollCompanyInfo_declarantIdType]
+
+
+export const PayrollProfile_socsoScheme = {
+  EMPLOYMENT_INJURY_INVALIDITY: 'EMPLOYMENT_INJURY_INVALIDITY',
+  EMPLOYMENT_INJURY_ONLY: 'EMPLOYMENT_INJURY_ONLY'
+} as const
+
+export type PayrollProfile_socsoScheme = (typeof PayrollProfile_socsoScheme)[keyof typeof PayrollProfile_socsoScheme]
+
+
+export const PayrollProfile_paymentMethod = {
+  BANK_TRANSFER: 'BANK_TRANSFER',
+  CASH: 'CASH',
+  CHEQUE: 'CHEQUE'
+} as const
+
+export type PayrollProfile_paymentMethod = (typeof PayrollProfile_paymentMethod)[keyof typeof PayrollProfile_paymentMethod]
+
+
+export const PayrollProfile_salaryType = {
+  MONTHLY: 'MONTHLY',
+  HOURLY: 'HOURLY'
+} as const
+
+export type PayrollProfile_salaryType = (typeof PayrollProfile_salaryType)[keyof typeof PayrollProfile_salaryType]
