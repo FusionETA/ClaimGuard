@@ -2364,6 +2364,8 @@ export const attendanceRepository = {
       title: string
       chainHistory: ChainHistoryEntry[] | null
       selfieAttendanceRecordId: string | null
+      overrideAt: string | null
+      overrideReason: string | null
     }>
   > {
     const prisma = getClient()
@@ -2396,6 +2398,66 @@ export const attendanceRepository = {
         reviewer: { select: { name: true } },
       },
     })
+
+    // Look up supervisor time overrides applied during approval. Each
+    // row keyed by `${employeeId}|${date}|${reviewerId}` so we can pair
+    // it back to the matching approval below.
+    let overrideByKey = new Map<
+      string,
+      { at: Date | null; reason: string | null }
+    >()
+    const clockOverrideRows = rows.filter(
+      (r) =>
+        r.reviewerId &&
+        (r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT") &&
+        r.status === "APPROVED",
+    )
+    if (clockOverrideRows.length > 0) {
+      const logs = await prisma.attendanceEditLog.findMany({
+        where: {
+          source: "APPROVE_OVERRIDE",
+          editedById: {
+            in: Array.from(
+              new Set(
+                clockOverrideRows
+                  .map((r) => r.reviewerId)
+                  .filter((id): id is string => Boolean(id)),
+              ),
+            ),
+          },
+          attendanceRecord: {
+            OR: clockOverrideRows.map((r) => ({
+              employeeId: r.employeeId,
+              date: startOfDay(r.date),
+            })),
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        include: {
+          attendanceRecord: {
+            select: { employeeId: true, date: true },
+          },
+        },
+      })
+      // For each (employeeId,date,reviewerId,kind) keep the most recent
+      // override log row. We pick nextTimeIn for CLOCK_IN approvals and
+      // nextTimeOut for CLOCK_OUT approvals when present.
+      overrideByKey = new Map()
+      for (const log of logs) {
+        const empId = log.attendanceRecord.employeeId
+        const dateKey = log.attendanceRecord.date.toISOString().slice(0, 10)
+        const reviewerId = log.editedById
+        // Two passes — try CLOCK_IN slot first, then CLOCK_OUT slot.
+        for (const kind of ["CLOCK_IN", "CLOCK_OUT"] as const) {
+          const key = `${empId}|${dateKey}|${reviewerId}|${kind}`
+          if (overrideByKey.has(key)) continue
+          const at =
+            kind === "CLOCK_IN" ? log.nextTimeIn : log.nextTimeOut
+          if (!at) continue
+          overrideByKey.set(key, { at, reason: log.reason })
+        }
+      }
+    }
 
     // Look up selfie attachments for the CLOCK_IN rows in one query.
     const clockInRows = rows.filter((r) => r.kind === "CLOCK_IN")
@@ -2431,7 +2493,13 @@ export const attendanceRepository = {
         r.eventAt && reviewedAt
           ? Math.round((reviewedAt.getTime() - r.eventAt.getTime()) / 60000)
           : null
-      const dateKey = `${r.employeeId}|${r.date.toISOString().slice(0, 10)}`
+      const dateOnly = r.date.toISOString().slice(0, 10)
+      const dateKey = `${r.employeeId}|${dateOnly}`
+      const overrideKey =
+        r.reviewerId && (r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT")
+          ? `${r.employeeId}|${dateOnly}|${r.reviewerId}|${r.kind}`
+          : null
+      const override = overrideKey ? overrideByKey.get(overrideKey) : undefined
       return {
         id: r.id,
         kind: r.kind as ApprovalKind,
@@ -2448,6 +2516,8 @@ export const attendanceRepository = {
         chainHistory: parseChainHistory(r.chainHistory),
         selfieAttendanceRecordId:
           r.kind === "CLOCK_IN" ? selfieByKey.get(dateKey) ?? null : null,
+        overrideAt: override?.at ? override.at.toISOString() : null,
+        overrideReason: override?.reason ?? null,
       }
     })
   },

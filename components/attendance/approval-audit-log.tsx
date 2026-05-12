@@ -41,6 +41,12 @@ export type AuditLogRow = {
   title: string
   chainHistory: AuditChainEntry[] | null
   selfieAttendanceRecordId: string | null
+  /** When the supervisor adjusted the clock-in/out time during approval,
+   *  this is the new timestamp written to the AttendanceRecord. Null for
+   *  approvals that accepted the original event time as-is. */
+  overrideAt: string | null
+  /** Optional free-text reason captured alongside the override. */
+  overrideReason: string | null
 }
 
 type LoadAction = (
@@ -310,7 +316,33 @@ export function ApprovalAuditLog({
                     </td>
                     <td className="py-2 pr-3 text-xs">{KIND_LABEL[row.kind]}</td>
                     <td className="py-2 pr-3 text-xs tabular-nums">
-                      {row.eventAt ? fmtDateTime(row.eventAt) : "—"}
+                      <div className="flex flex-col gap-0.5">
+                        <span
+                          className={
+                            row.overrideAt
+                              ? "text-muted-foreground line-through"
+                              : ""
+                          }
+                        >
+                          {row.eventAt ? fmtDateTime(row.eventAt) : "—"}
+                        </span>
+                        {row.overrideAt ? (
+                          <span className="flex items-center gap-1 text-[11px] font-semibold text-primary">
+                            <span>→ {fmtDateTime(row.overrideAt)}</span>
+                            <Badge
+                              variant="overtime"
+                              className="px-1.5 py-0 text-[9px] font-bold uppercase tracking-wider"
+                            >
+                              Adjusted
+                            </Badge>
+                          </span>
+                        ) : null}
+                        {row.overrideAt && row.overrideReason ? (
+                          <span className="text-[10px] text-muted-foreground">
+                            {row.overrideReason}
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="py-2 pr-3 text-xs">
                       {row.chainHistory && row.chainHistory.length > 0 ? (

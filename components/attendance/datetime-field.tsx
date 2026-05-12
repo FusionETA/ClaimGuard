@@ -106,7 +106,7 @@ export function DateTimeField({
         disabled={disabled}
         compact={compact}
       />
-      <div className="grid grid-cols-[1fr_1fr_auto] gap-1.5">
+      <div className="flex items-center gap-1.5">
         <NumericField
           ariaLabel="Hour"
           placeholder="HH"
@@ -118,6 +118,7 @@ export function DateTimeField({
           compact={compact}
           disabled={disabled}
         />
+        <span className="text-sm font-bold text-muted-foreground">:</span>
         <NumericField
           ariaLabel="Minute"
           placeholder="MM"
@@ -137,7 +138,7 @@ export function DateTimeField({
               disabled={disabled}
               onClick={() => update({ meridiem: mer })}
               className={cn(
-                "px-3 text-xs font-semibold transition-colors",
+                "px-2 text-[11px] font-semibold transition-colors",
                 compact ? "py-1.5" : "py-2",
                 meridiem === mer
                   ? "bg-primary text-primary-foreground"
@@ -215,7 +216,7 @@ function NumericField({
         }
       }}
       className={cn(
-        "text-center tabular-nums",
+        "w-12 px-1 text-center tabular-nums",
         compact ? "h-9" : "h-10",
       )}
     />
@@ -246,46 +247,17 @@ function isoForLocal(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-/**
- * Parse an ISO-ish date string the user typed. Accepts either
- * "YYYY-MM-DD" or "YYYY/MM/DD" or "DD/MM/YYYY" (best-effort) and
- * returns a canonical "YYYY-MM-DD" string, or `null` on failure.
- */
-function parseTypedDate(input: string): string | null {
-  const trimmed = input.trim()
-  if (!trimmed) return ""
-  const m1 = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/.exec(trimmed)
-  if (m1) {
-    const y = Number.parseInt(m1[1], 10)
-    const mo = Number.parseInt(m1[2], 10)
-    const d = Number.parseInt(m1[3], 10)
-    return validIso(y, mo, d)
-  }
-  const m2 = /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/.exec(trimmed)
-  if (m2) {
-    const a = Number.parseInt(m2[1], 10)
-    const b = Number.parseInt(m2[2], 10)
-    const y = Number.parseInt(m2[3], 10)
-    // Heuristic: if a > 12, treat as DD/MM/YYYY; otherwise MM/DD/YYYY.
-    if (a > 12) return validIso(y, b, a)
-    return validIso(y, a, b)
-  }
-  return null
-}
-
-function validIso(y: number, mo: number, d: number): string | null {
-  if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) return null
-  if (mo < 1 || mo > 12) return null
-  if (d < 1 || d > 31) return null
-  const check = new Date(y, mo - 1, d)
-  if (
-    check.getFullYear() !== y ||
-    check.getMonth() !== mo - 1 ||
-    check.getDate() !== d
-  ) {
-    return null
-  }
-  return `${y}-${pad(mo)}-${pad(d)}`
+function fmtDateForDisplay(iso: string): string {
+  if (!iso) return "Pick a date"
+  const [y, m, d] = iso.split("-").map((n) => Number.parseInt(n, 10))
+  if (!y || !m || !d) return "Pick a date"
+  const date = new Date(y, m - 1, d)
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
 }
 
 function CalendarPicker({
@@ -302,9 +274,8 @@ function CalendarPicker({
   compact?: boolean
 }) {
   const [open, setOpen] = useState(false)
-  const [draft, setDraft] = useState(value)
   const rootRef = useRef<HTMLDivElement | null>(null)
-  const triggerRef = useRef<HTMLDivElement | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
   const popoverRef = useRef<HTMLDivElement | null>(null)
   const [popoverPos, setPopoverPos] = useState<{
     top: number
@@ -313,10 +284,6 @@ function CalendarPicker({
   } | null>(null)
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
-
-  useEffect(() => {
-    setDraft(value)
-  }, [value])
 
   // Anchor month for the grid — defaults to the selected value or today.
   const initialAnchor = useMemo(() => {
@@ -419,59 +386,32 @@ function CalendarPicker({
 
   function pick(iso: string) {
     onChange(iso)
-    setDraft(iso)
     setOpen(false)
-  }
-
-  function commitTypedDate() {
-    const parsed = parseTypedDate(draft)
-    if (parsed === null) {
-      // Invalid input — revert to the last committed value.
-      setDraft(value)
-      return
-    }
-    if (parsed !== value) onChange(parsed)
-    setDraft(parsed)
   }
 
   return (
     <div ref={rootRef} className="relative">
-      <div ref={triggerRef} className="flex gap-1.5">
-        <div className="relative flex-1">
-          <Calendar className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            id={id}
-            type="text"
-            inputMode="numeric"
-            placeholder="YYYY-MM-DD"
-            disabled={disabled}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commitTypedDate}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.currentTarget.blur()
-              }
-            }}
-            className={cn(
-              "pl-9 tabular-nums",
-              compact ? "h-9" : "h-10",
-            )}
-          />
-        </div>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Open calendar"
+      <button
+        ref={triggerRef}
+        type="button"
+        id={id}
+        disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          "flex w-full items-center gap-2 rounded-md border border-input bg-card px-3 text-left text-sm font-medium transition-colors hover:border-primary/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
+          compact ? "h-9" : "h-10",
+        )}
+      >
+        <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <span
           className={cn(
-            "inline-flex shrink-0 items-center justify-center rounded-md border border-border/60 bg-card px-2.5 text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
-            compact ? "h-9" : "h-10",
+            "flex-1 truncate tabular-nums",
+            !value && "text-muted-foreground",
           )}
         >
-          <Calendar className="h-4 w-4" />
-        </button>
-      </div>
+          {fmtDateForDisplay(value)}
+        </span>
+      </button>
       {open && mounted && popoverPos
         ? createPortal(
         <div
