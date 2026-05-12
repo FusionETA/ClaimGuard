@@ -322,4 +322,16 @@ export const employeeAttendanceService = {
   async getHoursSummary(employeeId: string, from: Date, to: Date) {
     return attendanceRepository.getHoursSummary({ employeeId, from, to })
   },
+
+  async updateTodayRemark(
+    employeeId: string,
+    attendanceRecordId: string,
+    remark: string | null,
+  ): Promise<void> {
+    await attendanceRepository.updateAttendanceRemark({
+      attendanceRecordId,
+      employeeId,
+      remark,
+    })
+  },
 }

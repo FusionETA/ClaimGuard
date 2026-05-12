@@ -12,6 +12,7 @@
     "db:backfill-org": "tsx prisma/backfill-organization.ts",
     "db:backfill-teams": "tsx prisma/backfill-teams.ts",
     "db:backfill-project-managers": "tsx prisma/backfill-project-managers.ts",
+    "db:backfill-policies": "tsx prisma/backfill-policies.ts",
     "db:create-master-key": "tsx prisma/create-master-key.ts",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",

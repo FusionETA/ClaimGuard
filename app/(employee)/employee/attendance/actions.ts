@@ -85,15 +85,69 @@ export async function clockInAction(
   return {}
 }
 
-export async function clockOutAction(formData?: FormData) {
+export type ClockOutSummary = {
+  recordId: string
+  /** ISO strings — null when missing. */
+  timeIn: string | null
+  timeOut: string | null
+  /** Worked minutes (excluding breaks). */
+  durationMin: number | null
+  /** Total break minutes taken today. */
+  breakMin: number
+  project: string | null
+  location: string | null
+  lateByMin: number | null
+  /** System-captured off-site context (read-only here). */
+  notes: string | null
+  /** Employee's adjustment-request remark (editable in the popup). */
+  remark: string | null
+}
+
+export type ClockOutResult = {
+  ok?: boolean
+  error?: string
+  summary?: ClockOutSummary
+}
+
+export async function clockOutAction(
+  formData?: FormData,
+): Promise<ClockOutResult> {
   const session = await requirePortalSession("EMPLOYEE")
   const coords = parseCoords(formData)
   const notes = parseNotes(formData)
-  await employeeAttendanceService.clockOut(session.userId, coords, notes)
+  try {
+    await employeeAttendanceService.clockOut(session.userId, coords, notes)
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Could not clock out" }
+  }
   await revalidateAll({
     userId: session.userId,
     organizationId: session.organizationId,
   })
+  // Read back today's record + break totals so the client can show the
+  // post-clock-out summary dialog without an extra round-trip.
+  const dashboard = await employeeAttendanceService.getEmployeeDashboard(
+    session.userId,
+  )
+  const today = dashboard.today
+  if (!today) {
+    return { ok: true }
+  }
+  return {
+    ok: true,
+    summary: {
+      recordId: today.id,
+      timeIn: today.timeIn,
+      timeOut: today.timeOut,
+      durationMin: today.durationMin,
+      breakMin: today.breakMin,
+      project: today.project,
+      location: today.location,
+      lateByMin: today.lateByMin,
+      notes: today.notes,
+      remark: today.remark,
+    },
+  }
 }
 
 export async function startBreakAction(formData?: FormData) {
@@ -116,4 +170,40 @@ export async function endBreakAction(formData?: FormData) {
     userId: session.userId,
     organizationId: session.organizationId,
   })
+}
+
+export type UpdateRemarkState = { ok?: boolean; error?: string }
+
+/**
+ * Updates the employee's adjustment-request remark
+ * (`AttendanceRecord.remark`) on their current-day record. The repo
+ * layer enforces "today only" and writes an audit row to
+ * AttendanceEditLog. Distinct from `AttendanceRecord.notes`, which holds
+ * system-captured off-site context and is not editable here.
+ */
+export async function updateTodayRemarkAction(
+  _prev: UpdateRemarkState,
+  formData: FormData,
+): Promise<UpdateRemarkState> {
+  const session = await requirePortalSession("EMPLOYEE")
+  const recordId = String(formData.get("recordId") ?? "")
+  if (!recordId) return { error: "No record to update." }
+  const rawRemark = formData.get("remark") ?? formData.get("notes")
+  const remark = typeof rawRemark === "string" ? rawRemark : ""
+  try {
+    await employeeAttendanceService.updateTodayRemark(
+      session.userId,
+      recordId,
+      remark,
+    )
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Could not save remark",
+    }
+  }
+  await revalidateAll({
+    userId: session.userId,
+    organizationId: session.organizationId,
+  })
+  return { ok: true }
 }

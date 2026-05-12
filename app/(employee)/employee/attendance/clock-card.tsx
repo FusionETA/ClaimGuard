@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select"
 import type {
   AttendanceProjectView,
+  AttendanceRecordView,
 } from "@/modules/attendance/domain/models"
 import { checkGeofence, type GeofenceCheck } from "@/lib/geo"
 
@@ -23,21 +24,35 @@ import {
   endBreakAction,
   startBreakAction,
   type ClockInState,
+  updateTodayRemarkAction,
 } from "./actions"
+import { ClockOutSummaryDialog } from "./clock-out-summary-dialog"
 
-async function attachCoords(formData: FormData): Promise<void> {
+/**
+ * Best-effort coord refresh on click. Awaits at most `timeoutMs` for a
+ * fresh fix and accepts cached fixes up to `maxAgeMs` old, so the
+ * button doesn't block on a slow GPS lock when the watcher already has
+ * a usable position. The watcher (see `useEffect` below) keeps
+ * `employeeCoords` warm; this is just a top-up before submitting.
+ */
+async function attachCoords(
+  formData: FormData,
+  timeoutMs = 1500,
+  maxAgeMs = 30_000,
+): Promise<void> {
   if (typeof navigator === "undefined" || !navigator.geolocation) return
   try {
     const position = await new Promise<GeolocationPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
-        timeout: 8000,
-        maximumAge: 0,
+        timeout: timeoutMs,
+        maximumAge: maxAgeMs,
       })
     })
     formData.set("lat", String(position.coords.latitude))
     formData.set("lng", String(position.coords.longitude))
   } catch {
-    // GPS denied/unavailable/timed out — proceed without coords
+    // GPS denied/unavailable/timed out — the caller will fall back to
+    // the watched `employeeCoords` if available.
   }
 }
 
@@ -45,6 +60,27 @@ function readCoordsFrom(formData: FormData): { lat: number; lng: number } | null
   const lat = parseFloat(String(formData.get("lat") ?? ""))
   const lng = parseFloat(String(formData.get("lng") ?? ""))
   return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null
+}
+
+/**
+ * Resolve coords for a submission as quickly as possible.
+ *
+ * The watcher already keeps `watched` warm (see watchPosition effect),
+ * so when it's available we skip `getCurrentPosition` entirely and the
+ * button submits with zero GPS wait. Only when there's no watched fix
+ * do we fall back to a short-timeout `getCurrentPosition` call.
+ */
+async function resolveCoordsForSubmit(
+  formData: FormData,
+  watched: { lat: number; lng: number } | null,
+): Promise<void> {
+  if (readCoordsFrom(formData) !== null) return
+  if (watched) {
+    formData.set("lat", String(watched.lat))
+    formData.set("lng", String(watched.lng))
+    return
+  }
+  await attachCoords(formData)
 }
 
 function fallbackCoordsFromState(
@@ -80,6 +116,8 @@ type Props = {
   currentBreakStartedAt: string | null
   /** When true (Hourly Workers), the clock-in flow gates on a selfie capture. */
   requiresSelfieOnClockIn: boolean
+  /** Today's full attendance record — drives the clock-out confirmation dialog. */
+  todayRecord: AttendanceRecordView | null
 }
 
 function ClockInButton({ pending }: { pending: boolean }) {
@@ -175,6 +213,7 @@ export function ClockCard({
   onBreak,
   currentBreakStartedAt,
   requiresSelfieOnClockIn,
+  todayRecord,
 }: Props) {
   const [selected, setSelected] = useState("")
   const [result, formAction] = useActionState<ClockInState, FormData>(
@@ -183,6 +222,53 @@ export function ClockCard({
   )
   const [isPending, startTransition] = useTransition()
   const [isClockOutPending, startClockOutTransition] = useTransition()
+  // Pending clock-out: the formData has been built (coords resolved,
+  // off-site remark captured if needed) but the server hasn't been
+  // called yet. The summary dialog opens to let the employee review and
+  // optionally attach an adjustment request; only Looks good / Submit
+  // request actually commits. Closing the dialog cancels the clock-out.
+  const [clockOutDraft, setClockOutDraft] = useState<{
+    formData: FormData
+  } | null>(null)
+  const [clockOutCommitError, setClockOutCommitError] = useState<string | null>(
+    null,
+  )
+
+  function prepareClockOut(formData: FormData) {
+    setClockOutCommitError(null)
+    setClockOutDraft({ formData })
+  }
+
+  function cancelClockOutDraft() {
+    if (isClockOutPending) return
+    setClockOutDraft(null)
+    setClockOutCommitError(null)
+  }
+
+  function commitClockOut(adjustmentRequest: string | null) {
+    if (!clockOutDraft) return
+    const fd = clockOutDraft.formData
+    startClockOutTransition(async () => {
+      const result = await clockOutAction(fd)
+      if (result.error) {
+        setClockOutCommitError(result.error)
+        return
+      }
+      if (adjustmentRequest && result.summary?.recordId) {
+        const remarkForm = new FormData()
+        remarkForm.set("recordId", result.summary.recordId)
+        remarkForm.set("remark", adjustmentRequest)
+        const remarkResult = await updateTodayRemarkAction({}, remarkForm)
+        if (remarkResult.error) {
+          // Clock-out already committed; just surface the remark error.
+          setClockOutCommitError(remarkResult.error)
+          return
+        }
+      }
+      setClockOutDraft(null)
+      setClockOutCommitError(null)
+    })
+  }
   const [isBreakPending, startBreakTransition] = useTransition()
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [remark, setRemark] = useState("")
@@ -207,6 +293,19 @@ export function ClockCard({
       return
     }
     setGpsState("locating")
+    // Fast first read — accept any cached fix the OS already has so the
+    // button feels ready almost immediately. Falls through silently if
+    // the cache is empty; the watcher below will catch the fresh fix.
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setEmployeeCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setGpsState("ok")
+      },
+      () => {
+        // ignore — `watchPosition` handles the eventual error/denied state
+      },
+      { enableHighAccuracy: false, timeout: 2000, maximumAge: Infinity },
+    )
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         setEmployeeCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
@@ -235,7 +334,7 @@ export function ClockCard({
     if (action.kind === "CLOCK_IN") {
       startTransition(() => formAction(action.formData))
     } else if (action.kind === "CLOCK_OUT") {
-      startClockOutTransition(() => clockOutAction(action.formData))
+      prepareClockOut(action.formData)
     } else if (action.kind === "BREAK_START") {
       startBreakTransition(() => startBreakAction(action.formData))
     } else {
@@ -266,8 +365,7 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const project = projects.find((p) => p.id === selected) ?? null
-      await attachCoords(formData)
-      fallbackCoordsFromState(formData, employeeCoords)
+      await resolveCoordsForSubmit(formData, employeeCoords)
       const fence = checkGeofence(
         readCoordsFrom(formData),
         project ?? { latitude: null, longitude: null },
@@ -308,15 +406,14 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const formData = new FormData(e.currentTarget)
-      await attachCoords(formData)
-      fallbackCoordsFromState(formData, employeeCoords)
+      await resolveCoordsForSubmit(formData, employeeCoords)
       const fence = checkGeofence(
         readCoordsFrom(formData),
         { latitude: activeProjectLat, longitude: activeProjectLng },
         geofenceRadiusMeters,
       )
       if (fence.withinRadius) {
-        startClockOutTransition(() => clockOutAction(formData))
+        prepareClockOut(formData)
         return
       }
       setRemark("")
@@ -341,8 +438,7 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const formData = new FormData(e.currentTarget)
-      await attachCoords(formData)
-      fallbackCoordsFromState(formData, employeeCoords)
+      await resolveCoordsForSubmit(formData, employeeCoords)
       const fence = checkGeofence(
         readCoordsFrom(formData),
         { latitude: activeProjectLat, longitude: activeProjectLng },
@@ -395,6 +491,7 @@ export function ClockCard({
   })
 
   return (
+    <>
     <Card className="p-5">
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -540,6 +637,14 @@ export function ClockCard({
         />
       ) : null}
     </Card>
+    <ClockOutSummaryDialog
+      todayRecord={clockOutDraft ? todayRecord : null}
+      pending={isClockOutPending}
+      error={clockOutCommitError}
+      onConfirm={commitClockOut}
+      onClose={cancelClockOutDraft}
+    />
+    </>
   )
 }
 

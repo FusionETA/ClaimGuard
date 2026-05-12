@@ -39,6 +39,7 @@ import {
   syncXeroProjectsAction,
   updateProjectAction,
 } from "@/app/(admin)/admin/settings/actions"
+import { EmployeePoliciesTab } from "@/components/admin/employee-policies-tab"
 import { XeroConnectionCard } from "@/components/admin/xero-connection-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -66,9 +67,10 @@ import type {
   OrganizationSummary,
   XeroConnectionSummary,
 } from "@/modules/organization/domain/models"
+import type { EmployeePolicy } from "@/modules/policy/domain/models"
 
-type TabKey = "organization" | "claims" | "accounts" | "projects" | "work-schedule" | "leave" | "api"
-type WorkScheduleSection = "ot-rates" | "calendar" | "attendance"
+type TabKey = "organization" | "claims" | "accounts" | "projects" | "work-schedule" | "leave" | "policies" | "api"
+type WorkScheduleSection = "calendar" | "attendance"
 
 /** Lat/Lng pair inputs used for project geofence setup.
  *  - In edit (controlled) mode: pass defaultLat/defaultLng + onChange.
@@ -199,6 +201,8 @@ function resolveTabFromInitial(initial?: string): {
       return { tab: "work-schedule", accountsSub: "selectable" }
     case "leave":
       return { tab: "leave", accountsSub: "selectable" }
+    case "policies":
+      return { tab: "policies", accountsSub: "selectable" }
     case "api":
       return { tab: "api", accountsSub: "selectable" }
     default:
@@ -465,6 +469,7 @@ export function AdminSettingsPanel({
   admins = [],
   currentAdminEmail,
   apiIntegrations = [],
+  policies = [],
 }: {
   admin: AdminProfile
   organization?: OrganizationSummary
@@ -499,6 +504,8 @@ export function AdminSettingsPanel({
     createdAt: string
     lastUsedAt: string | null
   }>
+  /// Employee policies for the active org. Rendered in the Policies tab.
+  policies?: EmployeePolicy[]
 }) {
   // `apiIntegrations` is still loaded by the settings page but unused
   // here while the API tab is hidden. Keep the prop accepted so the
@@ -512,11 +519,7 @@ export function AdminSettingsPanel({
     initialResolved.accountsSub
   )
   const [workScheduleSection, setWorkScheduleSection] = useState<WorkScheduleSection>(
-    initialSection === "calendar"
-      ? "calendar"
-      : initialSection === "attendance"
-        ? "attendance"
-        : "ot-rates"
+    initialSection === "attendance" ? "attendance" : "calendar"
   )
 
   useEffect(() => {
@@ -527,7 +530,8 @@ export function AdminSettingsPanel({
       setAccountsSubTab(resolved.accountsSub)
     }
     if (resolved.tab === "work-schedule") {
-      const next: WorkScheduleSection = initialSection === "calendar" ? "calendar" : "ot-rates"
+      const next: WorkScheduleSection =
+        initialSection === "attendance" ? "attendance" : "calendar"
       if (next !== workScheduleSection) setWorkScheduleSection(next)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -685,6 +689,7 @@ export function AdminSettingsPanel({
     ["projects", "Projects"],
     ["work-schedule", "Work Schedule"],
     ["leave", "Leave"],
+    ["policies", "Policies"],
     // API tab hidden — tokens are auto-issued by the partner master-key
     // flow. Re-enable when self-service integrations ship.
     // ["api", "API"],
@@ -1854,7 +1859,6 @@ export function AdminSettingsPanel({
           <nav className="flex flex-wrap gap-2">
             {(
               [
-                ["ot-rates", "OT Rates"],
                 ["calendar", "Calendar"],
                 ["attendance", "Attendance"],
               ] as const
@@ -1875,12 +1879,7 @@ export function AdminSettingsPanel({
             ))}
           </nav>
 
-          {workScheduleSection === "ot-rates" ? (
-            <>
-              <OrgOtToggleCard organization={organization} />
-              <OtRatesCard organization={organization} />
-            </>
-          ) : workScheduleSection === "calendar" ? (
+          {workScheduleSection === "calendar" ? (
             <>
               <OrgWorkingHoursCard initial={workingHours} />
               <OrgTimezoneCard initial={timezone} />
@@ -1899,6 +1898,10 @@ export function AdminSettingsPanel({
           title="Leave"
           body="Leave applications and balances will live here. Coming as a separate module."
         />
+      ) : null}
+
+      {activeTab === "policies" ? (
+        <EmployeePoliciesTab policies={policies} />
       ) : null}
 
       {/*

@@ -6,6 +6,7 @@ import { Search } from "lucide-react"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
+import { DateTimeField } from "@/components/attendance/datetime-field"
 import { Input } from "@/components/attendance/ui/input"
 import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
@@ -21,6 +22,17 @@ const CLOCK_LABEL: Record<string, string> = {
 }
 
 const OFF_SITE_PREFIX = "⚠ OFF-SITE — "
+
+function toLocalDatetimeInput(iso: string | null): string {
+  if (!iso) return ""
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ""
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T` +
+    `${pad(d.getHours())}:${pad(d.getMinutes())}`
+  )
+}
 
 function parseEarlyMinutes(title: string): number | null {
   const match = /(\d+)m early/i.exec(title)
@@ -59,6 +71,25 @@ export function ApprovalsList({ items }: Props) {
   const [optimisticallyHidden, setOptimisticallyHidden] = useState<Set<string>>(new Set())
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
+  // Per-row override editor state: maps approvalId → local datetime string
+  // (or "" when the editor is open but not yet edited). `undefined` means
+  // the editor isn't expanded for that row.
+  const [overrides, setOverrides] = useState<Record<string, string>>({})
+
+  function toggleOverride(id: string, initial: string | null) {
+    setOverrides((prev) => {
+      if (prev[id] !== undefined) {
+        const next = { ...prev }
+        delete next[id]
+        return next
+      }
+      return { ...prev, [id]: toLocalDatetimeInput(initial) }
+    })
+  }
+
+  function setOverrideValue(id: string, value: string) {
+    setOverrides((prev) => ({ ...prev, [id]: value }))
+  }
 
   function review(id: string, status: "APPROVED" | "REJECTED") {
     setPendingId(id)
@@ -66,6 +97,10 @@ export function ApprovalsList({ items }: Props) {
     const formData = new FormData()
     formData.set("approvalId", id)
     formData.set("status", status)
+    const override = overrides[id]
+    if (status === "APPROVED" && override) {
+      formData.set("overrideEventAt", override)
+    }
     startTransition(async () => {
       const result = await reviewApprovalAction({}, formData)
       if (result.error) {
@@ -244,6 +279,24 @@ export function ApprovalsList({ items }: Props) {
                     ) : null}
                   </div>
                 </div>
+                {(r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT") &&
+                overrides[r.id] !== undefined ? (
+                  <div className="mt-3 space-y-2 rounded-xl border border-border/60 bg-secondary/20 px-3 py-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Adjusted time
+                    </p>
+                    <DateTimeField
+                      value={overrides[r.id] ?? ""}
+                      onChange={(v) => setOverrideValue(r.id, v)}
+                      compact
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Approving will set the record&apos;s{" "}
+                      {r.kind === "CLOCK_IN" ? "clock-in" : "clock-out"} to this
+                      value instead of the submitted timestamp.
+                    </p>
+                  </div>
+                ) : null}
                 <div className="mt-3 flex gap-2">
                   <Button
                     size="sm"
@@ -262,6 +315,17 @@ export function ApprovalsList({ items }: Props) {
                   >
                     Reject
                   </Button>
+                  {r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT" ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs"
+                      disabled={pendingId === r.id}
+                      onClick={() => toggleOverride(r.id, r.eventAt)}
+                    >
+                      {overrides[r.id] !== undefined ? "Cancel adjust" : "Adjust time"}
+                    </Button>
+                  ) : null}
                 </div>
               </CardContent>
             </Card>

@@ -157,6 +157,7 @@ type PrismaAttendance = {
   project: string | null
   status: string
   notes: string | null
+  remark?: string | null
   breaks?: Array<{ startedAt: Date; endedAt: Date | null }>
 }
 
@@ -189,6 +190,7 @@ function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
     project: r.project,
     status: r.status as AttendanceStatus,
     notes: r.notes,
+    remark: r.remark ?? null,
   }
 }
 
@@ -1069,6 +1071,181 @@ export const attendanceRepository = {
     return Array.from(new Set(chain.map((c) => c.employeeId)))
   },
 
+  /**
+   * Throws if `employeeId` is not in the supervisor's approval chain. Admin
+   * paths skip this guard at the service layer.
+   */
+  async assertSupervisorCanEditEmployee(
+    supervisorId: string,
+    employeeId: string,
+  ): Promise<void> {
+    const ids = await this.getTeamMemberIds(supervisorId)
+    if (!ids.includes(employeeId)) {
+      throw new Error("You can only edit attendance for your direct reports.")
+    }
+  },
+
+  /**
+   * Supervisor/admin manual overwrite of an AttendanceRecord's clock-in
+   * and/or clock-out timestamps. Recomputes `lateByMin`, `durationMin`,
+   * and `status` consistently with the live clock-in / clock-out paths,
+   * and writes an `AttendanceEditLog` row in the same transaction.
+   *
+   * Pass timeIn/timeOut as `null` to clear, `undefined` to leave unchanged.
+   */
+  async overrideAttendanceTimes(args: {
+    attendanceRecordId: string
+    editorId: string
+    editorRole: "ADMIN" | "SUPERVISOR"
+    source: "DIRECT_EDIT" | "APPROVE_OVERRIDE"
+    timeIn?: Date | null
+    timeOut?: Date | null
+    reason?: string | null
+  }): Promise<{ id: string; timeIn: Date | null; timeOut: Date | null }> {
+    const prisma = getClient()
+    const existing = await prisma.attendanceRecord.findUnique({
+      where: { id: args.attendanceRecordId },
+      select: {
+        id: true,
+        employeeId: true,
+        date: true,
+        timeIn: true,
+        timeOut: true,
+        status: true,
+        notes: true,
+        projectId: true,
+        employee: { select: { organizationId: true } },
+      },
+    })
+    if (!existing) throw new Error("Attendance record not found.")
+
+    const nextTimeIn =
+      args.timeIn === undefined ? existing.timeIn : args.timeIn
+    const nextTimeOut =
+      args.timeOut === undefined ? existing.timeOut : args.timeOut
+
+    // Recompute late + status when timeIn changed.
+    let lateByMin: number | null = null
+    let nextStatus: AttendanceStatus = existing.status
+    if (nextTimeIn) {
+      const orgId = existing.employee?.organizationId ?? null
+      const [hours, tz] = await Promise.all([
+        this.getWorkingHours(orgId, existing.projectId ?? null),
+        this.getOrgTimezone(orgId),
+      ])
+      const expected = expectedTimeOnLocalDay(nextTimeIn, hours.start, tz)
+      const diff = diffMinutes(expected, nextTimeIn)
+      const lateMin = diff > 0 ? diff : 0
+      lateByMin = lateMin > 0 ? lateMin : null
+      nextStatus = lateMin > 0 ? "LATE" : "ON_TIME"
+    }
+    if (nextTimeOut) {
+      nextStatus = "CLOCKED_OUT"
+    } else if (!nextTimeIn) {
+      nextStatus = "MISSING"
+    }
+
+    // Recompute durationMin when both ends present. Mirrors the clamp +
+    // break-subtract logic in clockOut.
+    let durationMin: number | null = null
+    if (nextTimeIn && nextTimeOut) {
+      const orgId = existing.employee?.organizationId ?? null
+      const [hours, tz] = await Promise.all([
+        this.getWorkingHours(orgId, existing.projectId ?? null),
+        this.getOrgTimezone(orgId),
+      ])
+      const expectedStart = expectedTimeOnLocalDay(nextTimeIn, hours.start, tz)
+      const effectiveIn =
+        nextTimeIn.getTime() < expectedStart.getTime()
+          ? expectedStart
+          : nextTimeIn
+      const breaks = await prisma.breakSession.findMany({
+        where: { attendanceRecordId: existing.id },
+        select: { startedAt: true, endedAt: true },
+      })
+      const breakMin = breaks.reduce((sum, b) => {
+        const end = b.endedAt ?? nextTimeOut
+        return sum + Math.max(0, diffMinutes(b.startedAt, end))
+      }, 0)
+      const raw = diffMinutes(effectiveIn, nextTimeOut)
+      durationMin = raw === null ? null : Math.max(0, raw - breakMin)
+    }
+
+    const [, logRow] = await prisma.$transaction([
+      prisma.attendanceRecord.update({
+        where: { id: existing.id },
+        data: {
+          timeIn: nextTimeIn,
+          timeOut: nextTimeOut,
+          lateByMin,
+          durationMin,
+          status: nextStatus,
+        },
+      }),
+      prisma.attendanceEditLog.create({
+        data: {
+          attendanceRecordId: existing.id,
+          editedById: args.editorId,
+          editorRole: args.editorRole,
+          reason: args.reason?.trim() || null,
+          prevTimeIn: existing.timeIn,
+          nextTimeIn,
+          prevTimeOut: existing.timeOut,
+          nextTimeOut,
+          prevStatus: existing.status,
+          nextStatus,
+          prevNotes: existing.notes,
+          nextNotes: existing.notes,
+          source: args.source,
+        },
+      }),
+    ])
+    void logRow
+    return { id: existing.id, timeIn: nextTimeIn, timeOut: nextTimeOut }
+  },
+
+  /**
+   * Employee-side: update the remark (`notes`) on their own current-day
+   * attendance record. Throws if the record isn't theirs or isn't today.
+   */
+  async updateAttendanceRemark(args: {
+    attendanceRecordId: string
+    employeeId: string
+    remark: string | null
+  }): Promise<void> {
+    const prisma = getClient()
+    const existing = await prisma.attendanceRecord.findUnique({
+      where: { id: args.attendanceRecordId },
+      select: { id: true, employeeId: true, date: true, remark: true },
+    })
+    if (!existing) throw new Error("Attendance record not found.")
+    if (existing.employeeId !== args.employeeId) {
+      throw new Error("You can only edit your own attendance.")
+    }
+    const today = startOfDay(new Date())
+    if (existing.date.getTime() !== today.getTime()) {
+      throw new Error("Remarks can only be edited on today's record.")
+    }
+    const trimmed = args.remark?.trim() ?? null
+    const nextRemark = trimmed && trimmed.length > 0 ? trimmed : null
+    await prisma.$transaction([
+      prisma.attendanceRecord.update({
+        where: { id: existing.id },
+        data: { remark: nextRemark },
+      }),
+      prisma.attendanceEditLog.create({
+        data: {
+          attendanceRecordId: existing.id,
+          editedById: args.employeeId,
+          editorRole: "EMPLOYEE",
+          source: "EMPLOYEE_REMARK",
+          prevRemark: existing.remark,
+          nextRemark,
+        },
+      }),
+    ])
+  },
+
   async getTeamOverview(supervisorId: string): Promise<SupervisorTeamOverview> {
     const prisma = getClient()
     const today = startOfDay(new Date())
@@ -1367,6 +1544,7 @@ export const attendanceRepository = {
     reviewerId: string,
     status: "APPROVED" | "REJECTED",
     notes?: string,
+    overrideEventAt?: Date | null,
   ): Promise<void> {
     const prisma = getClient()
     const now = new Date()
@@ -1453,6 +1631,36 @@ export const attendanceRepository = {
         chainHistory: nextHistory as unknown as object,
       },
     })
+
+    // Approve-with-override: when the supervisor adjusts the event time
+    // while approving a CLOCK_IN/CLOCK_OUT request, patch the underlying
+    // AttendanceRecord so the audit log + duration reflect the corrected
+    // timestamp instead of the originally-submitted `eventAt`.
+    if (
+      finalStatus === "APPROVED" &&
+      overrideEventAt &&
+      (request.kind === "CLOCK_IN" || request.kind === "CLOCK_OUT") &&
+      attendance
+    ) {
+      const fullRecord = await prisma.attendanceRecord.findUnique({
+        where: {
+          employeeId_date: { employeeId: request.employeeId, date: request.date },
+        },
+        select: { id: true },
+      })
+      if (fullRecord) {
+        await this.overrideAttendanceTimes({
+          attendanceRecordId: fullRecord.id,
+          editorId: reviewerId,
+          editorRole: "SUPERVISOR",
+          source: "APPROVE_OVERRIDE",
+          ...(request.kind === "CLOCK_IN"
+            ? { timeIn: overrideEventAt }
+            : { timeOut: overrideEventAt }),
+          reason: notes ?? null,
+        })
+      }
+    }
 
     // When an OT request reaches APPROVED and the employee's payout method
     // is TIME_BANK, credit the OT minutes to their time balance. Snapshot
@@ -2156,6 +2364,8 @@ export const attendanceRepository = {
       title: string
       chainHistory: ChainHistoryEntry[] | null
       selfieAttendanceRecordId: string | null
+      overrideAt: string | null
+      overrideReason: string | null
     }>
   > {
     const prisma = getClient()
@@ -2188,6 +2398,66 @@ export const attendanceRepository = {
         reviewer: { select: { name: true } },
       },
     })
+
+    // Look up supervisor time overrides applied during approval. Each
+    // row keyed by `${employeeId}|${date}|${reviewerId}` so we can pair
+    // it back to the matching approval below.
+    let overrideByKey = new Map<
+      string,
+      { at: Date | null; reason: string | null }
+    >()
+    const clockOverrideRows = rows.filter(
+      (r) =>
+        r.reviewerId &&
+        (r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT") &&
+        r.status === "APPROVED",
+    )
+    if (clockOverrideRows.length > 0) {
+      const logs = await prisma.attendanceEditLog.findMany({
+        where: {
+          source: "APPROVE_OVERRIDE",
+          editedById: {
+            in: Array.from(
+              new Set(
+                clockOverrideRows
+                  .map((r) => r.reviewerId)
+                  .filter((id): id is string => Boolean(id)),
+              ),
+            ),
+          },
+          attendanceRecord: {
+            OR: clockOverrideRows.map((r) => ({
+              employeeId: r.employeeId,
+              date: startOfDay(r.date),
+            })),
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        include: {
+          attendanceRecord: {
+            select: { employeeId: true, date: true },
+          },
+        },
+      })
+      // For each (employeeId,date,reviewerId,kind) keep the most recent
+      // override log row. We pick nextTimeIn for CLOCK_IN approvals and
+      // nextTimeOut for CLOCK_OUT approvals when present.
+      overrideByKey = new Map()
+      for (const log of logs) {
+        const empId = log.attendanceRecord.employeeId
+        const dateKey = log.attendanceRecord.date.toISOString().slice(0, 10)
+        const reviewerId = log.editedById
+        // Two passes — try CLOCK_IN slot first, then CLOCK_OUT slot.
+        for (const kind of ["CLOCK_IN", "CLOCK_OUT"] as const) {
+          const key = `${empId}|${dateKey}|${reviewerId}|${kind}`
+          if (overrideByKey.has(key)) continue
+          const at =
+            kind === "CLOCK_IN" ? log.nextTimeIn : log.nextTimeOut
+          if (!at) continue
+          overrideByKey.set(key, { at, reason: log.reason })
+        }
+      }
+    }
 
     // Look up selfie attachments for the CLOCK_IN rows in one query.
     const clockInRows = rows.filter((r) => r.kind === "CLOCK_IN")
@@ -2223,7 +2493,13 @@ export const attendanceRepository = {
         r.eventAt && reviewedAt
           ? Math.round((reviewedAt.getTime() - r.eventAt.getTime()) / 60000)
           : null
-      const dateKey = `${r.employeeId}|${r.date.toISOString().slice(0, 10)}`
+      const dateOnly = r.date.toISOString().slice(0, 10)
+      const dateKey = `${r.employeeId}|${dateOnly}`
+      const overrideKey =
+        r.reviewerId && (r.kind === "CLOCK_IN" || r.kind === "CLOCK_OUT")
+          ? `${r.employeeId}|${dateOnly}|${r.reviewerId}|${r.kind}`
+          : null
+      const override = overrideKey ? overrideByKey.get(overrideKey) : undefined
       return {
         id: r.id,
         kind: r.kind as ApprovalKind,
@@ -2240,6 +2516,8 @@ export const attendanceRepository = {
         chainHistory: parseChainHistory(r.chainHistory),
         selfieAttendanceRecordId:
           r.kind === "CLOCK_IN" ? selfieByKey.get(dateKey) ?? null : null,
+        overrideAt: override?.at ? override.at.toISOString() : null,
+        overrideReason: override?.reason ?? null,
       }
     })
   },

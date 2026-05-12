@@ -27,6 +27,7 @@ const hierarchySchema = z.object({
   payoutMethod: z.enum(employeePayoutMethods),
   otPayoutMethod: z.enum(otPayoutMethods).default("CASH"),
   hourlyRate: z.number().positive().optional(),
+  policyId: z.string().min(1).optional(),
   email: z.string().email(),
 })
 
@@ -41,6 +42,7 @@ const createMemberSchema = z.object({
   payoutMethod: z.enum(employeePayoutMethods),
   otPayoutMethod: z.enum(otPayoutMethods).default("CASH"),
   hourlyRate: z.number().positive().optional(),
+  policyId: z.string().min(1).optional(),
 })
 
 function parseHourlyRateFromForm(formData: FormData): number | undefined {
@@ -148,6 +150,7 @@ export async function updateHierarchyAction(
     String(formData.get("otPayoutMethod") ?? "").trim(),
   )
 
+  const policyId = String(formData.get("policyId") ?? "").trim() || undefined
   const parsed = hierarchySchema.safeParse({
     userId: String(formData.get("userId") ?? ""),
     role: values.role,
@@ -156,6 +159,7 @@ export async function updateHierarchyAction(
     payoutMethod: values.payoutMethod,
     otPayoutMethod,
     hourlyRate,
+    policyId,
     email: String(formData.get("email") ?? ""),
   })
 
@@ -178,6 +182,7 @@ export async function updateHierarchyAction(
       otPayoutMethod: parsed.data.otPayoutMethod,
       hourlyRate: parsed.data.hourlyRate ?? null,
       xeroConnectionId,
+      policyId: parsed.data.policyId,
       projectAssignments,
     })
   } catch (error) {
@@ -264,12 +269,14 @@ export async function createHierarchyMemberAction(
     String(formData.get("otPayoutMethod") ?? "").trim(),
   )
 
+  const policyId = String(formData.get("policyId") ?? "").trim() || undefined
   const parsed = createMemberSchema.safeParse({
     ...values,
     projectIds,
     payoutMethod: values.payoutMethod,
     otPayoutMethod,
     hourlyRate,
+    policyId,
   })
 
   if (!parsed.success) {
@@ -294,6 +301,7 @@ export async function createHierarchyMemberAction(
       otPayoutMethod: parsed.data.otPayoutMethod,
       hourlyRate: parsed.data.hourlyRate ?? null,
       xeroConnectionId,
+      policyId: parsed.data.policyId,
       projectAssignments,
     })
   } catch (error) {

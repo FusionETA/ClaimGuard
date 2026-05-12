@@ -10,6 +10,7 @@ import type {
 import { cn } from "@/lib/utils"
 
 import { ClockCard } from "./clock-card"
+import { TodayRemarkCard } from "./today-remark-card"
 
 type Props = {
   firstName: string
@@ -89,7 +90,16 @@ export function EmployeeAttendanceDashboardView({
         onBreak={dashboard.today?.onBreak ?? false}
         currentBreakStartedAt={dashboard.today?.currentBreakStartedAt ?? null}
         requiresSelfieOnClockIn={requiresSelfieOnClockIn}
+        todayRecord={dashboard.today}
       />
+
+      {dashboard.today ? (
+        <TodayRemarkCard
+          recordId={dashboard.today.id}
+          initialRemark={dashboard.today.remark}
+          offSiteNotes={dashboard.today.notes}
+        />
+      ) : null}
 
       {dashboard.todayEvents.length > 0 ? (
         <Card>

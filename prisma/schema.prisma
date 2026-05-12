@@ -23,10 +23,12 @@ model User {
   approvals              ApprovalRequest[]    @relation("EmployeeApprovals")
   approvalReviews        ApprovalRequest[]    @relation("ReviewerApprovals")
   attendance             AttendanceRecord[]   @relation("EmployeeAttendance")
+  attendanceEdits        AttendanceEditLog[]  @relation("AttendanceEditLogActor")
   claims                 Claim[]              @relation("EmployeeClaims")
   reviews                Claim[]              @relation("AdminReviews")
   claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
   employeeProfile        EmployeeProfile?     @relation("EmployeeProfileUser")
+  PayrollRun             PayrollRun[]
   projectManagerOf       ProjectManager[]     @relation("ProjectManagerOf")
   pushSubscriptions      PushSubscription[]
   organization           Organization?        @relation(fields: [organizationId], references: [id])
@@ -80,9 +82,51 @@ model Organization {
   apiIntegrations          ApiIntegration[]
   chartAccounts            ChartOfAccount[]
   claims                   Claim[]
+  employeePolicies         EmployeePolicy[]
+  PayrollCompanyInfo       PayrollCompanyInfo?
+  PayrollRun               PayrollRun[]
+  PayrollSettings          PayrollSettings?
   users                    User[]
   xeroConnections          XeroConnection[]
   projects                 XeroProject[]
+}
+
+/// Admin-defined classification for an employee. Replaces the previous
+/// hardcoded "Hourly Worker" / "Office Worker" pair. An organization can
+/// have any number of policies. Each EmployeeProfile is assigned to one
+/// policy via `policyId`. The policy controls:
+///   - which employee modules are visible (Attendance / Claims / Leave)
+///   - salary type (HOURLY vs MONTHLY) — drives hourly-rate validation and
+///     clock-in selfie capture
+///   - OT method (CASH vs TIME_BANK)
+/// Two policies are seeded per org during the migration so existing
+/// behavior is preserved at cutover.
+model EmployeePolicy {
+  id                   String           @id @default(cuid())
+  organizationId       String
+  name                 String
+  description          String?
+  /// Exactly one policy per org should be the default (used when creating
+  /// a new employee through the admin UI / API without specifying one).
+  isDefault            Boolean          @default(false)
+  /// Soft-archive. Archived policies are hidden from new assignments but
+  /// kept around so historical employee snapshots stay readable.
+  archivedAt           DateTime?
+  canAccessAttendance  Boolean          @default(true)
+  canAccessClaims      Boolean          @default(true)
+  canAccessLeave       Boolean          @default(true)
+  salaryType           PayoutMethod     @default(HOURLY)
+  /// When false, employees on this policy cannot file OT at all — the
+  /// OT method below is ignored and OT-related UI is hidden.
+  otEnabled            Boolean          @default(true)
+  otMethod             OtPayoutMethod   @default(CASH)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees            EmployeeProfile[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, isDefault])
 }
 
 /// External-system API tokens. Each row is a tenant's bearer credential
@@ -94,28 +138,28 @@ model Organization {
 /// it. Permissions are gated by `scopes` (a JSON string array such as
 /// ["employees:read","employees:write","claims:read"]).
 model ApiIntegration {
-  id             String        @id @default(cuid())
-  name           String
-  tokenHash      String        @unique
+  id                  String        @id @default(cuid())
+  name                String
+  tokenHash           String        @unique
   /// Short prefix of the raw token, kept in plaintext for UX so the admin
   /// can identify a token in the list ("wp_live_********abcd"). Never the
   /// full token.
-  tokenPrefix    String
-  organizationId String
+  tokenPrefix         String
+  organizationId      String
   /// Stored as a JSON string array. Mirrors the curated scope set in
   /// `lib/api-auth.ts`. Empty array means the token can authenticate but
   /// not access any resource — admin must add scopes to enable it.
-  scopes         Json
-  active         Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  lastUsedAt     DateTime?
+  scopes              Json
+  active              Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  lastUsedAt          DateTime?
   /// When non-null, this integration was auto-issued by a partner via
   /// `POST /api/v1/admin/organizations` (see MasterApiKey). Null when
   /// the admin created the token manually through Settings → API.
   issuedByMasterKeyId String?
-  auditLogs         ApiAuditLog[]
-  organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  issuedByMasterKey MasterApiKey?  @relation(fields: [issuedByMasterKeyId], references: [id], onDelete: SetNull)
+  auditLogs           ApiAuditLog[]
+  issuedByMasterKey   MasterApiKey? @relation(fields: [issuedByMasterKeyId], references: [id])
+  organization        Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([tokenHash])
@@ -158,16 +202,16 @@ model ApiAuditLog {
 ///
 /// Token format: `wp_master_<64 hex chars>`. Stored as SHA-256 hash.
 model MasterApiKey {
-  id           String              @id @default(cuid())
-  partnerName  String              // human-readable, e.g. "Acme HR portal"
-  tokenHash    String              @unique
-  tokenPrefix  String              // "wp_master_xxxx" first 14 chars for visual ID
-  active       Boolean             @default(true)
+  id                 String              @id @default(cuid())
+  partnerName        String
+  tokenHash          String              @unique
+  tokenPrefix        String
+  active             Boolean             @default(true)
   /// Optional internal notes — contract id, contact email, etc. Never
   /// surfaced to the partner.
-  notes        String?             @db.Text
-  createdAt    DateTime            @default(now())
-  lastUsedAt   DateTime?
+  notes              String?             @db.Text
+  createdAt          DateTime            @default(now())
+  lastUsedAt         DateTime?
   issuedIntegrations ApiIntegration[]
   auditLogs          MasterApiAuditLog[]
 
@@ -179,19 +223,19 @@ model MasterApiKey {
 /// to a specific Organization/integration; master-key calls aren't (the
 /// org may not exist yet).
 model MasterApiAuditLog {
-  id           String       @id @default(cuid())
-  masterKeyId  String
-  method       String
-  path         String       @db.VarChar(500)
-  statusCode   Int
-  ip           String?      @db.VarChar(64)
+  id                    String       @id @default(cuid())
+  masterKeyId           String
+  method                String
+  path                  String       @db.VarChar(500)
+  statusCode            Int
+  ip                    String?      @db.VarChar(64)
   /// When the call successfully provisioned a new organization, this is
   /// set to the new org's id so the audit log can link back to the
   /// tenant the master key created.
   createdOrganizationId String?
-  errorMessage String?      @db.Text
-  createdAt    DateTime     @default(now())
-  masterKey    MasterApiKey @relation(fields: [masterKeyId], references: [id], onDelete: Cascade)
+  errorMessage          String?      @db.Text
+  createdAt             DateTime     @default(now())
+  masterKey             MasterApiKey @relation(fields: [masterKeyId], references: [id], onDelete: Cascade)
 
   @@index([masterKeyId, createdAt])
   @@index([createdAt])
@@ -223,30 +267,42 @@ model PushSubscription {
 }
 
 model EmployeeProfile {
-  id                 String                      @id @default(cuid())
-  userId             String                      @unique
-  employeeId         String                      @unique
-  jobTitle           String
-  payoutMethod       PayoutMethod?
-  preferredCurrency  String                      @default("USD")
-  xeroConnectionId   String?
-  createdAt          DateTime                    @default(now())
-  updatedAt          DateTime                    @updatedAt
+  id                   String                      @id @default(cuid())
+  userId               String                      @unique
+  employeeId           String                      @unique
+  jobTitle             String
+  payoutMethod         PayoutMethod?
+  preferredCurrency    String                      @default("USD")
+  xeroConnectionId     String?
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
   /// Pay rate per hour. Only populated for employees whose payoutMethod
   /// is HOURLY; null for MONTHLY_BASED employees and supervisors.
-  hourlyRate         Decimal?                    @db.Decimal(10, 2)
+  hourlyRate           Decimal?                    @db.Decimal(10, 2)
   /// How approved OT is paid out. CASH = paid via payroll at the org's OT
   /// rate; TIME_BANK = banked as time-off minutes (Office Workers only).
   /// Hourly Workers are always CASH.
-  otPayoutMethod     OtPayoutMethod              @default(CASH)
+  otPayoutMethod       OtPayoutMethod              @default(CASH)
   /// Cumulative banked OT minutes for TIME_BANK Office Workers.
-  otTimeBalanceMin   Int                         @default(0)
-  user               User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
-  xeroConnection     XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
-  projectAssignments EmployeeProjectAssignment[]
-  teamMemberships    EmployeeTeamMembership[]
+  otTimeBalanceMin     Int                         @default(0)
+  /// Employee policy assignment. Drives module visibility and is the
+  /// admin-facing source of truth for salary type + OT method. The
+  /// denormalized columns `payoutMethod` and `otPayoutMethod` above are
+  /// kept in sync with the assigned policy on every write so legacy
+  /// attendance/payroll code paths keep working unchanged.
+  policyId             String?
+  policy               EmployeePolicy?             @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  user                 User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  xeroConnection       XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
+  projectAssignments   EmployeeProjectAssignment[]
+  teamMemberships      EmployeeTeamMembership[]
+  PayrollProfile       PayrollProfile?
+  PayrollRunAdjustment PayrollRunAdjustment[]
+  PayrollRunClaim      PayrollRunClaim[]
+  Payslip              Payslip[]
 
   @@index([xeroConnectionId])
+  @@index([policyId])
 }
 
 model EmployeeProjectAssignment {
@@ -325,6 +381,8 @@ model Claim {
   project                   XeroProject?         @relation("ClaimProject", fields: [projectId], references: [id])
   reviewer                  User?                @relation("AdminReviews", fields: [lastReviewerId], references: [id])
   approvalEntries           ClaimApprovalEntry[]
+  PayrollRunClaim           PayrollRunClaim?
+  PayslipLineItem           PayslipLineItem?
 
   @@index([organizationId, submittedAt])
   @@index([chartOfAccountId])
@@ -503,7 +561,16 @@ model AttendanceRecord {
   location         String?
   project          String?
   status           AttendanceStatus @default(MISSING)
+  /// System-captured context for the day — off-site warnings prepended
+  /// during clock-in/out, etc. Not directly editable by the employee
+  /// (those edits go to `remark` instead). Shown to supervisors in the
+  /// team detail view.
   notes            String?          @db.Text
+  /// Employee's free-form remark about their shift. Set via the clock-
+  /// out summary popup or the dashboard remark card. Kept separate from
+  /// `notes` so off-site context never bleeds into the employee's own
+  /// commentary (and vice-versa).
+  remark           String?          @db.Text
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   projectId        String?
@@ -517,12 +584,46 @@ model AttendanceRecord {
   employee         User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
   projectRef       XeroProject?     @relation("AttendanceRecordProject", fields: [projectId], references: [id])
   breaks           BreakSession[]
+  editLogs         AttendanceEditLog[]
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
   @@index([status, date])
   @@index([projectId])
   @@index([selfieUploadedAt])
+}
+
+/// Audit trail of supervisor/admin/employee edits to AttendanceRecord
+/// fields. One row per save action — captures before/after values for
+/// timeIn, timeOut, status, notes, and remark so the change history is
+/// fully reconstructable. `source` tags which UI path produced the edit.
+model AttendanceEditLog {
+  id                 String            @id @default(cuid())
+  attendanceRecordId String
+  editedById         String
+  /// Snapshot of the editor's role at the time of the edit so the trail
+  /// stays meaningful even if the user's role changes later.
+  editorRole         UserRole
+  reason             String?           @db.Text
+  prevTimeIn         DateTime?
+  nextTimeIn         DateTime?
+  prevTimeOut        DateTime?
+  nextTimeOut        DateTime?
+  prevStatus         AttendanceStatus?
+  nextStatus         AttendanceStatus?
+  prevNotes          String?           @db.Text
+  nextNotes          String?           @db.Text
+  prevRemark         String?           @db.Text
+  nextRemark         String?           @db.Text
+  /// "DIRECT_EDIT" | "APPROVE_OVERRIDE" | "EMPLOYEE_REMARK"
+  source             String
+  createdAt          DateTime          @default(now())
+
+  attendanceRecord   AttendanceRecord  @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  editor             User              @relation("AttendanceEditLogActor", fields: [editedById], references: [id])
+
+  @@index([attendanceRecordId, createdAt])
+  @@index([editedById, createdAt])
 }
 
 model BreakSession {
@@ -636,6 +737,275 @@ model EmployeeTeamMembership {
   @@index([teamId, layer])
 }
 
+model PayrollCompanyInfo {
+  id                String                              @id
+  organizationId    String                              @unique
+  employerName      String?
+  employerTin       String?
+  registrationNo    String?
+  referenceType     String?
+  referenceNo       String?
+  employerCategory  String?
+  employerStatus    String?
+  cp8dFurnishType   String?
+  addressLine1      String?
+  addressLine2      String?
+  postcode          String?
+  city              String?
+  state             String?
+  country           String?                             @default("Malaysia")
+  phone             String?
+  handphone         String?
+  email             String?
+  taxAgentName      String?
+  taxAgentTin       String?
+  taxAgentLicenceNo String?
+  taxAgentPhone     String?
+  taxAgentEmail     String?
+  declarantName     String?
+  declarantIdType   PayrollCompanyInfo_declarantIdType?
+  declarantIdNumber String?
+  declarantPosition String?
+  createdAt         DateTime                            @default(now())
+  updatedAt         DateTime
+  Organization      Organization                        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model PayrollProfile {
+  id                       String                        @id
+  employeeProfileId        String                        @unique
+  phone                    String?
+  alternateEmail           String?
+  gender                   PayrollProfile_gender?
+  dateOfBirth              DateTime?
+  nationality              String?
+  race                     String?
+  hasPr                    Boolean                       @default(false)
+  idType                   PayrollProfile_idType?
+  idNumber                 String?
+  maritalStatus            PayrollProfile_maritalStatus?
+  isResident               Boolean                       @default(true)
+  isOku                    Boolean                       @default(false)
+  spouseWorking            Boolean?
+  spouseDisabled           Boolean?
+  spousePcbNumber          String?
+  spouseIdNumber           String?
+  addressLine1             String?
+  addressLine2             String?
+  addressLine3             String?
+  city                     String?
+  postcode                 String?
+  state                    String?
+  emergencyContactName     String?
+  emergencyContactPhone    String?
+  emergencyContactRelation String?
+  childRelief              Json?
+  prevEmploymentYear       Int?
+  prevRemuneration         Decimal?                      @db.Decimal(12, 2)
+  prevEpf                  Decimal?                      @db.Decimal(12, 2)
+  contributeToEpf          Boolean                       @default(true)
+  epfMemberBefore1998      Boolean                       @default(false)
+  epfNumber                String?
+  epfEmployeeRate          Decimal                       @default(11.00) @db.Decimal(5, 2)
+  epfEmployeeVoluntary     Decimal                       @default(0.00) @db.Decimal(5, 2)
+  epfEmployerVoluntary     Decimal                       @default(0.00) @db.Decimal(5, 2)
+  socsoNumber              String?
+  socsoScheme              PayrollProfile_socsoScheme?
+  contributeToEis          Boolean                       @default(true)
+  incomeTaxNumber          String?
+  pcbBorneByEmployer       Boolean                       @default(false)
+  ssfwNumber               String?
+  paymentMethod            PayrollProfile_paymentMethod  @default(BANK_TRANSFER)
+  bankName                 String?
+  bankAccountHolderName    String?
+  bankAccountNumber        String?
+  salaryType               PayrollProfile_salaryType
+  monthlySalary            Decimal?                      @db.Decimal(12, 2)
+  hourlyRate               Decimal?                      @db.Decimal(12, 2)
+  fixedAllowances          Json?
+  joinDate                 DateTime?
+  leaveDate                DateTime?
+  archiveReason            String?
+  reportedToLhdn           Boolean                       @default(false)
+  department               String?
+  location                 String?
+  workSchedule             String?
+  payrollPolicy            String?
+  payrollCycle             String?
+  leaveEntitlement         Json?
+  isArchived               Boolean                       @default(false)
+  archivedAt               DateTime?
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime
+  EmployeeProfile          EmployeeProfile               @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  Payslip                  Payslip[]
+}
+
+model PayrollRun {
+  id                      String                 @id
+  organizationId          String
+  periodYear              Int
+  periodMonth             Int
+  status                  PayrollRun_status      @default(DRAFT)
+  totalGross              Decimal?               @db.Decimal(14, 2)
+  totalNet                Decimal?               @db.Decimal(14, 2)
+  totalEmployeeEpf        Decimal?               @db.Decimal(14, 2)
+  totalEmployerEpf        Decimal?               @db.Decimal(14, 2)
+  totalEmployeeSocso      Decimal?               @db.Decimal(14, 2)
+  totalEmployerSocso      Decimal?               @db.Decimal(14, 2)
+  totalEmployeeEis        Decimal?               @db.Decimal(14, 2)
+  totalEmployerEis        Decimal?               @db.Decimal(14, 2)
+  totalPcb                Decimal?               @default(0.00) @db.Decimal(14, 2)
+  totalHrdf               Decimal?               @default(0.00) @db.Decimal(14, 2)
+  totalZakat              Decimal?               @default(0.00) @db.Decimal(14, 2)
+  employeeCount           Int?
+  employeesSubjectToHrdf  Int?                   @default(0)
+  totalWagesSubjectToHrdf Decimal?               @default(0.00) @db.Decimal(14, 2)
+  totalCostToEmployer     Decimal?               @db.Decimal(14, 2)
+  submittedAt             DateTime?
+  submittedById           String?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime
+  Organization            Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  User                    User?                  @relation(fields: [submittedById], references: [id])
+  PayrollRunAdjustment    PayrollRunAdjustment[]
+  PayrollRunClaim         PayrollRunClaim[]
+  Payslip                 Payslip[]
+
+  @@unique([organizationId, periodYear, periodMonth])
+  @@index([organizationId, status])
+  @@index([submittedById], map: "PayrollRun_submittedById_fkey")
+}
+
+model PayrollRunAdjustment {
+  id                   String          @id
+  payrollRunId         String
+  employeeProfileId    String
+  otNormalHours        Decimal         @default(0.00) @db.Decimal(8, 2)
+  otRestHours          Decimal         @default(0.00) @db.Decimal(8, 2)
+  otPublicHours        Decimal         @default(0.00) @db.Decimal(8, 2)
+  manualLineItems      Json
+  unpaidLeaveDeduction Decimal         @default(0.00) @db.Decimal(12, 2)
+  notes                String?         @db.Text
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime
+  EmployeeProfile      EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  PayrollRun           PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+
+  @@unique([payrollRunId, employeeProfileId])
+  @@index([employeeProfileId], map: "PayrollRunAdjustment_employeeProfileId_fkey")
+  @@index([payrollRunId])
+}
+
+model PayrollRunClaim {
+  id                String          @id
+  payrollRunId      String
+  claimId           String          @unique
+  employeeProfileId String
+  label             String
+  amount            Decimal         @db.Decimal(12, 2)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime
+  Claim             Claim           @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  EmployeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  PayrollRun        PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+
+  @@index([employeeProfileId])
+  @@index([payrollRunId])
+}
+
+model PayrollSettings {
+  id                            String                          @id
+  organizationId                String                          @unique
+  otRateNormal                  Decimal                         @default(1.50) @db.Decimal(5, 2)
+  otRateRest                    Decimal                         @default(2.00) @db.Decimal(5, 2)
+  otRatePublicHoliday           Decimal                         @default(3.00) @db.Decimal(5, 2)
+  workingDaysRule               PayrollSettings_workingDaysRule @default(TWENTY_SIX)
+  defaultEpfEmployeeRate        Decimal                         @default(11.00) @db.Decimal(5, 2)
+  defaultEpfEmployerRate        Decimal                         @default(13.00) @db.Decimal(5, 2)
+  hrdfEnabled                   Boolean                         @default(false)
+  hrdfRate                      Decimal?                        @db.Decimal(5, 2)
+  employerIdNumber              String?
+  myCoOrSsmNumber               String?
+  leaveCarryForwardAllowed      Boolean                         @default(false)
+  leaveCarryForwardLimitDays    Int?
+  leaveCarryForwardExpiryMonths Int?
+  createdAt                     DateTime                        @default(now())
+  updatedAt                     DateTime
+  Organization                  Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Payslip {
+  id                    String                     @id
+  payrollRunId          String
+  employeeProfileId     String
+  payrollProfileId      String?
+  snapshotName          String
+  snapshotEmployeeId    String
+  snapshotPosition      String?
+  snapshotSalaryType    Payslip_snapshotSalaryType
+  snapshotMonthlySalary Decimal?                   @db.Decimal(12, 2)
+  snapshotHourlyRate    Decimal?                   @db.Decimal(12, 2)
+  snapshotNationality   String?
+  snapshotIsResident    Boolean                    @default(true)
+  snapshotEpfRates      Json
+  basicPay              Decimal                    @db.Decimal(12, 2)
+  proratedPay           Decimal                    @db.Decimal(12, 2)
+  workedHours           Decimal?                   @db.Decimal(8, 2)
+  proratedFactor        Decimal                    @default(1.0000) @db.Decimal(5, 4)
+  proratedDays          Int?
+  totalWorkingDays      Int?
+  otNormalHours         Decimal                    @default(0.00) @db.Decimal(8, 2)
+  otRestHours           Decimal                    @default(0.00) @db.Decimal(8, 2)
+  otPublicHours         Decimal                    @default(0.00) @db.Decimal(8, 2)
+  otPay                 Decimal                    @default(0.00) @db.Decimal(12, 2)
+  totalAllowances       Decimal                    @default(0.00) @db.Decimal(12, 2)
+  totalReimbursements   Decimal                    @default(0.00) @db.Decimal(12, 2)
+  totalDeductions       Decimal                    @default(0.00) @db.Decimal(12, 2)
+  unpaidLeaveDeduction  Decimal                    @default(0.00) @db.Decimal(12, 2)
+  epfEmployee           Decimal                    @default(0.00) @db.Decimal(12, 2)
+  epfEmployer           Decimal                    @default(0.00) @db.Decimal(12, 2)
+  socsoEmployee         Decimal                    @default(0.00) @db.Decimal(12, 2)
+  socsoEmployer         Decimal                    @default(0.00) @db.Decimal(12, 2)
+  eisEmployee           Decimal                    @default(0.00) @db.Decimal(12, 2)
+  eisEmployer           Decimal                    @default(0.00) @db.Decimal(12, 2)
+  pcb                   Decimal                    @default(0.00) @db.Decimal(12, 2)
+  hrdf                  Decimal                    @default(0.00) @db.Decimal(12, 2)
+  zakat                 Decimal                    @default(0.00) @db.Decimal(12, 2)
+  hrdfWage              Decimal                    @default(0.00) @db.Decimal(12, 2)
+  grossPay              Decimal                    @db.Decimal(12, 2)
+  netPay                Decimal                    @db.Decimal(12, 2)
+  totalCostToEmployer   Decimal                    @db.Decimal(12, 2)
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime
+  EmployeeProfile       EmployeeProfile            @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  PayrollProfile        PayrollProfile?            @relation(fields: [payrollProfileId], references: [id])
+  PayrollRun            PayrollRun                 @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  PayslipLineItem       PayslipLineItem[]
+
+  @@unique([payrollRunId, employeeProfileId])
+  @@index([employeeProfileId])
+  @@index([payrollProfileId], map: "Payslip_payrollProfileId_fkey")
+}
+
+model PayslipLineItem {
+  id             String               @id
+  payslipId      String
+  kind           PayslipLineItem_kind
+  label          String
+  amount         Decimal              @db.Decimal(12, 2)
+  claimId        String?              @unique
+  subjectToEpf   Boolean              @default(true)
+  subjectToSocso Boolean              @default(true)
+  subjectToEis   Boolean              @default(true)
+  subjectToPcb   Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  Claim          Claim?               @relation(fields: [claimId], references: [id])
+  Payslip        Payslip              @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+
+  @@index([payslipId])
+}
+
 enum ClaimApprovalDecision {
   APPROVED
   REJECTED
@@ -743,4 +1113,67 @@ enum PayoutMethod {
 enum OtPayoutMethod {
   CASH
   TIME_BANK
+}
+
+enum PayslipLineItem_kind {
+  ALLOWANCE
+  DEDUCTION
+  REIMBURSEMENT
+}
+
+enum PayrollProfile_gender {
+  MALE
+  FEMALE
+}
+
+enum PayrollRun_status {
+  DRAFT
+  SUBMITTED
+}
+
+enum PayrollSettings_workingDaysRule {
+  CALENDAR
+  TWENTY_SIX
+}
+
+enum Payslip_snapshotSalaryType {
+  MONTHLY
+  HOURLY
+}
+
+enum PayrollProfile_idType {
+  NRIC
+  PASSPORT
+  ARMY_NO
+  POLICE_NO
+}
+
+enum PayrollProfile_maritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+}
+
+enum PayrollCompanyInfo_declarantIdType {
+  NRIC
+  PASSPORT
+  ARMY_NO
+  POLICE_NO
+}
+
+enum PayrollProfile_socsoScheme {
+  EMPLOYMENT_INJURY_INVALIDITY
+  EMPLOYMENT_INJURY_ONLY
+}
+
+enum PayrollProfile_paymentMethod {
+  BANK_TRANSFER
+  CASH
+  CHEQUE
+}
+
+enum PayrollProfile_salaryType {
+  MONTHLY
+  HOURLY
 }

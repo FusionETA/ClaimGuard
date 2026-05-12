@@ -671,6 +671,7 @@ export const organizationRepository = {
               orderBy: { createdAt: "asc" },
             },
             xeroConnection: { select: { id: true, tenantName: true } },
+            policy: { select: { id: true, name: true } },
             teamMemberships: {
               include: {
                 team: {
@@ -764,6 +765,8 @@ export const organizationRepository = {
             : undefined,
         xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
         xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
+        policyId: user.employeeProfile?.policy?.id ?? undefined,
+        policyName: user.employeeProfile?.policy?.name ?? undefined,
         teams,
       }
     })
@@ -784,6 +787,10 @@ export const organizationRepository = {
     /// or payoutMethod flips to MONTHLY_BASED, the rate is cleared.
     hourlyRate?: number | null
     xeroConnectionId?: string
+    /// Employee policy assignment. When provided, the policy's salaryType
+    /// and otMethod override `payoutMethod` / `otPayoutMethod` above and
+    /// the assigned policy is persisted to EmployeeProfile.policyId.
+    policyId?: string | null
     /// One entry per project the employee should belong to. When provided
     /// (even as []), the employee's team memberships and chain rows are
     /// rewritten from scratch to match. When undefined, those tables are
@@ -946,6 +953,39 @@ export const organizationRepository = {
     })
     if (!profile) throw new Error("Employee profile not found.")
 
+    // Resolve effective payout/OT from policy if one is assigned. The
+    // EmployeeProfile.payoutMethod and .otPayoutMethod columns are kept
+    // in sync with the policy so legacy attendance/payroll branches that
+    // still read those columns keep working unchanged.
+    let effectivePayoutMethod: EmployeePayoutMethod = resolveEmployeePayoutMethod(
+      data.role,
+      data.payoutMethod,
+    )
+    let effectiveOtPayoutMethod: OtPayoutMethod =
+      effectivePayoutMethod === "MONTHLY_BASED"
+        ? data.otPayoutMethod ?? "CASH"
+        : "CASH"
+    if (data.policyId) {
+      const policy = await prisma.employeePolicy.findFirst({
+        where: { id: data.policyId, organizationId: data.organizationId },
+        select: { salaryType: true, otMethod: true, archivedAt: true },
+      })
+      if (!policy) throw new Error("Selected employee policy not found.")
+      if (policy.archivedAt) {
+        throw new Error("Selected employee policy is archived.")
+      }
+      // Supervisors are always monthly-based; if an Hourly policy is
+      // chosen for a supervisor, coerce to MONTHLY_BASED for the column
+      // while still recording the chosen policyId (the admin should pick
+      // a monthly policy for supervisors).
+      effectivePayoutMethod = resolveEmployeePayoutMethod(
+        data.role,
+        policy.salaryType,
+      )
+      effectiveOtPayoutMethod =
+        effectivePayoutMethod === "MONTHLY_BASED" ? policy.otMethod : "CASH"
+    }
+
     await prisma.$transaction(async (tx) => {
       await tx.user.update({
         where: { id: data.userId },
@@ -955,17 +995,15 @@ export const organizationRepository = {
         where: { userId: data.userId },
         data: {
           jobTitle: data.jobTitle,
-          payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
-          otPayoutMethod:
-            resolveEmployeePayoutMethod(data.role, data.payoutMethod) === "MONTHLY_BASED"
-              ? data.otPayoutMethod ?? "CASH"
-              : "CASH",
+          payoutMethod: effectivePayoutMethod,
+          otPayoutMethod: effectiveOtPayoutMethod,
           hourlyRate: resolveHourlyRateForWrite(
             data.role,
-            data.payoutMethod,
+            effectivePayoutMethod,
             data.hourlyRate,
           ),
           xeroConnectionId: data.xeroConnectionId || null,
+          ...(data.policyId !== undefined ? { policyId: data.policyId } : {}),
         },
       })
       await tx.employeeProjectAssignment.deleteMany({
@@ -1041,6 +1079,9 @@ export const organizationRepository = {
     /// an hourly rate.
     hourlyRate?: number | null
     xeroConnectionId?: string
+    /// Employee policy assignment. When provided, the policy's salaryType
+    /// and otMethod override `payoutMethod` / `otPayoutMethod` above.
+    policyId?: string | null
     /// One entry per project the employee belongs to. Each entry pins the
     /// employee to a team in that project at a specific layer, plus an
     /// explicit per-layer chain (one approver per layer above the
@@ -1203,6 +1244,33 @@ export const organizationRepository = {
       }
     }
 
+    // Resolve effective payout/OT from policy if one is assigned. See
+    // updateOrganizationMember for the same logic.
+    let effectivePayoutMethod: EmployeePayoutMethod = resolveEmployeePayoutMethod(
+      data.role,
+      data.payoutMethod,
+    )
+    let effectiveOtPayoutMethod: OtPayoutMethod =
+      effectivePayoutMethod === "MONTHLY_BASED"
+        ? data.otPayoutMethod ?? "CASH"
+        : "CASH"
+    if (data.policyId) {
+      const policy = await prisma.employeePolicy.findFirst({
+        where: { id: data.policyId, organizationId: data.organizationId },
+        select: { salaryType: true, otMethod: true, archivedAt: true },
+      })
+      if (!policy) throw new Error("Selected employee policy not found.")
+      if (policy.archivedAt) {
+        throw new Error("Selected employee policy is archived.")
+      }
+      effectivePayoutMethod = resolveEmployeePayoutMethod(
+        data.role,
+        policy.salaryType,
+      )
+      effectiveOtPayoutMethod =
+        effectivePayoutMethod === "MONTHLY_BASED" ? policy.otMethod : "CASH"
+    }
+
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -1214,14 +1282,16 @@ export const organizationRepository = {
           create: {
             employeeId: data.employeeId,
             jobTitle: data.jobTitle,
-            payoutMethod: resolveEmployeePayoutMethod(data.role, data.payoutMethod),
-            otPayoutMethod:
-              resolveEmployeePayoutMethod(data.role, data.payoutMethod) === "MONTHLY_BASED"
-                ? data.otPayoutMethod ?? "CASH"
-                : "CASH",
-            hourlyRate: resolveHourlyRateForWrite(data.role, data.payoutMethod, data.hourlyRate),
+            payoutMethod: effectivePayoutMethod,
+            otPayoutMethod: effectiveOtPayoutMethod,
+            hourlyRate: resolveHourlyRateForWrite(
+              data.role,
+              effectivePayoutMethod,
+              data.hourlyRate,
+            ),
             preferredCurrency: "USD",
             xeroConnectionId: data.xeroConnectionId || null,
+            ...(data.policyId ? { policyId: data.policyId } : {}),
             projectAssignments: {
               create: data.projectIds.map((projectId) => ({
                 project: { connect: { id: projectId } },

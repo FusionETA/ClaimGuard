@@ -3,6 +3,7 @@ import { requirePortalSession } from "@/lib/auth/session"
 import { getPrismaClient } from "@/lib/prisma"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { formatHm } from "@/modules/attendance/domain/hours-summary"
+import { requireModuleAccess } from "@/modules/policy/application/guards"
 
 import { EmployeeAttendanceDashboardView } from "./dashboard-view"
 import { loadMyHoursSummaryAction } from "./hours-summary-actions"
@@ -40,6 +41,7 @@ function todayIso(): string {
 
 export default async function EmployeeAttendancePage() {
   const session = await requirePortalSession("EMPLOYEE")
+  await requireModuleAccess("attendance")
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
   const [dashboard, workingHours, projects, hoursSummary, profileExtras] = await Promise.all([

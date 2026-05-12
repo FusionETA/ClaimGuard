@@ -33,7 +33,10 @@ export type AttendanceRecordView = {
   location: string | null
   project: string | null
   status: AttendanceStatus
+  /** System-captured context — off-site warnings, clock-in/out tags. Read-only for employees. */
   notes: string | null
+  /** Employee's free-form remark about their shift (separate from notes). */
+  remark: string | null
 }
 
 export type ChainHistoryEntry = {

@@ -20,6 +20,7 @@ export default async function AdminHierarchyPage() {
       xeroConnections={data.xeroConnections}
       organizationName={data.organizationName}
       teams={data.teams}
+      policies={data.policies}
     />
   )
 }

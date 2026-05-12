@@ -152,6 +152,31 @@ export const adminAttendanceService = {
     return attendanceRepository.getDailyActivity(orgId, projectId, teamId, q)
   },
 
+  async overrideAttendanceTimes(
+    adminId: string,
+    args: {
+      attendanceRecordId: string
+      employeeOrgId: string | null
+      adminOrgId: string | null
+      timeIn?: Date | null
+      timeOut?: Date | null
+      reason?: string | null
+    },
+  ): Promise<void> {
+    if (!args.adminOrgId || args.adminOrgId !== args.employeeOrgId) {
+      throw new Error("You can only edit attendance for employees in your organisation.")
+    }
+    await attendanceRepository.overrideAttendanceTimes({
+      attendanceRecordId: args.attendanceRecordId,
+      editorId: adminId,
+      editorRole: "ADMIN",
+      source: "DIRECT_EDIT",
+      timeIn: args.timeIn,
+      timeOut: args.timeOut,
+      reason: args.reason,
+    })
+  },
+
   async getSupervisorPerformance(args: {
     orgId: string | null
     from: Date
