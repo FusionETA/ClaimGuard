@@ -6,7 +6,6 @@ import { Loader2, Pencil, Plus, Star, Archive } from "lucide-react"
 import {
   archivePolicyAction,
   createPolicyAction,
-  initialPolicyActionState,
   setDefaultPolicyAction,
   updatePolicyAction,
   type PolicyActionState,
@@ -48,6 +47,11 @@ const OT_OPTIONS: ReadonlyArray<{ value: OtMode; label: string }> = [
   { value: "CASH", label: otPayoutMethodLabels.CASH },
   { value: "TIME_BANK", label: otPayoutMethodLabels.TIME_BANK },
 ]
+
+const initialPolicyActionState: PolicyActionState = {
+  status: "idle",
+  message: "",
+}
 
 function policyToOtMode(policy: {
   otEnabled: boolean

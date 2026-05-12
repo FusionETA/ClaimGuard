@@ -33,8 +33,6 @@ export type PolicyActionState = {
   message: string
 }
 
-const INITIAL: PolicyActionState = { status: "idle", message: "" }
-
 async function requireOrgId(): Promise<string | { error: PolicyActionState }> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") {
@@ -198,5 +196,3 @@ export async function archivePolicyAction(
   revalidatePath("/admin/settings")
   return { status: "success", message: "Policy archived." }
 }
-
-export const initialPolicyActionState = INITIAL

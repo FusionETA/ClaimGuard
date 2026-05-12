@@ -14,7 +14,17 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model PayrollRunClaim
- * 
+ * Join row attaching an approved (SYNCED + PERSONAL paymentType)
+ * Workpulse claim to a payroll run as a REIMBURSEMENT. Persisted
+ * separately from `PayslipLineItem` because the run's payslips are
+ * re-generated from scratch on each "Generate" press, so the line
+ * items get wiped — this row is the source of truth that survives.
+ *
+ * The actual `PayslipLineItem` is recreated from this attachment on
+ * each generation, with `claimId` pointing back here for traceability.
+ *
+ * Snapshots `label` + `amount` at attach time so later edits to the
+ * underlying claim don't change historical payroll figures.
  */
 export type PayrollRunClaimModel = runtime.Types.Result.DefaultSelection<Prisma.$PayrollRunClaimPayload>
 
@@ -240,9 +250,9 @@ export type PayrollRunClaimWhereInput = {
   amount?: Prisma.DecimalFilter<"PayrollRunClaim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"PayrollRunClaim"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollRunClaim"> | Date | string
-  Claim?: Prisma.XOR<Prisma.ClaimScalarRelationFilter, Prisma.ClaimWhereInput>
-  EmployeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
-  PayrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
+  payrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
+  claim?: Prisma.XOR<Prisma.ClaimScalarRelationFilter, Prisma.ClaimWhereInput>
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
 }
 
 export type PayrollRunClaimOrderByWithRelationInput = {
@@ -254,9 +264,9 @@ export type PayrollRunClaimOrderByWithRelationInput = {
   amount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  Claim?: Prisma.ClaimOrderByWithRelationInput
-  EmployeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
-  PayrollRun?: Prisma.PayrollRunOrderByWithRelationInput
+  payrollRun?: Prisma.PayrollRunOrderByWithRelationInput
+  claim?: Prisma.ClaimOrderByWithRelationInput
+  employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
   _relevance?: Prisma.PayrollRunClaimOrderByRelevanceInput
 }
 
@@ -272,9 +282,9 @@ export type PayrollRunClaimWhereUniqueInput = Prisma.AtLeast<{
   amount?: Prisma.DecimalFilter<"PayrollRunClaim"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"PayrollRunClaim"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollRunClaim"> | Date | string
-  Claim?: Prisma.XOR<Prisma.ClaimScalarRelationFilter, Prisma.ClaimWhereInput>
-  EmployeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
-  PayrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
+  payrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
+  claim?: Prisma.XOR<Prisma.ClaimScalarRelationFilter, Prisma.ClaimWhereInput>
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
 }, "id" | "claimId">
 
 export type PayrollRunClaimOrderByWithAggregationInput = {
@@ -308,25 +318,25 @@ export type PayrollRunClaimScalarWhereWithAggregatesInput = {
 }
 
 export type PayrollRunClaimCreateInput = {
-  id: string
+  id?: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  Claim: Prisma.ClaimCreateNestedOneWithoutPayrollRunClaimInput
-  EmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollRunClaimInput
-  PayrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayrollRunClaimInput
+  updatedAt?: Date | string
+  payrollRun: Prisma.PayrollRunCreateNestedOneWithoutClaimAttachmentsInput
+  claim: Prisma.ClaimCreateNestedOneWithoutPayrollRunAttachmentInput
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollRunClaimsInput
 }
 
 export type PayrollRunClaimUncheckedCreateInput = {
-  id: string
+  id?: string
   payrollRunId: string
   claimId: string
   employeeProfileId: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollRunClaimUpdateInput = {
@@ -335,9 +345,9 @@ export type PayrollRunClaimUpdateInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Claim?: Prisma.ClaimUpdateOneRequiredWithoutPayrollRunClaimNestedInput
-  EmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollRunClaimNestedInput
-  PayrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayrollRunClaimNestedInput
+  payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutClaimAttachmentsNestedInput
+  claim?: Prisma.ClaimUpdateOneRequiredWithoutPayrollRunAttachmentNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollRunClaimsNestedInput
 }
 
 export type PayrollRunClaimUncheckedUpdateInput = {
@@ -352,14 +362,14 @@ export type PayrollRunClaimUncheckedUpdateInput = {
 }
 
 export type PayrollRunClaimCreateManyInput = {
-  id: string
+  id?: string
   payrollRunId: string
   claimId: string
   employeeProfileId: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollRunClaimUpdateManyMutationInput = {
@@ -560,23 +570,23 @@ export type PayrollRunClaimUncheckedUpdateManyWithoutPayrollRunNestedInput = {
 }
 
 export type PayrollRunClaimCreateWithoutEmployeeProfileInput = {
-  id: string
+  id?: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  Claim: Prisma.ClaimCreateNestedOneWithoutPayrollRunClaimInput
-  PayrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayrollRunClaimInput
+  updatedAt?: Date | string
+  payrollRun: Prisma.PayrollRunCreateNestedOneWithoutClaimAttachmentsInput
+  claim: Prisma.ClaimCreateNestedOneWithoutPayrollRunAttachmentInput
 }
 
 export type PayrollRunClaimUncheckedCreateWithoutEmployeeProfileInput = {
-  id: string
+  id?: string
   payrollRunId: string
   claimId: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollRunClaimCreateOrConnectWithoutEmployeeProfileInput = {
@@ -620,23 +630,23 @@ export type PayrollRunClaimScalarWhereInput = {
 }
 
 export type PayrollRunClaimCreateWithoutClaimInput = {
-  id: string
+  id?: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  EmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollRunClaimInput
-  PayrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayrollRunClaimInput
+  updatedAt?: Date | string
+  payrollRun: Prisma.PayrollRunCreateNestedOneWithoutClaimAttachmentsInput
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollRunClaimsInput
 }
 
 export type PayrollRunClaimUncheckedCreateWithoutClaimInput = {
-  id: string
+  id?: string
   payrollRunId: string
   employeeProfileId: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollRunClaimCreateOrConnectWithoutClaimInput = {
@@ -661,8 +671,8 @@ export type PayrollRunClaimUpdateWithoutClaimInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  EmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollRunClaimNestedInput
-  PayrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayrollRunClaimNestedInput
+  payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutClaimAttachmentsNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollRunClaimsNestedInput
 }
 
 export type PayrollRunClaimUncheckedUpdateWithoutClaimInput = {
@@ -676,23 +686,23 @@ export type PayrollRunClaimUncheckedUpdateWithoutClaimInput = {
 }
 
 export type PayrollRunClaimCreateWithoutPayrollRunInput = {
-  id: string
+  id?: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  Claim: Prisma.ClaimCreateNestedOneWithoutPayrollRunClaimInput
-  EmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollRunClaimInput
+  updatedAt?: Date | string
+  claim: Prisma.ClaimCreateNestedOneWithoutPayrollRunAttachmentInput
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollRunClaimsInput
 }
 
 export type PayrollRunClaimUncheckedCreateWithoutPayrollRunInput = {
-  id: string
+  id?: string
   claimId: string
   employeeProfileId: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollRunClaimCreateOrConnectWithoutPayrollRunInput = {
@@ -722,13 +732,13 @@ export type PayrollRunClaimUpdateManyWithWhereWithoutPayrollRunInput = {
 }
 
 export type PayrollRunClaimCreateManyEmployeeProfileInput = {
-  id: string
+  id?: string
   payrollRunId: string
   claimId: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollRunClaimUpdateWithoutEmployeeProfileInput = {
@@ -737,8 +747,8 @@ export type PayrollRunClaimUpdateWithoutEmployeeProfileInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Claim?: Prisma.ClaimUpdateOneRequiredWithoutPayrollRunClaimNestedInput
-  PayrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayrollRunClaimNestedInput
+  payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutClaimAttachmentsNestedInput
+  claim?: Prisma.ClaimUpdateOneRequiredWithoutPayrollRunAttachmentNestedInput
 }
 
 export type PayrollRunClaimUncheckedUpdateWithoutEmployeeProfileInput = {
@@ -762,13 +772,13 @@ export type PayrollRunClaimUncheckedUpdateManyWithoutEmployeeProfileInput = {
 }
 
 export type PayrollRunClaimCreateManyPayrollRunInput = {
-  id: string
+  id?: string
   claimId: string
   employeeProfileId: string
   label: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollRunClaimUpdateWithoutPayrollRunInput = {
@@ -777,8 +787,8 @@ export type PayrollRunClaimUpdateWithoutPayrollRunInput = {
   amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Claim?: Prisma.ClaimUpdateOneRequiredWithoutPayrollRunClaimNestedInput
-  EmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollRunClaimNestedInput
+  claim?: Prisma.ClaimUpdateOneRequiredWithoutPayrollRunAttachmentNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollRunClaimsNestedInput
 }
 
 export type PayrollRunClaimUncheckedUpdateWithoutPayrollRunInput = {
@@ -812,9 +822,9 @@ export type PayrollRunClaimSelect<ExtArgs extends runtime.Types.Extensions.Inter
   amount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  Claim?: boolean | Prisma.ClaimDefaultArgs<ExtArgs>
-  EmployeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
-  PayrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
+  payrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
+  claim?: boolean | Prisma.ClaimDefaultArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payrollRunClaim"]>
 
 
@@ -832,21 +842,25 @@ export type PayrollRunClaimSelectScalar = {
 
 export type PayrollRunClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payrollRunId" | "claimId" | "employeeProfileId" | "label" | "amount" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollRunClaim"]>
 export type PayrollRunClaimInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  Claim?: boolean | Prisma.ClaimDefaultArgs<ExtArgs>
-  EmployeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
-  PayrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
+  payrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
+  claim?: boolean | Prisma.ClaimDefaultArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
 }
 
 export type $PayrollRunClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PayrollRunClaim"
   objects: {
-    Claim: Prisma.$ClaimPayload<ExtArgs>
-    EmployeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs>
-    PayrollRun: Prisma.$PayrollRunPayload<ExtArgs>
+    payrollRun: Prisma.$PayrollRunPayload<ExtArgs>
+    claim: Prisma.$ClaimPayload<ExtArgs>
+    employeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     payrollRunId: string
+    /**
+     * One claim → at most one attachment ever. Detaching deletes the
+     * row; re-attaching to another run creates a new one.
+     */
     claimId: string
     employeeProfileId: string
     label: string
@@ -1193,9 +1207,9 @@ readonly fields: PayrollRunClaimFieldRefs;
  */
 export interface Prisma__PayrollRunClaimClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  Claim<T extends Prisma.ClaimDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClaimDefaultArgs<ExtArgs>>): Prisma.Prisma__ClaimClient<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  EmployeeProfile<T extends Prisma.EmployeeProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  PayrollRun<T extends Prisma.PayrollRunDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PayrollRunDefaultArgs<ExtArgs>>): Prisma.Prisma__PayrollRunClient<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  payrollRun<T extends Prisma.PayrollRunDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PayrollRunDefaultArgs<ExtArgs>>): Prisma.Prisma__PayrollRunClient<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  claim<T extends Prisma.ClaimDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClaimDefaultArgs<ExtArgs>>): Prisma.Prisma__ClaimClient<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  employeeProfile<T extends Prisma.EmployeeProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

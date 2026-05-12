@@ -14,7 +14,8 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model PayrollSettings
- * 
+ * Per-org payroll rules. Frequently edited by admin (OT multipliers,
+ * EPF defaults). Matches Altomate's `p_settings` table.
  */
 export type PayrollSettingsModel = runtime.Types.Result.DefaultSelection<Prisma.$PayrollSettingsPayload>
 
@@ -54,7 +55,7 @@ export type PayrollSettingsMinAggregateOutputType = {
   otRateNormal: runtime.Decimal | null
   otRateRest: runtime.Decimal | null
   otRatePublicHoliday: runtime.Decimal | null
-  workingDaysRule: $Enums.PayrollSettings_workingDaysRule | null
+  workingDaysRule: $Enums.WorkingDaysRule | null
   defaultEpfEmployeeRate: runtime.Decimal | null
   defaultEpfEmployerRate: runtime.Decimal | null
   hrdfEnabled: boolean | null
@@ -74,7 +75,7 @@ export type PayrollSettingsMaxAggregateOutputType = {
   otRateNormal: runtime.Decimal | null
   otRateRest: runtime.Decimal | null
   otRatePublicHoliday: runtime.Decimal | null
-  workingDaysRule: $Enums.PayrollSettings_workingDaysRule | null
+  workingDaysRule: $Enums.WorkingDaysRule | null
   defaultEpfEmployeeRate: runtime.Decimal | null
   defaultEpfEmployerRate: runtime.Decimal | null
   hrdfEnabled: boolean | null
@@ -285,7 +286,7 @@ export type PayrollSettingsGroupByOutputType = {
   otRateNormal: runtime.Decimal
   otRateRest: runtime.Decimal
   otRatePublicHoliday: runtime.Decimal
-  workingDaysRule: $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule: $Enums.WorkingDaysRule
   defaultEpfEmployeeRate: runtime.Decimal
   defaultEpfEmployerRate: runtime.Decimal
   hrdfEnabled: boolean
@@ -328,7 +329,7 @@ export type PayrollSettingsWhereInput = {
   otRateNormal?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: Prisma.EnumPayrollSettings_workingDaysRuleFilter<"PayrollSettings"> | $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: Prisma.EnumWorkingDaysRuleFilter<"PayrollSettings"> | $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: Prisma.BoolFilter<"PayrollSettings"> | boolean
@@ -340,7 +341,7 @@ export type PayrollSettingsWhereInput = {
   leaveCarryForwardExpiryMonths?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
-  Organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
 export type PayrollSettingsOrderByWithRelationInput = {
@@ -361,7 +362,7 @@ export type PayrollSettingsOrderByWithRelationInput = {
   leaveCarryForwardExpiryMonths?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  Organization?: Prisma.OrganizationOrderByWithRelationInput
+  organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.PayrollSettingsOrderByRelevanceInput
 }
 
@@ -374,7 +375,7 @@ export type PayrollSettingsWhereUniqueInput = Prisma.AtLeast<{
   otRateNormal?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: Prisma.EnumPayrollSettings_workingDaysRuleFilter<"PayrollSettings"> | $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: Prisma.EnumWorkingDaysRuleFilter<"PayrollSettings"> | $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: Prisma.DecimalFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: Prisma.BoolFilter<"PayrollSettings"> | boolean
@@ -386,7 +387,7 @@ export type PayrollSettingsWhereUniqueInput = Prisma.AtLeast<{
   leaveCarryForwardExpiryMonths?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
-  Organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id" | "organizationId">
 
 export type PayrollSettingsOrderByWithAggregationInput = {
@@ -423,7 +424,7 @@ export type PayrollSettingsScalarWhereWithAggregatesInput = {
   otRateNormal?: Prisma.DecimalWithAggregatesFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: Prisma.DecimalWithAggregatesFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalWithAggregatesFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: Prisma.EnumPayrollSettings_workingDaysRuleWithAggregatesFilter<"PayrollSettings"> | $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: Prisma.EnumWorkingDaysRuleWithAggregatesFilter<"PayrollSettings"> | $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: Prisma.DecimalWithAggregatesFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: Prisma.DecimalWithAggregatesFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
@@ -438,11 +439,11 @@ export type PayrollSettingsScalarWhereWithAggregatesInput = {
 }
 
 export type PayrollSettingsCreateInput = {
-  id: string
+  id?: string
   otRateNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: boolean
@@ -453,17 +454,17 @@ export type PayrollSettingsCreateInput = {
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
-  updatedAt: Date | string
-  Organization: Prisma.OrganizationCreateNestedOneWithoutPayrollSettingsInput
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutPayrollSettingsInput
 }
 
 export type PayrollSettingsUncheckedCreateInput = {
-  id: string
+  id?: string
   organizationId: string
   otRateNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: boolean
@@ -474,7 +475,7 @@ export type PayrollSettingsUncheckedCreateInput = {
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollSettingsUpdateInput = {
@@ -482,7 +483,7 @@ export type PayrollSettingsUpdateInput = {
   otRateNormal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: Prisma.EnumPayrollSettings_workingDaysRuleFieldUpdateOperationsInput | $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: Prisma.EnumWorkingDaysRuleFieldUpdateOperationsInput | $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -494,7 +495,7 @@ export type PayrollSettingsUpdateInput = {
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollSettingsNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollSettingsNestedInput
 }
 
 export type PayrollSettingsUncheckedUpdateInput = {
@@ -503,7 +504,7 @@ export type PayrollSettingsUncheckedUpdateInput = {
   otRateNormal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: Prisma.EnumPayrollSettings_workingDaysRuleFieldUpdateOperationsInput | $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: Prisma.EnumWorkingDaysRuleFieldUpdateOperationsInput | $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -518,12 +519,12 @@ export type PayrollSettingsUncheckedUpdateInput = {
 }
 
 export type PayrollSettingsCreateManyInput = {
-  id: string
+  id?: string
   organizationId: string
   otRateNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: boolean
@@ -534,7 +535,7 @@ export type PayrollSettingsCreateManyInput = {
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollSettingsUpdateManyMutationInput = {
@@ -542,7 +543,7 @@ export type PayrollSettingsUpdateManyMutationInput = {
   otRateNormal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: Prisma.EnumPayrollSettings_workingDaysRuleFieldUpdateOperationsInput | $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: Prisma.EnumWorkingDaysRuleFieldUpdateOperationsInput | $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -562,7 +563,7 @@ export type PayrollSettingsUncheckedUpdateManyInput = {
   otRateNormal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: Prisma.EnumPayrollSettings_workingDaysRuleFieldUpdateOperationsInput | $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: Prisma.EnumWorkingDaysRuleFieldUpdateOperationsInput | $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -701,16 +702,16 @@ export type PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PayrollSettingsUpdateToOneWithWhereWithoutOrganizationInput, Prisma.PayrollSettingsUpdateWithoutOrganizationInput>, Prisma.PayrollSettingsUncheckedUpdateWithoutOrganizationInput>
 }
 
-export type EnumPayrollSettings_workingDaysRuleFieldUpdateOperationsInput = {
-  set?: $Enums.PayrollSettings_workingDaysRule
+export type EnumWorkingDaysRuleFieldUpdateOperationsInput = {
+  set?: $Enums.WorkingDaysRule
 }
 
 export type PayrollSettingsCreateWithoutOrganizationInput = {
-  id: string
+  id?: string
   otRateNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: boolean
@@ -721,15 +722,15 @@ export type PayrollSettingsCreateWithoutOrganizationInput = {
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollSettingsUncheckedCreateWithoutOrganizationInput = {
-  id: string
+  id?: string
   otRateNormal?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: boolean
@@ -740,7 +741,7 @@ export type PayrollSettingsUncheckedCreateWithoutOrganizationInput = {
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollSettingsCreateOrConnectWithoutOrganizationInput = {
@@ -764,7 +765,7 @@ export type PayrollSettingsUpdateWithoutOrganizationInput = {
   otRateNormal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: Prisma.EnumPayrollSettings_workingDaysRuleFieldUpdateOperationsInput | $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: Prisma.EnumWorkingDaysRuleFieldUpdateOperationsInput | $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -783,7 +784,7 @@ export type PayrollSettingsUncheckedUpdateWithoutOrganizationInput = {
   otRateNormal?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRest?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  workingDaysRule?: Prisma.EnumPayrollSettings_workingDaysRuleFieldUpdateOperationsInput | $Enums.PayrollSettings_workingDaysRule
+  workingDaysRule?: Prisma.EnumWorkingDaysRuleFieldUpdateOperationsInput | $Enums.WorkingDaysRule
   defaultEpfEmployeeRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   defaultEpfEmployerRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -817,7 +818,7 @@ export type PayrollSettingsSelect<ExtArgs extends runtime.Types.Extensions.Inter
   leaveCarryForwardExpiryMonths?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  Organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payrollSettings"]>
 
 
@@ -844,13 +845,13 @@ export type PayrollSettingsSelectScalar = {
 
 export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "otRateNormal" | "otRateRest" | "otRatePublicHoliday" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "employerIdNumber" | "myCoOrSsmNumber" | "leaveCarryForwardAllowed" | "leaveCarryForwardLimitDays" | "leaveCarryForwardExpiryMonths" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollSettings"]>
 export type PayrollSettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  Organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
 
 export type $PayrollSettingsPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PayrollSettings"
   objects: {
-    Organization: Prisma.$OrganizationPayload<ExtArgs>
+    organization: Prisma.$OrganizationPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -858,7 +859,7 @@ export type $PayrollSettingsPayload<ExtArgs extends runtime.Types.Extensions.Int
     otRateNormal: runtime.Decimal
     otRateRest: runtime.Decimal
     otRatePublicHoliday: runtime.Decimal
-    workingDaysRule: $Enums.PayrollSettings_workingDaysRule
+    workingDaysRule: $Enums.WorkingDaysRule
     defaultEpfEmployeeRate: runtime.Decimal
     defaultEpfEmployerRate: runtime.Decimal
     hrdfEnabled: boolean
@@ -1210,7 +1211,7 @@ readonly fields: PayrollSettingsFieldRefs;
  */
 export interface Prisma__PayrollSettingsClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  Organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1245,7 +1246,7 @@ export interface PayrollSettingsFieldRefs {
   readonly otRateNormal: Prisma.FieldRef<"PayrollSettings", 'Decimal'>
   readonly otRateRest: Prisma.FieldRef<"PayrollSettings", 'Decimal'>
   readonly otRatePublicHoliday: Prisma.FieldRef<"PayrollSettings", 'Decimal'>
-  readonly workingDaysRule: Prisma.FieldRef<"PayrollSettings", 'PayrollSettings_workingDaysRule'>
+  readonly workingDaysRule: Prisma.FieldRef<"PayrollSettings", 'WorkingDaysRule'>
   readonly defaultEpfEmployeeRate: Prisma.FieldRef<"PayrollSettings", 'Decimal'>
   readonly defaultEpfEmployerRate: Prisma.FieldRef<"PayrollSettings", 'Decimal'>
   readonly hrdfEnabled: Prisma.FieldRef<"PayrollSettings", 'Boolean'>

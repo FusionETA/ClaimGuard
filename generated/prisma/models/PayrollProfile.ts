@@ -14,7 +14,11 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model PayrollProfile
- * 
+ * One row per employee. Stores all Malaysia-payroll-specific data that
+ * doesn't belong on `EmployeeProfile` (which is shared by claims +
+ * attendance). Lazy-created when admin onboards the employee into
+ * payroll — absence of a PayrollProfile = "employee not yet enrolled
+ * in payroll." Cascade-deletes if the EmployeeProfile is deleted.
  */
 export type PayrollProfileModel = runtime.Types.Result.DefaultSelection<Prisma.$PayrollProfilePayload>
 
@@ -53,14 +57,14 @@ export type PayrollProfileMinAggregateOutputType = {
   employeeProfileId: string | null
   phone: string | null
   alternateEmail: string | null
-  gender: $Enums.PayrollProfile_gender | null
+  gender: $Enums.Gender | null
   dateOfBirth: Date | null
   nationality: string | null
   race: string | null
   hasPr: boolean | null
-  idType: $Enums.PayrollProfile_idType | null
+  idType: $Enums.IdType | null
   idNumber: string | null
-  maritalStatus: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus: $Enums.MaritalStatus | null
   isResident: boolean | null
   isOku: boolean | null
   spouseWorking: boolean | null
@@ -86,16 +90,16 @@ export type PayrollProfileMinAggregateOutputType = {
   epfEmployeeVoluntary: runtime.Decimal | null
   epfEmployerVoluntary: runtime.Decimal | null
   socsoNumber: string | null
-  socsoScheme: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme: $Enums.SocsoScheme | null
   contributeToEis: boolean | null
   incomeTaxNumber: string | null
   pcbBorneByEmployer: boolean | null
   ssfwNumber: string | null
-  paymentMethod: $Enums.PayrollProfile_paymentMethod | null
+  paymentMethod: $Enums.PaymentMethod | null
   bankName: string | null
   bankAccountHolderName: string | null
   bankAccountNumber: string | null
-  salaryType: $Enums.PayrollProfile_salaryType | null
+  salaryType: $Enums.SalaryType | null
   monthlySalary: runtime.Decimal | null
   hourlyRate: runtime.Decimal | null
   joinDate: Date | null
@@ -118,14 +122,14 @@ export type PayrollProfileMaxAggregateOutputType = {
   employeeProfileId: string | null
   phone: string | null
   alternateEmail: string | null
-  gender: $Enums.PayrollProfile_gender | null
+  gender: $Enums.Gender | null
   dateOfBirth: Date | null
   nationality: string | null
   race: string | null
   hasPr: boolean | null
-  idType: $Enums.PayrollProfile_idType | null
+  idType: $Enums.IdType | null
   idNumber: string | null
-  maritalStatus: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus: $Enums.MaritalStatus | null
   isResident: boolean | null
   isOku: boolean | null
   spouseWorking: boolean | null
@@ -151,16 +155,16 @@ export type PayrollProfileMaxAggregateOutputType = {
   epfEmployeeVoluntary: runtime.Decimal | null
   epfEmployerVoluntary: runtime.Decimal | null
   socsoNumber: string | null
-  socsoScheme: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme: $Enums.SocsoScheme | null
   contributeToEis: boolean | null
   incomeTaxNumber: string | null
   pcbBorneByEmployer: boolean | null
   ssfwNumber: string | null
-  paymentMethod: $Enums.PayrollProfile_paymentMethod | null
+  paymentMethod: $Enums.PaymentMethod | null
   bankName: string | null
   bankAccountHolderName: string | null
   bankAccountNumber: string | null
-  salaryType: $Enums.PayrollProfile_salaryType | null
+  salaryType: $Enums.SalaryType | null
   monthlySalary: runtime.Decimal | null
   hourlyRate: runtime.Decimal | null
   joinDate: Date | null
@@ -560,14 +564,14 @@ export type PayrollProfileGroupByOutputType = {
   employeeProfileId: string
   phone: string | null
   alternateEmail: string | null
-  gender: $Enums.PayrollProfile_gender | null
+  gender: $Enums.Gender | null
   dateOfBirth: Date | null
   nationality: string | null
   race: string | null
   hasPr: boolean
-  idType: $Enums.PayrollProfile_idType | null
+  idType: $Enums.IdType | null
   idNumber: string | null
-  maritalStatus: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus: $Enums.MaritalStatus | null
   isResident: boolean
   isOku: boolean
   spouseWorking: boolean | null
@@ -594,16 +598,16 @@ export type PayrollProfileGroupByOutputType = {
   epfEmployeeVoluntary: runtime.Decimal
   epfEmployerVoluntary: runtime.Decimal
   socsoNumber: string | null
-  socsoScheme: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme: $Enums.SocsoScheme | null
   contributeToEis: boolean
   incomeTaxNumber: string | null
   pcbBorneByEmployer: boolean
   ssfwNumber: string | null
-  paymentMethod: $Enums.PayrollProfile_paymentMethod
+  paymentMethod: $Enums.PaymentMethod
   bankName: string | null
   bankAccountHolderName: string | null
   bankAccountNumber: string | null
-  salaryType: $Enums.PayrollProfile_salaryType
+  salaryType: $Enums.SalaryType
   monthlySalary: runtime.Decimal | null
   hourlyRate: runtime.Decimal | null
   fixedAllowances: runtime.JsonValue | null
@@ -651,14 +655,14 @@ export type PayrollProfileWhereInput = {
   employeeProfileId?: Prisma.StringFilter<"PayrollProfile"> | string
   phone?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   alternateEmail?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  gender?: Prisma.EnumPayrollProfile_genderNullableFilter<"PayrollProfile"> | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.EnumGenderNullableFilter<"PayrollProfile"> | $Enums.Gender | null
   dateOfBirth?: Prisma.DateTimeNullableFilter<"PayrollProfile"> | Date | string | null
   nationality?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   race?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   hasPr?: Prisma.BoolFilter<"PayrollProfile"> | boolean
-  idType?: Prisma.EnumPayrollProfile_idTypeNullableFilter<"PayrollProfile"> | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.EnumIdTypeNullableFilter<"PayrollProfile"> | $Enums.IdType | null
   idNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  maritalStatus?: Prisma.EnumPayrollProfile_maritalStatusNullableFilter<"PayrollProfile"> | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.EnumMaritalStatusNullableFilter<"PayrollProfile"> | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   isOku?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   spouseWorking?: Prisma.BoolNullableFilter<"PayrollProfile"> | boolean | null
@@ -685,16 +689,16 @@ export type PayrollProfileWhereInput = {
   epfEmployeeVoluntary?: Prisma.DecimalFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  socsoScheme?: Prisma.EnumPayrollProfile_socsoSchemeNullableFilter<"PayrollProfile"> | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.EnumSocsoSchemeNullableFilter<"PayrollProfile"> | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   incomeTaxNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   pcbBorneByEmployer?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   ssfwNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFilter<"PayrollProfile"> | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFilter<"PayrollProfile"> | $Enums.PaymentMethod
   bankName?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   bankAccountHolderName?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   bankAccountNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFilter<"PayrollProfile"> | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFilter<"PayrollProfile"> | $Enums.SalaryType
   monthlySalary?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.JsonNullableFilter<"PayrollProfile">
@@ -712,8 +716,8 @@ export type PayrollProfileWhereInput = {
   archivedAt?: Prisma.DateTimeNullableFilter<"PayrollProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
-  EmployeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
-  Payslip?: Prisma.PayslipListRelationFilter
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
+  payslips?: Prisma.PayslipListRelationFilter
 }
 
 export type PayrollProfileOrderByWithRelationInput = {
@@ -782,8 +786,8 @@ export type PayrollProfileOrderByWithRelationInput = {
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  EmployeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
-  Payslip?: Prisma.PayslipOrderByRelationAggregateInput
+  employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
+  payslips?: Prisma.PayslipOrderByRelationAggregateInput
   _relevance?: Prisma.PayrollProfileOrderByRelevanceInput
 }
 
@@ -795,14 +799,14 @@ export type PayrollProfileWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.PayrollProfileWhereInput | Prisma.PayrollProfileWhereInput[]
   phone?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   alternateEmail?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  gender?: Prisma.EnumPayrollProfile_genderNullableFilter<"PayrollProfile"> | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.EnumGenderNullableFilter<"PayrollProfile"> | $Enums.Gender | null
   dateOfBirth?: Prisma.DateTimeNullableFilter<"PayrollProfile"> | Date | string | null
   nationality?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   race?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   hasPr?: Prisma.BoolFilter<"PayrollProfile"> | boolean
-  idType?: Prisma.EnumPayrollProfile_idTypeNullableFilter<"PayrollProfile"> | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.EnumIdTypeNullableFilter<"PayrollProfile"> | $Enums.IdType | null
   idNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  maritalStatus?: Prisma.EnumPayrollProfile_maritalStatusNullableFilter<"PayrollProfile"> | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.EnumMaritalStatusNullableFilter<"PayrollProfile"> | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   isOku?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   spouseWorking?: Prisma.BoolNullableFilter<"PayrollProfile"> | boolean | null
@@ -829,16 +833,16 @@ export type PayrollProfileWhereUniqueInput = Prisma.AtLeast<{
   epfEmployeeVoluntary?: Prisma.DecimalFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  socsoScheme?: Prisma.EnumPayrollProfile_socsoSchemeNullableFilter<"PayrollProfile"> | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.EnumSocsoSchemeNullableFilter<"PayrollProfile"> | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   incomeTaxNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   pcbBorneByEmployer?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   ssfwNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFilter<"PayrollProfile"> | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFilter<"PayrollProfile"> | $Enums.PaymentMethod
   bankName?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   bankAccountHolderName?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   bankAccountNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFilter<"PayrollProfile"> | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFilter<"PayrollProfile"> | $Enums.SalaryType
   monthlySalary?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.JsonNullableFilter<"PayrollProfile">
@@ -856,8 +860,8 @@ export type PayrollProfileWhereUniqueInput = Prisma.AtLeast<{
   archivedAt?: Prisma.DateTimeNullableFilter<"PayrollProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
-  EmployeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
-  Payslip?: Prisma.PayslipListRelationFilter
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
+  payslips?: Prisma.PayslipListRelationFilter
 }, "id" | "employeeProfileId">
 
 export type PayrollProfileOrderByWithAggregationInput = {
@@ -941,14 +945,14 @@ export type PayrollProfileScalarWhereWithAggregatesInput = {
   employeeProfileId?: Prisma.StringWithAggregatesFilter<"PayrollProfile"> | string
   phone?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   alternateEmail?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
-  gender?: Prisma.EnumPayrollProfile_genderNullableWithAggregatesFilter<"PayrollProfile"> | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.EnumGenderNullableWithAggregatesFilter<"PayrollProfile"> | $Enums.Gender | null
   dateOfBirth?: Prisma.DateTimeNullableWithAggregatesFilter<"PayrollProfile"> | Date | string | null
   nationality?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   race?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   hasPr?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
-  idType?: Prisma.EnumPayrollProfile_idTypeNullableWithAggregatesFilter<"PayrollProfile"> | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.EnumIdTypeNullableWithAggregatesFilter<"PayrollProfile"> | $Enums.IdType | null
   idNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
-  maritalStatus?: Prisma.EnumPayrollProfile_maritalStatusNullableWithAggregatesFilter<"PayrollProfile"> | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.EnumMaritalStatusNullableWithAggregatesFilter<"PayrollProfile"> | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
   isOku?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
   spouseWorking?: Prisma.BoolNullableWithAggregatesFilter<"PayrollProfile"> | boolean | null
@@ -975,16 +979,16 @@ export type PayrollProfileScalarWhereWithAggregatesInput = {
   epfEmployeeVoluntary?: Prisma.DecimalWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
-  socsoScheme?: Prisma.EnumPayrollProfile_socsoSchemeNullableWithAggregatesFilter<"PayrollProfile"> | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.EnumSocsoSchemeNullableWithAggregatesFilter<"PayrollProfile"> | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
   incomeTaxNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   pcbBorneByEmployer?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
   ssfwNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodWithAggregatesFilter<"PayrollProfile"> | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodWithAggregatesFilter<"PayrollProfile"> | $Enums.PaymentMethod
   bankName?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   bankAccountHolderName?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   bankAccountNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeWithAggregatesFilter<"PayrollProfile"> | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeWithAggregatesFilter<"PayrollProfile"> | $Enums.SalaryType
   monthlySalary?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.JsonNullableWithAggregatesFilter<"PayrollProfile">
@@ -1005,17 +1009,17 @@ export type PayrollProfileScalarWhereWithAggregatesInput = {
 }
 
 export type PayrollProfileCreateInput = {
-  id: string
+  id?: string
   phone?: string | null
   alternateEmail?: string | null
-  gender?: $Enums.PayrollProfile_gender | null
+  gender?: $Enums.Gender | null
   dateOfBirth?: Date | string | null
   nationality?: string | null
   race?: string | null
   hasPr?: boolean
-  idType?: $Enums.PayrollProfile_idType | null
+  idType?: $Enums.IdType | null
   idNumber?: string | null
-  maritalStatus?: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: $Enums.MaritalStatus | null
   isResident?: boolean
   isOku?: boolean
   spouseWorking?: boolean | null
@@ -1042,16 +1046,16 @@ export type PayrollProfileCreateInput = {
   epfEmployeeVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: string | null
-  socsoScheme?: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
-  paymentMethod?: $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: $Enums.PaymentMethod
   bankName?: string | null
   bankAccountHolderName?: string | null
   bankAccountNumber?: string | null
-  salaryType: $Enums.PayrollProfile_salaryType
+  salaryType: $Enums.SalaryType
   monthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1068,24 +1072,24 @@ export type PayrollProfileCreateInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
-  updatedAt: Date | string
-  EmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
-  Payslip?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
+  updatedAt?: Date | string
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
+  payslips?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
 }
 
 export type PayrollProfileUncheckedCreateInput = {
-  id: string
+  id?: string
   employeeProfileId: string
   phone?: string | null
   alternateEmail?: string | null
-  gender?: $Enums.PayrollProfile_gender | null
+  gender?: $Enums.Gender | null
   dateOfBirth?: Date | string | null
   nationality?: string | null
   race?: string | null
   hasPr?: boolean
-  idType?: $Enums.PayrollProfile_idType | null
+  idType?: $Enums.IdType | null
   idNumber?: string | null
-  maritalStatus?: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: $Enums.MaritalStatus | null
   isResident?: boolean
   isOku?: boolean
   spouseWorking?: boolean | null
@@ -1112,16 +1116,16 @@ export type PayrollProfileUncheckedCreateInput = {
   epfEmployeeVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: string | null
-  socsoScheme?: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
-  paymentMethod?: $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: $Enums.PaymentMethod
   bankName?: string | null
   bankAccountHolderName?: string | null
   bankAccountNumber?: string | null
-  salaryType: $Enums.PayrollProfile_salaryType
+  salaryType: $Enums.SalaryType
   monthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1138,22 +1142,22 @@ export type PayrollProfileUncheckedCreateInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
-  updatedAt: Date | string
-  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
+  updatedAt?: Date | string
+  payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
 }
 
 export type PayrollProfileUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   alternateEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumPayrollProfile_genderFieldUpdateOperationsInput | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   race?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hasPr?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  idType?: Prisma.NullableEnumPayrollProfile_idTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   idNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  maritalStatus?: Prisma.NullableEnumPayrollProfile_maritalStatusFieldUpdateOperationsInput | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.NullableEnumMaritalStatusFieldUpdateOperationsInput | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isOku?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spouseWorking?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -1180,16 +1184,16 @@ export type PayrollProfileUpdateInput = {
   epfEmployeeVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  socsoScheme?: Prisma.NullableEnumPayrollProfile_socsoSchemeFieldUpdateOperationsInput | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFieldUpdateOperationsInput | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   monthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1207,8 +1211,8 @@ export type PayrollProfileUpdateInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  EmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
-  Payslip?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
+  payslips?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
 }
 
 export type PayrollProfileUncheckedUpdateInput = {
@@ -1216,14 +1220,14 @@ export type PayrollProfileUncheckedUpdateInput = {
   employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   alternateEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumPayrollProfile_genderFieldUpdateOperationsInput | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   race?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hasPr?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  idType?: Prisma.NullableEnumPayrollProfile_idTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   idNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  maritalStatus?: Prisma.NullableEnumPayrollProfile_maritalStatusFieldUpdateOperationsInput | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.NullableEnumMaritalStatusFieldUpdateOperationsInput | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isOku?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spouseWorking?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -1250,16 +1254,16 @@ export type PayrollProfileUncheckedUpdateInput = {
   epfEmployeeVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  socsoScheme?: Prisma.NullableEnumPayrollProfile_socsoSchemeFieldUpdateOperationsInput | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFieldUpdateOperationsInput | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   monthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1277,22 +1281,22 @@ export type PayrollProfileUncheckedUpdateInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
+  payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
 }
 
 export type PayrollProfileCreateManyInput = {
-  id: string
+  id?: string
   employeeProfileId: string
   phone?: string | null
   alternateEmail?: string | null
-  gender?: $Enums.PayrollProfile_gender | null
+  gender?: $Enums.Gender | null
   dateOfBirth?: Date | string | null
   nationality?: string | null
   race?: string | null
   hasPr?: boolean
-  idType?: $Enums.PayrollProfile_idType | null
+  idType?: $Enums.IdType | null
   idNumber?: string | null
-  maritalStatus?: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: $Enums.MaritalStatus | null
   isResident?: boolean
   isOku?: boolean
   spouseWorking?: boolean | null
@@ -1319,16 +1323,16 @@ export type PayrollProfileCreateManyInput = {
   epfEmployeeVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: string | null
-  socsoScheme?: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
-  paymentMethod?: $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: $Enums.PaymentMethod
   bankName?: string | null
   bankAccountHolderName?: string | null
   bankAccountNumber?: string | null
-  salaryType: $Enums.PayrollProfile_salaryType
+  salaryType: $Enums.SalaryType
   monthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1345,21 +1349,21 @@ export type PayrollProfileCreateManyInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollProfileUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   alternateEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumPayrollProfile_genderFieldUpdateOperationsInput | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   race?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hasPr?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  idType?: Prisma.NullableEnumPayrollProfile_idTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   idNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  maritalStatus?: Prisma.NullableEnumPayrollProfile_maritalStatusFieldUpdateOperationsInput | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.NullableEnumMaritalStatusFieldUpdateOperationsInput | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isOku?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spouseWorking?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -1386,16 +1390,16 @@ export type PayrollProfileUpdateManyMutationInput = {
   epfEmployeeVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  socsoScheme?: Prisma.NullableEnumPayrollProfile_socsoSchemeFieldUpdateOperationsInput | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFieldUpdateOperationsInput | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   monthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1420,14 +1424,14 @@ export type PayrollProfileUncheckedUpdateManyInput = {
   employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   alternateEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumPayrollProfile_genderFieldUpdateOperationsInput | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   race?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hasPr?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  idType?: Prisma.NullableEnumPayrollProfile_idTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   idNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  maritalStatus?: Prisma.NullableEnumPayrollProfile_maritalStatusFieldUpdateOperationsInput | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.NullableEnumMaritalStatusFieldUpdateOperationsInput | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isOku?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spouseWorking?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -1454,16 +1458,16 @@ export type PayrollProfileUncheckedUpdateManyInput = {
   epfEmployeeVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  socsoScheme?: Prisma.NullableEnumPayrollProfile_socsoSchemeFieldUpdateOperationsInput | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFieldUpdateOperationsInput | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   monthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1746,62 +1750,62 @@ export type PayrollProfileUncheckedUpdateOneWithoutEmployeeProfileNestedInput = 
   update?: Prisma.XOR<Prisma.XOR<Prisma.PayrollProfileUpdateToOneWithWhereWithoutEmployeeProfileInput, Prisma.PayrollProfileUpdateWithoutEmployeeProfileInput>, Prisma.PayrollProfileUncheckedUpdateWithoutEmployeeProfileInput>
 }
 
-export type NullableEnumPayrollProfile_genderFieldUpdateOperationsInput = {
-  set?: $Enums.PayrollProfile_gender | null
+export type NullableEnumGenderFieldUpdateOperationsInput = {
+  set?: $Enums.Gender | null
 }
 
-export type NullableEnumPayrollProfile_idTypeFieldUpdateOperationsInput = {
-  set?: $Enums.PayrollProfile_idType | null
+export type NullableEnumIdTypeFieldUpdateOperationsInput = {
+  set?: $Enums.IdType | null
 }
 
-export type NullableEnumPayrollProfile_maritalStatusFieldUpdateOperationsInput = {
-  set?: $Enums.PayrollProfile_maritalStatus | null
+export type NullableEnumMaritalStatusFieldUpdateOperationsInput = {
+  set?: $Enums.MaritalStatus | null
 }
 
 export type NullableBoolFieldUpdateOperationsInput = {
   set?: boolean | null
 }
 
-export type NullableEnumPayrollProfile_socsoSchemeFieldUpdateOperationsInput = {
-  set?: $Enums.PayrollProfile_socsoScheme | null
+export type NullableEnumSocsoSchemeFieldUpdateOperationsInput = {
+  set?: $Enums.SocsoScheme | null
 }
 
-export type EnumPayrollProfile_paymentMethodFieldUpdateOperationsInput = {
-  set?: $Enums.PayrollProfile_paymentMethod
+export type EnumPaymentMethodFieldUpdateOperationsInput = {
+  set?: $Enums.PaymentMethod
 }
 
-export type EnumPayrollProfile_salaryTypeFieldUpdateOperationsInput = {
-  set?: $Enums.PayrollProfile_salaryType
+export type EnumSalaryTypeFieldUpdateOperationsInput = {
+  set?: $Enums.SalaryType
 }
 
-export type PayrollProfileCreateNestedOneWithoutPayslipInput = {
-  create?: Prisma.XOR<Prisma.PayrollProfileCreateWithoutPayslipInput, Prisma.PayrollProfileUncheckedCreateWithoutPayslipInput>
-  connectOrCreate?: Prisma.PayrollProfileCreateOrConnectWithoutPayslipInput
+export type PayrollProfileCreateNestedOneWithoutPayslipsInput = {
+  create?: Prisma.XOR<Prisma.PayrollProfileCreateWithoutPayslipsInput, Prisma.PayrollProfileUncheckedCreateWithoutPayslipsInput>
+  connectOrCreate?: Prisma.PayrollProfileCreateOrConnectWithoutPayslipsInput
   connect?: Prisma.PayrollProfileWhereUniqueInput
 }
 
-export type PayrollProfileUpdateOneWithoutPayslipNestedInput = {
-  create?: Prisma.XOR<Prisma.PayrollProfileCreateWithoutPayslipInput, Prisma.PayrollProfileUncheckedCreateWithoutPayslipInput>
-  connectOrCreate?: Prisma.PayrollProfileCreateOrConnectWithoutPayslipInput
-  upsert?: Prisma.PayrollProfileUpsertWithoutPayslipInput
+export type PayrollProfileUpdateOneWithoutPayslipsNestedInput = {
+  create?: Prisma.XOR<Prisma.PayrollProfileCreateWithoutPayslipsInput, Prisma.PayrollProfileUncheckedCreateWithoutPayslipsInput>
+  connectOrCreate?: Prisma.PayrollProfileCreateOrConnectWithoutPayslipsInput
+  upsert?: Prisma.PayrollProfileUpsertWithoutPayslipsInput
   disconnect?: Prisma.PayrollProfileWhereInput | boolean
   delete?: Prisma.PayrollProfileWhereInput | boolean
   connect?: Prisma.PayrollProfileWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PayrollProfileUpdateToOneWithWhereWithoutPayslipInput, Prisma.PayrollProfileUpdateWithoutPayslipInput>, Prisma.PayrollProfileUncheckedUpdateWithoutPayslipInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PayrollProfileUpdateToOneWithWhereWithoutPayslipsInput, Prisma.PayrollProfileUpdateWithoutPayslipsInput>, Prisma.PayrollProfileUncheckedUpdateWithoutPayslipsInput>
 }
 
 export type PayrollProfileCreateWithoutEmployeeProfileInput = {
-  id: string
+  id?: string
   phone?: string | null
   alternateEmail?: string | null
-  gender?: $Enums.PayrollProfile_gender | null
+  gender?: $Enums.Gender | null
   dateOfBirth?: Date | string | null
   nationality?: string | null
   race?: string | null
   hasPr?: boolean
-  idType?: $Enums.PayrollProfile_idType | null
+  idType?: $Enums.IdType | null
   idNumber?: string | null
-  maritalStatus?: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: $Enums.MaritalStatus | null
   isResident?: boolean
   isOku?: boolean
   spouseWorking?: boolean | null
@@ -1828,16 +1832,16 @@ export type PayrollProfileCreateWithoutEmployeeProfileInput = {
   epfEmployeeVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: string | null
-  socsoScheme?: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
-  paymentMethod?: $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: $Enums.PaymentMethod
   bankName?: string | null
   bankAccountHolderName?: string | null
   bankAccountNumber?: string | null
-  salaryType: $Enums.PayrollProfile_salaryType
+  salaryType: $Enums.SalaryType
   monthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1854,22 +1858,22 @@ export type PayrollProfileCreateWithoutEmployeeProfileInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
-  updatedAt: Date | string
-  Payslip?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
+  updatedAt?: Date | string
+  payslips?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
 }
 
 export type PayrollProfileUncheckedCreateWithoutEmployeeProfileInput = {
-  id: string
+  id?: string
   phone?: string | null
   alternateEmail?: string | null
-  gender?: $Enums.PayrollProfile_gender | null
+  gender?: $Enums.Gender | null
   dateOfBirth?: Date | string | null
   nationality?: string | null
   race?: string | null
   hasPr?: boolean
-  idType?: $Enums.PayrollProfile_idType | null
+  idType?: $Enums.IdType | null
   idNumber?: string | null
-  maritalStatus?: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: $Enums.MaritalStatus | null
   isResident?: boolean
   isOku?: boolean
   spouseWorking?: boolean | null
@@ -1896,16 +1900,16 @@ export type PayrollProfileUncheckedCreateWithoutEmployeeProfileInput = {
   epfEmployeeVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: string | null
-  socsoScheme?: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
-  paymentMethod?: $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: $Enums.PaymentMethod
   bankName?: string | null
   bankAccountHolderName?: string | null
   bankAccountNumber?: string | null
-  salaryType: $Enums.PayrollProfile_salaryType
+  salaryType: $Enums.SalaryType
   monthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1922,8 +1926,8 @@ export type PayrollProfileUncheckedCreateWithoutEmployeeProfileInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
-  updatedAt: Date | string
-  Payslip?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
+  updatedAt?: Date | string
+  payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
 }
 
 export type PayrollProfileCreateOrConnectWithoutEmployeeProfileInput = {
@@ -1946,14 +1950,14 @@ export type PayrollProfileUpdateWithoutEmployeeProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   alternateEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumPayrollProfile_genderFieldUpdateOperationsInput | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   race?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hasPr?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  idType?: Prisma.NullableEnumPayrollProfile_idTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   idNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  maritalStatus?: Prisma.NullableEnumPayrollProfile_maritalStatusFieldUpdateOperationsInput | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.NullableEnumMaritalStatusFieldUpdateOperationsInput | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isOku?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spouseWorking?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -1980,16 +1984,16 @@ export type PayrollProfileUpdateWithoutEmployeeProfileInput = {
   epfEmployeeVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  socsoScheme?: Prisma.NullableEnumPayrollProfile_socsoSchemeFieldUpdateOperationsInput | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFieldUpdateOperationsInput | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   monthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2007,21 +2011,21 @@ export type PayrollProfileUpdateWithoutEmployeeProfileInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Payslip?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
+  payslips?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
 }
 
 export type PayrollProfileUncheckedUpdateWithoutEmployeeProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   alternateEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumPayrollProfile_genderFieldUpdateOperationsInput | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   race?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hasPr?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  idType?: Prisma.NullableEnumPayrollProfile_idTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   idNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  maritalStatus?: Prisma.NullableEnumPayrollProfile_maritalStatusFieldUpdateOperationsInput | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.NullableEnumMaritalStatusFieldUpdateOperationsInput | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isOku?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spouseWorking?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -2048,16 +2052,16 @@ export type PayrollProfileUncheckedUpdateWithoutEmployeeProfileInput = {
   epfEmployeeVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  socsoScheme?: Prisma.NullableEnumPayrollProfile_socsoSchemeFieldUpdateOperationsInput | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFieldUpdateOperationsInput | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   monthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2075,21 +2079,21 @@ export type PayrollProfileUncheckedUpdateWithoutEmployeeProfileInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Payslip?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
+  payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
 }
 
-export type PayrollProfileCreateWithoutPayslipInput = {
-  id: string
+export type PayrollProfileCreateWithoutPayslipsInput = {
+  id?: string
   phone?: string | null
   alternateEmail?: string | null
-  gender?: $Enums.PayrollProfile_gender | null
+  gender?: $Enums.Gender | null
   dateOfBirth?: Date | string | null
   nationality?: string | null
   race?: string | null
   hasPr?: boolean
-  idType?: $Enums.PayrollProfile_idType | null
+  idType?: $Enums.IdType | null
   idNumber?: string | null
-  maritalStatus?: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: $Enums.MaritalStatus | null
   isResident?: boolean
   isOku?: boolean
   spouseWorking?: boolean | null
@@ -2116,16 +2120,16 @@ export type PayrollProfileCreateWithoutPayslipInput = {
   epfEmployeeVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: string | null
-  socsoScheme?: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
-  paymentMethod?: $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: $Enums.PaymentMethod
   bankName?: string | null
   bankAccountHolderName?: string | null
   bankAccountNumber?: string | null
-  salaryType: $Enums.PayrollProfile_salaryType
+  salaryType: $Enums.SalaryType
   monthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2142,23 +2146,23 @@ export type PayrollProfileCreateWithoutPayslipInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
-  updatedAt: Date | string
-  EmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
+  updatedAt?: Date | string
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
 }
 
-export type PayrollProfileUncheckedCreateWithoutPayslipInput = {
-  id: string
+export type PayrollProfileUncheckedCreateWithoutPayslipsInput = {
+  id?: string
   employeeProfileId: string
   phone?: string | null
   alternateEmail?: string | null
-  gender?: $Enums.PayrollProfile_gender | null
+  gender?: $Enums.Gender | null
   dateOfBirth?: Date | string | null
   nationality?: string | null
   race?: string | null
   hasPr?: boolean
-  idType?: $Enums.PayrollProfile_idType | null
+  idType?: $Enums.IdType | null
   idNumber?: string | null
-  maritalStatus?: $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: $Enums.MaritalStatus | null
   isResident?: boolean
   isOku?: boolean
   spouseWorking?: boolean | null
@@ -2185,16 +2189,16 @@ export type PayrollProfileUncheckedCreateWithoutPayslipInput = {
   epfEmployeeVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: string | null
-  socsoScheme?: $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: $Enums.SocsoScheme | null
   contributeToEis?: boolean
   incomeTaxNumber?: string | null
   pcbBorneByEmployer?: boolean
   ssfwNumber?: string | null
-  paymentMethod?: $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: $Enums.PaymentMethod
   bankName?: string | null
   bankAccountHolderName?: string | null
   bankAccountNumber?: string | null
-  salaryType: $Enums.PayrollProfile_salaryType
+  salaryType: $Enums.SalaryType
   monthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2211,37 +2215,37 @@ export type PayrollProfileUncheckedCreateWithoutPayslipInput = {
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
-export type PayrollProfileCreateOrConnectWithoutPayslipInput = {
+export type PayrollProfileCreateOrConnectWithoutPayslipsInput = {
   where: Prisma.PayrollProfileWhereUniqueInput
-  create: Prisma.XOR<Prisma.PayrollProfileCreateWithoutPayslipInput, Prisma.PayrollProfileUncheckedCreateWithoutPayslipInput>
+  create: Prisma.XOR<Prisma.PayrollProfileCreateWithoutPayslipsInput, Prisma.PayrollProfileUncheckedCreateWithoutPayslipsInput>
 }
 
-export type PayrollProfileUpsertWithoutPayslipInput = {
-  update: Prisma.XOR<Prisma.PayrollProfileUpdateWithoutPayslipInput, Prisma.PayrollProfileUncheckedUpdateWithoutPayslipInput>
-  create: Prisma.XOR<Prisma.PayrollProfileCreateWithoutPayslipInput, Prisma.PayrollProfileUncheckedCreateWithoutPayslipInput>
+export type PayrollProfileUpsertWithoutPayslipsInput = {
+  update: Prisma.XOR<Prisma.PayrollProfileUpdateWithoutPayslipsInput, Prisma.PayrollProfileUncheckedUpdateWithoutPayslipsInput>
+  create: Prisma.XOR<Prisma.PayrollProfileCreateWithoutPayslipsInput, Prisma.PayrollProfileUncheckedCreateWithoutPayslipsInput>
   where?: Prisma.PayrollProfileWhereInput
 }
 
-export type PayrollProfileUpdateToOneWithWhereWithoutPayslipInput = {
+export type PayrollProfileUpdateToOneWithWhereWithoutPayslipsInput = {
   where?: Prisma.PayrollProfileWhereInput
-  data: Prisma.XOR<Prisma.PayrollProfileUpdateWithoutPayslipInput, Prisma.PayrollProfileUncheckedUpdateWithoutPayslipInput>
+  data: Prisma.XOR<Prisma.PayrollProfileUpdateWithoutPayslipsInput, Prisma.PayrollProfileUncheckedUpdateWithoutPayslipsInput>
 }
 
-export type PayrollProfileUpdateWithoutPayslipInput = {
+export type PayrollProfileUpdateWithoutPayslipsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   alternateEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumPayrollProfile_genderFieldUpdateOperationsInput | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   race?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hasPr?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  idType?: Prisma.NullableEnumPayrollProfile_idTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   idNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  maritalStatus?: Prisma.NullableEnumPayrollProfile_maritalStatusFieldUpdateOperationsInput | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.NullableEnumMaritalStatusFieldUpdateOperationsInput | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isOku?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spouseWorking?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -2268,16 +2272,16 @@ export type PayrollProfileUpdateWithoutPayslipInput = {
   epfEmployeeVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  socsoScheme?: Prisma.NullableEnumPayrollProfile_socsoSchemeFieldUpdateOperationsInput | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFieldUpdateOperationsInput | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   monthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2295,22 +2299,22 @@ export type PayrollProfileUpdateWithoutPayslipInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  EmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
 }
 
-export type PayrollProfileUncheckedUpdateWithoutPayslipInput = {
+export type PayrollProfileUncheckedUpdateWithoutPayslipsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
   phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   alternateEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  gender?: Prisma.NullableEnumPayrollProfile_genderFieldUpdateOperationsInput | $Enums.PayrollProfile_gender | null
+  gender?: Prisma.NullableEnumGenderFieldUpdateOperationsInput | $Enums.Gender | null
   dateOfBirth?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   race?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   hasPr?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  idType?: Prisma.NullableEnumPayrollProfile_idTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_idType | null
+  idType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   idNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  maritalStatus?: Prisma.NullableEnumPayrollProfile_maritalStatusFieldUpdateOperationsInput | $Enums.PayrollProfile_maritalStatus | null
+  maritalStatus?: Prisma.NullableEnumMaritalStatusFieldUpdateOperationsInput | $Enums.MaritalStatus | null
   isResident?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isOku?: Prisma.BoolFieldUpdateOperationsInput | boolean
   spouseWorking?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -2337,16 +2341,16 @@ export type PayrollProfileUncheckedUpdateWithoutPayslipInput = {
   epfEmployeeVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployerVoluntary?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   socsoNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  socsoScheme?: Prisma.NullableEnumPayrollProfile_socsoSchemeFieldUpdateOperationsInput | $Enums.PayrollProfile_socsoScheme | null
+  socsoScheme?: Prisma.NullableEnumSocsoSchemeFieldUpdateOperationsInput | $Enums.SocsoScheme | null
   contributeToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
   incomeTaxNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pcbBorneByEmployer?: Prisma.BoolFieldUpdateOperationsInput | boolean
   ssfwNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  paymentMethod?: Prisma.EnumPayrollProfile_paymentMethodFieldUpdateOperationsInput | $Enums.PayrollProfile_paymentMethod
+  paymentMethod?: Prisma.EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
   bankName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountHolderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   bankAccountNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  salaryType?: Prisma.EnumPayrollProfile_salaryTypeFieldUpdateOperationsInput | $Enums.PayrollProfile_salaryType
+  salaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   monthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   hourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   fixedAllowances?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -2372,11 +2376,11 @@ export type PayrollProfileUncheckedUpdateWithoutPayslipInput = {
  */
 
 export type PayrollProfileCountOutputType = {
-  Payslip: number
+  payslips: number
 }
 
 export type PayrollProfileCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  Payslip?: boolean | PayrollProfileCountOutputTypeCountPayslipArgs
+  payslips?: boolean | PayrollProfileCountOutputTypeCountPayslipsArgs
 }
 
 /**
@@ -2392,7 +2396,7 @@ export type PayrollProfileCountOutputTypeDefaultArgs<ExtArgs extends runtime.Typ
 /**
  * PayrollProfileCountOutputType without action
  */
-export type PayrollProfileCountOutputTypeCountPayslipArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type PayrollProfileCountOutputTypeCountPayslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.PayslipWhereInput
 }
 
@@ -2463,8 +2467,8 @@ export type PayrollProfileSelect<ExtArgs extends runtime.Types.Extensions.Intern
   archivedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  EmployeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
-  Payslip?: boolean | Prisma.PayrollProfile$PayslipArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
+  payslips?: boolean | Prisma.PayrollProfile$payslipsArgs<ExtArgs>
   _count?: boolean | Prisma.PayrollProfileCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payrollProfile"]>
 
@@ -2540,31 +2544,42 @@ export type PayrollProfileSelectScalar = {
 
 export type PayrollProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "phone" | "alternateEmail" | "gender" | "dateOfBirth" | "nationality" | "race" | "hasPr" | "idType" | "idNumber" | "maritalStatus" | "isResident" | "isOku" | "spouseWorking" | "spouseDisabled" | "spousePcbNumber" | "spouseIdNumber" | "addressLine1" | "addressLine2" | "addressLine3" | "city" | "postcode" | "state" | "emergencyContactName" | "emergencyContactPhone" | "emergencyContactRelation" | "childRelief" | "prevEmploymentYear" | "prevRemuneration" | "prevEpf" | "contributeToEpf" | "epfMemberBefore1998" | "epfNumber" | "epfEmployeeRate" | "epfEmployeeVoluntary" | "epfEmployerVoluntary" | "socsoNumber" | "socsoScheme" | "contributeToEis" | "incomeTaxNumber" | "pcbBorneByEmployer" | "ssfwNumber" | "paymentMethod" | "bankName" | "bankAccountHolderName" | "bankAccountNumber" | "salaryType" | "monthlySalary" | "hourlyRate" | "fixedAllowances" | "joinDate" | "leaveDate" | "archiveReason" | "reportedToLhdn" | "department" | "location" | "workSchedule" | "payrollPolicy" | "payrollCycle" | "leaveEntitlement" | "isArchived" | "archivedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollProfile"]>
 export type PayrollProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  EmployeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
-  Payslip?: boolean | Prisma.PayrollProfile$PayslipArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
+  payslips?: boolean | Prisma.PayrollProfile$payslipsArgs<ExtArgs>
   _count?: boolean | Prisma.PayrollProfileCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $PayrollProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PayrollProfile"
   objects: {
-    EmployeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs>
-    Payslip: Prisma.$PayslipPayload<ExtArgs>[]
+    employeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs>
+    payslips: Prisma.$PayslipPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     employeeProfileId: string
     phone: string | null
     alternateEmail: string | null
-    gender: $Enums.PayrollProfile_gender | null
+    gender: $Enums.Gender | null
     dateOfBirth: Date | null
+    /**
+     * Free-text country/nationality string (e.g. "Malaysian",
+     * "Singaporean"). Drives the foreign-worker EPF branch — anything
+     * not "Malaysian" uses the foreign-worker rate.
+     */
     nationality: string | null
+    /**
+     * LHDN race code (M/C/I/O etc). Used for Form E reporting (deferred).
+     */
     race: string | null
     hasPr: boolean
-    idType: $Enums.PayrollProfile_idType | null
+    idType: $Enums.IdType | null
     idNumber: string | null
-    maritalStatus: $Enums.PayrollProfile_maritalStatus | null
+    maritalStatus: $Enums.MaritalStatus | null
     isResident: boolean
+    /**
+     * OKU = disabled. RM7,000 PCB relief in v2.
+     */
     isOku: boolean
     spouseWorking: boolean | null
     spouseDisabled: boolean | null
@@ -2579,40 +2594,84 @@ export type $PayrollProfilePayload<ExtArgs extends runtime.Types.Extensions.Inte
     emergencyContactName: string | null
     emergencyContactPhone: string | null
     emergencyContactRelation: string | null
+    /**
+     * Dependent children — used for v2 PCB child relief calc. Stored as
+     * JSON to keep the row flat. Expected shape:
+     * [{ age: 12, abilityStatus: "NORMAL"|"DISABLED",
+     * currentlyStudying: "PRESCHOOL"|"PRIMARY"|"SECONDARY"|"HIGHER_ED"|"NONE",
+     * pcbDeduction: "FULL"|"HALF"|"NONE" }, ...]
+     */
     childRelief: runtime.JsonValue | null
     prevEmploymentYear: number | null
     prevRemuneration: runtime.Decimal | null
     prevEpf: runtime.Decimal | null
     contributeToEpf: boolean
+    /**
+     * Pre-1998 EPF members get different statutory rules. Captured for
+     * completeness; not used in v1 (defaults to false).
+     */
     epfMemberBefore1998: boolean
     epfNumber: string | null
+    /**
+     * Employee's mandatory EPF rate %. Default 11% per current Malaysian
+     * law. Per-employee override of the org's defaultEpfEmployeeRate.
+     */
     epfEmployeeRate: runtime.Decimal
     epfEmployeeVoluntary: runtime.Decimal
     epfEmployerVoluntary: runtime.Decimal
     socsoNumber: string | null
-    socsoScheme: $Enums.PayrollProfile_socsoScheme | null
+    socsoScheme: $Enums.SocsoScheme | null
     contributeToEis: boolean
     incomeTaxNumber: string | null
     pcbBorneByEmployer: boolean
     ssfwNumber: string | null
-    paymentMethod: $Enums.PayrollProfile_paymentMethod
+    paymentMethod: $Enums.PaymentMethod
     bankName: string | null
     bankAccountHolderName: string | null
     bankAccountNumber: string | null
-    salaryType: $Enums.PayrollProfile_salaryType
+    salaryType: $Enums.SalaryType
+    /**
+     * Required when salaryType=MONTHLY. RM.
+     */
     monthlySalary: runtime.Decimal | null
+    /**
+     * Required when salaryType=HOURLY. RM per hour.
+     */
     hourlyRate: runtime.Decimal | null
+    /**
+     * Fixed allowances applied to every payroll run as base earnings.
+     * JSON shape: [{ name: "Parking Allowance", amount: 200 }, ...].
+     * One-off allowances are added per-run via PayslipLineItem.
+     */
     fixedAllowances: runtime.JsonValue | null
     joinDate: Date | null
+    /**
+     * Set when employee leaves. Triggers proration on their final
+     * payroll run.
+     */
     leaveDate: Date | null
     archiveReason: string | null
+    /**
+     * True after the employee's final payroll has been reported to LHDN
+     * (Form E and friends). Excludes them from future runs even if not
+     * archived yet.
+     */
     reportedToLhdn: boolean
     department: string | null
     location: string | null
     workSchedule: string | null
     payrollPolicy: string | null
     payrollCycle: string | null
+    /**
+     * Leave entitlement — v2 placeholder for the leave module.
+     * Shape TBD when leave ships, e.g.
+     * [{ type: "ANNUAL", days: 14 }, { type: "SICK", days: 30 }]
+     */
     leaveEntitlement: runtime.JsonValue | null
+    /**
+     * Archived profiles are excluded from new payroll runs but their
+     * historical payslips are retained.
+     */
     isArchived: boolean
     archivedAt: Date | null
     createdAt: Date
@@ -2957,8 +3016,8 @@ readonly fields: PayrollProfileFieldRefs;
  */
 export interface Prisma__PayrollProfileClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  EmployeeProfile<T extends Prisma.EmployeeProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  Payslip<T extends Prisma.PayrollProfile$PayslipArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PayrollProfile$PayslipArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  employeeProfile<T extends Prisma.EmployeeProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  payslips<T extends Prisma.PayrollProfile$payslipsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PayrollProfile$payslipsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayslipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2992,14 +3051,14 @@ export interface PayrollProfileFieldRefs {
   readonly employeeProfileId: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly phone: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly alternateEmail: Prisma.FieldRef<"PayrollProfile", 'String'>
-  readonly gender: Prisma.FieldRef<"PayrollProfile", 'PayrollProfile_gender'>
+  readonly gender: Prisma.FieldRef<"PayrollProfile", 'Gender'>
   readonly dateOfBirth: Prisma.FieldRef<"PayrollProfile", 'DateTime'>
   readonly nationality: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly race: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly hasPr: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
-  readonly idType: Prisma.FieldRef<"PayrollProfile", 'PayrollProfile_idType'>
+  readonly idType: Prisma.FieldRef<"PayrollProfile", 'IdType'>
   readonly idNumber: Prisma.FieldRef<"PayrollProfile", 'String'>
-  readonly maritalStatus: Prisma.FieldRef<"PayrollProfile", 'PayrollProfile_maritalStatus'>
+  readonly maritalStatus: Prisma.FieldRef<"PayrollProfile", 'MaritalStatus'>
   readonly isResident: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
   readonly isOku: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
   readonly spouseWorking: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
@@ -3026,16 +3085,16 @@ export interface PayrollProfileFieldRefs {
   readonly epfEmployeeVoluntary: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
   readonly epfEmployerVoluntary: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
   readonly socsoNumber: Prisma.FieldRef<"PayrollProfile", 'String'>
-  readonly socsoScheme: Prisma.FieldRef<"PayrollProfile", 'PayrollProfile_socsoScheme'>
+  readonly socsoScheme: Prisma.FieldRef<"PayrollProfile", 'SocsoScheme'>
   readonly contributeToEis: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
   readonly incomeTaxNumber: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly pcbBorneByEmployer: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
   readonly ssfwNumber: Prisma.FieldRef<"PayrollProfile", 'String'>
-  readonly paymentMethod: Prisma.FieldRef<"PayrollProfile", 'PayrollProfile_paymentMethod'>
+  readonly paymentMethod: Prisma.FieldRef<"PayrollProfile", 'PaymentMethod'>
   readonly bankName: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly bankAccountHolderName: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly bankAccountNumber: Prisma.FieldRef<"PayrollProfile", 'String'>
-  readonly salaryType: Prisma.FieldRef<"PayrollProfile", 'PayrollProfile_salaryType'>
+  readonly salaryType: Prisma.FieldRef<"PayrollProfile", 'SalaryType'>
   readonly monthlySalary: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
   readonly hourlyRate: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
   readonly fixedAllowances: Prisma.FieldRef<"PayrollProfile", 'Json'>
@@ -3401,9 +3460,9 @@ export type PayrollProfileDeleteManyArgs<ExtArgs extends runtime.Types.Extension
 }
 
 /**
- * PayrollProfile.Payslip
+ * PayrollProfile.payslips
  */
-export type PayrollProfile$PayslipArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type PayrollProfile$payslipsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Payslip
    */

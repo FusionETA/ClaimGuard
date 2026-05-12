@@ -14,7 +14,10 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model PayrollCompanyInfo
- * 
+ * Per-org employer filing profile. Updated rarely (~annual at most).
+ * Separate from PayrollSettings because it's a different concern — the
+ * "filing identity" of the company vs the operational rules. Matches
+ * Altomate's `p_company_settings`.
  */
 export type PayrollCompanyInfoModel = runtime.Types.Result.DefaultSelection<Prisma.$PayrollCompanyInfoPayload>
 
@@ -50,7 +53,7 @@ export type PayrollCompanyInfoMinAggregateOutputType = {
   taxAgentPhone: string | null
   taxAgentEmail: string | null
   declarantName: string | null
-  declarantIdType: $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType: $Enums.IdType | null
   declarantIdNumber: string | null
   declarantPosition: string | null
   createdAt: Date | null
@@ -83,7 +86,7 @@ export type PayrollCompanyInfoMaxAggregateOutputType = {
   taxAgentPhone: string | null
   taxAgentEmail: string | null
   declarantName: string | null
-  declarantIdType: $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType: $Enums.IdType | null
   declarantIdNumber: string | null
   declarantPosition: string | null
   createdAt: Date | null
@@ -323,7 +326,7 @@ export type PayrollCompanyInfoGroupByOutputType = {
   taxAgentPhone: string | null
   taxAgentEmail: string | null
   declarantName: string | null
-  declarantIdType: $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType: $Enums.IdType | null
   declarantIdNumber: string | null
   declarantPosition: string | null
   createdAt: Date
@@ -377,12 +380,12 @@ export type PayrollCompanyInfoWhereInput = {
   taxAgentPhone?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentEmail?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  declarantIdType?: Prisma.EnumPayrollCompanyInfo_declarantIdTypeNullableFilter<"PayrollCompanyInfo"> | $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: Prisma.EnumIdTypeNullableFilter<"PayrollCompanyInfo"> | $Enums.IdType | null
   declarantIdNumber?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantPosition?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollCompanyInfo"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollCompanyInfo"> | Date | string
-  Organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
 export type PayrollCompanyInfoOrderByWithRelationInput = {
@@ -416,7 +419,7 @@ export type PayrollCompanyInfoOrderByWithRelationInput = {
   declarantPosition?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  Organization?: Prisma.OrganizationOrderByWithRelationInput
+  organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.PayrollCompanyInfoOrderByRelevanceInput
 }
 
@@ -449,12 +452,12 @@ export type PayrollCompanyInfoWhereUniqueInput = Prisma.AtLeast<{
   taxAgentPhone?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentEmail?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  declarantIdType?: Prisma.EnumPayrollCompanyInfo_declarantIdTypeNullableFilter<"PayrollCompanyInfo"> | $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: Prisma.EnumIdTypeNullableFilter<"PayrollCompanyInfo"> | $Enums.IdType | null
   declarantIdNumber?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantPosition?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollCompanyInfo"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollCompanyInfo"> | Date | string
-  Organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id" | "organizationId">
 
 export type PayrollCompanyInfoOrderByWithAggregationInput = {
@@ -522,7 +525,7 @@ export type PayrollCompanyInfoScalarWhereWithAggregatesInput = {
   taxAgentPhone?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   taxAgentEmail?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   declarantName?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
-  declarantIdType?: Prisma.EnumPayrollCompanyInfo_declarantIdTypeNullableWithAggregatesFilter<"PayrollCompanyInfo"> | $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: Prisma.EnumIdTypeNullableWithAggregatesFilter<"PayrollCompanyInfo"> | $Enums.IdType | null
   declarantIdNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   declarantPosition?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollCompanyInfo"> | Date | string
@@ -530,7 +533,7 @@ export type PayrollCompanyInfoScalarWhereWithAggregatesInput = {
 }
 
 export type PayrollCompanyInfoCreateInput = {
-  id: string
+  id?: string
   employerName?: string | null
   employerTin?: string | null
   registrationNo?: string | null
@@ -554,16 +557,16 @@ export type PayrollCompanyInfoCreateInput = {
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
   declarantName?: string | null
-  declarantIdType?: $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
-  updatedAt: Date | string
-  Organization: Prisma.OrganizationCreateNestedOneWithoutPayrollCompanyInfoInput
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutPayrollCompanyInfoInput
 }
 
 export type PayrollCompanyInfoUncheckedCreateInput = {
-  id: string
+  id?: string
   organizationId: string
   employerName?: string | null
   employerTin?: string | null
@@ -588,11 +591,11 @@ export type PayrollCompanyInfoUncheckedCreateInput = {
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
   declarantName?: string | null
-  declarantIdType?: $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollCompanyInfoUpdateInput = {
@@ -620,12 +623,12 @@ export type PayrollCompanyInfoUpdateInput = {
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  declarantIdType?: Prisma.NullableEnumPayrollCompanyInfo_declarantIdTypeFieldUpdateOperationsInput | $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  Organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollCompanyInfoNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollCompanyInfoNestedInput
 }
 
 export type PayrollCompanyInfoUncheckedUpdateInput = {
@@ -654,7 +657,7 @@ export type PayrollCompanyInfoUncheckedUpdateInput = {
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  declarantIdType?: Prisma.NullableEnumPayrollCompanyInfo_declarantIdTypeFieldUpdateOperationsInput | $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -662,7 +665,7 @@ export type PayrollCompanyInfoUncheckedUpdateInput = {
 }
 
 export type PayrollCompanyInfoCreateManyInput = {
-  id: string
+  id?: string
   organizationId: string
   employerName?: string | null
   employerTin?: string | null
@@ -687,11 +690,11 @@ export type PayrollCompanyInfoCreateManyInput = {
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
   declarantName?: string | null
-  declarantIdType?: $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollCompanyInfoUpdateManyMutationInput = {
@@ -719,7 +722,7 @@ export type PayrollCompanyInfoUpdateManyMutationInput = {
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  declarantIdType?: Prisma.NullableEnumPayrollCompanyInfo_declarantIdTypeFieldUpdateOperationsInput | $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -752,7 +755,7 @@ export type PayrollCompanyInfoUncheckedUpdateManyInput = {
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  declarantIdType?: Prisma.NullableEnumPayrollCompanyInfo_declarantIdTypeFieldUpdateOperationsInput | $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -901,12 +904,8 @@ export type PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput =
   update?: Prisma.XOR<Prisma.XOR<Prisma.PayrollCompanyInfoUpdateToOneWithWhereWithoutOrganizationInput, Prisma.PayrollCompanyInfoUpdateWithoutOrganizationInput>, Prisma.PayrollCompanyInfoUncheckedUpdateWithoutOrganizationInput>
 }
 
-export type NullableEnumPayrollCompanyInfo_declarantIdTypeFieldUpdateOperationsInput = {
-  set?: $Enums.PayrollCompanyInfo_declarantIdType | null
-}
-
 export type PayrollCompanyInfoCreateWithoutOrganizationInput = {
-  id: string
+  id?: string
   employerName?: string | null
   employerTin?: string | null
   registrationNo?: string | null
@@ -930,15 +929,15 @@ export type PayrollCompanyInfoCreateWithoutOrganizationInput = {
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
   declarantName?: string | null
-  declarantIdType?: $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollCompanyInfoUncheckedCreateWithoutOrganizationInput = {
-  id: string
+  id?: string
   employerName?: string | null
   employerTin?: string | null
   registrationNo?: string | null
@@ -962,11 +961,11 @@ export type PayrollCompanyInfoUncheckedCreateWithoutOrganizationInput = {
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
   declarantName?: string | null
-  declarantIdType?: $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayrollCompanyInfoCreateOrConnectWithoutOrganizationInput = {
@@ -1010,7 +1009,7 @@ export type PayrollCompanyInfoUpdateWithoutOrganizationInput = {
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  declarantIdType?: Prisma.NullableEnumPayrollCompanyInfo_declarantIdTypeFieldUpdateOperationsInput | $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1042,7 +1041,7 @@ export type PayrollCompanyInfoUncheckedUpdateWithoutOrganizationInput = {
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  declarantIdType?: Prisma.NullableEnumPayrollCompanyInfo_declarantIdTypeFieldUpdateOperationsInput | $Enums.PayrollCompanyInfo_declarantIdType | null
+  declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1082,7 +1081,7 @@ export type PayrollCompanyInfoSelect<ExtArgs extends runtime.Types.Extensions.In
   declarantPosition?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  Organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payrollCompanyInfo"]>
 
 
@@ -1122,13 +1121,13 @@ export type PayrollCompanyInfoSelectScalar = {
 
 export type PayrollCompanyInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employerName" | "employerTin" | "registrationNo" | "referenceType" | "referenceNo" | "employerCategory" | "employerStatus" | "cp8dFurnishType" | "addressLine1" | "addressLine2" | "postcode" | "city" | "state" | "country" | "phone" | "handphone" | "email" | "taxAgentName" | "taxAgentTin" | "taxAgentLicenceNo" | "taxAgentPhone" | "taxAgentEmail" | "declarantName" | "declarantIdType" | "declarantIdNumber" | "declarantPosition" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollCompanyInfo"]>
 export type PayrollCompanyInfoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  Organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
 
 export type $PayrollCompanyInfoPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PayrollCompanyInfo"
   objects: {
-    Organization: Prisma.$OrganizationPayload<ExtArgs>
+    organization: Prisma.$OrganizationPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1156,7 +1155,7 @@ export type $PayrollCompanyInfoPayload<ExtArgs extends runtime.Types.Extensions.
     taxAgentPhone: string | null
     taxAgentEmail: string | null
     declarantName: string | null
-    declarantIdType: $Enums.PayrollCompanyInfo_declarantIdType | null
+    declarantIdType: $Enums.IdType | null
     declarantIdNumber: string | null
     declarantPosition: string | null
     createdAt: Date
@@ -1501,7 +1500,7 @@ readonly fields: PayrollCompanyInfoFieldRefs;
  */
 export interface Prisma__PayrollCompanyInfoClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  Organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1556,7 +1555,7 @@ export interface PayrollCompanyInfoFieldRefs {
   readonly taxAgentPhone: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly taxAgentEmail: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly declarantName: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
-  readonly declarantIdType: Prisma.FieldRef<"PayrollCompanyInfo", 'PayrollCompanyInfo_declarantIdType'>
+  readonly declarantIdType: Prisma.FieldRef<"PayrollCompanyInfo", 'IdType'>
   readonly declarantIdNumber: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly declarantPosition: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly createdAt: Prisma.FieldRef<"PayrollCompanyInfo", 'DateTime'>

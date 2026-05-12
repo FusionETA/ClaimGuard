@@ -14,7 +14,9 @@ import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Payslip
- * 
+ * One per (run, employee). Snapshots employee data at the moment of
+ * generation so later edits to PayrollProfile don't rewrite payroll
+ * history.
  */
 export type PayslipModel = runtime.Types.Result.DefaultSelection<Prisma.$PayslipPayload>
 
@@ -98,7 +100,7 @@ export type PayslipMinAggregateOutputType = {
   snapshotName: string | null
   snapshotEmployeeId: string | null
   snapshotPosition: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType | null
+  snapshotSalaryType: $Enums.SalaryType | null
   snapshotMonthlySalary: runtime.Decimal | null
   snapshotHourlyRate: runtime.Decimal | null
   snapshotNationality: string | null
@@ -142,7 +144,7 @@ export type PayslipMaxAggregateOutputType = {
   snapshotName: string | null
   snapshotEmployeeId: string | null
   snapshotPosition: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType | null
+  snapshotSalaryType: $Enums.SalaryType | null
   snapshotMonthlySalary: runtime.Decimal | null
   snapshotHourlyRate: runtime.Decimal | null
   snapshotNationality: string | null
@@ -517,7 +519,7 @@ export type PayslipGroupByOutputType = {
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary: runtime.Decimal | null
   snapshotHourlyRate: runtime.Decimal | null
   snapshotNationality: string | null
@@ -585,7 +587,7 @@ export type PayslipWhereInput = {
   snapshotName?: Prisma.StringFilter<"Payslip"> | string
   snapshotEmployeeId?: Prisma.StringFilter<"Payslip"> | string
   snapshotPosition?: Prisma.StringNullableFilter<"Payslip"> | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFilter<"Payslip"> | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFilter<"Payslip"> | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.DecimalNullableFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.DecimalNullableFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.StringNullableFilter<"Payslip"> | string | null
@@ -620,10 +622,10 @@ export type PayslipWhereInput = {
   totalCostToEmployer?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
-  EmployeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
-  PayrollProfile?: Prisma.XOR<Prisma.PayrollProfileNullableScalarRelationFilter, Prisma.PayrollProfileWhereInput> | null
-  PayrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
-  PayslipLineItem?: Prisma.PayslipLineItemListRelationFilter
+  payrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
+  payrollProfile?: Prisma.XOR<Prisma.PayrollProfileNullableScalarRelationFilter, Prisma.PayrollProfileWhereInput> | null
+  lineItems?: Prisma.PayslipLineItemListRelationFilter
 }
 
 export type PayslipOrderByWithRelationInput = {
@@ -669,10 +671,10 @@ export type PayslipOrderByWithRelationInput = {
   totalCostToEmployer?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  EmployeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
-  PayrollProfile?: Prisma.PayrollProfileOrderByWithRelationInput
-  PayrollRun?: Prisma.PayrollRunOrderByWithRelationInput
-  PayslipLineItem?: Prisma.PayslipLineItemOrderByRelationAggregateInput
+  payrollRun?: Prisma.PayrollRunOrderByWithRelationInput
+  employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
+  payrollProfile?: Prisma.PayrollProfileOrderByWithRelationInput
+  lineItems?: Prisma.PayslipLineItemOrderByRelationAggregateInput
   _relevance?: Prisma.PayslipOrderByRelevanceInput
 }
 
@@ -688,7 +690,7 @@ export type PayslipWhereUniqueInput = Prisma.AtLeast<{
   snapshotName?: Prisma.StringFilter<"Payslip"> | string
   snapshotEmployeeId?: Prisma.StringFilter<"Payslip"> | string
   snapshotPosition?: Prisma.StringNullableFilter<"Payslip"> | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFilter<"Payslip"> | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFilter<"Payslip"> | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.DecimalNullableFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.DecimalNullableFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.StringNullableFilter<"Payslip"> | string | null
@@ -723,10 +725,10 @@ export type PayslipWhereUniqueInput = Prisma.AtLeast<{
   totalCostToEmployer?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
-  EmployeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
-  PayrollProfile?: Prisma.XOR<Prisma.PayrollProfileNullableScalarRelationFilter, Prisma.PayrollProfileWhereInput> | null
-  PayrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
-  PayslipLineItem?: Prisma.PayslipLineItemListRelationFilter
+  payrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
+  payrollProfile?: Prisma.XOR<Prisma.PayrollProfileNullableScalarRelationFilter, Prisma.PayrollProfileWhereInput> | null
+  lineItems?: Prisma.PayslipLineItemListRelationFilter
 }, "id" | "payrollRunId_employeeProfileId">
 
 export type PayslipOrderByWithAggregationInput = {
@@ -790,7 +792,7 @@ export type PayslipScalarWhereWithAggregatesInput = {
   snapshotName?: Prisma.StringWithAggregatesFilter<"Payslip"> | string
   snapshotEmployeeId?: Prisma.StringWithAggregatesFilter<"Payslip"> | string
   snapshotPosition?: Prisma.StringNullableWithAggregatesFilter<"Payslip"> | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeWithAggregatesFilter<"Payslip"> | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeWithAggregatesFilter<"Payslip"> | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.DecimalNullableWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.DecimalNullableWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.StringNullableWithAggregatesFilter<"Payslip"> | string | null
@@ -828,11 +830,11 @@ export type PayslipScalarWhereWithAggregatesInput = {
 }
 
 export type PayslipCreateInput = {
-  id: string
+  id?: string
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -866,22 +868,22 @@ export type PayslipCreateInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  EmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipInput
-  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipInput
-  PayrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipInput
-  PayslipLineItem?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
+  updatedAt?: Date | string
+  payrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipsInput
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipsInput
+  payrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipsInput
+  lineItems?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
 }
 
 export type PayslipUncheckedCreateInput = {
-  id: string
+  id?: string
   payrollRunId: string
   employeeProfileId: string
   payrollProfileId?: string | null
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -915,8 +917,8 @@ export type PayslipUncheckedCreateInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  PayslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
+  updatedAt?: Date | string
+  lineItems?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type PayslipUpdateInput = {
@@ -924,7 +926,7 @@ export type PayslipUpdateInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -959,10 +961,10 @@ export type PayslipUpdateInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  EmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipNestedInput
-  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipNestedInput
-  PayrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipNestedInput
-  PayslipLineItem?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
+  payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipsNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipsNestedInput
+  payrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipsNestedInput
+  lineItems?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
 }
 
 export type PayslipUncheckedUpdateInput = {
@@ -973,7 +975,7 @@ export type PayslipUncheckedUpdateInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1008,18 +1010,18 @@ export type PayslipUncheckedUpdateInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  PayslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
+  lineItems?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type PayslipCreateManyInput = {
-  id: string
+  id?: string
   payrollRunId: string
   employeeProfileId: string
   payrollProfileId?: string | null
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -1053,7 +1055,7 @@ export type PayslipCreateManyInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayslipUpdateManyMutationInput = {
@@ -1061,7 +1063,7 @@ export type PayslipUpdateManyMutationInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1106,7 +1108,7 @@ export type PayslipUncheckedUpdateManyInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1492,30 +1494,26 @@ export type PayslipUncheckedUpdateManyWithoutPayrollRunNestedInput = {
   deleteMany?: Prisma.PayslipScalarWhereInput | Prisma.PayslipScalarWhereInput[]
 }
 
-export type EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput = {
-  set?: $Enums.Payslip_snapshotSalaryType
-}
-
-export type PayslipCreateNestedOneWithoutPayslipLineItemInput = {
-  create?: Prisma.XOR<Prisma.PayslipCreateWithoutPayslipLineItemInput, Prisma.PayslipUncheckedCreateWithoutPayslipLineItemInput>
-  connectOrCreate?: Prisma.PayslipCreateOrConnectWithoutPayslipLineItemInput
+export type PayslipCreateNestedOneWithoutLineItemsInput = {
+  create?: Prisma.XOR<Prisma.PayslipCreateWithoutLineItemsInput, Prisma.PayslipUncheckedCreateWithoutLineItemsInput>
+  connectOrCreate?: Prisma.PayslipCreateOrConnectWithoutLineItemsInput
   connect?: Prisma.PayslipWhereUniqueInput
 }
 
-export type PayslipUpdateOneRequiredWithoutPayslipLineItemNestedInput = {
-  create?: Prisma.XOR<Prisma.PayslipCreateWithoutPayslipLineItemInput, Prisma.PayslipUncheckedCreateWithoutPayslipLineItemInput>
-  connectOrCreate?: Prisma.PayslipCreateOrConnectWithoutPayslipLineItemInput
-  upsert?: Prisma.PayslipUpsertWithoutPayslipLineItemInput
+export type PayslipUpdateOneRequiredWithoutLineItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.PayslipCreateWithoutLineItemsInput, Prisma.PayslipUncheckedCreateWithoutLineItemsInput>
+  connectOrCreate?: Prisma.PayslipCreateOrConnectWithoutLineItemsInput
+  upsert?: Prisma.PayslipUpsertWithoutLineItemsInput
   connect?: Prisma.PayslipWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PayslipUpdateToOneWithWhereWithoutPayslipLineItemInput, Prisma.PayslipUpdateWithoutPayslipLineItemInput>, Prisma.PayslipUncheckedUpdateWithoutPayslipLineItemInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PayslipUpdateToOneWithWhereWithoutLineItemsInput, Prisma.PayslipUpdateWithoutLineItemsInput>, Prisma.PayslipUncheckedUpdateWithoutLineItemsInput>
 }
 
 export type PayslipCreateWithoutEmployeeProfileInput = {
-  id: string
+  id?: string
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -1549,20 +1547,20 @@ export type PayslipCreateWithoutEmployeeProfileInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipInput
-  PayrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipInput
-  PayslipLineItem?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
+  updatedAt?: Date | string
+  payrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipsInput
+  payrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipsInput
+  lineItems?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
 }
 
 export type PayslipUncheckedCreateWithoutEmployeeProfileInput = {
-  id: string
+  id?: string
   payrollRunId: string
   payrollProfileId?: string | null
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -1596,8 +1594,8 @@ export type PayslipUncheckedCreateWithoutEmployeeProfileInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  PayslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
+  updatedAt?: Date | string
+  lineItems?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type PayslipCreateOrConnectWithoutEmployeeProfileInput = {
@@ -1637,7 +1635,7 @@ export type PayslipScalarWhereInput = {
   snapshotName?: Prisma.StringFilter<"Payslip"> | string
   snapshotEmployeeId?: Prisma.StringFilter<"Payslip"> | string
   snapshotPosition?: Prisma.StringNullableFilter<"Payslip"> | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFilter<"Payslip"> | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFilter<"Payslip"> | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.DecimalNullableFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.DecimalNullableFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.StringNullableFilter<"Payslip"> | string | null
@@ -1675,11 +1673,11 @@ export type PayslipScalarWhereInput = {
 }
 
 export type PayslipCreateWithoutPayrollProfileInput = {
-  id: string
+  id?: string
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -1713,20 +1711,20 @@ export type PayslipCreateWithoutPayrollProfileInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  EmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipInput
-  PayrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipInput
-  PayslipLineItem?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
+  updatedAt?: Date | string
+  payrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipsInput
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipsInput
+  lineItems?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
 }
 
 export type PayslipUncheckedCreateWithoutPayrollProfileInput = {
-  id: string
+  id?: string
   payrollRunId: string
   employeeProfileId: string
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -1760,8 +1758,8 @@ export type PayslipUncheckedCreateWithoutPayrollProfileInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  PayslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
+  updatedAt?: Date | string
+  lineItems?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type PayslipCreateOrConnectWithoutPayrollProfileInput = {
@@ -1791,11 +1789,11 @@ export type PayslipUpdateManyWithWhereWithoutPayrollProfileInput = {
 }
 
 export type PayslipCreateWithoutPayrollRunInput = {
-  id: string
+  id?: string
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -1829,20 +1827,20 @@ export type PayslipCreateWithoutPayrollRunInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  EmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipInput
-  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipInput
-  PayslipLineItem?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
+  updatedAt?: Date | string
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipsInput
+  payrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipsInput
+  lineItems?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
 }
 
 export type PayslipUncheckedCreateWithoutPayrollRunInput = {
-  id: string
+  id?: string
   employeeProfileId: string
   payrollProfileId?: string | null
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -1876,8 +1874,8 @@ export type PayslipUncheckedCreateWithoutPayrollRunInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  PayslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
+  updatedAt?: Date | string
+  lineItems?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
 }
 
 export type PayslipCreateOrConnectWithoutPayrollRunInput = {
@@ -1906,12 +1904,12 @@ export type PayslipUpdateManyWithWhereWithoutPayrollRunInput = {
   data: Prisma.XOR<Prisma.PayslipUpdateManyMutationInput, Prisma.PayslipUncheckedUpdateManyWithoutPayrollRunInput>
 }
 
-export type PayslipCreateWithoutPayslipLineItemInput = {
-  id: string
+export type PayslipCreateWithoutLineItemsInput = {
+  id?: string
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -1945,21 +1943,21 @@ export type PayslipCreateWithoutPayslipLineItemInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
-  EmployeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipInput
-  PayrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipInput
-  PayrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipInput
+  updatedAt?: Date | string
+  payrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipsInput
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipsInput
+  payrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipsInput
 }
 
-export type PayslipUncheckedCreateWithoutPayslipLineItemInput = {
-  id: string
+export type PayslipUncheckedCreateWithoutLineItemsInput = {
+  id?: string
   payrollRunId: string
   employeeProfileId: string
   payrollProfileId?: string | null
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -1993,31 +1991,31 @@ export type PayslipUncheckedCreateWithoutPayslipLineItemInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
-export type PayslipCreateOrConnectWithoutPayslipLineItemInput = {
+export type PayslipCreateOrConnectWithoutLineItemsInput = {
   where: Prisma.PayslipWhereUniqueInput
-  create: Prisma.XOR<Prisma.PayslipCreateWithoutPayslipLineItemInput, Prisma.PayslipUncheckedCreateWithoutPayslipLineItemInput>
+  create: Prisma.XOR<Prisma.PayslipCreateWithoutLineItemsInput, Prisma.PayslipUncheckedCreateWithoutLineItemsInput>
 }
 
-export type PayslipUpsertWithoutPayslipLineItemInput = {
-  update: Prisma.XOR<Prisma.PayslipUpdateWithoutPayslipLineItemInput, Prisma.PayslipUncheckedUpdateWithoutPayslipLineItemInput>
-  create: Prisma.XOR<Prisma.PayslipCreateWithoutPayslipLineItemInput, Prisma.PayslipUncheckedCreateWithoutPayslipLineItemInput>
+export type PayslipUpsertWithoutLineItemsInput = {
+  update: Prisma.XOR<Prisma.PayslipUpdateWithoutLineItemsInput, Prisma.PayslipUncheckedUpdateWithoutLineItemsInput>
+  create: Prisma.XOR<Prisma.PayslipCreateWithoutLineItemsInput, Prisma.PayslipUncheckedCreateWithoutLineItemsInput>
   where?: Prisma.PayslipWhereInput
 }
 
-export type PayslipUpdateToOneWithWhereWithoutPayslipLineItemInput = {
+export type PayslipUpdateToOneWithWhereWithoutLineItemsInput = {
   where?: Prisma.PayslipWhereInput
-  data: Prisma.XOR<Prisma.PayslipUpdateWithoutPayslipLineItemInput, Prisma.PayslipUncheckedUpdateWithoutPayslipLineItemInput>
+  data: Prisma.XOR<Prisma.PayslipUpdateWithoutLineItemsInput, Prisma.PayslipUncheckedUpdateWithoutLineItemsInput>
 }
 
-export type PayslipUpdateWithoutPayslipLineItemInput = {
+export type PayslipUpdateWithoutLineItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2052,12 +2050,12 @@ export type PayslipUpdateWithoutPayslipLineItemInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  EmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipNestedInput
-  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipNestedInput
-  PayrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipNestedInput
+  payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipsNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipsNestedInput
+  payrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipsNestedInput
 }
 
-export type PayslipUncheckedUpdateWithoutPayslipLineItemInput = {
+export type PayslipUncheckedUpdateWithoutLineItemsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   payrollRunId?: Prisma.StringFieldUpdateOperationsInput | string
   employeeProfileId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2065,7 +2063,7 @@ export type PayslipUncheckedUpdateWithoutPayslipLineItemInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2103,13 +2101,13 @@ export type PayslipUncheckedUpdateWithoutPayslipLineItemInput = {
 }
 
 export type PayslipCreateManyEmployeeProfileInput = {
-  id: string
+  id?: string
   payrollRunId: string
   payrollProfileId?: string | null
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -2143,7 +2141,7 @@ export type PayslipCreateManyEmployeeProfileInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayslipUpdateWithoutEmployeeProfileInput = {
@@ -2151,7 +2149,7 @@ export type PayslipUpdateWithoutEmployeeProfileInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2186,9 +2184,9 @@ export type PayslipUpdateWithoutEmployeeProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipNestedInput
-  PayrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipNestedInput
-  PayslipLineItem?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
+  payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipsNestedInput
+  payrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipsNestedInput
+  lineItems?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
 }
 
 export type PayslipUncheckedUpdateWithoutEmployeeProfileInput = {
@@ -2198,7 +2196,7 @@ export type PayslipUncheckedUpdateWithoutEmployeeProfileInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2233,7 +2231,7 @@ export type PayslipUncheckedUpdateWithoutEmployeeProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  PayslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
+  lineItems?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type PayslipUncheckedUpdateManyWithoutEmployeeProfileInput = {
@@ -2243,7 +2241,7 @@ export type PayslipUncheckedUpdateManyWithoutEmployeeProfileInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2281,13 +2279,13 @@ export type PayslipUncheckedUpdateManyWithoutEmployeeProfileInput = {
 }
 
 export type PayslipCreateManyPayrollProfileInput = {
-  id: string
+  id?: string
   payrollRunId: string
   employeeProfileId: string
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -2321,7 +2319,7 @@ export type PayslipCreateManyPayrollProfileInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayslipUpdateWithoutPayrollProfileInput = {
@@ -2329,7 +2327,7 @@ export type PayslipUpdateWithoutPayrollProfileInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2364,9 +2362,9 @@ export type PayslipUpdateWithoutPayrollProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  EmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipNestedInput
-  PayrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipNestedInput
-  PayslipLineItem?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
+  payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipsNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipsNestedInput
+  lineItems?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
 }
 
 export type PayslipUncheckedUpdateWithoutPayrollProfileInput = {
@@ -2376,7 +2374,7 @@ export type PayslipUncheckedUpdateWithoutPayrollProfileInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2411,7 +2409,7 @@ export type PayslipUncheckedUpdateWithoutPayrollProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  PayslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
+  lineItems?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type PayslipUncheckedUpdateManyWithoutPayrollProfileInput = {
@@ -2421,7 +2419,7 @@ export type PayslipUncheckedUpdateManyWithoutPayrollProfileInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2459,13 +2457,13 @@ export type PayslipUncheckedUpdateManyWithoutPayrollProfileInput = {
 }
 
 export type PayslipCreateManyPayrollRunInput = {
-  id: string
+  id?: string
   employeeProfileId: string
   payrollProfileId?: string | null
   snapshotName: string
   snapshotEmployeeId: string
   snapshotPosition?: string | null
-  snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType: $Enums.SalaryType
   snapshotMonthlySalary?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: string | null
@@ -2499,7 +2497,7 @@ export type PayslipCreateManyPayrollRunInput = {
   netPay: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
-  updatedAt: Date | string
+  updatedAt?: Date | string
 }
 
 export type PayslipUpdateWithoutPayrollRunInput = {
@@ -2507,7 +2505,7 @@ export type PayslipUpdateWithoutPayrollRunInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2542,9 +2540,9 @@ export type PayslipUpdateWithoutPayrollRunInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  EmployeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipNestedInput
-  PayrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipNestedInput
-  PayslipLineItem?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipsNestedInput
+  payrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipsNestedInput
+  lineItems?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
 }
 
 export type PayslipUncheckedUpdateWithoutPayrollRunInput = {
@@ -2554,7 +2552,7 @@ export type PayslipUncheckedUpdateWithoutPayrollRunInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2589,7 +2587,7 @@ export type PayslipUncheckedUpdateWithoutPayrollRunInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  PayslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
+  lineItems?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
 export type PayslipUncheckedUpdateManyWithoutPayrollRunInput = {
@@ -2599,7 +2597,7 @@ export type PayslipUncheckedUpdateManyWithoutPayrollRunInput = {
   snapshotName?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotEmployeeId?: Prisma.StringFieldUpdateOperationsInput | string
   snapshotPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  snapshotSalaryType?: Prisma.EnumPayslip_snapshotSalaryTypeFieldUpdateOperationsInput | $Enums.Payslip_snapshotSalaryType
+  snapshotSalaryType?: Prisma.EnumSalaryTypeFieldUpdateOperationsInput | $Enums.SalaryType
   snapshotMonthlySalary?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotHourlyRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   snapshotNationality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2642,11 +2640,11 @@ export type PayslipUncheckedUpdateManyWithoutPayrollRunInput = {
  */
 
 export type PayslipCountOutputType = {
-  PayslipLineItem: number
+  lineItems: number
 }
 
 export type PayslipCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  PayslipLineItem?: boolean | PayslipCountOutputTypeCountPayslipLineItemArgs
+  lineItems?: boolean | PayslipCountOutputTypeCountLineItemsArgs
 }
 
 /**
@@ -2662,7 +2660,7 @@ export type PayslipCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
 /**
  * PayslipCountOutputType without action
  */
-export type PayslipCountOutputTypeCountPayslipLineItemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type PayslipCountOutputTypeCountLineItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.PayslipLineItemWhereInput
 }
 
@@ -2710,10 +2708,10 @@ export type PayslipSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   totalCostToEmployer?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  EmployeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
-  PayrollProfile?: boolean | Prisma.Payslip$PayrollProfileArgs<ExtArgs>
-  PayrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
-  PayslipLineItem?: boolean | Prisma.Payslip$PayslipLineItemArgs<ExtArgs>
+  payrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
+  payrollProfile?: boolean | Prisma.Payslip$payrollProfileArgs<ExtArgs>
+  lineItems?: boolean | Prisma.Payslip$lineItemsArgs<ExtArgs>
   _count?: boolean | Prisma.PayslipCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payslip"]>
 
@@ -2766,34 +2764,42 @@ export type PayslipSelectScalar = {
 
 export type PayslipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payrollRunId" | "employeeProfileId" | "payrollProfileId" | "snapshotName" | "snapshotEmployeeId" | "snapshotPosition" | "snapshotSalaryType" | "snapshotMonthlySalary" | "snapshotHourlyRate" | "snapshotNationality" | "snapshotIsResident" | "snapshotEpfRates" | "basicPay" | "proratedPay" | "workedHours" | "proratedFactor" | "proratedDays" | "totalWorkingDays" | "otNormalHours" | "otRestHours" | "otPublicHours" | "otPay" | "totalAllowances" | "totalReimbursements" | "totalDeductions" | "unpaidLeaveDeduction" | "epfEmployee" | "epfEmployer" | "socsoEmployee" | "socsoEmployer" | "eisEmployee" | "eisEmployer" | "pcb" | "hrdf" | "zakat" | "hrdfWage" | "grossPay" | "netPay" | "totalCostToEmployer" | "createdAt" | "updatedAt", ExtArgs["result"]["payslip"]>
 export type PayslipInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  EmployeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
-  PayrollProfile?: boolean | Prisma.Payslip$PayrollProfileArgs<ExtArgs>
-  PayrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
-  PayslipLineItem?: boolean | Prisma.Payslip$PayslipLineItemArgs<ExtArgs>
+  payrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
+  payrollProfile?: boolean | Prisma.Payslip$payrollProfileArgs<ExtArgs>
+  lineItems?: boolean | Prisma.Payslip$lineItemsArgs<ExtArgs>
   _count?: boolean | Prisma.PayslipCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $PayslipPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Payslip"
   objects: {
-    EmployeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs>
-    PayrollProfile: Prisma.$PayrollProfilePayload<ExtArgs> | null
-    PayrollRun: Prisma.$PayrollRunPayload<ExtArgs>
-    PayslipLineItem: Prisma.$PayslipLineItemPayload<ExtArgs>[]
+    payrollRun: Prisma.$PayrollRunPayload<ExtArgs>
+    employeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs>
+    payrollProfile: Prisma.$PayrollProfilePayload<ExtArgs> | null
+    lineItems: Prisma.$PayslipLineItemPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     payrollRunId: string
     employeeProfileId: string
+    /**
+     * Nullable so we can keep payslips when a PayrollProfile is later
+     * archived/deleted. The snapshot fields hold the source-of-truth
+     * values; this FK is only for "fetch latest profile" UX.
+     */
     payrollProfileId: string | null
     snapshotName: string
     snapshotEmployeeId: string
     snapshotPosition: string | null
-    snapshotSalaryType: $Enums.Payslip_snapshotSalaryType
+    snapshotSalaryType: $Enums.SalaryType
     snapshotMonthlySalary: runtime.Decimal | null
     snapshotHourlyRate: runtime.Decimal | null
     snapshotNationality: string | null
     snapshotIsResident: boolean
+    /**
+     * JSON: { employee, employer, voluntaryEmployee, voluntaryEmployer }
+     */
     snapshotEpfRates: runtime.JsonValue
     basicPay: runtime.Decimal
     proratedPay: runtime.Decimal
@@ -2806,6 +2812,9 @@ export type $PayslipPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     otPublicHours: runtime.Decimal
     otPay: runtime.Decimal
     totalAllowances: runtime.Decimal
+    /**
+     * Sum of REIMBURSEMENT line items (from Workpulse claims).
+     */
     totalReimbursements: runtime.Decimal
     totalDeductions: runtime.Decimal
     unpaidLeaveDeduction: runtime.Decimal
@@ -2818,6 +2827,9 @@ export type $PayslipPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     pcb: runtime.Decimal
     hrdf: runtime.Decimal
     zakat: runtime.Decimal
+    /**
+     * Wage base used for HRDF — may differ from gross.
+     */
     hrdfWage: runtime.Decimal
     grossPay: runtime.Decimal
     netPay: runtime.Decimal
@@ -3164,10 +3176,10 @@ readonly fields: PayslipFieldRefs;
  */
 export interface Prisma__PayslipClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  EmployeeProfile<T extends Prisma.EmployeeProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  PayrollProfile<T extends Prisma.Payslip$PayrollProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payslip$PayrollProfileArgs<ExtArgs>>): Prisma.Prisma__PayrollProfileClient<runtime.Types.Result.GetResult<Prisma.$PayrollProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  PayrollRun<T extends Prisma.PayrollRunDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PayrollRunDefaultArgs<ExtArgs>>): Prisma.Prisma__PayrollRunClient<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  PayslipLineItem<T extends Prisma.Payslip$PayslipLineItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payslip$PayslipLineItemArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayslipLineItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  payrollRun<T extends Prisma.PayrollRunDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PayrollRunDefaultArgs<ExtArgs>>): Prisma.Prisma__PayrollRunClient<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  employeeProfile<T extends Prisma.EmployeeProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  payrollProfile<T extends Prisma.Payslip$payrollProfileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payslip$payrollProfileArgs<ExtArgs>>): Prisma.Prisma__PayrollProfileClient<runtime.Types.Result.GetResult<Prisma.$PayrollProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  lineItems<T extends Prisma.Payslip$lineItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Payslip$lineItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayslipLineItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3204,7 +3216,7 @@ export interface PayslipFieldRefs {
   readonly snapshotName: Prisma.FieldRef<"Payslip", 'String'>
   readonly snapshotEmployeeId: Prisma.FieldRef<"Payslip", 'String'>
   readonly snapshotPosition: Prisma.FieldRef<"Payslip", 'String'>
-  readonly snapshotSalaryType: Prisma.FieldRef<"Payslip", 'Payslip_snapshotSalaryType'>
+  readonly snapshotSalaryType: Prisma.FieldRef<"Payslip", 'SalaryType'>
   readonly snapshotMonthlySalary: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly snapshotHourlyRate: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly snapshotNationality: Prisma.FieldRef<"Payslip", 'String'>
@@ -3587,9 +3599,9 @@ export type PayslipDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
 }
 
 /**
- * Payslip.PayrollProfile
+ * Payslip.payrollProfile
  */
-export type Payslip$PayrollProfileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Payslip$payrollProfileArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the PayrollProfile
    */
@@ -3606,9 +3618,9 @@ export type Payslip$PayrollProfileArgs<ExtArgs extends runtime.Types.Extensions.
 }
 
 /**
- * Payslip.PayslipLineItem
+ * Payslip.lineItems
  */
-export type Payslip$PayslipLineItemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Payslip$lineItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the PayslipLineItem
    */

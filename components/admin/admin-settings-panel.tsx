@@ -69,8 +69,16 @@ import type {
 } from "@/modules/organization/domain/models"
 import type { EmployeePolicy } from "@/modules/policy/domain/models"
 
-type TabKey = "organization" | "claims" | "accounts" | "projects" | "work-schedule" | "leave" | "policies" | "api"
-type WorkScheduleSection = "calendar" | "attendance"
+export type SettingsTabKey =
+  | "organization"
+  | "claims"
+  | "accounts"
+  | "projects"
+  | "work-schedule"
+  | "leave"
+  | "policies"
+  | "api"
+type WorkScheduleSection = "ot-rates" | "calendar" | "attendance"
 
 /** Lat/Lng pair inputs used for project geofence setup.
  *  - In edit (controlled) mode: pass defaultLat/defaultLng + onChange.
@@ -178,7 +186,7 @@ type AccountsSubTab = "selectable" | "banks" | "mileage"
  * tab + an optional Accounts sub-pill. Keeps existing bookmarks working.
  */
 function resolveTabFromInitial(initial?: string): {
-  tab: TabKey
+  tab: SettingsTabKey
   accountsSub: AccountsSubTab
 } {
   switch (initial) {
@@ -209,6 +217,19 @@ function resolveTabFromInitial(initial?: string): {
       return { tab: "organization", accountsSub: "selectable" }
   }
 }
+
+const ALL_SETTINGS_TABS = [
+  ["organization", "Organization"],
+  ["claims", "Claims"],
+  ["accounts", "Accounts"],
+  ["projects", "Projects"],
+  ["work-schedule", "Work Schedule"],
+  ["leave", "Leave"],
+  ["policies", "Policies"],
+  // API tab hidden — tokens are auto-issued by the partner master-key
+  // flow. Re-enable when self-service integrations ship.
+  // ["api", "API"],
+] as const satisfies ReadonlyArray<readonly [SettingsTabKey, string]>
 
 /**
  * Searchable multi-select dropdown. Click the trigger to open a popup
@@ -466,6 +487,7 @@ export function AdminSettingsPanel({
   timezone,
   initialTab,
   initialSection,
+  visibleTabs,
   admins = [],
   currentAdminEmail,
   apiIntegrations = [],
@@ -487,6 +509,7 @@ export function AdminSettingsPanel({
   timezone: string
   initialTab?: string
   initialSection?: string
+  visibleTabs?: SettingsTabKey[]
   /// Existing admins of the active org. Rendered as a list in the
   /// Organization tab. Each row shows email + name + a (You) tag for
   /// the currently logged-in admin.
@@ -513,8 +536,20 @@ export function AdminSettingsPanel({
   // silence the unused-prop lint warning.
   void apiIntegrations
   const { toast } = useToast()
+  const visibleTabSet = new Set(
+    visibleTabs && visibleTabs.length > 0
+      ? visibleTabs
+      : ALL_SETTINGS_TABS.map(([value]) => value),
+  )
+  const settingsTabs = ALL_SETTINGS_TABS.filter(([value]) =>
+    visibleTabSet.has(value),
+  )
+  const fallbackTab = settingsTabs[0]?.[0] ?? "organization"
   const initialResolved = resolveTabFromInitial(initialTab)
-  const [activeTab, setActiveTab] = useState<TabKey>(initialResolved.tab)
+  const initialActiveTab = visibleTabSet.has(initialResolved.tab)
+    ? initialResolved.tab
+    : fallbackTab
+  const [activeTab, setActiveTab] = useState<SettingsTabKey>(initialActiveTab)
   const [accountsSubTab, setAccountsSubTab] = useState<AccountsSubTab>(
     initialResolved.accountsSub
   )
@@ -525,7 +560,8 @@ export function AdminSettingsPanel({
   useEffect(() => {
     if (!initialTab) return
     const resolved = resolveTabFromInitial(initialTab)
-    if (resolved.tab !== activeTab) setActiveTab(resolved.tab)
+    const nextTab = visibleTabSet.has(resolved.tab) ? resolved.tab : fallbackTab
+    if (nextTab !== activeTab) setActiveTab(nextTab)
     if (resolved.tab === "accounts" && resolved.accountsSub !== accountsSubTab) {
       setAccountsSubTab(resolved.accountsSub)
     }
@@ -682,19 +718,6 @@ export function AdminSettingsPanel({
     }
   }
 
-  const settingsTabs = [
-    ["organization", "Organization"],
-    ["claims", "Claims"],
-    ["accounts", "Accounts"],
-    ["projects", "Projects"],
-    ["work-schedule", "Work Schedule"],
-    ["leave", "Leave"],
-    ["policies", "Policies"],
-    // API tab hidden — tokens are auto-issued by the partner master-key
-    // flow. Re-enable when self-service integrations ship.
-    // ["api", "API"],
-  ] as const
-
   const accountsSubTabs = [
     ["selectable", "Selectable"],
     ["banks", "Bank accounts"],
@@ -707,25 +730,27 @@ export function AdminSettingsPanel({
           Using flex+gap rather than space-y-* on the wrapper so that
           when this nav is display:none on desktop it doesn't push the
           first content card down with an unwanted margin-top. */}
-      <nav className="-mx-6 overflow-x-auto px-6 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex gap-2 pb-0.5">
-          {settingsTabs.map(([value, label]) => (
-            <Link
-              key={value}
-              href={`/admin/settings?tab=${value}`}
-              onClick={() => setActiveTab(value as TabKey)}
-              className={cn(
-                "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
-                activeTab === value
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {label}
-            </Link>
-          ))}
-        </div>
-      </nav>
+      {settingsTabs.length > 1 ? (
+        <nav className="-mx-6 overflow-x-auto px-6 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-2 pb-0.5">
+            {settingsTabs.map(([value, label]) => (
+              <Link
+                key={value}
+                href={`/admin/settings?tab=${value}`}
+                onClick={() => setActiveTab(value)}
+                className={cn(
+                  "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors",
+                  activeTab === value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border/60 bg-card text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      ) : null}
 
       {activeTab === "organization" ? (
         <div className="space-y-6">

@@ -61,8 +61,8 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     icon: CalendarDays,
   },
   {
-    href: "/employee/payslip",
-    label: "Payslip",
+    href: "/employee/payslips" as Route,
+    label: "Payslips",
     icon: Receipt,
   },
 ]
@@ -88,8 +88,8 @@ function getSectionTitle(pathname: string) {
     return "Leave"
   }
 
-  if (pathname.startsWith("/employee/payslip")) {
-    return "Payslip"
+  if (pathname.startsWith("/employee/payslips")) {
+    return "Payslips"
   }
 
   if (pathname.startsWith("/employee/attendance/history")) {
@@ -202,7 +202,7 @@ export function EmployeeShell({
 
   return (
     <div className="attendance-module min-h-screen bg-background [background-image:none] lg:grid lg:grid-cols-[280px_1fr]">
-      <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
+      <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex print:hidden">
         <Link href="/" className="block self-center text-center">
           <Image
             src="/brand-logo.png"
@@ -282,7 +282,7 @@ export function EmployeeShell({
       </aside>
 
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-xl print:hidden">
           <div className="container flex items-center justify-between py-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -324,7 +324,7 @@ export function EmployeeShell({
           <div className="container py-6 lg:py-8">{children}</div>
         </main>
 
-        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
+        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden print:hidden">
           <div
             className="grid grid-cols-5 gap-1"
           >

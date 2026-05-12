@@ -1,104 +1,29 @@
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 
-import { AdminSettingsPanel } from "@/components/admin/admin-settings-panel"
-import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import type { XeroTenant } from "@/lib/xero"
-import {
-  getAdminSettingsPageData,
-  getInUseTenantIds,
-} from "@/modules/claims/application/services/admin-page-data.service"
-import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
-import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
-import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
+import { AdminSettingsPanelPage } from "@/app/(admin)/admin/settings/settings-panel-page"
 
-const XERO_PENDING_COOKIE = "claimguard_xero_pending"
-const ACTIVE_CONNECTION_COOKIE = "claimguard_active_connection"
+const CLAIMS_SETTINGS_TABS = new Set(["claims", "runs", "currencies"])
 
 export default async function AdminSettingsPage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
-  const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") redirect("/login")
-
   const params = (await searchParams) ?? {}
-  const cookieStore = await cookies()
-  const cookieConnectionId = cookieStore.get(ACTIVE_CONNECTION_COOKIE)?.value
+  const tab = typeof params.tab === "string" ? params.tab : undefined
 
-  const data = await getAdminSettingsPageData({
-    adminEmail: session.email,
-    organizationId: resolveActiveOrgId(session),
-    preferredConnectionId:
-      session.activeXeroConnectionId ?? cookieConnectionId ?? undefined,
-  })
-  if (!data) redirect("/login")
+  if (tab && CLAIMS_SETTINGS_TABS.has(tab)) {
+    redirect("/admin/claims/settings")
+  }
 
-  // Pull the admin list separately so the Organization tab can render
-  // a "Manage admins" card. Empty array is fine when no org is selected.
-  const orgIdForAdmins = resolveActiveOrgId(session)
-  const admins = orgIdForAdmins
-    ? await organizationRepository.listAdminsForOrganization(orgIdForAdmins)
-    : []
-
-  // External API tokens for the API tab. Same pattern — empty when no org.
-  const apiIntegrations = orgIdForAdmins
-    ? await apiIntegrationRepository.listForOrganization(orgIdForAdmins)
-    : []
-
-  const policies = orgIdForAdmins
-    ? await policyRepository.listForOrganization(orgIdForAdmins)
-    : []
-
-  // OAuth callback "select-tenant" handling — read the pending cookie and
-  // resolve which tenants are already in use by other orgs. Cookie/URL
-  // concerns stay in the page, the DB lookup is a thin service helper.
-  let pendingTenants: XeroTenant[] | undefined
-  let takenTenantIds: string[] = []
-  if (params.xero === "select-tenant") {
-    const raw = cookieStore.get(XERO_PENDING_COOKIE)?.value
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw)
-        if (Array.isArray(parsed.tenants)) {
-          pendingTenants = parsed.tenants as XeroTenant[]
-          const orgId = resolveActiveOrgId(session)
-          if (orgId && pendingTenants.length > 0) {
-            takenTenantIds = await getInUseTenantIds(
-              pendingTenants.map((t) => t.tenantId),
-              orgId,
-            )
-          }
-        }
-      } catch {
-        // Malformed cookie — ignore, the action will handle the error
-      }
-    }
+  if (tab === "leave") {
+    redirect("/admin/leave/settings")
   }
 
   return (
-    <AdminSettingsPanel
-      admin={data.admin}
-      organization={data.organization}
-      xeroConnection={data.xeroConnection}
-      chartAccounts={data.chartAccounts}
-      customAccounts={data.customAccounts}
-      projects={data.projects}
-      members={data.members}
-      admins={admins}
-      apiIntegrations={apiIntegrations}
-      policies={policies}
-      currentAdminEmail={session.email}
-      activeXeroConnectionId={data.activeXeroConnectionId}
-      xeroStatus={typeof params.xero === "string" ? params.xero : undefined}
-      xeroReason={typeof params.reason === "string" ? params.reason : undefined}
-      pendingTenants={pendingTenants}
-      takenTenantIds={takenTenantIds}
-      workingHours={data.workingHours}
-      timezone={data.timezone}
-      initialTab={typeof params.tab === "string" ? params.tab : "organization"}
-      initialSection={typeof params.section === "string" ? params.section : undefined}
+    <AdminSettingsPanelPage
+      searchParams={params}
+      visibleTabs={["organization", "accounts", "projects", "work-schedule", "policies"]}
     />
   )
 }

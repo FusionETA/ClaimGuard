@@ -1,0 +1,514 @@
+import "server-only"
+
+import { getPrismaClient } from "@/lib/prisma"
+import { toNumber } from "@/lib/decimal"
+import type {
+  ChildRelief,
+  FixedAllowance,
+  LeaveEntitlement,
+  PayrollEmployeeRow,
+  PayrollProfileData,
+} from "@/modules/payroll/domain/models"
+import { isPayrollProfileComplete } from "@/modules/payroll/domain/models"
+
+/**
+ * Prisma-side repository for `PayrollProfile`. Projects Prisma rows
+ * into the app-friendly `PayrollProfileData` shape (Decimals → numbers,
+ * Json → typed arrays, etc.). All Prisma access for the payroll-profile
+ * aggregate lives here per the layered architecture rule.
+ */
+export const payrollProfileRepository = {
+  /**
+   * Fetch a payroll profile by the employee's `EmployeeProfile.id`.
+   * Returns null when the employee hasn't been onboarded into payroll
+   * yet (no PayrollProfile row exists).
+   */
+  async getByEmployeeProfileId(
+    employeeProfileId: string,
+  ): Promise<PayrollProfileData | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const row = await prisma.payrollProfile.findUnique({
+      where: { employeeProfileId },
+    })
+    if (!row) return null
+    return mapPayrollProfile(row)
+  },
+
+  /**
+   * Fetch a payroll profile by the employee's `User.id`. Convenience
+   * for routes that use User id (e.g.
+   * `/admin/payroll/employees/[id]`).
+   */
+  async getByUserId(userId: string): Promise<PayrollProfileData | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const profile = await prisma.employeeProfile.findUnique({
+      where: { userId },
+      select: { id: true },
+    })
+    if (!profile) return null
+    return this.getByEmployeeProfileId(profile.id)
+  },
+
+  /**
+   * Upsert: create the profile if missing, otherwise patch the supplied
+   * fields. `employeeProfileId` is the lookup key. Anything not in
+   * `patch` is left untouched (PATCH semantics).
+   *
+   * `salaryType` is required on first create — the model has no
+   * default. If the row doesn't exist yet, the caller must supply it.
+   */
+  async upsert(input: {
+    employeeProfileId: string
+    /// All other fields are optional patches; `salaryType` is required
+    /// on first-create so we always have a valid payroll config.
+    patch: Partial<Omit<PayrollProfileData, "id" | "employeeProfileId" | "createdAt" | "updatedAt">>
+  }): Promise<PayrollProfileData> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const data = toPrismaUpsertData(input.patch)
+
+    const row = await prisma.payrollProfile.upsert({
+      where: { employeeProfileId: input.employeeProfileId },
+      create: {
+        employeeProfileId: input.employeeProfileId,
+        // On first create, salaryType must be provided. If the caller
+        // forgot, default to MONTHLY rather than crashing — the admin
+        // can fix it in the form.
+        salaryType: input.patch.salaryType ?? "MONTHLY",
+        ...data,
+      },
+      update: data,
+    })
+
+    return mapPayrollProfile(row)
+  },
+
+  /**
+   * List all employees in an org with their payroll-profile state, for
+   * the admin "Payroll → Employees" page. Always returns every employee
+   * (whether or not they have a PayrollProfile) so the admin sees who
+   * still needs onboarding.
+   */
+  async listForOrganization(
+    organizationId: string,
+  ): Promise<PayrollEmployeeRow[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    // Pull all employees in the org with their EmployeeProfile +
+    // optional PayrollProfile in one query.
+    const users = await prisma.user.findMany({
+      where: {
+        organizationId,
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        employeeProfile: { isNot: null },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        employeeProfile: {
+          select: {
+            id: true,
+            employeeId: true,
+            jobTitle: true,
+            payrollProfile: true, // full row when present, null otherwise
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    })
+
+    return users
+      .filter((u) => u.employeeProfile !== null)
+      .map((u) => {
+        const ep = u.employeeProfile!
+        const pp = ep.payrollProfile
+        const projected = pp ? mapPayrollProfile(pp) : null
+        return {
+          userId: u.id,
+          employeeProfileId: ep.id,
+          employeeId: ep.employeeId,
+          name: u.name,
+          email: u.email,
+          jobTitle: ep.jobTitle,
+          hasProfile: pp !== null,
+          isComplete: projected ? isPayrollProfileComplete(projected) : false,
+          isArchived: projected?.isArchived ?? false,
+        }
+      })
+  },
+
+  /**
+   * Fetch every employee in the org with a COMPLETE and non-archived
+   * payroll profile. Used by the payroll-run generator: these are the
+   * employees who will get a payslip on the next run.
+   *
+   * Returns full identity + the projected PayrollProfile, so the calc
+   * engine has everything it needs without re-querying.
+   */
+  async listReadyForPayroll(
+    organizationId: string,
+  ): Promise<
+    Array<{
+      userId: string
+      employeeProfileId: string
+      employeeId: string
+      name: string
+      email: string
+      jobTitle: string
+      profile: PayrollProfileData
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    // Mirror the listForOrganization shape — Prisma's nested filter for
+    // optional 1:1 + non-null + property-match is awkward; we filter
+    // in memory, which is cheap at org-scale headcounts.
+    const users = await prisma.user.findMany({
+      where: {
+        organizationId,
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        employeeProfile: { isNot: null },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        employeeProfile: {
+          select: {
+            id: true,
+            employeeId: true,
+            jobTitle: true,
+            payrollProfile: true,
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    })
+
+    const rows: Array<{
+      userId: string
+      employeeProfileId: string
+      employeeId: string
+      name: string
+      email: string
+      jobTitle: string
+      profile: PayrollProfileData
+    }> = []
+
+    for (const u of users) {
+      const ep = u.employeeProfile
+      if (!ep || !ep.payrollProfile) continue
+      const profile = mapPayrollProfile(ep.payrollProfile)
+      if (profile.isArchived) continue
+      if (!isPayrollProfileComplete(profile)) continue
+      rows.push({
+        userId: u.id,
+        employeeProfileId: ep.id,
+        employeeId: ep.employeeId,
+        name: u.name,
+        email: u.email,
+        jobTitle: ep.jobTitle,
+        profile,
+      })
+    }
+
+    return rows
+  },
+
+  async archive(employeeProfileId: string, reason: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.payrollProfile.update({
+      where: { employeeProfileId },
+      data: {
+        isArchived: true,
+        archivedAt: new Date(),
+        archiveReason: reason,
+      },
+    })
+  },
+
+  async unarchive(employeeProfileId: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.payrollProfile.update({
+      where: { employeeProfileId },
+      data: {
+        isArchived: false,
+        archivedAt: null,
+        archiveReason: null,
+      },
+    })
+  },
+}
+
+// ─── Mappers ──────────────────────────────────────────────────────────────
+
+/**
+ * Project a Prisma `PayrollProfile` row into the app-friendly
+ * `PayrollProfileData` shape. Hides Decimal + Json quirks from callers.
+ *
+ * The Prisma row type is `any` here because the generated types pull in
+ * Decimal wrappers and JsonValue that complicate the signature without
+ * benefit — the mapper is the only consumer of the raw row.
+ */
+function mapPayrollProfile(row: any): PayrollProfileData {
+  return {
+    id: row.id,
+    employeeProfileId: row.employeeProfileId,
+
+    phone: row.phone ?? null,
+    alternateEmail: row.alternateEmail ?? null,
+    gender: row.gender ?? null,
+    dateOfBirth: row.dateOfBirth ? row.dateOfBirth.toISOString().slice(0, 10) : null,
+    nationality: row.nationality ?? null,
+    race: row.race ?? null,
+    hasPr: row.hasPr,
+    idType: row.idType ?? null,
+    idNumber: row.idNumber ?? null,
+    maritalStatus: row.maritalStatus ?? null,
+    isResident: row.isResident,
+    isOku: row.isOku,
+
+    spouseWorking: row.spouseWorking ?? null,
+    spouseDisabled: row.spouseDisabled ?? null,
+    spousePcbNumber: row.spousePcbNumber ?? null,
+    spouseIdNumber: row.spouseIdNumber ?? null,
+
+    addressLine1: row.addressLine1 ?? null,
+    addressLine2: row.addressLine2 ?? null,
+    addressLine3: row.addressLine3 ?? null,
+    city: row.city ?? null,
+    postcode: row.postcode ?? null,
+    state: row.state ?? null,
+
+    emergencyContactName: row.emergencyContactName ?? null,
+    emergencyContactPhone: row.emergencyContactPhone ?? null,
+    emergencyContactRelation: row.emergencyContactRelation ?? null,
+
+    childRelief: parseChildReliefJson(row.childRelief),
+
+    prevEmploymentYear: row.prevEmploymentYear ?? null,
+    prevRemuneration:
+      row.prevRemuneration === null ? null : toNumber(row.prevRemuneration, 0),
+    prevEpf: row.prevEpf === null ? null : toNumber(row.prevEpf, 0),
+
+    contributeToEpf: row.contributeToEpf,
+    epfMemberBefore1998: row.epfMemberBefore1998,
+    epfNumber: row.epfNumber ?? null,
+    epfEmployeeRate: toNumber(row.epfEmployeeRate, 11),
+    epfEmployeeVoluntary: toNumber(row.epfEmployeeVoluntary, 0),
+    epfEmployerVoluntary: toNumber(row.epfEmployerVoluntary, 0),
+
+    socsoNumber: row.socsoNumber ?? null,
+    socsoScheme: row.socsoScheme ?? null,
+    contributeToEis: row.contributeToEis,
+    incomeTaxNumber: row.incomeTaxNumber ?? null,
+    pcbBorneByEmployer: row.pcbBorneByEmployer,
+    ssfwNumber: row.ssfwNumber ?? null,
+
+    paymentMethod: row.paymentMethod,
+    bankName: row.bankName ?? null,
+    bankAccountHolderName: row.bankAccountHolderName ?? null,
+    bankAccountNumber: row.bankAccountNumber ?? null,
+
+    salaryType: row.salaryType,
+    monthlySalary:
+      row.monthlySalary === null ? null : toNumber(row.monthlySalary, 0),
+    hourlyRate: row.hourlyRate === null ? null : toNumber(row.hourlyRate, 0),
+    fixedAllowances: parseFixedAllowancesJson(row.fixedAllowances),
+
+    joinDate: row.joinDate ? row.joinDate.toISOString().slice(0, 10) : null,
+    leaveDate: row.leaveDate ? row.leaveDate.toISOString().slice(0, 10) : null,
+    archiveReason: row.archiveReason ?? null,
+    reportedToLhdn: row.reportedToLhdn,
+
+    department: row.department ?? null,
+    location: row.location ?? null,
+    workSchedule: row.workSchedule ?? null,
+    payrollPolicy: row.payrollPolicy ?? null,
+    payrollCycle: row.payrollCycle ?? null,
+
+    leaveEntitlement: parseLeaveEntitlementJson(row.leaveEntitlement),
+
+    isArchived: row.isArchived,
+    archivedAt: row.archivedAt ? row.archivedAt.toISOString() : null,
+
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  }
+}
+
+/**
+ * Translate the app's `Partial<PayrollProfileData>` patch into the
+ * Prisma-shaped object for create/update. Dates come in as ISO yyyy-mm-dd
+ * strings; Prisma wants `Date` objects.
+ */
+function toPrismaUpsertData(
+  patch: Partial<Omit<PayrollProfileData, "id" | "employeeProfileId" | "createdAt" | "updatedAt">>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+
+  const copy = <K extends keyof typeof patch>(k: K) => {
+    if (patch[k] !== undefined) out[k as string] = patch[k]
+  }
+  const copyDate = <K extends keyof typeof patch>(k: K) => {
+    if (patch[k] === undefined) return
+    const v = patch[k] as unknown
+    out[k as string] = v === null ? null : new Date(String(v))
+  }
+
+  copy("phone")
+  copy("alternateEmail")
+  copy("gender")
+  copyDate("dateOfBirth")
+  copy("nationality")
+  copy("race")
+  copy("hasPr")
+  copy("idType")
+  copy("idNumber")
+  copy("maritalStatus")
+  copy("isResident")
+  copy("isOku")
+
+  copy("spouseWorking")
+  copy("spouseDisabled")
+  copy("spousePcbNumber")
+  copy("spouseIdNumber")
+
+  copy("addressLine1")
+  copy("addressLine2")
+  copy("addressLine3")
+  copy("city")
+  copy("postcode")
+  copy("state")
+
+  copy("emergencyContactName")
+  copy("emergencyContactPhone")
+  copy("emergencyContactRelation")
+
+  if (patch.childRelief !== undefined) {
+    out.childRelief = patch.childRelief
+  }
+
+  copy("prevEmploymentYear")
+  copy("prevRemuneration")
+  copy("prevEpf")
+
+  copy("contributeToEpf")
+  copy("epfMemberBefore1998")
+  copy("epfNumber")
+  copy("epfEmployeeRate")
+  copy("epfEmployeeVoluntary")
+  copy("epfEmployerVoluntary")
+
+  copy("socsoNumber")
+  copy("socsoScheme")
+  copy("contributeToEis")
+  copy("incomeTaxNumber")
+  copy("pcbBorneByEmployer")
+  copy("ssfwNumber")
+
+  copy("paymentMethod")
+  copy("bankName")
+  copy("bankAccountHolderName")
+  copy("bankAccountNumber")
+
+  copy("salaryType")
+  copy("monthlySalary")
+  copy("hourlyRate")
+  if (patch.fixedAllowances !== undefined) {
+    out.fixedAllowances = patch.fixedAllowances
+  }
+
+  copyDate("joinDate")
+  copyDate("leaveDate")
+  copy("archiveReason")
+  copy("reportedToLhdn")
+
+  copy("department")
+  copy("location")
+  copy("workSchedule")
+  copy("payrollPolicy")
+  copy("payrollCycle")
+
+  if (patch.leaveEntitlement !== undefined) {
+    out.leaveEntitlement = patch.leaveEntitlement
+  }
+
+  copy("isArchived")
+  if (patch.archivedAt !== undefined) {
+    out.archivedAt =
+      patch.archivedAt === null ? null : new Date(patch.archivedAt)
+  }
+
+  return out
+}
+
+// ─── JSON parsers (defensive: bad data → empty arrays, never throws) ─────
+
+function parseChildReliefJson(raw: unknown): ChildRelief[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null
+      const e = entry as Record<string, unknown>
+      const age = typeof e.age === "number" ? e.age : Number(e.age)
+      if (!Number.isFinite(age)) return null
+      return {
+        age,
+        abilityStatus:
+          e.abilityStatus === "DISABLED" ? "DISABLED" : "NORMAL",
+        currentlyStudying:
+          (typeof e.currentlyStudying === "string" &&
+          ["NONE", "PRESCHOOL", "PRIMARY", "SECONDARY", "HIGHER_ED"].includes(
+            e.currentlyStudying,
+          )
+            ? e.currentlyStudying
+            : "NONE") as ChildRelief["currentlyStudying"],
+        pcbDeduction:
+          (typeof e.pcbDeduction === "string" &&
+          ["FULL", "HALF", "NONE"].includes(e.pcbDeduction)
+            ? e.pcbDeduction
+            : "NONE") as ChildRelief["pcbDeduction"],
+      } satisfies ChildRelief
+    })
+    .filter((x): x is ChildRelief => x !== null)
+}
+
+function parseFixedAllowancesJson(raw: unknown): FixedAllowance[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null
+      const e = entry as Record<string, unknown>
+      const name = typeof e.name === "string" ? e.name.trim() : ""
+      const amount =
+        typeof e.amount === "number" ? e.amount : Number(e.amount)
+      if (!name || !Number.isFinite(amount)) return null
+      return { name, amount } satisfies FixedAllowance
+    })
+    .filter((x): x is FixedAllowance => x !== null)
+}
+
+function parseLeaveEntitlementJson(raw: unknown): LeaveEntitlement[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null
+      const e = entry as Record<string, unknown>
+      const type = typeof e.type === "string" ? e.type : ""
+      const days = typeof e.days === "number" ? e.days : Number(e.days)
+      if (!type || !Number.isFinite(days)) return null
+      return { type, days } satisfies LeaveEntitlement
+    })
+    .filter((x): x is LeaveEntitlement => x !== null)
+}

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useActionState, useEffect, useState, useTransition } from "react"
 import {
+  Banknote,
   CalendarClock,
   CalendarDays,
   LayoutDashboard,
@@ -84,6 +85,22 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
       { href: "/admin/claims", label: "Queue" },
       { href: "/admin/claims/sync" as Route, label: "Ready to Sync" },
       { href: "/admin/claims/breakdown" as Route, label: "Reports" },
+      { href: "/admin/claims/settings" as Route, label: "Settings" },
+    ],
+  },
+  {
+    // Payroll module. Parent navigates to overview; children jump to
+    // the most-used surfaces. Routes cast to `Route` because next/types
+    // regenerates the union on build and the static tsc cache doesn't
+    // see them until the next regeneration.
+    href: "/admin/payroll" as Route,
+    label: "Payroll",
+    icon: Banknote,
+    children: [
+      { href: "/admin/payroll" as Route, label: "Overview" },
+      { href: "/admin/payroll/employees" as Route, label: "Employees" },
+      { href: "/admin/payroll/runs" as Route, label: "Payroll Runs" },
+      { href: "/admin/payroll/settings" as Route, label: "Settings" },
     ],
   },
   {
@@ -93,6 +110,10 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     href: "/admin/leave" as Route,
     label: "Leave",
     icon: CalendarDays,
+    children: [
+      { href: "/admin/leave" as Route, label: "Overview" },
+      { href: "/admin/leave/settings" as Route, label: "Settings" },
+    ],
   },
   {
     // Parent navigates to the first child (Company Structure), matching
@@ -109,15 +130,13 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
   },
   {
     href: "/admin/settings",
-    label: "Settings",
+    label: "System Settings",
     icon: Settings2,
     children: [
       { href: "/admin/settings?tab=organization", label: "Organization" },
-      { href: "/admin/settings?tab=claims", label: "Claims" },
       { href: "/admin/settings?tab=accounts", label: "Accounts" },
       { href: "/admin/settings?tab=projects", label: "Projects" },
       { href: "/admin/settings?tab=work-schedule", label: "Work Schedule" },
-      { href: "/admin/settings?tab=leave", label: "Leave" },
       { href: "/admin/settings?tab=policies", label: "Policies" },
       // API tab hidden — tokens are auto-issued by the partner master-key
       // flow (POST /api/v1/admin/organizations). Re-enable when self-service
@@ -145,7 +164,7 @@ function getTitle(pathname: string) {
   }
 
   if (pathname.startsWith("/admin/settings")) {
-    return "Organization Settings"
+    return "System Settings"
   }
 
   if (pathname.startsWith("/admin/attendance/employees")) {
@@ -258,7 +277,7 @@ export function AdminShell({
 
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[300px_1fr]">
-      <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex">
+      <aside className="hidden h-screen flex-col border-r border-border/60 bg-card/72 p-6 backdrop-blur-xl lg:flex print:hidden">
         <Link href="/" className="block self-center text-center">
           <Image
             src="/brand-logo.png"
@@ -344,7 +363,7 @@ export function AdminShell({
       </aside>
 
       <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-xl print:hidden">
           <div className="container flex items-center justify-between py-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -418,10 +437,11 @@ export function AdminShell({
           <div className="container py-6 lg:py-8">{children}</div>
         </main>
 
-        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden">
+        <nav className="glass-panel fixed inset-x-4 bottom-4 z-40 rounded-[40px] border border-border/60 px-3 py-2 shadow-panel lg:hidden print:hidden">
           <div className="grid grid-cols-4 gap-1">
             {adminNav.map((item) => {
-              const active = pathname === item.href
+              const active =
+                pathname === item.href || pathname.startsWith(item.href + "/")
               const Icon = item.icon
 
               return (

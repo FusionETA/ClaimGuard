@@ -24,7 +24,7 @@ export * as $Enums from './enums'
 export * from "./enums"
 /**
  * ## Prisma Client
- * 
+ *
  * Type-safe database client for TypeScript
  * @example
  * ```
@@ -34,7 +34,7 @@ export * from "./enums"
  * // Fetch zero or more Users
  * const users = await prisma.user.findMany()
  * ```
- * 
+ *
  * Read more in our [docs](https://pris.ly/d/client).
  */
 export const PrismaClient = $Class.getPrismaClientClass()
@@ -43,12 +43,12 @@ export { Prisma }
 
 /**
  * Model User
- * 
+ *
  */
 export type User = Prisma.UserModel
 /**
  * Model Organization
- * 
+ *
  */
 export type Organization = Prisma.OrganizationModel
 /**
@@ -70,7 +70,7 @@ export type EmployeePolicy = Prisma.EmployeePolicyModel
  * External-system API tokens. Each row is a tenant's bearer credential
  * for calling /api/v1 routes. Tokens are stored only as bcrypt-style
  * hashes — the raw token is shown once on creation and never again.
- * 
+ *
  * Each token is permanently scoped to a single Organization, so server
  * logic can resolve `orgId` from the token alone — clients never pass
  * it. Permissions are gated by `scopes` (a JSON string array such as
@@ -92,11 +92,11 @@ export type ApiAuditLog = Prisma.ApiAuditLogModel
  * /api/v1/admin/* endpoints — most importantly to provision a new
  * Workpulse Organization on behalf of one of THEIR end-customers, which
  * returns a per-org `ApiIntegration` token in the response.
- * 
+ *
  * Master keys never call /api/v1/<resource> directly — those routes
  * always require a per-org token. This separation means a leaked master
  * key cannot read any tenant's data: it can only create new tenants.
- * 
+ *
  * Token format: `wp_master_<64 hex chars>`. Stored as SHA-256 hash.
  */
 export type MasterApiKey = Prisma.MasterApiKeyModel
@@ -110,27 +110,27 @@ export type MasterApiKey = Prisma.MasterApiKeyModel
 export type MasterApiAuditLog = Prisma.MasterApiAuditLogModel
 /**
  * Model AdminOrganization
- * 
+ *
  */
 export type AdminOrganization = Prisma.AdminOrganizationModel
 /**
  * Model PushSubscription
- * 
+ *
  */
 export type PushSubscription = Prisma.PushSubscriptionModel
 /**
  * Model EmployeeProfile
- * 
+ *
  */
 export type EmployeeProfile = Prisma.EmployeeProfileModel
 /**
  * Model EmployeeProjectAssignment
- * 
+ *
  */
 export type EmployeeProjectAssignment = Prisma.EmployeeProjectAssignmentModel
 /**
  * Model Claim
- * 
+ *
  */
 export type Claim = Prisma.ClaimModel
 /**
@@ -140,7 +140,7 @@ export type Claim = Prisma.ClaimModel
  * UI accurately render which specific approver clicked Approve at each
  * step (vs. peers who didn't act, vs. the latest-only `Claim.reviewerId`
  * snapshot which gets overwritten).
- * 
+ *
  * Notes:
  * - `stepNumber` matches the chain template's step number — multi-
  * approver-per-step still produces ONE entry (the actor); the
@@ -152,22 +152,22 @@ export type Claim = Prisma.ClaimModel
 export type ClaimApprovalEntry = Prisma.ClaimApprovalEntryModel
 /**
  * Model ChartOfAccount
- * 
+ *
  */
 export type ChartOfAccount = Prisma.ChartOfAccountModel
 /**
  * Model XeroConnection
- * 
+ *
  */
 export type XeroConnection = Prisma.XeroConnectionModel
 /**
  * Model XeroProject
- * 
+ *
  */
 export type XeroProject = Prisma.XeroProjectModel
 /**
  * Model ProjectHoliday
- * 
+ *
  */
 export type ProjectHoliday = Prisma.ProjectHolidayModel
 /**
@@ -179,7 +179,7 @@ export type ProjectHoliday = Prisma.ProjectHolidayModel
 export type ProjectManager = Prisma.ProjectManagerModel
 /**
  * Model AttendanceRecord
- * 
+ *
  */
 export type AttendanceRecord = Prisma.AttendanceRecordModel
 /**
@@ -192,17 +192,17 @@ export type AttendanceRecord = Prisma.AttendanceRecordModel
 export type AttendanceEditLog = Prisma.AttendanceEditLogModel
 /**
  * Model BreakSession
- * 
+ *
  */
 export type BreakSession = Prisma.BreakSessionModel
 /**
  * Model ApprovalRequest
- * 
+ *
  */
 export type ApprovalRequest = Prisma.ApprovalRequestModel
 /**
  * Model ApprovalChainStep
- * 
+ *
  */
 export type ApprovalChainStep = Prisma.ApprovalChainStepModel
 /**
@@ -222,42 +222,74 @@ export type Team = Prisma.TeamModel
  */
 export type EmployeeTeamMembership = Prisma.EmployeeTeamMembershipModel
 /**
- * Model PayrollCompanyInfo
- * 
- */
-export type PayrollCompanyInfo = Prisma.PayrollCompanyInfoModel
-/**
  * Model PayrollProfile
- * 
+ * One row per employee. Stores all Malaysia-payroll-specific data that
+ * doesn't belong on `EmployeeProfile` (which is shared by claims +
+ * attendance). Lazy-created when admin onboards the employee into
+ * payroll — absence of a PayrollProfile = "employee not yet enrolled
+ * in payroll." Cascade-deletes if the EmployeeProfile is deleted.
  */
 export type PayrollProfile = Prisma.PayrollProfileModel
 /**
- * Model PayrollRun
- * 
- */
-export type PayrollRun = Prisma.PayrollRunModel
-/**
- * Model PayrollRunAdjustment
- * 
- */
-export type PayrollRunAdjustment = Prisma.PayrollRunAdjustmentModel
-/**
- * Model PayrollRunClaim
- * 
- */
-export type PayrollRunClaim = Prisma.PayrollRunClaimModel
-/**
  * Model PayrollSettings
- * 
+ * Per-org payroll rules. Frequently edited by admin (OT multipliers,
+ * EPF defaults). Matches Altomate's `p_settings` table.
  */
 export type PayrollSettings = Prisma.PayrollSettingsModel
 /**
+ * Model PayrollCompanyInfo
+ * Per-org employer filing profile. Updated rarely (~annual at most).
+ * Separate from PayrollSettings because it's a different concern — the
+ * "filing identity" of the company vs the operational rules. Matches
+ * Altomate's `p_company_settings`.
+ */
+export type PayrollCompanyInfo = Prisma.PayrollCompanyInfoModel
+/**
+ * Model PayrollRun
+ * One payroll run per (org, year, month). Created in DRAFT state; the
+ * admin reviews payslips, then submits → SUBMITTED. Submission is
+ * revertible until the next month's run is submitted.
+ */
+export type PayrollRun = Prisma.PayrollRunModel
+/**
+ * Model PayrollRunClaim
+ * Join row attaching an approved (SYNCED + PERSONAL paymentType)
+ * Workpulse claim to a payroll run as a REIMBURSEMENT. Persisted
+ * separately from `PayslipLineItem` because the run's payslips are
+ * re-generated from scratch on each "Generate" press, so the line
+ * items get wiped — this row is the source of truth that survives.
+ *
+ * The actual `PayslipLineItem` is recreated from this attachment on
+ * each generation, with `claimId` pointing back here for traceability.
+ *
+ * Snapshots `label` + `amount` at attach time so later edits to the
+ * underlying claim don't change historical payroll figures.
+ */
+export type PayrollRunClaim = Prisma.PayrollRunClaimModel
+/**
+ * Model PayrollRunAdjustment
+ * Per-run-per-employee adjustment row. Captures OT hours,
+ * one-off allowances + deductions, and a manually-entered
+ * unpaid-leave amount. Survives payslip regeneration (PayslipLineItem
+ * rows are recreated from these on each "Generate" press).
+ *
+ * One row per (runId, employeeProfileId). Admins fill these in from
+ * the per-employee adjustment page; the generator merges them in
+ * alongside fixed allowances (from PayrollProfile) and reimbursements
+ * (from PayrollRunClaim).
+ */
+export type PayrollRunAdjustment = Prisma.PayrollRunAdjustmentModel
+/**
  * Model Payslip
- * 
+ * One per (run, employee). Snapshots employee data at the moment of
+ * generation so later edits to PayrollProfile don't rewrite payroll
+ * history.
  */
 export type Payslip = Prisma.PayslipModel
 /**
  * Model PayslipLineItem
- * 
+ * Individual line items on a payslip — allowances, deductions,
+ * reimbursements. Maps to Altomate's "additions JSON" but normalised
+ * so claim FKs are queryable.
  */
 export type PayslipLineItem = Prisma.PayslipLineItemModel

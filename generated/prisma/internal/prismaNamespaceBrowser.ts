@@ -76,12 +76,12 @@ export const ModelName = {
   ApprovalChainStep: 'ApprovalChainStep',
   Team: 'Team',
   EmployeeTeamMembership: 'EmployeeTeamMembership',
-  PayrollCompanyInfo: 'PayrollCompanyInfo',
   PayrollProfile: 'PayrollProfile',
-  PayrollRun: 'PayrollRun',
-  PayrollRunAdjustment: 'PayrollRunAdjustment',
-  PayrollRunClaim: 'PayrollRunClaim',
   PayrollSettings: 'PayrollSettings',
+  PayrollCompanyInfo: 'PayrollCompanyInfo',
+  PayrollRun: 'PayrollRun',
+  PayrollRunClaim: 'PayrollRunClaim',
+  PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
   PayslipLineItem: 'PayslipLineItem'
 } as const
@@ -547,42 +547,6 @@ export const EmployeeTeamMembershipScalarFieldEnum = {
 export type EmployeeTeamMembershipScalarFieldEnum = (typeof EmployeeTeamMembershipScalarFieldEnum)[keyof typeof EmployeeTeamMembershipScalarFieldEnum]
 
 
-export const PayrollCompanyInfoScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  employerName: 'employerName',
-  employerTin: 'employerTin',
-  registrationNo: 'registrationNo',
-  referenceType: 'referenceType',
-  referenceNo: 'referenceNo',
-  employerCategory: 'employerCategory',
-  employerStatus: 'employerStatus',
-  cp8dFurnishType: 'cp8dFurnishType',
-  addressLine1: 'addressLine1',
-  addressLine2: 'addressLine2',
-  postcode: 'postcode',
-  city: 'city',
-  state: 'state',
-  country: 'country',
-  phone: 'phone',
-  handphone: 'handphone',
-  email: 'email',
-  taxAgentName: 'taxAgentName',
-  taxAgentTin: 'taxAgentTin',
-  taxAgentLicenceNo: 'taxAgentLicenceNo',
-  taxAgentPhone: 'taxAgentPhone',
-  taxAgentEmail: 'taxAgentEmail',
-  declarantName: 'declarantName',
-  declarantIdType: 'declarantIdType',
-  declarantIdNumber: 'declarantIdNumber',
-  declarantPosition: 'declarantPosition',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PayrollCompanyInfoScalarFieldEnum = (typeof PayrollCompanyInfoScalarFieldEnum)[keyof typeof PayrollCompanyInfoScalarFieldEnum]
-
-
 export const PayrollProfileScalarFieldEnum = {
   id: 'id',
   employeeProfileId: 'employeeProfileId',
@@ -654,6 +618,65 @@ export const PayrollProfileScalarFieldEnum = {
 export type PayrollProfileScalarFieldEnum = (typeof PayrollProfileScalarFieldEnum)[keyof typeof PayrollProfileScalarFieldEnum]
 
 
+export const PayrollSettingsScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  otRateNormal: 'otRateNormal',
+  otRateRest: 'otRateRest',
+  otRatePublicHoliday: 'otRatePublicHoliday',
+  workingDaysRule: 'workingDaysRule',
+  defaultEpfEmployeeRate: 'defaultEpfEmployeeRate',
+  defaultEpfEmployerRate: 'defaultEpfEmployerRate',
+  hrdfEnabled: 'hrdfEnabled',
+  hrdfRate: 'hrdfRate',
+  employerIdNumber: 'employerIdNumber',
+  myCoOrSsmNumber: 'myCoOrSsmNumber',
+  leaveCarryForwardAllowed: 'leaveCarryForwardAllowed',
+  leaveCarryForwardLimitDays: 'leaveCarryForwardLimitDays',
+  leaveCarryForwardExpiryMonths: 'leaveCarryForwardExpiryMonths',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PayrollSettingsScalarFieldEnum = (typeof PayrollSettingsScalarFieldEnum)[keyof typeof PayrollSettingsScalarFieldEnum]
+
+
+export const PayrollCompanyInfoScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  employerName: 'employerName',
+  employerTin: 'employerTin',
+  registrationNo: 'registrationNo',
+  referenceType: 'referenceType',
+  referenceNo: 'referenceNo',
+  employerCategory: 'employerCategory',
+  employerStatus: 'employerStatus',
+  cp8dFurnishType: 'cp8dFurnishType',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  postcode: 'postcode',
+  city: 'city',
+  state: 'state',
+  country: 'country',
+  phone: 'phone',
+  handphone: 'handphone',
+  email: 'email',
+  taxAgentName: 'taxAgentName',
+  taxAgentTin: 'taxAgentTin',
+  taxAgentLicenceNo: 'taxAgentLicenceNo',
+  taxAgentPhone: 'taxAgentPhone',
+  taxAgentEmail: 'taxAgentEmail',
+  declarantName: 'declarantName',
+  declarantIdType: 'declarantIdType',
+  declarantIdNumber: 'declarantIdNumber',
+  declarantPosition: 'declarantPosition',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PayrollCompanyInfoScalarFieldEnum = (typeof PayrollCompanyInfoScalarFieldEnum)[keyof typeof PayrollCompanyInfoScalarFieldEnum]
+
+
 export const PayrollRunScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -684,6 +707,20 @@ export const PayrollRunScalarFieldEnum = {
 export type PayrollRunScalarFieldEnum = (typeof PayrollRunScalarFieldEnum)[keyof typeof PayrollRunScalarFieldEnum]
 
 
+export const PayrollRunClaimScalarFieldEnum = {
+  id: 'id',
+  payrollRunId: 'payrollRunId',
+  claimId: 'claimId',
+  employeeProfileId: 'employeeProfileId',
+  label: 'label',
+  amount: 'amount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PayrollRunClaimScalarFieldEnum = (typeof PayrollRunClaimScalarFieldEnum)[keyof typeof PayrollRunClaimScalarFieldEnum]
+
+
 export const PayrollRunAdjustmentScalarFieldEnum = {
   id: 'id',
   payrollRunId: 'payrollRunId',
@@ -699,43 +736,6 @@ export const PayrollRunAdjustmentScalarFieldEnum = {
 } as const
 
 export type PayrollRunAdjustmentScalarFieldEnum = (typeof PayrollRunAdjustmentScalarFieldEnum)[keyof typeof PayrollRunAdjustmentScalarFieldEnum]
-
-
-export const PayrollRunClaimScalarFieldEnum = {
-  id: 'id',
-  payrollRunId: 'payrollRunId',
-  claimId: 'claimId',
-  employeeProfileId: 'employeeProfileId',
-  label: 'label',
-  amount: 'amount',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PayrollRunClaimScalarFieldEnum = (typeof PayrollRunClaimScalarFieldEnum)[keyof typeof PayrollRunClaimScalarFieldEnum]
-
-
-export const PayrollSettingsScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  otRateNormal: 'otRateNormal',
-  otRateRest: 'otRateRest',
-  otRatePublicHoliday: 'otRatePublicHoliday',
-  workingDaysRule: 'workingDaysRule',
-  defaultEpfEmployeeRate: 'defaultEpfEmployeeRate',
-  defaultEpfEmployerRate: 'defaultEpfEmployerRate',
-  hrdfEnabled: 'hrdfEnabled',
-  hrdfRate: 'hrdfRate',
-  employerIdNumber: 'employerIdNumber',
-  myCoOrSsmNumber: 'myCoOrSsmNumber',
-  leaveCarryForwardAllowed: 'leaveCarryForwardAllowed',
-  leaveCarryForwardLimitDays: 'leaveCarryForwardLimitDays',
-  leaveCarryForwardExpiryMonths: 'leaveCarryForwardExpiryMonths',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PayrollSettingsScalarFieldEnum = (typeof PayrollSettingsScalarFieldEnum)[keyof typeof PayrollSettingsScalarFieldEnum]
 
 
 export const PayslipScalarFieldEnum = {
@@ -1157,39 +1157,6 @@ export const EmployeeTeamMembershipOrderByRelevanceFieldEnum = {
 export type EmployeeTeamMembershipOrderByRelevanceFieldEnum = (typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum)[keyof typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum]
 
 
-export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  employerName: 'employerName',
-  employerTin: 'employerTin',
-  registrationNo: 'registrationNo',
-  referenceType: 'referenceType',
-  referenceNo: 'referenceNo',
-  employerCategory: 'employerCategory',
-  employerStatus: 'employerStatus',
-  cp8dFurnishType: 'cp8dFurnishType',
-  addressLine1: 'addressLine1',
-  addressLine2: 'addressLine2',
-  postcode: 'postcode',
-  city: 'city',
-  state: 'state',
-  country: 'country',
-  phone: 'phone',
-  handphone: 'handphone',
-  email: 'email',
-  taxAgentName: 'taxAgentName',
-  taxAgentTin: 'taxAgentTin',
-  taxAgentLicenceNo: 'taxAgentLicenceNo',
-  taxAgentPhone: 'taxAgentPhone',
-  taxAgentEmail: 'taxAgentEmail',
-  declarantName: 'declarantName',
-  declarantIdNumber: 'declarantIdNumber',
-  declarantPosition: 'declarantPosition'
-} as const
-
-export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompanyInfoOrderByRelevanceFieldEnum)[keyof typeof PayrollCompanyInfoOrderByRelevanceFieldEnum]
-
-
 export const PayrollProfileOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeProfileId: 'employeeProfileId',
@@ -1227,6 +1194,49 @@ export const PayrollProfileOrderByRelevanceFieldEnum = {
 export type PayrollProfileOrderByRelevanceFieldEnum = (typeof PayrollProfileOrderByRelevanceFieldEnum)[keyof typeof PayrollProfileOrderByRelevanceFieldEnum]
 
 
+export const PayrollSettingsOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  employerIdNumber: 'employerIdNumber',
+  myCoOrSsmNumber: 'myCoOrSsmNumber'
+} as const
+
+export type PayrollSettingsOrderByRelevanceFieldEnum = (typeof PayrollSettingsOrderByRelevanceFieldEnum)[keyof typeof PayrollSettingsOrderByRelevanceFieldEnum]
+
+
+export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  employerName: 'employerName',
+  employerTin: 'employerTin',
+  registrationNo: 'registrationNo',
+  referenceType: 'referenceType',
+  referenceNo: 'referenceNo',
+  employerCategory: 'employerCategory',
+  employerStatus: 'employerStatus',
+  cp8dFurnishType: 'cp8dFurnishType',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  postcode: 'postcode',
+  city: 'city',
+  state: 'state',
+  country: 'country',
+  phone: 'phone',
+  handphone: 'handphone',
+  email: 'email',
+  taxAgentName: 'taxAgentName',
+  taxAgentTin: 'taxAgentTin',
+  taxAgentLicenceNo: 'taxAgentLicenceNo',
+  taxAgentPhone: 'taxAgentPhone',
+  taxAgentEmail: 'taxAgentEmail',
+  declarantName: 'declarantName',
+  declarantIdNumber: 'declarantIdNumber',
+  declarantPosition: 'declarantPosition'
+} as const
+
+export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompanyInfoOrderByRelevanceFieldEnum)[keyof typeof PayrollCompanyInfoOrderByRelevanceFieldEnum]
+
+
 export const PayrollRunOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -1234,16 +1244,6 @@ export const PayrollRunOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayrollRunOrderByRelevanceFieldEnum = (typeof PayrollRunOrderByRelevanceFieldEnum)[keyof typeof PayrollRunOrderByRelevanceFieldEnum]
-
-
-export const PayrollRunAdjustmentOrderByRelevanceFieldEnum = {
-  id: 'id',
-  payrollRunId: 'payrollRunId',
-  employeeProfileId: 'employeeProfileId',
-  notes: 'notes'
-} as const
-
-export type PayrollRunAdjustmentOrderByRelevanceFieldEnum = (typeof PayrollRunAdjustmentOrderByRelevanceFieldEnum)[keyof typeof PayrollRunAdjustmentOrderByRelevanceFieldEnum]
 
 
 export const PayrollRunClaimOrderByRelevanceFieldEnum = {
@@ -1257,14 +1257,14 @@ export const PayrollRunClaimOrderByRelevanceFieldEnum = {
 export type PayrollRunClaimOrderByRelevanceFieldEnum = (typeof PayrollRunClaimOrderByRelevanceFieldEnum)[keyof typeof PayrollRunClaimOrderByRelevanceFieldEnum]
 
 
-export const PayrollSettingsOrderByRelevanceFieldEnum = {
+export const PayrollRunAdjustmentOrderByRelevanceFieldEnum = {
   id: 'id',
-  organizationId: 'organizationId',
-  employerIdNumber: 'employerIdNumber',
-  myCoOrSsmNumber: 'myCoOrSsmNumber'
+  payrollRunId: 'payrollRunId',
+  employeeProfileId: 'employeeProfileId',
+  notes: 'notes'
 } as const
 
-export type PayrollSettingsOrderByRelevanceFieldEnum = (typeof PayrollSettingsOrderByRelevanceFieldEnum)[keyof typeof PayrollSettingsOrderByRelevanceFieldEnum]
+export type PayrollRunAdjustmentOrderByRelevanceFieldEnum = (typeof PayrollRunAdjustmentOrderByRelevanceFieldEnum)[keyof typeof PayrollRunAdjustmentOrderByRelevanceFieldEnum]
 
 
 export const PayslipOrderByRelevanceFieldEnum = {

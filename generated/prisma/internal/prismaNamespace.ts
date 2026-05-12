@@ -409,12 +409,12 @@ export const ModelName = {
   ApprovalChainStep: 'ApprovalChainStep',
   Team: 'Team',
   EmployeeTeamMembership: 'EmployeeTeamMembership',
-  PayrollCompanyInfo: 'PayrollCompanyInfo',
   PayrollProfile: 'PayrollProfile',
-  PayrollRun: 'PayrollRun',
-  PayrollRunAdjustment: 'PayrollRunAdjustment',
-  PayrollRunClaim: 'PayrollRunClaim',
   PayrollSettings: 'PayrollSettings',
+  PayrollCompanyInfo: 'PayrollCompanyInfo',
+  PayrollRun: 'PayrollRun',
+  PayrollRunClaim: 'PayrollRunClaim',
+  PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
   PayslipLineItem: 'PayslipLineItem'
 } as const
@@ -432,7 +432,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollCompanyInfo" | "payrollProfile" | "payrollRun" | "payrollRunAdjustment" | "payrollRunClaim" | "payrollSettings" | "payslip" | "payslipLineItem"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2086,72 +2086,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    PayrollCompanyInfo: {
-      payload: Prisma.$PayrollCompanyInfoPayload<ExtArgs>
-      fields: Prisma.PayrollCompanyInfoFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.PayrollCompanyInfoFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.PayrollCompanyInfoFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
-        }
-        findFirst: {
-          args: Prisma.PayrollCompanyInfoFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.PayrollCompanyInfoFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
-        }
-        findMany: {
-          args: Prisma.PayrollCompanyInfoFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>[]
-        }
-        create: {
-          args: Prisma.PayrollCompanyInfoCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
-        }
-        createMany: {
-          args: Prisma.PayrollCompanyInfoCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        delete: {
-          args: Prisma.PayrollCompanyInfoDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
-        }
-        update: {
-          args: Prisma.PayrollCompanyInfoUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
-        }
-        deleteMany: {
-          args: Prisma.PayrollCompanyInfoDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.PayrollCompanyInfoUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        upsert: {
-          args: Prisma.PayrollCompanyInfoUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
-        }
-        aggregate: {
-          args: Prisma.PayrollCompanyInfoAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregatePayrollCompanyInfo>
-        }
-        groupBy: {
-          args: Prisma.PayrollCompanyInfoGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.PayrollCompanyInfoGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.PayrollCompanyInfoCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.PayrollCompanyInfoCountAggregateOutputType> | number
-        }
-      }
-    }
     PayrollProfile: {
       payload: Prisma.$PayrollProfilePayload<ExtArgs>
       fields: Prisma.PayrollProfileFieldRefs
@@ -2215,6 +2149,138 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PayrollProfileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PayrollProfileCountAggregateOutputType> | number
+        }
+      }
+    }
+    PayrollSettings: {
+      payload: Prisma.$PayrollSettingsPayload<ExtArgs>
+      fields: Prisma.PayrollSettingsFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PayrollSettingsFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PayrollSettingsFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+        }
+        findFirst: {
+          args: Prisma.PayrollSettingsFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PayrollSettingsFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+        }
+        findMany: {
+          args: Prisma.PayrollSettingsFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>[]
+        }
+        create: {
+          args: Prisma.PayrollSettingsCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+        }
+        createMany: {
+          args: Prisma.PayrollSettingsCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.PayrollSettingsDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+        }
+        update: {
+          args: Prisma.PayrollSettingsUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+        }
+        deleteMany: {
+          args: Prisma.PayrollSettingsDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PayrollSettingsUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.PayrollSettingsUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+        }
+        aggregate: {
+          args: Prisma.PayrollSettingsAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePayrollSettings>
+        }
+        groupBy: {
+          args: Prisma.PayrollSettingsGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollSettingsGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PayrollSettingsCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollSettingsCountAggregateOutputType> | number
+        }
+      }
+    }
+    PayrollCompanyInfo: {
+      payload: Prisma.$PayrollCompanyInfoPayload<ExtArgs>
+      fields: Prisma.PayrollCompanyInfoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PayrollCompanyInfoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PayrollCompanyInfoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
+        }
+        findFirst: {
+          args: Prisma.PayrollCompanyInfoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PayrollCompanyInfoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
+        }
+        findMany: {
+          args: Prisma.PayrollCompanyInfoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>[]
+        }
+        create: {
+          args: Prisma.PayrollCompanyInfoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
+        }
+        createMany: {
+          args: Prisma.PayrollCompanyInfoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.PayrollCompanyInfoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
+        }
+        update: {
+          args: Prisma.PayrollCompanyInfoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
+        }
+        deleteMany: {
+          args: Prisma.PayrollCompanyInfoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PayrollCompanyInfoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.PayrollCompanyInfoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollCompanyInfoPayload>
+        }
+        aggregate: {
+          args: Prisma.PayrollCompanyInfoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePayrollCompanyInfo>
+        }
+        groupBy: {
+          args: Prisma.PayrollCompanyInfoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollCompanyInfoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PayrollCompanyInfoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollCompanyInfoCountAggregateOutputType> | number
         }
       }
     }
@@ -2284,72 +2350,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    PayrollRunAdjustment: {
-      payload: Prisma.$PayrollRunAdjustmentPayload<ExtArgs>
-      fields: Prisma.PayrollRunAdjustmentFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.PayrollRunAdjustmentFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.PayrollRunAdjustmentFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
-        }
-        findFirst: {
-          args: Prisma.PayrollRunAdjustmentFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.PayrollRunAdjustmentFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
-        }
-        findMany: {
-          args: Prisma.PayrollRunAdjustmentFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>[]
-        }
-        create: {
-          args: Prisma.PayrollRunAdjustmentCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
-        }
-        createMany: {
-          args: Prisma.PayrollRunAdjustmentCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        delete: {
-          args: Prisma.PayrollRunAdjustmentDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
-        }
-        update: {
-          args: Prisma.PayrollRunAdjustmentUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
-        }
-        deleteMany: {
-          args: Prisma.PayrollRunAdjustmentDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.PayrollRunAdjustmentUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        upsert: {
-          args: Prisma.PayrollRunAdjustmentUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
-        }
-        aggregate: {
-          args: Prisma.PayrollRunAdjustmentAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregatePayrollRunAdjustment>
-        }
-        groupBy: {
-          args: Prisma.PayrollRunAdjustmentGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.PayrollRunAdjustmentGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.PayrollRunAdjustmentCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.PayrollRunAdjustmentCountAggregateOutputType> | number
-        }
-      }
-    }
     PayrollRunClaim: {
       payload: Prisma.$PayrollRunClaimPayload<ExtArgs>
       fields: Prisma.PayrollRunClaimFieldRefs
@@ -2416,69 +2416,69 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    PayrollSettings: {
-      payload: Prisma.$PayrollSettingsPayload<ExtArgs>
-      fields: Prisma.PayrollSettingsFieldRefs
+    PayrollRunAdjustment: {
+      payload: Prisma.$PayrollRunAdjustmentPayload<ExtArgs>
+      fields: Prisma.PayrollRunAdjustmentFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.PayrollSettingsFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload> | null
+          args: Prisma.PayrollRunAdjustmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.PayrollSettingsFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+          args: Prisma.PayrollRunAdjustmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
         }
         findFirst: {
-          args: Prisma.PayrollSettingsFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload> | null
+          args: Prisma.PayrollRunAdjustmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.PayrollSettingsFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+          args: Prisma.PayrollRunAdjustmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
         }
         findMany: {
-          args: Prisma.PayrollSettingsFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>[]
+          args: Prisma.PayrollRunAdjustmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>[]
         }
         create: {
-          args: Prisma.PayrollSettingsCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+          args: Prisma.PayrollRunAdjustmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
         }
         createMany: {
-          args: Prisma.PayrollSettingsCreateManyArgs<ExtArgs>
+          args: Prisma.PayrollRunAdjustmentCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         delete: {
-          args: Prisma.PayrollSettingsDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+          args: Prisma.PayrollRunAdjustmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
         }
         update: {
-          args: Prisma.PayrollSettingsUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+          args: Prisma.PayrollRunAdjustmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
         }
         deleteMany: {
-          args: Prisma.PayrollSettingsDeleteManyArgs<ExtArgs>
+          args: Prisma.PayrollRunAdjustmentDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.PayrollSettingsUpdateManyArgs<ExtArgs>
+          args: Prisma.PayrollRunAdjustmentUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         upsert: {
-          args: Prisma.PayrollSettingsUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollSettingsPayload>
+          args: Prisma.PayrollRunAdjustmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunAdjustmentPayload>
         }
         aggregate: {
-          args: Prisma.PayrollSettingsAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregatePayrollSettings>
+          args: Prisma.PayrollRunAdjustmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePayrollRunAdjustment>
         }
         groupBy: {
-          args: Prisma.PayrollSettingsGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.PayrollSettingsGroupByOutputType>[]
+          args: Prisma.PayrollRunAdjustmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollRunAdjustmentGroupByOutputType>[]
         }
         count: {
-          args: Prisma.PayrollSettingsCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.PayrollSettingsCountAggregateOutputType> | number
+          args: Prisma.PayrollRunAdjustmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollRunAdjustmentCountAggregateOutputType> | number
         }
       }
     }
@@ -3098,42 +3098,6 @@ export const EmployeeTeamMembershipScalarFieldEnum = {
 export type EmployeeTeamMembershipScalarFieldEnum = (typeof EmployeeTeamMembershipScalarFieldEnum)[keyof typeof EmployeeTeamMembershipScalarFieldEnum]
 
 
-export const PayrollCompanyInfoScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  employerName: 'employerName',
-  employerTin: 'employerTin',
-  registrationNo: 'registrationNo',
-  referenceType: 'referenceType',
-  referenceNo: 'referenceNo',
-  employerCategory: 'employerCategory',
-  employerStatus: 'employerStatus',
-  cp8dFurnishType: 'cp8dFurnishType',
-  addressLine1: 'addressLine1',
-  addressLine2: 'addressLine2',
-  postcode: 'postcode',
-  city: 'city',
-  state: 'state',
-  country: 'country',
-  phone: 'phone',
-  handphone: 'handphone',
-  email: 'email',
-  taxAgentName: 'taxAgentName',
-  taxAgentTin: 'taxAgentTin',
-  taxAgentLicenceNo: 'taxAgentLicenceNo',
-  taxAgentPhone: 'taxAgentPhone',
-  taxAgentEmail: 'taxAgentEmail',
-  declarantName: 'declarantName',
-  declarantIdType: 'declarantIdType',
-  declarantIdNumber: 'declarantIdNumber',
-  declarantPosition: 'declarantPosition',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PayrollCompanyInfoScalarFieldEnum = (typeof PayrollCompanyInfoScalarFieldEnum)[keyof typeof PayrollCompanyInfoScalarFieldEnum]
-
-
 export const PayrollProfileScalarFieldEnum = {
   id: 'id',
   employeeProfileId: 'employeeProfileId',
@@ -3205,6 +3169,65 @@ export const PayrollProfileScalarFieldEnum = {
 export type PayrollProfileScalarFieldEnum = (typeof PayrollProfileScalarFieldEnum)[keyof typeof PayrollProfileScalarFieldEnum]
 
 
+export const PayrollSettingsScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  otRateNormal: 'otRateNormal',
+  otRateRest: 'otRateRest',
+  otRatePublicHoliday: 'otRatePublicHoliday',
+  workingDaysRule: 'workingDaysRule',
+  defaultEpfEmployeeRate: 'defaultEpfEmployeeRate',
+  defaultEpfEmployerRate: 'defaultEpfEmployerRate',
+  hrdfEnabled: 'hrdfEnabled',
+  hrdfRate: 'hrdfRate',
+  employerIdNumber: 'employerIdNumber',
+  myCoOrSsmNumber: 'myCoOrSsmNumber',
+  leaveCarryForwardAllowed: 'leaveCarryForwardAllowed',
+  leaveCarryForwardLimitDays: 'leaveCarryForwardLimitDays',
+  leaveCarryForwardExpiryMonths: 'leaveCarryForwardExpiryMonths',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PayrollSettingsScalarFieldEnum = (typeof PayrollSettingsScalarFieldEnum)[keyof typeof PayrollSettingsScalarFieldEnum]
+
+
+export const PayrollCompanyInfoScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  employerName: 'employerName',
+  employerTin: 'employerTin',
+  registrationNo: 'registrationNo',
+  referenceType: 'referenceType',
+  referenceNo: 'referenceNo',
+  employerCategory: 'employerCategory',
+  employerStatus: 'employerStatus',
+  cp8dFurnishType: 'cp8dFurnishType',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  postcode: 'postcode',
+  city: 'city',
+  state: 'state',
+  country: 'country',
+  phone: 'phone',
+  handphone: 'handphone',
+  email: 'email',
+  taxAgentName: 'taxAgentName',
+  taxAgentTin: 'taxAgentTin',
+  taxAgentLicenceNo: 'taxAgentLicenceNo',
+  taxAgentPhone: 'taxAgentPhone',
+  taxAgentEmail: 'taxAgentEmail',
+  declarantName: 'declarantName',
+  declarantIdType: 'declarantIdType',
+  declarantIdNumber: 'declarantIdNumber',
+  declarantPosition: 'declarantPosition',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PayrollCompanyInfoScalarFieldEnum = (typeof PayrollCompanyInfoScalarFieldEnum)[keyof typeof PayrollCompanyInfoScalarFieldEnum]
+
+
 export const PayrollRunScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -3235,6 +3258,20 @@ export const PayrollRunScalarFieldEnum = {
 export type PayrollRunScalarFieldEnum = (typeof PayrollRunScalarFieldEnum)[keyof typeof PayrollRunScalarFieldEnum]
 
 
+export const PayrollRunClaimScalarFieldEnum = {
+  id: 'id',
+  payrollRunId: 'payrollRunId',
+  claimId: 'claimId',
+  employeeProfileId: 'employeeProfileId',
+  label: 'label',
+  amount: 'amount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PayrollRunClaimScalarFieldEnum = (typeof PayrollRunClaimScalarFieldEnum)[keyof typeof PayrollRunClaimScalarFieldEnum]
+
+
 export const PayrollRunAdjustmentScalarFieldEnum = {
   id: 'id',
   payrollRunId: 'payrollRunId',
@@ -3250,43 +3287,6 @@ export const PayrollRunAdjustmentScalarFieldEnum = {
 } as const
 
 export type PayrollRunAdjustmentScalarFieldEnum = (typeof PayrollRunAdjustmentScalarFieldEnum)[keyof typeof PayrollRunAdjustmentScalarFieldEnum]
-
-
-export const PayrollRunClaimScalarFieldEnum = {
-  id: 'id',
-  payrollRunId: 'payrollRunId',
-  claimId: 'claimId',
-  employeeProfileId: 'employeeProfileId',
-  label: 'label',
-  amount: 'amount',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PayrollRunClaimScalarFieldEnum = (typeof PayrollRunClaimScalarFieldEnum)[keyof typeof PayrollRunClaimScalarFieldEnum]
-
-
-export const PayrollSettingsScalarFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  otRateNormal: 'otRateNormal',
-  otRateRest: 'otRateRest',
-  otRatePublicHoliday: 'otRatePublicHoliday',
-  workingDaysRule: 'workingDaysRule',
-  defaultEpfEmployeeRate: 'defaultEpfEmployeeRate',
-  defaultEpfEmployerRate: 'defaultEpfEmployerRate',
-  hrdfEnabled: 'hrdfEnabled',
-  hrdfRate: 'hrdfRate',
-  employerIdNumber: 'employerIdNumber',
-  myCoOrSsmNumber: 'myCoOrSsmNumber',
-  leaveCarryForwardAllowed: 'leaveCarryForwardAllowed',
-  leaveCarryForwardLimitDays: 'leaveCarryForwardLimitDays',
-  leaveCarryForwardExpiryMonths: 'leaveCarryForwardExpiryMonths',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type PayrollSettingsScalarFieldEnum = (typeof PayrollSettingsScalarFieldEnum)[keyof typeof PayrollSettingsScalarFieldEnum]
 
 
 export const PayslipScalarFieldEnum = {
@@ -3708,39 +3708,6 @@ export const EmployeeTeamMembershipOrderByRelevanceFieldEnum = {
 export type EmployeeTeamMembershipOrderByRelevanceFieldEnum = (typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum)[keyof typeof EmployeeTeamMembershipOrderByRelevanceFieldEnum]
 
 
-export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
-  id: 'id',
-  organizationId: 'organizationId',
-  employerName: 'employerName',
-  employerTin: 'employerTin',
-  registrationNo: 'registrationNo',
-  referenceType: 'referenceType',
-  referenceNo: 'referenceNo',
-  employerCategory: 'employerCategory',
-  employerStatus: 'employerStatus',
-  cp8dFurnishType: 'cp8dFurnishType',
-  addressLine1: 'addressLine1',
-  addressLine2: 'addressLine2',
-  postcode: 'postcode',
-  city: 'city',
-  state: 'state',
-  country: 'country',
-  phone: 'phone',
-  handphone: 'handphone',
-  email: 'email',
-  taxAgentName: 'taxAgentName',
-  taxAgentTin: 'taxAgentTin',
-  taxAgentLicenceNo: 'taxAgentLicenceNo',
-  taxAgentPhone: 'taxAgentPhone',
-  taxAgentEmail: 'taxAgentEmail',
-  declarantName: 'declarantName',
-  declarantIdNumber: 'declarantIdNumber',
-  declarantPosition: 'declarantPosition'
-} as const
-
-export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompanyInfoOrderByRelevanceFieldEnum)[keyof typeof PayrollCompanyInfoOrderByRelevanceFieldEnum]
-
-
 export const PayrollProfileOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeProfileId: 'employeeProfileId',
@@ -3778,6 +3745,49 @@ export const PayrollProfileOrderByRelevanceFieldEnum = {
 export type PayrollProfileOrderByRelevanceFieldEnum = (typeof PayrollProfileOrderByRelevanceFieldEnum)[keyof typeof PayrollProfileOrderByRelevanceFieldEnum]
 
 
+export const PayrollSettingsOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  employerIdNumber: 'employerIdNumber',
+  myCoOrSsmNumber: 'myCoOrSsmNumber'
+} as const
+
+export type PayrollSettingsOrderByRelevanceFieldEnum = (typeof PayrollSettingsOrderByRelevanceFieldEnum)[keyof typeof PayrollSettingsOrderByRelevanceFieldEnum]
+
+
+export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  employerName: 'employerName',
+  employerTin: 'employerTin',
+  registrationNo: 'registrationNo',
+  referenceType: 'referenceType',
+  referenceNo: 'referenceNo',
+  employerCategory: 'employerCategory',
+  employerStatus: 'employerStatus',
+  cp8dFurnishType: 'cp8dFurnishType',
+  addressLine1: 'addressLine1',
+  addressLine2: 'addressLine2',
+  postcode: 'postcode',
+  city: 'city',
+  state: 'state',
+  country: 'country',
+  phone: 'phone',
+  handphone: 'handphone',
+  email: 'email',
+  taxAgentName: 'taxAgentName',
+  taxAgentTin: 'taxAgentTin',
+  taxAgentLicenceNo: 'taxAgentLicenceNo',
+  taxAgentPhone: 'taxAgentPhone',
+  taxAgentEmail: 'taxAgentEmail',
+  declarantName: 'declarantName',
+  declarantIdNumber: 'declarantIdNumber',
+  declarantPosition: 'declarantPosition'
+} as const
+
+export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompanyInfoOrderByRelevanceFieldEnum)[keyof typeof PayrollCompanyInfoOrderByRelevanceFieldEnum]
+
+
 export const PayrollRunOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -3785,16 +3795,6 @@ export const PayrollRunOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayrollRunOrderByRelevanceFieldEnum = (typeof PayrollRunOrderByRelevanceFieldEnum)[keyof typeof PayrollRunOrderByRelevanceFieldEnum]
-
-
-export const PayrollRunAdjustmentOrderByRelevanceFieldEnum = {
-  id: 'id',
-  payrollRunId: 'payrollRunId',
-  employeeProfileId: 'employeeProfileId',
-  notes: 'notes'
-} as const
-
-export type PayrollRunAdjustmentOrderByRelevanceFieldEnum = (typeof PayrollRunAdjustmentOrderByRelevanceFieldEnum)[keyof typeof PayrollRunAdjustmentOrderByRelevanceFieldEnum]
 
 
 export const PayrollRunClaimOrderByRelevanceFieldEnum = {
@@ -3808,14 +3808,14 @@ export const PayrollRunClaimOrderByRelevanceFieldEnum = {
 export type PayrollRunClaimOrderByRelevanceFieldEnum = (typeof PayrollRunClaimOrderByRelevanceFieldEnum)[keyof typeof PayrollRunClaimOrderByRelevanceFieldEnum]
 
 
-export const PayrollSettingsOrderByRelevanceFieldEnum = {
+export const PayrollRunAdjustmentOrderByRelevanceFieldEnum = {
   id: 'id',
-  organizationId: 'organizationId',
-  employerIdNumber: 'employerIdNumber',
-  myCoOrSsmNumber: 'myCoOrSsmNumber'
+  payrollRunId: 'payrollRunId',
+  employeeProfileId: 'employeeProfileId',
+  notes: 'notes'
 } as const
 
-export type PayrollSettingsOrderByRelevanceFieldEnum = (typeof PayrollSettingsOrderByRelevanceFieldEnum)[keyof typeof PayrollSettingsOrderByRelevanceFieldEnum]
+export type PayrollRunAdjustmentOrderByRelevanceFieldEnum = (typeof PayrollRunAdjustmentOrderByRelevanceFieldEnum)[keyof typeof PayrollRunAdjustmentOrderByRelevanceFieldEnum]
 
 
 export const PayslipOrderByRelevanceFieldEnum = {
@@ -4017,79 +4017,65 @@ export type EnumOTSubtypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
- * Reference to a field of type 'PayrollCompanyInfo_declarantIdType'
+ * Reference to a field of type 'Gender'
  */
-export type EnumPayrollCompanyInfo_declarantIdTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollCompanyInfo_declarantIdType'>
+export type EnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Gender'>
     
 
 
 /**
- * Reference to a field of type 'PayrollProfile_gender'
+ * Reference to a field of type 'IdType'
  */
-export type EnumPayrollProfile_genderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollProfile_gender'>
+export type EnumIdTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdType'>
     
 
 
 /**
- * Reference to a field of type 'PayrollProfile_idType'
+ * Reference to a field of type 'MaritalStatus'
  */
-export type EnumPayrollProfile_idTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollProfile_idType'>
+export type EnumMaritalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MaritalStatus'>
     
 
 
 /**
- * Reference to a field of type 'PayrollProfile_maritalStatus'
+ * Reference to a field of type 'SocsoScheme'
  */
-export type EnumPayrollProfile_maritalStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollProfile_maritalStatus'>
+export type EnumSocsoSchemeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SocsoScheme'>
     
 
 
 /**
- * Reference to a field of type 'PayrollProfile_socsoScheme'
+ * Reference to a field of type 'PaymentMethod'
  */
-export type EnumPayrollProfile_socsoSchemeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollProfile_socsoScheme'>
+export type EnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentMethod'>
     
 
 
 /**
- * Reference to a field of type 'PayrollProfile_paymentMethod'
+ * Reference to a field of type 'SalaryType'
  */
-export type EnumPayrollProfile_paymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollProfile_paymentMethod'>
+export type EnumSalaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SalaryType'>
     
 
 
 /**
- * Reference to a field of type 'PayrollProfile_salaryType'
+ * Reference to a field of type 'WorkingDaysRule'
  */
-export type EnumPayrollProfile_salaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollProfile_salaryType'>
+export type EnumWorkingDaysRuleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkingDaysRule'>
     
 
 
 /**
- * Reference to a field of type 'PayrollRun_status'
+ * Reference to a field of type 'PayrollRunStatus'
  */
-export type EnumPayrollRun_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollRun_status'>
+export type EnumPayrollRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollRunStatus'>
     
 
 
 /**
- * Reference to a field of type 'PayrollSettings_workingDaysRule'
+ * Reference to a field of type 'PayslipLineKind'
  */
-export type EnumPayrollSettings_workingDaysRuleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollSettings_workingDaysRule'>
-    
-
-
-/**
- * Reference to a field of type 'Payslip_snapshotSalaryType'
- */
-export type EnumPayslip_snapshotSalaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Payslip_snapshotSalaryType'>
-    
-
-
-/**
- * Reference to a field of type 'PayslipLineItem_kind'
- */
-export type EnumPayslipLineItem_kindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayslipLineItem_kind'>
+export type EnumPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayslipLineKind'>
     
 
 /**
@@ -4212,12 +4198,12 @@ export type GlobalOmitConfig = {
   approvalChainStep?: Prisma.ApprovalChainStepOmit
   team?: Prisma.TeamOmit
   employeeTeamMembership?: Prisma.EmployeeTeamMembershipOmit
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoOmit
   payrollProfile?: Prisma.PayrollProfileOmit
-  payrollRun?: Prisma.PayrollRunOmit
-  payrollRunAdjustment?: Prisma.PayrollRunAdjustmentOmit
-  payrollRunClaim?: Prisma.PayrollRunClaimOmit
   payrollSettings?: Prisma.PayrollSettingsOmit
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoOmit
+  payrollRun?: Prisma.PayrollRunOmit
+  payrollRunClaim?: Prisma.PayrollRunClaimOmit
+  payrollRunAdjustment?: Prisma.PayrollRunAdjustmentOmit
   payslip?: Prisma.PayslipOmit
   payslipLineItem?: Prisma.PayslipLineItemOmit
 }
