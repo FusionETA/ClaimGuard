@@ -95,11 +95,12 @@ export const adminAttendanceService = {
   },
 
   async getWorkingHours(orgId: string | null): Promise<{ start: string; end: string }> {
-    // Working hours change rarely — longer TTL (10min). Mutation
-    // invalidates explicitly via `setWorkingHoursAction`.
+    // Working hours change almost never — 1-day TTL. Mutation
+    // invalidates explicitly via `setWorkingHoursAction` (calls
+    // `bustAttendanceCaches`), so the long TTL is just a safety net.
     return getOrSetCache(
       key("org", seg(orgId), "attendance", "working-hours"),
-      600,
+      86400,
       () => attendanceRepository.getWorkingHours(orgId),
     )
   },
