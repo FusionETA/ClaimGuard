@@ -38,7 +38,7 @@ export default async function AdminPayrollPage() {
         </h1>
         <p className="text-sm text-muted-foreground">
           Automated payroll for Malaysian operations. Set up employee
-          statutory information, run monthly payroll, generate payslips.
+          statutory information, run monthly payroll, and issue payslips.
         </p>
         <p className="text-xs text-muted-foreground">
           v1: basic pay, OT, allowances, EPF, SOCSO, EIS, HRDF (HRD

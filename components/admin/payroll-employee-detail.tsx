@@ -5,10 +5,12 @@ import { Plus, Trash2 } from "lucide-react"
 
 import {
   archivePayrollProfileAction,
+  deletePayrollDocumentAction,
   savePayrollEmploymentAction,
   savePayrollPersonalAction,
   savePayrollStatutoryAction,
   unarchivePayrollProfileAction,
+  uploadPayrollDocumentAction,
 } from "@/app/(admin)/admin/payroll/employees/[id]/actions"
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import {
@@ -50,6 +52,7 @@ import {
   socsoSchemes,
   type ChildRelief,
   type FixedAllowance,
+  type PayrollDocument,
   type PayrollProfileData,
 } from "@/modules/payroll/domain/models"
 
@@ -228,6 +231,14 @@ function PersonalTab(props: {
   )
   const showSpouseCard = maritalStatus === "MARRIED"
 
+  // Spouse-working is required when married (drives PCB joint-relief
+  // calc). Track it live so the red border clears the moment the
+  // admin picks Yes / No.
+  const [spouseWorking, setSpouseWorking] = useState<string>(
+    booleanString(props.profile?.spouseWorking),
+  )
+  const spouseWorkingMissing = showSpouseCard && spouseWorking === ""
+
   function addChild() {
     setChildren((c) => [
       ...c,
@@ -372,7 +383,12 @@ function PersonalTab(props: {
             <Field label="Spouse working?">
               <NativeSelect
                 name="spouseWorking"
-                defaultValue={booleanString(props.profile?.spouseWorking)}
+                value={spouseWorking}
+                onChange={(e) => setSpouseWorking(e.target.value)}
+                className={cn(
+                  spouseWorkingMissing &&
+                    "border-destructive bg-destructive/5 ring-2 ring-destructive/30",
+                )}
               >
                 <option value="">—</option>
                 <option value="true">Yes</option>
@@ -613,12 +629,39 @@ function EmploymentTab(props: {
     props.profile?.fixedAllowances ?? [],
   )
 
-  function addAllowance() {
+  // Live values for the required fields so we can flip the red
+  // border the moment the admin starts typing. These mirror the
+  // form's name= bindings so submit still picks them up via FormData.
+  const [monthlySalary, setMonthlySalary] = useState(
+    props.profile?.monthlySalary != null
+      ? String(props.profile.monthlySalary)
+      : "",
+  )
+  const [hourlyRate, setHourlyRate] = useState(
+    props.profile?.hourlyRate != null
+      ? String(props.profile.hourlyRate)
+      : "",
+  )
+  const [joinDate, setJoinDate] = useState(props.profile?.joinDate ?? "")
+
+  const monthlySalaryMissing =
+    salaryType === "MONTHLY" && monthlySalary.trim() === ""
+  const hourlyRateMissing =
+    salaryType === "HOURLY" && hourlyRate.trim() === ""
+  const joinDateMissing = joinDate.trim() === ""
+
+  // Two-button entrypoint (Add allowance / Add deduction) — admin sets
+  // the kind up-front so the dropdown opens with category options that
+  // match their intent. They can still pick any allowance/deduction
+  // sub-type from the grouped <optgroup>s within the row.
+  function addAdjustment(kind: "ALLOWANCE" | "DEDUCTION") {
+    const category =
+      kind === "DEDUCTION" ? "deduct_salary_adjustment" : "allowance_standard"
     setAllowances((a) => [
       ...a,
       {
-        category: "allowance_standard",
-        name: PAYROLL_ADJUSTMENT_CATEGORY_META.allowance_standard.label,
+        category,
+        name: PAYROLL_ADJUSTMENT_CATEGORY_META[category].label,
         amount: 0,
       },
     ])
@@ -633,7 +676,12 @@ function EmploymentTab(props: {
   }
 
   return (
-    <form action={action} className="space-y-6">
+    <div className="space-y-6">
+      {/* Documents card is rendered as a sibling of the main employment
+          form (not nested inside it) because the card contains its own
+          upload + delete forms. Nesting <form> inside <form> is invalid
+          HTML and triggers a React hydration error. */}
+      <form action={action} className="space-y-6">
       <input type="hidden" name="userId" value={props.userId} hidden />
 
       <Card>
@@ -666,7 +714,9 @@ function EmploymentTab(props: {
                 type="number"
                 step="0.01"
                 min="0"
-                defaultValue={props.profile?.monthlySalary ?? ""}
+                value={monthlySalary}
+                onChange={(e) => setMonthlySalary(e.target.value)}
+                aria-invalid={monthlySalaryMissing || undefined}
               />
             </Field>
           ) : (
@@ -676,7 +726,9 @@ function EmploymentTab(props: {
                 type="number"
                 step="0.01"
                 min="0"
-                defaultValue={props.profile?.hourlyRate ?? ""}
+                value={hourlyRate}
+                onChange={(e) => setHourlyRate(e.target.value)}
+                aria-invalid={hourlyRateMissing || undefined}
               />
             </Field>
           )}
@@ -692,10 +744,26 @@ function EmploymentTab(props: {
               payroll run with the right statutory treatment.
             </CardDescription>
           </div>
-          <Button type="button" size="sm" variant="ghost" onClick={addAllowance}>
-            <Plus className="h-3.5 w-3.5" />
-            Add adjustment
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => addAdjustment("ALLOWANCE")}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add allowance
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => addAdjustment("DEDUCTION")}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add deduction
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-2">
           {allowances.length === 0 ? (
@@ -729,7 +797,9 @@ function EmploymentTab(props: {
             <Input
               name="joinDate"
               type="date"
-              defaultValue={props.profile?.joinDate ?? ""}
+              value={joinDate}
+              onChange={(e) => setJoinDate(e.target.value)}
+              aria-invalid={joinDateMissing || undefined}
             />
           </Field>
           <Field label="Leave date (last day)">
@@ -737,48 +807,6 @@ function EmploymentTab(props: {
               name="leaveDate"
               type="date"
               defaultValue={props.profile?.leaveDate ?? ""}
-            />
-          </Field>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Grouping</CardTitle>
-          <CardDescription>
-            Free-text tags for reports and filtering.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <Field label="Department">
-            <Input
-              name="department"
-              defaultValue={props.profile?.department ?? ""}
-            />
-          </Field>
-          <Field label="Location">
-            <Input
-              name="location"
-              defaultValue={props.profile?.location ?? ""}
-            />
-          </Field>
-          <Field label="Work schedule">
-            <Input
-              name="workSchedule"
-              defaultValue={props.profile?.workSchedule ?? ""}
-              placeholder="Office / Shift A"
-            />
-          </Field>
-          <Field label="Payroll policy">
-            <Input
-              name="payrollPolicy"
-              defaultValue={props.profile?.payrollPolicy ?? ""}
-            />
-          </Field>
-          <Field label="Payroll cycle">
-            <Input
-              name="payrollCycle"
-              defaultValue={props.profile?.payrollCycle ?? "Monthly"}
             />
           </Field>
         </CardContent>
@@ -828,7 +856,13 @@ function EmploymentTab(props: {
           {pending ? "Saving…" : "Save Employment"}
         </Button>
       </div>
-    </form>
+      </form>
+
+      <PayrollDocumentsCard
+        userId={props.userId}
+        documents={props.profile?.payrollDocuments ?? []}
+      />
+    </div>
   )
 }
 
@@ -852,6 +886,18 @@ function FixedAdjustmentRow({
     category.subjectToEis ? "EIS" : null,
     category.subjectToPcb ? "PCB" : null,
   ].filter(Boolean)
+  // Filter the dropdown to the same kind the row was added as. Admin
+  // clicked "Add allowance" → only earning-style categories show.
+  // Clicked "Add deduction" → only deduction categories. Keeps the
+  // mental model clean and removes the cross-kind switching that was
+  // previously possible from a single row.
+  const rowKind: "ALLOWANCE" | "DEDUCTION" =
+    category.kind === "DEDUCTION" ? "DEDUCTION" : "ALLOWANCE"
+  const allowedCategories = payrollAdjustmentCategories.filter((code) => {
+    const m = PAYROLL_ADJUSTMENT_CATEGORY_META[code]
+    if (rowKind === "DEDUCTION") return m.kind === "DEDUCTION"
+    return m.kind === "ALLOWANCE"
+  })
 
   return (
     <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
@@ -868,20 +914,27 @@ function FixedAdjustmentRow({
               })
             }}
           >
-            {payrollAdjustmentCategoryGroups.map((group) => (
-              <optgroup key={group} label={group}>
-                {payrollAdjustmentCategories
-                  .filter(
-                    (code) =>
-                      PAYROLL_ADJUSTMENT_CATEGORY_META[code].group === group,
-                  )
-                  .map((code) => (
-                    <option key={code} value={code}>
-                      {PAYROLL_ADJUSTMENT_CATEGORY_META[code].label}
-                    </option>
-                  ))}
-              </optgroup>
-            ))}
+            {payrollAdjustmentCategoryGroups
+              .filter((group) =>
+                allowedCategories.some(
+                  (code) =>
+                    PAYROLL_ADJUSTMENT_CATEGORY_META[code].group === group,
+                ),
+              )
+              .map((group) => (
+                <optgroup key={group} label={group}>
+                  {allowedCategories
+                    .filter(
+                      (code) =>
+                        PAYROLL_ADJUSTMENT_CATEGORY_META[code].group === group,
+                    )
+                    .map((code) => (
+                      <option key={code} value={code}>
+                        {PAYROLL_ADJUSTMENT_CATEGORY_META[code].label}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
           </NativeSelect>
         </Field>
         <Field label="Display name">
@@ -976,6 +1029,28 @@ function StatutoryTab(props: {
   const employeeAge = computeAge(props.profile?.dateOfBirth)
   const isAge60Plus = employeeAge >= 60
 
+  // Live state for the required statutory fields. As the admin types
+  // into each, the red `aria-invalid` border clears.
+  // `contributeToEpf` uses the persisted value as the gate (Toggle is
+  // uncontrolled in this codebase, so admins fix EPF requirement by
+  // toggling + saving). `socsoScheme` is controlled via NativeSelect
+  // so the SOCSO-number requirement reacts immediately.
+  const contributeToEpfInitial = props.profile?.contributeToEpf ?? true
+  const [socsoScheme, setSocsoScheme] = useState<string>(
+    props.profile?.socsoScheme ?? "",
+  )
+  const [epfNumber, setEpfNumber] = useState(props.profile?.epfNumber ?? "")
+  const [socsoNumber, setSocsoNumber] = useState(
+    props.profile?.socsoNumber ?? "",
+  )
+  const [incomeTaxNumber, setIncomeTaxNumber] = useState(
+    props.profile?.incomeTaxNumber ?? "",
+  )
+  const epfNumberMissing = contributeToEpfInitial && epfNumber.trim() === ""
+  const socsoNumberMissing =
+    socsoScheme !== "" && socsoNumber.trim() === ""
+  const incomeTaxNumberMissing = incomeTaxNumber.trim() === ""
+
   // KWSP Third Schedule branch resolver (mirrors `pickEpfBranch` in
   // domain/calc.ts).
   let epfBranchLabel: string
@@ -1046,7 +1121,9 @@ function StatutoryTab(props: {
           <Field label="EPF number">
             <Input
               name="epfNumber"
-              defaultValue={props.profile?.epfNumber ?? ""}
+              value={epfNumber}
+              onChange={(e) => setEpfNumber(e.target.value)}
+              aria-invalid={epfNumberMissing || undefined}
             />
           </Field>
           <StatutoryDisplay
@@ -1113,7 +1190,8 @@ function StatutoryTab(props: {
           <Field label="SOCSO scheme">
             <NativeSelect
               name="socsoScheme"
-              defaultValue={props.profile?.socsoScheme ?? ""}
+              value={socsoScheme}
+              onChange={(e) => setSocsoScheme(e.target.value)}
             >
               <option value="">— Not contributing —</option>
               {socsoSchemes.map((s) => (
@@ -1126,7 +1204,15 @@ function StatutoryTab(props: {
           <Field label="SOCSO number">
             <Input
               name="socsoNumber"
-              defaultValue={props.profile?.socsoNumber ?? ""}
+              value={socsoNumber}
+              onChange={(e) => setSocsoNumber(e.target.value)}
+              aria-invalid={socsoNumberMissing || undefined}
+              disabled={socsoScheme === ""}
+              placeholder={
+                socsoScheme === ""
+                  ? "Pick a SOCSO scheme to enable"
+                  : undefined
+              }
             />
           </Field>
           <StatutoryDisplay
@@ -1204,7 +1290,9 @@ function StatutoryTab(props: {
           <Field label="Income tax (PCB) number">
             <Input
               name="incomeTaxNumber"
-              defaultValue={props.profile?.incomeTaxNumber ?? ""}
+              value={incomeTaxNumber}
+              onChange={(e) => setIncomeTaxNumber(e.target.value)}
+              aria-invalid={incomeTaxNumberMissing || undefined}
             />
           </Field>
           <Toggle
@@ -1268,6 +1356,132 @@ function StatutoryTab(props: {
 }
 
 // ─── Archive card ─────────────────────────────────────────────────────────
+
+// ─── Documents card ───────────────────────────────────────────────────────
+
+function PayrollDocumentsCard(props: {
+  userId: string
+  documents: PayrollDocument[]
+}) {
+  const [uploadState, uploadAction, uploadPending] = useActionState(
+    uploadPayrollDocumentAction,
+    initialSettingsActionState,
+  )
+  const [deleteState, deleteAction, deletePending] = useActionState(
+    deletePayrollDocumentAction,
+    initialSettingsActionState,
+  )
+  useToastOnAction(uploadState)
+  useToastOnAction(deleteState)
+
+  const docs = props.documents
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Documents</CardTitle>
+        <CardDescription>
+          Upload contracts, offer letters, NDA scans, ID copies, and
+          other HR documents for this employee. PDF / Word / image
+          formats, max 10 MB per file.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Auto-submit on file pick — no separate "Upload" button. The
+            two-step "Choose file → Upload document" pattern is just
+            extra friction; the admin's intent is already clear once a
+            file is selected. */}
+        <form action={uploadAction} className="space-y-2">
+          <input type="hidden" name="userId" value={props.userId} hidden />
+          <input
+            type="file"
+            name="file"
+            required
+            disabled={uploadPending}
+            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.heic,.heif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png,image/webp,image/heic,image/heif"
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                e.target.form?.requestSubmit()
+              }
+            }}
+            className="block w-full rounded-md border border-border bg-card px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-medium file:text-primary disabled:cursor-not-allowed disabled:opacity-60"
+          />
+          {uploadPending ? (
+            <p className="text-xs text-muted-foreground">Uploading…</p>
+          ) : null}
+        </form>
+
+        {docs.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            No documents uploaded yet.
+          </p>
+        ) : (
+          <div className="space-y-1.5">
+            {docs.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm"
+              >
+                <a
+                  href={doc.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex min-w-0 flex-col text-foreground hover:text-primary"
+                >
+                  <span className="truncate font-medium">{doc.name}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {formatBytes(doc.sizeBytes)} ·{" "}
+                    {new Date(doc.uploadedAt).toLocaleString()}
+                  </span>
+                </a>
+                <form
+                  action={deleteAction}
+                  onSubmit={(e) => {
+                    if (
+                      !window.confirm(
+                        `Remove "${doc.name}" from this employee's documents?`,
+                      )
+                    ) {
+                      e.preventDefault()
+                    }
+                  }}
+                >
+                  <input
+                    type="hidden"
+                    name="userId"
+                    value={props.userId}
+                    hidden
+                  />
+                  <input
+                    type="hidden"
+                    name="documentId"
+                    value={doc.id}
+                    hidden
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive"
+                    disabled={deletePending}
+                  >
+                    Remove
+                  </Button>
+                </form>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
+  return `${(n / 1024 / 1024).toFixed(2)} MB`
+}
 
 function ArchiveCard(props: {
   userId: string

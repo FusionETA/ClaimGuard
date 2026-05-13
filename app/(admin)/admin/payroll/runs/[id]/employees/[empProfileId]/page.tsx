@@ -87,6 +87,7 @@ export default async function AdminPayrollAdjustmentPage({
         runId={data.run.id}
         employeeProfileId={data.employee.employeeProfileId}
         adjustment={data.adjustment}
+        fixedAllowances={data.fixedAllowances}
         readOnly={!isDraft}
       />
     </div>

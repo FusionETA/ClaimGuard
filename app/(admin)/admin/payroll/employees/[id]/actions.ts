@@ -332,6 +332,62 @@ export async function unarchivePayrollProfileAction(
   return { status: "success", message: "Employee restored to payroll." }
 }
 
+// ─── Documents tab actions ───────────────────────────────────────────────
+
+export async function uploadPayrollDocumentAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const userId = String(formData.get("userId") ?? "").trim()
+  if (!userId) {
+    return { status: "error", message: "Missing employee id." }
+  }
+  const file = formData.get("file")
+  if (!(file instanceof File)) {
+    return { status: "error", message: "No file uploaded." }
+  }
+
+  try {
+    const { uploadPayrollDocument } = await import(
+      "@/modules/payroll/application/services/payroll-documents.service"
+    )
+    await uploadPayrollDocument({ userId, file })
+  } catch (err) {
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : "Upload failed.",
+    }
+  }
+
+  revalidatePath(`/admin/payroll/employees/${userId}`)
+  return { status: "success", message: "Document uploaded." }
+}
+
+export async function deletePayrollDocumentAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const userId = String(formData.get("userId") ?? "").trim()
+  const documentId = String(formData.get("documentId") ?? "").trim()
+  if (!userId || !documentId) {
+    return { status: "error", message: "Missing employee or document id." }
+  }
+  try {
+    const { deletePayrollDocument } = await import(
+      "@/modules/payroll/application/services/payroll-documents.service"
+    )
+    await deletePayrollDocument({ userId, documentId })
+  } catch (err) {
+    return {
+      status: "error",
+      message: err instanceof Error ? err.message : "Delete failed.",
+    }
+  }
+
+  revalidatePath(`/admin/payroll/employees/${userId}`)
+  return { status: "success", message: "Document removed." }
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
 /**
@@ -379,18 +435,34 @@ function parseChildReliefFromForm(formData: FormData) {
 function parseFixedAllowancesFromForm(formData: FormData): FixedAllowance[] {
   const out: FixedAllowance[] = []
   for (let i = 0; i < 20; i += 1) {
-    const categoryRaw = String(
-      formData.get(`allowance${i}.category`) ?? "allowance_standard",
-    ).trim()
+    // Skip slots that don't actually exist in the form. Without this
+    // guard, `formData.get()` returns null for missing keys and
+    // `Number(null)` collapses to 0 — silently pushing phantom
+    // zero-amount rows on every save. (Bug fix: previously every save
+    // accumulated up to 20 "Standard Allowance · RM 0" rows in the
+    // PayrollProfile.fixedAllowances JSON column.)
+    const categoryField = formData.get(`allowance${i}.category`)
+    const nameField = formData.get(`allowance${i}.name`)
+    const amountField = formData.get(`allowance${i}.amount`)
+    if (
+      categoryField == null &&
+      nameField == null &&
+      amountField == null
+    ) {
+      continue
+    }
+
+    const categoryRaw = String(categoryField ?? "allowance_standard").trim()
     const category = payrollAdjustmentCategories.includes(categoryRaw as never)
       ? (categoryRaw as FixedAllowance["category"])
       : "allowance_standard"
     const fallbackLabel = PAYROLL_ADJUSTMENT_CATEGORY_META[category].label
-    const name =
-      String(formData.get(`allowance${i}.name`) ?? "").trim() || fallbackLabel
-    const amountRaw = formData.get(`allowance${i}.amount`)
-    const amount = Number(amountRaw)
-    if (!Number.isFinite(amount)) continue
+    const name = String(nameField ?? "").trim() || fallbackLabel
+    const amount = Number(amountField)
+    // A zero/negative recurring allowance is meaningless for payroll —
+    // skip it so the admin can clear a row by zeroing it out (rather
+    // than having to delete the row, save, then re-add).
+    if (!Number.isFinite(amount) || amount <= 0) continue
     out.push({ category, name, amount })
   }
   return out

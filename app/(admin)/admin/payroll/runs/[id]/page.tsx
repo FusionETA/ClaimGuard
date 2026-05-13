@@ -2,7 +2,6 @@ import Link from "next/link"
 import type { Route } from "next"
 import { redirect } from "next/navigation"
 import {
-  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
@@ -27,6 +26,7 @@ import {
 } from "@/components/admin/claim-attachment-buttons"
 import { DeletePayrollRunDraftButton } from "@/components/admin/delete-payroll-run-draft-button"
 import { GeneratePayslipsButton } from "@/components/admin/generate-payslips-button"
+import { PayrollRunEmployeeTables } from "@/components/admin/payroll-run-employee-tables"
 import {
   RevertPayrollRunButton,
   SubmitPayrollRunButton,
@@ -87,8 +87,8 @@ export default async function AdminPayrollRunDetailPage({
             </h1>
             <p className="text-xs text-muted-foreground">
               {data.organizationName ? `${data.organizationName} · ` : ""}
-              {data.run.payslipCount} payslip
-              {data.run.payslipCount === 1 ? "" : "s"} generated
+              {data.run.payslipCount} payroll result
+              {data.run.payslipCount === 1 ? "" : "s"} on file
             </p>
           </div>
         </div>
@@ -109,9 +109,9 @@ export default async function AdminPayrollRunDetailPage({
           <CardTitle className="text-base">Totals</CardTitle>
           <CardDescription>
             {data.payslips.length === 0
-              ? "No payslips yet. Click Generate to compute pay for every ready employee."
+              ? "No payroll results yet. Click Run payroll to compute pay for every ready employee."
               : isDraft
-                ? "Computed from the latest generation. Regenerate after editing profiles or settings."
+                ? "Computed from the latest payroll run. Re-run payroll after editing profiles or settings."
                 : "Final totals from the submitted run."}
           </CardDescription>
         </CardHeader>
@@ -138,40 +138,14 @@ export default async function AdminPayrollRunDetailPage({
         </CardContent>
       </Card>
 
-      {needsSetup.length > 0 && isDraft && (
-        <Card className="border-amber-300/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <AlertTriangle className="h-4 w-4 text-amber-600" />
-              {needsSetup.length} employee
-              {needsSetup.length === 1 ? "" : "s"} need payroll setup
-            </CardTitle>
-            <CardDescription>
-              These employees won&apos;t be included on this run until
-              their payroll profile is complete.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-1.5">
-            {needsSetup.map((emp) => (
-              <EmployeeLink
-                key={emp.userId}
-                href={`/admin/payroll/employees/${emp.userId}` as Route}
-                primary={emp.name}
-                primaryMeta={emp.employeeId}
-                secondary={`${emp.jobTitle} · ${emp.email}`}
-                badge={
-                  <Badge
-                    variant="outline"
-                    className="border-amber-300/60 text-[10px] text-amber-700"
-                  >
-                    {emp.hasProfile ? "Incomplete" : "Not set up"}
-                  </Badge>
-                }
-              />
-            ))}
-          </CardContent>
-        </Card>
-      )}
+      {isDraft && (needsSetup.length > 0 || readyMissingPayslip.length > 0) ? (
+        <PayrollRunEmployeeTables
+          runId={data.run.id}
+          hasPayslips={data.payslips.length > 0}
+          needsSetup={needsSetup}
+          readyEmployees={readyMissingPayslip}
+        />
+      ) : null}
 
       {data.payslips.length > 0 ? (
         <Card>
@@ -199,43 +173,32 @@ export default async function AdminPayrollRunDetailPage({
         </Card>
       ) : null}
 
-      {readyMissingPayslip.length > 0 && isDraft && (
+      {data.payslips.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              {data.payslips.length > 0
-                ? "Not yet on a payslip"
-                : "Will be included"}
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileText className="h-4 w-4" />
+              Payroll summary PDF
             </CardTitle>
             <CardDescription>
-              {readyMissingPayslip.length} employee
-              {readyMissingPayslip.length === 1 ? "" : "s"} ready for
-              payroll. Generate to compute their payslips.
+              Attached to this run from the latest payroll calculation.
+              Re-run payroll after changing profiles or settings to
+              refresh the numbers.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-1.5">
-            {readyMissingPayslip.map((emp) => (
-              <EmployeeLink
-                key={emp.userId}
-                href={
-                  `/admin/payroll/runs/${data.run.id}/employees/${emp.employeeProfileId}` as Route
-                }
-                primary={emp.name}
-                primaryMeta={emp.employeeId}
-                secondary={`${emp.jobTitle} · ${emp.email}`}
-                badge={
-                  <Badge
-                    variant="outline"
-                    className="border-emerald-300/60 text-[10px] text-emerald-700"
-                  >
-                    Ready · Adjust →
-                  </Badge>
-                }
-              />
-            ))}
+          <CardContent>
+            <Button asChild variant="outline" className="gap-2">
+              <a
+                href={`/admin/payroll/runs/${data.run.id}/summary`}
+                download
+              >
+                <Download className="h-4 w-4" />
+                Download summary PDF
+              </a>
+            </Button>
           </CardContent>
         </Card>
-      )}
+      ) : null}
 
       {(data.attachments.length > 0 ||
         (isDraft && data.attachableClaims.length > 0)) && (
@@ -250,7 +213,7 @@ export default async function AdminPayrollRunDetailPage({
               amount is snapshotted at attach time, so later edits to
               the claim don&apos;t change historical payroll figures.
               {data.attachments.length > 0 && isDraft
-                ? " Regenerate after attaching to refresh the totals."
+                ? " Re-run payroll after attaching to refresh the totals."
                 : ""}
             </CardDescription>
           </CardHeader>
@@ -374,37 +337,6 @@ function Stat(props: {
             : String(props.value)}
       </div>
     </div>
-  )
-}
-
-function EmployeeLink(props: {
-  href: Route
-  primary: string
-  primaryMeta: string
-  secondary: string
-  badge: React.ReactNode
-}) {
-  return (
-    <Link
-      href={props.href}
-      className="flex w-full items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 text-sm transition hover:border-primary/40 hover:bg-primary/5"
-    >
-      <div className="flex min-w-0 flex-col">
-        <span className="truncate font-medium text-foreground">
-          {props.primary}
-          <span className="ml-2 text-xs text-muted-foreground">
-            {props.primaryMeta}
-          </span>
-        </span>
-        <span className="truncate text-xs text-muted-foreground">
-          {props.secondary}
-        </span>
-      </div>
-      <div className="flex items-center gap-2">
-        {props.badge}
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </div>
-    </Link>
   )
 }
 

@@ -266,8 +266,8 @@ export type PayslipLineItemWhereInput = {
   subjectToEis?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
   subjectToPcb?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PayslipLineItem"> | Date | string
-  claim?: Prisma.XOR<Prisma.ClaimNullableScalarRelationFilter, Prisma.ClaimWhereInput> | null
   payslip?: Prisma.XOR<Prisma.PayslipScalarRelationFilter, Prisma.PayslipWhereInput>
+  claim?: Prisma.XOR<Prisma.ClaimNullableScalarRelationFilter, Prisma.ClaimWhereInput> | null
 }
 
 export type PayslipLineItemOrderByWithRelationInput = {
@@ -282,8 +282,8 @@ export type PayslipLineItemOrderByWithRelationInput = {
   subjectToEis?: Prisma.SortOrder
   subjectToPcb?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  claim?: Prisma.ClaimOrderByWithRelationInput
   payslip?: Prisma.PayslipOrderByWithRelationInput
+  claim?: Prisma.ClaimOrderByWithRelationInput
   _relevance?: Prisma.PayslipLineItemOrderByRelevanceInput
 }
 
@@ -302,8 +302,8 @@ export type PayslipLineItemWhereUniqueInput = Prisma.AtLeast<{
   subjectToEis?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
   subjectToPcb?: Prisma.BoolFilter<"PayslipLineItem"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PayslipLineItem"> | Date | string
-  claim?: Prisma.XOR<Prisma.ClaimNullableScalarRelationFilter, Prisma.ClaimWhereInput> | null
   payslip?: Prisma.XOR<Prisma.PayslipScalarRelationFilter, Prisma.PayslipWhereInput>
+  claim?: Prisma.XOR<Prisma.ClaimNullableScalarRelationFilter, Prisma.ClaimWhereInput> | null
 }, "id" | "claimId">
 
 export type PayslipLineItemOrderByWithAggregationInput = {
@@ -352,8 +352,8 @@ export type PayslipLineItemCreateInput = {
   subjectToEis?: boolean
   subjectToPcb?: boolean
   createdAt?: Date | string
-  claim?: Prisma.ClaimCreateNestedOneWithoutPayslipLineItemInput
   payslip: Prisma.PayslipCreateNestedOneWithoutLineItemsInput
+  claim?: Prisma.ClaimCreateNestedOneWithoutPayslipLineItemInput
 }
 
 export type PayslipLineItemUncheckedCreateInput = {
@@ -380,8 +380,8 @@ export type PayslipLineItemUpdateInput = {
   subjectToEis?: Prisma.BoolFieldUpdateOperationsInput | boolean
   subjectToPcb?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  claim?: Prisma.ClaimUpdateOneWithoutPayslipLineItemNestedInput
   payslip?: Prisma.PayslipUpdateOneRequiredWithoutLineItemsNestedInput
+  claim?: Prisma.ClaimUpdateOneWithoutPayslipLineItemNestedInput
 }
 
 export type PayslipLineItemUncheckedUpdateInput = {
@@ -790,8 +790,8 @@ export type PayslipLineItemSelect<ExtArgs extends runtime.Types.Extensions.Inter
   subjectToEis?: boolean
   subjectToPcb?: boolean
   createdAt?: boolean
-  claim?: boolean | Prisma.PayslipLineItem$claimArgs<ExtArgs>
   payslip?: boolean | Prisma.PayslipDefaultArgs<ExtArgs>
+  claim?: boolean | Prisma.PayslipLineItem$claimArgs<ExtArgs>
 }, ExtArgs["result"]["payslipLineItem"]>
 
 
@@ -812,15 +812,15 @@ export type PayslipLineItemSelectScalar = {
 
 export type PayslipLineItemOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payslipId" | "kind" | "label" | "amount" | "claimId" | "subjectToEpf" | "subjectToSocso" | "subjectToEis" | "subjectToPcb" | "createdAt", ExtArgs["result"]["payslipLineItem"]>
 export type PayslipLineItemInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  claim?: boolean | Prisma.PayslipLineItem$claimArgs<ExtArgs>
   payslip?: boolean | Prisma.PayslipDefaultArgs<ExtArgs>
+  claim?: boolean | Prisma.PayslipLineItem$claimArgs<ExtArgs>
 }
 
 export type $PayslipLineItemPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PayslipLineItem"
   objects: {
-    claim: Prisma.$ClaimPayload<ExtArgs> | null
     payslip: Prisma.$PayslipPayload<ExtArgs>
+    claim: Prisma.$ClaimPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1186,8 +1186,8 @@ readonly fields: PayslipLineItemFieldRefs;
  */
 export interface Prisma__PayslipLineItemClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  claim<T extends Prisma.PayslipLineItem$claimArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PayslipLineItem$claimArgs<ExtArgs>>): Prisma.Prisma__ClaimClient<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   payslip<T extends Prisma.PayslipDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PayslipDefaultArgs<ExtArgs>>): Prisma.Prisma__PayslipClient<runtime.Types.Result.GetResult<Prisma.$PayslipPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  claim<T extends Prisma.PayslipLineItem$claimArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.PayslipLineItem$claimArgs<ExtArgs>>): Prisma.Prisma__ClaimClient<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

@@ -11,6 +11,7 @@ import type {
   ChildRelief,
   FixedAllowance,
   LeaveEntitlement,
+  PayrollDocument,
   PayrollEmployeeRow,
   PayrollProfileData,
 } from "@/modules/payroll/domain/models"
@@ -343,6 +344,7 @@ function mapPayrollProfile(row: any): PayrollProfileData {
     payrollCycle: row.payrollCycle ?? null,
 
     leaveEntitlement: parseLeaveEntitlementJson(row.leaveEntitlement),
+    payrollDocuments: parsePayrollDocumentsJson(row.payrollDocuments),
 
     isArchived: row.isArchived,
     archivedAt: row.archivedAt ? row.archivedAt.toISOString() : null,
@@ -448,6 +450,9 @@ function toPrismaUpsertData(
   if (patch.leaveEntitlement !== undefined) {
     out.leaveEntitlement = patch.leaveEntitlement
   }
+  if (patch.payrollDocuments !== undefined) {
+    out.payrollDocuments = patch.payrollDocuments
+  }
 
   copy("isArchived")
   if (patch.archivedAt !== undefined) {
@@ -506,7 +511,13 @@ function parseFixedAllowancesJson(raw: unknown): FixedAllowance[] {
         typeof e.name === "string"
           ? e.name.trim() || PAYROLL_ADJUSTMENT_CATEGORY_META[category].label
           : PAYROLL_ADJUSTMENT_CATEGORY_META[category].label
-      if (!Number.isFinite(amount)) return null
+      // Drop zero/negative entries — meaningless for payroll, and
+      // sanitises the legacy "phantom row on every save" bug where
+      // empty form slots were persisted as
+      // `{ category: "allowance_standard", name: "Standard Allowance",
+      //   amount: 0 }`. Saving the Employment tab once after this fix
+      // permanently cleans the column.
+      if (!Number.isFinite(amount) || amount <= 0) return null
       return {
         category,
         name,
@@ -528,4 +539,33 @@ function parseLeaveEntitlementJson(raw: unknown): LeaveEntitlement[] {
       return { type, days } satisfies LeaveEntitlement
     })
     .filter((x): x is LeaveEntitlement => x !== null)
+}
+
+function parsePayrollDocumentsJson(raw: unknown): PayrollDocument[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null
+      const e = entry as Record<string, unknown>
+      const id = typeof e.id === "string" ? e.id : ""
+      const name = typeof e.name === "string" ? e.name : ""
+      const mimeType = typeof e.mimeType === "string" ? e.mimeType : ""
+      const sizeBytes =
+        typeof e.sizeBytes === "number"
+          ? e.sizeBytes
+          : Number(e.sizeBytes)
+      const url = typeof e.url === "string" ? e.url : ""
+      const uploadedAt =
+        typeof e.uploadedAt === "string" ? e.uploadedAt : ""
+      if (!id || !name || !url) return null
+      return {
+        id,
+        name,
+        mimeType,
+        sizeBytes: Number.isFinite(sizeBytes) ? sizeBytes : 0,
+        url,
+        uploadedAt,
+      } satisfies PayrollDocument
+    })
+    .filter((x): x is PayrollDocument => x !== null)
 }
