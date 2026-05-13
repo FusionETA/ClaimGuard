@@ -28,7 +28,7 @@ const BRAND_ICON_URL = "/brand-icon-white.png?v=4"
 // the version forces a fresh fetch on next install / when the meta tags
 // load. (Existing iOS PWA installs still need a manual remove + re-add to
 // pick up the new splash; that's an iOS limitation we can't bypass.)
-const SPLASH_VERSION = "?v=2"
+const SPLASH_VERSION = "?v=3"
 
 // iOS PWA splash screens. iOS Safari ignores the manifest's background_color
 // and icons for splash purposes — the only way to get a real splash is to
