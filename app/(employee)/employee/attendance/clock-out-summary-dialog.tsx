@@ -89,8 +89,6 @@ export function ClockOutSummaryDialog({
     const raw = Math.round((now.getTime() - inTime.getTime()) / 60000)
     projectedDurationMin = Math.max(0, raw - (todayRecord.breakMin ?? 0))
   }
-  const dirty = (remark ?? "").trim() !== (todayRecord.remark ?? "").trim()
-
   return (
     <Dialog
       open={open}
@@ -102,10 +100,9 @@ export function ClockOutSummaryDialog({
         <DialogHeader>
           <DialogTitle>Ready to clock out?</DialogTitle>
           <DialogDescription>
-            Review today&apos;s working hours. If something looks off, submit
-            an adjustment request for your supervisor to review. Otherwise tap{" "}
-            <strong>Looks good</strong> to confirm. Closing this dialog
-            cancels the clock-out.
+            Review today&apos;s working hours. If something looks off, add an
+            adjustment request below for your supervisor to review. Closing
+            this dialog cancels the clock-out.
           </DialogDescription>
         </DialogHeader>
 
@@ -192,25 +189,15 @@ export function ClockOutSummaryDialog({
             <p className="text-xs font-semibold text-destructive">{error}</p>
           ) : null}
 
-          <DialogFooter className="gap-2 border-t border-border/60 pt-3 sm:flex-row-reverse">
+          <DialogFooter className="gap-2 border-t border-border/60 pt-3">
             <Button
               type="button"
               size="lg"
               disabled={pending}
-              onClick={() => onConfirm(null)}
-              className="flex-1 shadow-sm"
-            >
-              {pending ? "Clocking out…" : "Looks good"}
-            </Button>
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              disabled={pending || !dirty}
               onClick={() => onConfirm(remark.trim() || null)}
-              className="flex-1 border-2"
+              className="w-full shadow-sm"
             >
-              {pending ? "Submitting…" : "Submit request"}
+              {pending ? "Clocking out…" : "Confirm clock out"}
             </Button>
           </DialogFooter>
         </div>
