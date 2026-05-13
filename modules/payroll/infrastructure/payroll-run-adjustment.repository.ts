@@ -89,6 +89,8 @@ export const payrollRunAdjustmentRepository = {
       create: {
         payrollRunId: input.payrollRunId,
         employeeProfileId: input.employeeProfileId,
+        manualLineItems: [],
+        fixedAllowanceOverrides: [],
         ...data,
       },
       update: data,

@@ -466,6 +466,7 @@ export async function bulkImportPayrollEmployees(input: {
           state: row.state,
           department: row.department,
           location: row.location,
+          payrollDocuments: [],
         },
         update: {
           salaryType: row.salaryType,
@@ -1093,6 +1094,7 @@ export async function importMappedCsv(input: {
           state: row.state,
           department: row.department,
           location: row.location,
+          payrollDocuments: [],
         },
         update: {
           salaryType: row.salaryType,
