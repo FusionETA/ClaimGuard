@@ -56,6 +56,7 @@ async function main() {
         salaryType: "HOURLY",
         otEnabled: true,
         requireGeofence: true,
+        requireSelfie: true,
         otMethod: "CASH",
       },
     })
@@ -74,6 +75,7 @@ async function main() {
         salaryType: "MONTHLY_BASED",
         otEnabled: true,
         requireGeofence: true,
+        requireSelfie: false,
         otMethod: "TIME_BANK",
       },
     })

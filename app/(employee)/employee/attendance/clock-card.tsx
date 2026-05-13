@@ -116,6 +116,9 @@ type Props = {
   currentBreakStartedAt: string | null
   /** When true (Hourly Workers), the clock-in flow gates on a selfie capture. */
   requiresSelfieOnClockIn: boolean
+  /** When false (policy says geofence not required), skip GPS capture and
+   *  treat every clock event as "within radius" — no location is sent. */
+  enforceGeofence: boolean
   /** Today's full attendance record — drives the clock-out confirmation dialog. */
   todayRecord: AttendanceRecordView | null
 }
@@ -213,6 +216,7 @@ export function ClockCard({
   onBreak,
   currentBreakStartedAt,
   requiresSelfieOnClockIn,
+  enforceGeofence,
   todayRecord,
 }: Props) {
   const [selected, setSelected] = useState("")
@@ -288,6 +292,12 @@ export function ClockCard({
   const [projectError, setProjectError] = useState<string | null>(null)
 
   useEffect(() => {
+    // Policy opt-out: skip GPS entirely (no permission prompt, no
+    // watcher). The fence is short-circuited to "ok" below.
+    if (!enforceGeofence) {
+      setGpsState("ok")
+      return
+    }
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setGpsState("denied")
       return
@@ -315,7 +325,7 @@ export function ClockCard({
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 30000 },
     )
     return () => navigator.geolocation.clearWatch(watchId)
-  }, [])
+  }, [enforceGeofence])
 
   const targetProjectCoords: { latitude: number | null; longitude: number | null } | null =
     state === "OUT"
@@ -324,11 +334,13 @@ export function ClockCard({
           return p ? { latitude: p.latitude, longitude: p.longitude } : null
         })()
       : { latitude: activeProjectLat, longitude: activeProjectLng }
-  const liveFence = checkGeofence(
-    employeeCoords,
-    targetProjectCoords ?? { latitude: null, longitude: null },
-    geofenceRadiusMeters,
-  )
+  const liveFence: GeofenceCheck = enforceGeofence
+    ? checkGeofence(
+        employeeCoords,
+        targetProjectCoords ?? { latitude: null, longitude: null },
+        geofenceRadiusMeters,
+      )
+    : { withinRadius: true, distanceMeters: null, reason: "ok" }
 
   function dispatch(action: PendingAction) {
     if (action.kind === "CLOCK_IN") {
@@ -365,12 +377,16 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const project = projects.find((p) => p.id === selected) ?? null
-      await resolveCoordsForSubmit(formData, employeeCoords)
-      const fence = checkGeofence(
-        readCoordsFrom(formData),
-        project ?? { latitude: null, longitude: null },
-        geofenceRadiusMeters,
-      )
+      if (enforceGeofence) {
+        await resolveCoordsForSubmit(formData, employeeCoords)
+      }
+      const fence: GeofenceCheck = enforceGeofence
+        ? checkGeofence(
+            readCoordsFrom(formData),
+            project ?? { latitude: null, longitude: null },
+            geofenceRadiusMeters,
+          )
+        : { withinRadius: true, distanceMeters: null, reason: "ok" }
       if (fence.withinRadius) {
         startTransition(() => formAction(formData))
         return
@@ -406,12 +422,16 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const formData = new FormData(e.currentTarget)
-      await resolveCoordsForSubmit(formData, employeeCoords)
-      const fence = checkGeofence(
-        readCoordsFrom(formData),
-        { latitude: activeProjectLat, longitude: activeProjectLng },
-        geofenceRadiusMeters,
-      )
+      if (enforceGeofence) {
+        await resolveCoordsForSubmit(formData, employeeCoords)
+      }
+      const fence: GeofenceCheck = enforceGeofence
+        ? checkGeofence(
+            readCoordsFrom(formData),
+            { latitude: activeProjectLat, longitude: activeProjectLng },
+            geofenceRadiusMeters,
+          )
+        : { withinRadius: true, distanceMeters: null, reason: "ok" }
       if (fence.withinRadius) {
         prepareClockOut(formData)
         return
@@ -438,12 +458,16 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const formData = new FormData(e.currentTarget)
-      await resolveCoordsForSubmit(formData, employeeCoords)
-      const fence = checkGeofence(
-        readCoordsFrom(formData),
-        { latitude: activeProjectLat, longitude: activeProjectLng },
-        geofenceRadiusMeters,
-      )
+      if (enforceGeofence) {
+        await resolveCoordsForSubmit(formData, employeeCoords)
+      }
+      const fence: GeofenceCheck = enforceGeofence
+        ? checkGeofence(
+            readCoordsFrom(formData),
+            { latitude: activeProjectLat, longitude: activeProjectLng },
+            geofenceRadiusMeters,
+          )
+        : { withinRadius: true, distanceMeters: null, reason: "ok" }
       if (fence.withinRadius) {
         startBreakTransition(() =>
           kind === "BREAK_START"
@@ -516,13 +540,15 @@ export function ClockCard({
                 📍 {activeLocation}
               </a>
             ) : null}
-            <DistanceIndicator
+            {enforceGeofence ? (
+              <DistanceIndicator
                 gpsState={gpsState}
                 fence={liveFence}
                 radius={geofenceRadiusMeters}
                 employeeCoords={employeeCoords}
                 projectCoords={targetProjectCoords}
               />
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -568,7 +594,7 @@ export function ClockCard({
                 {projectError}
               </p>
             ) : null}
-            {selected ? (
+            {selected && enforceGeofence ? (
               <div className="mt-2">
                 <DistanceIndicator
                 gpsState={gpsState}

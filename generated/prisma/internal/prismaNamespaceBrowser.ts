@@ -160,6 +160,7 @@ export const EmployeePolicyScalarFieldEnum = {
   otEnabled: 'otEnabled',
   otMethod: 'otMethod',
   requireGeofence: 'requireGeofence',
+  requireSelfie: 'requireSelfie',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

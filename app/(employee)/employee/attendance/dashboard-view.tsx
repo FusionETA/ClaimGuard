@@ -18,6 +18,7 @@ type Props = {
   workingHours: { start: string; end: string }
   projects: AttendanceProjectView[]
   requiresSelfieOnClockIn: boolean
+  enforceGeofence: boolean
 }
 
 function fmtTime(iso: string | null) {
@@ -47,6 +48,7 @@ export function EmployeeAttendanceDashboardView({
   workingHours,
   projects,
   requiresSelfieOnClockIn,
+  enforceGeofence,
 }: Props) {
   const state = deriveState(dashboard.todayEvents)
   const now = new Date()
@@ -90,6 +92,7 @@ export function EmployeeAttendanceDashboardView({
         onBreak={dashboard.today?.onBreak ?? false}
         currentBreakStartedAt={dashboard.today?.currentBreakStartedAt ?? null}
         requiresSelfieOnClockIn={requiresSelfieOnClockIn}
+        enforceGeofence={enforceGeofence}
         todayRecord={dashboard.today}
       />
 

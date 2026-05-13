@@ -124,6 +124,10 @@ model EmployeePolicy {
   /// geofence (radius set on Organization, lat/lng on Project) to clock
   /// in. When false, geofence checks are skipped for these employees.
   requireGeofence      Boolean          @default(true)
+  /// When true, the clock-in flow gates on a selfie capture. Replaces
+  /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
+  /// selfie on for any policy regardless of pay type.
+  requireSelfie        Boolean          @default(false)
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)

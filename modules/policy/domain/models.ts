@@ -28,6 +28,9 @@ export type EmployeePolicy = {
   /// in. Radius is configured per project; this flag only decides
   /// whether the check is enforced for this policy's employees.
   requireGeofence: boolean
+  /// When true, the clock-in flow gates on a selfie capture. Replaces
+  /// the legacy "Hourly Worker == selfie required" hardcoding.
+  requireSelfie: boolean
   /// Number of employees currently assigned. Populated by the
   /// `listForOrganization` query; undefined elsewhere.
   employeeCount?: number

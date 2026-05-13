@@ -21,6 +21,7 @@ type PolicyRow = {
   otEnabled: boolean
   otMethod: OtPayoutMethod
   requireGeofence: boolean
+  requireSelfie: boolean
 }
 
 function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
@@ -38,6 +39,7 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     otEnabled: row.otEnabled,
     otMethod: row.otMethod,
     requireGeofence: row.requireGeofence,
+    requireSelfie: row.requireSelfie,
     employeeCount,
   }
 }
@@ -53,6 +55,7 @@ export type PolicyCreateInput = {
   otEnabled: boolean
   otMethod: OtPayoutMethod
   requireGeofence: boolean
+  requireSelfie: boolean
   isDefault?: boolean
 }
 
@@ -68,6 +71,7 @@ export type PolicyUpdateInput = {
   otEnabled?: boolean
   otMethod?: OtPayoutMethod
   requireGeofence?: boolean
+  requireSelfie?: boolean
 }
 
 export const policyRepository = {
@@ -134,6 +138,7 @@ export const policyRepository = {
           otEnabled: input.otEnabled,
           otMethod: input.otMethod,
           requireGeofence: input.requireGeofence,
+          requireSelfie: input.requireSelfie,
           isDefault,
         },
       })
@@ -164,6 +169,7 @@ export const policyRepository = {
           otEnabled: input.otEnabled ?? undefined,
           otMethod: input.otMethod ?? undefined,
           requireGeofence: input.requireGeofence ?? undefined,
+          requireSelfie: input.requireSelfie ?? undefined,
         },
       })
 

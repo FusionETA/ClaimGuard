@@ -51,11 +51,17 @@ export default async function EmployeeDashboardPage() {
     prisma
       ? prisma.employeeProfile.findUnique({
           where: { userId: session.userId },
-          select: { payoutMethod: true },
+          select: {
+            payoutMethod: true,
+            policy: { select: { requireSelfie: true, requireGeofence: true } },
+          },
         })
       : Promise.resolve(null),
   ])
-  const requiresSelfieOnClockIn = profile?.payoutMethod === "HOURLY"
+  const requiresSelfieOnClockIn = profile?.policy
+    ? profile.policy.requireSelfie
+    : profile?.payoutMethod === "HOURLY"
+  const enforceGeofence = profile?.policy?.requireGeofence ?? true
   const clockState = deriveClockState(attendanceDashboard.todayEvents)
   const activeProject = attendanceDashboard.today?.project ?? null
   const activeLocation = attendanceDashboard.today?.location ?? null
@@ -92,6 +98,7 @@ export default async function EmployeeDashboardPage() {
           onBreak={attendanceDashboard.today?.onBreak ?? false}
           currentBreakStartedAt={attendanceDashboard.today?.currentBreakStartedAt ?? null}
           requiresSelfieOnClockIn={requiresSelfieOnClockIn}
+          enforceGeofence={enforceGeofence}
           todayRecord={attendanceDashboard.today}
         />
       </section>
