@@ -47,6 +47,7 @@ export type EmployeePolicyMinAggregateOutputType = {
   otEnabled: boolean | null
   otMethod: $Enums.OtPayoutMethod | null
   requireGeofence: boolean | null
+  requireSelfie: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -65,6 +66,7 @@ export type EmployeePolicyMaxAggregateOutputType = {
   otEnabled: boolean | null
   otMethod: $Enums.OtPayoutMethod | null
   requireGeofence: boolean | null
+  requireSelfie: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -83,6 +85,7 @@ export type EmployeePolicyCountAggregateOutputType = {
   otEnabled: number
   otMethod: number
   requireGeofence: number
+  requireSelfie: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -103,6 +106,7 @@ export type EmployeePolicyMinAggregateInputType = {
   otEnabled?: true
   otMethod?: true
   requireGeofence?: true
+  requireSelfie?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -121,6 +125,7 @@ export type EmployeePolicyMaxAggregateInputType = {
   otEnabled?: true
   otMethod?: true
   requireGeofence?: true
+  requireSelfie?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -139,6 +144,7 @@ export type EmployeePolicyCountAggregateInputType = {
   otEnabled?: true
   otMethod?: true
   requireGeofence?: true
+  requireSelfie?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -230,6 +236,7 @@ export type EmployeePolicyGroupByOutputType = {
   otEnabled: boolean
   otMethod: $Enums.OtPayoutMethod
   requireGeofence: boolean
+  requireSelfie: boolean
   createdAt: Date
   updatedAt: Date
   _count: EmployeePolicyCountAggregateOutputType | null
@@ -269,6 +276,7 @@ export type EmployeePolicyWhereInput = {
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFilter<"EmployeePolicy"> | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -289,6 +297,7 @@ export type EmployeePolicyOrderByWithRelationInput = {
   otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireSelfie?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
@@ -314,6 +323,7 @@ export type EmployeePolicyWhereUniqueInput = Prisma.AtLeast<{
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFilter<"EmployeePolicy"> | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -334,6 +344,7 @@ export type EmployeePolicyOrderByWithAggregationInput = {
   otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireSelfie?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.EmployeePolicyCountOrderByAggregateInput
@@ -358,6 +369,7 @@ export type EmployeePolicyScalarWhereWithAggregatesInput = {
   otEnabled?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   otMethod?: Prisma.EnumOtPayoutMethodWithAggregatesFilter<"EmployeePolicy"> | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  requireSelfie?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeePolicy"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeePolicy"> | Date | string
 }
@@ -375,6 +387,7 @@ export type EmployeePolicyCreateInput = {
   otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
@@ -395,6 +408,7 @@ export type EmployeePolicyUncheckedCreateInput = {
   otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
@@ -413,6 +427,7 @@ export type EmployeePolicyUpdateInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
@@ -433,6 +448,7 @@ export type EmployeePolicyUncheckedUpdateInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
@@ -452,6 +468,7 @@ export type EmployeePolicyCreateManyInput = {
   otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -469,6 +486,7 @@ export type EmployeePolicyUpdateManyMutationInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -487,6 +505,7 @@ export type EmployeePolicyUncheckedUpdateManyInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -526,6 +545,7 @@ export type EmployeePolicyCountOrderByAggregateInput = {
   otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireSelfie?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -544,6 +564,7 @@ export type EmployeePolicyMaxOrderByAggregateInput = {
   otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireSelfie?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -562,6 +583,7 @@ export type EmployeePolicyMinOrderByAggregateInput = {
   otEnabled?: Prisma.SortOrder
   otMethod?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  requireSelfie?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -654,6 +676,7 @@ export type EmployeePolicyCreateWithoutOrganizationInput = {
   otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
@@ -672,6 +695,7 @@ export type EmployeePolicyUncheckedCreateWithoutOrganizationInput = {
   otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
@@ -720,6 +744,7 @@ export type EmployeePolicyScalarWhereInput = {
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFilter<"EmployeePolicy"> | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   createdAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
 }
@@ -737,6 +762,7 @@ export type EmployeePolicyCreateWithoutEmployeesInput = {
   otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
@@ -756,6 +782,7 @@ export type EmployeePolicyUncheckedCreateWithoutEmployeesInput = {
   otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -789,6 +816,7 @@ export type EmployeePolicyUpdateWithoutEmployeesInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
@@ -808,6 +836,7 @@ export type EmployeePolicyUncheckedUpdateWithoutEmployeesInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -825,6 +854,7 @@ export type EmployeePolicyCreateManyOrganizationInput = {
   otEnabled?: boolean
   otMethod?: $Enums.OtPayoutMethod
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -842,6 +872,7 @@ export type EmployeePolicyUpdateWithoutOrganizationInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
@@ -860,6 +891,7 @@ export type EmployeePolicyUncheckedUpdateWithoutOrganizationInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
@@ -878,6 +910,7 @@ export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -927,6 +960,7 @@ export type EmployeePolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   otEnabled?: boolean
   otMethod?: boolean
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -950,11 +984,12 @@ export type EmployeePolicySelectScalar = {
   otEnabled?: boolean
   otMethod?: boolean
   requireGeofence?: boolean
+  requireSelfie?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otEnabled" | "otMethod" | "requireGeofence" | "createdAt" | "updatedAt", ExtArgs["result"]["employeePolicy"]>
+export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otEnabled" | "otMethod" | "requireGeofence" | "requireSelfie" | "createdAt" | "updatedAt", ExtArgs["result"]["employeePolicy"]>
 export type EmployeePolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
@@ -998,6 +1033,12 @@ export type $EmployeePolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
      * in. When false, geofence checks are skipped for these employees.
      */
     requireGeofence: boolean
+    /**
+     * When true, the clock-in flow gates on a selfie capture. Replaces
+     * the legacy `salaryType === HOURLY` heuristic — admins can now turn
+     * selfie on for any policy regardless of pay type.
+     */
+    requireSelfie: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["employeePolicy"]>
@@ -1384,6 +1425,7 @@ export interface EmployeePolicyFieldRefs {
   readonly otEnabled: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly otMethod: Prisma.FieldRef<"EmployeePolicy", 'OtPayoutMethod'>
   readonly requireGeofence: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly requireSelfie: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"EmployeePolicy", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EmployeePolicy", 'DateTime'>
 }

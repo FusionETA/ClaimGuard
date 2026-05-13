@@ -205,8 +205,15 @@ function PolicyRow({
               </dd>
             </div>
             <div>
-              <dt className="font-semibold text-foreground/80">Geofence</dt>
-              <dd>{policy.requireGeofence ? "Required" : "Off"}</dd>
+              <dt className="font-semibold text-foreground/80">Clock-in</dt>
+              <dd>
+                {[
+                  policy.requireGeofence ? "Geofence" : null,
+                  policy.requireSelfie ? "Selfie" : null,
+                ]
+                  .filter(Boolean)
+                  .join(" + ") || "Off"}
+              </dd>
             </div>
             <div>
               <dt className="font-semibold text-foreground/80">Modules</dt>
@@ -414,21 +421,35 @@ function PolicyEditorCard({
             <p className="text-sm font-semibold text-foreground">Clock-in checks</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               Geofence radius and project location are configured per
-              project. Toggle whether this policy's employees are subject
-              to the geofence check at clock-in.
+              project. Toggle which checks this policy's employees go
+              through when clocking in.
             </p>
-            <label className="mt-3 flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-              <input
-                type="checkbox"
-                name="requireGeofence"
-                defaultChecked={policy?.requireGeofence ?? true}
-                disabled={pending}
-                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-              />
-              <span className="font-medium text-foreground">
-                Require geofence on clock-in
-              </span>
-            </label>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <label className="flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
+                  name="requireGeofence"
+                  defaultChecked={policy?.requireGeofence ?? true}
+                  disabled={pending}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">
+                  Require geofence on clock-in
+                </span>
+              </label>
+              <label className="flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
+                  name="requireSelfie"
+                  defaultChecked={policy?.requireSelfie ?? false}
+                  disabled={pending}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">
+                  Require selfie on clock-in
+                </span>
+              </label>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">

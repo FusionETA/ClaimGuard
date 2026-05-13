@@ -4,6 +4,7 @@ import { getPrismaClient } from "@/lib/prisma"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { formatHm } from "@/modules/attendance/domain/hours-summary"
 import { requireModuleAccess } from "@/modules/policy/application/guards"
+import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 
 import { EmployeeAttendanceDashboardView } from "./dashboard-view"
 import { loadMyHoursSummaryAction } from "./hours-summary-actions"
@@ -44,7 +45,7 @@ export default async function EmployeeAttendancePage() {
   await requireModuleAccess("attendance")
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
-  const [dashboard, workingHours, projects, hoursSummary, profileExtras] = await Promise.all([
+  const [dashboard, workingHours, projects, hoursSummary, profileExtras, policy] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
     employeeAttendanceService.getWorkingHours(session.userId),
     employeeAttendanceService.getAvailableProjects(session.userId),
@@ -54,7 +55,17 @@ export default async function EmployeeAttendancePage() {
       new Date(initialTo),
     ),
     loadEmployeeProfileExtras(session.userId),
+    policyRepository.findForUserId(session.userId),
   ])
+  // Default to enforcing geofence when no policy is assigned (legacy
+  // behavior). Admins disable it per-policy in Settings → Policies.
+  const enforceGeofence = policy?.requireGeofence ?? true
+  // Selfie requirement: prefer the policy flag when available, fall back
+  // to the legacy "hourly == selfie" heuristic so un-backfilled orgs
+  // keep their current behavior.
+  const requiresSelfieOnClockIn = policy
+    ? policy.requireSelfie
+    : profileExtras?.requiresSelfieOnClockIn ?? false
 
   return (
     <div className="space-y-4">
@@ -63,7 +74,8 @@ export default async function EmployeeAttendancePage() {
         dashboard={dashboard}
         workingHours={workingHours}
         projects={projects}
-        requiresSelfieOnClockIn={profileExtras?.requiresSelfieOnClockIn ?? false}
+        requiresSelfieOnClockIn={requiresSelfieOnClockIn}
+        enforceGeofence={enforceGeofence}
       />
       <HoursSummaryPanel
         title="My hours summary"

@@ -19,6 +19,7 @@ const baseSchema = z.object({
   /// TIME_BANK and OT is enabled.
   otMode: z.enum(["NONE", "CASH", "TIME_BANK"]),
   requireGeofence: z.boolean(),
+  requireSelfie: z.boolean(),
 })
 
 function splitOtMode(mode: "NONE" | "CASH" | "TIME_BANK"): {
@@ -69,6 +70,7 @@ export async function createPolicyAction(
     salaryType: String(formData.get("salaryType") ?? "HOURLY"),
     otMode: String(formData.get("otMode") ?? "CASH"),
     requireGeofence: parseBoolFlag(formData, "requireGeofence"),
+    requireSelfie: parseBoolFlag(formData, "requireSelfie"),
   })
 
   if (!parsed.success) {
@@ -88,6 +90,7 @@ export async function createPolicyAction(
       otEnabled: ot.otEnabled,
       otMethod: ot.otMethod,
       requireGeofence: parsed.data.requireGeofence,
+      requireSelfie: parsed.data.requireSelfie,
     })
   } catch (error) {
     return {
@@ -121,6 +124,7 @@ export async function updatePolicyAction(
     salaryType: String(formData.get("salaryType") ?? "HOURLY"),
     otMode: String(formData.get("otMode") ?? "CASH"),
     requireGeofence: parseBoolFlag(formData, "requireGeofence"),
+    requireSelfie: parseBoolFlag(formData, "requireSelfie"),
   })
 
   if (!parsed.success) {
@@ -141,6 +145,7 @@ export async function updatePolicyAction(
       otEnabled: ot.otEnabled,
       otMethod: ot.otMethod,
       requireGeofence: parsed.data.requireGeofence,
+      requireSelfie: parsed.data.requireSelfie,
     })
   } catch (error) {
     return {
