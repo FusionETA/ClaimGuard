@@ -9,7 +9,11 @@ import {
   clearPayrollAdjustment,
   savePayrollAdjustment,
 } from "@/modules/payroll/application/services/payroll-run.service"
-import type { ManualLineItem } from "@/modules/payroll/domain/runs"
+import { payrollAdjustmentCategories } from "@/modules/payroll/domain/models"
+import type {
+  FixedAllowanceOverrideMap,
+  ManualLineItem,
+} from "@/modules/payroll/domain/runs"
 
 /**
  * Server actions for the per-employee adjustment form. One form
@@ -67,7 +71,13 @@ export async function savePayrollAdjustmentAction(
     const kindRaw = formData.get(`line${i}.kind`)
     const labelRaw = formData.get(`line${i}.label`)
     const amountRaw = formData.get(`line${i}.amount`)
-    if (kindRaw == null && labelRaw == null && amountRaw == null) {
+    const categoryRaw = formData.get(`line${i}.category`)
+    if (
+      kindRaw == null &&
+      labelRaw == null &&
+      amountRaw == null &&
+      categoryRaw == null
+    ) {
       // No more rows — stop walking. (A user can leave gaps if they
       // deleted a middle row, but the client always re-numbers, so
       // gaps shouldn't happen in practice.)
@@ -80,7 +90,52 @@ export async function savePayrollAdjustmentAction(
     const amount = Number(amountStr)
     if (!Number.isFinite(amount) || amount <= 0) continue
     if (label.length === 0) continue
-    manualLineItems.push({ kind, label, amount })
+    // Validate category against the enum. Falls back to a safe default
+    // for the kind so a tampered client can't smuggle an arbitrary
+    // string into the JSON column.
+    const categoryStr = String(categoryRaw ?? "").trim()
+    const category = payrollAdjustmentCategories.includes(categoryStr as never)
+      ? categoryStr
+      : kind === "DEDUCTION"
+        ? "deduct_salary_adjustment"
+        : "allowance_standard"
+    manualLineItems.push({ kind, category, label, amount })
+  }
+
+  // Collect per-row overrides on the profile's fixed adjustments.
+  // Each row in the UI sets:
+  //   override{i}.amount    (number, currency)
+  //   override{i}.skip      ("true" / undefined)
+  //   override{i}.original  (number — profile baseline)
+  // We only store a row when it actually deviates from the profile.
+  // Indexes refer to positions in `PayrollProfile.fixedAllowances`.
+  const fixedAllowanceOverrides: FixedAllowanceOverrideMap = {}
+  for (let i = 0; i < 50; i++) {
+    const amountRaw = formData.get(`override${i}.amount`)
+    const skipRaw = formData.get(`override${i}.skip`)
+    const originalRaw = formData.get(`override${i}.original`)
+    if (amountRaw == null && skipRaw == null && originalRaw == null) {
+      continue
+    }
+    const skip = String(skipRaw ?? "").trim() === "true"
+    const original = Number(String(originalRaw ?? ""))
+    const amount = Number(String(amountRaw ?? ""))
+
+    if (skip) {
+      fixedAllowanceOverrides[String(i)] = { amount: null, skip: true }
+      continue
+    }
+    // Only persist an amount override when it actually differs from
+    // the profile baseline. Avoids cluttering the JSON column with
+    // no-op rows.
+    if (
+      Number.isFinite(amount) &&
+      amount >= 0 &&
+      Number.isFinite(original) &&
+      Math.abs(amount - original) > 0.0001
+    ) {
+      fixedAllowanceOverrides[String(i)] = { amount, skip: false }
+    }
   }
 
   try {
@@ -94,6 +149,7 @@ export async function savePayrollAdjustmentAction(
         unpaidLeaveDeduction: parsed.data.unpaidLeaveDeduction,
         notes: parsed.data.notes,
         manualLineItems,
+        fixedAllowanceOverrides,
       },
     })
   } catch (err) {

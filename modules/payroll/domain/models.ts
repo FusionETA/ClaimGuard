@@ -499,6 +499,30 @@ export type LeaveEntitlement = {
   days: number
 }
 
+// ─── Payroll documents (contracts, offer letters, etc.) ─────────────────
+
+/**
+ * One uploaded HR document attached to an employee's payroll profile.
+ * Files themselves live on local disk under
+ * `public/uploads/payroll-documents/{userId}/`; this metadata gets
+ * persisted as a JSON array on `PayrollProfile.payrollDocuments`.
+ */
+export type PayrollDocument = {
+  /// Stable id (cuid-like) — used for delete + react keys.
+  id: string
+  /// Original filename as uploaded by the admin.
+  name: string
+  /// MIME type at upload time.
+  mimeType: string
+  /// Size in bytes at upload time.
+  sizeBytes: number
+  /// Public URL the UI fetches to view/download. For local files this
+  /// is `/uploads/payroll-documents/{userId}/{storedFilename}`.
+  url: string
+  /// ISO timestamp (uploadedAt).
+  uploadedAt: string
+}
+
 // ─── PayrollProfile — the projected view returned by services ───────────
 
 /**
@@ -597,6 +621,9 @@ export type PayrollProfileData = {
   // Leave (v2 placeholder)
   leaveEntitlement: LeaveEntitlement[]
 
+  // Uploaded HR documents (contracts, offer letters, etc.)
+  payrollDocuments: PayrollDocument[]
+
   // Status
   isArchived: boolean
   archivedAt: string | null // ISO datetime
@@ -668,6 +695,16 @@ export function isPayrollProfileComplete(p: PayrollProfileData): boolean {
 
   // Income tax number — required for any LHDN filing.
   if (!p.incomeTaxNumber) return false
+
+  // Spouse data — when the employee is married, we need to know
+  // whether the spouse works (drives PCB joint-relief calc: RM 4,000
+  // relief when spouse not working, plus RM 5,000 if disabled).
+  // Without this, PCB defaults to the safer "no relief" path which
+  // can over-withhold tax — so we require it as part of "ready for
+  // payroll".
+  if (p.maritalStatus === "MARRIED" && p.spouseWorking == null) {
+    return false
+  }
 
   return true
 }

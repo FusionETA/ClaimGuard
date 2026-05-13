@@ -3,6 +3,7 @@ import "server-only"
 import { getPrismaClient } from "@/lib/prisma"
 import { toNumber } from "@/lib/decimal"
 import type {
+  FixedAllowanceOverrideMap,
   ManualLineItem,
   PayrollRunAdjustmentData,
 } from "@/modules/payroll/domain/runs"
@@ -70,6 +71,7 @@ export const payrollRunAdjustmentRepository = {
       otRestHours: number
       otPublicHours: number
       manualLineItems: ManualLineItem[]
+      fixedAllowanceOverrides: FixedAllowanceOverrideMap
       unpaidLeaveDeduction: number
       notes: string | null
     }>
@@ -128,11 +130,42 @@ function mapAdjustment(row: any): PayrollRunAdjustmentData {
     otRestHours: toNumber(row.otRestHours, 0),
     otPublicHours: toNumber(row.otPublicHours, 0),
     manualLineItems: parseManualLineItems(row.manualLineItems),
+    fixedAllowanceOverrides: parseFixedAllowanceOverrides(
+      row.fixedAllowanceOverrides,
+    ),
     unpaidLeaveDeduction: toNumber(row.unpaidLeaveDeduction, 0),
     notes: row.notes ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   }
+}
+
+/**
+ * Parse the `fixedAllowanceOverrides` JSON column. Defensive — rows
+ * with non-numeric amounts or weird shapes are dropped silently so a
+ * bad migration can't crash the calc engine.
+ */
+function parseFixedAllowanceOverrides(
+  value: unknown,
+): FixedAllowanceOverrideMap {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {}
+  const out: FixedAllowanceOverrideMap = {}
+  for (const [key, raw] of Object.entries(value as Record<string, unknown>)) {
+    if (!raw || typeof raw !== "object") continue
+    const r = raw as Record<string, unknown>
+    const skip = r.skip === true
+    let amount: number | null = null
+    if (typeof r.amount === "number" && Number.isFinite(r.amount)) {
+      amount = r.amount
+    } else if (typeof r.amount === "string") {
+      const n = Number(r.amount)
+      if (Number.isFinite(n)) amount = n
+    }
+    // Skip rows with no signal at all — that's the same as no override.
+    if (!skip && amount === null) continue
+    out[key] = { amount, skip }
+  }
+  return out
 }
 
 function parseManualLineItems(value: unknown): ManualLineItem[] {
@@ -142,6 +175,15 @@ function parseManualLineItems(value: unknown): ManualLineItem[] {
     if (!item || typeof item !== "object") continue
     const i = item as Record<string, unknown>
     const kind = i.kind === "DEDUCTION" ? "DEDUCTION" : "ALLOWANCE"
+    // Pre-Phase-19 rows have no `category`. Default by kind so the
+    // calc engine still finds a valid meta entry.
+    const categoryRaw = typeof i.category === "string" ? i.category : null
+    const category =
+      categoryRaw && categoryRaw.length > 0
+        ? categoryRaw
+        : kind === "DEDUCTION"
+          ? "deduct_salary_adjustment"
+          : "allowance_standard"
     const label =
       typeof i.label === "string" && i.label.trim().length > 0
         ? i.label
@@ -156,7 +198,7 @@ function parseManualLineItems(value: unknown): ManualLineItem[] {
           ? Number(amountRaw)
           : 0
     if (!Number.isFinite(amount) || amount <= 0) continue
-    out.push({ kind, label, amount })
+    out.push({ kind, category, label, amount })
   }
   return out
 }
@@ -172,6 +214,10 @@ function toUpsertData(
   if (patch.otPublicHours !== undefined) out.otPublicHours = patch.otPublicHours
   if (patch.manualLineItems !== undefined) {
     out.manualLineItems = patch.manualLineItems as unknown as object
+  }
+  if (patch.fixedAllowanceOverrides !== undefined) {
+    out.fixedAllowanceOverrides =
+      patch.fixedAllowanceOverrides as unknown as object
   }
   if (patch.unpaidLeaveDeduction !== undefined) {
     out.unpaidLeaveDeduction = patch.unpaidLeaveDeduction

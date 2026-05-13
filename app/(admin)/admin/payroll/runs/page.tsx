@@ -54,7 +54,7 @@ export default async function AdminPayrollRunsPage() {
           <CardTitle className="text-base">Start a new run</CardTitle>
           <CardDescription>
             Pick the period (month + year). A draft is created and you can
-            generate payslips on the next page. One draft per period.
+            run payroll on the next page. One draft per period.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -70,7 +70,7 @@ export default async function AdminPayrollRunsPage() {
           <CardHeader>
             <CardTitle className="text-base">Drafts</CardTitle>
             <CardDescription>
-              Editable runs. Generate payslips and review totals before
+              Editable runs. Run payroll and review totals before
               submitting.
             </CardDescription>
           </CardHeader>
@@ -108,7 +108,7 @@ export default async function AdminPayrollRunsPage() {
             </CardTitle>
             <CardDescription>
               Pick a period above to create your first draft. You can
-              generate payslips, review totals, and submit when ready.
+              run payroll, review totals, and submit when ready.
             </CardDescription>
           </CardHeader>
           <CardContent>

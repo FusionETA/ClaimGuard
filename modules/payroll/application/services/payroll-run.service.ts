@@ -3,10 +3,12 @@ import "server-only"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getPrismaClient } from "@/lib/prisma"
 import { calcPayslip } from "@/modules/payroll/domain/calc"
-import type { PayrollEmployeeRow } from "@/modules/payroll/domain/models"
+import type {
+  FixedAllowance,
+  PayrollEmployeeRow,
+} from "@/modules/payroll/domain/models"
 import type {
   AttachableClaimRow,
-  ManualLineItem,
   PayrollRunAdjustmentData,
   PayrollRunClaimRow,
   PayrollRunData,
@@ -169,7 +171,7 @@ export async function submitPayrollRun(input: {
   }
   if (run.payslipCount === 0) {
     throw new Error(
-      "Generate payslips before submitting — an empty run can't be finalised.",
+      "Run payroll before submitting — an empty run can't be finalised.",
     )
   }
 
@@ -248,7 +250,7 @@ export async function generatePayrollPayslips(input: {
   })
   if (!run) throw new Error("Payroll run not found.")
   if (run.status !== "DRAFT") {
-    throw new Error("Only draft runs can be regenerated.")
+    throw new Error("Only draft runs can be run again.")
   }
 
   const [settings, employees, attachments, adjustments] = await Promise.all([
@@ -321,31 +323,43 @@ export async function generatePayrollPayslips(input: {
   const payslips: CreatePayslipInput[] = employees.map((e) => {
     const adj = adjustments.get(e.employeeProfileId) ?? null
     const ytd = ytdByEmp.get(e.employeeProfileId)
-    // Split manual line items into the calc engine's two buckets:
-    // ALLOWANCE goes into fixedAllowances (the profile already covers
-    // recurring ones, so we extend the array), DEDUCTION goes into
-    // manualDeductions.
-    const adjAllowances: ManualLineItem[] = []
-    const adjDeductions: ManualLineItem[] = []
-    if (adj) {
-      for (const li of adj.manualLineItems) {
-        if (li.kind === "ALLOWANCE") adjAllowances.push(li)
-        else adjDeductions.push(li)
+    // Apply per-run overrides to the profile's fixed adjustments:
+    // - `skip: true` → drop the row for this run
+    // - `amount: number` → replace amount but preserve `category` so
+    //   the EPF/SOCSO/EIS/PCB subject-to flags follow through
+    // - missing index → use the profile default
+    const overrides = adj?.fixedAllowanceOverrides ?? {}
+    const overriddenFixed: typeof e.profile.fixedAllowances = []
+    e.profile.fixedAllowances.forEach((a, i) => {
+      const override = overrides[String(i)]
+      if (!override) {
+        overriddenFixed.push(a)
+        return
       }
-    }
-    // Merge one-off allowances into the profile snapshot used by
-    // calcPayslip — easier than threading a separate one-off
-    // allowances list through the engine.
+      if (override.skip) return
+      if (override.amount != null) {
+        overriddenFixed.push({ ...a, amount: override.amount })
+        return
+      }
+      overriddenFixed.push(a)
+    })
+
+    // Merge one-off line items (allowances + deductions) into the
+    // profile snapshot. The calc engine's fixedAllowances loop
+    // dispatches on `meta.kind` (ALLOWANCE / DEDUCTION /
+    // REIMBURSEMENT) and applies statutory flags via the category
+    // meta — so DEDUCTIONs land in the right bucket and respect
+    // `reducesBase` / EPF / SOCSO / EIS / PCB. Pre-Phase-19 line
+    // items without `category` get safe defaults from the repo
+    // parser, so legacy data still works.
+    const oneOffLines = (adj?.manualLineItems ?? []).map((li) => ({
+      category: li.category as (typeof overriddenFixed)[number]["category"],
+      name: li.label,
+      amount: li.amount,
+    }))
     const profileWithAdjAllowances = {
       ...e.profile,
-      fixedAllowances: [
-        ...e.profile.fixedAllowances,
-        ...adjAllowances.map((a) => ({
-          category: "allowance_standard" as const,
-          name: a.label,
-          amount: a.amount,
-        })),
-      ],
+      fixedAllowances: [...overriddenFixed, ...oneOffLines],
     }
 
     const result = calcPayslip({
@@ -361,11 +375,10 @@ export async function generatePayrollPayslips(input: {
       // employee. The claim id flows through to the generated
       // PayslipLineItem's `claimId` FK for traceability.
       reimbursements: reimbursementsByEmp.get(e.employeeProfileId) ?? [],
-      // One-off deductions from the adjustment row.
-      manualDeductions: adjDeductions.map((d) => ({
-        label: d.label,
-        amount: d.amount,
-      })),
+      // One-off deductions are now merged into `fixedAllowances`
+      // above so they go through the category-aware path. Keep the
+      // engine input empty — no double-counting.
+      manualDeductions: [],
       unpaidLeaveDeduction: adj?.unpaidLeaveDeduction ?? 0,
       // PCB year-to-date inputs (this year's SUBMITTED payslips +
       // prev-employer TP3-like carryover).
@@ -579,6 +592,9 @@ export async function getPayrollAdjustmentPageData(input: {
     monthlySalary: number | null
     hourlyRate: number | null
   }
+  /// Profile-level recurring adjustments — shown read-only on the form
+  /// so admins can override them per-run (Phase 18).
+  fixedAllowances: FixedAllowance[]
   adjustment: PayrollRunAdjustmentData | null
 } | null> {
   const session = await getCurrentSession()
@@ -618,7 +634,7 @@ export async function getPayrollAdjustmentPageData(input: {
   })
   if (!profileRow) return null
 
-  const [org, adjustment] = await Promise.all([
+  const [org, adjustment, payrollProfile] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
       select: { name: true },
@@ -627,6 +643,9 @@ export async function getPayrollAdjustmentPageData(input: {
       payrollRunId: run.id,
       employeeProfileId: input.employeeProfileId,
     }),
+    // Pulled via the repo so the JSON column is already parsed +
+    // typed. Used by the form to render the per-run overrides card.
+    payrollProfileRepository.getByEmployeeProfileId(input.employeeProfileId),
   ])
 
   return {
@@ -649,6 +668,7 @@ export async function getPayrollAdjustmentPageData(input: {
         ? Number(profileRow.payrollProfile.hourlyRate)
         : null,
     },
+    fixedAllowances: payrollProfile?.fixedAllowances ?? [],
     adjustment,
   }
 }

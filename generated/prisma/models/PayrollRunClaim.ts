@@ -19,10 +19,10 @@ import type * as Prisma from "../internal/prismaNamespace"
  * separately from `PayslipLineItem` because the run's payslips are
  * re-generated from scratch on each "Generate" press, so the line
  * items get wiped — this row is the source of truth that survives.
- *
+ * 
  * The actual `PayslipLineItem` is recreated from this attachment on
  * each generation, with `claimId` pointing back here for traceability.
- *
+ * 
  * Snapshots `label` + `amount` at attach time so later edits to the
  * underlying claim don't change historical payroll figures.
  */

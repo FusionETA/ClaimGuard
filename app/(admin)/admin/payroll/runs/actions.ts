@@ -119,7 +119,7 @@ export async function generatePayrollPayslipsAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not generate payslips.",
+        err instanceof Error ? err.message : "Could not run payroll.",
     }
   }
 
@@ -127,7 +127,7 @@ export async function generatePayrollPayslipsAction(
   revalidatePath("/admin/payroll/runs")
   return {
     status: "success",
-    message: `Generated ${count} payslip${count === 1 ? "" : "s"}.`,
+    message: `Payroll run completed for ${count} employee${count === 1 ? "" : "s"}.`,
   }
 }
 
