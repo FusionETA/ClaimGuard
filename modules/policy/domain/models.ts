@@ -24,6 +24,10 @@ export type EmployeePolicy = {
   /// dropdown / approval UI is hidden and the value is ignored.
   otEnabled: boolean
   otMethod: OtPayoutMethod
+  /// When true, employees must be inside the project geofence to clock
+  /// in. Radius is configured per project; this flag only decides
+  /// whether the check is enforced for this policy's employees.
+  requireGeofence: boolean
   /// Number of employees currently assigned. Populated by the
   /// `listForOrganization` query; undefined elsewhere.
   employeeCount?: number

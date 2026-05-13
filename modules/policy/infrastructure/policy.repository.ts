@@ -20,6 +20,7 @@ type PolicyRow = {
   salaryType: EmployeePayoutMethod
   otEnabled: boolean
   otMethod: OtPayoutMethod
+  requireGeofence: boolean
 }
 
 function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
@@ -36,6 +37,7 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     salaryType: row.salaryType,
     otEnabled: row.otEnabled,
     otMethod: row.otMethod,
+    requireGeofence: row.requireGeofence,
     employeeCount,
   }
 }
@@ -50,6 +52,7 @@ export type PolicyCreateInput = {
   salaryType: EmployeePayoutMethod
   otEnabled: boolean
   otMethod: OtPayoutMethod
+  requireGeofence: boolean
   isDefault?: boolean
 }
 
@@ -64,6 +67,7 @@ export type PolicyUpdateInput = {
   salaryType?: EmployeePayoutMethod
   otEnabled?: boolean
   otMethod?: OtPayoutMethod
+  requireGeofence?: boolean
 }
 
 export const policyRepository = {
@@ -129,6 +133,7 @@ export const policyRepository = {
           salaryType: input.salaryType,
           otEnabled: input.otEnabled,
           otMethod: input.otMethod,
+          requireGeofence: input.requireGeofence,
           isDefault,
         },
       })
@@ -158,6 +163,7 @@ export const policyRepository = {
           salaryType: input.salaryType ?? undefined,
           otEnabled: input.otEnabled ?? undefined,
           otMethod: input.otMethod ?? undefined,
+          requireGeofence: input.requireGeofence ?? undefined,
         },
       })
 

@@ -85,6 +85,7 @@ export const payrollProfileRepository = {
         // forgot, default to MONTHLY rather than crashing — the admin
         // can fix it in the form.
         salaryType: input.patch.salaryType ?? "MONTHLY",
+        payrollDocuments: [],
         ...data,
       },
       update: data,

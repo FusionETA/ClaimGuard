@@ -120,6 +120,10 @@ model EmployeePolicy {
   /// OT method below is ignored and OT-related UI is hidden.
   otEnabled            Boolean          @default(true)
   otMethod             OtPayoutMethod   @default(CASH)
+  /// When true, employees on this policy must be inside the project
+  /// geofence (radius set on Organization, lat/lng on Project) to clock
+  /// in. When false, geofence checks are skipped for these employees.
+  requireGeofence      Boolean          @default(true)
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)

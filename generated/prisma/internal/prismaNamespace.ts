@@ -2710,6 +2710,7 @@ export const EmployeePolicyScalarFieldEnum = {
   salaryType: 'salaryType',
   otEnabled: 'otEnabled',
   otMethod: 'otMethod',
+  requireGeofence: 'requireGeofence',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
