@@ -25,7 +25,7 @@ export function DeletePayrollRunDraftButton(props: { runId: string }) {
       onSubmit={(e) => {
         if (
           !window.confirm(
-            "Delete this draft payroll run? Any payslips generated for it will be removed.",
+            "Delete this draft payroll run? Any payroll results for it will be removed.",
           )
         ) {
           e.preventDefault()

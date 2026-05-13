@@ -223,12 +223,43 @@ export type ManualLineItemKind = (typeof manualLineItemKinds)[number]
  * One-off allowance/deduction applied to a single payroll run for a
  * single employee. Distinct from the recurring `FixedAllowance` on
  * `PayrollProfile`, which auto-applies to every run.
+ *
+ * `category` controls statutory treatment (EPF / SOCSO / EIS / PCB)
+ * via `PAYROLL_ADJUSTMENT_CATEGORY_META`. Stored as a string here so
+ * the domain types stay free of circular imports — repos validate the
+ * value on read.
  */
 export type ManualLineItem = {
   kind: ManualLineItemKind
+  /// PayrollAdjustmentCategory code (see `modules/payroll/domain/models.ts`).
+  /// Defaulted to `allowance_standard` / `deduct_salary_adjustment` for
+  /// legacy rows persisted before Phase 19.
+  category: string
   label: string
   amount: number
 }
+
+/**
+ * Per-run override for a single row in `PayrollProfile.fixedAllowances`.
+ * Keyed by the profile's fixed-allowance index (as a string in the JSON
+ * column so it round-trips cleanly). When `skip` is true the row is
+ * zeroed for this run. When `amount` is a number it replaces the
+ * profile amount — the original `category` / `name` are preserved so
+ * statutory treatment (EPF/SOCSO/EIS/PCB) follows through.
+ */
+export type FixedAllowanceOverride = {
+  /// Override amount for this run only. `null` = use the profile amount.
+  amount: number | null
+  /// True = zero this row out for this run only.
+  skip: boolean
+}
+
+/**
+ * Map of `fixed-allowance index` → override. Sparse — only modified
+ * rows appear. Built by `parseFixedAllowanceOverrides` from the JSON
+ * column.
+ */
+export type FixedAllowanceOverrideMap = Record<string, FixedAllowanceOverride>
 
 /**
  * Full PayrollRunAdjustment projection. Returned by the repo with
@@ -242,6 +273,7 @@ export type PayrollRunAdjustmentData = {
   otRestHours: number
   otPublicHours: number
   manualLineItems: ManualLineItem[]
+  fixedAllowanceOverrides: FixedAllowanceOverrideMap
   unpaidLeaveDeduction: number
   notes: string | null
   createdAt: string

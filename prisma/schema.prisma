@@ -984,6 +984,12 @@ model PayrollProfile {
   ///   [{ type: "ANNUAL", days: 14 }, { type: "SICK", days: 30 }]
   leaveEntitlement Json?
 
+  /// Uploaded payroll documents (contracts, offer letters, etc.).
+  /// Stored as a JSON array of `PayrollDocument` records — see
+  /// `modules/payroll/domain/models.ts`. Files themselves live in
+  /// `public/uploads/payroll-documents/{userId}/` on disk.
+  payrollDocuments Json @default("[]")
+
   // ── STATUS ──
   /// Archived profiles are excluded from new payroll runs but their
   /// historical payslips are retained.
@@ -1194,6 +1200,16 @@ model PayrollRunAdjustment {
   /// `[{ kind: "ALLOWANCE" | "DEDUCTION", label, amount }]`. Stacked on
   /// top of the PayrollProfile's fixed adjustments.
   manualLineItems Json @default("[]")
+
+  /// Per-run overrides on the PayrollProfile's recurring fixed
+  /// adjustments. Keyed by the profile's fixed-allowance index as a
+  /// string, so the JSON shape is:
+  ///   `{ "0": { "amount": 250, "skip": false }, "2": { "skip": true } }`
+  /// Missing index = use the profile default. `skip=true` zeroes the
+  /// row for this run only; `amount` overrides the value while keeping
+  /// the original category (so EPF/SOCSO/EIS/PCB subject-to flags
+  /// follow through correctly).
+  fixedAllowanceOverrides Json @default("{}")
 
   /// Pre-computed unpaid-leave deduction (currency). Manual entry
   /// until the leave-attendance integration ships in v2.

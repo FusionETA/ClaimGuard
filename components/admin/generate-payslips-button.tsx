@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button"
 import { useToastOnAction } from "@/components/ui/toaster"
 
 /**
- * Generate/regenerate payslips for a payroll run. Re-clicking the
- * button after editing employee profiles or the org's settings
- * recomputes every payslip from scratch.
+ * Runs/re-runs payroll for a payroll run. Re-clicking the button after
+ * editing employee profiles or the org's settings recomputes every
+ * payslip from scratch.
  */
 export function GeneratePayslipsButton(props: {
   runId: string
@@ -22,7 +22,7 @@ export function GeneratePayslipsButton(props: {
   )
   useToastOnAction(state)
 
-  const label = props.hasExisting ? "Regenerate payslips" : "Generate payslips"
+  const label = props.hasExisting ? "Re-run payroll" : "Run payroll"
 
   return (
     <form
@@ -31,7 +31,7 @@ export function GeneratePayslipsButton(props: {
         if (
           props.hasExisting &&
           !window.confirm(
-            "Recompute all payslips from the current profiles and settings? Any existing payslips on this run will be replaced.",
+            "Re-run payroll from the current profiles and settings? Any existing payslips on this run will be replaced.",
           )
         ) {
           e.preventDefault()
@@ -40,7 +40,7 @@ export function GeneratePayslipsButton(props: {
     >
       <input type="hidden" name="runId" value={props.runId} hidden />
       <Button type="submit" disabled={pending}>
-        {pending ? "Generating…" : label}
+        {pending ? "Running payroll…" : label}
       </Button>
     </form>
   )

@@ -1,13 +1,15 @@
 "use client"
 
-import { useActionState, useState } from "react"
-import { Plus, Trash2 } from "lucide-react"
+import { useActionState, useMemo, useState } from "react"
+import { Plus, RotateCcw, Trash2 } from "lucide-react"
 
 import {
   clearPayrollAdjustmentAction,
   savePayrollAdjustmentAction,
 } from "@/app/(admin)/admin/payroll/runs/[id]/employees/[empProfileId]/actions"
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
+import { NativeSelect } from "@/components/admin/payroll-form-controls"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -20,6 +22,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
+import {
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  payrollAdjustmentCategories,
+  payrollAdjustmentCategoryGroups,
+  type FixedAllowance,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
 import {
   type ManualLineItem,
   type PayrollRunAdjustmentData,
@@ -38,6 +47,7 @@ export function PayrollAdjustmentForm(props: {
   runId: string
   employeeProfileId: string
   adjustment: PayrollRunAdjustmentData | null
+  fixedAllowances: FixedAllowance[]
   readOnly: boolean
 }) {
   const [state, action, pending] = useActionState(
@@ -50,8 +60,45 @@ export function PayrollAdjustmentForm(props: {
     props.adjustment?.manualLineItems ?? [],
   )
 
+  // Hydrate the override state from the saved JSON column. Each row in
+  // the UI starts at the profile amount, and we apply any stored
+  // override on top. The form serialises three fields per row back —
+  // `override{i}.amount`, `override{i}.skip`, `override{i}.original` —
+  // and the action only persists rows that actually deviate.
+  const initialOverrides = useMemo(
+    () =>
+      props.fixedAllowances.map((fa, i) => {
+        const o = props.adjustment?.fixedAllowanceOverrides?.[String(i)]
+        return {
+          amount:
+            o?.amount != null ? o.amount : fa.amount,
+          skip: o?.skip === true,
+        }
+      }),
+    [props.fixedAllowances, props.adjustment?.fixedAllowanceOverrides],
+  )
+  const [overrides, setOverrides] = useState(initialOverrides)
+  function patchOverride(i: number, patch: Partial<{ amount: number; skip: boolean }>) {
+    setOverrides((rs) =>
+      rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)),
+    )
+  }
+  function resetOverride(i: number) {
+    const fa = props.fixedAllowances[i]
+    if (!fa) return
+    setOverrides((rs) =>
+      rs.map((r, idx) => (idx === i ? { amount: fa.amount, skip: false } : r)),
+    )
+  }
+
   function addLine(kind: "ALLOWANCE" | "DEDUCTION") {
-    setLines((cs) => [...cs, { kind, label: "", amount: 0 }])
+    // Default category by kind. Admin can pick a more specific one
+    // from the dropdown (e.g. annual bonus, travel allowance, advance
+    // recovery, CP38) — those carry their own statutory treatment.
+    const category =
+      kind === "DEDUCTION" ? "deduct_salary_adjustment" : "allowance_standard"
+    const label = PAYROLL_ADJUSTMENT_CATEGORY_META[category].label
+    setLines((cs) => [...cs, { kind, category, label, amount: 0 }])
   }
   function removeLine(i: number) {
     setLines((cs) => cs.filter((_, idx) => idx !== i))
@@ -120,6 +167,153 @@ export function PayrollAdjustmentForm(props: {
           </Field>
         </CardContent>
       </Card>
+
+      {props.fixedAllowances.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Fixed adjustments this run
+            </CardTitle>
+            <CardDescription>
+              Recurring adjustments from this employee&apos;s payroll
+              profile. Edit the amount or skip a row to override it for
+              this run only — the underlying profile is not touched.
+              Statutory treatment (EPF / SOCSO / EIS / PCB) follows the
+              original category.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {props.fixedAllowances.map((fa, i) => {
+              const meta =
+                PAYROLL_ADJUSTMENT_CATEGORY_META[fa.category] ??
+                PAYROLL_ADJUSTMENT_CATEGORY_META.allowance_standard
+              const override = overrides[i] ?? { amount: fa.amount, skip: false }
+              const isAmountOverride =
+                !override.skip &&
+                Math.abs(override.amount - fa.amount) > 0.0001
+              const isOverridden = override.skip || isAmountOverride
+              const statutory = [
+                meta.subjectToEpf ? "EPF" : null,
+                meta.subjectToSocso ? "SOCSO" : null,
+                meta.subjectToEis ? "EIS" : null,
+                meta.subjectToPcb ? "PCB" : null,
+              ].filter(Boolean)
+              return (
+                <div
+                  key={i}
+                  className="rounded-lg border border-border/60 bg-muted/30 p-3"
+                >
+                  {/* Hidden inputs — the action reads these three keys
+                      per row and rebuilds the override map. `original`
+                      lets the server distinguish a real override from
+                      typing the same number back in. */}
+                  <input
+                    type="hidden"
+                    name={`override${i}.original`}
+                    value={String(fa.amount)}
+                  />
+                  <input
+                    type="hidden"
+                    name={`override${i}.skip`}
+                    value={override.skip ? "true" : "false"}
+                  />
+                  <div className="grid items-end gap-3 md:grid-cols-[1.4fr_180px_auto]">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-medium text-foreground">
+                          {fa.name}
+                        </span>
+                        {isOverridden && (
+                          <Badge
+                            variant="outline"
+                            className="border-amber-300/60 text-[10px] uppercase tracking-wide text-amber-700"
+                          >
+                            {override.skip ? "Skipped" : "Overridden"}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        {meta.label} ·{" "}
+                        {meta.kind === "DEDUCTION"
+                          ? meta.reducesBase
+                            ? "Deduction - reduces base"
+                            : "Deduction"
+                          : meta.kind === "REIMBURSEMENT"
+                            ? "Reimbursement"
+                            : "Earning"}
+                        {" · "}
+                        Statutory:{" "}
+                        {statutory.length > 0 ? statutory.join(", ") : "none"}
+                        {" · "}
+                        Profile baseline: RM
+                        {fa.amount.toLocaleString("en-MY", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </p>
+                    </div>
+                    <Field label="Amount this run (MYR)">
+                      <Input
+                        name={`override${i}.amount`}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={String(override.amount)}
+                        onChange={(e) =>
+                          patchOverride(i, {
+                            amount: Number(e.target.value) || 0,
+                          })
+                        }
+                        disabled={props.readOnly || override.skip}
+                      />
+                    </Field>
+                    {!props.readOnly && (
+                      <div className="flex flex-col items-end gap-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={override.skip ? "default" : "ghost"}
+                          onClick={() =>
+                            patchOverride(i, { skip: !override.skip })
+                          }
+                          title={
+                            override.skip
+                              ? "Bring this allowance back for this run"
+                              : "Skip this allowance for this run only"
+                          }
+                          className={cn(
+                            "text-xs",
+                            !override.skip && "text-muted-foreground",
+                          )}
+                        >
+                          {override.skip ? "Restore" : "Skip this run"}
+                        </Button>
+                        {isOverridden && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => resetOverride(i)}
+                            className="h-auto px-1 py-0.5 text-[11px] text-muted-foreground"
+                            title="Reset to profile baseline"
+                          >
+                            <RotateCcw className="mr-1 h-3 w-3" />
+                            Reset to profile
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            <p className="text-[11px] text-muted-foreground">
+              Changes here apply only to this payroll run. To change the
+              recurring amount, edit the employee&apos;s Fixed
+              adjustments on the Employment tab.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
@@ -274,52 +468,132 @@ function LineRow(props: {
   onRemove: () => void
   readOnly: boolean
 }) {
+  const category =
+    PAYROLL_ADJUSTMENT_CATEGORY_META[
+      props.line.category as PayrollAdjustmentCategory
+    ] ?? PAYROLL_ADJUSTMENT_CATEGORY_META.allowance_standard
+  const statutory = [
+    category.subjectToEpf ? "EPF" : null,
+    category.subjectToSocso ? "SOCSO" : null,
+    category.subjectToEis ? "EIS" : null,
+    category.subjectToPcb ? "PCB" : null,
+  ].filter(Boolean)
+  // Filter categories shown in the dropdown to ones that match the
+  // row's intent. Admin clicked "Add allowance" → only earning-style
+  // categories. Clicked "Add deduction" → only deduction categories.
+  // Reimbursement categories aren't surfaced here — those flow through
+  // the Reimbursements (claims) section instead.
+  const allowedCategories = payrollAdjustmentCategories.filter((code) => {
+    const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[code]
+    if (props.line.kind === "DEDUCTION") return meta.kind === "DEDUCTION"
+    return meta.kind === "ALLOWANCE"
+  })
+
   return (
-    <div className="grid items-end gap-3 rounded-lg border border-border/60 bg-muted/30 p-3 md:grid-cols-[1fr_160px_auto]">
+    <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
       <input
         type="hidden"
         name={`line${props.index}.kind`}
         value={props.line.kind}
         hidden
       />
-      <Field label="Label">
-        <Input
-          name={`line${props.index}.label`}
-          value={props.line.label}
-          onChange={(e) => props.onChange({ label: e.target.value })}
-          placeholder={
-            props.line.kind === "ALLOWANCE"
-              ? "Bonus / one-off allowance"
-              : "Salary advance / late fee"
-          }
-          disabled={props.readOnly}
-        />
-      </Field>
-      <Field label="Amount (MYR)">
-        <Input
-          name={`line${props.index}.amount`}
-          type="number"
-          step="0.01"
-          min="0"
-          value={String(props.line.amount)}
-          onChange={(e) =>
-            props.onChange({ amount: Number(e.target.value) || 0 })
-          }
-          disabled={props.readOnly}
-        />
-      </Field>
-      {!props.readOnly && (
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          className="text-destructive"
-          onClick={props.onRemove}
-          title="Remove"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
-      )}
+      <div className="grid items-end gap-3 md:grid-cols-[1.4fr_1fr_180px_auto]">
+        <Field label="Category">
+          <NativeSelect
+            name={`line${props.index}.category`}
+            value={props.line.category}
+            onChange={(e) => {
+              const next = e.target.value as PayrollAdjustmentCategory
+              const nextMeta = PAYROLL_ADJUSTMENT_CATEGORY_META[next]
+              props.onChange({
+                category: next,
+                // Auto-fill the display name with the category label,
+                // but only when the admin hasn't customised it. Keeps
+                // their typed labels intact across category switches.
+                label:
+                  props.line.label === category.label || props.line.label === ""
+                    ? nextMeta.label
+                    : props.line.label,
+              })
+            }}
+            disabled={props.readOnly}
+          >
+            {payrollAdjustmentCategoryGroups
+              .filter((group) =>
+                allowedCategories.some(
+                  (code) =>
+                    PAYROLL_ADJUSTMENT_CATEGORY_META[code].group === group,
+                ),
+              )
+              .map((group) => (
+                <optgroup key={group} label={group}>
+                  {allowedCategories
+                    .filter(
+                      (code) =>
+                        PAYROLL_ADJUSTMENT_CATEGORY_META[code].group === group,
+                    )
+                    .map((code) => (
+                      <option key={code} value={code}>
+                        {PAYROLL_ADJUSTMENT_CATEGORY_META[code].label}
+                      </option>
+                    ))}
+                </optgroup>
+              ))}
+          </NativeSelect>
+        </Field>
+        <Field label="Display name">
+          <Input
+            name={`line${props.index}.label`}
+            value={props.line.label}
+            onChange={(e) => props.onChange({ label: e.target.value })}
+            placeholder={category.label}
+            disabled={props.readOnly}
+          />
+        </Field>
+        <Field label="Amount (MYR)">
+          <Input
+            name={`line${props.index}.amount`}
+            type="number"
+            step="0.01"
+            min="0"
+            value={String(props.line.amount)}
+            onChange={(e) =>
+              props.onChange({ amount: Number(e.target.value) || 0 })
+            }
+            disabled={props.readOnly}
+          />
+        </Field>
+        {!props.readOnly && (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="text-destructive"
+            onClick={props.onRemove}
+            title="Remove"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+        <span className="rounded-full bg-background px-2 py-0.5 font-medium text-foreground">
+          {category.kind === "DEDUCTION"
+            ? category.reducesBase
+              ? "Deduction - reduces base"
+              : "Deduction"
+            : "Earning"}
+        </span>
+        <span>
+          Statutory: {statutory.length > 0 ? statutory.join(", ") : "none"}
+        </span>
+        {category.taxExemptLimit ? (
+          <span>
+            Tax exempt limit: RM{category.taxExemptLimit.toLocaleString()}/year
+          </span>
+        ) : null}
+        {category.offsetsPcb ? <span>Offsets PCB</span> : null}
+      </div>
     </div>
   )
 }
