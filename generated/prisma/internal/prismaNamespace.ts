@@ -2708,10 +2708,11 @@ export const EmployeePolicyScalarFieldEnum = {
   canAccessClaims: 'canAccessClaims',
   canAccessLeave: 'canAccessLeave',
   salaryType: 'salaryType',
-  otEnabled: 'otEnabled',
   otMethod: 'otMethod',
+  requireGeofence: 'requireGeofence',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  otEnabled: 'otEnabled'
 } as const
 
 export type EmployeePolicyScalarFieldEnum = (typeof EmployeePolicyScalarFieldEnum)[keyof typeof EmployeePolicyScalarFieldEnum]
@@ -2987,12 +2988,12 @@ export const AttendanceRecordScalarFieldEnum = {
   project: 'project',
   status: 'status',
   notes: 'notes',
-  remark: 'remark',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   projectId: 'projectId',
   selfieUploadedAt: 'selfieUploadedAt',
-  xeroSelfieFileId: 'xeroSelfieFileId'
+  xeroSelfieFileId: 'xeroSelfieFileId',
+  remark: 'remark'
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
@@ -3163,7 +3164,8 @@ export const PayrollProfileScalarFieldEnum = {
   isArchived: 'isArchived',
   archivedAt: 'archivedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  payrollDocuments: 'payrollDocuments'
 } as const
 
 export type PayrollProfileScalarFieldEnum = (typeof PayrollProfileScalarFieldEnum)[keyof typeof PayrollProfileScalarFieldEnum]
@@ -3217,18 +3219,18 @@ export const PayrollCompanyInfoScalarFieldEnum = {
   taxAgentLicenceNo: 'taxAgentLicenceNo',
   taxAgentPhone: 'taxAgentPhone',
   taxAgentEmail: 'taxAgentEmail',
-  taxAgentFirmName: 'taxAgentFirmName',
-  taxAgentFirmAddressLine1: 'taxAgentFirmAddressLine1',
-  taxAgentFirmAddressLine2: 'taxAgentFirmAddressLine2',
-  taxAgentFirmPostcode: 'taxAgentFirmPostcode',
-  taxAgentFirmCity: 'taxAgentFirmCity',
-  taxAgentFirmState: 'taxAgentFirmState',
   declarantName: 'declarantName',
   declarantIdType: 'declarantIdType',
   declarantIdNumber: 'declarantIdNumber',
   declarantPosition: 'declarantPosition',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  taxAgentFirmAddressLine1: 'taxAgentFirmAddressLine1',
+  taxAgentFirmAddressLine2: 'taxAgentFirmAddressLine2',
+  taxAgentFirmCity: 'taxAgentFirmCity',
+  taxAgentFirmName: 'taxAgentFirmName',
+  taxAgentFirmPostcode: 'taxAgentFirmPostcode',
+  taxAgentFirmState: 'taxAgentFirmState'
 } as const
 
 export type PayrollCompanyInfoScalarFieldEnum = (typeof PayrollCompanyInfoScalarFieldEnum)[keyof typeof PayrollCompanyInfoScalarFieldEnum]
@@ -3289,7 +3291,8 @@ export const PayrollRunAdjustmentScalarFieldEnum = {
   unpaidLeaveDeduction: 'unpaidLeaveDeduction',
   notes: 'notes',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  fixedAllowanceOverrides: 'fixedAllowanceOverrides'
 } as const
 
 export type PayrollRunAdjustmentScalarFieldEnum = (typeof PayrollRunAdjustmentScalarFieldEnum)[keyof typeof PayrollRunAdjustmentScalarFieldEnum]
@@ -3640,9 +3643,9 @@ export const AttendanceRecordOrderByRelevanceFieldEnum = {
   location: 'location',
   project: 'project',
   notes: 'notes',
-  remark: 'remark',
   projectId: 'projectId',
-  xeroSelfieFileId: 'xeroSelfieFileId'
+  xeroSelfieFileId: 'xeroSelfieFileId',
+  remark: 'remark'
 } as const
 
 export type AttendanceRecordOrderByRelevanceFieldEnum = (typeof AttendanceRecordOrderByRelevanceFieldEnum)[keyof typeof AttendanceRecordOrderByRelevanceFieldEnum]
@@ -3786,15 +3789,15 @@ export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
   taxAgentLicenceNo: 'taxAgentLicenceNo',
   taxAgentPhone: 'taxAgentPhone',
   taxAgentEmail: 'taxAgentEmail',
-  taxAgentFirmName: 'taxAgentFirmName',
-  taxAgentFirmAddressLine1: 'taxAgentFirmAddressLine1',
-  taxAgentFirmAddressLine2: 'taxAgentFirmAddressLine2',
-  taxAgentFirmPostcode: 'taxAgentFirmPostcode',
-  taxAgentFirmCity: 'taxAgentFirmCity',
-  taxAgentFirmState: 'taxAgentFirmState',
   declarantName: 'declarantName',
   declarantIdNumber: 'declarantIdNumber',
-  declarantPosition: 'declarantPosition'
+  declarantPosition: 'declarantPosition',
+  taxAgentFirmAddressLine1: 'taxAgentFirmAddressLine1',
+  taxAgentFirmAddressLine2: 'taxAgentFirmAddressLine2',
+  taxAgentFirmCity: 'taxAgentFirmCity',
+  taxAgentFirmName: 'taxAgentFirmName',
+  taxAgentFirmPostcode: 'taxAgentFirmPostcode',
+  taxAgentFirmState: 'taxAgentFirmState'
 } as const
 
 export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompanyInfoOrderByRelevanceFieldEnum)[keyof typeof PayrollCompanyInfoOrderByRelevanceFieldEnum]

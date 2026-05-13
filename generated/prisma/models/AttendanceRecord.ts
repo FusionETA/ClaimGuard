@@ -48,12 +48,12 @@ export type AttendanceRecordMinAggregateOutputType = {
   project: string | null
   status: $Enums.AttendanceStatus | null
   notes: string | null
-  remark: string | null
   createdAt: Date | null
   updatedAt: Date | null
   projectId: string | null
   selfieUploadedAt: Date | null
   xeroSelfieFileId: string | null
+  remark: string | null
 }
 
 export type AttendanceRecordMaxAggregateOutputType = {
@@ -68,12 +68,12 @@ export type AttendanceRecordMaxAggregateOutputType = {
   project: string | null
   status: $Enums.AttendanceStatus | null
   notes: string | null
-  remark: string | null
   createdAt: Date | null
   updatedAt: Date | null
   projectId: string | null
   selfieUploadedAt: Date | null
   xeroSelfieFileId: string | null
+  remark: string | null
 }
 
 export type AttendanceRecordCountAggregateOutputType = {
@@ -88,12 +88,12 @@ export type AttendanceRecordCountAggregateOutputType = {
   project: number
   status: number
   notes: number
-  remark: number
   createdAt: number
   updatedAt: number
   projectId: number
   selfieUploadedAt: number
   xeroSelfieFileId: number
+  remark: number
   _all: number
 }
 
@@ -120,12 +120,12 @@ export type AttendanceRecordMinAggregateInputType = {
   project?: true
   status?: true
   notes?: true
-  remark?: true
   createdAt?: true
   updatedAt?: true
   projectId?: true
   selfieUploadedAt?: true
   xeroSelfieFileId?: true
+  remark?: true
 }
 
 export type AttendanceRecordMaxAggregateInputType = {
@@ -140,12 +140,12 @@ export type AttendanceRecordMaxAggregateInputType = {
   project?: true
   status?: true
   notes?: true
-  remark?: true
   createdAt?: true
   updatedAt?: true
   projectId?: true
   selfieUploadedAt?: true
   xeroSelfieFileId?: true
+  remark?: true
 }
 
 export type AttendanceRecordCountAggregateInputType = {
@@ -160,12 +160,12 @@ export type AttendanceRecordCountAggregateInputType = {
   project?: true
   status?: true
   notes?: true
-  remark?: true
   createdAt?: true
   updatedAt?: true
   projectId?: true
   selfieUploadedAt?: true
   xeroSelfieFileId?: true
+  remark?: true
   _all?: true
 }
 
@@ -267,12 +267,12 @@ export type AttendanceRecordGroupByOutputType = {
   project: string | null
   status: $Enums.AttendanceStatus
   notes: string | null
-  remark: string | null
   createdAt: Date
   updatedAt: Date
   projectId: string | null
   selfieUploadedAt: Date | null
   xeroSelfieFileId: string | null
+  remark: string | null
   _count: AttendanceRecordCountAggregateOutputType | null
   _avg: AttendanceRecordAvgAggregateOutputType | null
   _sum: AttendanceRecordSumAggregateOutputType | null
@@ -310,16 +310,16 @@ export type AttendanceRecordWhereInput = {
   project?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   status?: Prisma.EnumAttendanceStatusFilter<"AttendanceRecord"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
-  remark?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   xeroSelfieFileId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  remark?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  editLogs?: Prisma.AttendanceEditLogListRelationFilter
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
   breaks?: Prisma.BreakSessionListRelationFilter
-  editLogs?: Prisma.AttendanceEditLogListRelationFilter
 }
 
 export type AttendanceRecordOrderByWithRelationInput = {
@@ -334,16 +334,16 @@ export type AttendanceRecordOrderByWithRelationInput = {
   project?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
-  remark?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   selfieUploadedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrderInput | Prisma.SortOrder
+  remark?: Prisma.SortOrderInput | Prisma.SortOrder
+  editLogs?: Prisma.AttendanceEditLogOrderByRelationAggregateInput
   employee?: Prisma.UserOrderByWithRelationInput
   projectRef?: Prisma.XeroProjectOrderByWithRelationInput
   breaks?: Prisma.BreakSessionOrderByRelationAggregateInput
-  editLogs?: Prisma.AttendanceEditLogOrderByRelationAggregateInput
   _relevance?: Prisma.AttendanceRecordOrderByRelevanceInput
 }
 
@@ -363,16 +363,16 @@ export type AttendanceRecordWhereUniqueInput = Prisma.AtLeast<{
   project?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   status?: Prisma.EnumAttendanceStatusFilter<"AttendanceRecord"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
-  remark?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   xeroSelfieFileId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  remark?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  editLogs?: Prisma.AttendanceEditLogListRelationFilter
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
   breaks?: Prisma.BreakSessionListRelationFilter
-  editLogs?: Prisma.AttendanceEditLogListRelationFilter
 }, "id" | "employeeId_date">
 
 export type AttendanceRecordOrderByWithAggregationInput = {
@@ -387,12 +387,12 @@ export type AttendanceRecordOrderByWithAggregationInput = {
   project?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
-  remark?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrderInput | Prisma.SortOrder
   selfieUploadedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrderInput | Prisma.SortOrder
+  remark?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AttendanceRecordCountOrderByAggregateInput
   _avg?: Prisma.AttendanceRecordAvgOrderByAggregateInput
   _max?: Prisma.AttendanceRecordMaxOrderByAggregateInput
@@ -415,12 +415,12 @@ export type AttendanceRecordScalarWhereWithAggregatesInput = {
   project?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
   status?: Prisma.EnumAttendanceStatusWithAggregatesFilter<"AttendanceRecord"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
-  remark?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AttendanceRecord"> | Date | string
   projectId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
   selfieUploadedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AttendanceRecord"> | Date | string | null
   xeroSelfieFileId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
+  remark?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
 }
 
 export type AttendanceRecordCreateInput = {
@@ -434,15 +434,15 @@ export type AttendanceRecordCreateInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
+  editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
-  editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateInput = {
@@ -457,14 +457,14 @@ export type AttendanceRecordUncheckedCreateInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
-  breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  remark?: string | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUpdateInput = {
@@ -478,15 +478,15 @@ export type AttendanceRecordUpdateInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
-  editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateInput = {
@@ -501,14 +501,14 @@ export type AttendanceRecordUncheckedUpdateInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordCreateManyInput = {
@@ -523,12 +523,12 @@ export type AttendanceRecordCreateManyInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
 }
 
 export type AttendanceRecordUpdateManyMutationInput = {
@@ -542,11 +542,11 @@ export type AttendanceRecordUpdateManyMutationInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AttendanceRecordUncheckedUpdateManyInput = {
@@ -561,12 +561,12 @@ export type AttendanceRecordUncheckedUpdateManyInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AttendanceRecordListRelationFilter = {
@@ -602,12 +602,12 @@ export type AttendanceRecordCountOrderByAggregateInput = {
   project?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
-  remark?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   selfieUploadedAt?: Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrder
+  remark?: Prisma.SortOrder
 }
 
 export type AttendanceRecordAvgOrderByAggregateInput = {
@@ -627,12 +627,12 @@ export type AttendanceRecordMaxOrderByAggregateInput = {
   project?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
-  remark?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   selfieUploadedAt?: Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrder
+  remark?: Prisma.SortOrder
 }
 
 export type AttendanceRecordMinOrderByAggregateInput = {
@@ -647,12 +647,12 @@ export type AttendanceRecordMinOrderByAggregateInput = {
   project?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
-  remark?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   selfieUploadedAt?: Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrder
+  remark?: Prisma.SortOrder
 }
 
 export type AttendanceRecordSumOrderByAggregateInput = {
@@ -800,14 +800,14 @@ export type AttendanceRecordCreateWithoutEmployeeInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
+  editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
-  editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateWithoutEmployeeInput = {
@@ -821,14 +821,14 @@ export type AttendanceRecordUncheckedCreateWithoutEmployeeInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
-  breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  remark?: string | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordCreateOrConnectWithoutEmployeeInput = {
@@ -872,12 +872,12 @@ export type AttendanceRecordScalarWhereInput = {
   project?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   status?: Prisma.EnumAttendanceStatusFilter<"AttendanceRecord"> | $Enums.AttendanceStatus
   notes?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
-  remark?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AttendanceRecord"> | Date | string
   projectId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   xeroSelfieFileId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  remark?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
 }
 
 export type AttendanceRecordCreateWithoutProjectRefInput = {
@@ -891,14 +891,14 @@ export type AttendanceRecordCreateWithoutProjectRefInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
+  editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
-  editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateWithoutProjectRefInput = {
@@ -913,13 +913,13 @@ export type AttendanceRecordUncheckedCreateWithoutProjectRefInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
-  breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  remark?: string | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordCreateOrConnectWithoutProjectRefInput = {
@@ -959,11 +959,11 @@ export type AttendanceRecordCreateWithoutEditLogsInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
@@ -981,12 +981,12 @@ export type AttendanceRecordUncheckedCreateWithoutEditLogsInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
@@ -1017,11 +1017,11 @@ export type AttendanceRecordUpdateWithoutEditLogsInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
@@ -1039,12 +1039,12 @@ export type AttendanceRecordUncheckedUpdateWithoutEditLogsInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
@@ -1059,14 +1059,14 @@ export type AttendanceRecordCreateWithoutBreaksInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
+  editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
-  editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateWithoutBreaksInput = {
@@ -1081,12 +1081,12 @@ export type AttendanceRecordUncheckedCreateWithoutBreaksInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
@@ -1117,14 +1117,14 @@ export type AttendanceRecordUpdateWithoutBreaksInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
-  editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateWithoutBreaksInput = {
@@ -1139,12 +1139,12 @@ export type AttendanceRecordUncheckedUpdateWithoutBreaksInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
@@ -1159,12 +1159,12 @@ export type AttendanceRecordCreateManyEmployeeInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   projectId?: string | null
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
 }
 
 export type AttendanceRecordUpdateWithoutEmployeeInput = {
@@ -1178,14 +1178,14 @@ export type AttendanceRecordUpdateWithoutEmployeeInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
-  editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateWithoutEmployeeInput = {
@@ -1199,14 +1199,14 @@ export type AttendanceRecordUncheckedUpdateWithoutEmployeeInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateManyWithoutEmployeeInput = {
@@ -1220,12 +1220,12 @@ export type AttendanceRecordUncheckedUpdateManyWithoutEmployeeInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AttendanceRecordCreateManyProjectRefInput = {
@@ -1240,11 +1240,11 @@ export type AttendanceRecordCreateManyProjectRefInput = {
   project?: string | null
   status?: $Enums.AttendanceStatus
   notes?: string | null
-  remark?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
+  remark?: string | null
 }
 
 export type AttendanceRecordUpdateWithoutProjectRefInput = {
@@ -1258,14 +1258,14 @@ export type AttendanceRecordUpdateWithoutProjectRefInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
-  editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateWithoutProjectRefInput = {
@@ -1280,13 +1280,13 @@ export type AttendanceRecordUncheckedUpdateWithoutProjectRefInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateManyWithoutProjectRefInput = {
@@ -1301,11 +1301,11 @@ export type AttendanceRecordUncheckedUpdateManyWithoutProjectRefInput = {
   project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1314,13 +1314,13 @@ export type AttendanceRecordUncheckedUpdateManyWithoutProjectRefInput = {
  */
 
 export type AttendanceRecordCountOutputType = {
-  breaks: number
   editLogs: number
+  breaks: number
 }
 
 export type AttendanceRecordCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  breaks?: boolean | AttendanceRecordCountOutputTypeCountBreaksArgs
   editLogs?: boolean | AttendanceRecordCountOutputTypeCountEditLogsArgs
+  breaks?: boolean | AttendanceRecordCountOutputTypeCountBreaksArgs
 }
 
 /**
@@ -1336,15 +1336,15 @@ export type AttendanceRecordCountOutputTypeDefaultArgs<ExtArgs extends runtime.T
 /**
  * AttendanceRecordCountOutputType without action
  */
-export type AttendanceRecordCountOutputTypeCountBreaksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.BreakSessionWhereInput
+export type AttendanceRecordCountOutputTypeCountEditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AttendanceEditLogWhereInput
 }
 
 /**
  * AttendanceRecordCountOutputType without action
  */
-export type AttendanceRecordCountOutputTypeCountEditLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.AttendanceEditLogWhereInput
+export type AttendanceRecordCountOutputTypeCountBreaksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BreakSessionWhereInput
 }
 
 
@@ -1360,16 +1360,16 @@ export type AttendanceRecordSelect<ExtArgs extends runtime.Types.Extensions.Inte
   project?: boolean
   status?: boolean
   notes?: boolean
-  remark?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   projectId?: boolean
   selfieUploadedAt?: boolean
   xeroSelfieFileId?: boolean
+  remark?: boolean
+  editLogs?: boolean | Prisma.AttendanceRecord$editLogsArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
   breaks?: boolean | Prisma.AttendanceRecord$breaksArgs<ExtArgs>
-  editLogs?: boolean | Prisma.AttendanceRecord$editLogsArgs<ExtArgs>
   _count?: boolean | Prisma.AttendanceRecordCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attendanceRecord"]>
 
@@ -1387,30 +1387,30 @@ export type AttendanceRecordSelectScalar = {
   project?: boolean
   status?: boolean
   notes?: boolean
-  remark?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   projectId?: boolean
   selfieUploadedAt?: boolean
   xeroSelfieFileId?: boolean
+  remark?: boolean
 }
 
-export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "durationMin" | "lateByMin" | "location" | "project" | "status" | "notes" | "remark" | "createdAt" | "updatedAt" | "projectId" | "selfieUploadedAt" | "xeroSelfieFileId", ExtArgs["result"]["attendanceRecord"]>
+export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "durationMin" | "lateByMin" | "location" | "project" | "status" | "notes" | "createdAt" | "updatedAt" | "projectId" | "selfieUploadedAt" | "xeroSelfieFileId" | "remark", ExtArgs["result"]["attendanceRecord"]>
 export type AttendanceRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  editLogs?: boolean | Prisma.AttendanceRecord$editLogsArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
   breaks?: boolean | Prisma.AttendanceRecord$breaksArgs<ExtArgs>
-  editLogs?: boolean | Prisma.AttendanceRecord$editLogsArgs<ExtArgs>
   _count?: boolean | Prisma.AttendanceRecordCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AttendanceRecord"
   objects: {
+    editLogs: Prisma.$AttendanceEditLogPayload<ExtArgs>[]
     employee: Prisma.$UserPayload<ExtArgs>
     projectRef: Prisma.$XeroProjectPayload<ExtArgs> | null
     breaks: Prisma.$BreakSessionPayload<ExtArgs>[]
-    editLogs: Prisma.$AttendanceEditLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1430,13 +1430,6 @@ export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.In
      * team detail view.
      */
     notes: string | null
-    /**
-     * Employee's free-form remark about their shift. Set via the clock-
-     * out summary popup or the dashboard remark card. Kept separate from
-     * `notes` so off-site context never bleeds into the employee's own
-     * commentary (and vice-versa).
-     */
-    remark: string | null
     createdAt: Date
     updatedAt: Date
     projectId: string | null
@@ -1451,6 +1444,13 @@ export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.In
      * by the prune cron after the retention window.
      */
     xeroSelfieFileId: string | null
+    /**
+     * Employee's free-form remark about their shift. Set via the clock-
+     * out summary popup or the dashboard remark card. Kept separate from
+     * `notes` so off-site context never bleeds into the employee's own
+     * commentary (and vice-versa).
+     */
+    remark: string | null
   }, ExtArgs["result"]["attendanceRecord"]>
   composites: {}
 }
@@ -1791,10 +1791,10 @@ readonly fields: AttendanceRecordFieldRefs;
  */
 export interface Prisma__AttendanceRecordClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  editLogs<T extends Prisma.AttendanceRecord$editLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceRecord$editLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceEditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employee<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   projectRef<T extends Prisma.AttendanceRecord$projectRefArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceRecord$projectRefArgs<ExtArgs>>): Prisma.Prisma__XeroProjectClient<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   breaks<T extends Prisma.AttendanceRecord$breaksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceRecord$breaksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BreakSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  editLogs<T extends Prisma.AttendanceRecord$editLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceRecord$editLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceEditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1835,12 +1835,12 @@ export interface AttendanceRecordFieldRefs {
   readonly project: Prisma.FieldRef<"AttendanceRecord", 'String'>
   readonly status: Prisma.FieldRef<"AttendanceRecord", 'AttendanceStatus'>
   readonly notes: Prisma.FieldRef<"AttendanceRecord", 'String'>
-  readonly remark: Prisma.FieldRef<"AttendanceRecord", 'String'>
   readonly createdAt: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly projectId: Prisma.FieldRef<"AttendanceRecord", 'String'>
   readonly selfieUploadedAt: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly xeroSelfieFileId: Prisma.FieldRef<"AttendanceRecord", 'String'>
+  readonly remark: Prisma.FieldRef<"AttendanceRecord", 'String'>
 }
     
 
@@ -2189,6 +2189,30 @@ export type AttendanceRecordDeleteManyArgs<ExtArgs extends runtime.Types.Extensi
 }
 
 /**
+ * AttendanceRecord.editLogs
+ */
+export type AttendanceRecord$editLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AttendanceEditLog
+   */
+  select?: Prisma.AttendanceEditLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AttendanceEditLog
+   */
+  omit?: Prisma.AttendanceEditLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AttendanceEditLogInclude<ExtArgs> | null
+  where?: Prisma.AttendanceEditLogWhereInput
+  orderBy?: Prisma.AttendanceEditLogOrderByWithRelationInput | Prisma.AttendanceEditLogOrderByWithRelationInput[]
+  cursor?: Prisma.AttendanceEditLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AttendanceEditLogScalarFieldEnum | Prisma.AttendanceEditLogScalarFieldEnum[]
+}
+
+/**
  * AttendanceRecord.projectRef
  */
 export type AttendanceRecord$projectRefArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2229,30 +2253,6 @@ export type AttendanceRecord$breaksArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.BreakSessionScalarFieldEnum | Prisma.BreakSessionScalarFieldEnum[]
-}
-
-/**
- * AttendanceRecord.editLogs
- */
-export type AttendanceRecord$editLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the AttendanceEditLog
-   */
-  select?: Prisma.AttendanceEditLogSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the AttendanceEditLog
-   */
-  omit?: Prisma.AttendanceEditLogOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.AttendanceEditLogInclude<ExtArgs> | null
-  where?: Prisma.AttendanceEditLogWhereInput
-  orderBy?: Prisma.AttendanceEditLogOrderByWithRelationInput | Prisma.AttendanceEditLogOrderByWithRelationInput[]
-  cursor?: Prisma.AttendanceEditLogWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.AttendanceEditLogScalarFieldEnum | Prisma.AttendanceEditLogScalarFieldEnum[]
 }
 
 /**
