@@ -2,7 +2,7 @@
  * Scoped design tokens for the Attendance module.
  *
  * Wrap any attendance-portal page tree in <div className="attendance-module">.
- * Inside that scope these CSS variables override the global Workpulse palette,
+ * Inside that scope these CSS variables override the global AltomateHR palette,
  * so all Tailwind utilities (bg-primary, text-secondary-foreground, etc.) pick
  * up the attendance-next purple/mint look without affecting the rest of the app.
  *

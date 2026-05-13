@@ -141,9 +141,25 @@ export type PayrollAdjustmentCategoryMeta = {
   subjectToSocso: boolean
   subjectToEis: boolean
   subjectToPcb: boolean
+  /// Annual ceiling (in RM) up to which the line item is tax-exempt.
+  /// Anything above this YTD threshold contributes to the PCB base
+  /// even if the row is normally `subjectToPcb: true`. Implemented in
+  /// `calcPayslip` via `ytdAllowanceByCategory` — see calc.ts.
   taxExemptLimit?: number
   reducesBase?: boolean
   referenceOnly?: boolean
+  /// When true, the amount is treated as additional remuneration
+  /// under LHDN's PCB MTD spec — a one-off payment (bonus,
+  /// commission, arrears, director fee, gratuity, etc.) that should
+  /// NOT be projected forward across the remaining months. The PCB
+  /// orchestrator applies the AR-specific formula:
+  ///   PCB_AR = tax(chargeable_with_AR) - tax(chargeable_normal)
+  /// which is the tax delta of adding the AR to annual chargeable
+  /// income, without inflating the recurring monthly projection.
+  isAdditionalRemuneration?: boolean
+  /// When true, deducting this line item also lowers the PCB owed
+  /// for the month (capped at the PCB amount). Currently used by
+  /// zakat — see `calcPayslip`.
   offsetsPcb?: boolean
 }
 
@@ -242,6 +258,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    isAdditionalRemuneration: true,
   },
   wages_bonus_non_annual: {
     code: "wages_bonus_non_annual",
@@ -252,6 +269,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    isAdditionalRemuneration: true,
   },
   wages_commission: {
     code: "wages_commission",
@@ -262,6 +280,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    isAdditionalRemuneration: true,
   },
   wages_incentive: {
     code: "wages_incentive",
@@ -272,6 +291,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    isAdditionalRemuneration: true,
   },
   wages_arrears: {
     code: "wages_arrears",
@@ -282,6 +302,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    isAdditionalRemuneration: true,
   },
   wages_overtime: {
     code: "wages_overtime",
@@ -312,6 +333,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    isAdditionalRemuneration: true,
   },
   wages_gratuity: {
     code: "wages_gratuity",
@@ -322,6 +344,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    isAdditionalRemuneration: true,
   },
   wages_director_fee: {
     code: "wages_director_fee",
@@ -332,6 +355,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    isAdditionalRemuneration: true,
   },
   wages_expense_claim: {
     code: "wages_expense_claim",
@@ -373,6 +397,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: true,
     subjectToPcb: true,
     taxExemptLimit: 2000,
+    isAdditionalRemuneration: true,
   },
   bik_living_accommodation: {
     code: "bik_living_accommodation",
@@ -393,6 +418,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    isAdditionalRemuneration: true,
   },
   bik_other_exempt: {
     code: "bik_other_exempt",

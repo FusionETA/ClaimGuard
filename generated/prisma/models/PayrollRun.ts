@@ -2011,11 +2011,17 @@ export type $PayrollRunPayload<ExtArgs extends runtime.Types.Extensions.Internal
     totalEmployeeEis: runtime.Decimal | null
     totalEmployerEis: runtime.Decimal | null
     /**
-     * 0 in v1; populated when PCB calc ships in v2.
+     * Sum of `Payslip.pcb` across the run. Computed by the PCB
+     * engine (`modules/payroll/domain/pcb.ts`) using LHDN's
+     * normal-remuneration + additional-remuneration formulas, with
+     * zakat offset applied. 0 for employees without an
+     * `incomeTaxNumber` on file (opt-in signal).
      */
     totalPcb: runtime.Decimal | null
     /**
-     * 0 in v1; populated when HRDF calc ships in v2.
+     * HRDF (HRD Corp levy) totalled across the run. Computed by
+     * `calcPayslip` when the org has `hrdfEnabled` and the employee is
+     * a Malaysian citizen.
      */
     totalHrdf: runtime.Decimal | null
     totalZakat: runtime.Decimal | null

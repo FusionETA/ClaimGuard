@@ -66,7 +66,7 @@ export type ApiAuditLog = Prisma.ApiAuditLogModel
  * Partner-level "platform" credential. One row per integration partner
  * (e.g. Acme HR portal). The partner uses this to call the
  * /api/v1/admin/* endpoints — most importantly to provision a new
- * Workpulse Organization on behalf of one of THEIR end-customers, which
+ * AltomateHR Organization on behalf of one of THEIR end-customers, which
  * returns a per-org `ApiIntegration` token in the response.
  * 
  * Master keys never call /api/v1/<resource> directly — those routes
@@ -230,7 +230,7 @@ export type PayrollRun = Prisma.PayrollRunModel
 /**
  * Model PayrollRunClaim
  * Join row attaching an approved (SYNCED + PERSONAL paymentType)
- * Workpulse claim to a payroll run as a REIMBURSEMENT. Persisted
+ * AltomateHR claim to a payroll run as a REIMBURSEMENT. Persisted
  * separately from `PayslipLineItem` because the run's payslips are
  * re-generated from scratch on each "Generate" press, so the line
  * items get wiped — this row is the source of truth that survives.

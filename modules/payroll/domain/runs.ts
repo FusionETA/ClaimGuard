@@ -86,6 +86,11 @@ export type PayslipLineItemData = {
   kind: PayslipLineKind
   label: string
   amount: number
+  /// `PayrollAdjustmentCategory` code (when known). Nullable on
+  /// legacy rows written before the column existed, and on free-form
+  /// manual deductions / claim reimbursements that don't tie back to
+  /// a category in `PAYROLL_ADJUSTMENT_CATEGORY_META`.
+  category: string | null
   claimId: string | null
   subjectToEpf: boolean
   subjectToSocso: boolean

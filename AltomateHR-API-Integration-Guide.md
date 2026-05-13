@@ -1,6 +1,6 @@
-# Workpulse API — Integration Guide for External Partners
+# AltomateHR API — Integration Guide for External Partners
 
-**Audience:** External engineers integrating a partner application (e.g. an HR portal, customer admin app, or onboarding service) with Workpulse.
+**Audience:** External engineers integrating a partner application (e.g. an HR portal, customer admin app, or onboarding service) with AltomateHR.
 **Scope:** Provisioning new tenants, then managing projects and teams on a tenant's behalf.
 **Base URL (dev):** `https://workpulse-dev.fusioneta.com.my`
 **API version:** `v1` (every response carries `X-API-Version: v1`)
@@ -9,7 +9,7 @@
 
 ## 1. Mental model
 
-Workpulse is multi-tenant. Each customer your platform onboards becomes one Workpulse `Organization`. Your backend authenticates with two separate kinds of tokens — never mix them up:
+AltomateHR is multi-tenant. Each customer your platform onboards becomes one AltomateHR `Organization`. Your backend authenticates with two separate kinds of tokens — never mix them up:
 
 | Token | Prefix | Scope of use | Stored on your side |
 |---|---|---|---|
@@ -38,8 +38,8 @@ The expected flow when one of your customers finishes setup in your app:
 
 1. Your backend calls `POST /api/v1/admin/organizations` with the master key.
 2. Server returns the new `organization.id` and a **per-org token** (`apiToken.secret`, `wp_live_…`). This is the only time the secret is exposed.
-3. Persist this mapping on your side (see §3 schema). One of your `userId`s should map to exactly one Workpulse tenant — enforce that as a unique constraint.
-4. From now on, every Workpulse call you make for that customer uses the per-org token, **not** the master key.
+3. Persist this mapping on your side (see §3 schema). One of your `userId`s should map to exactly one AltomateHR tenant — enforce that as a unique constraint.
+4. From now on, every AltomateHR call you make for that customer uses the per-org token, **not** the master key.
 5. (Optional) Bootstrap initial projects and teams via `POST /api/v1/projects` and `POST /api/v1/teams` while the user is still in your setup wizard.
 
 If the same user re-runs setup, look up the mapping first — provisioning a new org would produce a duplicate tenant. The provisioning endpoint also returns 409 if you try to re-use an org name.
@@ -54,11 +54,11 @@ Recommended schema (Postgres-flavoured; adapt freely):
 CREATE TABLE workpulse_tenant (
   id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id             UUID NOT NULL UNIQUE,           -- your platform's user
-  organization_id     TEXT NOT NULL UNIQUE,           -- Workpulse Organization.id
+  organization_id     TEXT NOT NULL UNIQUE,           -- AltomateHR Organization.id
   organization_name   TEXT NOT NULL,
   api_token_encrypted BYTEA NOT NULL,                 -- wp_live_… encrypted at rest
   api_token_prefix    TEXT NOT NULL,                  -- e.g. "wp_live_a1b2" for UI/audit
-  integration_id      TEXT NOT NULL,                  -- Workpulse ApiIntegration.id (for token rotation later)
+  integration_id      TEXT NOT NULL,                  -- AltomateHR ApiIntegration.id (for token rotation later)
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   last_used_at        TIMESTAMPTZ
 );
@@ -66,7 +66,7 @@ CREATE TABLE workpulse_tenant (
 
 Notes:
 - **`user_id UNIQUE`** enforces "one user → one tenant".
-- **`organization_id UNIQUE`** prevents accidentally pointing two of your users at the same Workpulse tenant.
+- **`organization_id UNIQUE`** prevents accidentally pointing two of your users at the same AltomateHR tenant.
 - **Encrypt the token at rest.** It is a bearer credential — anyone holding it can act as the entire tenant. Use your platform's KMS / sealed-secret pattern; never log it.
 - **Store the prefix unencrypted** so support staff can identify a token (`wp_live_a1b2…`) without decrypting.
 - **Don't store the master key in this table.** It belongs in your secret manager, not in customer rows.
@@ -110,7 +110,7 @@ Every successful authenticated request is recorded to an audit log on the server
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `name` | string | yes | 2–120 chars, globally unique across Workpulse. |
+| `name` | string | yes | 2–120 chars, globally unique across AltomateHR. |
 | `tokenLabel` | string | no | ≤120 chars. Defaults to `"<partnerName> (auto-issued)"`. Useful for distinguishing tokens later. |
 
 **Success — 201:**
@@ -356,7 +356,7 @@ POST /api/v1/teams/{id}/members (×N)
 - **Idempotency:** the create endpoints are NOT idempotent — re-POSTing the same project name within an org returns 409. Either look up the resource first, or surface the 409 to the user. Member assignment IS upsert.
 - **Rate limits:** none enforced today. Be reasonable. Bulk operations should be sequenced server-to-server, not parallelised aggressively.
 - **Token rotation:** not yet exposed via API. Until it ships, plan for "issue new token, swap, retire old" by holding `integration_id` against the customer record so you can identify which integration row to rotate later.
-- **Webhooks / callbacks:** not currently provided. Workpulse won't push events back to your app — your app polls or acts on user input.
+- **Webhooks / callbacks:** not currently provided. AltomateHR won't push events back to your app — your app polls or acts on user input.
 - **Audit:** every successful authenticated call writes an audit row server-side keyed on `integration_id`. Use this for support escalations.
 - **Time zones:** all timestamps in responses are ISO 8601 UTC.
 - **Pagination:** `/api/v1/employees` paginates with `limit` (default 50, max 200) and `offset`. Projects and teams currently return everything; expect that to grow into pagination — code defensively against `data.length` rather than hard-coded sizes.
@@ -435,8 +435,8 @@ const team = (await (await fetch(`${BASE}/api/v1/teams`, {
 
 1. **Token rotation policy.** Does the partner need a path to rotate `wp_live_*` without disturbing the tenant's data? Today there's no rotate endpoint — coordinate before launch if rotation is a security requirement on your side.
 2. **Project name updates.** Not currently in `PATCH /api/v1/projects/{id}`. Confirm whether this is needed; if yes, it requires a server-side change.
-3. **Employee provisioning.** Members reference `employeeProfileId`. How are employees created in the tenant in your flow — through Workpulse's admin UI, an existing employee sync, or a future `POST /api/v1/employees` flow?
+3. **Employee provisioning.** Members reference `employeeProfileId`. How are employees created in the tenant in your flow — through AltomateHR's admin UI, an existing employee sync, or a future `POST /api/v1/employees` flow?
 4. **Production base URL.** This guide uses the dev host. Confirm the production URL and master key separately.
-5. **Webhooks.** If your app needs to react to Workpulse-side state changes (e.g. claim approved), we'll need to scope a webhook delivery channel; it doesn't exist today.
+5. **Webhooks.** If your app needs to react to AltomateHR-side state changes (e.g. claim approved), we'll need to scope a webhook delivery channel; it doesn't exist today.
 
 Send these answers back and we can lock down the integration plan.

@@ -281,7 +281,7 @@ export function AdminShell({
         <Link href="/" className="block self-center text-center">
           <Image
             src="/brand-logo.png"
-            alt="Workpulse logo"
+            alt="AltomateHR logo"
             width={1280}
             height={851}
             className="h-auto w-[148px] object-contain"

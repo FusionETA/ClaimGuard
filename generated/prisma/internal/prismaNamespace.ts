@@ -3353,6 +3353,7 @@ export const PayslipLineItemScalarFieldEnum = {
   kind: 'kind',
   label: 'label',
   amount: 'amount',
+  category: 'category',
   claimId: 'claimId',
   subjectToEpf: 'subjectToEpf',
   subjectToSocso: 'subjectToSocso',
@@ -3852,6 +3853,7 @@ export const PayslipLineItemOrderByRelevanceFieldEnum = {
   id: 'id',
   payslipId: 'payslipId',
   label: 'label',
+  category: 'category',
   claimId: 'claimId'
 } as const
 

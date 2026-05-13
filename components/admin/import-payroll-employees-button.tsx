@@ -1,6 +1,12 @@
 "use client"
 
-import { useActionState, useState, useTransition } from "react"
+import {
+  useActionState,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from "react"
 import { Download, Sparkles, Upload } from "lucide-react"
 
 import {
@@ -9,7 +15,12 @@ import {
   previewMappedCsvAction,
   type AiMapActionResult,
 } from "@/app/(admin)/admin/payroll/employees/import-actions"
-import type { ColumnMapping, MappingMethod } from "@/lib/ai/csv-mapper"
+import {
+  FIELD_CATEGORIES,
+  type ColumnMapping,
+  type FieldCategory,
+  type SchemaField,
+} from "@/lib/ai/csv-mapper"
 import type {
   MappedImportResult,
   PreviewResult,
@@ -24,6 +35,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 
 /**
@@ -50,13 +68,7 @@ export function ImportPayrollEmployeesButton() {
   const [headers, setHeaders] = useState<string[]>([])
   const [mapping, setMapping] = useState<Record<string, string | null>>({})
   const [aiSuggestion, setAiSuggestion] = useState<ColumnMapping[]>([])
-  const [mappingMethod, setMappingMethod] = useState<MappingMethod | null>(
-    null,
-  )
-  const [warnings, setWarnings] = useState<string[]>([])
-  const [targetSchema, setTargetSchema] = useState<
-    Array<{ key: string; required: boolean; description: string }>
-  >([])
+  const [targetSchema, setTargetSchema] = useState<SchemaField[]>([])
   const [preview, setPreview] = useState<PreviewResult | null>(null)
   const [finalResult, setFinalResult] = useState<MappedImportResult | null>(
     null,
@@ -74,8 +86,6 @@ export function ImportPayrollEmployeesButton() {
       setCsvText(result.csvText)
       setHeaders(result.headers)
       setAiSuggestion(result.mappings)
-      setMappingMethod(result.method)
-      setWarnings(result.warnings)
       setTargetSchema(result.targetSchema)
       // Seed the mapping with AI's picks.
       const seed: Record<string, string | null> = {}
@@ -96,8 +106,7 @@ export function ImportPayrollEmployeesButton() {
     setHeaders([])
     setMapping({})
     setAiSuggestion([])
-    setMappingMethod(null)
-    setWarnings([])
+    setTargetSchema([])
     setPreview(null)
     setFinalResult(null)
     setError(null)
@@ -178,8 +187,6 @@ export function ImportPayrollEmployeesButton() {
               headers={headers}
               mapping={mapping}
               aiSuggestion={aiSuggestion}
-              warnings={warnings}
-              method={mappingMethod}
               targetSchema={targetSchema}
               onChange={(source, field) =>
                 setMapping((m) => ({ ...m, [source]: field }))
@@ -256,42 +263,6 @@ function Stepper({ step }: { step: Step }) {
   )
 }
 
-// ─── Mapping-method badge ───────────────────────────────────────────────
-
-function MethodBadge({ method }: { method: MappingMethod }) {
-  const config = {
-    groq: {
-      label: "AI: GROQ",
-      hint: "Mapping suggested by GROQ (Llama 3.3). Review and override anything that looks off.",
-      className:
-        "border-primary/40 bg-primary/5 text-primary",
-    },
-    gemini: {
-      label: "AI: Gemini",
-      hint: "GROQ was unreachable — fell back to Gemini. Review carefully.",
-      className:
-        "border-amber-300/60 bg-amber-50/40 text-amber-700 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-200",
-    },
-    heuristic: {
-      label: "Offline (heuristic)",
-      hint: "Both AI providers unreachable. Mapping is based on header synonyms only — review every row.",
-      className:
-        "border-destructive/40 bg-destructive/5 text-destructive",
-    },
-  }[method]
-  return (
-    <div
-      className={cn(
-        "rounded-lg border px-3 py-2 text-xs",
-        config.className,
-      )}
-    >
-      <div className="font-medium">{config.label}</div>
-      <div className="mt-0.5 opacity-80">{config.hint}</div>
-    </div>
-  )
-}
-
 // ─── Step 1: upload ─────────────────────────────────────────────────────
 
 function UploadStep({
@@ -358,8 +329,6 @@ function MapStep({
   headers,
   mapping,
   aiSuggestion,
-  warnings,
-  method,
   targetSchema,
   onChange,
   onBack,
@@ -369,93 +338,86 @@ function MapStep({
   headers: string[]
   mapping: Record<string, string | null>
   aiSuggestion: ColumnMapping[]
-  warnings: string[]
-  method: MappingMethod | null
-  targetSchema: Array<{ key: string; required: boolean; description: string }>
+  targetSchema: SchemaField[]
   onChange: (source: string, field: string | null) => void
   onBack: () => void
   onNext: () => void
   busy: boolean
 }) {
-  const suggestionMap = new Map(aiSuggestion.map((s) => [s.sourceColumn, s]))
+  const suggestionMap = useMemo(
+    () => new Map(aiSuggestion.map((s) => [s.sourceColumn, s])),
+    [aiSuggestion],
+  )
+
   return (
     <>
-      {method && <MethodBadge method={method} />}
-      {warnings.length > 0 && (
-        <div className="rounded-lg border border-amber-300/60 bg-amber-50/40 p-3 text-sm dark:border-amber-700/40 dark:bg-amber-950/20">
-          <p className="font-medium text-foreground">AI flagged:</p>
-          <ul className="mt-1 list-disc pl-5 text-xs text-muted-foreground">
-            {warnings.map((w, i) => (
-              <li key={i}>{w}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       <div className="overflow-x-auto rounded-lg border border-border/60">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">
-                Your column
-              </th>
-              <th className="px-3 py-2 text-left font-medium">
-                Mapped to
-              </th>
+              <th className="px-3 py-2 text-left font-medium">Your column</th>
+              <th className="px-3 py-2 text-left font-medium">Mapped to</th>
               <th className="px-3 py-2 text-left font-medium w-24">
                 Confidence
               </th>
             </tr>
           </thead>
           <tbody>
-            {headers.map((h) => {
-              const suggestion = suggestionMap.get(h)
-              const current = mapping[h] ?? ""
-              return (
-                <tr key={h} className="border-t border-border/60">
-                  <td className="px-3 py-2 align-top">
-                    <div className="font-medium text-foreground">{h}</div>
-                    {suggestion?.reason && (
-                      <div className="mt-0.5 text-[11px] text-muted-foreground">
-                        {suggestion.reason}
+            {headers.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="px-3 py-6 text-center text-xs text-muted-foreground"
+                >
+                  No columns found in this file.
+                </td>
+              </tr>
+            ) : (
+              headers.map((h, index) => {
+                const suggestion = suggestionMap.get(h)
+                const current = mapping[h] ?? ""
+                return (
+                  <tr
+                    key={`${h || "blank"}-${index}`}
+                    className="border-t border-border/60"
+                  >
+                    <td className="px-3 py-2 align-top">
+                      <div className="font-medium text-foreground">
+                        {h || "(blank column)"}
                       </div>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 align-top">
-                    <select
-                      value={current ?? ""}
-                      onChange={(e) =>
-                        onChange(h, e.target.value === "" ? null : e.target.value)
-                      }
-                      className="h-9 w-full max-w-xs rounded-md border border-border bg-card px-2 text-sm"
-                    >
-                      <option value="">— skip column —</option>
-                      {targetSchema.map((f) => (
-                        <option key={f.key} value={f.key}>
-                          {f.required ? `* ${f.key}` : f.key}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-3 py-2 align-top">
-                    {suggestion ? (
-                      <span
-                        className={cn(
-                          "inline-flex items-center rounded-sm border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
-                          suggestion.confidence === "high"
-                            ? "border-emerald-300/60 bg-emerald-50 text-emerald-700"
-                            : suggestion.confidence === "medium"
-                              ? "border-amber-300/60 bg-amber-50 text-amber-700"
-                              : "border-destructive/40 bg-destructive/10 text-destructive",
-                        )}
-                      >
-                        {suggestion.confidence}
-                      </span>
-                    ) : null}
-                  </td>
-                </tr>
-              )
-            })}
+                      {suggestion?.reason && (
+                        <div className="mt-0.5 text-[11px] text-muted-foreground">
+                          {suggestion.reason}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 align-top">
+                      <FieldSelect
+                        value={current}
+                        fields={targetSchema}
+                        onChange={(field) => onChange(h, field)}
+                      />
+                    </td>
+                    <td className="px-3 py-2 align-top">
+                      {suggestion ? (
+                        <span
+                          className={cn(
+                            "inline-flex items-center rounded-sm border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+                            suggestion.confidence === "high"
+                              ? "border-emerald-300/60 bg-emerald-50 text-emerald-700"
+                              : suggestion.confidence === "medium"
+                                ? "border-amber-300/60 bg-amber-50 text-amber-700"
+                                : "border-destructive/40 bg-destructive/10 text-destructive",
+                          )}
+                        >
+                          {suggestion.confidence}
+                        </span>
+                      ) : null}
+                    </td>
+                  </tr>
+                )
+              })
+            )}
           </tbody>
         </table>
       </div>
@@ -469,6 +431,93 @@ function MapStep({
         </Button>
       </div>
     </>
+  )
+}
+
+function FieldSelect({
+  value,
+  fields,
+  onChange,
+}: {
+  value: string
+  fields: SchemaField[]
+  onChange: (field: string | null) => void
+}) {
+  const selectedField = fields.find((f) => f.key === value)
+  const [activeCategory, setActiveCategory] = useState<FieldCategory>(
+    selectedField?.category ?? "Identity & Employment",
+  )
+  const fieldsByCategory = useMemo(() => {
+    const grouped = new Map<FieldCategory, SchemaField[]>()
+    for (const cat of FIELD_CATEGORIES) grouped.set(cat, [])
+    for (const field of fields) {
+      grouped.get(field.category)?.push(field)
+    }
+    return grouped
+  }, [fields])
+  const activeFields = fieldsByCategory.get(activeCategory) ?? []
+
+  useEffect(() => {
+    if (selectedField) setActiveCategory(selectedField.category)
+  }, [selectedField])
+
+  return (
+    <Select
+      value={value || "__skip"}
+      onValueChange={(next) => onChange(next === "__skip" ? null : next)}
+    >
+      <SelectTrigger className="h-9 max-w-xs rounded-lg border-border/70 bg-background px-3 text-sm shadow-none sm:h-9">
+        <SelectValue placeholder="Skip column" />
+      </SelectTrigger>
+      <SelectContent className="w-[min(34rem,var(--radix-select-trigger-width))] min-w-[26rem] p-0">
+        <div
+          className="sticky top-0 z-10 border-b border-border/60 bg-card/95 p-2 backdrop-blur-xl"
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          <div className="flex gap-1 overflow-x-auto rounded-lg bg-muted/40 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {FIELD_CATEGORIES.map((category) => {
+              const active = category === activeCategory
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onMouseDown={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                  }}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    setActiveCategory(category)
+                  }}
+                  className={cn(
+                    "inline-flex shrink-0 rounded-md px-2.5 py-1 text-xs transition-colors",
+                    active
+                      ? "bg-background font-medium text-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-background/70 hover:text-foreground",
+                  )}
+                >
+                  {category}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+        <SelectItem value="__skip">Skip column</SelectItem>
+        {activeFields.map((f) => (
+          <SelectItem key={f.key} value={f.key}>
+            <span className="flex min-w-0 items-center gap-1.5">
+              {f.required && (
+                <span className="text-primary" aria-hidden="true">
+                  *
+                </span>
+              )}
+              <span className="truncate">{f.key}</span>
+            </span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
 
@@ -537,8 +586,7 @@ function PreviewStep({
         <div className="rounded-lg border border-amber-300/60 bg-amber-50/40 p-3 text-xs dark:border-amber-700/40 dark:bg-amber-950/20">
           <p className="font-medium text-foreground">
             {preview.skipped.length} row
-            {preview.skipped.length === 1 ? "" : "s"} will be skipped
-            (missing required fields):
+            {preview.skipped.length === 1 ? "" : "s"} will be skipped:
           </p>
           <ul className="mt-1 max-h-32 overflow-y-auto list-disc pl-5 text-muted-foreground">
             {preview.skipped.map((s) => (
@@ -555,7 +603,7 @@ function PreviewStep({
           <p className="font-medium text-destructive">
             {preview.errors.length} row
             {preview.errors.length === 1 ? "" : "s"} have validation
-            errors. Import will be blocked.
+            errors. These rows will be skipped.
           </p>
           <ul className="mt-1 max-h-40 overflow-y-auto space-y-1 text-foreground">
             {preview.errors.map((err) => (
@@ -577,7 +625,7 @@ function PreviewStep({
         <Button
           type="button"
           onClick={onCommit}
-          disabled={busy || preview.errors.length > 0}
+          disabled={busy}
         >
           {busy ? "Importing…" : "Confirm import"}
         </Button>

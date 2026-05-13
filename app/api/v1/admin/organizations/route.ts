@@ -9,7 +9,7 @@ import { getPrismaClient } from "@/lib/prisma"
 /**
  * POST /api/v1/admin/organizations
  *
- * Provisions a new Workpulse Organization on behalf of an integration
+ * Provisions a new AltomateHR Organization on behalf of an integration
  * partner. Authenticates with a master API key (wp_master_*) and
  * returns:
  *   - the new organization id + name
@@ -22,7 +22,7 @@ import { getPrismaClient } from "@/lib/prisma"
  *
  * NOTE: this endpoint deliberately does NOT create an admin user. The
  * tenant is API-only — the partner's own admin portal is the surface
- * customers use, not Workpulse's. If we ever need to add direct portal
+ * customers use, not AltomateHR's. If we ever need to add direct portal
  * login for a tenant, we'll add an `admin` block to the request body
  * (or a separate admin-users endpoint) — design notes are in the
  * conversation history but the code is intentionally minimal here.
@@ -34,7 +34,7 @@ import { getPrismaClient } from "@/lib/prisma"
  */
 
 const createOrgSchema = z.object({
-  // Workpulse `Organization.name` is unique. 2..120 chars matches the
+  // AltomateHR `Organization.name` is unique. 2..120 chars matches the
   // existing admin "create org" form's bounds.
   name: z.string().trim().min(2, "Name must be at least 2 characters.").max(120),
   // Optional human-readable label for the auto-issued token. Lets the
@@ -158,7 +158,7 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
  *
  * Lists every Organization this master key has provisioned. Useful for
  * a partner's reconciliation flow — "what tenants do I have on
- * Workpulse, and when were they created". Does NOT return tokens —
+ * AltomateHR, and when were they created". Does NOT return tokens —
  * those are write-only (returned only at create time, then opaque).
  */
 export const GET = handleMasterApiRequest(async (_request, ctx) => {

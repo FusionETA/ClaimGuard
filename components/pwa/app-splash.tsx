@@ -6,7 +6,7 @@ type AppSplashProps = {
 }
 
 export function AppSplash({
-  label = "Opening Workpulse...",
+  label = "Opening AltomateHR...",
   onManualReload,
 }: AppSplashProps) {
   return (
@@ -18,15 +18,15 @@ export function AppSplash({
         <div className="flex justify-center">
           <Image
             src="/brand-icon.png"
-            alt="Workpulse logo"
+            alt="AltomateHR logo"
             width={512}
             height={512}
             className="h-auto w-[86px] object-contain"
             priority
           />
         </div>
-        <p className="mt-6 text-[2rem] font-black uppercase tracking-[0.08em] text-primary">
-          Workpulse
+        <p className="mt-6 text-[2rem] font-black tracking-tight text-primary">
+          AltomateHR
         </p>
         <div className="mt-5 flex justify-center">
           <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-primary/20 bg-primary/8">

@@ -3,6 +3,7 @@ import "server-only"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getPrismaClient } from "@/lib/prisma"
 import { calcPayslip } from "@/modules/payroll/domain/calc"
+import { periodLabel } from "@/modules/payroll/domain/runs"
 import type {
   FixedAllowance,
   PayrollEmployeeRow,
@@ -133,6 +134,17 @@ export async function createPayrollRunDraft(input: {
   if (existing) {
     throw new Error(
       "A payroll run already exists for this period. Open it instead of creating a new one.",
+    )
+  }
+
+  const nextSubmitted = await payrollRunRepository.findNextSubmittedAfterPeriod({
+    organizationId: orgId,
+    periodYear: input.periodYear,
+    periodMonth: input.periodMonth,
+  })
+  if (nextSubmitted) {
+    throw new Error(
+      `Cannot create a draft for ${periodLabel(input.periodYear, input.periodMonth)} because ${periodLabel(nextSubmitted.periodYear, nextSubmitted.periodMonth)} has already been submitted. Revert the later run to draft first if you need to backfill an earlier period.`,
     )
   }
 
@@ -315,6 +327,7 @@ export async function generatePayrollPayslips(input: {
           ytd.ytdTaxable + (isPrevForSameYear ? e.profile.prevRemuneration ?? 0 : 0),
         ytdEpf: ytd.ytdEpf + (isPrevForSameYear ? e.profile.prevEpf ?? 0 : 0),
         ytdPcb: ytd.ytdPcb,
+        ytdAllowanceByCategory: ytd.ytdAllowanceByCategory,
       }
     }),
   )
@@ -385,6 +398,9 @@ export async function generatePayrollPayslips(input: {
       ytdTaxable: ytd?.ytdTaxable ?? 0,
       ytdEpf: ytd?.ytdEpf ?? 0,
       ytdPcb: ytd?.ytdPcb ?? 0,
+      // YTD per-category allowance totals — drives taxExemptLimit
+      // enforcement for parking / childcare / award etc. caps.
+      ytdAllowanceByCategory: ytd?.ytdAllowanceByCategory ?? {},
     })
 
     return {

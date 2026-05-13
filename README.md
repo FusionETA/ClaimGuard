@@ -1,4 +1,4 @@
-# Workpulse
+# AltomateHR
 
 An employee expense claims management system with optional Xero integration. Admins manage the claims lifecycle and Xero connectivity; employees submit and track their own claims.
 
@@ -99,7 +99,7 @@ An employee expense claims management system with optional Xero integration. Adm
 | Model | Purpose |
 |---|---|
 | `User` | All users — role is `ADMIN`, `SUPERVISOR`, or `EMPLOYEE` |
-| `Organization` | A company using Workpulse |
+| `Organization` | A company using AltomateHR |
 | `EmployeeProfile` | Extended profile for non-admin users (employee ID, job title, supervisor) |
 | `Claim` | An expense claim submitted by an employee |
 | `ChartOfAccount` | Xero accounts imported per organisation — employees select one per claim |

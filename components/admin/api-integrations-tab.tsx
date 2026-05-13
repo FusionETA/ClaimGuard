@@ -4,7 +4,7 @@ import { useState, useTransition } from "react"
 // `Plus` icon import dropped while self-service token creation is hidden
 // (see top-of-component comment). Re-add it when uncommenting the "New
 // token" button.
-import { Copy, KeyRound, Loader2, ShieldX, Trash2 } from "lucide-react"
+import { Copy, KeyRound, Loader2, ShieldX } from "lucide-react"
 
 import {
   createApiTokenAction,
@@ -13,6 +13,7 @@ import {
 } from "@/app/(admin)/admin/settings/actions"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ConfirmActionDialog } from "@/components/ui/confirm-action-dialog"
 import {
   Dialog,
   DialogContent,
@@ -156,13 +157,6 @@ export function ApiIntegrationsTab({
                     })
                   }}
                   onDelete={() => {
-                    if (
-                      !window.confirm(
-                        `Delete token "${it.name}" permanently? Any system using it will start getting 401 immediately.`,
-                      )
-                    ) {
-                      return
-                    }
                     startTransition(async () => {
                       const result = await deleteApiTokenAction({
                         integrationId: it.id,
@@ -261,17 +255,19 @@ function IntegrationRow({
           <ShieldX className="mr-1 h-3.5 w-3.5" />
           {integration.active ? "Revoke" : "Re-enable"}
         </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={pending}
-          onClick={onDelete}
-          className="text-xs text-destructive hover:text-destructive"
-        >
-          <Trash2 className="mr-1 h-3.5 w-3.5" />
-          Delete
-        </Button>
+        <ConfirmActionDialog
+          title="Delete API token?"
+          description={`Delete token "${integration.name}" permanently? Any system using it will start getting 401 immediately.`}
+          confirmLabel="Delete token"
+          triggerLabel="Delete"
+          pendingLabel="Deleting..."
+          pending={pending}
+          triggerSize="sm"
+          triggerVariant="ghost"
+          triggerClassName="text-xs text-destructive hover:text-destructive"
+          confirmVariant="destructive"
+          onConfirm={onDelete}
+        />
       </div>
     </li>
   )

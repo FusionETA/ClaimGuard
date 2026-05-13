@@ -1,6 +1,6 @@
-const CACHE_NAME = "workpulse-shell-v11"
+const CACHE_NAME = "workpulse-shell-v12"
 const OFFLINE_FALLBACK = "/offline.html"
-const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
+const BRAND_ICON_URL = "/brand-icon-white.png?v=4"
 const APP_SHELL = ["/", OFFLINE_FALLBACK, BRAND_ICON_URL]
 // On iOS PWA cold-resume, fetch() can hang indefinitely without erroring.
 // Cap navigation requests at this many ms before falling back to cache so the
@@ -116,7 +116,7 @@ self.addEventListener("push", (event) => {
   }
 
   let payload = {
-    title: "Workpulse",
+    title: "AltomateHR",
     body: "",
     url: "/",
   }

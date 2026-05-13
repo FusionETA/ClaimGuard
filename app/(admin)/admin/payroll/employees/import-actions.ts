@@ -2,8 +2,13 @@
 
 import { revalidatePath } from "next/cache"
 
-import { aiMapCsvColumns, getTargetSchema } from "@/lib/ai/csv-mapper"
-import type { ColumnMapping, MappingMethod } from "@/lib/ai/csv-mapper"
+import { aiMapCsvColumns } from "@/lib/ai/csv-mapper-ai"
+import { getTargetSchemaForHeaders } from "@/lib/ai/csv-mapper"
+import type {
+  ColumnMapping,
+  MappingMethod,
+  SchemaField,
+} from "@/lib/ai/csv-mapper"
 import {
   bulkImportPayrollEmployees,
   extractCsvPreview,
@@ -66,7 +71,13 @@ export type AiMapActionResult =
       /// "heuristic". UI surfaces this so admins know how much
       /// scrutiny each suggestion deserves.
       method: MappingMethod
-      targetSchema: ReturnType<typeof getTargetSchema>
+      /// Schema returned for this specific file — includes any
+      /// dynamic `childN.*` slots derived from the uploaded headers.
+      targetSchema: SchemaField[]
+      /// The list of dependent-child slot numbers detected in the
+      /// file (e.g. [1, 2, 3]). The UI uses this to render the
+      /// Spouse & Dependents tab with the right kid count.
+      detectedChildSlots: number[]
     }
   | { status: "error"; message: string }
 
@@ -102,6 +113,7 @@ export async function aiMapCsvAction(
   let mappings: ColumnMapping[]
   let warnings: string[]
   let method: MappingMethod
+  let detectedChildSlots: number[]
   try {
     // Internal chain: GROQ → Gemini → heuristic. Always returns
     // — heuristic mode requires no network. Errors only happen on
@@ -110,11 +122,11 @@ export async function aiMapCsvAction(
     mappings = result.mappings
     warnings = result.warnings
     method = result.method
+    detectedChildSlots = result.detectedChildSlots
   } catch (err) {
     return {
       status: "error",
-      message:
-        err instanceof Error ? err.message : "Mapping failed.",
+      message: err instanceof Error ? err.message : "Mapping failed.",
     }
   }
 
@@ -125,7 +137,8 @@ export async function aiMapCsvAction(
     mappings,
     warnings,
     method,
-    targetSchema: getTargetSchema(),
+    targetSchema: getTargetSchemaForHeaders(headers),
+    detectedChildSlots,
   }
 }
 

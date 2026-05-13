@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useMemo, useState } from "react"
+import { useActionState, useId, useMemo, useState } from "react"
 import { Plus, RotateCcw, Trash2 } from "lucide-react"
 
 import {
@@ -11,6 +11,7 @@ import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-st
 import { NativeSelect } from "@/components/admin/payroll-form-controls"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ConfirmSubmitButton } from "@/components/ui/confirm-action-dialog"
 import {
   Card,
   CardContent,
@@ -602,6 +603,7 @@ function ClearAdjustmentButton(props: {
   runId: string
   employeeProfileId: string
 }) {
+  const formId = useId()
   const [state, action, pending] = useActionState(
     clearPayrollAdjustmentAction,
     initialSettingsActionState,
@@ -609,18 +611,7 @@ function ClearAdjustmentButton(props: {
   useToastOnAction(state)
 
   return (
-    <form
-      action={action}
-      onSubmit={(e) => {
-        if (
-          !window.confirm(
-            "Clear all adjustments for this employee on this run? OT hours, one-off line items, and unpaid-leave deductions will all be reset to zero.",
-          )
-        ) {
-          e.preventDefault()
-        }
-      }}
-    >
+    <form id={formId} action={action}>
       <input type="hidden" name="runId" value={props.runId} hidden />
       <input
         type="hidden"
@@ -628,14 +619,18 @@ function ClearAdjustmentButton(props: {
         value={props.employeeProfileId}
         hidden
       />
-      <Button
-        type="submit"
-        variant="ghost"
-        className="text-destructive"
-        disabled={pending}
-      >
-        {pending ? "Clearing…" : "Clear all adjustments"}
-      </Button>
+      <ConfirmSubmitButton
+        formId={formId}
+        title="Clear all adjustments?"
+        description="OT hours, one-off line items, and unpaid-leave deductions for this employee will all be reset to zero."
+        confirmLabel="Clear adjustments"
+        triggerLabel="Clear all adjustments"
+        pendingLabel="Clearing..."
+        pending={pending}
+        triggerVariant="ghost"
+        triggerClassName="text-destructive"
+        confirmVariant="destructive"
+      />
     </form>
   )
 }

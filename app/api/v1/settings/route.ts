@@ -116,7 +116,7 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
   if (parsed.data.name !== undefined) {
     return jsonError(
       501,
-      "Updating organization name through the API is not implemented yet — use the Workpulse admin UI for now.",
+      "Updating organization name through the API is not implemented yet — use the AltomateHR admin UI for now.",
     )
   }
 

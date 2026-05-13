@@ -1,10 +1,11 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useId } from "react"
 
 import { generatePayrollPayslipsAction } from "@/app/(admin)/admin/payroll/runs/actions"
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import { Button } from "@/components/ui/button"
+import { ConfirmSubmitButton } from "@/components/ui/confirm-action-dialog"
 import { useToastOnAction } from "@/components/ui/toaster"
 
 /**
@@ -16,6 +17,7 @@ export function GeneratePayslipsButton(props: {
   runId: string
   hasExisting: boolean
 }) {
+  const formId = useId()
   const [state, action, pending] = useActionState(
     generatePayrollPayslipsAction,
     initialSettingsActionState,
@@ -25,23 +27,23 @@ export function GeneratePayslipsButton(props: {
   const label = props.hasExisting ? "Re-run payroll" : "Run payroll"
 
   return (
-    <form
-      action={action}
-      onSubmit={(e) => {
-        if (
-          props.hasExisting &&
-          !window.confirm(
-            "Re-run payroll from the current profiles and settings? Any existing payslips on this run will be replaced.",
-          )
-        ) {
-          e.preventDefault()
-        }
-      }}
-    >
+    <form id={formId} action={action}>
       <input type="hidden" name="runId" value={props.runId} hidden />
-      <Button type="submit" disabled={pending}>
-        {pending ? "Running payroll…" : label}
-      </Button>
+      {props.hasExisting ? (
+        <ConfirmSubmitButton
+          formId={formId}
+          title="Re-run payroll?"
+          description="Payroll will be recalculated from the current profiles and settings. Existing payslips on this run will be replaced."
+          confirmLabel="Re-run payroll"
+          triggerLabel={label}
+          pendingLabel="Running payroll..."
+          pending={pending}
+        />
+      ) : (
+        <Button type="submit" disabled={pending}>
+          {pending ? "Running payroll..." : label}
+        </Button>
+      )}
     </form>
   )
 }

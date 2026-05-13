@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useId } from "react"
 
 import {
   attachClaimToPayrollRunAction,
@@ -8,6 +8,7 @@ import {
 } from "@/app/(admin)/admin/payroll/runs/actions"
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import { Button } from "@/components/ui/button"
+import { ConfirmSubmitButton } from "@/components/ui/confirm-action-dialog"
 import { useToastOnAction } from "@/components/ui/toaster"
 
 /**
@@ -43,11 +44,10 @@ export function AttachClaimButton(props: {
 }
 
 /**
- * "Remove" button for an attached claim. Confirms before detaching
- * — payroll attachments are mostly intentional, but the safety net
- * matches the delete-draft pattern.
+ * "Remove" button for an attached claim. Confirms in-app before detaching.
  */
 export function DetachClaimButton(props: { runId: string; claimId: string }) {
+  const formId = useId()
   const [state, action, pending] = useActionState(
     detachClaimFromPayrollRunAction,
     initialSettingsActionState,
@@ -55,29 +55,22 @@ export function DetachClaimButton(props: { runId: string; claimId: string }) {
   useToastOnAction(state)
 
   return (
-    <form
-      action={action}
-      onSubmit={(e) => {
-        if (
-          !window.confirm(
-            "Remove this claim from the payroll run? The claim itself isn't deleted.",
-          )
-        ) {
-          e.preventDefault()
-        }
-      }}
-    >
+    <form id={formId} action={action}>
       <input type="hidden" name="runId" value={props.runId} hidden />
       <input type="hidden" name="claimId" value={props.claimId} hidden />
-      <Button
-        type="submit"
-        size="sm"
-        variant="ghost"
-        className="text-destructive"
-        disabled={pending}
-      >
-        {pending ? "Removing…" : "Remove"}
-      </Button>
+      <ConfirmSubmitButton
+        formId={formId}
+        title="Remove claim from payroll?"
+        description="The claim itself will not be deleted. It will only be detached from this payroll run."
+        confirmLabel="Remove"
+        triggerLabel="Remove"
+        pendingLabel="Removing..."
+        pending={pending}
+        triggerSize="sm"
+        triggerVariant="ghost"
+        triggerClassName="text-destructive"
+        confirmVariant="destructive"
+      />
     </form>
   )
 }

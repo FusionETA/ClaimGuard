@@ -22,7 +22,7 @@ const manropeBody = Manrope({
   display: "swap",
 })
 
-const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
+const BRAND_ICON_URL = "/brand-icon-white.png?v=4"
 // Bump this whenever splash assets change. iOS PWAs cache splash bitmaps
 // per-install indefinitely, and CDN/browser caches key by URL — appending
 // the version forces a fresh fetch on next install / when the meta tags
@@ -70,17 +70,17 @@ const APPLE_SPLASH_SCREENS: Array<{
 
 export const metadata: Metadata = {
   title: {
-    default: "Workpulse",
-    template: "%s | Workpulse",
+    default: "AltomateHR",
+    template: "%s | AltomateHR",
   },
   description:
-    "Workpulse is a dual-portal expense claims platform for employees and administrators, built with Next.js, shadcn/ui, and Prisma.",
-  applicationName: "Workpulse",
+    "AltomateHR is a dual-portal expense claims platform for employees and administrators, built with Next.js, shadcn/ui, and Prisma.",
+  applicationName: "AltomateHR",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Workpulse",
+    title: "AltomateHR",
   },
   icons: {
     icon: [{ url: BRAND_ICON_URL, type: "image/png" }],
@@ -115,7 +115,7 @@ export default function RootLayout({
 
           Inline <style> in <head> is applied before any external CSS,
           so the background goes straight from iOS splash → cream →
-          Workpulse splash overlay, with no black flash in between.
+          AltomateHR splash overlay, with no black flash in between.
           Values mirror --background in globals.css.
         */}
         <style

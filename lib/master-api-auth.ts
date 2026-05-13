@@ -12,7 +12,7 @@ import { getPrismaClient } from "@/lib/prisma"
  * A `MasterApiKey` is the platform-level credential issued to an
  * integration partner (e.g. "Acme HR portal"). It is used ONLY to call
  * `/api/v1/admin/*` endpoints — most importantly `POST
- * /api/v1/admin/organizations` to provision a new Workpulse Organization
+ * /api/v1/admin/organizations` to provision a new AltomateHR Organization
  * on behalf of one of the partner's customers.
  *
  * Per-org work (employees, claims, etc.) is NOT done with the master

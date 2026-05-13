@@ -19,7 +19,7 @@ import { toExternalClaim } from "../../_shared"
  * the decision to "the partner". Instead we attribute it to the org's
  * first-created admin user (treated as the "system reviewer" from the
  * partner's perspective). If the org has no admin user yet, we refuse
- * with 409 — the partner needs to create one (via Workpulse's
+ * with 409 — the partner needs to create one (via AltomateHR's
  * multi-admin UI) before claims can be reviewed via API.
  *
  * Body:

@@ -19,7 +19,7 @@ const RESUME_THRESHOLD_MS = 300_000
 const RECOVERY_RELOAD_GUARD_MS = 15_000
 const RECOVERY_RELOAD_KEY = "claimguard:last-recovery-reload-at"
 // Single label used everywhere — no need for three different messages.
-const SPLASH_LABEL = "Opening Workpulse..."
+const SPLASH_LABEL = "Opening AltomateHR..."
 
 export function AppResumeIndicator({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(true)

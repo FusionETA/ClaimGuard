@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next"
 
-const BRAND_ICON_URL = "/brand-icon-white.png?v=3"
+const BRAND_ICON_URL = "/brand-icon-white.png?v=4"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Workpulse",
-    short_name: "Workpulse",
+    name: "AltomateHR",
+    short_name: "AltomateHR",
     description:
-      "Workpulse — responsive employee and admin claims portals with offline-friendly PWA support.",
+      "AltomateHR — responsive employee and admin claims portals with offline-friendly PWA support.",
     start_url: "/",
     display: "standalone",
     background_color: "#EAF4F2",

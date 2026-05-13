@@ -17,7 +17,7 @@ import type * as Prisma from "../internal/prismaNamespace"
  * Partner-level "platform" credential. One row per integration partner
  * (e.g. Acme HR portal). The partner uses this to call the
  * /api/v1/admin/* endpoints — most importantly to provision a new
- * Workpulse Organization on behalf of one of THEIR end-customers, which
+ * AltomateHR Organization on behalf of one of THEIR end-customers, which
  * returns a per-org `ApiIntegration` token in the response.
  * 
  * Master keys never call /api/v1/<resource> directly — those routes

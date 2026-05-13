@@ -4,7 +4,7 @@ import { LoginForm } from "@/app/login/login-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const loginCopy = {
-  eyebrow: "Workpulse Access",
+  // eyebrow: "AltomateHR Access",
   title: "Login",
 } as const
 
@@ -19,7 +19,7 @@ export default function LoginPage() {
             <div className="mx-auto flex h-[140px] w-[140px] items-center justify-center rounded-[28px] border border-white/60 bg-white/85 p-4 shadow-ambient">
               <Image
                 src="/brand-icon.png"
-                alt="Workpulse logo"
+                alt="AltomateHR logo"
                 width={512}
                 height={512}
                 className="h-auto w-[108px] object-contain"
@@ -28,9 +28,9 @@ export default function LoginPage() {
             </div>
 
             <div className="text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+              {/* <p className="text-s font-semibold tracking-[0.18em] text-primary">
                 {copy.eyebrow}
-              </p>
+              </p> */}
               <CardTitle className="mt-2 text-[2rem] leading-none sm:text-[2.4rem]">
                 {copy.title}
               </CardTitle>

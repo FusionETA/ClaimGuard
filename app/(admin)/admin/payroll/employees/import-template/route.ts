@@ -36,51 +36,69 @@ type Column = {
 }
 
 const COLUMNS: Column[] = [
-  // Tier 1 — identity (required)
+  // ── Identity & Employment ──
   { key: "name", required: true, description: "Full legal name" },
   { key: "email", required: true, description: "Login email, must be unique in the org" },
   { key: "employeeId", required: true, description: "Org-specific employee code, e.g. EMP-001" },
   { key: "jobTitle", required: true, description: "Free-text job title" },
-  // Tier 2 — payroll-readiness (required)
+  { key: "joinDate", required: true, description: "YYYY-MM-DD; required for proration" },
+  { key: "leaveDate", required: false, description: "YYYY-MM-DD — last day of employment (only if leaving)" },
+  { key: "archiveReason", required: false, description: "Reason for leaving — only if leaveDate is set" },
+  { key: "reportedToLhdn", required: false, description: "TRUE/FALSE — final payroll reported to LHDN" },
+  // ── Personal & Contact ──
+  { key: "dateOfBirth", required: true, description: "YYYY-MM-DD; default password = email + MMDD" },
+  { key: "gender", required: false, description: "MALE | FEMALE" },
+  { key: "race", required: false, description: "LHDN race code (M/C/I/O)" },
+  { key: "nationality", required: true, description: "Malaysian / Indonesian / etc." },
+  { key: "maritalStatus", required: false, description: "SINGLE | MARRIED | DIVORCED | WIDOWED" },
+  { key: "hasPr", required: false, description: "TRUE/FALSE — Permanent Resident flag" },
+  { key: "isResident", required: false, description: "TRUE/FALSE — tax resident status, default TRUE" },
+  { key: "isOku", required: false, description: "TRUE/FALSE — OKU (disabled) status" },
+  { key: "idType", required: false, description: "NRIC | PASSPORT | ARMY_NO | POLICE_NO" },
+  { key: "idNumber", required: false, description: "Identification number" },
+  { key: "alternateEmail", required: false, description: "Personal / alternate email" },
+  { key: "phone", required: false, description: "Contact phone" },
+  { key: "addressLine1", required: false, description: "Street address line 1" },
+  { key: "addressLine2", required: false, description: "Street address line 2" },
+  { key: "addressLine3", required: false, description: "Street address line 3" },
+  { key: "city", required: false, description: "City" },
+  { key: "postcode", required: false, description: "Postcode" },
+  { key: "state", required: false, description: "State" },
+  { key: "emergencyContactName", required: false, description: "Emergency contact full name" },
+  { key: "emergencyContactPhone", required: false, description: "Emergency contact phone number" },
+  { key: "emergencyContactRelation", required: false, description: "Parent / Spouse / Sibling / etc." },
+  // ── Spouse & Dependents ──
+  // childN.* columns can be added as needed — copy the four pattern columns
+  // below and bump the index (child2.age, child3.age, …) for each kid.
+  { key: "spouseWorking", required: false, description: "TRUE/FALSE — spouse is employed" },
+  { key: "spouseDisabled", required: false, description: "TRUE/FALSE — spouse is OKU / disabled" },
+  { key: "spousePcbNumber", required: false, description: "Spouse's LHDN PCB number" },
+  { key: "spouseIdNumber", required: false, description: "Spouse's NRIC / passport number" },
+  { key: "child1.age", required: false, description: "Dependent child 1 — age in years" },
+  { key: "child1.abilityStatus", required: false, description: "Dependent child 1 — NORMAL | DISABLED" },
+  { key: "child1.currentlyStudying", required: false, description: "Dependent child 1 — PRESCHOOL | PRIMARY | SECONDARY | HIGHER_ED | NONE" },
+  { key: "child1.pcbDeduction", required: false, description: "Dependent child 1 — FULL | HALF | NONE" },
+  // ── Statutory & Payroll ──
   { key: "salaryType", required: true, description: "MONTHLY or HOURLY" },
   { key: "monthlySalary", required: false, description: "MYR — required if salaryType=MONTHLY" },
   { key: "hourlyRate", required: false, description: "MYR — required if salaryType=HOURLY" },
-  { key: "joinDate", required: true, description: "YYYY-MM-DD; required for proration" },
-  { key: "nationality", required: true, description: "Malaysian / Indonesian / etc." },
-  { key: "dateOfBirth", required: true, description: "YYYY-MM-DD; default password = email + MMDD" },
-  // Tier 3 — statutory (optional)
-  { key: "hasPr", required: false, description: "TRUE/FALSE — Permanent Resident flag" },
-  { key: "idType", required: false, description: "NRIC | PASSPORT | ARMY_NO | POLICE_NO" },
-  { key: "idNumber", required: false, description: "Identification number" },
+  { key: "contributeToEpf", required: false, description: "TRUE/FALSE — contributes to EPF, default TRUE" },
   { key: "epfNumber", required: false, description: "KWSP member number" },
   { key: "epfMemberBefore1998", required: false, description: "TRUE/FALSE — drives Part A/C vs Part F" },
+  { key: "epfEmployeeRate", required: false, description: "Employee EPF % — default 11 (accepts 11 or 11%)" },
+  { key: "epfEmployeeVoluntary", required: false, description: "Voluntary employee EPF % on top of mandatory" },
+  { key: "epfEmployerVoluntary", required: false, description: "Voluntary employer EPF % on top of mandatory" },
+  { key: "pcbBorneByEmployer", required: false, description: "TRUE/FALSE — PCB borne by employer" },
+  { key: "incomeTaxNumber", required: false, description: "LHDN PCB number; PCB stays 0 until this is filled" },
   { key: "socsoScheme", required: false, description: "EMPLOYMENT_INJURY_INVALIDITY | EMPLOYMENT_INJURY_ONLY | (blank for none)" },
   { key: "socsoNumber", required: false, description: "PERKESO number" },
   { key: "contributeToEis", required: false, description: "TRUE/FALSE — default TRUE for Malaysians" },
-  { key: "incomeTaxNumber", required: false, description: "LHDN PCB number; PCB stays 0 until this is filled" },
-  { key: "isResident", required: false, description: "TRUE/FALSE — tax resident status, default TRUE" },
-  { key: "isOku", required: false, description: "TRUE/FALSE — OKU (disabled) status" },
-  // Tier 4 — bank (optional, needed for bank disbursement CSV)
+  { key: "ssfwNumber", required: false, description: "SSFW number — foreign workers only" },
+  // ── Bank ──
   { key: "bankName", required: false, description: "e.g. Maybank, CIMB, RHB" },
   { key: "bankAccountHolderName", required: false, description: "Defaults to employee name if blank" },
   { key: "bankAccountNumber", required: false, description: "Account number" },
   { key: "paymentMethod", required: false, description: "BANK_TRANSFER | CASH | CHEQUE (default BANK_TRANSFER)" },
-  // Tier 5 — optional supplementary
-  { key: "phone", required: false, description: "Contact phone" },
-  { key: "gender", required: false, description: "MALE | FEMALE" },
-  { key: "race", required: false, description: "LHDN race code (M/C/I/O)" },
-  { key: "maritalStatus", required: false, description: "SINGLE | MARRIED | DIVORCED | WIDOWED" },
-  { key: "addressLine1", required: false, description: "Street address line 1" },
-  { key: "addressLine2", required: false, description: "Street address line 2" },
-  { key: "city", required: false, description: "City" },
-  { key: "postcode", required: false, description: "Postcode" },
-  { key: "state", required: false, description: "State" },
-  { key: "department", required: false, description: "Free-text department label" },
-  { key: "location", required: false, description: "Free-text work location" },
-  // Hierarchy (optional)
-  { key: "projectCode", required: false, description: "Project code to assign to" },
-  { key: "teamCode", required: false, description: "Team code within the project" },
-  { key: "supervisorEmployeeId", required: false, description: "Supervisor's employeeId" },
 ]
 
 function buildTemplateCsv(): string {

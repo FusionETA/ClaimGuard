@@ -71,6 +71,7 @@ export type CreatePayslipInput = {
     kind: "ALLOWANCE" | "DEDUCTION" | "REIMBURSEMENT"
     label: string
     amount: number
+    category: string | null
     claimId?: string
     subjectToEpf: boolean
     subjectToSocso: boolean
@@ -147,6 +148,7 @@ export const payslipRepository = {
                 kind: li.kind,
                 label: li.label,
                 amount: li.amount,
+                category: li.category ?? null,
                 claimId: li.claimId ?? null,
                 subjectToEpf: li.subjectToEpf,
                 subjectToSocso: li.subjectToSocso,
@@ -261,27 +263,71 @@ export const payslipRepository = {
     employeeProfileId: string
     year: number
     excludeRunId?: string
-  }): Promise<{ ytdTaxable: number; ytdEpf: number; ytdPcb: number }> {
+  }): Promise<{
+    ytdTaxable: number
+    ytdEpf: number
+    ytdPcb: number
+    /// YTD sum of allowance line items grouped by their
+    /// `PayrollAdjustmentCategory` code. Used by the next run to
+    /// enforce `taxExemptLimit` caps (e.g. childcare RM3,000/year).
+    /// Only ALLOWANCE-kind rows with a non-null `category` are
+    /// counted. Empty record when the employee has no prior YTD or
+    /// when all rows are legacy / uncategorised.
+    ytdAllowanceByCategory: Record<string, number>
+  }> {
     const prisma = getPrismaClient()
-    if (!prisma) return { ytdTaxable: 0, ytdEpf: 0, ytdPcb: 0 }
+    if (!prisma) {
+      return {
+        ytdTaxable: 0,
+        ytdEpf: 0,
+        ytdPcb: 0,
+        ytdAllowanceByCategory: {},
+      }
+    }
 
-    const agg = await prisma.payslip.aggregate({
-      where: {
-        employeeProfileId: input.employeeProfileId,
-        payrollRun: {
-          periodYear: input.year,
-          status: "SUBMITTED",
-          ...(input.excludeRunId ? { id: { not: input.excludeRunId } } : {}),
+    const [agg, byCategory] = await Promise.all([
+      prisma.payslip.aggregate({
+        where: {
+          employeeProfileId: input.employeeProfileId,
+          payrollRun: {
+            periodYear: input.year,
+            status: "SUBMITTED",
+            ...(input.excludeRunId ? { id: { not: input.excludeRunId } } : {}),
+          },
         },
-      },
-      _sum: {
-        proratedPay: true,
-        totalAllowances: true,
-        otPay: true,
-        epfEmployee: true,
-        pcb: true,
-      },
-    })
+        _sum: {
+          proratedPay: true,
+          totalAllowances: true,
+          otPay: true,
+          epfEmployee: true,
+          pcb: true,
+        },
+      }),
+      prisma.payslipLineItem.groupBy({
+        by: ["category"],
+        where: {
+          kind: "ALLOWANCE",
+          category: { not: null },
+          payslip: {
+            employeeProfileId: input.employeeProfileId,
+            payrollRun: {
+              periodYear: input.year,
+              status: "SUBMITTED",
+              ...(input.excludeRunId
+                ? { id: { not: input.excludeRunId } }
+                : {}),
+            },
+          },
+        },
+        _sum: { amount: true },
+      }),
+    ])
+
+    const ytdAllowanceByCategory: Record<string, number> = {}
+    for (const row of byCategory) {
+      if (!row.category) continue
+      ytdAllowanceByCategory[row.category] = toNumber(row._sum.amount, 0)
+    }
 
     return {
       ytdTaxable:
@@ -290,6 +336,7 @@ export const payslipRepository = {
         toNumber(agg._sum.otPay, 0),
       ytdEpf: toNumber(agg._sum.epfEmployee, 0),
       ytdPcb: toNumber(agg._sum.pcb, 0),
+      ytdAllowanceByCategory,
     }
   },
 
@@ -464,6 +511,7 @@ function mapPayslipLineItem(row: any): PayslipLineItemData {
     kind: row.kind,
     label: row.label,
     amount: toNumber(row.amount, 0),
+    category: row.category ?? null,
     claimId: row.claimId ?? null,
     subjectToEpf: row.subjectToEpf,
     subjectToSocso: row.subjectToSocso,

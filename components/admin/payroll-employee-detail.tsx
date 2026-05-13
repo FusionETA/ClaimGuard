@@ -19,6 +19,7 @@ import {
 } from "@/components/admin/payroll-form-controls"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { ConfirmSubmitButton } from "@/components/ui/confirm-action-dialog"
 import {
   Card,
   CardContent,
@@ -1435,16 +1436,8 @@ function PayrollDocumentsCard(props: {
                   </span>
                 </a>
                 <form
+                  id={`delete-payroll-document-${doc.id}`}
                   action={deleteAction}
-                  onSubmit={(e) => {
-                    if (
-                      !window.confirm(
-                        `Remove "${doc.name}" from this employee's documents?`,
-                      )
-                    ) {
-                      e.preventDefault()
-                    }
-                  }}
                 >
                   <input
                     type="hidden"
@@ -1458,15 +1451,19 @@ function PayrollDocumentsCard(props: {
                     value={doc.id}
                     hidden
                   />
-                  <Button
-                    type="submit"
-                    size="sm"
-                    variant="ghost"
-                    className="text-destructive"
-                    disabled={deletePending}
-                  >
-                    Remove
-                  </Button>
+                  <ConfirmSubmitButton
+                    formId={`delete-payroll-document-${doc.id}`}
+                    title="Remove payroll document?"
+                    description={`Remove "${doc.name}" from this employee's documents?`}
+                    confirmLabel="Remove"
+                    triggerLabel="Remove"
+                    pendingLabel="Removing..."
+                    pending={deletePending}
+                    triggerSize="sm"
+                    triggerVariant="ghost"
+                    triggerClassName="text-destructive"
+                    confirmVariant="destructive"
+                  />
                 </form>
               </div>
             ))}

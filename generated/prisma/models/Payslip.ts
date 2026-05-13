@@ -2813,7 +2813,7 @@ export type $PayslipPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     otPay: runtime.Decimal
     totalAllowances: runtime.Decimal
     /**
-     * Sum of REIMBURSEMENT line items (from Workpulse claims).
+     * Sum of REIMBURSEMENT line items (from AltomateHR claims).
      */
     totalReimbursements: runtime.Decimal
     totalDeductions: runtime.Decimal

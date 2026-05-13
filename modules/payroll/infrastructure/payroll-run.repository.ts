@@ -64,6 +64,37 @@ export const payrollRunRepository = {
   },
 
   /**
+   * Return the earliest submitted run after the requested period.
+   * Backdated drafts are only blocked by submitted later periods;
+   * later drafts remain editable and do not lock chronology.
+   */
+  async findNextSubmittedAfterPeriod(input: {
+    organizationId: string
+    periodYear: number
+    periodMonth: number
+  }): Promise<PayrollRunData | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const row = await prisma.payrollRun.findFirst({
+      where: {
+        organizationId: input.organizationId,
+        status: "SUBMITTED",
+        OR: [
+          { periodYear: { gt: input.periodYear } },
+          {
+            periodYear: input.periodYear,
+            periodMonth: { gt: input.periodMonth },
+          },
+        ],
+      },
+      orderBy: [{ periodYear: "asc" }, { periodMonth: "asc" }],
+    })
+    if (!row) return null
+    return mapPayrollRun(row)
+  },
+
+  /**
    * List all runs for the org with payslip counts. Newest-first by
    * (year, month) so the list reads "March → February → January".
    */

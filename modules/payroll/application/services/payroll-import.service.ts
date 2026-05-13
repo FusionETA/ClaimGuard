@@ -121,53 +121,88 @@ const nullableEnum = <T extends readonly string[]>(values: T) =>
       return t as T[number]
     })
 
+const childAbilityStatuses = ["NORMAL", "DISABLED"] as const
+const childStudyStages = [
+  "PRESCHOOL",
+  "PRIMARY",
+  "SECONDARY",
+  "HIGHER_ED",
+  "NONE",
+] as const
+const childPcbDeductions = ["FULL", "HALF", "NONE"] as const
+
+export type ChildReliefEntry = {
+  age: number | null
+  abilityStatus: (typeof childAbilityStatuses)[number] | null
+  currentlyStudying: (typeof childStudyStages)[number] | null
+  pcbDeduction: (typeof childPcbDeductions)[number] | null
+}
+
 const rowSchema = z
   .object({
-    // Tier 1 — identity
+    // ── Identity & Employment ──
     name: requiredString,
     email: requiredString.pipe(z.string().email("Invalid email")),
     employeeId: requiredString,
     jobTitle: requiredString,
-    // Tier 2 — payroll readiness
+    joinDate: dateString,
+    leaveDate: nullableDate,
+    archiveReason: nullableString,
+    reportedToLhdn: booleanCell,
+    // ── Personal & Contact ──
+    dateOfBirth: dateString,
+    gender: nullableEnum(genders),
+    race: nullableString,
+    nationality: requiredString,
+    maritalStatus: nullableEnum(maritalStatuses),
+    hasPr: booleanCell,
+    isResident: booleanCell,
+    isOku: booleanCell,
+    idType: nullableEnum(idTypes),
+    idNumber: nullableString,
+    alternateEmail: nullableString,
+    phone: nullableString,
+    addressLine1: nullableString,
+    addressLine2: nullableString,
+    addressLine3: nullableString,
+    city: nullableString,
+    postcode: nullableString,
+    state: nullableString,
+    department: nullableString,
+    location: nullableString,
+    emergencyContactName: nullableString,
+    emergencyContactPhone: nullableString,
+    emergencyContactRelation: nullableString,
+    // ── Spouse & Dependents (childRelief is folded in separately) ──
+    spouseWorking: booleanCell,
+    spouseDisabled: booleanCell,
+    spousePcbNumber: nullableString,
+    spouseIdNumber: nullableString,
+    // ── Statutory & Payroll ──
     salaryType: z
       .string()
       .transform((v) => v.trim())
       .pipe(z.enum(salaryTypes)),
     monthlySalary: nullableNumber,
     hourlyRate: nullableNumber,
-    joinDate: dateString,
-    nationality: requiredString,
-    dateOfBirth: dateString,
-    // Tier 3 — statutory
-    hasPr: booleanCell,
-    idType: nullableEnum(idTypes),
-    idNumber: nullableString,
+    contributeToEpf: booleanCell,
     epfNumber: nullableString,
     epfMemberBefore1998: booleanCell,
+    epfEmployeeRate: nullableNumber,
+    epfEmployeeVoluntary: nullableNumber,
+    epfEmployerVoluntary: nullableNumber,
+    pcbBorneByEmployer: booleanCell,
+    incomeTaxNumber: nullableString,
     socsoScheme: nullableEnum(socsoSchemes),
     socsoNumber: nullableString,
     contributeToEis: booleanCell,
-    incomeTaxNumber: nullableString,
-    isResident: booleanCell,
-    isOku: booleanCell,
-    // Tier 4 — bank
+    ssfwNumber: nullableString,
+    // ── Bank ──
     bankName: nullableString,
     bankAccountHolderName: nullableString,
     bankAccountNumber: nullableString,
     paymentMethod: nullableEnum(paymentMethods),
-    // Tier 5 — optional
-    phone: nullableString,
-    gender: nullableEnum(genders),
-    race: nullableString,
-    maritalStatus: nullableEnum(maritalStatuses),
-    addressLine1: nullableString,
-    addressLine2: nullableString,
-    city: nullableString,
-    postcode: nullableString,
-    state: nullableString,
-    department: nullableString,
-    location: nullableString,
-    // Hierarchy
+    // ── Hierarchy ──
     projectCode: nullableString,
     teamCode: nullableString,
     supervisorEmployeeId: nullableString,
@@ -198,6 +233,306 @@ const rowSchema = z
   })
 
 export type ImportRow = z.infer<typeof rowSchema>
+
+/// A parsed row plus optional folded dependent-child entries. The
+/// `childN.*` columns are normalised + parsed BEFORE rowSchema runs
+/// (the schema itself doesn't know about them), then attached here so
+/// the write step can drop the resulting JSON onto PayrollProfile.
+export type RowWithChildren = ImportRow & {
+  childRelief: ChildReliefEntry[] | null
+}
+
+// ─── Dependent-children folding ─────────────────────────────────────────
+
+const CHILD_KEY_REGEX =
+  /^child(\d+)\.(age|abilityStatus|currentlyStudying|pcbDeduction)$/
+
+/**
+ * Pulls all `childN.<subfield>` keys out of `reshaped` (mutating it
+ * to remove them) and returns them grouped by N. The keys themselves
+ * are deleted so they don't appear in the rowSchema parse.
+ */
+function extractChildRawSlots(
+  reshaped: Record<string, string>,
+): Map<number, Record<string, string>> {
+  const slots = new Map<number, Record<string, string>>()
+  for (const key of Object.keys(reshaped)) {
+    const m = key.match(CHILD_KEY_REGEX)
+    if (!m) continue
+    const n = parseInt(m[1], 10)
+    const field = m[2]
+    const value = reshaped[key]
+    if (!slots.has(n)) slots.set(n, {})
+    slots.get(n)![field] = value
+    delete reshaped[key]
+  }
+  return slots
+}
+
+/**
+ * Take the per-slot raw values and produce a stable JSON array of
+ * dependent-child entries. Slots whose `age` is blank are dropped —
+ * they're placeholder columns left over from a wider export with
+ * fewer actual kids. Returns null when there are zero children.
+ */
+function foldChildRelief(
+  slots: Map<number, Record<string, string>>,
+): ChildReliefEntry[] | null {
+  if (slots.size === 0) return null
+  const entries: ChildReliefEntry[] = []
+  for (const [n, raw] of [...slots.entries()].sort(([a], [b]) => a - b)) {
+    const ageStr = (raw.age ?? "").trim()
+    if (ageStr === "") continue // skip empty slot
+    const ageNum = Number(ageStr.replace(/[^0-9.]/g, ""))
+    if (!Number.isFinite(ageNum) || ageNum < 0) continue
+
+    entries.push({
+      age: ageNum,
+      abilityStatus: normaliseChildAbility(raw.abilityStatus ?? ""),
+      currentlyStudying: normaliseChildStudying(raw.currentlyStudying ?? ""),
+      pcbDeduction: normaliseChildPcbDeduction(raw.pcbDeduction ?? ""),
+    })
+    // n is used implicitly by the sort order above — not stored on
+    // the JSON since the array index already encodes ordering.
+    void n
+  }
+  return entries.length > 0 ? entries : null
+}
+
+function normaliseChildAbility(
+  raw: string,
+): ChildReliefEntry["abilityStatus"] {
+  const v = raw.trim().toLowerCase()
+  if (v === "") return null
+  if (
+    v === "normal" ||
+    v === "non-disabled" ||
+    v === "nondisabled" ||
+    v === "not disabled" ||
+    v === "able" ||
+    v === "n"
+  ) {
+    return "NORMAL"
+  }
+  if (v === "disabled" || v === "oku" || v === "yes" || v === "y") {
+    return "DISABLED"
+  }
+  return null
+}
+
+function normaliseChildStudying(
+  raw: string,
+): ChildReliefEntry["currentlyStudying"] {
+  const v = raw.trim().toLowerCase().replace(/[\s_-]+/g, "")
+  if (v === "") return null
+  if (v === "preschool" || v === "kindergarten" || v === "nursery") {
+    return "PRESCHOOL"
+  }
+  if (v === "primary" || v === "elementary" || v === "primaryschool") {
+    return "PRIMARY"
+  }
+  if (v === "secondary" || v === "highschool" || v === "secondaryschool") {
+    return "SECONDARY"
+  }
+  if (
+    v === "highered" ||
+    v === "highereducation" ||
+    v === "university" ||
+    v === "college" ||
+    v === "tertiary" ||
+    v === "diploma" ||
+    v === "degree"
+  ) {
+    return "HIGHER_ED"
+  }
+  if (v === "none" || v === "notstudying" || v === "no" || v === "n") {
+    return "NONE"
+  }
+  return null
+}
+
+function normaliseChildPcbDeduction(
+  raw: string,
+): ChildReliefEntry["pcbDeduction"] {
+  const v = raw.trim().toLowerCase()
+  if (v === "") return null
+  if (v === "full" || v === "100" || v === "100%" || v === "1") return "FULL"
+  if (v === "half" || v === "50" || v === "50%" || v === "0.5") return "HALF"
+  if (v === "none" || v === "0" || v === "0%" || v === "no") return "NONE"
+  return null
+}
+
+// ─── PayrollProfile write-data builders ─────────────────────────────────
+//
+// Both the legacy `bulkImportPayrollEmployees` and the AI-mapped
+// `importMappedCsv` paths run the same prisma upsert per row. Field
+// list is ~60 long, so we centralise it here to avoid the two call
+// sites drifting apart.
+
+function buildPayrollProfileCreate(
+  row: RowWithChildren,
+  employeeProfileId: string,
+) {
+  return {
+    employeeProfileId,
+    salaryType: row.salaryType,
+    monthlySalary: row.monthlySalary,
+    hourlyRate: row.hourlyRate,
+    joinDate: new Date(row.joinDate),
+    nationality: row.nationality,
+    dateOfBirth: new Date(row.dateOfBirth),
+    leaveDate: row.leaveDate ? new Date(row.leaveDate) : null,
+    archiveReason: row.archiveReason,
+    reportedToLhdn: row.reportedToLhdn ?? false,
+    gender: row.gender,
+    race: row.race,
+    maritalStatus: row.maritalStatus,
+    hasPr: row.hasPr ?? false,
+    isResident: row.isResident ?? true,
+    isOku: row.isOku ?? false,
+    idType: row.idType ?? "NRIC",
+    idNumber: row.idNumber,
+    alternateEmail: row.alternateEmail,
+    phone: row.phone,
+    addressLine1: row.addressLine1,
+    addressLine2: row.addressLine2,
+    addressLine3: row.addressLine3,
+    city: row.city,
+    postcode: row.postcode,
+    state: row.state,
+    department: row.department,
+    location: row.location,
+    emergencyContactName: row.emergencyContactName,
+    emergencyContactPhone: row.emergencyContactPhone,
+    emergencyContactRelation: row.emergencyContactRelation,
+    spouseWorking: row.spouseWorking,
+    spouseDisabled: row.spouseDisabled,
+    spousePcbNumber: row.spousePcbNumber,
+    spouseIdNumber: row.spouseIdNumber,
+    contributeToEpf: row.contributeToEpf ?? true,
+    epfNumber: row.epfNumber,
+    epfMemberBefore1998: row.epfMemberBefore1998 ?? false,
+    ...(row.epfEmployeeRate != null
+      ? { epfEmployeeRate: row.epfEmployeeRate }
+      : {}),
+    ...(row.epfEmployeeVoluntary != null
+      ? { epfEmployeeVoluntary: row.epfEmployeeVoluntary }
+      : {}),
+    ...(row.epfEmployerVoluntary != null
+      ? { epfEmployerVoluntary: row.epfEmployerVoluntary }
+      : {}),
+    pcbBorneByEmployer: row.pcbBorneByEmployer ?? false,
+    incomeTaxNumber: row.incomeTaxNumber,
+    socsoScheme: row.socsoScheme,
+    socsoNumber: row.socsoNumber,
+    contributeToEis: row.contributeToEis ?? true,
+    ssfwNumber: row.ssfwNumber,
+    bankName: row.bankName,
+    bankAccountHolderName: row.bankAccountHolderName ?? row.name,
+    bankAccountNumber: row.bankAccountNumber,
+    paymentMethod: row.paymentMethod ?? "BANK_TRANSFER",
+    payrollDocuments: [],
+    ...(row.childRelief != null ? { childRelief: row.childRelief } : {}),
+  }
+}
+
+function buildPayrollProfileUpdate(row: RowWithChildren) {
+  return {
+    salaryType: row.salaryType,
+    monthlySalary: row.monthlySalary,
+    hourlyRate: row.hourlyRate,
+    joinDate: new Date(row.joinDate),
+    nationality: row.nationality,
+    dateOfBirth: new Date(row.dateOfBirth),
+    ...(row.leaveDate !== null ? { leaveDate: new Date(row.leaveDate) } : {}),
+    ...(row.archiveReason !== null
+      ? { archiveReason: row.archiveReason }
+      : {}),
+    ...(row.reportedToLhdn !== null
+      ? { reportedToLhdn: row.reportedToLhdn }
+      : {}),
+    ...(row.hasPr !== null ? { hasPr: row.hasPr } : {}),
+    ...(row.isResident !== null ? { isResident: row.isResident } : {}),
+    ...(row.isOku !== null ? { isOku: row.isOku } : {}),
+    ...(row.idType ? { idType: row.idType } : {}),
+    ...(row.idNumber !== null ? { idNumber: row.idNumber } : {}),
+    ...(row.alternateEmail !== null
+      ? { alternateEmail: row.alternateEmail }
+      : {}),
+    ...(row.phone !== null ? { phone: row.phone } : {}),
+    ...(row.gender !== null ? { gender: row.gender } : {}),
+    ...(row.race !== null ? { race: row.race } : {}),
+    ...(row.maritalStatus !== null
+      ? { maritalStatus: row.maritalStatus }
+      : {}),
+    ...(row.addressLine1 !== null ? { addressLine1: row.addressLine1 } : {}),
+    ...(row.addressLine2 !== null ? { addressLine2: row.addressLine2 } : {}),
+    ...(row.addressLine3 !== null ? { addressLine3: row.addressLine3 } : {}),
+    ...(row.city !== null ? { city: row.city } : {}),
+    ...(row.postcode !== null ? { postcode: row.postcode } : {}),
+    ...(row.state !== null ? { state: row.state } : {}),
+    ...(row.department !== null ? { department: row.department } : {}),
+    ...(row.location !== null ? { location: row.location } : {}),
+    ...(row.emergencyContactName !== null
+      ? { emergencyContactName: row.emergencyContactName }
+      : {}),
+    ...(row.emergencyContactPhone !== null
+      ? { emergencyContactPhone: row.emergencyContactPhone }
+      : {}),
+    ...(row.emergencyContactRelation !== null
+      ? { emergencyContactRelation: row.emergencyContactRelation }
+      : {}),
+    ...(row.spouseWorking !== null
+      ? { spouseWorking: row.spouseWorking }
+      : {}),
+    ...(row.spouseDisabled !== null
+      ? { spouseDisabled: row.spouseDisabled }
+      : {}),
+    ...(row.spousePcbNumber !== null
+      ? { spousePcbNumber: row.spousePcbNumber }
+      : {}),
+    ...(row.spouseIdNumber !== null
+      ? { spouseIdNumber: row.spouseIdNumber }
+      : {}),
+    ...(row.contributeToEpf !== null
+      ? { contributeToEpf: row.contributeToEpf }
+      : {}),
+    ...(row.epfNumber !== null ? { epfNumber: row.epfNumber } : {}),
+    ...(row.epfMemberBefore1998 !== null
+      ? { epfMemberBefore1998: row.epfMemberBefore1998 }
+      : {}),
+    ...(row.epfEmployeeRate != null
+      ? { epfEmployeeRate: row.epfEmployeeRate }
+      : {}),
+    ...(row.epfEmployeeVoluntary != null
+      ? { epfEmployeeVoluntary: row.epfEmployeeVoluntary }
+      : {}),
+    ...(row.epfEmployerVoluntary != null
+      ? { epfEmployerVoluntary: row.epfEmployerVoluntary }
+      : {}),
+    ...(row.pcbBorneByEmployer !== null
+      ? { pcbBorneByEmployer: row.pcbBorneByEmployer }
+      : {}),
+    ...(row.incomeTaxNumber !== null
+      ? { incomeTaxNumber: row.incomeTaxNumber }
+      : {}),
+    ...(row.socsoScheme !== null ? { socsoScheme: row.socsoScheme } : {}),
+    ...(row.socsoNumber !== null ? { socsoNumber: row.socsoNumber } : {}),
+    ...(row.contributeToEis !== null
+      ? { contributeToEis: row.contributeToEis }
+      : {}),
+    ...(row.ssfwNumber !== null ? { ssfwNumber: row.ssfwNumber } : {}),
+    ...(row.bankName !== null ? { bankName: row.bankName } : {}),
+    ...(row.bankAccountHolderName !== null
+      ? { bankAccountHolderName: row.bankAccountHolderName }
+      : {}),
+    ...(row.bankAccountNumber !== null
+      ? { bankAccountNumber: row.bankAccountNumber }
+      : {}),
+    ...(row.paymentMethod ? { paymentMethod: row.paymentMethod } : {}),
+    ...(row.childRelief != null ? { childRelief: row.childRelief } : {}),
+  }
+}
 
 // ─── CSV parser ──────────────────────────────────────────────────────────
 
@@ -334,13 +669,21 @@ export async function bulkImportPayrollEmployees(input: {
 
   // 4. Parse + validate each row.
   const errors: ImportError[] = []
-  const validRows: ImportRow[] = []
+  const validRows: RowWithChildren[] = []
   for (const [idx, raw] of dataRows.entries()) {
     const obj: Record<string, string> = {}
     for (const [name, ci] of colIndex.entries()) {
       obj[name] = raw[ci] ?? ""
     }
-    const parsed = rowSchema.safeParse(obj)
+    // Normalise BOOLEAN / DATE / NUMERIC / enum cells the same way
+    // the AI-mapped path does, so template uploads with mixed-case
+    // booleans / DD/MM/YYYY dates / "11%" percentages parse cleanly.
+    const normalised: Record<string, string> = {}
+    for (const [key, value] of Object.entries(obj)) {
+      normalised[key] = normaliseValue(key, value)
+    }
+    const childRawSlots = extractChildRawSlots(normalised)
+    const parsed = rowSchema.safeParse(normalised)
     if (!parsed.success) {
       errors.push({
         rowNumber: idx + 1,
@@ -351,7 +694,10 @@ export async function bulkImportPayrollEmployees(input: {
       })
       continue
     }
-    validRows.push(parsed.data)
+    validRows.push({
+      ...parsed.data,
+      childRelief: foldChildRelief(childRawSlots),
+    })
   }
 
   if (errors.length > 0) {
@@ -432,92 +778,8 @@ export async function bulkImportPayrollEmployees(input: {
       // PayrollProfile — upsert by employeeProfileId.
       await tx.payrollProfile.upsert({
         where: { employeeProfileId },
-        create: {
-          employeeProfileId,
-          salaryType: row.salaryType,
-          monthlySalary: row.monthlySalary,
-          hourlyRate: row.hourlyRate,
-          joinDate: new Date(row.joinDate),
-          nationality: row.nationality,
-          dateOfBirth: new Date(row.dateOfBirth),
-          hasPr: row.hasPr ?? false,
-          idType: row.idType ?? "NRIC",
-          idNumber: row.idNumber,
-          epfNumber: row.epfNumber,
-          epfMemberBefore1998: row.epfMemberBefore1998 ?? false,
-          socsoScheme: row.socsoScheme,
-          socsoNumber: row.socsoNumber,
-          contributeToEis: row.contributeToEis ?? true,
-          incomeTaxNumber: row.incomeTaxNumber,
-          isResident: row.isResident ?? true,
-          isOku: row.isOku ?? false,
-          bankName: row.bankName,
-          bankAccountHolderName: row.bankAccountHolderName ?? row.name,
-          bankAccountNumber: row.bankAccountNumber,
-          paymentMethod: row.paymentMethod ?? "BANK_TRANSFER",
-          phone: row.phone,
-          gender: row.gender,
-          race: row.race,
-          maritalStatus: row.maritalStatus,
-          addressLine1: row.addressLine1,
-          addressLine2: row.addressLine2,
-          city: row.city,
-          postcode: row.postcode,
-          state: row.state,
-          department: row.department,
-          location: row.location,
-          payrollDocuments: [],
-        },
-        update: {
-          salaryType: row.salaryType,
-          monthlySalary: row.monthlySalary,
-          hourlyRate: row.hourlyRate,
-          joinDate: new Date(row.joinDate),
-          nationality: row.nationality,
-          dateOfBirth: new Date(row.dateOfBirth),
-          ...(row.hasPr !== null ? { hasPr: row.hasPr } : {}),
-          ...(row.idType ? { idType: row.idType } : {}),
-          ...(row.idNumber !== null ? { idNumber: row.idNumber } : {}),
-          ...(row.epfNumber !== null ? { epfNumber: row.epfNumber } : {}),
-          ...(row.epfMemberBefore1998 !== null
-            ? { epfMemberBefore1998: row.epfMemberBefore1998 }
-            : {}),
-          ...(row.socsoScheme !== null ? { socsoScheme: row.socsoScheme } : {}),
-          ...(row.socsoNumber !== null ? { socsoNumber: row.socsoNumber } : {}),
-          ...(row.contributeToEis !== null
-            ? { contributeToEis: row.contributeToEis }
-            : {}),
-          ...(row.incomeTaxNumber !== null
-            ? { incomeTaxNumber: row.incomeTaxNumber }
-            : {}),
-          ...(row.isResident !== null ? { isResident: row.isResident } : {}),
-          ...(row.isOku !== null ? { isOku: row.isOku } : {}),
-          ...(row.bankName !== null ? { bankName: row.bankName } : {}),
-          ...(row.bankAccountHolderName !== null
-            ? { bankAccountHolderName: row.bankAccountHolderName }
-            : {}),
-          ...(row.bankAccountNumber !== null
-            ? { bankAccountNumber: row.bankAccountNumber }
-            : {}),
-          ...(row.paymentMethod ? { paymentMethod: row.paymentMethod } : {}),
-          ...(row.phone !== null ? { phone: row.phone } : {}),
-          ...(row.gender !== null ? { gender: row.gender } : {}),
-          ...(row.race !== null ? { race: row.race } : {}),
-          ...(row.maritalStatus !== null
-            ? { maritalStatus: row.maritalStatus }
-            : {}),
-          ...(row.addressLine1 !== null
-            ? { addressLine1: row.addressLine1 }
-            : {}),
-          ...(row.addressLine2 !== null
-            ? { addressLine2: row.addressLine2 }
-            : {}),
-          ...(row.city !== null ? { city: row.city } : {}),
-          ...(row.postcode !== null ? { postcode: row.postcode } : {}),
-          ...(row.state !== null ? { state: row.state } : {}),
-          ...(row.department !== null ? { department: row.department } : {}),
-          ...(row.location !== null ? { location: row.location } : {}),
-        },
+        create: buildPayrollProfileCreate(row, employeeProfileId),
+        update: buildPayrollProfileUpdate(row),
       })
 
       // Hierarchy: project + team assignment (best-effort, silently
@@ -633,6 +895,18 @@ export type MappedImportResult = {
   errors: ImportError[]
 }
 
+const HIDDEN_MAPPED_IMPORT_HEADERS = new Set([
+  "department",
+  "location",
+  "projectcode",
+  "teamcode",
+  "supervisoremployeeid",
+])
+
+function normaliseMappedImportHeader(header: string): string {
+  return header.toLowerCase().replace(/[^a-z0-9]/g, "")
+}
+
 /**
  * Pull headers + first 3 sample rows from any uploaded CSV.
  * Used to feed the AI mapper. Doesn't enforce our schema.
@@ -643,14 +917,27 @@ export function extractCsvPreview(csv: string): {
 } {
   const rows = parseCsv(csv)
   if (rows.length === 0) return { headers: [], sampleRows: [] }
-  const headers = rows[0].map((c) => c.trim())
+  const headerColumns = rows[0]
+    .map((c, index) => ({ header: c.trim(), index }))
+    .filter(
+      (c) =>
+        c.header.length > 0 &&
+        !HIDDEN_MAPPED_IMPORT_HEADERS.has(
+          normaliseMappedImportHeader(c.header),
+        ),
+    )
   // Skip the description row if it looks like one (#-prefixed first
   // cell) and pull up to 3 actual data rows.
   const dataRows = rows.slice(1).filter((row) => {
     const first = row[0]?.trim() ?? ""
     return !first.startsWith("#")
   })
-  return { headers, sampleRows: dataRows.slice(0, 3) }
+  return {
+    headers: headerColumns.map((c) => c.header),
+    sampleRows: dataRows
+      .slice(0, 3)
+      .map((row) => headerColumns.map((c) => row[c.index] ?? "")),
+  }
 }
 
 /**
@@ -664,7 +951,12 @@ export function extractCsvPreview(csv: string): {
 function reshapeAndNormalize(input: {
   csv: string
   mapping: Record<string, string | null>
-}): { parsedRows: ImportRow[]; skipped: SkippedRow[]; errors: ImportError[]; total: number } {
+}): {
+  parsedRows: RowWithChildren[]
+  skipped: SkippedRow[]
+  errors: ImportError[]
+  total: number
+} {
   const rows = parseCsv(input.csv)
   if (rows.length === 0) {
     return { parsedRows: [], skipped: [], errors: [], total: 0 }
@@ -692,7 +984,7 @@ function reshapeAndNormalize(input: {
     targetToSourceIdx.set(target, idx)
   }
 
-  const parsedRows: ImportRow[] = []
+  const parsedRows: RowWithChildren[] = []
   const skipped: SkippedRow[] = []
   const errors: ImportError[] = []
 
@@ -710,6 +1002,10 @@ function reshapeAndNormalize(input: {
       normalised[key] = normaliseValue(key, value)
     }
 
+    // Pull child slot fields out before rowSchema runs — they aren't
+    // in the schema and would otherwise be silently dropped.
+    const childRawSlots = extractChildRawSlots(normalised)
+
     // Skip rows missing required fields BEFORE Zod runs. Skipped
     // rows don't block the import — they get reported and the
     // remaining rows still write.
@@ -724,16 +1020,22 @@ function reshapeAndNormalize(input: {
 
     const parsed = rowSchema.safeParse(normalised)
     if (!parsed.success) {
-      errors.push({
+      const reason = parsed.error.issues
+        .map((issue) => {
+          const field = issue.path.join(".") || "(row)"
+          return `${field}: ${issue.message}`
+        })
+        .join("; ")
+      skipped.push({
         rowNumber: i + 1,
-        errors: parsed.error.issues.map((issue) => ({
-          field: issue.path.join(".") || "(row)",
-          message: issue.message,
-        })),
+        reason,
       })
       continue
     }
-    parsedRows.push(parsed.data)
+    parsedRows.push({
+      ...parsed.data,
+      childRelief: foldChildRelief(childRawSlots),
+    })
   }
 
   return { parsedRows, skipped, errors, total: dataRows.length }
@@ -773,9 +1075,20 @@ const BOOLEAN_TARGETS = new Set([
   "contributeToEis",
   "isResident",
   "isOku",
+  "reportedToLhdn",
+  "spouseWorking",
+  "spouseDisabled",
+  "contributeToEpf",
+  "pcbBorneByEmployer",
 ])
-const DATE_TARGETS = new Set(["joinDate", "dateOfBirth"])
-const NUMERIC_TARGETS = new Set(["monthlySalary", "hourlyRate"])
+const DATE_TARGETS = new Set(["joinDate", "dateOfBirth", "leaveDate"])
+const NUMERIC_TARGETS = new Set([
+  "monthlySalary",
+  "hourlyRate",
+  "epfEmployeeRate",
+  "epfEmployeeVoluntary",
+  "epfEmployerVoluntary",
+])
 
 function normaliseValue(target: string, raw: string): string {
   const v = (raw ?? "").trim()
@@ -922,10 +1235,10 @@ function normaliseDate(raw: string): string {
 }
 
 function normaliseNumeric(raw: string): string {
-  // Strip currency symbols, commas, whitespace.
+  // Strip currency symbols, commas, percent signs, whitespace.
   const cleaned = raw
     .replace(/RM/gi, "")
-    .replace(/[$,\s]/g, "")
+    .replace(/[$,\s%]/g, "")
     .trim()
   if (cleaned === "") return ""
   const n = Number(cleaned)
@@ -968,7 +1281,25 @@ export async function previewMappedCsv(input: {
   const preview = parsedRows.slice(0, 5).map((r) => {
     const obj: Record<string, string | null> = {}
     for (const [k, v] of Object.entries(r)) {
-      obj[k] = v == null ? null : typeof v === "number" ? String(v) : String(v)
+      if (v == null) {
+        obj[k] = null
+      } else if (k === "childRelief" && Array.isArray(v)) {
+        // Compact "n kid(s): age 12 (NORMAL), age 9 (NORMAL)" so the
+        // admin can sanity-check what got folded without seeing raw
+        // JSON in the preview grid.
+        obj[k] = (v as ChildReliefEntry[])
+          .map(
+            (e) =>
+              `age ${e.age ?? "?"}${
+                e.abilityStatus ? ` (${e.abilityStatus})` : ""
+              }`,
+          )
+          .join(", ")
+      } else if (typeof v === "number") {
+        obj[k] = String(v)
+      } else {
+        obj[k] = String(v)
+      }
     }
     return obj
   })
@@ -993,10 +1324,6 @@ export async function importMappedCsv(input: {
   if (!prisma) throw new Error("Database is not configured.")
 
   const { parsedRows, skipped, errors, total } = reshapeAndNormalize(input)
-
-  if (errors.length > 0) {
-    return { created: 0, updated: 0, total, skipped, errors }
-  }
 
   let created = 0
   let updated = 0
@@ -1060,92 +1387,8 @@ export async function importMappedCsv(input: {
 
       await tx.payrollProfile.upsert({
         where: { employeeProfileId },
-        create: {
-          employeeProfileId,
-          salaryType: row.salaryType,
-          monthlySalary: row.monthlySalary,
-          hourlyRate: row.hourlyRate,
-          joinDate: new Date(row.joinDate),
-          nationality: row.nationality,
-          dateOfBirth: new Date(row.dateOfBirth),
-          hasPr: row.hasPr ?? false,
-          idType: row.idType ?? "NRIC",
-          idNumber: row.idNumber,
-          epfNumber: row.epfNumber,
-          epfMemberBefore1998: row.epfMemberBefore1998 ?? false,
-          socsoScheme: row.socsoScheme,
-          socsoNumber: row.socsoNumber,
-          contributeToEis: row.contributeToEis ?? true,
-          incomeTaxNumber: row.incomeTaxNumber,
-          isResident: row.isResident ?? true,
-          isOku: row.isOku ?? false,
-          bankName: row.bankName,
-          bankAccountHolderName: row.bankAccountHolderName ?? row.name,
-          bankAccountNumber: row.bankAccountNumber,
-          paymentMethod: row.paymentMethod ?? "BANK_TRANSFER",
-          phone: row.phone,
-          gender: row.gender,
-          race: row.race,
-          maritalStatus: row.maritalStatus,
-          addressLine1: row.addressLine1,
-          addressLine2: row.addressLine2,
-          city: row.city,
-          postcode: row.postcode,
-          state: row.state,
-          department: row.department,
-          location: row.location,
-          payrollDocuments: [],
-        },
-        update: {
-          salaryType: row.salaryType,
-          monthlySalary: row.monthlySalary,
-          hourlyRate: row.hourlyRate,
-          joinDate: new Date(row.joinDate),
-          nationality: row.nationality,
-          dateOfBirth: new Date(row.dateOfBirth),
-          ...(row.hasPr !== null ? { hasPr: row.hasPr } : {}),
-          ...(row.idType ? { idType: row.idType } : {}),
-          ...(row.idNumber !== null ? { idNumber: row.idNumber } : {}),
-          ...(row.epfNumber !== null ? { epfNumber: row.epfNumber } : {}),
-          ...(row.epfMemberBefore1998 !== null
-            ? { epfMemberBefore1998: row.epfMemberBefore1998 }
-            : {}),
-          ...(row.socsoScheme !== null ? { socsoScheme: row.socsoScheme } : {}),
-          ...(row.socsoNumber !== null ? { socsoNumber: row.socsoNumber } : {}),
-          ...(row.contributeToEis !== null
-            ? { contributeToEis: row.contributeToEis }
-            : {}),
-          ...(row.incomeTaxNumber !== null
-            ? { incomeTaxNumber: row.incomeTaxNumber }
-            : {}),
-          ...(row.isResident !== null ? { isResident: row.isResident } : {}),
-          ...(row.isOku !== null ? { isOku: row.isOku } : {}),
-          ...(row.bankName !== null ? { bankName: row.bankName } : {}),
-          ...(row.bankAccountHolderName !== null
-            ? { bankAccountHolderName: row.bankAccountHolderName }
-            : {}),
-          ...(row.bankAccountNumber !== null
-            ? { bankAccountNumber: row.bankAccountNumber }
-            : {}),
-          ...(row.paymentMethod ? { paymentMethod: row.paymentMethod } : {}),
-          ...(row.phone !== null ? { phone: row.phone } : {}),
-          ...(row.gender !== null ? { gender: row.gender } : {}),
-          ...(row.race !== null ? { race: row.race } : {}),
-          ...(row.maritalStatus !== null
-            ? { maritalStatus: row.maritalStatus }
-            : {}),
-          ...(row.addressLine1 !== null
-            ? { addressLine1: row.addressLine1 }
-            : {}),
-          ...(row.addressLine2 !== null
-            ? { addressLine2: row.addressLine2 }
-            : {}),
-          ...(row.city !== null ? { city: row.city } : {}),
-          ...(row.postcode !== null ? { postcode: row.postcode } : {}),
-          ...(row.state !== null ? { state: row.state } : {}),
-          ...(row.department !== null ? { department: row.department } : {}),
-          ...(row.location !== null ? { location: row.location } : {}),
-        },
+        create: buildPayrollProfileCreate(row, employeeProfileId),
+        update: buildPayrollProfileUpdate(row),
       })
 
       // Hierarchy: project + team (best-effort).

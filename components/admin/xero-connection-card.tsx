@@ -112,7 +112,7 @@ function ConnectionRow({ connection }: { connection: XeroConnectionInfo }) {
               Disconnect {connection.tenantName}?
             </DialogTitle>
             <DialogDescription>
-              This removes Workpulse&rsquo;s authorization to access your Xero data and clears the
+              This removes AltomateHR&rsquo;s authorization to access your Xero data and clears the
               local copies we keep for routing claims and approvals. Your data <em>inside Xero</em>{" "}
               is not touched.
             </DialogDescription>
@@ -121,7 +121,7 @@ function ConnectionRow({ connection }: { connection: XeroConnectionInfo }) {
           <div className="space-y-4 text-sm">
             <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
               <p className="font-semibold text-destructive">
-                These get deleted from Workpulse
+                These get deleted from AltomateHR
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-5 text-foreground/80">
                 <li>Chart of accounts synced from this Xero org (selectable list, banks, mileage flags, spend limits)</li>

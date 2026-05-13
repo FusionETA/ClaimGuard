@@ -201,7 +201,7 @@ model ApiAuditLog {
 /// Partner-level "platform" credential. One row per integration partner
 /// (e.g. Acme HR portal). The partner uses this to call the
 /// /api/v1/admin/* endpoints — most importantly to provision a new
-/// Workpulse Organization on behalf of one of THEIR end-customers, which
+/// AltomateHR Organization on behalf of one of THEIR end-customers, which
 /// returns a per-org `ApiIntegration` token in the response.
 ///
 /// Master keys never call /api/v1/<resource> directly — those routes
@@ -1122,9 +1122,15 @@ model PayrollRun {
   totalEmployerSocso      Decimal? @db.Decimal(14, 2)
   totalEmployeeEis        Decimal? @db.Decimal(14, 2)
   totalEmployerEis        Decimal? @db.Decimal(14, 2)
-  /// 0 in v1; populated when PCB calc ships in v2.
+  /// Sum of `Payslip.pcb` across the run. Computed by the PCB
+  /// engine (`modules/payroll/domain/pcb.ts`) using LHDN's
+  /// normal-remuneration + additional-remuneration formulas, with
+  /// zakat offset applied. 0 for employees without an
+  /// `incomeTaxNumber` on file (opt-in signal).
   totalPcb                Decimal? @default(0) @db.Decimal(14, 2)
-  /// 0 in v1; populated when HRDF calc ships in v2.
+  /// HRDF (HRD Corp levy) totalled across the run. Computed by
+  /// `calcPayslip` when the org has `hrdfEnabled` and the employee is
+  /// a Malaysian citizen.
   totalHrdf               Decimal? @default(0) @db.Decimal(14, 2)
   totalZakat              Decimal? @default(0) @db.Decimal(14, 2)
   employeeCount           Int?
@@ -1150,7 +1156,7 @@ model PayrollRun {
 }
 
 /// Join row attaching an approved (SYNCED + PERSONAL paymentType)
-/// Workpulse claim to a payroll run as a REIMBURSEMENT. Persisted
+/// AltomateHR claim to a payroll run as a REIMBURSEMENT. Persisted
 /// separately from `PayslipLineItem` because the run's payslips are
 /// re-generated from scratch on each "Generate" press, so the line
 /// items get wiped — this row is the source of truth that survives.
@@ -1275,7 +1281,7 @@ model Payslip {
 
   // Aggregates from line items
   totalAllowances      Decimal @default(0) @db.Decimal(12, 2)
-  /// Sum of REIMBURSEMENT line items (from Workpulse claims).
+  /// Sum of REIMBURSEMENT line items (from AltomateHR claims).
   totalReimbursements  Decimal @default(0) @db.Decimal(12, 2)
   totalDeductions      Decimal @default(0) @db.Decimal(12, 2)
   unpaidLeaveDeduction Decimal @default(0) @db.Decimal(12, 2)
@@ -1320,8 +1326,15 @@ model PayslipLineItem {
   /// Positive for ALLOWANCE/REIMBURSEMENT, positive for DEDUCTION (the
   /// kind determines sign at calc time).
   amount Decimal         @db.Decimal(12, 2)
+  /// `PayrollAdjustmentCategory` code (e.g. `allowance_childcare`,
+  /// `wages_bonus_annual`, `deduct_zakat`). Snapshotted at write time
+  /// so the run service can sum YTD-by-category for `taxExemptLimit`
+  /// enforcement on the next run. Nullable only for legacy rows
+  /// written before this column existed; new line items always carry
+  /// one.
+  category String?
 
-  /// FK to the original Workpulse claim when this line item is a
+  /// FK to the original AltomateHR claim when this line item is a
   /// REIMBURSEMENT. Unique so a single claim can only ever sit on one
   /// payslip line item. NULL for manual allowance/deduction entries.
   claimId String? @unique

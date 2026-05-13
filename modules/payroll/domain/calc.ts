@@ -422,6 +422,14 @@ export type CalcPayslipInput = {
   ytdTaxable?: number
   ytdEpf?: number
   ytdPcb?: number
+  /// YTD per-category allowance totals (RM) — used to enforce
+  /// `taxExemptLimit` caps. Keyed by `PayrollAdjustmentCategory` (e.g.
+  /// `allowance_childcare`). Only the over-cap portion of an
+  /// allowance contributes to the PCB base; the exempt portion stays
+  /// off the PCB wage even when `subjectToPcb: true`. Caller (run
+  /// service) populates this by summing prior SUBMITTED payslip line
+  /// items grouped by category.
+  ytdAllowanceByCategory?: Record<string, number>
 }
 
 /**
@@ -462,11 +470,20 @@ export type CalcPayslipResult = {
   grossPay: number
   netPay: number
   totalCostToEmployer: number
+  /// Sub-breakdown of `pcb`. `normal` is the PCB on recurring monthly
+  /// pay; `additional` is the PCB attributable to one-off remuneration
+  /// (bonus, commission, etc.) computed via the LHDN AR formula.
+  pcbBreakdown: { normal: number; additional: number }
   // Line items the repo should write alongside the payslip
   lineItems: Array<{
     kind: "ALLOWANCE" | "DEDUCTION" | "REIMBURSEMENT"
     label: string
     amount: number
+    /// `PayrollAdjustmentCategory` code when known (every line item
+    /// coming from `profile.fixedAllowances` carries one). Null only
+    /// for free-form manual deductions and Phase-5 reimbursements
+    /// that don't map to a known category.
+    category: string | null
     claimId?: string
     subjectToEpf: boolean
     subjectToSocso: boolean
@@ -556,6 +573,22 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   })
 
   // 4. Fixed adjustments → line items.
+  //
+  // Each row routes through six buckets at once:
+  //   - EPF / SOCSO / EIS bases (the wage figures the agencies see)
+  //   - PCB normal base (for the recurring monthly pay annualised in
+  //     PCB)
+  //   - PCB AR amount + AR EPF (one-off bonus/commission/etc. handled
+  //     by the LHDN additional-remuneration formula, not projected)
+  //   - Zakat offset bucket (deduct_zakat amount that comes off PCB)
+  //
+  // `taxExemptLimit` from category meta gates how much of the row hits
+  // the PCB bases. The exempt portion is min(thisRowAmt, remaining
+  // cap headroom for the year). Anything over the cap still counts as
+  // wages everywhere else (EPF/SOCSO/EIS), it just stops being
+  // PCB-exempt.
+  const ytdByCat = input.ytdAllowanceByCategory ?? {}
+  const exemptUsedByCat: Record<string, number> = {}
   const lineItems: CalcPayslipResult["lineItems"] = []
   let totalAllowances = 0
   let totalRecurringDeductions = 0
@@ -564,18 +597,44 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   let socsoAdjustmentBase = 0
   let eisAdjustmentBase = 0
   let pcbAdjustmentBase = 0
+  let pcbAdditionalRemuneration = 0
+  let pcbAdditionalRemunerationEpf = 0
+  let thisMonthZakat = 0
   for (const a of profile.fixedAllowances) {
     if (a.amount <= 0) continue
     const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[a.category]
     if (!meta) continue
     const amt = round2(a.amount * proratedFactor)
+
+    // Compute how much of this row contributes to the PCB base. By
+    // default it's `amt` (the full amount). When `taxExemptLimit` is
+    // set, the first `cap - ytd_used` RM stay exempt, only the
+    // overflow feeds PCB.
+    let pcbTaxable = amt
+    if (
+      meta.kind === "ALLOWANCE" &&
+      meta.subjectToPcb &&
+      typeof meta.taxExemptLimit === "number"
+    ) {
+      const ytdUsed =
+        (ytdByCat[a.category] ?? 0) + (exemptUsedByCat[a.category] ?? 0)
+      const remainingCap = Math.max(0, meta.taxExemptLimit - ytdUsed)
+      const exemptPortion = Math.min(amt, remainingCap)
+      pcbTaxable = round2(Math.max(0, amt - exemptPortion))
+      exemptUsedByCat[a.category] =
+        (exemptUsedByCat[a.category] ?? 0) + exemptPortion
+    }
+
     if (meta.kind === "DEDUCTION") {
       totalRecurringDeductions += amt
       if (meta.reducesBase) {
         if (meta.subjectToEpf) epfAdjustmentBase -= amt
         if (meta.subjectToSocso) socsoAdjustmentBase -= amt
         if (meta.subjectToEis) eisAdjustmentBase -= amt
-        if (meta.subjectToPcb) pcbAdjustmentBase -= amt
+        if (meta.subjectToPcb) pcbAdjustmentBase -= pcbTaxable
+      }
+      if (meta.offsetsPcb) {
+        thisMonthZakat += amt
       }
     } else if (meta.kind === "REIMBURSEMENT") {
       totalRecurringReimbursements += amt
@@ -584,12 +643,26 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       if (meta.subjectToEpf) epfAdjustmentBase += amt
       if (meta.subjectToSocso) socsoAdjustmentBase += amt
       if (meta.subjectToEis) eisAdjustmentBase += amt
-      if (meta.subjectToPcb) pcbAdjustmentBase += amt
+      if (meta.subjectToPcb) {
+        if (meta.isAdditionalRemuneration) {
+          pcbAdditionalRemuneration += pcbTaxable
+          // AR EPF — only the portion of EPF attributable to the AR
+          // row needs to count toward the with-AR annual EPF bucket.
+          // EPF cap (RM4k) is honoured by `calcPcb` regardless.
+          if (meta.subjectToEpf) {
+            const rate = profile.epfEmployeeRate || settings.defaultEpfEmployeeRate
+            pcbAdditionalRemunerationEpf += round2(amt * (rate / 100))
+          }
+        } else {
+          pcbAdjustmentBase += pcbTaxable
+        }
+      }
     }
     lineItems.push({
       kind: meta.kind,
       label: a.name || meta.label,
       amount: amt,
+      category: a.category,
       subjectToEpf: meta.subjectToEpf,
       subjectToSocso: meta.subjectToSocso,
       subjectToEis: meta.subjectToEis,
@@ -599,6 +672,9 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   totalAllowances = round2(totalAllowances)
   totalRecurringDeductions = round2(totalRecurringDeductions)
   totalRecurringReimbursements = round2(totalRecurringReimbursements)
+  pcbAdditionalRemuneration = round2(pcbAdditionalRemuneration)
+  pcbAdditionalRemunerationEpf = round2(pcbAdditionalRemunerationEpf)
+  thisMonthZakat = round2(thisMonthZakat)
 
   // 5. Reimbursements (Phase 5 — approved claims). Not wage-like, so
   // not subject to statutory contributions.
@@ -609,6 +685,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       kind: "REIMBURSEMENT",
       label: r.label,
       amount: round2(r.amount),
+      category: null,
       claimId: r.id,
       subjectToEpf: false,
       subjectToSocso: false,
@@ -628,6 +705,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       kind: "DEDUCTION",
       label: d.label || "Deduction",
       amount: round2(d.amount),
+      category: null,
       subjectToEpf: true,
       subjectToSocso: true,
       subjectToEis: true,
@@ -686,18 +764,28 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   // 9. PCB (Potongan Cukai Bulanan). Only computed when the
   // employee has a registered income-tax number on file — that's our
   // opt-in signal. Non-residents fall to flat 30%; residents follow
-  // LHDN's normal-remuneration formula. See `domain/pcb.ts` for the
-  // full set of caveats (2024 bands proxy, normal-remuneration only,
-  // TP1 deductions not yet collected).
+  // LHDN's normal-remuneration formula plus the additional-
+  // remuneration delta formula for one-off bonus/commission/etc. See
+  // `domain/pcb.ts` for the full set of caveats.
+  //
+  // EPF passed to calcPcb is the EPF contribution from the NORMAL
+  // monthly pay only — AR EPF is carried separately so the with-AR
+  // branch can add it to the annual EPF estimate without inflating
+  // the normal projection.
+  const epfFromNormal = round2(
+    Math.max(0, epf.employee - pcbAdditionalRemunerationEpf),
+  )
   const hasTaxNumber =
     typeof profile.incomeTaxNumber === "string" &&
     profile.incomeTaxNumber.trim().length > 0
-  const pcb = hasTaxNumber
+  const pcbBreakdown = hasTaxNumber
     ? calcPcb({
         isResident: profile.isResident,
         periodMonth,
         thisMonthTaxable: pcbWage,
-        thisMonthEpf: epf.employee,
+        thisMonthEpf: epfFromNormal,
+        thisMonthAdditionalRemuneration: pcbAdditionalRemuneration,
+        thisMonthEpfFromAR: pcbAdditionalRemunerationEpf,
         ytdTaxable: input.ytdTaxable ?? 0,
         ytdEpf: input.ytdEpf ?? 0,
         ytdPcb: input.ytdPcb ?? 0,
@@ -708,7 +796,14 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
           childRelief: profile.childRelief,
         },
       })
-    : 0
+    : { normal: 0, additional: 0, total: 0 }
+  // Zakat offset: any `deduct_zakat` line items reduce PCB owed for
+  // the month (capped at PCB). Zakat is still listed as a deduction on
+  // the payslip — the offset means the employee effectively pays
+  // zakat *out of* their PCB obligation rather than on top of it.
+  const pcbBeforeZakat = pcbBreakdown.total
+  const zakatOffset = Math.min(pcbBeforeZakat, thisMonthZakat)
+  const pcb = round2(Math.max(0, pcbBeforeZakat - zakatOffset))
 
   // 10. HRDF (HRD Corp levy). Per HRD Corp:
   //     levy = [(basic - unpaid leave) + fixed allowance] × rate
@@ -733,14 +828,17 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   const grossPay = round2(
     proratedPay + otPay + totalAllowances + totalReimbursements,
   )
+  // Zakat is already inside `totalDeductions` (kind: DEDUCTION line
+  // items get counted there) — don't subtract it again here. The
+  // zakat → PCB offset has already lowered `pcb` to its post-offset
+  // value, which is what the employee actually pays.
   const netPay = round2(
     grossPay -
       epf.employee -
       socso.employee -
       eis.employee -
       totalDeductions -
-      pcb -
-      0 /* zakat v2 */,
+      pcb,
   )
   const totalCostToEmployer = round2(
     grossPay +
@@ -774,10 +872,17 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     pcb,
     hrdf,
     hrdfWage,
-    zakat: 0,
+    /// Zakat actually deducted this month — sourced from
+    /// `deduct_zakat` line items and offset against PCB. Stored on
+    /// the payslip for the LHDN report (CP159/EA).
+    zakat: thisMonthZakat,
     grossPay,
     netPay,
     totalCostToEmployer,
+    pcbBreakdown: {
+      normal: pcbBreakdown.normal,
+      additional: pcbBreakdown.additional,
+    },
     lineItems,
     epfRatesSnapshot: epfSnapshotRates({
       branch: epf.branch,
