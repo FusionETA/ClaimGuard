@@ -55,6 +55,7 @@ async function main() {
         canAccessLeave: true,
         salaryType: "HOURLY",
         otEnabled: true,
+        requireGeofence: true,
         otMethod: "CASH",
       },
     })
@@ -72,6 +73,7 @@ async function main() {
         canAccessLeave: true,
         salaryType: "MONTHLY_BASED",
         otEnabled: true,
+        requireGeofence: true,
         otMethod: "TIME_BANK",
       },
     })

@@ -18,6 +18,7 @@ const baseSchema = z.object({
   /// `NONE` means OT is disabled entirely; otherwise we record CASH or
   /// TIME_BANK and OT is enabled.
   otMode: z.enum(["NONE", "CASH", "TIME_BANK"]),
+  requireGeofence: z.boolean(),
 })
 
 function splitOtMode(mode: "NONE" | "CASH" | "TIME_BANK"): {
@@ -67,6 +68,7 @@ export async function createPolicyAction(
     canAccessLeave: parseBoolFlag(formData, "canAccessLeave"),
     salaryType: String(formData.get("salaryType") ?? "HOURLY"),
     otMode: String(formData.get("otMode") ?? "CASH"),
+    requireGeofence: parseBoolFlag(formData, "requireGeofence"),
   })
 
   if (!parsed.success) {
@@ -85,6 +87,7 @@ export async function createPolicyAction(
       salaryType: parsed.data.salaryType,
       otEnabled: ot.otEnabled,
       otMethod: ot.otMethod,
+      requireGeofence: parsed.data.requireGeofence,
     })
   } catch (error) {
     return {
@@ -117,6 +120,7 @@ export async function updatePolicyAction(
     canAccessLeave: parseBoolFlag(formData, "canAccessLeave"),
     salaryType: String(formData.get("salaryType") ?? "HOURLY"),
     otMode: String(formData.get("otMode") ?? "CASH"),
+    requireGeofence: parseBoolFlag(formData, "requireGeofence"),
   })
 
   if (!parsed.success) {
@@ -136,6 +140,7 @@ export async function updatePolicyAction(
       salaryType: parsed.data.salaryType,
       otEnabled: ot.otEnabled,
       otMethod: ot.otMethod,
+      requireGeofence: parsed.data.requireGeofence,
     })
   } catch (error) {
     return {

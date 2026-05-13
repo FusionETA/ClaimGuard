@@ -191,7 +191,7 @@ function PolicyRow({
               {policy.description}
             </p>
           ) : null}
-          <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground sm:grid-cols-4">
+          <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground sm:grid-cols-5">
             <div>
               <dt className="font-semibold text-foreground/80">Salary</dt>
               <dd>{employeePayoutMethodLabels[policy.salaryType]}</dd>
@@ -203,6 +203,10 @@ function PolicyRow({
                   ? otPayoutMethodLabels[policy.otMethod]
                   : "Disabled"}
               </dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-foreground/80">Geofence</dt>
+              <dd>{policy.requireGeofence ? "Required" : "Off"}</dd>
             </div>
             <div>
               <dt className="font-semibold text-foreground/80">Modules</dt>
@@ -403,6 +407,27 @@ function PolicyEditorCard({
                 time-off minutes. No OT = employees on this policy cannot
                 file OT at all.
               </p>
+            </label>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-foreground">Clock-in checks</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Geofence radius and project location are configured per
+              project. Toggle whether this policy's employees are subject
+              to the geofence check at clock-in.
+            </p>
+            <label className="mt-3 flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+              <input
+                type="checkbox"
+                name="requireGeofence"
+                defaultChecked={policy?.requireGeofence ?? true}
+                disabled={pending}
+                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              />
+              <span className="font-medium text-foreground">
+                Require geofence on clock-in
+              </span>
             </label>
           </div>
 

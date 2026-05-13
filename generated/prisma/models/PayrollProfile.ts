@@ -248,6 +248,7 @@ export type PayrollProfileCountAggregateOutputType = {
   archivedAt: number
   createdAt: number
   updatedAt: number
+  payrollDocuments: number
   _all: number
 }
 
@@ -470,6 +471,7 @@ export type PayrollProfileCountAggregateInputType = {
   archivedAt?: true
   createdAt?: true
   updatedAt?: true
+  payrollDocuments?: true
   _all?: true
 }
 
@@ -625,6 +627,7 @@ export type PayrollProfileGroupByOutputType = {
   archivedAt: Date | null
   createdAt: Date
   updatedAt: Date
+  payrollDocuments: runtime.JsonValue
   _count: PayrollProfileCountAggregateOutputType | null
   _avg: PayrollProfileAvgAggregateOutputType | null
   _sum: PayrollProfileSumAggregateOutputType | null
@@ -716,6 +719,7 @@ export type PayrollProfileWhereInput = {
   archivedAt?: Prisma.DateTimeNullableFilter<"PayrollProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
+  payrollDocuments?: Prisma.JsonFilter<"PayrollProfile">
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   payslips?: Prisma.PayslipListRelationFilter
 }
@@ -786,6 +790,7 @@ export type PayrollProfileOrderByWithRelationInput = {
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  payrollDocuments?: Prisma.SortOrder
   employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
   payslips?: Prisma.PayslipOrderByRelationAggregateInput
   _relevance?: Prisma.PayrollProfileOrderByRelevanceInput
@@ -860,6 +865,7 @@ export type PayrollProfileWhereUniqueInput = Prisma.AtLeast<{
   archivedAt?: Prisma.DateTimeNullableFilter<"PayrollProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
+  payrollDocuments?: Prisma.JsonFilter<"PayrollProfile">
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   payslips?: Prisma.PayslipListRelationFilter
 }, "id" | "employeeProfileId">
@@ -930,6 +936,7 @@ export type PayrollProfileOrderByWithAggregationInput = {
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  payrollDocuments?: Prisma.SortOrder
   _count?: Prisma.PayrollProfileCountOrderByAggregateInput
   _avg?: Prisma.PayrollProfileAvgOrderByAggregateInput
   _max?: Prisma.PayrollProfileMaxOrderByAggregateInput
@@ -1006,6 +1013,7 @@ export type PayrollProfileScalarWhereWithAggregatesInput = {
   archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PayrollProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollProfile"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollProfile"> | Date | string
+  payrollDocuments?: Prisma.JsonWithAggregatesFilter<"PayrollProfile">
 }
 
 export type PayrollProfileCreateInput = {
@@ -1073,6 +1081,7 @@ export type PayrollProfileCreateInput = {
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
   payslips?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
 }
@@ -1143,6 +1152,7 @@ export type PayrollProfileUncheckedCreateInput = {
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
 }
 
@@ -1211,6 +1221,7 @@ export type PayrollProfileUpdateInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
   payslips?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
 }
@@ -1281,6 +1292,7 @@ export type PayrollProfileUncheckedUpdateInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
 }
 
@@ -1350,6 +1362,7 @@ export type PayrollProfileCreateManyInput = {
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type PayrollProfileUpdateManyMutationInput = {
@@ -1417,6 +1430,7 @@ export type PayrollProfileUpdateManyMutationInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type PayrollProfileUncheckedUpdateManyInput = {
@@ -1485,6 +1499,7 @@ export type PayrollProfileUncheckedUpdateManyInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type PayrollProfileNullableScalarRelationFilter = {
@@ -1564,6 +1579,7 @@ export type PayrollProfileCountOrderByAggregateInput = {
   archivedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  payrollDocuments?: Prisma.SortOrder
 }
 
 export type PayrollProfileAvgOrderByAggregateInput = {
@@ -1859,6 +1875,7 @@ export type PayrollProfileCreateWithoutEmployeeProfileInput = {
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
   payslips?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
 }
 
@@ -1927,6 +1944,7 @@ export type PayrollProfileUncheckedCreateWithoutEmployeeProfileInput = {
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
 }
 
@@ -2011,6 +2029,7 @@ export type PayrollProfileUpdateWithoutEmployeeProfileInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   payslips?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
 }
 
@@ -2079,6 +2098,7 @@ export type PayrollProfileUncheckedUpdateWithoutEmployeeProfileInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
 }
 
@@ -2147,6 +2167,7 @@ export type PayrollProfileCreateWithoutPayslipsInput = {
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
 }
 
@@ -2216,6 +2237,7 @@ export type PayrollProfileUncheckedCreateWithoutPayslipsInput = {
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 export type PayrollProfileCreateOrConnectWithoutPayslipsInput = {
@@ -2299,6 +2321,7 @@ export type PayrollProfileUpdateWithoutPayslipsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
 }
 
@@ -2368,6 +2391,7 @@ export type PayrollProfileUncheckedUpdateWithoutPayslipsInput = {
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
 }
 
 
@@ -2467,6 +2491,7 @@ export type PayrollProfileSelect<ExtArgs extends runtime.Types.Extensions.Intern
   archivedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  payrollDocuments?: boolean
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payslips?: boolean | Prisma.PayrollProfile$payslipsArgs<ExtArgs>
   _count?: boolean | Prisma.PayrollProfileCountOutputTypeDefaultArgs<ExtArgs>
@@ -2540,9 +2565,10 @@ export type PayrollProfileSelectScalar = {
   archivedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  payrollDocuments?: boolean
 }
 
-export type PayrollProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "phone" | "alternateEmail" | "gender" | "dateOfBirth" | "nationality" | "race" | "hasPr" | "idType" | "idNumber" | "maritalStatus" | "isResident" | "isOku" | "spouseWorking" | "spouseDisabled" | "spousePcbNumber" | "spouseIdNumber" | "addressLine1" | "addressLine2" | "addressLine3" | "city" | "postcode" | "state" | "emergencyContactName" | "emergencyContactPhone" | "emergencyContactRelation" | "childRelief" | "prevEmploymentYear" | "prevRemuneration" | "prevEpf" | "contributeToEpf" | "epfMemberBefore1998" | "epfNumber" | "epfEmployeeRate" | "epfEmployeeVoluntary" | "epfEmployerVoluntary" | "socsoNumber" | "socsoScheme" | "contributeToEis" | "incomeTaxNumber" | "pcbBorneByEmployer" | "ssfwNumber" | "paymentMethod" | "bankName" | "bankAccountHolderName" | "bankAccountNumber" | "salaryType" | "monthlySalary" | "hourlyRate" | "fixedAllowances" | "joinDate" | "leaveDate" | "archiveReason" | "reportedToLhdn" | "department" | "location" | "workSchedule" | "payrollPolicy" | "payrollCycle" | "leaveEntitlement" | "isArchived" | "archivedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollProfile"]>
+export type PayrollProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "phone" | "alternateEmail" | "gender" | "dateOfBirth" | "nationality" | "race" | "hasPr" | "idType" | "idNumber" | "maritalStatus" | "isResident" | "isOku" | "spouseWorking" | "spouseDisabled" | "spousePcbNumber" | "spouseIdNumber" | "addressLine1" | "addressLine2" | "addressLine3" | "city" | "postcode" | "state" | "emergencyContactName" | "emergencyContactPhone" | "emergencyContactRelation" | "childRelief" | "prevEmploymentYear" | "prevRemuneration" | "prevEpf" | "contributeToEpf" | "epfMemberBefore1998" | "epfNumber" | "epfEmployeeRate" | "epfEmployeeVoluntary" | "epfEmployerVoluntary" | "socsoNumber" | "socsoScheme" | "contributeToEis" | "incomeTaxNumber" | "pcbBorneByEmployer" | "ssfwNumber" | "paymentMethod" | "bankName" | "bankAccountHolderName" | "bankAccountNumber" | "salaryType" | "monthlySalary" | "hourlyRate" | "fixedAllowances" | "joinDate" | "leaveDate" | "archiveReason" | "reportedToLhdn" | "department" | "location" | "workSchedule" | "payrollPolicy" | "payrollCycle" | "leaveEntitlement" | "isArchived" | "archivedAt" | "createdAt" | "updatedAt" | "payrollDocuments", ExtArgs["result"]["payrollProfile"]>
 export type PayrollProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payslips?: boolean | Prisma.PayrollProfile$payslipsArgs<ExtArgs>
@@ -2639,9 +2665,9 @@ export type $PayrollProfilePayload<ExtArgs extends runtime.Types.Extensions.Inte
      */
     hourlyRate: runtime.Decimal | null
     /**
-     * Fixed allowances applied to every payroll run as base earnings.
-     * JSON shape: [{ name: "Parking Allowance", amount: 200 }, ...].
-     * One-off allowances are added per-run via PayslipLineItem.
+     * Fixed adjustments applied to every payroll run.
+     * JSON shape: [{ category: "allowance_parking", name: "Parking Allowance", amount: 200 }, ...].
+     * One-off adjustments are added per-run via PayslipLineItem.
      */
     fixedAllowances: runtime.JsonValue | null
     joinDate: Date | null
@@ -2676,6 +2702,7 @@ export type $PayrollProfilePayload<ExtArgs extends runtime.Types.Extensions.Inte
     archivedAt: Date | null
     createdAt: Date
     updatedAt: Date
+    payrollDocuments: runtime.JsonValue
   }, ExtArgs["result"]["payrollProfile"]>
   composites: {}
 }
@@ -3112,6 +3139,7 @@ export interface PayrollProfileFieldRefs {
   readonly archivedAt: Prisma.FieldRef<"PayrollProfile", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"PayrollProfile", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PayrollProfile", 'DateTime'>
+  readonly payrollDocuments: Prisma.FieldRef<"PayrollProfile", 'Json'>
 }
     
 
