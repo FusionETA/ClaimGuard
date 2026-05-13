@@ -404,8 +404,8 @@ export function PayrollAdjustmentForm(props: {
         <CardHeader>
           <CardTitle className="text-base">Unpaid leave</CardTitle>
           <CardDescription>
-            Manually-entered MYR deduction. Auto-computed once the leave
-            integration ships in v2.
+            Manually-entered MYR deduction. Will be auto-computed once
+            the leave integration ships.
           </CardDescription>
         </CardHeader>
         <CardContent>

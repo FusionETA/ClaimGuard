@@ -306,6 +306,12 @@ function mapPayrollProfile(row: any): PayrollProfileData {
     prevRemuneration:
       row.prevRemuneration === null ? null : toNumber(row.prevRemuneration, 0),
     prevEpf: row.prevEpf === null ? null : toNumber(row.prevEpf, 0),
+    prevPcb: row.prevPcb === null ? null : toNumber(row.prevPcb, 0),
+    prevZakat: row.prevZakat === null ? null : toNumber(row.prevZakat, 0),
+    prevAllowableDeductions:
+      row.prevAllowableDeductions === null
+        ? null
+        : toNumber(row.prevAllowableDeductions, 0),
 
     contributeToEpf: row.contributeToEpf,
     epfMemberBefore1998: row.epfMemberBefore1998,
@@ -409,6 +415,9 @@ function toPrismaUpsertData(
   copy("prevEmploymentYear")
   copy("prevRemuneration")
   copy("prevEpf")
+  copy("prevPcb")
+  copy("prevZakat")
+  copy("prevAllowableDeductions")
 
   copy("contributeToEpf")
   copy("epfMemberBefore1998")

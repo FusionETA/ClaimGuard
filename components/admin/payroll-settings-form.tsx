@@ -257,10 +257,11 @@ function GeneralTab(props: { settings: PayrollSettingsData | null }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">HRDF (v2)</CardTitle>
+          <CardTitle className="text-base">HRDF (HRD Corp levy)</CardTitle>
           <CardDescription>
-            Human Resource Development Fund. Captured now; calculation
-            deferred to a later release.
+            Per PSMB Act 2001, applied to Malaysian citizens only. Set
+            1.0% for Part I employers (≥10 employees) or 0.5% for
+            Part II opt-in employers (5–9 employees).
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
@@ -310,7 +311,9 @@ function GeneralTab(props: { settings: PayrollSettingsData | null }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Leave carry-forward (v2)</CardTitle>
+          <CardTitle className="text-base">
+            Leave carry-forward (coming soon)
+          </CardTitle>
           <CardDescription>
             Placeholders for the upcoming leave integration. Not yet
             enforced.

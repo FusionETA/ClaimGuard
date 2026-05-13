@@ -141,6 +141,15 @@ export type PayrollAdjustmentCategoryMeta = {
   subjectToSocso: boolean
   subjectToEis: boolean
   subjectToPcb: boolean
+  /// Whether this row contributes to the HRD Corp levy wage base.
+  /// Per PSMB Act 2001 § 2, the levy "wages" = basic salary + fixed
+  /// allowances of a like nature + leave pay + arrears, and
+  /// EXCLUDES travel allowance, special-expense reimbursements,
+  /// gratuity, bonus, commission, and apprentice allowances. Default
+  /// true is applied at the calc site for rows that omit this
+  /// field — but ALL categories in this file set it explicitly to
+  /// keep the audit trail traceable.
+  subjectToHrdf: boolean
   /// Annual ceiling (in RM) up to which the line item is tax-exempt.
   /// Anything above this YTD threshold contributes to the PCB base
   /// even if the row is normally `subjectToPcb: true`. Implemented in
@@ -176,6 +185,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: true,
   },
   allowance_travel_official: {
     code: "allowance_travel_official",
@@ -186,6 +196,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    subjectToHrdf: false,
     taxExemptLimit: 6000,
   },
   allowance_travel_private: {
@@ -197,6 +208,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
   },
   allowance_parking: {
     code: "allowance_parking",
@@ -207,6 +219,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: false,
+    subjectToHrdf: true,
   },
   allowance_meal: {
     code: "allowance_meal",
@@ -217,6 +230,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: false,
+    subjectToHrdf: true,
   },
   allowance_childcare: {
     code: "allowance_childcare",
@@ -227,6 +241,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: true,
     taxExemptLimit: 3000,
   },
   allowance_phone_bill: {
@@ -238,6 +253,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: false,
+    subjectToHrdf: true,
   },
   allowance_phone_fixed: {
     code: "allowance_phone_fixed",
@@ -248,6 +264,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: true,
   },
   wages_bonus_annual: {
     code: "wages_bonus_annual",
@@ -258,6 +275,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    subjectToHrdf: false,
     isAdditionalRemuneration: true,
   },
   wages_bonus_non_annual: {
@@ -269,6 +287,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
     isAdditionalRemuneration: true,
   },
   wages_commission: {
@@ -280,6 +299,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
     isAdditionalRemuneration: true,
   },
   wages_incentive: {
@@ -291,6 +311,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
     isAdditionalRemuneration: true,
   },
   wages_arrears: {
@@ -302,6 +323,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: true,
     isAdditionalRemuneration: true,
   },
   wages_overtime: {
@@ -313,6 +335,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
   },
   wages_service_charge: {
     code: "wages_service_charge",
@@ -323,6 +346,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
   },
   wages_leave_pay: {
     code: "wages_leave_pay",
@@ -333,6 +357,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: true,
     isAdditionalRemuneration: true,
   },
   wages_gratuity: {
@@ -344,6 +369,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    subjectToHrdf: false,
     isAdditionalRemuneration: true,
   },
   wages_director_fee: {
@@ -355,6 +381,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    subjectToHrdf: false,
     isAdditionalRemuneration: true,
   },
   wages_expense_claim: {
@@ -366,6 +393,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: false,
+    subjectToHrdf: false,
   },
   bik_car: {
     code: "bik_car",
@@ -376,6 +404,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    subjectToHrdf: false,
   },
   bik_medical: {
     code: "bik_medical",
@@ -386,6 +415,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: false,
+    subjectToHrdf: false,
   },
   bik_award: {
     code: "bik_award",
@@ -396,6 +426,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
     taxExemptLimit: 2000,
     isAdditionalRemuneration: true,
   },
@@ -408,6 +439,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    subjectToHrdf: false,
   },
   bik_share_scheme: {
     code: "bik_share_scheme",
@@ -418,6 +450,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: true,
+    subjectToHrdf: false,
     isAdditionalRemuneration: true,
   },
   bik_other_exempt: {
@@ -429,6 +462,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: false,
+    subjectToHrdf: false,
   },
   deduct_unpaid_leave: {
     code: "deduct_unpaid_leave",
@@ -439,6 +473,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
     reducesBase: true,
   },
   deduct_salary_adjustment: {
@@ -450,6 +485,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
     reducesBase: true,
   },
   deduct_advance: {
@@ -461,6 +497,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
+    subjectToHrdf: false,
     reducesBase: true,
   },
   deduct_cp38: {
@@ -472,6 +509,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: false,
+    subjectToHrdf: false,
     referenceOnly: true,
   },
   deduct_zakat: {
@@ -483,6 +521,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: false,
+    subjectToHrdf: false,
     offsetsPcb: true,
   },
   deduct_tp1: {
@@ -494,6 +533,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: false,
     subjectToEis: false,
     subjectToPcb: false,
+    subjectToHrdf: false,
     referenceOnly: true,
   },
 }
@@ -598,10 +638,15 @@ export type PayrollProfileData = {
   // Children (parsed JSON; up to N entries)
   childRelief: ChildRelief[]
 
-  // Previous employment (for v2 TP3 carryover)
+  // Previous employment — TP3 carryover for mid-year joiners.
+  // Each field is consumed by the run service when
+  // `prevEmploymentYear` matches the current run's calendar year.
   prevEmploymentYear: number | null
-  prevRemuneration: number | null
-  prevEpf: number | null
+  prevRemuneration: number | null      // Y
+  prevEpf: number | null               // K
+  prevPcb: number | null               // X
+  prevZakat: number | null             // Z
+  prevAllowableDeductions: number | null // ΣLP
 
   // EPF
   contributeToEpf: boolean
@@ -688,13 +733,15 @@ export type PayrollEmployeeRow = {
  * Pure helper: decide whether a payroll profile has all the fields
  * needed to run payroll. Used by the list page to show a ✓ vs warning.
  *
- * Required for v1 payroll calc:
+ * Required for payroll calc:
  *   - salaryType + matching salary field
  *   - join date
  *   - EPF rate (always defaulted, so never undefined — checked anyway)
  *   - if EPF contribution enabled: EPF number
  *   - if SOCSO contribution: scheme + number
- *   - PCB / income tax number (required for any future PCB calc)
+ *   - PCB / income tax number (the PCB calc itself runs without it,
+ *     but LHDN's CP39 submission file requires it, so we gate
+ *     "complete" on having it)
  *
  * Bank info is NOT required to run a payroll calc — it's only needed
  * to actually disburse. So we don't gate completeness on it.
@@ -723,11 +770,11 @@ export function isPayrollProfileComplete(p: PayrollProfileData): boolean {
   if (!p.incomeTaxNumber) return false
 
   // Spouse data — when the employee is married, we need to know
-  // whether the spouse works (drives PCB joint-relief calc: RM 4,000
-  // relief when spouse not working, plus RM 5,000 if disabled).
-  // Without this, PCB defaults to the safer "no relief" path which
-  // can over-withhold tax — so we require it as part of "ready for
-  // payroll".
+  // whether the spouse works (drives the PCB spouse reliefs: S =
+  // RM 4,000 when spouse has no income, plus SU = RM 6,000 if also
+  // disabled). Without this, PCB defaults to the safer "no relief"
+  // path which can over-withhold tax — so we require it as part of
+  // "ready for payroll".
   if (p.maritalStatus === "MARRIED" && p.spouseWorking == null) {
     return false
   }

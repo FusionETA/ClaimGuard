@@ -323,10 +323,16 @@ export async function generatePayrollPayslips(input: {
         joinedThisYear && (e.profile.prevEmploymentYear ?? null) === run.periodYear
       return {
         empId: e.employeeProfileId,
+        // TP3 carryover: add the prev-employer figures to each YTD
+        // bucket only when the employee's `prevEmploymentYear` equals
+        // the current run's calendar year. Per LHDN MTD Spec § 10
+        // (page 23) the TP3 form provides (Y-K), X, Z, ΣLP.
         ytdTaxable:
           ytd.ytdTaxable + (isPrevForSameYear ? e.profile.prevRemuneration ?? 0 : 0),
         ytdEpf: ytd.ytdEpf + (isPrevForSameYear ? e.profile.prevEpf ?? 0 : 0),
-        ytdPcb: ytd.ytdPcb,
+        ytdPcb: ytd.ytdPcb + (isPrevForSameYear ? e.profile.prevPcb ?? 0 : 0),
+        ytdZakat:
+          ytd.ytdZakat + (isPrevForSameYear ? e.profile.prevZakat ?? 0 : 0),
         ytdAllowanceByCategory: ytd.ytdAllowanceByCategory,
       }
     }),
@@ -398,6 +404,7 @@ export async function generatePayrollPayslips(input: {
       ytdTaxable: ytd?.ytdTaxable ?? 0,
       ytdEpf: ytd?.ytdEpf ?? 0,
       ytdPcb: ytd?.ytdPcb ?? 0,
+      ytdZakat: ytd?.ytdZakat ?? 0,
       // YTD per-category allowance totals — drives taxExemptLimit
       // enforcement for parking / childcare / award etc. caps.
       ytdAllowanceByCategory: ytd?.ytdAllowanceByCategory ?? {},

@@ -85,29 +85,50 @@ export function applyResidentTaxBands(chargeableIncome: number): number {
 // ─── Reliefs ─────────────────────────────────────────────────────────────
 
 /**
- * Per-child relief amounts. v1 uses conservative simplified values:
- *   - Non-studying child under 18: RM 2,000
- *   - Studying child (primary/secondary): RM 2,000
- *   - Higher-ed (diploma+ in Malaysia or degree+ overseas): RM 8,000
- *   - Disabled child: +RM 6,000 on top (so RM 8,000 / RM 14,000)
+ * Per-child relief amounts per LHDN PCB Specification for 2026
+ * (Section E, "Reliefs", pages 26-28):
+ *
+ *   - Child under 18 OR studying (school): RM 2,000
+ *   - Child 18+ in higher-ed (diploma+ in Malaysia / degree+ overseas):
+ *     RM 8,000 (treated as 4 children of RM 2,000)
+ *   - Disabled child (under or over 18, not studying higher-ed):
+ *     RM 8,000 (treated as 4 children of RM 2,000)
+ *   - Disabled child AND in higher-ed (diploma+):
+ *     RM 16,000 (treated as 8 children of RM 2,000)
  *
  * Half-relief (when PCB share is HALF) halves the figures — happens
  * when both parents claim 50/50.
  */
 function reliefForChild(child: ChildRelief): number {
   if (child.pcbDeduction === "NONE") return 0
-  const baseStudying =
-    child.currentlyStudying === "HIGHER_ED" ? 8000 : 2000
-  const disabledBonus = child.abilityStatus === "DISABLED" ? 6000 : 0
-  const total = baseStudying + disabledBonus
+  const isDisabled = child.abilityStatus === "DISABLED"
+  const isHigherEd = child.currentlyStudying === "HIGHER_ED"
+  let total: number
+  if (isDisabled && isHigherEd) {
+    // Both — treated as 8 children @ RM 2,000 per LHDN spec.
+    total = 16000
+  } else if (isDisabled || isHigherEd) {
+    // Either one — treated as 4 children @ RM 2,000 per LHDN spec.
+    total = 8000
+  } else {
+    // Below 18, or in primary/secondary school.
+    total = 2000
+  }
   return child.pcbDeduction === "HALF" ? Math.round((total / 2) * 100) / 100 : total
 }
 
 /**
- * Annual personal + family reliefs for a resident employee. EPF
- * relief is added on top by the orchestrator (it's capped at RM 4,000
- * combined with life insurance, but life-insurance TP1 isn't
- * collected in v1, so EPF gets the full RM 4,000 ceiling).
+ * Annual personal + family reliefs for a resident employee per LHDN
+ * PCB Specification for 2026, Section E Compulsory Deductions
+ * (pages 26-29):
+ *
+ *   - D (Individual)          : RM  9,000
+ *   - S (Husband / Wife)      : RM  4,000  (only when spouse not working)
+ *   - DU (Disabled individual): RM  7,000  (on top of D)
+ *   - SU (Disabled spouse)    : RM  6,000  (on top of S)
+ *   - QC (per-child relief)   : via reliefForChild()
+ *
+ * EPF relief is added on top by the orchestrator (capped at RM 4,000).
  */
 export function calcResidentReliefs(profile: {
   isOku: boolean
@@ -115,20 +136,56 @@ export function calcResidentReliefs(profile: {
   spouseDisabled: boolean | null
   childRelief: ChildRelief[]
 }): number {
-  let relief = 9000 // personal
-  if (profile.isOku) relief += 6000
+  return calcResidentReliefsBreakdown(profile).total
+}
 
-  // Spouse: only claimable when spouse not working (or no income).
-  if (profile.spouseWorking === false) {
-    relief += 4000
-    if (profile.spouseDisabled === true) relief += 5000
+/**
+ * Itemised view of `calcResidentReliefs`. Used by the admin UI to
+ * preview what reliefs will be applied to the next payroll run.
+ */
+export type ResidentReliefsBreakdown = {
+  /// D — RM 9,000 individual relief (always applied to residents).
+  individual: number
+  /// DU — RM 7,000 disabled-individual relief (only when isOku).
+  disabledIndividual: number
+  /// S — RM 4,000 spouse relief (only when spouseWorking === false).
+  spouse: number
+  /// SU — RM 6,000 disabled-spouse relief (only when spouseWorking ===
+  /// false AND spouseDisabled === true).
+  disabledSpouse: number
+  /// Sum of per-child reliefs.
+  children: number
+  /// Per-child amounts in the same order as `profile.childRelief`.
+  childItems: number[]
+  /// Sum of all components above.
+  total: number
+}
+
+export function calcResidentReliefsBreakdown(profile: {
+  isOku: boolean
+  spouseWorking: boolean | null
+  spouseDisabled: boolean | null
+  childRelief: ChildRelief[]
+}): ResidentReliefsBreakdown {
+  const individual = 9000
+  const disabledIndividual = profile.isOku ? 7000 : 0
+  const spouseClaimable = profile.spouseWorking === false
+  const spouse = spouseClaimable ? 4000 : 0
+  const disabledSpouse =
+    spouseClaimable && profile.spouseDisabled === true ? 6000 : 0
+  const childItems = profile.childRelief.map(reliefForChild)
+  const children = childItems.reduce((acc, v) => acc + v, 0)
+  const total =
+    individual + disabledIndividual + spouse + disabledSpouse + children
+  return {
+    individual,
+    disabledIndividual,
+    spouse,
+    disabledSpouse,
+    children,
+    childItems,
+    total,
   }
-
-  for (const c of profile.childRelief) {
-    relief += reliefForChild(c)
-  }
-
-  return relief
 }
 
 // ─── EPF relief cap ─────────────────────────────────────────────────────
@@ -164,10 +221,18 @@ export type CalcPcbInput = {
   /// YTD totals for THIS calendar year from previously submitted
   /// payslips for the same employee. When the employee joined
   /// mid-year, include their previous-employer figures from
-  /// PayrollProfile.prevRemuneration + prevEpf (caller adds these in).
+  /// PayrollProfile.prevRemuneration + prevEpf + prevPcb + prevZakat
+  /// (caller adds these in).
   ytdTaxable: number
   ytdEpf: number
   ytdPcb: number
+  /// Z in the LHDN formula: accumulated zakat paid in the current
+  /// year, EXCLUDING zakat for the current month (which is offset by
+  /// the orchestrator after `calcPcb` returns). The annual tax owed
+  /// is reduced by Z because zakat fully offsets MTD obligation. Pass
+  /// 0 if no zakat history. Defaults to 0 so legacy callers keep
+  /// working unchanged.
+  ytdZakat?: number
   /// Relief data — pulled from PayrollProfile.
   profile: Pick<
     PayrollProfileData,
@@ -224,12 +289,16 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   // Non-resident: flat 30% across the entire taxable amount. LHDN
   // treats non-residents as a single-rate withholding without
   // reliefs, so AR vs normal makes no difference — but we still
-  // split the result so the caller can report it correctly.
+  // split the result so the caller can report it correctly. The
+  // RM 10 minimum-deduction threshold applies on each component
+  // (LHDN MTD Spec for 2026, Section E item 3).
   if (!input.isResident) {
+    const nrNormal = applyMtdThreshold(roundMtd(normalTaxable * 0.3))
+    const nrAdditional = applyMtdThreshold(roundMtd(arTaxable * 0.3))
     return {
-      normal: round2(normalTaxable * 0.3),
-      additional: round2(arTaxable * 0.3),
-      total: round2((normalTaxable + arTaxable) * 0.3),
+      normal: nrNormal,
+      additional: nrAdditional,
+      total: roundMtd(nrNormal + nrAdditional),
     }
   }
 
@@ -263,6 +332,7 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   )
 
   const reliefs = calcResidentReliefs(input.profile)
+  const ytdZakat = Math.max(0, input.ytdZakat ?? 0)
 
   // Chargeable income — without and with the AR.
   const chargeableNormal = Math.max(0, annualTaxable - annualEpfNormal - reliefs)
@@ -275,7 +345,13 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   const annualTaxWithAr = applyResidentTaxBands(chargeableWithAr)
 
   // PCB on normal remuneration: balance owed for the year, spread.
-  const stillOwedNormal = Math.max(0, annualTaxNormal - input.ytdPcb)
+  // Per LHDN formula `MTD = [(P-M)R + B - (Z + X)] / (n+1)`, we
+  // subtract Z (accumulated YTD zakat) AND X (accumulated YTD PCB)
+  // from the annual tax before dividing across remaining months.
+  const stillOwedNormal = Math.max(
+    0,
+    annualTaxNormal - ytdZakat - input.ytdPcb,
+  )
   const pcbNormal = stillOwedNormal / monthsRemainingIncludingThis
 
   // PCB on additional remuneration: the marginal tax of layering the
@@ -283,18 +359,55 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   // one-shot.
   const pcbAdditional = Math.max(0, annualTaxWithAr - annualTaxNormal)
 
+  // Apply LHDN rounding + RM 10 minimum-deduction threshold to
+  // each component independently (Section E items 1-3, page 19-20).
+  const normalRounded = applyMtdThreshold(roundMtd(pcbNormal))
+  const arRounded = applyMtdThreshold(roundMtd(pcbAdditional))
+
   return {
-    normal: round2(pcbNormal),
-    additional: round2(pcbAdditional),
-    total: round2(pcbNormal + pcbAdditional),
+    normal: normalRounded,
+    additional: arRounded,
+    total: roundMtd(normalRounded + arRounded),
   }
 }
 
 // ─── Tiny helpers ────────────────────────────────────────────────────────
 
-function round2(n: number): number {
-  if (!Number.isFinite(n)) return 0
-  return Math.round(n * 100) / 100
+/**
+ * Apply LHDN's MTD rounding rule (Section E items 1-2, page 19 of
+ * the 2026 spec):
+ *
+ *   1. Calculation is limited to two decimal points; subsequent
+ *      figures are OMITTED (truncated, not rounded).
+ *      Example: 123.4534 → 123.45
+ *   2. The amount is then rounded UP to the nearest 5 cents:
+ *      - 1/2/3/4 cents → 5 cents (e.g. 287.02 → 287.05)
+ *      - 6/7/8/9 cents → 10 cents (e.g. 152.06 → 152.10)
+ *      (0 and 5 are already on a 5-cent boundary and stay put.)
+ *
+ * Negative or non-finite inputs collapse to 0.
+ */
+export function roundMtd(n: number): number {
+  if (!Number.isFinite(n) || n <= 0) return 0
+  const cents = Math.floor(n * 100) // truncate to 2 dp
+  const rounded = Math.ceil(cents / 5) * 5 // round up to 5-cent step
+  return rounded / 100
+}
+
+/**
+ * Apply LHDN's RM 10 minimum-deduction threshold (Section E items 3 &
+ * 4, page 19-20):
+ *
+ *   - Normal MTD or AR MTD < RM 10 (before zakat) → not required to
+ *     be deducted (set to 0).
+ *
+ * The "Net MTD after zakat < RM 10 is still deducted" rule is
+ * handled by the orchestrator at the zakat-offset step — we
+ * deliberately do NOT zero out the offset result here.
+ */
+function applyMtdThreshold(mtd: number): number {
+  if (mtd < 10) return 0
+  return mtd
 }
 
 function clamp(n: number, min: number, max: number): number {

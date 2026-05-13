@@ -3,12 +3,17 @@
  * I/O. The orchestrator (`calcPayslip`) takes plain inputs and returns
  * the full set of payslip numbers that the repo persists.
  *
- * Scope: v1 = basic pay, OT, fixed adjustments, EPF (stepped + foreign
- * worker branch), SOCSO (cat 1 / cat 2 with cap), EIS (with cap),
- * proration. PCB and HRDF are deferred to v2; their helpers return 0.
+ * Scope: basic pay, OT, fixed adjustments, EPF (KWSP Third Schedule
+ * Parts A/C/E/F), SOCSO (Act 4 stepped table, Cat 1 / Cat 2 with
+ * RM 6,000 cap), EIS (Act 800 stepped table, age 18-60 gating),
+ * HRDF (Malaysian-citizens-only per PSMB Act § 2 wage definition),
+ * PCB (LHDN MTD Specification for 2026 — resident progressive +
+ * non-resident flat 30%, with AR / YTD / threshold / rounding),
+ * proration.
  *
  * Reference: Malaysian Employment Act, EPF Act 1991 Third Schedule,
- * Employees' Social Security Act 1969, EIS Act 2017.
+ * Employees' Social Security Act 1969, EIS Act 2017, PSMB Act 2001,
+ * LHDN MTD Specification 2026.
  */
 
 import { PAYROLL_ADJUSTMENT_CATEGORY_META } from "@/modules/payroll/domain/models"
@@ -20,6 +25,11 @@ import type {
 } from "@/modules/payroll/domain/models"
 import { calcPcb } from "@/modules/payroll/domain/pcb"
 import type { WorkingDaysRule } from "@/modules/payroll/domain/settings"
+import {
+  lookupEis,
+  lookupEpfBand,
+  lookupSocso,
+} from "@/modules/payroll/domain/statutory-tables"
 
 // ─── Rounding ────────────────────────────────────────────────────────────
 
@@ -136,38 +146,65 @@ export function calcEpf(input: CalcEpfInput): {
     return { employee: 0, employer: 0, branch }
   }
 
-  // Per-branch mandatory rates.
+  // KWSP rate parameters per Third Schedule branch.
+  //
+  // KWSP Third Schedule Note 2 mandates that for wages ≤ RM 20,000
+  // employers MUST use the official Schedule TABLE (stepped, in
+  // RM 20 / RM 100 bands, each side rounded up to the next ringgit)
+  // rather than the exact percentage. `lookupEpfBand` reproduces the
+  // gazetted table row-for-row from the rate inputs. Above RM 20,000
+  // exact percentage is allowed (still rounded up to next ringgit).
+  let employerRateLow: number
+  let employerRateHigh: number
   let employeeRate: number
-  let employerRate: number
   switch (branch) {
     case "MALAYSIAN_UNDER_60":
-      // Admin can legitimately set 9% via KWSP 17A election — honour
-      // the profile value but only for the under-60 Part A branch.
-      employeeRate = input.employeeRate
-      employerRate = input.wage <= 5000 ? 13 : 12
+      // Statutory minimum employee share is 11% per KWSP Third
+      // Schedule Part A. The COVID-era 9% election ended; the
+      // current KWSP 17A i-TOPUP form only allows employees to
+      // contribute ABOVE the statutory rate, not below. We clamp
+      // the admin's declared rate to a minimum of 11%. (Higher
+      // voluntary rates belong in `epfEmployeeVoluntary`, not in
+      // the base rate.)
+      employeeRate = Math.max(11, input.employeeRate)
+      employerRateLow = 13
+      employerRateHigh = 12
       break
     case "MALAYSIAN_CITIZEN_60_PLUS":
+      // Part E — flat 4% employer, 0% employee.
       employeeRate = 0
-      employerRate = 4
+      employerRateLow = 4
+      employerRateHigh = 4
       break
     case "PR_OR_PRE1998_60_PLUS":
+      // Part C.
       employeeRate = 5.5
-      employerRate = input.wage <= 5000 ? 6.5 : 6
+      employerRateLow = 6.5
+      employerRateHigh = 6
       break
     case "POST_1998_NON_MALAYSIAN":
-      // KWSP rule effective Oct 2025 salary (paid by 15 Nov 2025).
+      // Part F — flat 2%/2% effective Oct 2025 salary.
       employeeRate = 2
-      employerRate = 2
+      employerRateLow = 2
+      employerRateHigh = 2
       break
   }
 
-  const employee = round2(input.wage * (employeeRate / 100))
-  const employer = round2(input.wage * (employerRate / 100))
+  const mandatory = lookupEpfBand({
+    wage: input.wage,
+    employerRateLow,
+    employerRateHigh,
+    employeeRate,
+  })
+
+  // Voluntary contributions stack on top. These use the exact
+  // percentage (not the table) because they're not part of the
+  // statutory minimum that the gazetted Schedule prescribes.
   const employeeExtra = round2(input.wage * (input.employeeVoluntary / 100))
   const employerExtra = round2(input.wage * (input.employerVoluntary / 100))
   return {
-    employee: round2(employee + employeeExtra),
-    employer: round2(employer + employerExtra),
+    employee: round2(mandatory.employee + employeeExtra),
+    employer: round2(mandatory.employer + employerExtra),
     branch,
   }
 }
@@ -175,55 +212,46 @@ export function calcEpf(input: CalcEpfInput): {
 // ─── SOCSO ───────────────────────────────────────────────────────────────
 
 /**
- * SOCSO (Social Security Organisation) contribution. Two schemes:
+ * SOCSO (Social Security Organisation) contribution per Act 4 Third
+ * Schedule. Two schemes:
  *
- *   - Employment Injury + Invalidity (cat 1, < age 60):
- *       Employer 1.75%, Employee 0.5%
- *   - Employment Injury only (cat 2, ≥ age 60 or foreign):
- *       Employer 1.25%, Employee 0%
+ *   - Employment Injury + Invalidity (Cat 1, < age 60): employer +
+ *     employee contribute (~1.75% / 0.5% as a rate-of-thumb, but the
+ *     gazetted table is stepped, not pure percentage).
+ *   - Employment Injury only (Cat 2, ≥ age 60 or foreign worker):
+ *     employer only.
  *
- * Wages above RM6,000 are capped at the RM6,000 contribution. The
- * Third Schedule of the Act uses a fixed contribution table; v1 uses
- * the percentage formula with cap, which matches the table to within
- * a few sen at most wage levels.
+ * The Third Schedule is a 65-row stepped lookup table; wages above
+ * RM 6,000 are capped at the ceiling row. We use the gazetted table
+ * directly via `lookupSocso` rather than the percentage formula.
  */
 export function calcSocso(input: {
   wage: number
   scheme: SocsoScheme | null
 }): { employee: number; employer: number } {
   if (!input.scheme) return { employee: 0, employer: 0 }
-
-  const cappedWage = Math.min(input.wage, 6000)
-
-  if (input.scheme === "EMPLOYMENT_INJURY_INVALIDITY") {
-    return {
-      employee: round2(cappedWage * 0.005),
-      employer: round2(cappedWage * 0.0175),
-    }
-  }
-  // EMPLOYMENT_INJURY_ONLY
-  return {
-    employee: 0,
-    employer: round2(cappedWage * 0.0125),
-  }
+  const category2 = input.scheme === "EMPLOYMENT_INJURY_ONLY"
+  return lookupSocso(input.wage, category2)
 }
 
 // ─── EIS ─────────────────────────────────────────────────────────────────
 
 /**
- * EIS (Employment Insurance System). 0.2% each side, capped at
- * RM6,000 wages. Only applies to Malaysian workers under age 60.
+ * EIS (Employment Insurance System) contribution per Act 800 Third
+ * Schedule. ~0.2% each side, but gazetted as a 65-row stepped table
+ * (similar shape to SOCSO). The ceiling row applies to wages above
+ * RM 6,000.
+ *
+ * Eligibility (Malaysian citizen / PR / temporary resident, age
+ * 18–60) is gated by the orchestrator before this is called — see
+ * `calcPayslip` for the age + scope check.
  */
 export function calcEis(input: {
   wage: number
   contributeToEis: boolean
 }): { employee: number; employer: number } {
   if (!input.contributeToEis) return { employee: 0, employer: 0 }
-  const cappedWage = Math.min(input.wage, 6000)
-  return {
-    employee: round2(cappedWage * 0.002),
-    employer: round2(cappedWage * 0.002),
-  }
+  return lookupEis(input.wage)
 }
 
 // ─── Proration ───────────────────────────────────────────────────────────
@@ -382,6 +410,8 @@ export type CalcPayslipInput = {
     | "socsoScheme"
     | "contributeToEis"
     | "incomeTaxNumber"
+    | "epfNumber"
+    | "socsoNumber"
   >
   /// Org-level operational settings.
   settings: {
@@ -417,11 +447,17 @@ export type CalcPayslipInput = {
   unpaidLeaveDeduction?: number
   /// PCB year-to-date (this calendar year, prior SUBMITTED runs).
   /// Caller (generate service) should add prev-employer carryover
-  /// (PayrollProfile.prevRemuneration + prevEpf) into these figures
-  /// when the employee joined mid-year.
+  /// (PayrollProfile.prevRemuneration + prevEpf + prevPcb + prevZakat)
+  /// into these figures when the employee joined mid-year.
   ytdTaxable?: number
   ytdEpf?: number
   ytdPcb?: number
+  /// YTD zakat paid (excluding the current month). Subtracted from
+  /// the annual tax in `calcPcb` per the LHDN MTD formula `MTD =
+  /// [(P-M)R + B - (Z + X)] / (n+1)`. Sourced by the run service
+  /// from prior SUBMITTED payslips' `zakat` totals, plus any
+  /// prev-employer carryover from `PayrollProfile.prevZakat`.
+  ytdZakat?: number
   /// YTD per-category allowance totals (RM) — used to enforce
   /// `taxExemptLimit` caps. Keyed by `PayrollAdjustmentCategory` (e.g.
   /// `allowance_childcare`). Only the over-cap portion of an
@@ -497,6 +533,16 @@ export type CalcPayslipResult = {
     voluntaryEmployee: number
     voluntaryEmployer: number
   }
+  /// Non-blocking warnings about statutory data that is required for
+  /// LHDN/PERKESO/KWSP filing or submission but missing from the
+  /// profile. The calc itself proceeds (e.g. PCB is still computed)
+  /// but the admin should resolve these before the run is submitted.
+  /// Stable, machine-readable codes — admin UI maps to copy.
+  statutoryWarnings: Array<
+    | "MISSING_INCOME_TAX_NUMBER"
+    | "MISSING_EPF_NUMBER"
+    | "MISSING_SOCSO_NUMBER"
+  >
 }
 
 /**
@@ -599,6 +645,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   let pcbAdjustmentBase = 0
   let pcbAdditionalRemuneration = 0
   let pcbAdditionalRemunerationEpf = 0
+  let hrdfAdjustmentBase = 0
   let thisMonthZakat = 0
   for (const a of profile.fixedAllowances) {
     if (a.amount <= 0) continue
@@ -632,6 +679,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
         if (meta.subjectToSocso) socsoAdjustmentBase -= amt
         if (meta.subjectToEis) eisAdjustmentBase -= amt
         if (meta.subjectToPcb) pcbAdjustmentBase -= pcbTaxable
+        if (meta.subjectToHrdf) hrdfAdjustmentBase -= amt
       }
       if (meta.offsetsPcb) {
         thisMonthZakat += amt
@@ -643,6 +691,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       if (meta.subjectToEpf) epfAdjustmentBase += amt
       if (meta.subjectToSocso) socsoAdjustmentBase += amt
       if (meta.subjectToEis) eisAdjustmentBase += amt
+      if (meta.subjectToHrdf) hrdfAdjustmentBase += amt
       if (meta.subjectToPcb) {
         if (meta.isAdditionalRemuneration) {
           pcbAdditionalRemuneration += pcbTaxable
@@ -674,6 +723,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   totalRecurringReimbursements = round2(totalRecurringReimbursements)
   pcbAdditionalRemuneration = round2(pcbAdditionalRemuneration)
   pcbAdditionalRemunerationEpf = round2(pcbAdditionalRemunerationEpf)
+  hrdfAdjustmentBase = round2(hrdfAdjustmentBase)
   thisMonthZakat = round2(thisMonthZakat)
 
   // 5. Reimbursements (Phase 5 — approved claims). Not wage-like, so
@@ -730,7 +780,6 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   // (adjective) both count as citizenship; "my" / "mys" / "kl" are
   // common shorthand on imported spreadsheets.
   const isMalaysianCitizen = isMalaysianNationality(profile.nationality)
-  const isMalaysianOrPr = isMalaysianCitizen || profile.hasPr === true
 
   const employeeRate =
     profile.epfEmployeeRate || settings.defaultEpfEmployeeRate
@@ -756,17 +805,36 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     scheme: profile.socsoScheme,
   })
 
+  // EIS eligibility per PERKESO EIS Act 2017 + the EIS coverage flyer:
+  //   - All employees in the private sector, including Malaysians,
+  //     PR holders, AND temporary residents (foreign workers with a
+  //     valid permit). Citizenship is NOT a gate.
+  //   - Contribution age range: 18 to 60 (inclusive lower, exclusive
+  //     upper). Below 18 or 60+ → no EIS.
+  //   - First-time contributors aged 57+ are exempt — handled by the
+  //     admin un-ticking `contributeToEis` on the profile, which the
+  //     check below honours.
+  //
+  // When `dateOfBirth` is null the helper returns 0; we cannot tell
+  // whether the employee is in range, so we defer to the admin's
+  // `contributeToEis` flag rather than blocking outright.
+  const eisAgeEligible =
+    profile.dateOfBirth == null ||
+    (ageAtPeriodEnd >= 18 && ageAtPeriodEnd < 60)
   const eis = calcEis({
     wage: eisWage,
-    contributeToEis: profile.contributeToEis && isMalaysianOrPr,
+    contributeToEis: profile.contributeToEis && eisAgeEligible,
   })
 
-  // 9. PCB (Potongan Cukai Bulanan). Only computed when the
-  // employee has a registered income-tax number on file — that's our
-  // opt-in signal. Non-residents fall to flat 30%; residents follow
-  // LHDN's normal-remuneration formula plus the additional-
-  // remuneration delta formula for one-off bonus/commission/etc. See
-  // `domain/pcb.ts` for the full set of caveats.
+  // 9. PCB (Potongan Cukai Bulanan). Computed for every employee
+  // every run per LHDN MTD Specification for 2026 — the spec never
+  // gates the calculation on whether the employee has a TIN on file.
+  // (The TIN is required only for the CP39 submission text file —
+  // see `statutoryWarnings` below for how that is surfaced.) Non-
+  // residents fall to flat 30%; residents follow LHDN's normal-
+  // remuneration formula plus the additional-remuneration delta
+  // formula for one-off bonus/commission/etc. See `domain/pcb.ts`
+  // for the full set of caveats.
   //
   // EPF passed to calcPcb is the EPF contribution from the NORMAL
   // monthly pay only — AR EPF is carried separately so the with-AR
@@ -775,28 +843,24 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   const epfFromNormal = round2(
     Math.max(0, epf.employee - pcbAdditionalRemunerationEpf),
   )
-  const hasTaxNumber =
-    typeof profile.incomeTaxNumber === "string" &&
-    profile.incomeTaxNumber.trim().length > 0
-  const pcbBreakdown = hasTaxNumber
-    ? calcPcb({
-        isResident: profile.isResident,
-        periodMonth,
-        thisMonthTaxable: pcbWage,
-        thisMonthEpf: epfFromNormal,
-        thisMonthAdditionalRemuneration: pcbAdditionalRemuneration,
-        thisMonthEpfFromAR: pcbAdditionalRemunerationEpf,
-        ytdTaxable: input.ytdTaxable ?? 0,
-        ytdEpf: input.ytdEpf ?? 0,
-        ytdPcb: input.ytdPcb ?? 0,
-        profile: {
-          isOku: profile.isOku,
-          spouseWorking: profile.spouseWorking,
-          spouseDisabled: profile.spouseDisabled,
-          childRelief: profile.childRelief,
-        },
-      })
-    : { normal: 0, additional: 0, total: 0 }
+  const pcbBreakdown = calcPcb({
+    isResident: profile.isResident,
+    periodMonth,
+    thisMonthTaxable: pcbWage,
+    thisMonthEpf: epfFromNormal,
+    thisMonthAdditionalRemuneration: pcbAdditionalRemuneration,
+    thisMonthEpfFromAR: pcbAdditionalRemunerationEpf,
+    ytdTaxable: input.ytdTaxable ?? 0,
+    ytdEpf: input.ytdEpf ?? 0,
+    ytdPcb: input.ytdPcb ?? 0,
+    ytdZakat: input.ytdZakat ?? 0,
+    profile: {
+      isOku: profile.isOku,
+      spouseWorking: profile.spouseWorking,
+      spouseDisabled: profile.spouseDisabled,
+      childRelief: profile.childRelief,
+    },
+  })
   // Zakat offset: any `deduct_zakat` line items reduce PCB owed for
   // the month (capped at PCB). Zakat is still listed as a deduction on
   // the payslip — the offset means the employee effectively pays
@@ -805,20 +869,33 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   const zakatOffset = Math.min(pcbBeforeZakat, thisMonthZakat)
   const pcb = round2(Math.max(0, pcbBeforeZakat - zakatOffset))
 
-  // 10. HRDF (HRD Corp levy). Per HRD Corp:
-  //     levy = [(basic - unpaid leave) + fixed allowance] × rate
-  // We approximate "basic - unpaid leave + fixed allowance" as
-  // (proratedPay + totalAllowances - unpaidLeaveDeduction). Excludes
-  // OT, reimbursements, and zakat by design.
-  // Eligibility: Malaysian citizens only (PR holders + foreign
-  // workers excluded).
-  // `isMalaysianCitizen` is already declared above in the EPF block.
-  // Reuse it here instead of redeclaring.
+  // 10. HRDF (HRD Corp levy). Per PSMB Act 2001 § 2 "wages":
+  //
+  //     wages = basic salary + fixed allowances of a like nature
+  //           + leave pay + arrears (all paid in cash)
+  //
+  //     EXCLUDES: travel allowance, special-expense reimbursements,
+  //               gratuity on discharge/retirement, bonus,
+  //               commission, apprentice allowances.
+  //
+  // `hrdfAdjustmentBase` already excludes the right categories
+  // (filtered by `meta.subjectToHrdf` in the line-item loop), so
+  // levy wage = proratedPay + hrdfAdjustmentBase. OT, reimbursements,
+  // and DEDUCTION rows are not included unless explicitly marked
+  // (e.g. unpaid-leave reduces the base via `reducesBase` +
+  // `subjectToHrdf: true` — currently false; unpaid leave is handled
+  // via `unpaidLeaveDeduction` subtraction below).
+  //
+  // Eligibility: per PSMB Act § 2 "employee" = "any citizen of
+  // Malaysia". PR holders + foreign workers are NOT covered, and the
+  // `isMalaysianCitizen` gate above enforces this.
   const hrdfRate = settings.hrdfRate ?? 0
   const hrdfActive =
     settings.hrdfEnabled && hrdfRate > 0 && isMalaysianCitizen
   const hrdfWage = hrdfActive
-    ? round2(Math.max(0, proratedPay + totalAllowances - unpaidLeaveDeduction))
+    ? round2(
+        Math.max(0, proratedPay + hrdfAdjustmentBase - unpaidLeaveDeduction),
+      )
     : 0
   const hrdf = hrdfActive ? round2(hrdfWage * (hrdfRate / 100)) : 0
 
@@ -847,6 +924,33 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       eis.employer +
       hrdf,
   )
+
+  // Non-blocking warnings about missing statutory identifiers. PCB is
+  // still computed (LHDN spec doesn't gate the calc on TIN), but the
+  // submission file (CP39) requires the TIN, and EPF/SOCSO
+  // submissions need their respective member numbers. Admin UI uses
+  // these codes to surface a "fix before submit" banner.
+  const statutoryWarnings: CalcPayslipResult["statutoryWarnings"] = []
+  if (
+    typeof profile.incomeTaxNumber !== "string" ||
+    profile.incomeTaxNumber.trim().length === 0
+  ) {
+    statutoryWarnings.push("MISSING_INCOME_TAX_NUMBER")
+  }
+  if (
+    profile.contributeToEpf &&
+    (typeof profile.epfNumber !== "string" ||
+      profile.epfNumber.trim().length === 0)
+  ) {
+    statutoryWarnings.push("MISSING_EPF_NUMBER")
+  }
+  if (
+    profile.socsoScheme &&
+    (typeof profile.socsoNumber !== "string" ||
+      profile.socsoNumber.trim().length === 0)
+  ) {
+    statutoryWarnings.push("MISSING_SOCSO_NUMBER")
+  }
 
   return {
     workedHours: input.workedHours ?? null,
@@ -891,6 +995,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       voluntaryEmployee: profile.epfEmployeeVoluntary,
       voluntaryEmployer: profile.epfEmployerVoluntary,
     }),
+    statutoryWarnings,
   }
 }
 
@@ -915,7 +1020,9 @@ function epfSnapshotRates(input: {
   let employer = 0
   switch (input.branch) {
     case "MALAYSIAN_UNDER_60":
-      employee = input.profileEmployeeRate
+      // Mirror the floor enforced in calcEpf: minimum statutory
+      // employee share is 11%. Snapshot what the calc actually used.
+      employee = Math.max(11, input.profileEmployeeRate)
       employer = input.wage <= 5000 ? 13 : 12
       break
     case "MALAYSIAN_CITIZEN_60_PLUS":

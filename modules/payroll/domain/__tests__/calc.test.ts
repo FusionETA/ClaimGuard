@@ -57,6 +57,8 @@ function makeProfile(overrides: Partial<CalcPayslipInput["profile"]> = {}): Calc
     socsoScheme: "EMPLOYMENT_INJURY_INVALIDITY",
     contributeToEis: true,
     incomeTaxNumber: "OG12345678",
+    epfNumber: "EPF12345",
+    socsoNumber: "SOC12345",
     ...overrides,
   }
 }
@@ -254,10 +256,14 @@ describe("calcPayslip — zakat offset", () => {
   })
 })
 
-// ─── PCB gated on incomeTaxNumber ───────────────────────────────────────
+// ─── PCB runs regardless of incomeTaxNumber ─────────────────────────────
 
-describe("calcPayslip — PCB gating", () => {
-  it("returns 0 PCB when employee has no income-tax number", () => {
+describe("calcPayslip — PCB always runs", () => {
+  it("computes PCB even when employee has no income-tax number, and flags the missing TIN as a statutory warning", () => {
+    // LHDN MTD Specification for 2026 does not gate the calculation on
+    // TIN. The TIN is needed only for the CP39 submission file. We
+    // therefore compute PCB and surface "MISSING_INCOME_TAX_NUMBER"
+    // as a non-blocking warning for the admin UI.
     const result = calcPayslip({
       profile: makeProfile({
         incomeTaxNumber: null,
@@ -267,8 +273,20 @@ describe("calcPayslip — PCB gating", () => {
       periodYear: 2026,
       periodMonth: 1,
     })
-    expect(result.pcb).toBe(0)
-    expect(result.pcbBreakdown.normal).toBe(0)
-    expect(result.pcbBreakdown.additional).toBe(0)
+    expect(result.pcb).toBeGreaterThan(0)
+    expect(result.pcbBreakdown.normal).toBeGreaterThan(0)
+    expect(result.statutoryWarnings).toContain("MISSING_INCOME_TAX_NUMBER")
+  })
+
+  it("clean profile produces no statutory warnings", () => {
+    const result = calcPayslip({
+      profile: makeProfile({
+        incomeTaxNumber: "OG12345678",
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+    })
+    expect(result.statutoryWarnings).toEqual([])
   })
 })

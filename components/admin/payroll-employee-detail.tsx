@@ -33,6 +33,7 @@ import { Separator } from "@/components/ui/separator"
 import { useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
+import { calcResidentReliefsBreakdown } from "@/modules/payroll/domain/pcb"
 import {
   ID_TYPE_LABELS,
   MARITAL_STATUS_LABELS,
@@ -269,7 +270,7 @@ function PersonalTab(props: {
           <CardTitle className="text-base">Personal details</CardTitle>
           <CardDescription>
             Identification, contact, and family info used for payslip
-            generation and future PCB filing.
+            generation, PCB reliefs, and LHDN filing.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
@@ -377,7 +378,7 @@ function PersonalTab(props: {
           <CardHeader>
             <CardTitle className="text-base">Spouse</CardTitle>
             <CardDescription>
-              Optional. Used for future PCB joint-relief calc.
+              Drives the PCB spouse reliefs (S RM 4,000 + SU RM 6,000) — applied only when the spouse has no source of income.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
@@ -498,7 +499,7 @@ function PersonalTab(props: {
           <div>
             <CardTitle className="text-base">Dependent children</CardTitle>
             <CardDescription>
-              Used for v2 PCB child relief calc. Up to 10 children.
+              Used for PCB child relief (QC). Up to 10 children.
             </CardDescription>
           </div>
           <Button type="button" size="sm" variant="ghost" onClick={addChild}>
@@ -849,6 +850,33 @@ function EmploymentTab(props: {
               defaultValue={props.profile?.prevEpf ?? ""}
             />
           </Field>
+          <Field label="PCB paid (MYR)">
+            <Input
+              name="prevPcb"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={props.profile?.prevPcb ?? ""}
+            />
+          </Field>
+          <Field label="Zakat paid (MYR)">
+            <Input
+              name="prevZakat"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={props.profile?.prevZakat ?? ""}
+            />
+          </Field>
+          <Field label="Allowable deductions (TP1, MYR)">
+            <Input
+              name="prevAllowableDeductions"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={props.profile?.prevAllowableDeductions ?? ""}
+            />
+          </Field>
         </CardContent>
       </Card>
 
@@ -1053,27 +1081,49 @@ function StatutoryTab(props: {
   const incomeTaxNumberMissing = incomeTaxNumber.trim() === ""
 
   // KWSP Third Schedule branch resolver (mirrors `pickEpfBranch` in
-  // domain/calc.ts).
+  // domain/calc.ts). Where the employer rate cliff at RM 5,000 applies,
+  // we resolve it against the saved monthly salary so the admin sees
+  // exactly which rate will fire on Generate.
+  const persistedWage = props.profile?.monthlySalary ?? 0
+  const wageAtOrBelowCliff = persistedWage > 0 && persistedWage <= 5000
+  const wageAboveCliff = persistedWage > 5000
   let epfBranchLabel: string
   let epfEmployerText: string
   let epfEmployeeText: string
   if (!isPartAEligible) {
     // Post-Aug-1998 non-Malaysian (foreign worker).
-    epfBranchLabel = "Foreign worker (post-1 Aug 1998)"
-    epfEmployerText = "2% (Part F · effective Oct 2025 salary)"
+    epfBranchLabel = "Foreign worker (post-1 Aug 1998) — Part F"
+    epfEmployerText = "2% (effective Oct 2025 salary)"
     epfEmployeeText = "2%"
   } else if (isAge60Plus && isMalaysianCitizen && !props.profile?.hasPr) {
-    epfBranchLabel = "Malaysian citizen, age 60+"
-    epfEmployerText = "4% (Part E)"
+    epfBranchLabel = "Malaysian citizen, age 60+ — Part E"
+    epfEmployerText = "4%"
     epfEmployeeText = "0%"
   } else if (isAge60Plus) {
-    epfBranchLabel = "PR or pre-1998 Non-Malaysian, age 60+"
-    epfEmployerText = "6.5%"
+    epfBranchLabel = "PR or pre-1998 Non-Malaysian, age 60+ — Part C"
+    // Part C cliff: 6.5% (≤ RM 5,000) / 6% (> RM 5,000)
+    if (wageAtOrBelowCliff) {
+      epfEmployerText = "6.5% (salary ≤ RM 5,000)"
+    } else if (wageAboveCliff) {
+      epfEmployerText = "6% (salary > RM 5,000)"
+    } else {
+      epfEmployerText = "6.5% (≤ RM 5,000) or 6% (> RM 5,000)"
+    }
     epfEmployeeText = "5.5%"
   } else {
-    epfBranchLabel = "Standard (under age 60)"
-    epfEmployerText = formatPercent(props.defaultEpfEmployerRate)
-    epfEmployeeText = `${props.profile?.epfEmployeeRate ?? 11}%`
+    epfBranchLabel = "Standard (under age 60) — Part A"
+    // Part A cliff: 13% (≤ RM 5,000) / 12% (> RM 5,000)
+    if (wageAtOrBelowCliff) {
+      epfEmployerText = "13% (salary ≤ RM 5,000)"
+    } else if (wageAboveCliff) {
+      epfEmployerText = "12% (salary > RM 5,000)"
+    } else {
+      epfEmployerText = "13% (≤ RM 5,000) or 12% (> RM 5,000)"
+    }
+    // Statutory minimum is 11%; the previously-supported 9% election
+    // ended after COVID. KWSP 17A i-TOPUP now only allows ABOVE-statutory
+    // contributions (capture those via "Employee voluntary").
+    epfEmployeeText = "11%"
   }
 
   return (
@@ -1092,8 +1142,10 @@ function StatutoryTab(props: {
               {epfMemberBefore1998
                 ? "Pre-1998 EPF member: standard EPF rates apply (Part A / C)."
                 : "EPF runs on the post-1998 non-Malaysian branch (2% / 2%, effective Oct 2025 salary)."}{" "}
-              EIS doesn&apos;t apply; HRDF doesn&apos;t apply. SOCSO
-              scheme should typically be &quot;Employment Injury only&quot;.
+              EIS DOES apply (Act 800 covers foreign workers on valid
+              permits, age 18–60). HRDF does NOT apply (PSMB Act Sec. 2
+              limits to Malaysian citizens). SOCSO scheme should
+              typically be &quot;Employment Injury only&quot;.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -1130,29 +1182,26 @@ function StatutoryTab(props: {
           <StatutoryDisplay
             label="Employer mandatory rate"
             value={epfEmployerText}
-            note={
-              isPartAEligible && !isAge60Plus
-                ? `Saved org default. KWSP branch: ${epfBranchLabel}.`
-                : `KWSP branch: ${epfBranchLabel}.`
-            }
+            note={`KWSP branch: ${epfBranchLabel}.`}
           />
           <StatutoryDisplay
             label="Employee mandatory rate"
             value={epfEmployeeText}
             note={
               isPartAEligible && !isAge60Plus
-                ? "Standard 11%. Set 9% only when employee has filed KWSP 17A."
+                ? "Statutory minimum 11%. The COVID-era 9% election has ended; use \"Employee voluntary\" below to capture above-statutory contributions (KWSP 17A i-TOPUP)."
                 : "Statutory rate for this employee's branch."
             }
           >
             {/* Hidden input keeps the value flowing to the server.
-                The calc engine overrides it for non-Part-A branches,
-                so this only matters when the employee is on
-                MALAYSIAN_UNDER_60. */}
+                The calc engine clamps it to a minimum of 11% on Part
+                A and overrides it entirely on other branches. */}
             <input
               type="hidden"
               name="epfEmployeeRate"
-              value={String(props.profile?.epfEmployeeRate ?? 11)}
+              value={String(
+                Math.max(11, props.profile?.epfEmployeeRate ?? 11),
+              )}
             />
           </StatutoryDisplay>
           <Field label="Employee voluntary (%)">
@@ -1216,16 +1265,45 @@ function StatutoryTab(props: {
               }
             />
           </Field>
-          <StatutoryDisplay
-            label="Cat 1 — Employment Injury + Invalidity"
-            value="Employer 1.75% · Employee 0.5%"
-            note="Wage capped at RM 6,000 for contributions."
-          />
-          <StatutoryDisplay
-            label="Cat 2 — Employment Injury only"
-            value="Employer 1.25% · Employee 0%"
-            note="Typically for foreign workers and employees aged 60+."
-          />
+          {(() => {
+            // Resolve which SOCSO category will actually fire on
+            // Generate based on the profile. Cat 2 (employer-only)
+            // applies to employees aged 60+ or foreign workers; Cat 1
+            // for everyone else who's contributing.
+            const cat2Will =
+              socsoScheme === "EMPLOYMENT_INJURY_ONLY" ||
+              isAge60Plus ||
+              isForeignWorker
+            const willFire = socsoScheme === "" ? null : cat2Will ? "cat2" : "cat1"
+            return (
+              <>
+                <StatutoryDisplay
+                  label="Cat 1 — Employment Injury + Invalidity"
+                  value="Employer 1.75% · Employee 0.5%"
+                  note={
+                    willFire === "cat1"
+                      ? "✓ This will apply for this employee — wage capped at RM 6,000."
+                      : "For employees under 60 (Malaysian, PR, or with valid permit). Wage capped at RM 6,000."
+                  }
+                />
+                <StatutoryDisplay
+                  label="Cat 2 — Employment Injury only"
+                  value="Employer 1.25% · Employee 0%"
+                  note={
+                    willFire === "cat2"
+                      ? `✓ This will apply for this employee — ${
+                          isAge60Plus
+                            ? "age 60+"
+                            : isForeignWorker
+                              ? "foreign worker"
+                              : "scheme set to Injury Only"
+                        }.`
+                      : "Typically for foreign workers and employees aged 60+."
+                  }
+                />
+              </>
+            )
+          })()}
         </CardContent>
       </Card>
 
@@ -1233,43 +1311,54 @@ function StatutoryTab(props: {
         <CardHeader>
           <CardTitle className="text-base">EIS / SSFW</CardTitle>
           <CardDescription>
-            Employment Insurance System (local Malaysian + PR only) and
-            Social Security for Foreign Workers. EIS rate is fixed by
-            statute — only the toggle is editable.
+            Employment Insurance System (Act 800). Applies to all
+            employees aged 18–60 — Malaysian citizens, PR holders, and
+            foreign workers on valid permits. EIS rate is fixed by
+            statute — only the toggle is editable. SSFW number is for
+            foreign workers separately.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          {isForeignWorker ? (
-            // Foreign workers can't join EIS — replace the toggle with
-            // a locked display + hidden input that forces `false` on
-            // save, so the DB stays consistent with statutory reality.
-            <StatutoryDisplay
-              label="Contributing to EIS?"
-              value="No — foreign workers are not eligible"
-              note="Auto-saved as off; the toggle would have no effect."
-            >
-              <input type="hidden" name="contributeToEis" value="false" />
-            </StatutoryDisplay>
-          ) : (
-            <Toggle
-              name="contributeToEis"
-              question="Contributing to EIS?"
-              defaultChecked={props.profile?.contributeToEis ?? true}
-            />
-          )}
-          <StatutoryDisplay
-            label="EIS rate (auto)"
-            value={
-              isForeignWorker
-                ? "Excluded — foreign workers cannot join EIS"
-                : "Employer 0.2% · Employee 0.2%"
-            }
-            note={
-              isForeignWorker
-                ? "Replaced by SSFW for foreign workers."
-                : "Wage capped at RM 6,000 for contributions."
-            }
+          <Toggle
+            name="contributeToEis"
+            question="Contributing to EIS?"
+            defaultChecked={props.profile?.contributeToEis ?? true}
           />
+          {(() => {
+            // EIS gating: 18 ≤ age < 60. Below 18 or 60+ → no
+            // contribution even if the toggle is on. Match the calc
+            // engine exactly so the preview matches Generate.
+            //
+            // The rate row stays visible regardless of the toggle so
+            // the admin can always see what statutory rate would
+            // apply if they turned it on; the `value` text reflects
+            // whether it'll actually fire on the next run.
+            const ageBelow18 =
+              props.profile?.dateOfBirth != null && employeeAge < 18
+            const age60Plus = isAge60Plus
+            const ageOk = !ageBelow18 && !age60Plus
+            const willFire =
+              (props.profile?.contributeToEis ?? true) && ageOk
+            return (
+              <StatutoryDisplay
+                label="EIS rate (auto)"
+                value={
+                  willFire
+                    ? "Employer 0.2% · Employee 0.2%"
+                    : "Not applied this run"
+                }
+                note={
+                  age60Plus
+                    ? "Employee is 60+ — EIS contributions cease at age 60."
+                    : ageBelow18
+                      ? "Employee is under 18 — EIS applies from age 18."
+                      : !(props.profile?.contributeToEis ?? true)
+                        ? "Toggle is off — EIS will not be deducted."
+                        : "Wage capped at RM 6,000 (Act 800 Third Schedule)."
+                }
+              />
+            )
+          })()}
           <Field label="SSFW number (foreign workers)">
             <Input
               name="ssfwNumber"
@@ -1281,10 +1370,41 @@ function StatutoryTab(props: {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base">HRDF (HRD Corp levy)</CardTitle>
+          <CardDescription>
+            Per PSMB Act Sec. 2, the HRD Corp levy applies to Malaysian
+            citizens only. The org-level levy rate is set in Payroll
+            Settings; this card shows whether this employee will be
+            included on the next run.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <StatutoryDisplay
+            label="Levy applies to this employee?"
+            value={isMalaysianCitizen ? "Yes" : "No"}
+            note={
+              isMalaysianCitizen
+                ? "Malaysian citizen — levy applied at the org's HRDF rate (1.0% or 0.5% per Settings)."
+                : props.profile?.hasPr
+                  ? "PR holder — HRDF excludes PR per PSMB Act Sec. 2 (\"employee\" = citizen of Malaysia)."
+                  : "Foreign worker — HRDF doesn't apply."
+            }
+          />
+          <StatutoryDisplay
+            label="Levy wage base"
+            value="Basic + fixed allowances + leave pay + arrears"
+            note="Excludes travel allowance, gratuity, bonus, commission, BIK, and reimbursements (PSMB Act Sec. 2)."
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base">PCB (income tax)</CardTitle>
           <CardDescription>
-            PCB calculation is deferred to v2. Fields captured now for
-            future automation.
+            Monthly Tax Deduction per LHDN MTD Specification for 2026.
+            Capture the LHDN tax number for the CP39 submission file
+            (the calc still runs without it).
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
@@ -1301,6 +1421,154 @@ function StatutoryTab(props: {
             question="PCB borne by employer?"
             defaultChecked={props.profile?.pcbBorneByEmployer ?? false}
           />
+          <StatutoryDisplay
+            label="Tax residency"
+            value={
+              props.profile?.isResident
+                ? "Resident — progressive tax bands + reliefs"
+                : "Non-resident — flat 30% of taxable remuneration"
+            }
+            note={
+              props.profile?.isResident
+                ? "Annualised normal-remuneration formula plus AR delta for one-off bonus/commission."
+                : "No personal reliefs. Set in the Personal tab via the \"Resident\" toggle."
+            }
+          />
+          <StatutoryDisplay
+            label="Calculation status"
+            value={
+              incomeTaxNumberMissing
+                ? "Will run, but TIN missing"
+                : "Will run normally"
+            }
+            note={
+              incomeTaxNumberMissing
+                ? "LHDN MTD spec does not gate calculation on TIN — PCB will still be computed. The TIN is required only for the CP39 submission file, so add it before submitting to LHDN."
+                : "PCB will be computed using YTD income/EPF/zakat/PCB carryover from prior SUBMITTED payslips (plus TP3 prev-employer figures if same year)."
+            }
+          />
+          {props.profile?.isResident
+            ? (() => {
+                // Resolved annual reliefs that will be subtracted from
+                // chargeable income (D + S + DU + SU + Σ children).
+                // EPF (capped RM 4,000), zakat, and TP1 deductions are
+                // handled separately by the calc — not part of this
+                // sum. We show ALL components even when they are RM 0
+                // so the admin can see exactly which LHDN gate is
+                // open/closed for this employee.
+                const breakdown = calcResidentReliefsBreakdown({
+                  isOku: props.profile?.isOku ?? false,
+                  spouseWorking: props.profile?.spouseWorking ?? null,
+                  spouseDisabled: props.profile?.spouseDisabled ?? null,
+                  childRelief: props.profile?.childRelief ?? [],
+                })
+                const spouseClaimable =
+                  props.profile?.spouseWorking === false
+                const items: Array<{
+                  label: string
+                  amount: number
+                  reason?: string
+                }> = [
+                  {
+                    label: "Individual (D)",
+                    amount: breakdown.individual,
+                  },
+                  {
+                    label: "Disabled individual (DU)",
+                    amount: breakdown.disabledIndividual,
+                    reason:
+                      breakdown.disabledIndividual === 0
+                        ? "employee not OKU"
+                        : undefined,
+                  },
+                  {
+                    label: "Spouse (S)",
+                    amount: breakdown.spouse,
+                    reason:
+                      breakdown.spouse === 0
+                        ? props.profile?.spouseWorking === true
+                          ? "spouse is working"
+                          : props.profile?.spouseWorking == null
+                            ? "spouse working status not set"
+                            : undefined
+                        : undefined,
+                  },
+                  {
+                    label: "Disabled spouse (SU)",
+                    amount: breakdown.disabledSpouse,
+                    reason:
+                      breakdown.disabledSpouse === 0
+                        ? !spouseClaimable
+                          ? "spouse-relief gate is closed"
+                          : props.profile?.spouseDisabled !== true
+                            ? "spouse not marked disabled"
+                            : undefined
+                        : undefined,
+                  },
+                ]
+                const childCount = breakdown.childItems.length
+                const qualifyingCount = breakdown.childItems.filter(
+                  (a) => a > 0,
+                ).length
+                items.push({
+                  label:
+                    childCount === 0
+                      ? "Children (QC)"
+                      : `Children (QC) — ${qualifyingCount} of ${childCount} qualifying`,
+                  amount: breakdown.children,
+                  reason:
+                    breakdown.children === 0
+                      ? childCount === 0
+                        ? "no children entered"
+                        : "no qualifying children"
+                      : undefined,
+                })
+                return (
+                  <div className="md:col-span-2">
+                    <StatutoryDisplay
+                      label="Annual reliefs (PCB chargeable income deduction)"
+                      value={`RM ${breakdown.total.toLocaleString("en-MY", { minimumFractionDigits: 0 })}`}
+                      note={
+                        <div className="space-y-0.5 text-xs">
+                          {items.map((it) => (
+                            <div
+                              key={it.label}
+                              className="flex items-baseline justify-between gap-3"
+                            >
+                              <span className={it.amount === 0 ? "text-muted-foreground/70" : ""}>
+                                {it.label}
+                                {it.reason ? (
+                                  <span className="ml-1 text-[10px] italic text-muted-foreground/70">
+                                    — {it.reason}
+                                  </span>
+                                ) : null}
+                              </span>
+                              <span
+                                className={
+                                  it.amount === 0
+                                    ? "font-mono text-muted-foreground/70"
+                                    : "font-mono"
+                                }
+                              >
+                                RM {it.amount.toLocaleString("en-MY")}
+                              </span>
+                            </div>
+                          ))}
+                          <p className="mt-1 text-[11px]">
+                            Per LHDN MTD Spec 2026: spouse reliefs (S
+                            and SU) apply only when spouse has no
+                            income. EPF (capped RM 4,000) and zakat are
+                            subtracted separately by the calc. Update
+                            spouse / OKU / children in the Personal tab
+                            to change these figures.
+                          </p>
+                        </div>
+                      }
+                    />
+                  </div>
+                )
+              })()
+            : null}
         </CardContent>
       </Card>
 
@@ -1571,7 +1839,10 @@ function StatutoryDisplay({
 }: {
   label: string
   value: string
-  note?: string
+  /// `note` is either a single string (rendered as a <p>) or a full
+  /// React node (rendered as-is — used by the PCB reliefs breakdown
+  /// to render a vertical list inside the note area).
+  note?: React.ReactNode
   children?: React.ReactNode
 }) {
   return (
@@ -1597,7 +1868,14 @@ function StatutoryDisplay({
         {value}
       </div>
       {note ? (
-        <p className="text-[11px] text-muted-foreground">{note}</p>
+        typeof note === "string" ? (
+          <p className="text-[11px] text-muted-foreground">{note}</p>
+        ) : (
+          // Render React nodes (e.g. the PCB reliefs breakdown list)
+          // directly so callers can wrap them in their own block-level
+          // elements.
+          <div className="text-[11px] text-muted-foreground">{note}</div>
+        )
       ) : null}
       {children}
     </div>

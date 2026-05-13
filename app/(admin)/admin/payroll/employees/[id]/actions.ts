@@ -146,6 +146,9 @@ const employmentSchema = z.object({
   prevEmploymentYear: nullableInt(),
   prevRemuneration: nullableNumber(),
   prevEpf: nullableNumber(),
+  prevPcb: nullableNumber(),
+  prevZakat: nullableNumber(),
+  prevAllowableDeductions: nullableNumber(),
 })
 
 export async function savePayrollEmploymentAction(
@@ -171,6 +174,9 @@ export async function savePayrollEmploymentAction(
     prevEmploymentYear: formData.get("prevEmploymentYear"),
     prevRemuneration: formData.get("prevRemuneration"),
     prevEpf: formData.get("prevEpf"),
+    prevPcb: formData.get("prevPcb"),
+    prevZakat: formData.get("prevZakat"),
+    prevAllowableDeductions: formData.get("prevAllowableDeductions"),
   })
   if (!parsed.success) {
     return {

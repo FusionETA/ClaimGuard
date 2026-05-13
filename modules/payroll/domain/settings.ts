@@ -39,7 +39,7 @@ export type PayrollSettingsData = {
   defaultEpfEmployeeRate: number
   defaultEpfEmployerRate: number
 
-  // HRDF (calc deferred to v2; captured now)
+  // HRDF (HRD Corp levy) — Malaysian citizens only per PSMB Act 2001.
   hrdfEnabled: boolean
   hrdfRate: number | null
 
@@ -47,7 +47,7 @@ export type PayrollSettingsData = {
   employerIdNumber: string | null
   myCoOrSsmNumber: string | null
 
-  // Leave carry-forward (v2 placeholders)
+  // Leave carry-forward — placeholders for the upcoming leave module.
   leaveCarryForwardAllowed: boolean
   leaveCarryForwardLimitDays: number | null
   leaveCarryForwardExpiryMonths: number | null

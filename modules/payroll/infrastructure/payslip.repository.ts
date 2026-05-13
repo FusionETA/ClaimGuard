@@ -267,6 +267,11 @@ export const payslipRepository = {
     ytdTaxable: number
     ytdEpf: number
     ytdPcb: number
+    /// Z in the LHDN MTD formula — accumulated zakat actually
+    /// deducted from prior SUBMITTED payslips in this calendar year.
+    /// Subtracted from annual tax inside `calcPcb` because zakat
+    /// fully offsets MTD obligation.
+    ytdZakat: number
     /// YTD sum of allowance line items grouped by their
     /// `PayrollAdjustmentCategory` code. Used by the next run to
     /// enforce `taxExemptLimit` caps (e.g. childcare RM3,000/year).
@@ -281,6 +286,7 @@ export const payslipRepository = {
         ytdTaxable: 0,
         ytdEpf: 0,
         ytdPcb: 0,
+        ytdZakat: 0,
         ytdAllowanceByCategory: {},
       }
     }
@@ -301,6 +307,7 @@ export const payslipRepository = {
           otPay: true,
           epfEmployee: true,
           pcb: true,
+          zakat: true,
         },
       }),
       prisma.payslipLineItem.groupBy({
@@ -336,6 +343,7 @@ export const payslipRepository = {
         toNumber(agg._sum.otPay, 0),
       ytdEpf: toNumber(agg._sum.epfEmployee, 0),
       ytdPcb: toNumber(agg._sum.pcb, 0),
+      ytdZakat: toNumber(agg._sum.zakat, 0),
       ytdAllowanceByCategory,
     }
   },
