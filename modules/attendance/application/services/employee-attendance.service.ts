@@ -32,6 +32,21 @@ async function resolveGeofenceRadius(orgId: string | null): Promise<number> {
   return value ?? DEFAULT_GEOFENCE_RADIUS_METERS
 }
 
+/// Resolve whether the employee's assigned policy enforces the geofence
+/// check at clock-in. Defaults to `true` (the legacy behavior) when no
+/// policy is assigned. Used to short-circuit server-side validation for
+/// employees on a "no geofence" policy.
+async function policyEnforcesGeofence(employeeId: string): Promise<boolean> {
+  const prisma = getPrismaClient()
+  if (!prisma) return true
+  const row = await prisma.employeeProfile.findUnique({
+    where: { userId: employeeId },
+    select: { policy: { select: { requireGeofence: true } } },
+  })
+  if (!row?.policy) return true
+  return row.policy.requireGeofence
+}
+
 /**
  * Throws `OFF_SITE_REMARK_REQUIRED` if the employee is currently outside the
  * geofence of their active project AND has not provided a remark. Used by the
@@ -42,6 +57,8 @@ async function enforceGeofenceForActiveRecord(
   coords: { lat: number; lng: number } | undefined,
   notes: string | undefined,
 ): Promise<void> {
+  if (!(await policyEnforcesGeofence(employeeId))) return
+
   const projectId = await attendanceRepository.getTodayProjectId(employeeId)
   if (!projectId) return
 
@@ -258,10 +275,13 @@ export const employeeAttendanceService = {
     ])
     if (!project) throw new Error("Selected project does not exist")
 
-    const radius = await resolveGeofenceRadius(orgId)
-    const fence = checkGeofence(coords ?? null, project, radius)
-    if (!fence.withinRadius && !notes) {
-      throw new Error(OFF_SITE_REMARK_REQUIRED)
+    const enforceFence = await policyEnforcesGeofence(employeeId)
+    if (enforceFence) {
+      const radius = await resolveGeofenceRadius(orgId)
+      const fence = checkGeofence(coords ?? null, project, radius)
+      if (!fence.withinRadius && !notes) {
+        throw new Error(OFF_SITE_REMARK_REQUIRED)
+      }
     }
 
     const location = coords
