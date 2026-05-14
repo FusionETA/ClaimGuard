@@ -6,8 +6,10 @@ import type {
   PayrollEmployeeRow,
   PayrollProfileData,
 } from "@/modules/payroll/domain/models"
+import type { SalaryChangeData } from "@/modules/payroll/domain/salary-change"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
+import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-change.repository"
 
 /**
  * Page-data + action services for the admin payroll module.
@@ -76,6 +78,7 @@ export async function getPayrollEmployeeDetailPageData(input: {
       jobTitle: string
       profile: PayrollProfileData | null
       defaultEpfEmployerRate: number
+      salaryHistory: SalaryChangeData[]
     }
   | null
 > {
@@ -102,9 +105,10 @@ export async function getPayrollEmployeeDetailPageData(input: {
   })
   if (!user || !user.employeeProfile) return null
 
-  const [profile, settings] = await Promise.all([
+  const [profile, settings, salaryHistory] = await Promise.all([
     payrollProfileRepository.getByEmployeeProfileId(user.employeeProfile.id),
     payrollSettingsRepository.getByOrgId(orgId),
+    salaryChangeRepository.listForEmployee(user.employeeProfile.id),
   ])
 
   return {
@@ -116,6 +120,7 @@ export async function getPayrollEmployeeDetailPageData(input: {
     jobTitle: user.employeeProfile.jobTitle,
     profile,
     defaultEpfEmployerRate: settings?.defaultEpfEmployerRate ?? 13,
+    salaryHistory,
   }
 }
 

@@ -62,22 +62,65 @@ const RESIDENT_TAX_BANDS_2024: ReadonlyArray<{
 ]
 
 /**
+ * Annual tax rebate (LHDN MTD Spec for 2026, Table 1 Note).
+ * The rebate is allowed only when annual chargeable income (P)
+ * is ≤ RM 35,000.
+ *
+ *   - Category 1 (single) and Category 3 (married, spouse working,
+ *     divorced, or widowed): RM 400 individual rebate.
+ *   - Category 2 (married, spouse not working): RM 400 individual +
+ *     RM 400 spouse = RM 800.
+ *
+ * LHDN bakes this rebate into the `B` column of Table 1 — the
+ * negative `B` values for the 5,001-20,000 and 20,001-35,000 bands
+ * encode "marginal tax minus rebate" so the formula
+ * `(P-M)R + B` gives the post-rebate annual tax in one step. Our
+ * implementation does the same arithmetic but separates the two
+ * steps for clarity: marginal-band tax, then rebate subtraction.
+ *
+ * Above RM 35,000 chargeable income the rebate is NOT allowed and
+ * Table 1's `B` values are positive (cumulative marginal tax up to
+ * the band start).
+ */
+const REBATE_THRESHOLD = 35000
+const REBATE_INDIVIDUAL = 400
+const REBATE_SPOUSE = 400 // claimed alongside individual when spouseClaimable
+
+/**
  * Apply LHDN's progressive resident bands to an annual chargeable
- * income. Returns the annual tax owed in RM.
+ * income, then subtract the individual / spouse rebate (capped at
+ * the tax amount, can't go negative). Returns annual tax owed in
+ * RM.
+ *
+ *   - `chargeableIncome` (P): annual taxable income after EPF +
+ *     reliefs.
+ *   - `spouseClaimable`: true when the employee can claim the spouse
+ *     rebate (married AND spouse has no income; same gate as the
+ *     RM 4,000 S relief). When true the rebate doubles to RM 800.
  *
  * Negative or zero income returns 0.
  */
-export function applyResidentTaxBands(chargeableIncome: number): number {
+export function applyResidentTaxBands(
+  chargeableIncome: number,
+  spouseClaimable: boolean = false,
+): number {
   if (!Number.isFinite(chargeableIncome) || chargeableIncome <= 0) return 0
   let tax = 0
   let prevBound = 0
   for (const band of RESIDENT_TAX_BANDS_2024) {
     if (chargeableIncome <= band.upperBound) {
       tax += (chargeableIncome - prevBound) * band.rate
-      return Math.max(0, tax)
+      break
     }
     tax += (band.upperBound - prevBound) * band.rate
     prevBound = band.upperBound
+  }
+  // Individual rebate (LHDN cat 1/3 = RM 400; cat 2 = RM 800).
+  // Applied only when annual chargeable income ≤ RM 35,000.
+  if (chargeableIncome <= REBATE_THRESHOLD) {
+    const rebate =
+      REBATE_INDIVIDUAL + (spouseClaimable ? REBATE_SPOUSE : 0)
+    tax -= rebate
   }
   return Math.max(0, tax)
 }
@@ -334,6 +377,11 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   const reliefs = calcResidentReliefs(input.profile)
   const ytdZakat = Math.max(0, input.ytdZakat ?? 0)
 
+  // LHDN individual rebate doubles to RM 800 when the spouse has no
+  // income (Category 2). Same gate as the RM 4,000 S relief, applied
+  // both here (rebate) and in calcResidentReliefs (deduction).
+  const spouseClaimable = input.profile.spouseWorking === false
+
   // Chargeable income — without and with the AR.
   const chargeableNormal = Math.max(0, annualTaxable - annualEpfNormal - reliefs)
   const chargeableWithAr = Math.max(
@@ -341,8 +389,14 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
     annualTaxable + arTaxable - annualEpfWithAr - reliefs,
   )
 
-  const annualTaxNormal = applyResidentTaxBands(chargeableNormal)
-  const annualTaxWithAr = applyResidentTaxBands(chargeableWithAr)
+  const annualTaxNormal = applyResidentTaxBands(
+    chargeableNormal,
+    spouseClaimable,
+  )
+  const annualTaxWithAr = applyResidentTaxBands(
+    chargeableWithAr,
+    spouseClaimable,
+  )
 
   // PCB on normal remuneration: balance owed for the year, spread.
   // Per LHDN formula `MTD = [(P-M)R + B - (Z + X)] / (n+1)`, we

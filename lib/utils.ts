@@ -5,10 +5,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
+/**
+ * Default currency formatter — Malaysian Ringgit (MYR), en-MY locale.
+ * Renders as "RM 1,234.56". AltomateHR is Malaysia-first; pass a
+ * `currency` argument (e.g. "USD", "SGD") when you need something
+ * else.
+ */
+export function formatCurrency(
+  value: number,
+  currency: string = "MYR",
+): string {
+  return new Intl.NumberFormat("en-MY", {
     style: "currency",
-    currency: "USD",
+    currency,
     maximumFractionDigits: 2,
   }).format(value)
 }

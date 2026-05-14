@@ -157,6 +157,17 @@ export const OtPayoutMethod = {
 export type OtPayoutMethod = (typeof OtPayoutMethod)[keyof typeof OtPayoutMethod]
 
 
+export const SalaryChangeReason = {
+  RAISE: 'RAISE',
+  PROMOTION: 'PROMOTION',
+  DEMOTION: 'DEMOTION',
+  RESTRUCTURE: 'RESTRUCTURE',
+  OTHER: 'OTHER'
+} as const
+
+export type SalaryChangeReason = (typeof SalaryChangeReason)[keyof typeof SalaryChangeReason]
+
+
 export const Gender = {
   MALE: 'MALE',
   FEMALE: 'FEMALE'

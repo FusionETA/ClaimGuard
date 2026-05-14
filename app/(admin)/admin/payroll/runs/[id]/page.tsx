@@ -3,12 +3,10 @@ import type { Route } from "next"
 import { redirect } from "next/navigation"
 import {
   ChevronLeft,
-  ChevronRight,
   ClipboardList,
   Download,
   FileText,
   Receipt,
-  Sliders,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -27,6 +25,7 @@ import {
 import { DeletePayrollRunDraftButton } from "@/components/admin/delete-payroll-run-draft-button"
 import { GeneratePayslipsButton } from "@/components/admin/generate-payslips-button"
 import { PayrollRunEmployeeTables } from "@/components/admin/payroll-run-employee-tables"
+import { PayslipsListPanel } from "@/components/admin/payslip-list-panel"
 import {
   RevertPayrollRunButton,
   SubmitPayrollRunButton,
@@ -37,7 +36,6 @@ import {
   periodLabel,
   type AttachableClaimRow,
   type PayrollRunClaimRow,
-  type PayslipRow,
 } from "@/modules/payroll/domain/runs"
 
 /**
@@ -148,29 +146,11 @@ export default async function AdminPayrollRunDetailPage({
       ) : null}
 
       {data.payslips.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <FileText className="h-4 w-4" />
-              Payslips
-            </CardTitle>
-            <CardDescription>
-              {data.payslips.length} payslip
-              {data.payslips.length === 1 ? "" : "s"} on file. Click any
-              row to view the breakdown.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-1.5">
-            {data.payslips.map((p) => (
-              <PayslipLink
-                key={p.id}
-                runId={data.run.id}
-                payslip={p}
-                showAdjustLink={isDraft}
-              />
-            ))}
-          </CardContent>
-        </Card>
+        <PayslipsListPanel
+          runId={data.run.id}
+          payslips={data.payslips}
+          showAdjustLink={isDraft}
+        />
       ) : null}
 
       {data.payslips.length > 0 ? (
@@ -336,51 +316,6 @@ function Stat(props: {
             ? formatMyr(props.value)
             : String(props.value)}
       </div>
-    </div>
-  )
-}
-
-function PayslipLink({
-  runId,
-  payslip,
-  showAdjustLink,
-}: {
-  runId: string
-  payslip: PayslipRow
-  showAdjustLink: boolean
-}) {
-  return (
-    <div className="flex w-full items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2 text-sm transition hover:border-primary/40 hover:bg-primary/5">
-      <Link
-        href={`/admin/payroll/runs/${runId}/payslips/${payslip.id}` as Route}
-        className="flex min-w-0 flex-1 items-center justify-between gap-3"
-      >
-        <div className="flex min-w-0 flex-col">
-          <span className="truncate font-medium text-foreground">
-            {payslip.snapshotName}
-            <span className="ml-2 text-xs text-muted-foreground">
-              {payslip.snapshotEmployeeId}
-            </span>
-          </span>
-          <span className="truncate text-xs text-muted-foreground">
-            {payslip.snapshotPosition ?? "—"} · Gross{" "}
-            {formatMyr(payslip.grossPay)} · Net {formatMyr(payslip.netPay)}
-          </span>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Link>
-      {showAdjustLink && (
-        <Link
-          href={
-            `/admin/payroll/runs/${runId}/employees/${payslip.employeeProfileId}` as Route
-          }
-          title="Edit OT / adjustments"
-          className="inline-flex h-7 items-center gap-1 rounded-md border border-border/70 px-2 text-xs text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
-        >
-          <Sliders className="h-3 w-3" />
-          Adjust
-        </Link>
-      )}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useMemo, useState } from "react"
+import { useActionState, useMemo, useRef, useState } from "react"
 import { Plus, Trash2 } from "lucide-react"
 
 import {
@@ -19,6 +19,14 @@ import {
 } from "@/components/admin/payroll-form-controls"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { ConfirmSubmitButton } from "@/components/ui/confirm-action-dialog"
 import {
   Card,
@@ -34,6 +42,13 @@ import { useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
 import { calcResidentReliefsBreakdown } from "@/modules/payroll/domain/pcb"
+import {
+  SALARY_CHANGE_REASONS,
+  SALARY_CHANGE_REASON_LABELS,
+  computeRaisePercent,
+  type SalaryChangeData,
+  type SalaryChangeReason,
+} from "@/modules/payroll/domain/salary-change"
 import {
   ID_TYPE_LABELS,
   MARITAL_STATUS_LABELS,
@@ -83,6 +98,7 @@ export function PayrollEmployeeDetail(props: {
   }
   profile: PayrollProfileData | null
   defaultEpfEmployerRate: number
+  salaryHistory: SalaryChangeData[]
 }) {
   const [tab, setTab] = useState<Tab>("personal")
   const personalComplete = isPersonalTabComplete(props.profile)
@@ -119,7 +135,11 @@ export function PayrollEmployeeDetail(props: {
         <PersonalTab userId={props.userId} profile={props.profile} />
       )}
       {tab === "employment" && (
-        <EmploymentTab userId={props.userId} profile={props.profile} />
+        <EmploymentTab
+          userId={props.userId}
+          profile={props.profile}
+          salaryHistory={props.salaryHistory}
+        />
       )}
       {tab === "statutory" && (
         <StatutoryTab
@@ -617,6 +637,7 @@ function PersonalTab(props: {
 function EmploymentTab(props: {
   userId: string
   profile: PayrollProfileData | null
+  salaryHistory: SalaryChangeData[]
 }) {
   const [state, action, pending] = useActionState(
     savePayrollEmploymentAction,
@@ -645,6 +666,38 @@ function EmploymentTab(props: {
       : "",
   )
   const [joinDate, setJoinDate] = useState(props.profile?.joinDate ?? "")
+
+  // Salary-change classification dialog. When the admin clicks Save:
+  //   1. We diff the live salary values against the saved snapshot.
+  //   2. If they're unchanged, the form submits silently.
+  //   3. If they changed, we open the dialog forcing the admin to
+  //      classify as Typo (no audit row) or Real change (with reason
+  //      + effective date + notes). The form submits after they pick.
+  const [salaryDialogOpen, setSalaryDialogOpen] = useState(false)
+  const [salaryChangeKind, setSalaryChangeKind] = useState<
+    "TYPO" | SalaryChangeReason | null
+  >(null)
+  const [salaryChangeEffectiveDate, setSalaryChangeEffectiveDate] = useState(
+    () => new Date().toISOString().slice(0, 10),
+  )
+  const [salaryChangeNotes, setSalaryChangeNotes] = useState("")
+  const pendingFormRef = useRef<HTMLFormElement | null>(null)
+
+  function salaryHasChanged(): boolean {
+    const savedType = props.profile?.salaryType ?? "MONTHLY"
+    if (salaryType !== savedType) return true
+    const savedMonthly =
+      props.profile?.monthlySalary != null
+        ? String(props.profile.monthlySalary)
+        : ""
+    if (salaryType === "MONTHLY" && monthlySalary !== savedMonthly) return true
+    const savedHourly =
+      props.profile?.hourlyRate != null
+        ? String(props.profile.hourlyRate)
+        : ""
+    if (salaryType === "HOURLY" && hourlyRate !== savedHourly) return true
+    return false
+  }
 
   const monthlySalaryMissing =
     salaryType === "MONTHLY" && monthlySalary.trim() === ""
@@ -683,8 +736,46 @@ function EmploymentTab(props: {
           form (not nested inside it) because the card contains its own
           upload + delete forms. Nesting <form> inside <form> is invalid
           HTML and triggers a React hydration error. */}
-      <form action={action} className="space-y-6">
+      <form
+        ref={pendingFormRef}
+        action={action}
+        className="space-y-6"
+        onSubmit={(e) => {
+          // Intercept the very first submit attempt when the salary
+          // actually changed. We open the classification dialog and
+          // let the admin pick TYPO vs a real reason; the second
+          // submit (from the dialog's "Save" button) is allowed
+          // through because `salaryChangeKind` will have been set.
+          if (salaryHasChanged() && salaryChangeKind === null) {
+            e.preventDefault()
+            setSalaryDialogOpen(true)
+          }
+        }}
+      >
       <input type="hidden" name="userId" value={props.userId} hidden />
+      <input
+        type="hidden"
+        name="salaryChangeKind"
+        value={salaryChangeKind ?? ""}
+      />
+      <input
+        type="hidden"
+        name="salaryChangeEffectiveDate"
+        value={
+          salaryChangeKind && salaryChangeKind !== "TYPO"
+            ? salaryChangeEffectiveDate
+            : ""
+        }
+      />
+      <input
+        type="hidden"
+        name="salaryChangeNotes"
+        value={
+          salaryChangeKind && salaryChangeKind !== "TYPO"
+            ? salaryChangeNotes
+            : ""
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -887,9 +978,40 @@ function EmploymentTab(props: {
       </div>
       </form>
 
+      <SalaryHistoryCard history={props.salaryHistory} />
+
       <PayrollDocumentsCard
         userId={props.userId}
         documents={props.profile?.payrollDocuments ?? []}
+      />
+
+      <SalaryChangeDialog
+        open={salaryDialogOpen}
+        onOpenChange={(next) => {
+          setSalaryDialogOpen(next)
+          if (!next) setSalaryChangeKind(null)
+        }}
+        previousSalaryType={props.profile?.salaryType ?? "MONTHLY"}
+        previousMonthlySalary={props.profile?.monthlySalary ?? null}
+        previousHourlyRate={props.profile?.hourlyRate ?? null}
+        newSalaryType={salaryType}
+        newMonthlySalary={monthlySalary}
+        newHourlyRate={hourlyRate}
+        kind={salaryChangeKind}
+        setKind={setSalaryChangeKind}
+        effectiveDate={salaryChangeEffectiveDate}
+        setEffectiveDate={setSalaryChangeEffectiveDate}
+        notes={salaryChangeNotes}
+        setNotes={setSalaryChangeNotes}
+        onConfirm={() => {
+          // Close the dialog and re-submit the form. The next submit
+          // sees `salaryChangeKind !== null` so the intercept lets
+          // it through.
+          setSalaryDialogOpen(false)
+          // requestSubmit() lets the action fire via the standard
+          // React useActionState pipeline (vs .submit() which bypasses it).
+          pendingFormRef.current?.requestSubmit()
+        }}
       />
     </div>
   )
@@ -1398,6 +1520,40 @@ function StatutoryTab(props: {
         </CardContent>
       </Card>
 
+      {/* Zakat card — only shown when race = "M" (Malay), since under
+          Federal Constitution Art. 160 a Malay is by definition Muslim
+          and therefore eligible for zakat pendapatan. Non-Malay
+          Muslims (Chinese-Muslim, Indian-Muslim) can still have zakat
+          added as a manual deduction line item on the monthly
+          adjustment form; this card is a UX hint, not a gate. */}
+      {props.profile?.race === "M" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Zakat pendapatan</CardTitle>
+            <CardDescription>
+              Detected race = Malay, so this employee is eligible for
+              zakat-on-income contributions through salary deduction.
+              The amount is decided by the employee (typically via Form
+              Akuan filed with the state Zakat authority) — enter it
+              on the monthly adjustment form using the &ldquo;Zakat
+              Deduction&rdquo; category.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2">
+            <StatutoryDisplay
+              label="Eligibility"
+              value="Yes (Malay)"
+              note="Per Federal Constitution Art. 160, Malays are constitutionally Muslim and eligible for zakat pendapatan."
+            />
+            <StatutoryDisplay
+              label="Effect on PCB"
+              value="Offsets PCB owed for the month"
+              note="The deducted zakat reduces this month's PCB (net MTD floored at RM 0). Accumulated zakat (Z) also reduces the annual chargeable income for subsequent months' PCB calc — LHDN MTD Spec 2026."
+            />
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">PCB (income tax)</CardTitle>
@@ -1416,10 +1572,17 @@ function StatutoryTab(props: {
               aria-invalid={incomeTaxNumberMissing || undefined}
             />
           </Field>
-          <Toggle
+          {/* "PCB borne by employer" toggle removed — the gross-up
+              calculation is listed in the "Upcoming features" card
+              on the payroll landing page. The schema field stays so
+              we can wire it back when gross-up ships. A hidden input
+              keeps the existing persisted value flowing to the
+              server on save so older records aren't silently flipped
+              to false. */}
+          <input
+            type="hidden"
             name="pcbBorneByEmployer"
-            question="PCB borne by employer?"
-            defaultChecked={props.profile?.pcbBorneByEmployer ?? false}
+            value={props.profile?.pcbBorneByEmployer ? "true" : ""}
           />
           <StatutoryDisplay
             label="Tax residency"
@@ -1831,6 +1994,226 @@ function Field({
  * an editable input. Accepts children for any hidden inputs that
  * still need to flow with the form.
  */
+
+// ─── Salary change dialog + history card ────────────────────────────────
+
+/**
+ * Modal shown the moment an admin clicks "Save Employment" while the
+ * salary value differs from the persisted snapshot. Forces them to
+ * classify the change so we can record an audit-grade history row.
+ */
+function SalaryChangeDialog(props: {
+  open: boolean
+  onOpenChange: (next: boolean) => void
+  previousSalaryType: "MONTHLY" | "HOURLY"
+  previousMonthlySalary: number | null
+  previousHourlyRate: number | null
+  newSalaryType: "MONTHLY" | "HOURLY"
+  newMonthlySalary: string
+  newHourlyRate: string
+  kind: "TYPO" | SalaryChangeReason | null
+  setKind: (k: "TYPO" | SalaryChangeReason) => void
+  effectiveDate: string
+  setEffectiveDate: (d: string) => void
+  notes: string
+  setNotes: (n: string) => void
+  onConfirm: () => void
+}) {
+  const oldText =
+    props.previousSalaryType === "MONTHLY"
+      ? `RM ${(props.previousMonthlySalary ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / mo`
+      : `RM ${(props.previousHourlyRate ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / hr`
+  const newText =
+    props.newSalaryType === "MONTHLY"
+      ? `RM ${(Number(props.newMonthlySalary) || 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / mo`
+      : `RM ${(Number(props.newHourlyRate) || 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / hr`
+
+  const isRealChange = props.kind !== null && props.kind !== "TYPO"
+
+  return (
+    <Dialog open={props.open} onOpenChange={props.onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Why is the salary changing?</DialogTitle>
+          <DialogDescription>
+            <span className="font-mono text-foreground">{oldText}</span>{" "}
+            → <span className="font-mono text-foreground">{newText}</span>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border/70 bg-card p-3 text-sm transition hover:border-primary/40">
+            <input
+              type="radio"
+              name="salary-change-kind"
+              checked={props.kind === "TYPO"}
+              onChange={() => props.setKind("TYPO")}
+              className="mt-0.5"
+            />
+            <div>
+              <div className="font-medium text-foreground">
+                Typo / data-entry correction
+              </div>
+              <p className="text-xs text-muted-foreground">
+                No history entry created. Use this when the previous
+                value was just a mistake.
+              </p>
+            </div>
+          </label>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border/70 bg-card p-3 text-sm transition hover:border-primary/40">
+            <input
+              type="radio"
+              name="salary-change-kind"
+              checked={isRealChange}
+              onChange={() => props.setKind("RAISE")}
+              className="mt-0.5"
+            />
+            <div className="flex-1">
+              <div className="font-medium text-foreground">
+                Real change (raise, promotion, restructure)
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Recorded in the salary history for audit, HR review,
+                and Industrial Relations purposes.
+              </p>
+              {isRealChange ? (
+                <div className="mt-3 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Reason">
+                      <NativeSelect
+                        value={props.kind ?? "RAISE"}
+                        onChange={(e) =>
+                          props.setKind(e.target.value as SalaryChangeReason)
+                        }
+                      >
+                        {SALARY_CHANGE_REASONS.map((r) => (
+                          <option key={r} value={r}>
+                            {SALARY_CHANGE_REASON_LABELS[r]}
+                          </option>
+                        ))}
+                      </NativeSelect>
+                    </Field>
+                    <Field label="Effective from">
+                      <Input
+                        type="date"
+                        value={props.effectiveDate}
+                        onChange={(e) =>
+                          props.setEffectiveDate(e.target.value)
+                        }
+                      />
+                    </Field>
+                  </div>
+                  <Field label="Notes (optional)">
+                    <Input
+                      value={props.notes}
+                      onChange={(e) => props.setNotes(e.target.value)}
+                      placeholder="e.g. Annual review 2026 / Q3 promotion"
+                    />
+                  </Field>
+                </div>
+              ) : null}
+            </div>
+          </label>
+        </div>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => props.onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={props.kind === null}
+            onClick={props.onConfirm}
+          >
+            Save salary change
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/**
+ * Read-only timeline of legitimate salary changes for the employee.
+ * Empty state: render nothing — admins don't need to see "no history
+ * yet" noise on every new hire.
+ */
+function SalaryHistoryCard({ history }: { history: SalaryChangeData[] }) {
+  if (history.length === 0) return null
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Salary history</CardTitle>
+        <CardDescription>
+          Audit trail of legitimate compensation changes. Typo
+          corrections are NOT listed here.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {history.map((change) => {
+          const pct = computeRaisePercent(change)
+          const oldText =
+            change.previousSalaryType === "MONTHLY"
+              ? `RM ${(change.previousMonthlySalary ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / mo`
+              : `RM ${(change.previousHourlyRate ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / hr`
+          const newText =
+            change.newSalaryType === "MONTHLY"
+              ? `RM ${(change.newMonthlySalary ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / mo`
+              : `RM ${(change.newHourlyRate ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / hr`
+          return (
+            <div
+              key={change.id}
+              className="rounded-2xl border border-border/70 bg-card p-3 text-sm"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div className="font-medium text-foreground">
+                  {SALARY_CHANGE_REASON_LABELS[change.reason]}
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">
+                    Effective {change.effectiveDate}
+                  </span>
+                </div>
+                {pct !== null ? (
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                      pct >= 0
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                        : "bg-destructive/15 text-destructive",
+                    )}
+                  >
+                    {pct >= 0 ? "+" : ""}
+                    {pct.toFixed(2)}%
+                  </span>
+                ) : null}
+              </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                <span className="font-mono">{oldText}</span>
+                {" → "}
+                <span className="font-mono text-foreground">{newText}</span>
+              </div>
+              {change.notes ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {change.notes}
+                </p>
+              ) : null}
+              <p className="mt-1 text-[11px] text-muted-foreground/80">
+                Recorded {new Date(change.createdAt).toLocaleDateString()} by{" "}
+                {change.changedByName ?? "system"}
+              </p>
+            </div>
+          )
+        })}
+      </CardContent>
+    </Card>
+  )
+}
+
 function StatutoryDisplay({
   label,
   value,

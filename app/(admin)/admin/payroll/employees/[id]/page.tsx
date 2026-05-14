@@ -82,6 +82,7 @@ export default async function AdminPayrollEmployeeDetailPage({
         }}
         profile={data.profile}
         defaultEpfEmployerRate={data.defaultEpfEmployerRate}
+        salaryHistory={data.salaryHistory}
       />
     </div>
   )

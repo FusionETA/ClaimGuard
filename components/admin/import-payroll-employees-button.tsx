@@ -351,7 +351,7 @@ function MapStep({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border border-border/60">
+      <div className="overflow-x-auto rounded-lg border border-border/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
@@ -545,7 +545,7 @@ function PreviewStep({
       </p>
 
       {preview.preview.length > 0 ? (
-        <div className="overflow-x-auto rounded-lg border border-border/60">
+        <div className="overflow-x-auto rounded-lg border border-border/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <table className="w-full text-xs">
             <thead className="bg-muted/40 uppercase tracking-wide text-muted-foreground">
               <tr>
@@ -643,16 +643,84 @@ function DoneStep({
   result: MappedImportResult
   onClose: () => void
 }) {
+  // "Nothing imported because every row had an error" needs a
+  // different framing than "all rows imported successfully", which
+  // needs a different framing again from "some rows imported, some
+  // had errors". Pick the headline + colour based on what actually
+  // landed in the DB.
+  const everythingFailed =
+    result.created === 0 &&
+    result.updated === 0 &&
+    result.errors.length > 0
+  const partialSuccess =
+    (result.created > 0 || result.updated > 0) && result.errors.length > 0
+
   return (
     <>
-      <div className="rounded-lg border border-emerald-300/60 bg-emerald-50/40 p-3 text-sm dark:border-emerald-700/40 dark:bg-emerald-950/20">
-        <div className="font-medium">Import complete.</div>
-        <div className="mt-1 text-xs text-muted-foreground">
-          {result.created} created · {result.updated} updated ·{" "}
-          {result.skipped.length} skipped · {result.total} rows in
-          file.
+      {everythingFailed ? (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 text-sm">
+          <div className="font-medium text-destructive">
+            Import failed — nothing was saved.
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {result.errors.length} row
+            {result.errors.length === 1 ? "" : "s"} could not be
+            imported. See the details below, fix the file, and try
+            again.
+          </div>
         </div>
-      </div>
+      ) : partialSuccess ? (
+        <div className="rounded-lg border border-amber-300/60 bg-amber-50/40 p-3 text-sm dark:border-amber-700/40 dark:bg-amber-950/20">
+          <div className="font-medium text-foreground">
+            Import partially complete.
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {result.created} created · {result.updated} updated ·{" "}
+            {result.errors.length} row
+            {result.errors.length === 1 ? "" : "s"} failed ·{" "}
+            {result.skipped.length} skipped · {result.total} rows in
+            file.
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-emerald-300/60 bg-emerald-50/40 p-3 text-sm dark:border-emerald-700/40 dark:bg-emerald-950/20">
+          <div className="font-medium">Import complete.</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {result.created} created · {result.updated} updated ·{" "}
+            {result.skipped.length} skipped · {result.total} rows in
+            file.
+          </div>
+        </div>
+      )}
+
+      {result.errors.length > 0 && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs">
+          <p className="font-medium text-foreground">
+            Errors that blocked these rows:
+          </p>
+          <ul className="mt-1 max-h-48 overflow-y-auto space-y-1.5 text-muted-foreground">
+            {result.errors.map((rowError, idx) => (
+              <li key={`${rowError.rowNumber}-${idx}`}>
+                {rowError.rowNumber > 0 ? (
+                  <span className="font-medium text-foreground">
+                    Row {rowError.rowNumber}:
+                  </span>
+                ) : null}{" "}
+                <ul className="mt-0.5 list-disc pl-5">
+                  {rowError.errors.map((fe, j) => (
+                    <li key={j}>
+                      <span className="font-medium text-foreground">
+                        {fe.field}
+                      </span>{" "}
+                      — {fe.message}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {result.skipped.length > 0 && (
         <div className="rounded-lg border border-amber-300/60 bg-amber-50/40 p-3 text-xs dark:border-amber-700/40 dark:bg-amber-950/20">
@@ -671,7 +739,7 @@ function DoneStep({
 
       <div className="flex justify-end pt-2">
         <Button type="button" onClick={onClose}>
-          Done
+          {everythingFailed ? "Close" : "Done"}
         </Button>
       </div>
     </>

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import {
   Banknote,
   ClipboardList,
+  Clock,
   Settings2,
   Users,
 } from "lucide-react"
@@ -273,19 +274,55 @@ export default async function AdminPayrollPage() {
               </TableRow>
             </TableBody>
           </Table>
-
           <p className="mt-4 text-xs text-muted-foreground">
-            Items not yet implemented:{" "}
-            <span className="font-medium">TP1 optional deductions</span>{" "}
-            (life insurance, lifestyle, parents&apos; medical, etc.) —
-            employees claim these at year-end via Form BE;{" "}
-            <span className="font-medium">
-              PCB borne by employer gross-up
-            </span>{" "}
-            (flag captured but no gross-up math). All other LHDN /
-            KWSP / PERKESO / HRD Corp rules above match the gazetted
-            schedules row-for-row.
+            All LHDN / KWSP / PERKESO / HRD Corp rules above match the
+            gazetted schedules row-for-row.
           </p>
+        </CardContent>
+      </Card>
+
+      {/* ─── Upcoming functionality (roadmap transparency) ─────────── */}
+      <Card className="border-amber-200/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/15">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Clock className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+            Upcoming features
+          </CardTitle>
+          <CardDescription>
+            The following items are planned but not yet active. Until
+            they ship, the workarounds noted below apply.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[240px]">Feature</TableHead>
+                <TableHead>What it will do</TableHead>
+                <TableHead>Workaround today</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">
+                  PCB borne by employer (gross-up)
+                </TableCell>
+                <TableCell>
+                  For employees on net-of-tax contracts, the system
+                  will compute the perquisite tax via LHDN&apos;s
+                  iterative gross-up so the employer pays the correct
+                  PCB without under-withholding.
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  Leave the &ldquo;PCB borne by employer&rdquo; toggle
+                  OFF on every profile. If you have a net-of-tax
+                  arrangement, compute the gross-up externally and
+                  enter the perquisite manually using the{" "}
+                  <code>wages_tax_borne_by_employer</code> line item.
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

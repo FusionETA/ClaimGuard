@@ -410,6 +410,7 @@ export const ModelName = {
   Team: 'Team',
   EmployeeTeamMembership: 'EmployeeTeamMembership',
   PayrollProfile: 'PayrollProfile',
+  SalaryChange: 'SalaryChange',
   PayrollSettings: 'PayrollSettings',
   PayrollCompanyInfo: 'PayrollCompanyInfo',
   PayrollRun: 'PayrollRun',
@@ -432,7 +433,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2152,6 +2153,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SalaryChange: {
+      payload: Prisma.$SalaryChangePayload<ExtArgs>
+      fields: Prisma.SalaryChangeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SalaryChangeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryChangePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SalaryChangeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryChangePayload>
+        }
+        findFirst: {
+          args: Prisma.SalaryChangeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryChangePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SalaryChangeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryChangePayload>
+        }
+        findMany: {
+          args: Prisma.SalaryChangeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryChangePayload>[]
+        }
+        create: {
+          args: Prisma.SalaryChangeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryChangePayload>
+        }
+        createMany: {
+          args: Prisma.SalaryChangeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.SalaryChangeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryChangePayload>
+        }
+        update: {
+          args: Prisma.SalaryChangeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryChangePayload>
+        }
+        deleteMany: {
+          args: Prisma.SalaryChangeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SalaryChangeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.SalaryChangeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SalaryChangePayload>
+        }
+        aggregate: {
+          args: Prisma.SalaryChangeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSalaryChange>
+        }
+        groupBy: {
+          args: Prisma.SalaryChangeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalaryChangeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SalaryChangeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SalaryChangeCountAggregateOutputType> | number
+        }
+      }
+    }
     PayrollSettings: {
       payload: Prisma.$PayrollSettingsPayload<ExtArgs>
       fields: Prisma.PayrollSettingsFieldRefs
@@ -3175,6 +3242,25 @@ export const PayrollProfileScalarFieldEnum = {
 export type PayrollProfileScalarFieldEnum = (typeof PayrollProfileScalarFieldEnum)[keyof typeof PayrollProfileScalarFieldEnum]
 
 
+export const SalaryChangeScalarFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  effectiveDate: 'effectiveDate',
+  previousSalaryType: 'previousSalaryType',
+  previousMonthlySalary: 'previousMonthlySalary',
+  previousHourlyRate: 'previousHourlyRate',
+  newSalaryType: 'newSalaryType',
+  newMonthlySalary: 'newMonthlySalary',
+  newHourlyRate: 'newHourlyRate',
+  reason: 'reason',
+  notes: 'notes',
+  changedByUserId: 'changedByUserId',
+  createdAt: 'createdAt'
+} as const
+
+export type SalaryChangeScalarFieldEnum = (typeof SalaryChangeScalarFieldEnum)[keyof typeof SalaryChangeScalarFieldEnum]
+
+
 export const PayrollSettingsScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -3293,7 +3379,6 @@ export const PayrollRunAdjustmentScalarFieldEnum = {
   otPublicHours: 'otPublicHours',
   manualLineItems: 'manualLineItems',
   fixedAllowanceOverrides: 'fixedAllowanceOverrides',
-  unpaidLeaveDeduction: 'unpaidLeaveDeduction',
   notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -3329,7 +3414,6 @@ export const PayslipScalarFieldEnum = {
   totalAllowances: 'totalAllowances',
   totalReimbursements: 'totalReimbursements',
   totalDeductions: 'totalDeductions',
-  unpaidLeaveDeduction: 'unpaidLeaveDeduction',
   epfEmployee: 'epfEmployee',
   epfEmployer: 'epfEmployer',
   socsoEmployee: 'socsoEmployee',
@@ -3759,6 +3843,16 @@ export const PayrollProfileOrderByRelevanceFieldEnum = {
 export type PayrollProfileOrderByRelevanceFieldEnum = (typeof PayrollProfileOrderByRelevanceFieldEnum)[keyof typeof PayrollProfileOrderByRelevanceFieldEnum]
 
 
+export const SalaryChangeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  notes: 'notes',
+  changedByUserId: 'changedByUserId'
+} as const
+
+export type SalaryChangeOrderByRelevanceFieldEnum = (typeof SalaryChangeOrderByRelevanceFieldEnum)[keyof typeof SalaryChangeOrderByRelevanceFieldEnum]
+
+
 export const PayrollSettingsOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -4080,6 +4174,13 @@ export type EnumSalaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
 
 
 /**
+ * Reference to a field of type 'SalaryChangeReason'
+ */
+export type EnumSalaryChangeReasonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SalaryChangeReason'>
+    
+
+
+/**
  * Reference to a field of type 'WorkingDaysRule'
  */
 export type EnumWorkingDaysRuleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkingDaysRule'>
@@ -4220,6 +4321,7 @@ export type GlobalOmitConfig = {
   team?: Prisma.TeamOmit
   employeeTeamMembership?: Prisma.EmployeeTeamMembershipOmit
   payrollProfile?: Prisma.PayrollProfileOmit
+  salaryChange?: Prisma.SalaryChangeOmit
   payrollSettings?: Prisma.PayrollSettingsOmit
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoOmit
   payrollRun?: Prisma.PayrollRunOmit

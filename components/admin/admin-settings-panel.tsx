@@ -3261,6 +3261,18 @@ function CurrencySettingsForm({
   )
   const [search, setSearch] = useState("")
 
+  // After a successful save, the parent receives fresh org data and passes
+  // new `initialAllowed`/`initialDefault` props. Sync local state to those
+  // server-truth values so the UI reflects the saved selection immediately.
+  // We key the effect off the joined string so a new array reference with
+  // identical contents doesn't re-trigger the sync mid-edit.
+  const allowedKey = initialAllowed.join(",")
+  useEffect(() => {
+    setAllowed(initialAllowed)
+    setDefaultCode(initialDefault ?? initialAllowed[0] ?? "")
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allowedKey, initialDefault])
+
   const filtered = CURRENCY_CATALOG.filter((c) => {
     if (!search.trim()) return true
     const q = search.trim().toLowerCase()

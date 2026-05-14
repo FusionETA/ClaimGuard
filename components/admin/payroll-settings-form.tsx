@@ -63,9 +63,16 @@ const FORM_E_COMPLETION_FIELDS: Array<keyof PayrollCompanyInfoData> = [
  *   - General    → PayrollSettings  (OT, EPF defaults, working days, HRDF)
  *   - Form E     → PayrollCompanyInfo (LHDN employer particulars)
  */
+export type HrdfTier = "PART_I" | "PART_II" | "NOT_APPLICABLE"
+
 export function PayrollSettingsForm(props: {
   settings: PayrollSettingsData | null
   companyInfo: PayrollCompanyInfoData | null
+  /// Number of active Malaysian-citizen employees in the org. Drives
+  /// the HRDF tier (Part I vs Part II vs not-applicable) and whether
+  /// the HRDF toggle is locked or editable.
+  malaysianEmployeeCount: number
+  hrdfTier: HrdfTier
 }) {
   const [tab, setTab] = useState<Tab>("general")
   const generalComplete = props.settings !== null
@@ -90,7 +97,13 @@ export function PayrollSettingsForm(props: {
         </TabPill>
       </nav>
 
-      {tab === "general" && <GeneralTab settings={props.settings} />}
+      {tab === "general" && (
+        <GeneralTab
+          settings={props.settings}
+          malaysianEmployeeCount={props.malaysianEmployeeCount}
+          hrdfTier={props.hrdfTier}
+        />
+      )}
       {tab === "formE" && <FormETab companyInfo={props.companyInfo} />}
     </div>
   )
@@ -144,7 +157,11 @@ function TabPill({
 
 // ─── General tab ──────────────────────────────────────────────────────────
 
-function GeneralTab(props: { settings: PayrollSettingsData | null }) {
+function GeneralTab(props: {
+  settings: PayrollSettingsData | null
+  malaysianEmployeeCount: number
+  hrdfTier: HrdfTier
+}) {
   const [state, action, pending] = useActionState(
     savePayrollSettingsAction,
     initialSettingsActionState,
@@ -255,34 +272,11 @@ function GeneralTab(props: { settings: PayrollSettingsData | null }) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">HRDF (HRD Corp levy)</CardTitle>
-          <CardDescription>
-            Per PSMB Act 2001, applied to Malaysian citizens only. Set
-            1.0% for Part I employers (≥10 employees) or 0.5% for
-            Part II opt-in employers (5–9 employees).
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <Toggle
-            name="hrdfEnabled"
-            question="HRDF enabled?"
-            defaultChecked={s?.hrdfEnabled ?? false}
-          />
-          <Field label="HRDF rate (%)">
-            <Input
-              name="hrdfRate"
-              type="number"
-              step="0.01"
-              min="0"
-              max="10"
-              defaultValue={s?.hrdfRate ?? ""}
-              placeholder="1"
-            />
-          </Field>
-        </CardContent>
-      </Card>
+      <HrdfCard
+        hrdfTier={props.hrdfTier}
+        malaysianEmployeeCount={props.malaysianEmployeeCount}
+        settings={s}
+      />
 
       <Card>
         <CardHeader>
@@ -650,6 +644,153 @@ function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
         </Button>
       </div>
     </form>
+  )
+}
+
+// ─── HRDF card with auto-detected tier (Part I / Part II / N/A) ─────────
+
+/**
+ * Renders the HRDF settings card with behaviour that follows the
+ * PSMB Act 2001 First Schedule (as amended 2021):
+ *
+ *   - PART_I (≥10 Malaysian employees): MANDATORY. Toggle is LOCKED
+ *     ON, rate is LOCKED at 1.0%. Hidden inputs force the values on
+ *     save so the admin can't accidentally turn it off.
+ *
+ *   - PART_II (5-9 Malaysian employees): OPTIONAL. Admin chooses
+ *     whether to opt in. Rate defaults to 0.5% when enabled.
+ *
+ *   - NOT_APPLICABLE (<5 Malaysian employees): the levy doesn't
+ *     apply. Toggle is LOCKED OFF.
+ *
+ * The Malaysian-citizen employee count is computed server-side
+ * (PSMB Act § 2 defines "employee" = citizen of Malaysia, so PRs and
+ * foreign workers don't count toward the threshold).
+ */
+function HrdfCard(props: {
+  hrdfTier: HrdfTier
+  malaysianEmployeeCount: number
+  settings: PayrollSettingsData | null
+}) {
+  if (props.hrdfTier === "PART_I") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">HRDF (HRD Corp levy)</CardTitle>
+          <CardDescription>
+            <span className="font-medium text-foreground">
+              Part I — mandatory (1.0%).
+            </span>{" "}
+            Detected {props.malaysianEmployeeCount} active
+            Malaysian-citizen employees. Per PSMB Act 2001, employers
+            with 10 or more employees must register and pay the levy.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <LockedDisplay
+            label="HRDF enabled?"
+            value="Yes (mandatory)"
+            note="Cannot be disabled while you have ≥10 Malaysian employees."
+          />
+          <LockedDisplay
+            label="HRDF rate (%)"
+            value="1.0"
+            note="Statutory rate for Part I employers."
+          />
+          <input type="hidden" name="hrdfEnabled" value="true" />
+          <input type="hidden" name="hrdfRate" value="1" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (props.hrdfTier === "PART_II") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">HRDF (HRD Corp levy)</CardTitle>
+          <CardDescription>
+            <span className="font-medium text-foreground">
+              Part II — optional (0.5%).
+            </span>{" "}
+            Detected {props.malaysianEmployeeCount} active
+            Malaysian-citizen employees. Registration is voluntary; opt
+            in to pay the levy.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <Toggle
+            name="hrdfEnabled"
+            question="HRDF enabled?"
+            defaultChecked={props.settings?.hrdfEnabled ?? false}
+          />
+          <Field label="HRDF rate (%)">
+            <Input
+              name="hrdfRate"
+              type="number"
+              step="0.01"
+              min="0"
+              max="10"
+              defaultValue={props.settings?.hrdfRate ?? ""}
+              placeholder="0.5"
+            />
+          </Field>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // NOT_APPLICABLE
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">HRDF (HRD Corp levy)</CardTitle>
+        <CardDescription>
+          <span className="font-medium text-foreground">Not applicable.</span>{" "}
+          Detected {props.malaysianEmployeeCount} active
+          Malaysian-citizen{" "}
+          {props.malaysianEmployeeCount === 1 ? "employee" : "employees"}.
+          HRDF applies once you have at least 5 employees (Part II opt-in)
+          or 10 employees (Part I mandatory).
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4 md:grid-cols-2">
+        <LockedDisplay
+          label="HRDF enabled?"
+          value="No (below threshold)"
+          note="Will switch on automatically when you reach 5 Malaysian employees."
+        />
+        <input type="hidden" name="hrdfEnabled" value="false" />
+        <input type="hidden" name="hrdfRate" value="0" />
+      </CardContent>
+    </Card>
+  )
+}
+
+function LockedDisplay({
+  label,
+  value,
+  note,
+}: {
+  label: string
+  value: string
+  note?: string
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">
+        {label}
+        <span className="ml-1.5 inline-block rounded-sm border border-border/70 bg-muted px-1.5 py-px align-middle text-[9px] font-semibold uppercase tracking-wide leading-none text-muted-foreground">
+          Auto
+        </span>
+      </Label>
+      <div className="flex h-12 w-full items-center rounded-2xl border border-border/80 bg-muted/40 px-4 py-2 text-base text-foreground shadow-sm sm:text-sm">
+        {value}
+      </div>
+      {note ? (
+        <p className="text-[11px] text-muted-foreground">{note}</p>
+      ) : null}
+    </div>
   )
 }
 

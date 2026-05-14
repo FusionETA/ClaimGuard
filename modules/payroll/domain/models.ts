@@ -114,6 +114,9 @@ export const payrollAdjustmentCategories = [
   "wages_service_charge",
   "wages_leave_pay",
   "wages_gratuity",
+  "wages_compensation_loss_employment",
+  "wages_ex_gratia",
+  "wages_tax_borne_by_employer",
   "wages_director_fee",
   "wages_expense_claim",
   "bik_car",
@@ -121,6 +124,8 @@ export const payrollAdjustmentCategories = [
   "bik_award",
   "bik_living_accommodation",
   "bik_share_scheme",
+  "bik_subsidised_loan",
+  "bik_phone_pda_gift",
   "bik_other_exempt",
   "deduct_unpaid_leave",
   "deduct_salary_adjustment",
@@ -372,6 +377,64 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
   },
+  wages_compensation_loss_employment: {
+    // Compensation for Loss of Employment (CLOE). LHDN Schedule 6
+    // Paragraph 15(1) gives a tax-exempt amount of RM 10,000 per
+    // completed year of service. Because the cap is per year of
+    // service (not per calendar year), it can't be modelled with a
+    // simple `taxExemptLimit`; the admin should enter the taxable
+    // portion only, after subtracting the exempt amount externally.
+    // Not subject to EPF/SOCSO/EIS (termination payment, not wages).
+    code: "wages_compensation_loss_employment",
+    label: "Compensation for Loss of Employment",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+    subjectToHrdf: false,
+    isAdditionalRemuneration: true,
+  },
+  wages_ex_gratia: {
+    // Ex-gratia payment — voluntary payment by the employer beyond
+    // contractual entitlement (e.g. severance not tied to retirement
+    // or termination cause). Distinct from gratuity (retirement) and
+    // CLOE (loss-of-employment) because it has no statutory tax
+    // exemption — fully taxable.
+    code: "wages_ex_gratia",
+    label: "Ex-gratia",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+    subjectToHrdf: false,
+    isAdditionalRemuneration: true,
+  },
+  wages_tax_borne_by_employer: {
+    // Tax borne by employer perquisite. When the employer agrees to
+    // pay the employee's PCB, the payment is itself a taxable
+    // perquisite to the employee (LHDN MTD Spec page 12).
+    //
+    // Note: AltomateHR does NOT yet implement the iterative gross-up
+    // calculation. Until that ships, this category exists only as a
+    // documentation line item — the admin enters the perquisite
+    // amount manually (computed externally), and it routes through
+    // the AR path. See `PayrollProfile.pcbBorneByEmployer` flag for
+    // the broader gap.
+    code: "wages_tax_borne_by_employer",
+    label: "Tax Borne by Employer (perquisite)",
+    group: "Remuneration",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: true,
+    subjectToHrdf: false,
+    isAdditionalRemuneration: true,
+  },
   wages_director_fee: {
     code: "wages_director_fee",
     label: "Director Fee",
@@ -453,6 +516,42 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
   },
+  bik_subsidised_loan: {
+    // Subsidised interest on housing/education/car loan. Per LHDN
+    // MTD Spec page 22 (item viii), fully exempt from PCB when the
+    // aggregate loan principal ≤ RM 300,000. Above that, only a
+    // formula-based portion is exempt — admin must enter just the
+    // taxable portion when applicable.
+    //
+    // For the common case (small loans) we keep it fully PCB-exempt
+    // by default; the admin overrides the amount if the formula
+    // partial-exemption kicks in.
+    code: "bik_subsidised_loan",
+    label: "Subsidised Loan Interest",
+    group: "Benefits-in-kind / Perquisites",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+  },
+  bik_phone_pda_gift: {
+    // One-time gift of fixed-line / mobile phone / pager / PDA, in
+    // the name of the employee or employer (LHDN MTD Spec page 21,
+    // item iii). Limited to 1 unit per category per year — admin
+    // enforces the per-category limit manually since we don't track
+    // unit counts. Fully exempt from PCB.
+    code: "bik_phone_pda_gift",
+    label: "Gift of Phone / PDA (1 unit/category/year)",
+    group: "Benefits-in-kind / Perquisites",
+    kind: "ALLOWANCE",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+  },
   bik_other_exempt: {
     code: "bik_other_exempt",
     label: "Other Tax Exempt Benefit",
@@ -473,7 +572,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToSocso: true,
     subjectToEis: true,
     subjectToPcb: true,
-    subjectToHrdf: false,
+    // Unpaid leave reduces the HRDF wage base too — those days
+    // weren't worked, so the basic+allowance pay attributable to
+    // them shouldn't be in the levy base.
+    subjectToHrdf: true,
     reducesBase: true,
   },
   deduct_salary_adjustment: {

@@ -11,10 +11,14 @@ import Redis from "ioredis"
  *                          The cache layer treats null as "skip cache,
  *                          go straight to the loader" so local dev still
  *                          works without Redis installed.
- *   - REDIS_KEY_PREFIX   — namespace prefix (e.g. "prod:workpulse").
- *                          Every cache key is prepended with
- *                          `${prefix}:` so dev / prod / multiple apps
- *                          can share one Redis without colliding.
+ *   - REDIS_KEY_PREFIX   — namespace prefix (e.g. "prod:altomatehr").
+ *                          Defaults to "altomatehr". Every cache key
+ *                          is prepended with `${prefix}:` so dev /
+ *                          prod / multiple apps can share one Redis
+ *                          without colliding. Set this env var if you
+ *                          need a different prefix (e.g. to keep
+ *                          existing keys under the old "workpulse"
+ *                          namespace while migrating).
  *
  * The connection is lazy — `getRedis()` only creates the client on
  * first call. Connection errors are logged once but don't crash the
@@ -81,10 +85,11 @@ export function getRedis(): Redis | null {
  * Build a fully-prefixed cache key. Keys are case-sensitive and
  * colon-separated by convention. Pass segments individually so the
  * caller doesn't have to remember to join them — `key("org", orgId,
- * "claims", "history")` yields `prod:workpulse:org:abc:claims:history`.
+ * "claims", "history")` yields `altomatehr:org:abc:claims:history`
+ * (or `${REDIS_KEY_PREFIX}:org:abc:claims:history` if overridden).
  */
 export function key(...segments: Array<string | number>): string {
-  const prefix = process.env.REDIS_KEY_PREFIX?.trim() || "workpulse"
+  const prefix = process.env.REDIS_KEY_PREFIX?.trim() || "altomatehr"
   return [prefix, ...segments].join(":")
 }
 

@@ -423,9 +423,11 @@ export type CalcPayslipInput = {
     defaultEpfEmployerRate: number
     /// HRDF (HRD Corp levy) toggle + rate %, e.g. 1.0 for compulsory
     /// registered employers or 0.5 for optional registered employers
-    /// below required headcount. v1.1: applied to Malaysian citizens
-    /// only. Wage base = proratedPay + totalAllowances -
-    /// unpaidLeaveDeduction (excludes OT, reimbursements).
+    /// below required headcount. Applied to Malaysian citizens only
+    /// (PSMB Act § 2). Wage base = proratedPay + sum of allowances
+    /// flagged `subjectToHrdf` (excludes OT, reimbursements, travel,
+    /// gratuity, bonus, commission). Unpaid leave reduces the base
+    /// via the `deduct_unpaid_leave` line item.
     hrdfEnabled: boolean
     hrdfRate: number | null
   }
@@ -442,9 +444,6 @@ export type CalcPayslipInput = {
   reimbursements?: Array<{ id: string; label: string; amount: number }>
   /// Manual one-off deductions for this run.
   manualDeductions?: Array<{ label: string; amount: number }>
-  /// Unpaid-leave deduction (currency, pre-computed by the leave
-  /// integration). v1 = 0.
-  unpaidLeaveDeduction?: number
   /// PCB year-to-date (this calendar year, prior SUBMITTED runs).
   /// Caller (generate service) should add prev-employer carryover
   /// (PayrollProfile.prevRemuneration + prevEpf + prevPcb + prevZakat)
@@ -486,7 +485,6 @@ export type CalcPayslipResult = {
   totalAllowances: number
   totalReimbursements: number
   totalDeductions: number
-  unpaidLeaveDeduction: number
   // OT breakdown
   otNormalHours: number
   otRestHours: number
@@ -745,9 +743,12 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   }
   totalReimbursements = round2(totalReimbursements)
 
-  // 6. Manual deductions + unpaid-leave deduction.
-  const unpaidLeaveDeduction = round2(input.unpaidLeaveDeduction ?? 0)
-  let totalDeductions = round2(unpaidLeaveDeduction + totalRecurringDeductions)
+  // 6. Manual deductions. Unpaid leave is one of the recurring/manual
+  // line items now — it's a regular DEDUCTION-kind line with
+  // `reducesBase: true` and `subjectToHrdf: true`, so it lands in
+  // `totalRecurringDeductions` and the right adjustment-base buckets
+  // automatically.
+  let totalDeductions = round2(totalRecurringDeductions)
   for (const d of input.manualDeductions ?? []) {
     if (d.amount <= 0) continue
     totalDeductions += d.amount
@@ -880,11 +881,11 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   //
   // `hrdfAdjustmentBase` already excludes the right categories
   // (filtered by `meta.subjectToHrdf` in the line-item loop), so
-  // levy wage = proratedPay + hrdfAdjustmentBase. OT, reimbursements,
-  // and DEDUCTION rows are not included unless explicitly marked
-  // (e.g. unpaid-leave reduces the base via `reducesBase` +
-  // `subjectToHrdf: true` — currently false; unpaid leave is handled
-  // via `unpaidLeaveDeduction` subtraction below).
+  // levy wage = proratedPay + hrdfAdjustmentBase. OT and
+  // reimbursements are not included. DEDUCTION rows reduce the base
+  // when `reducesBase: true` AND `subjectToHrdf: true` —
+  // `deduct_unpaid_leave` is set up that way so unpaid-leave line
+  // items lower the HRDF wage naturally.
   //
   // Eligibility: per PSMB Act § 2 "employee" = "any citizen of
   // Malaysia". PR holders + foreign workers are NOT covered, and the
@@ -893,9 +894,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   const hrdfActive =
     settings.hrdfEnabled && hrdfRate > 0 && isMalaysianCitizen
   const hrdfWage = hrdfActive
-    ? round2(
-        Math.max(0, proratedPay + hrdfAdjustmentBase - unpaidLeaveDeduction),
-      )
+    ? round2(Math.max(0, proratedPay + hrdfAdjustmentBase))
     : 0
   const hrdf = hrdfActive ? round2(hrdfWage * (hrdfRate / 100)) : 0
 
@@ -966,7 +965,6 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     totalAllowances,
     totalReimbursements,
     totalDeductions,
-    unpaidLeaveDeduction,
     epfEmployee: epf.employee,
     epfEmployer: epf.employer,
     socsoEmployee: socso.employee,

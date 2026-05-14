@@ -28,29 +28,82 @@ const baseProfile = {
 
 // ─── Progressive bands ──────────────────────────────────────────────────
 
-describe("applyResidentTaxBands (LHDN 2024)", () => {
-  it("returns 0 for chargeable ≤ RM 5,000 (the 0% band)", () => {
+describe("applyResidentTaxBands (LHDN 2026, Table 1)", () => {
+  it("returns 0 for chargeable ≤ RM 5,000 (the 0% band, after rebate)", () => {
     expect(applyResidentTaxBands(0)).toBe(0)
     expect(applyResidentTaxBands(5000)).toBe(0)
   })
 
-  it("applies 1% on income between RM 5k and RM 20k", () => {
-    // 20k chargeable: first 5k taxed at 0%, next 15k at 1% = RM 150.
-    expect(applyResidentTaxBands(20000)).toBeCloseTo(150, 5)
+  it("RM 20k chargeable, single (cat 1): marginal 150 − rebate 400 = 0", () => {
+    // LHDN Table 1: tax = (20000 - 5000) × 1% + (-400) = -250 → 0
+    expect(applyResidentTaxBands(20000)).toBe(0)
   })
 
-  it("applies the 6% step at RM 50k correctly", () => {
-    // 0..5k: 0
-    // 5k..20k: 15k × 1% = 150
-    // 20k..35k: 15k × 3% = 450
-    // 35k..50k: 15k × 6% = 900
-    // Total at chargeable 50k = 1500.
+  it("RM 26,600 chargeable, cat 1: marginal 348 − rebate 400 = 0 (matches LHDN Table 1)", () => {
+    // LHDN Table 1, band 20,001-35,000: (26,600 - 20,000) × 3% + (-250) = 198 - 250 → 0
+    expect(applyResidentTaxBands(26600)).toBe(0)
+  })
+
+  it("RM 30k chargeable, cat 1: marginal 450 − rebate 400 = 50 (matches LHDN)", () => {
+    // LHDN: (30,000 - 20,000) × 3% + (-250) = 300 - 250 = 50
+    expect(applyResidentTaxBands(30000)).toBeCloseTo(50, 5)
+  })
+
+  it("RM 30k chargeable, cat 2 (spouse not working): rebate doubles to 800 → 0", () => {
+    // LHDN: (30,000 - 20,000) × 3% + (-650) = 300 - 650 → 0
+    expect(applyResidentTaxBands(30000, true)).toBe(0)
+  })
+
+  it("RM 35k chargeable, cat 1: rebate still applies at the threshold", () => {
+    // LHDN: (35,000 - 20,000) × 3% + (-250) = 450 - 250 = 200
+    expect(applyResidentTaxBands(35000)).toBeCloseTo(200, 5)
+  })
+
+  it("RM 50k chargeable: no rebate (above threshold), 1500 owed", () => {
+    // LHDN: (50,000 - 35,000) × 6% + 600 = 900 + 600 = 1,500
+    // (marginal-band sum is also 150 + 450 + 900 = 1,500)
     expect(applyResidentTaxBands(50000)).toBeCloseTo(1500, 5)
+  })
+
+  it("RM 50k chargeable, cat 2: no rebate doubling (above threshold)", () => {
+    // Same as cat 1 — rebate only applies when P ≤ 35k.
+    expect(applyResidentTaxBands(50000, true)).toBeCloseTo(1500, 5)
   })
 
   it("never returns negative tax", () => {
     expect(applyResidentTaxBands(-100)).toBe(0)
     expect(applyResidentTaxBands(Number.NaN)).toBe(0)
+  })
+})
+
+// ─── Regression: third-party payroll system parity ──────────────────────
+
+describe("calcPcb — third-party payslip parity", () => {
+  it("RM 3,500/mo single, January, full reliefs only: PCB = 0 (matches third-party)", () => {
+    // Real-world example from a competitor's payslip: basic 3,000 +
+    // travel-private 300 + parking 200 = gross 3,500. EPF (11%) = 385,
+    // SOCSO 17.25, EIS 6.90. The third-party shows PCB = 0. Verifying
+    // our calc agrees after the rebate fix.
+    //
+    // pcbWage = 3,000 + 300 (parking excluded as subjectToPcb: false)
+    //         = 3,300
+    // Annual taxable: 3,300 × 12 = 39,600
+    // Annual EPF: min(4,000, 385 × 12 = 4,620) = 4,000
+    // Reliefs (single, no kids): D = 9,000
+    // Chargeable P: 39,600 - 4,000 - 9,000 = 26,600
+    // Marginal-band tax: 150 + (26,600 - 20,000) × 3% = 348
+    // P ≤ 35,000 → rebate 400 → max(0, 348 - 400) = 0
+    const result = calcPcb({
+      isResident: true,
+      periodMonth: 1,
+      thisMonthTaxable: 3300,
+      thisMonthEpf: 385,
+      ytdTaxable: 0,
+      ytdEpf: 0,
+      ytdPcb: 0,
+      profile: baseProfile,
+    })
+    expect(result.total).toBe(0)
   })
 })
 

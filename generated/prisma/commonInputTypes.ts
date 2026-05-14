@@ -857,6 +857,23 @@ export type EnumSalaryTypeWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumSalaryTypeFilter<$PrismaModel>
 }
 
+export type EnumSalaryChangeReasonFilter<$PrismaModel = never> = {
+  equals?: $Enums.SalaryChangeReason | Prisma.EnumSalaryChangeReasonFieldRefInput<$PrismaModel>
+  in?: $Enums.SalaryChangeReason[]
+  notIn?: $Enums.SalaryChangeReason[]
+  not?: Prisma.NestedEnumSalaryChangeReasonFilter<$PrismaModel> | $Enums.SalaryChangeReason
+}
+
+export type EnumSalaryChangeReasonWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SalaryChangeReason | Prisma.EnumSalaryChangeReasonFieldRefInput<$PrismaModel>
+  in?: $Enums.SalaryChangeReason[]
+  notIn?: $Enums.SalaryChangeReason[]
+  not?: Prisma.NestedEnumSalaryChangeReasonWithAggregatesFilter<$PrismaModel> | $Enums.SalaryChangeReason
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSalaryChangeReasonFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSalaryChangeReasonFilter<$PrismaModel>
+}
+
 export type EnumWorkingDaysRuleFilter<$PrismaModel = never> = {
   equals?: $Enums.WorkingDaysRule | Prisma.EnumWorkingDaysRuleFieldRefInput<$PrismaModel>
   in?: $Enums.WorkingDaysRule[]
@@ -1701,6 +1718,23 @@ export type NestedEnumSalaryTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSalaryTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSalaryTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumSalaryChangeReasonFilter<$PrismaModel = never> = {
+  equals?: $Enums.SalaryChangeReason | Prisma.EnumSalaryChangeReasonFieldRefInput<$PrismaModel>
+  in?: $Enums.SalaryChangeReason[]
+  notIn?: $Enums.SalaryChangeReason[]
+  not?: Prisma.NestedEnumSalaryChangeReasonFilter<$PrismaModel> | $Enums.SalaryChangeReason
+}
+
+export type NestedEnumSalaryChangeReasonWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.SalaryChangeReason | Prisma.EnumSalaryChangeReasonFieldRefInput<$PrismaModel>
+  in?: $Enums.SalaryChangeReason[]
+  notIn?: $Enums.SalaryChangeReason[]
+  not?: Prisma.NestedEnumSalaryChangeReasonWithAggregatesFilter<$PrismaModel> | $Enums.SalaryChangeReason
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumSalaryChangeReasonFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumSalaryChangeReasonFilter<$PrismaModel>
 }
 
 export type NestedEnumWorkingDaysRuleFilter<$PrismaModel = never> = {

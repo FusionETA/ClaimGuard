@@ -51,6 +51,13 @@ export function PayrollAdjustmentForm(props: {
   fixedAllowances: FixedAllowance[]
   readOnly: boolean
 }) {
+  // Stable id so the "Save adjustments" submit button can live OUTSIDE
+  // the save form (alongside the "Clear adjustments" button, which has
+  // its own sibling form). HTML doesn't allow nested <form> elements
+  // — both forms must be top-level siblings — but a button can still
+  // submit a non-ancestor form via the HTML5 `form="<id>"` attribute.
+  const saveFormId = useId()
+
   const [state, action, pending] = useActionState(
     savePayrollAdjustmentAction,
     initialSettingsActionState,
@@ -114,7 +121,8 @@ export function PayrollAdjustmentForm(props: {
   const deductionCount = lines.filter((l) => l.kind === "DEDUCTION").length
 
   return (
-    <form action={action} className="space-y-6">
+    <div className="space-y-6">
+    <form id={saveFormId} action={action} className="space-y-6">
       <input type="hidden" name="runId" value={props.runId} hidden />
       <input
         type="hidden"
@@ -400,28 +408,10 @@ export function PayrollAdjustmentForm(props: {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Unpaid leave</CardTitle>
-          <CardDescription>
-            Manually-entered MYR deduction. Will be auto-computed once
-            the leave integration ships.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Field label="Unpaid leave deduction (MYR)">
-            <Input
-              name="unpaidLeaveDeduction"
-              type="number"
-              step="0.01"
-              min="0"
-              max="1000000"
-              defaultValue={props.adjustment?.unpaidLeaveDeduction ?? 0}
-              disabled={props.readOnly}
-            />
-          </Field>
-        </CardContent>
-      </Card>
+      {/* Unpaid leave is entered via the "Add deduction" picker using
+          the `deduct_unpaid_leave` category — it flows through the
+          line-item path and reduces EPF/SOCSO/EIS/PCB/HRDF wage bases
+          via `reducesBase: true`. */}
 
       <Card>
         <CardHeader>
@@ -443,22 +433,27 @@ export function PayrollAdjustmentForm(props: {
         </CardContent>
       </Card>
 
-      {!props.readOnly && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {props.adjustment ? (
-            <ClearAdjustmentButton
-              runId={props.runId}
-              employeeProfileId={props.employeeProfileId}
-            />
-          ) : (
-            <span />
-          )}
-          <Button type="submit" disabled={pending}>
-            {pending ? "Saving…" : "Save adjustments"}
-          </Button>
-        </div>
-      )}
     </form>
+    {/* Action row lives OUTSIDE the save form so the "Clear" form
+        below can be a sibling, not a descendant. The Save button
+        targets the save form via the HTML5 `form` attribute, the
+        Clear button targets its own sibling form. */}
+    {!props.readOnly && (
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {props.adjustment ? (
+          <ClearAdjustmentButton
+            runId={props.runId}
+            employeeProfileId={props.employeeProfileId}
+          />
+        ) : (
+          <span />
+        )}
+        <Button type="submit" form={saveFormId} disabled={pending}>
+          {pending ? "Saving…" : "Save adjustments"}
+        </Button>
+      </div>
+    )}
+    </div>
   )
 }
 

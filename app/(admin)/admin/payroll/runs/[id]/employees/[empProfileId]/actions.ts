@@ -32,7 +32,6 @@ const adjustmentSchema = z.object({
   otNormalHours: z.coerce.number().min(0).max(744).default(0),
   otRestHours: z.coerce.number().min(0).max(744).default(0),
   otPublicHours: z.coerce.number().min(0).max(744).default(0),
-  unpaidLeaveDeduction: z.coerce.number().min(0).max(1_000_000).default(0),
   notes: z
     .union([z.string(), z.null()])
     .transform((v) => {
@@ -52,7 +51,6 @@ export async function savePayrollAdjustmentAction(
     otNormalHours: formData.get("otNormalHours"),
     otRestHours: formData.get("otRestHours"),
     otPublicHours: formData.get("otPublicHours"),
-    unpaidLeaveDeduction: formData.get("unpaidLeaveDeduction"),
     notes: formData.get("notes"),
   })
 
@@ -146,7 +144,6 @@ export async function savePayrollAdjustmentAction(
         otNormalHours: parsed.data.otNormalHours,
         otRestHours: parsed.data.otRestHours,
         otPublicHours: parsed.data.otPublicHours,
-        unpaidLeaveDeduction: parsed.data.unpaidLeaveDeduction,
         notes: parsed.data.notes,
         manualLineItems,
         fixedAllowanceOverrides,

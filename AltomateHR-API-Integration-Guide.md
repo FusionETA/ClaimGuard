@@ -2,7 +2,7 @@
 
 **Audience:** External engineers integrating a partner application (e.g. an HR portal, customer admin app, or onboarding service) with AltomateHR.
 **Scope:** Provisioning new tenants, then managing projects and teams on a tenant's behalf.
-**Base URL (dev):** `https://workpulse-dev.fusioneta.com.my`
+**Base URL (dev):** `https://altomatehr-dev.fusioneta.com.my`
 **API version:** `v1` (every response carries `X-API-Version: v1`)
 
 ---
@@ -51,7 +51,7 @@ If the same user re-runs setup, look up the mapping first — provisioning a new
 Recommended schema (Postgres-flavoured; adapt freely):
 
 ```sql
-CREATE TABLE workpulse_tenant (
+CREATE TABLE altomatehr_tenant (
   id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id             UUID NOT NULL UNIQUE,           -- your platform's user
   organization_id     TEXT NOT NULL UNIQUE,           -- AltomateHR Organization.id
@@ -366,8 +366,8 @@ POST /api/v1/teams/{id}/members (×N)
 ## 11. Quickstart — Node example
 
 ```js
-const BASE = "https://workpulse-dev.fusioneta.com.my";
-const MASTER = process.env.WORKPULSE_MASTER_KEY;     // wp_master_…
+const BASE = "https://altomatehr-dev.fusioneta.com.my";
+const MASTER = process.env.ALTOMATEHR_MASTER_KEY;     // wp_master_…
 
 // 1. Provision a tenant
 const provRes = await fetch(`${BASE}/api/v1/admin/organizations`, {
@@ -383,7 +383,7 @@ const { organization, apiToken } = await provRes.json();
 
 // 2. Persist (organization.id, apiToken.secret) keyed on your user_id.
 //    apiToken.secret is unrecoverable after this point.
-await db.workpulse_tenant.create({
+await db.altomatehr_tenant.create({
   user_id: currentUserId,
   organization_id: organization.id,
   organization_name: organization.name,
@@ -422,10 +422,10 @@ const team = (await (await fetch(`${BASE}/api/v1/teams`, {
 ## 12. Checklist before you go live
 
 - [ ] Master key stored in a secret manager, never in source or in customer rows.
-- [ ] `workpulse_tenant` table created with unique constraints on `user_id` and `organization_id`.
+- [ ] `altomatehr_tenant` table created with unique constraints on `user_id` and `organization_id`.
 - [ ] Per-org token encrypted at rest; only the prefix logged or rendered to staff.
 - [ ] Provisioning failure path: 409 on duplicate name surfaces a friendly retry to the user.
-- [ ] Re-running setup looks up `workpulse_tenant.user_id` first and never re-provisions.
+- [ ] Re-running setup looks up `altomatehr_tenant.user_id` first and never re-provisions.
 - [ ] Error handler distinguishes 401 (re-auth), 403 (scope gap — file an issue), 404 (resource gone), 409 (business conflict — show user-friendly message).
 - [ ] Audit identifiers (`integration_id`, `organization_id`) attached to your platform's request logs so support can correlate.
 

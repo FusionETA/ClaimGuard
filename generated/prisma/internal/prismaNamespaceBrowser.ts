@@ -77,6 +77,7 @@ export const ModelName = {
   Team: 'Team',
   EmployeeTeamMembership: 'EmployeeTeamMembership',
   PayrollProfile: 'PayrollProfile',
+  SalaryChange: 'SalaryChange',
   PayrollSettings: 'PayrollSettings',
   PayrollCompanyInfo: 'PayrollCompanyInfo',
   PayrollRun: 'PayrollRun',
@@ -624,6 +625,25 @@ export const PayrollProfileScalarFieldEnum = {
 export type PayrollProfileScalarFieldEnum = (typeof PayrollProfileScalarFieldEnum)[keyof typeof PayrollProfileScalarFieldEnum]
 
 
+export const SalaryChangeScalarFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  effectiveDate: 'effectiveDate',
+  previousSalaryType: 'previousSalaryType',
+  previousMonthlySalary: 'previousMonthlySalary',
+  previousHourlyRate: 'previousHourlyRate',
+  newSalaryType: 'newSalaryType',
+  newMonthlySalary: 'newMonthlySalary',
+  newHourlyRate: 'newHourlyRate',
+  reason: 'reason',
+  notes: 'notes',
+  changedByUserId: 'changedByUserId',
+  createdAt: 'createdAt'
+} as const
+
+export type SalaryChangeScalarFieldEnum = (typeof SalaryChangeScalarFieldEnum)[keyof typeof SalaryChangeScalarFieldEnum]
+
+
 export const PayrollSettingsScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -742,7 +762,6 @@ export const PayrollRunAdjustmentScalarFieldEnum = {
   otPublicHours: 'otPublicHours',
   manualLineItems: 'manualLineItems',
   fixedAllowanceOverrides: 'fixedAllowanceOverrides',
-  unpaidLeaveDeduction: 'unpaidLeaveDeduction',
   notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -778,7 +797,6 @@ export const PayslipScalarFieldEnum = {
   totalAllowances: 'totalAllowances',
   totalReimbursements: 'totalReimbursements',
   totalDeductions: 'totalDeductions',
-  unpaidLeaveDeduction: 'unpaidLeaveDeduction',
   epfEmployee: 'epfEmployee',
   epfEmployer: 'epfEmployer',
   socsoEmployee: 'socsoEmployee',
@@ -1206,6 +1224,16 @@ export const PayrollProfileOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayrollProfileOrderByRelevanceFieldEnum = (typeof PayrollProfileOrderByRelevanceFieldEnum)[keyof typeof PayrollProfileOrderByRelevanceFieldEnum]
+
+
+export const SalaryChangeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeProfileId: 'employeeProfileId',
+  notes: 'notes',
+  changedByUserId: 'changedByUserId'
+} as const
+
+export type SalaryChangeOrderByRelevanceFieldEnum = (typeof SalaryChangeOrderByRelevanceFieldEnum)[keyof typeof SalaryChangeOrderByRelevanceFieldEnum]
 
 
 export const PayrollSettingsOrderByRelevanceFieldEnum = {

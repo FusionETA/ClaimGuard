@@ -1,4 +1,4 @@
-const CACHE_NAME = "workpulse-shell-v12"
+const CACHE_NAME = "altomatehr-shell-v1"
 const OFFLINE_FALLBACK = "/offline.html"
 const BRAND_ICON_URL = "/brand-icon-white.png?v=4"
 const APP_SHELL = ["/", OFFLINE_FALLBACK, BRAND_ICON_URL]

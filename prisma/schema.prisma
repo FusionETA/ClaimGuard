@@ -34,6 +34,7 @@ model User {
   xeroConnections        XeroConnection[]     @relation("XeroConnectedBy")
   managedProjects        XeroProject[]        @relation("ProjectManager")
   submittedPayrollRuns   PayrollRun[]         @relation("PayrollRunSubmittedBy")
+  salaryChangesAuthored  SalaryChange[]       @relation("salaryChangeAuthor")
 
   @@index([organizationId])
 }
@@ -308,6 +309,7 @@ model EmployeeProfile {
   payslips               Payslip[]
   payrollRunClaims       PayrollRunClaim[]
   payrollRunAdjustments  PayrollRunAdjustment[]
+  salaryChanges          SalaryChange[]
 
   @@index([xeroConnectionId])
   @@index([policyId])
@@ -1039,6 +1041,63 @@ model PayrollProfile {
   payslips Payslip[]
 }
 
+/// Reason for a SalaryChange entry. Typos / data-entry corrections
+/// are NOT recorded — only legitimate compensation changes that an
+/// HR / audit / legal review would care about.
+enum SalaryChangeReason {
+  RAISE
+  PROMOTION
+  DEMOTION
+  RESTRUCTURE
+  OTHER
+}
+
+/// Audit-grade history of legitimate salary changes for an employee.
+/// Created only when the admin explicitly classifies a salary edit
+/// as a real compensation change (not a typo fix). Used for:
+///   - LHDN / SOCSO / EIS audit responses
+///   - Industrial Relations disputes
+///   - Retrenchment / VSS payouts ("last drawn salary")
+///   - HR year-end performance reviews
+///   - Employer-issued salary-history letters (loans, EPF/income proof)
+///
+/// Does NOT drive the calc engine yet — the current `monthlySalary`
+/// on `PayrollProfile` still determines every payroll run. The
+/// `effectiveDate` field is here so a future Level 2 upgrade can
+/// switch to effective-date aware salary resolution without a
+/// migration.
+model SalaryChange {
+  id                String          @id @default(cuid())
+  employeeProfileId String
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  /// When the change takes effect. Defaults to today on the UI but the
+  /// admin can backdate.
+  effectiveDate DateTime @db.Date
+
+  /// Snapshot of what the salary was BEFORE this change.
+  previousSalaryType    SalaryType
+  previousMonthlySalary Decimal?   @db.Decimal(12, 2)
+  previousHourlyRate    Decimal?   @db.Decimal(12, 2)
+
+  /// New values AFTER this change. Mirrors PayrollProfile columns.
+  newSalaryType    SalaryType
+  newMonthlySalary Decimal?   @db.Decimal(12, 2)
+  newHourlyRate    Decimal?   @db.Decimal(12, 2)
+
+  reason SalaryChangeReason
+  notes  String?            @db.Text
+
+  /// User (admin) who made the change. Nullable to allow legacy /
+  /// system-generated entries.
+  changedByUserId String?
+  changedByUser   User?   @relation("salaryChangeAuthor", fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([employeeProfileId, effectiveDate])
+}
+
 /// Per-org payroll rules. Frequently edited by admin (OT multipliers,
 /// EPF defaults). Matches Altomate's `p_settings` table.
 model PayrollSettings {
@@ -1256,10 +1315,6 @@ model PayrollRunAdjustment {
   /// follow through correctly).
   fixedAllowanceOverrides Json @default("{}")
 
-  /// Pre-computed unpaid-leave deduction (currency). Manual entry
-  /// until the leave-attendance integration ships in v2.
-  unpaidLeaveDeduction Decimal @default(0) @db.Decimal(12, 2)
-
   notes String? @db.Text
 
   createdAt DateTime @default(now())
@@ -1315,7 +1370,6 @@ model Payslip {
   /// Sum of REIMBURSEMENT line items (from AltomateHR claims).
   totalReimbursements  Decimal @default(0) @db.Decimal(12, 2)
   totalDeductions      Decimal @default(0) @db.Decimal(12, 2)
-  unpaidLeaveDeduction Decimal @default(0) @db.Decimal(12, 2)
 
   // Statutory (v1 calculates EPF/SOCSO/EIS; PCB/HRDF/zakat = 0)
   epfEmployee   Decimal @default(0) @db.Decimal(12, 2)

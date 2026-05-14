@@ -33,6 +33,8 @@ export default async function AdminPayrollSettingsPage() {
       <PayrollSettingsForm
         settings={data.settings}
         companyInfo={data.companyInfo}
+        malaysianEmployeeCount={data.malaysianEmployeeCount}
+        hrdfTier={data.hrdfTier}
       />
     </div>
   )

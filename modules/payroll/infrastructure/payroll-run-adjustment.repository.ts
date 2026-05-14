@@ -72,7 +72,6 @@ export const payrollRunAdjustmentRepository = {
       otPublicHours: number
       manualLineItems: ManualLineItem[]
       fixedAllowanceOverrides: FixedAllowanceOverrideMap
-      unpaidLeaveDeduction: number
       notes: string | null
     }>
   }): Promise<PayrollRunAdjustmentData> {
@@ -135,7 +134,6 @@ function mapAdjustment(row: any): PayrollRunAdjustmentData {
     fixedAllowanceOverrides: parseFixedAllowanceOverrides(
       row.fixedAllowanceOverrides,
     ),
-    unpaidLeaveDeduction: toNumber(row.unpaidLeaveDeduction, 0),
     notes: row.notes ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -220,9 +218,6 @@ function toUpsertData(
   if (patch.fixedAllowanceOverrides !== undefined) {
     out.fixedAllowanceOverrides =
       patch.fixedAllowanceOverrides as unknown as object
-  }
-  if (patch.unpaidLeaveDeduction !== undefined) {
-    out.unpaidLeaveDeduction = patch.unpaidLeaveDeduction
   }
   if (patch.notes !== undefined) out.notes = patch.notes
   return out

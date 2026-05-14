@@ -148,7 +148,6 @@ export type PayslipData = {
   totalAllowances: number
   totalReimbursements: number
   totalDeductions: number
-  unpaidLeaveDeduction: number
 
   // Statutory
   epfEmployee: number
@@ -279,7 +278,6 @@ export type PayrollRunAdjustmentData = {
   otPublicHours: number
   manualLineItems: ManualLineItem[]
   fixedAllowanceOverrides: FixedAllowanceOverrideMap
-  unpaidLeaveDeduction: number
   notes: string | null
   createdAt: string
   updatedAt: string

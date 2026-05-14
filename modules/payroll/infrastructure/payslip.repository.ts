@@ -52,7 +52,6 @@ export type CreatePayslipInput = {
   totalAllowances: number
   totalReimbursements: number
   totalDeductions: number
-  unpaidLeaveDeduction: number
   epfEmployee: number
   epfEmployer: number
   socsoEmployee: number
@@ -129,7 +128,6 @@ export const payslipRepository = {
             totalAllowances: p.totalAllowances,
             totalReimbursements: p.totalReimbursements,
             totalDeductions: p.totalDeductions,
-            unpaidLeaveDeduction: p.unpaidLeaveDeduction,
             epfEmployee: p.epfEmployee,
             epfEmployer: p.epfEmployer,
             socsoEmployee: p.socsoEmployee,
@@ -492,7 +490,6 @@ function mapPayslip(row: any, lineItems: PayslipLineItemData[]): PayslipData {
     totalAllowances: toNumber(row.totalAllowances, 0),
     totalReimbursements: toNumber(row.totalReimbursements, 0),
     totalDeductions: toNumber(row.totalDeductions, 0),
-    unpaidLeaveDeduction: toNumber(row.unpaidLeaveDeduction, 0),
     epfEmployee: toNumber(row.epfEmployee, 0),
     epfEmployer: toNumber(row.epfEmployer, 0),
     socsoEmployee: toNumber(row.socsoEmployee, 0),

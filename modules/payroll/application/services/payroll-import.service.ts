@@ -629,6 +629,177 @@ export type ImportResult = {
   errors: ImportError[]
 }
 
+// ─── Conflict / error helpers shared by both import flows ───────────────
+
+/**
+ * Minimal shape used by `findImportConflicts` — both the
+ * Zod-validated `RowWithChildren` and the AI-mapped path's row shape
+ * satisfy this.
+ */
+type ConflictCheckRow = {
+  email: string
+  employeeId: string
+  name?: string
+}
+
+/**
+ * Pre-flight check before we write anything. Catches the two
+ * duplicate scenarios that would otherwise blow up as raw Prisma
+ * P2002 errors:
+ *
+ *   1. Intra-CSV duplicates — two rows in the upload sharing the same
+ *      `employeeId` (or the same email).
+ *   2. DB conflicts — `employeeId` is already in use by an
+ *      EmployeeProfile that belongs to a DIFFERENT user (someone else
+ *      in the org has that code).
+ *
+ * Returns one `ImportError` per offending row with a clear message
+ * the admin can act on, e.g. "Row 3: employee code 'EMP-008' is
+ * already assigned to Chan Yan Yee (chan@example.com)."
+ *
+ * Returns an empty array when the upload is clean.
+ */
+async function findImportConflicts(input: {
+  rows: ConflictCheckRow[]
+  prisma: NonNullable<ReturnType<typeof getPrismaClient>>
+  organizationId: string
+}): Promise<ImportError[]> {
+  const { rows, prisma, organizationId } = input
+  const errors: ImportError[] = []
+
+  // 1. Intra-CSV: find row indices that share the same `employeeId`.
+  //    Same for email. We collect 1-based row numbers and tack the
+  //    error onto each offending row so the admin sees both/all.
+  const idGroups = new Map<string, number[]>() // employeeId -> rowNumbers
+  const emailGroups = new Map<string, number[]>()
+  rows.forEach((row, idx) => {
+    const rowNumber = idx + 1
+    if (row.employeeId) {
+      const list = idGroups.get(row.employeeId) ?? []
+      list.push(rowNumber)
+      idGroups.set(row.employeeId, list)
+    }
+    if (row.email) {
+      const list = emailGroups.get(row.email.toLowerCase()) ?? []
+      list.push(rowNumber)
+      emailGroups.set(row.email.toLowerCase(), list)
+    }
+  })
+  const rowErrors = new Map<number, Array<{ field: string; message: string }>>()
+  const pushRowError = (rowNumber: number, field: string, message: string) => {
+    const list = rowErrors.get(rowNumber) ?? []
+    list.push({ field, message })
+    rowErrors.set(rowNumber, list)
+  }
+  for (const [employeeId, rowNumbers] of idGroups) {
+    if (rowNumbers.length <= 1) continue
+    const others = rowNumbers.join(", ")
+    for (const rowNumber of rowNumbers) {
+      pushRowError(
+        rowNumber,
+        "employeeId",
+        `Duplicate employee code "${employeeId}" — also appears on row${rowNumbers.length > 2 ? "s" : ""} ${others.replace(`${rowNumber}, `, "").replace(`, ${rowNumber}`, "").replace(`${rowNumber}`, "")}. Each row must have a unique code.`,
+      )
+    }
+  }
+  for (const [email, rowNumbers] of emailGroups) {
+    if (rowNumbers.length <= 1) continue
+    const others = rowNumbers.join(", ")
+    for (const rowNumber of rowNumbers) {
+      pushRowError(
+        rowNumber,
+        "email",
+        `Duplicate email "${email}" — also appears on row${rowNumbers.length > 2 ? "s" : ""} ${others.replace(`${rowNumber}, `, "").replace(`, ${rowNumber}`, "").replace(`${rowNumber}`, "")}. Each row must have a unique email.`,
+      )
+    }
+  }
+
+  // 2. DB conflicts: any EmployeeProfile in this org with one of our
+  //    employeeIds, attached to a user whose email is NOT in our
+  //    upload (= different person).
+  const importEmails = new Set(rows.map((r) => r.email.toLowerCase()))
+  const importEmployeeIds = Array.from(idGroups.keys())
+  if (importEmployeeIds.length > 0) {
+    const dbHits = await prisma.employeeProfile.findMany({
+      where: {
+        employeeId: { in: importEmployeeIds },
+        user: { organizationId },
+      },
+      select: {
+        employeeId: true,
+        user: { select: { name: true, email: true } },
+      },
+    })
+    const conflictByEmployeeId = new Map<
+      string,
+      { name: string; email: string }
+    >()
+    for (const hit of dbHits) {
+      if (!hit.user) continue
+      if (importEmails.has(hit.user.email.toLowerCase())) continue // same person, will be matched and updated — OK
+      conflictByEmployeeId.set(hit.employeeId, {
+        name: hit.user.name,
+        email: hit.user.email,
+      })
+    }
+    rows.forEach((row, idx) => {
+      const conflict = conflictByEmployeeId.get(row.employeeId)
+      if (!conflict) return
+      pushRowError(
+        idx + 1,
+        "employeeId",
+        `Employee code "${row.employeeId}" is already assigned to ${conflict.name} (${conflict.email}). Use a different code, or update that employee by uploading with their email.`,
+      )
+    })
+  }
+
+  // Flatten into ImportError[]
+  for (const [rowNumber, fieldErrors] of rowErrors) {
+    errors.push({ rowNumber, errors: fieldErrors })
+  }
+  // Sort by row number for stable output.
+  errors.sort((a, b) => a.rowNumber - b.rowNumber)
+  return errors
+}
+
+/**
+ * Translate a Prisma error (or any thrown error) into a single
+ * top-level `ImportError` so the UI never has to render a raw stack
+ * trace. Use this from the import transactions as a defence-in-depth
+ * catch — `findImportConflicts` should already prevent the common
+ * P2002 cases.
+ */
+function translateImportError(err: unknown): ImportError {
+  // Prisma's P2002 unique-constraint violation. The `meta.target`
+  // array tells us which column(s) collided.
+  const e = err as { code?: string; meta?: { target?: string[] | string }; message?: string }
+  if (e?.code === "P2002") {
+    const target = Array.isArray(e.meta?.target)
+      ? e.meta?.target?.join(", ")
+      : e.meta?.target ?? "field"
+    return {
+      rowNumber: 0,
+      errors: [
+        {
+          field: String(target ?? "field"),
+          message: `An existing ${target} matches a row in your upload. Please check the file for duplicates and re-upload.`,
+        },
+      ],
+    }
+  }
+  // Generic fallback — never surface the stack trace.
+  return {
+    rowNumber: 0,
+    errors: [
+      {
+        field: "(import)",
+        message:
+          "The import failed unexpectedly. Please check the file and try again, or contact support if it continues.",
+      },
+    ],
+  }
+}
+
 /**
  * Parse → validate → write. If ANY row has a validation error, the
  * whole batch is rejected and no DB writes happen.
@@ -710,10 +881,33 @@ export async function bulkImportPayrollEmployees(input: {
     }
   }
 
+  // 4b. Conflict pre-check — catches intra-CSV duplicates and DB
+  // conflicts (e.g. employeeId already assigned to another user) so
+  // we surface a friendly error instead of letting Prisma blow up
+  // mid-transaction with a P2002 stack trace.
+  const conflicts = await findImportConflicts({
+    rows: validRows.map((r) => ({
+      email: r.email,
+      employeeId: r.employeeId,
+      name: r.name,
+    })),
+    prisma,
+    organizationId: orgId,
+  })
+  if (conflicts.length > 0) {
+    return {
+      created: 0,
+      updated: 0,
+      total: dataRows.length,
+      errors: conflicts,
+    }
+  }
+
   // 5. Apply all rows atomically.
   let created = 0
   let updated = 0
-  await prisma.$transaction(async (tx) => {
+  try {
+    await prisma.$transaction(async (tx) => {
     for (const row of validRows) {
       // Match by email (chosen as the only unique key per user
       // decision). If a user exists with this email in this org,
@@ -843,6 +1037,20 @@ export async function bulkImportPayrollEmployees(input: {
     maxWait: 15_000,
     timeout: 120_000,
   })
+  } catch (err) {
+    // Defence in depth: `findImportConflicts` should have caught the
+    // common P2002 cases already, but if a different unique
+    // constraint fires (e.g. someone races us between the pre-check
+    // and the transaction), we never let the raw Prisma stack trace
+    // escape to the UI.
+    console.error("[payroll-import] bulkImportPayrollEmployees failed:", err)
+    return {
+      created: 0,
+      updated: 0,
+      total: dataRows.length,
+      errors: [translateImportError(err)],
+    }
+  }
 
   // Bust the org-wide hierarchy / employee caches so the Team
   // hierarchy table on /admin/hierarchy + the payroll employees
@@ -1325,9 +1533,34 @@ export async function importMappedCsv(input: {
 
   const { parsedRows, skipped, errors, total } = reshapeAndNormalize(input)
 
+  // Conflict pre-check (intra-CSV duplicates + DB collisions). If
+  // there's a problem, return the friendly errors instead of letting
+  // Prisma blow up with a P2002 stack trace.
+  if (parsedRows.length > 0) {
+    const conflicts = await findImportConflicts({
+      rows: parsedRows.map((r) => ({
+        email: r.email,
+        employeeId: r.employeeId,
+        name: r.name,
+      })),
+      prisma,
+      organizationId: orgId,
+    })
+    if (conflicts.length > 0) {
+      return {
+        created: 0,
+        updated: 0,
+        total,
+        skipped,
+        errors: [...errors, ...conflicts],
+      }
+    }
+  }
+
   let created = 0
   let updated = 0
-  await prisma.$transaction(async (tx) => {
+  try {
+    await prisma.$transaction(async (tx) => {
     for (const row of parsedRows) {
       const existing = await tx.user.findFirst({
         where: { email: row.email, organizationId: orgId },
@@ -1445,6 +1678,18 @@ export async function importMappedCsv(input: {
     maxWait: 15_000,
     timeout: 120_000,
   })
+  } catch (err) {
+    // Defence in depth — never let a raw Prisma stack trace reach the
+    // UI. The pre-check above catches the common P2002 cases.
+    console.error("[payroll-import] importMappedCsv failed:", err)
+    return {
+      created: 0,
+      updated: 0,
+      total,
+      skipped,
+      errors: [translateImportError(err)],
+    }
+  }
 
   // Same as `bulkImportPayrollEmployees`: bust the cached hierarchy
   // / employee lists so the new rows show up on the Team hierarchy
@@ -1453,5 +1698,5 @@ export async function importMappedCsv(input: {
     await bustOrgConfigCaches({ organizationId: orgId })
   }
 
-  return { created, updated, total, skipped, errors: [] }
+  return { created, updated, total, skipped, errors }
 }

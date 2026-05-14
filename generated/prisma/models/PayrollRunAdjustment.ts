@@ -38,14 +38,12 @@ export type PayrollRunAdjustmentAvgAggregateOutputType = {
   otNormalHours: runtime.Decimal | null
   otRestHours: runtime.Decimal | null
   otPublicHours: runtime.Decimal | null
-  unpaidLeaveDeduction: runtime.Decimal | null
 }
 
 export type PayrollRunAdjustmentSumAggregateOutputType = {
   otNormalHours: runtime.Decimal | null
   otRestHours: runtime.Decimal | null
   otPublicHours: runtime.Decimal | null
-  unpaidLeaveDeduction: runtime.Decimal | null
 }
 
 export type PayrollRunAdjustmentMinAggregateOutputType = {
@@ -55,7 +53,6 @@ export type PayrollRunAdjustmentMinAggregateOutputType = {
   otNormalHours: runtime.Decimal | null
   otRestHours: runtime.Decimal | null
   otPublicHours: runtime.Decimal | null
-  unpaidLeaveDeduction: runtime.Decimal | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -68,7 +65,6 @@ export type PayrollRunAdjustmentMaxAggregateOutputType = {
   otNormalHours: runtime.Decimal | null
   otRestHours: runtime.Decimal | null
   otPublicHours: runtime.Decimal | null
-  unpaidLeaveDeduction: runtime.Decimal | null
   notes: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -83,7 +79,6 @@ export type PayrollRunAdjustmentCountAggregateOutputType = {
   otPublicHours: number
   manualLineItems: number
   fixedAllowanceOverrides: number
-  unpaidLeaveDeduction: number
   notes: number
   createdAt: number
   updatedAt: number
@@ -95,14 +90,12 @@ export type PayrollRunAdjustmentAvgAggregateInputType = {
   otNormalHours?: true
   otRestHours?: true
   otPublicHours?: true
-  unpaidLeaveDeduction?: true
 }
 
 export type PayrollRunAdjustmentSumAggregateInputType = {
   otNormalHours?: true
   otRestHours?: true
   otPublicHours?: true
-  unpaidLeaveDeduction?: true
 }
 
 export type PayrollRunAdjustmentMinAggregateInputType = {
@@ -112,7 +105,6 @@ export type PayrollRunAdjustmentMinAggregateInputType = {
   otNormalHours?: true
   otRestHours?: true
   otPublicHours?: true
-  unpaidLeaveDeduction?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -125,7 +117,6 @@ export type PayrollRunAdjustmentMaxAggregateInputType = {
   otNormalHours?: true
   otRestHours?: true
   otPublicHours?: true
-  unpaidLeaveDeduction?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -140,7 +131,6 @@ export type PayrollRunAdjustmentCountAggregateInputType = {
   otPublicHours?: true
   manualLineItems?: true
   fixedAllowanceOverrides?: true
-  unpaidLeaveDeduction?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
@@ -242,7 +232,6 @@ export type PayrollRunAdjustmentGroupByOutputType = {
   otPublicHours: runtime.Decimal
   manualLineItems: runtime.JsonValue
   fixedAllowanceOverrides: runtime.JsonValue
-  unpaidLeaveDeduction: runtime.Decimal
   notes: string | null
   createdAt: Date
   updatedAt: Date
@@ -280,7 +269,6 @@ export type PayrollRunAdjustmentWhereInput = {
   otPublicHours?: Prisma.DecimalFilter<"PayrollRunAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonFilter<"PayrollRunAdjustment">
   fixedAllowanceOverrides?: Prisma.JsonFilter<"PayrollRunAdjustment">
-  unpaidLeaveDeduction?: Prisma.DecimalFilter<"PayrollRunAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"PayrollRunAdjustment"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollRunAdjustment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollRunAdjustment"> | Date | string
@@ -297,7 +285,6 @@ export type PayrollRunAdjustmentOrderByWithRelationInput = {
   otPublicHours?: Prisma.SortOrder
   manualLineItems?: Prisma.SortOrder
   fixedAllowanceOverrides?: Prisma.SortOrder
-  unpaidLeaveDeduction?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -319,7 +306,6 @@ export type PayrollRunAdjustmentWhereUniqueInput = Prisma.AtLeast<{
   otPublicHours?: Prisma.DecimalFilter<"PayrollRunAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonFilter<"PayrollRunAdjustment">
   fixedAllowanceOverrides?: Prisma.JsonFilter<"PayrollRunAdjustment">
-  unpaidLeaveDeduction?: Prisma.DecimalFilter<"PayrollRunAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"PayrollRunAdjustment"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollRunAdjustment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollRunAdjustment"> | Date | string
@@ -336,7 +322,6 @@ export type PayrollRunAdjustmentOrderByWithAggregationInput = {
   otPublicHours?: Prisma.SortOrder
   manualLineItems?: Prisma.SortOrder
   fixedAllowanceOverrides?: Prisma.SortOrder
-  unpaidLeaveDeduction?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -359,7 +344,6 @@ export type PayrollRunAdjustmentScalarWhereWithAggregatesInput = {
   otPublicHours?: Prisma.DecimalWithAggregatesFilter<"PayrollRunAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonWithAggregatesFilter<"PayrollRunAdjustment">
   fixedAllowanceOverrides?: Prisma.JsonWithAggregatesFilter<"PayrollRunAdjustment">
-  unpaidLeaveDeduction?: Prisma.DecimalWithAggregatesFilter<"PayrollRunAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableWithAggregatesFilter<"PayrollRunAdjustment"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollRunAdjustment"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollRunAdjustment"> | Date | string
@@ -372,7 +356,6 @@ export type PayrollRunAdjustmentCreateInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -389,7 +372,6 @@ export type PayrollRunAdjustmentUncheckedCreateInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -402,7 +384,6 @@ export type PayrollRunAdjustmentUpdateInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -419,7 +400,6 @@ export type PayrollRunAdjustmentUncheckedUpdateInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -434,7 +414,6 @@ export type PayrollRunAdjustmentCreateManyInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -447,7 +426,6 @@ export type PayrollRunAdjustmentUpdateManyMutationInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -462,7 +440,6 @@ export type PayrollRunAdjustmentUncheckedUpdateManyInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -498,7 +475,6 @@ export type PayrollRunAdjustmentCountOrderByAggregateInput = {
   otPublicHours?: Prisma.SortOrder
   manualLineItems?: Prisma.SortOrder
   fixedAllowanceOverrides?: Prisma.SortOrder
-  unpaidLeaveDeduction?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -508,7 +484,6 @@ export type PayrollRunAdjustmentAvgOrderByAggregateInput = {
   otNormalHours?: Prisma.SortOrder
   otRestHours?: Prisma.SortOrder
   otPublicHours?: Prisma.SortOrder
-  unpaidLeaveDeduction?: Prisma.SortOrder
 }
 
 export type PayrollRunAdjustmentMaxOrderByAggregateInput = {
@@ -518,7 +493,6 @@ export type PayrollRunAdjustmentMaxOrderByAggregateInput = {
   otNormalHours?: Prisma.SortOrder
   otRestHours?: Prisma.SortOrder
   otPublicHours?: Prisma.SortOrder
-  unpaidLeaveDeduction?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -531,7 +505,6 @@ export type PayrollRunAdjustmentMinOrderByAggregateInput = {
   otNormalHours?: Prisma.SortOrder
   otRestHours?: Prisma.SortOrder
   otPublicHours?: Prisma.SortOrder
-  unpaidLeaveDeduction?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -541,7 +514,6 @@ export type PayrollRunAdjustmentSumOrderByAggregateInput = {
   otNormalHours?: Prisma.SortOrder
   otRestHours?: Prisma.SortOrder
   otPublicHours?: Prisma.SortOrder
-  unpaidLeaveDeduction?: Prisma.SortOrder
 }
 
 export type PayrollRunAdjustmentCreateNestedManyWithoutEmployeeProfileInput = {
@@ -635,7 +607,6 @@ export type PayrollRunAdjustmentCreateWithoutEmployeeProfileInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -650,7 +621,6 @@ export type PayrollRunAdjustmentUncheckedCreateWithoutEmployeeProfileInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -694,7 +664,6 @@ export type PayrollRunAdjustmentScalarWhereInput = {
   otPublicHours?: Prisma.DecimalFilter<"PayrollRunAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonFilter<"PayrollRunAdjustment">
   fixedAllowanceOverrides?: Prisma.JsonFilter<"PayrollRunAdjustment">
-  unpaidLeaveDeduction?: Prisma.DecimalFilter<"PayrollRunAdjustment"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.StringNullableFilter<"PayrollRunAdjustment"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollRunAdjustment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollRunAdjustment"> | Date | string
@@ -707,7 +676,6 @@ export type PayrollRunAdjustmentCreateWithoutPayrollRunInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -722,7 +690,6 @@ export type PayrollRunAdjustmentUncheckedCreateWithoutPayrollRunInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -762,7 +729,6 @@ export type PayrollRunAdjustmentCreateManyEmployeeProfileInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -775,7 +741,6 @@ export type PayrollRunAdjustmentUpdateWithoutEmployeeProfileInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -790,7 +755,6 @@ export type PayrollRunAdjustmentUncheckedUpdateWithoutEmployeeProfileInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -804,7 +768,6 @@ export type PayrollRunAdjustmentUncheckedUpdateManyWithoutEmployeeProfileInput =
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -818,7 +781,6 @@ export type PayrollRunAdjustmentCreateManyPayrollRunInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -831,7 +793,6 @@ export type PayrollRunAdjustmentUpdateWithoutPayrollRunInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -846,7 +807,6 @@ export type PayrollRunAdjustmentUncheckedUpdateWithoutPayrollRunInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -860,7 +820,6 @@ export type PayrollRunAdjustmentUncheckedUpdateManyWithoutPayrollRunInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   manualLineItems?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   fixedAllowanceOverrides?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  unpaidLeaveDeduction?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -877,7 +836,6 @@ export type PayrollRunAdjustmentSelect<ExtArgs extends runtime.Types.Extensions.
   otPublicHours?: boolean
   manualLineItems?: boolean
   fixedAllowanceOverrides?: boolean
-  unpaidLeaveDeduction?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -896,13 +854,12 @@ export type PayrollRunAdjustmentSelectScalar = {
   otPublicHours?: boolean
   manualLineItems?: boolean
   fixedAllowanceOverrides?: boolean
-  unpaidLeaveDeduction?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PayrollRunAdjustmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payrollRunId" | "employeeProfileId" | "otNormalHours" | "otRestHours" | "otPublicHours" | "manualLineItems" | "fixedAllowanceOverrides" | "unpaidLeaveDeduction" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollRunAdjustment"]>
+export type PayrollRunAdjustmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payrollRunId" | "employeeProfileId" | "otNormalHours" | "otRestHours" | "otPublicHours" | "manualLineItems" | "fixedAllowanceOverrides" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollRunAdjustment"]>
 export type PayrollRunAdjustmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   payrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
@@ -938,11 +895,6 @@ export type $PayrollRunAdjustmentPayload<ExtArgs extends runtime.Types.Extension
      * follow through correctly).
      */
     fixedAllowanceOverrides: runtime.JsonValue
-    /**
-     * Pre-computed unpaid-leave deduction (currency). Manual entry
-     * until the leave-attendance integration ships in v2.
-     */
-    unpaidLeaveDeduction: runtime.Decimal
     notes: string | null
     createdAt: Date
     updatedAt: Date
@@ -1325,7 +1277,6 @@ export interface PayrollRunAdjustmentFieldRefs {
   readonly otPublicHours: Prisma.FieldRef<"PayrollRunAdjustment", 'Decimal'>
   readonly manualLineItems: Prisma.FieldRef<"PayrollRunAdjustment", 'Json'>
   readonly fixedAllowanceOverrides: Prisma.FieldRef<"PayrollRunAdjustment", 'Json'>
-  readonly unpaidLeaveDeduction: Prisma.FieldRef<"PayrollRunAdjustment", 'Decimal'>
   readonly notes: Prisma.FieldRef<"PayrollRunAdjustment", 'String'>
   readonly createdAt: Prisma.FieldRef<"PayrollRunAdjustment", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PayrollRunAdjustment", 'DateTime'>

@@ -234,12 +234,9 @@ export default async function AdminPayrollPayslipDetailPage({
             muted={payslip.pcb === 0}
           />
           <Line label="Zakat" value={payslip.zakat} muted />
-          {payslip.unpaidLeaveDeduction > 0 && (
-            <Line
-              label="Unpaid leave"
-              value={payslip.unpaidLeaveDeduction}
-            />
-          )}
+          {/* Unpaid leave shows up in the `Manual deductions` block
+              below as a `deduct_unpaid_leave` line item — no longer
+              its own row. */}
           {deductions.length > 0 && (
             <div className="rounded-md border border-border/60 bg-muted/30">
               <div className="border-b border-border/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">

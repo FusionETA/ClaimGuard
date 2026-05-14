@@ -396,9 +396,9 @@ export async function generatePayrollPayslips(input: {
       reimbursements: reimbursementsByEmp.get(e.employeeProfileId) ?? [],
       // One-off deductions are now merged into `fixedAllowances`
       // above so they go through the category-aware path. Keep the
-      // engine input empty — no double-counting.
+      // engine input empty — no double-counting. (Unpaid leave is
+      // one of those line items now — category `deduct_unpaid_leave`.)
       manualDeductions: [],
-      unpaidLeaveDeduction: adj?.unpaidLeaveDeduction ?? 0,
       // PCB year-to-date inputs (this year's SUBMITTED payslips +
       // prev-employer TP3-like carryover).
       ytdTaxable: ytd?.ytdTaxable ?? 0,
@@ -435,7 +435,6 @@ export async function generatePayrollPayslips(input: {
       totalAllowances: result.totalAllowances,
       totalReimbursements: result.totalReimbursements,
       totalDeductions: result.totalDeductions,
-      unpaidLeaveDeduction: result.unpaidLeaveDeduction,
       epfEmployee: result.epfEmployee,
       epfEmployer: result.epfEmployer,
       socsoEmployee: result.socsoEmployee,

@@ -140,9 +140,8 @@ export default async function EmployeePayslipDetailPage({
             muted={payslip.pcb === 0}
           />
           {payslip.zakat > 0 && <Line label="Zakat" value={payslip.zakat} />}
-          {payslip.unpaidLeaveDeduction > 0 && (
-            <Line label="Unpaid leave" value={payslip.unpaidLeaveDeduction} />
-          )}
+          {/* Unpaid leave shows up under "Other deductions" below as a
+              `deduct_unpaid_leave` line item. */}
           {deductions.length > 0 && (
             <LineItemGroup label="Other deductions" items={deductions} />
           )}

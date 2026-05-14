@@ -207,6 +207,24 @@ export type EmployeeTeamMembership = Prisma.EmployeeTeamMembershipModel
  */
 export type PayrollProfile = Prisma.PayrollProfileModel
 /**
+ * Model SalaryChange
+ * Audit-grade history of legitimate salary changes for an employee.
+ * Created only when the admin explicitly classifies a salary edit
+ * as a real compensation change (not a typo fix). Used for:
+ * - LHDN / SOCSO / EIS audit responses
+ * - Industrial Relations disputes
+ * - Retrenchment / VSS payouts ("last drawn salary")
+ * - HR year-end performance reviews
+ * - Employer-issued salary-history letters (loans, EPF/income proof)
+ * 
+ * Does NOT drive the calc engine yet — the current `monthlySalary`
+ * on `PayrollProfile` still determines every payroll run. The
+ * `effectiveDate` field is here so a future Level 2 upgrade can
+ * switch to effective-date aware salary resolution without a
+ * migration.
+ */
+export type SalaryChange = Prisma.SalaryChangeModel
+/**
  * Model PayrollSettings
  * Per-org payroll rules. Frequently edited by admin (OT multipliers,
  * EPF defaults). Matches Altomate's `p_settings` table.

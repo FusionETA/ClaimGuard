@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
+import { getCurrentSession } from "@/lib/auth/session"
 import type { BaseFormState } from "@/lib/form-state"
 import {
   childAbilityStatuses,
@@ -18,11 +19,14 @@ import {
   socsoSchemes,
   type FixedAllowance,
 } from "@/modules/payroll/domain/models"
+import { SALARY_CHANGE_REASONS } from "@/modules/payroll/domain/salary-change"
 import {
   archivePayrollProfile,
   unarchivePayrollProfile,
   upsertPayrollProfile,
 } from "@/modules/payroll/application/services/payroll-profile.service"
+import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
+import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-change.repository"
 
 /**
  * Server actions for the payroll-employee detail tabs.
@@ -149,6 +153,27 @@ const employmentSchema = z.object({
   prevPcb: nullableNumber(),
   prevZakat: nullableNumber(),
   prevAllowableDeductions: nullableNumber(),
+  // Salary-change classification — sent by the form when the admin
+  // actually changes salary. The UI prompts them to pick "TYPO" (no
+  // history entry) or one of the real reasons (creates a
+  // SalaryChange row). FormData always sends a value (the hidden
+  // input defaults to ""), so we accept any of:
+  //   - "" / null / File → unchanged-salary save, no history row
+  //   - "TYPO" → typo correction, no history row
+  //   - one of SALARY_CHANGE_REASONS → real change, history row
+  salaryChangeKind: z
+    .union([z.string(), z.null(), z.instanceof(File)])
+    .transform((v) => {
+      if (v == null || v instanceof File) return null
+      const t = v.trim()
+      if (t === "") return null
+      if (t === "TYPO") return "TYPO" as const
+      const reasons = SALARY_CHANGE_REASONS as readonly string[]
+      if (reasons.includes(t)) return t as (typeof SALARY_CHANGE_REASONS)[number]
+      return null
+    }),
+  salaryChangeEffectiveDate: nullableDateString(),
+  salaryChangeNotes: nullableString(),
 })
 
 export async function savePayrollEmploymentAction(
@@ -177,6 +202,9 @@ export async function savePayrollEmploymentAction(
     prevPcb: formData.get("prevPcb"),
     prevZakat: formData.get("prevZakat"),
     prevAllowableDeductions: formData.get("prevAllowableDeductions"),
+    salaryChangeKind: formData.get("salaryChangeKind"),
+    salaryChangeEffectiveDate: formData.get("salaryChangeEffectiveDate"),
+    salaryChangeNotes: formData.get("salaryChangeNotes"),
   })
   if (!parsed.success) {
     return {
@@ -201,11 +229,27 @@ export async function savePayrollEmploymentAction(
 
   const fixedAllowances = parseFixedAllowancesFromForm(formData)
 
+  // Snapshot the existing salary BEFORE the upsert so we can compare
+  // and (if the admin classified the change as a real one) record a
+  // SalaryChange audit row.
+  const existing = await payrollProfileRepository.getByUserId(userId)
+  const session = await getCurrentSession()
+  const changedByUserId = session?.userId ?? null
+
+  // Destructure the salary-change classification away from the
+  // PayrollProfile patch so it doesn't leak into the repo upsert.
+  const {
+    salaryChangeKind,
+    salaryChangeEffectiveDate,
+    salaryChangeNotes,
+    ...profilePatch
+  } = parsed.data
+
   try {
     await upsertPayrollProfile({
       userId,
       patch: {
-        ...parsed.data,
+        ...profilePatch,
         fixedAllowances,
       },
     })
@@ -216,9 +260,77 @@ export async function savePayrollEmploymentAction(
     }
   }
 
+  // Record an audit-grade salary history row when:
+  //   - the salary actually changed (either MONTHLY value, HOURLY
+  //     rate, or the salary type itself);
+  //   - the admin classified the change as a real one (not TYPO);
+  //   - we know which EmployeeProfile to attach it to.
+  //
+  // Best-effort: a failure to write the history row does NOT roll
+  // back the profile update. The admin's primary task (save the
+  // salary) is done; the audit log just gets a console.error so we
+  // can investigate.
+  if (
+    existing &&
+    salaryChangeKind &&
+    salaryChangeKind !== "TYPO" &&
+    salaryActuallyChanged(existing, profilePatch)
+  ) {
+    try {
+      await salaryChangeRepository.create({
+        employeeProfileId: existing.employeeProfileId,
+        effectiveDate:
+          salaryChangeEffectiveDate ??
+          new Date().toISOString().slice(0, 10),
+        previousSalaryType: existing.salaryType,
+        previousMonthlySalary: existing.monthlySalary,
+        previousHourlyRate: existing.hourlyRate,
+        newSalaryType: profilePatch.salaryType,
+        newMonthlySalary: profilePatch.monthlySalary,
+        newHourlyRate: profilePatch.hourlyRate,
+        reason: salaryChangeKind,
+        notes: salaryChangeNotes ?? null,
+        changedByUserId,
+      })
+    } catch (err) {
+      console.error(
+        "[salary-history] failed to record SalaryChange row:",
+        err,
+      )
+    }
+  }
+
   revalidatePath("/admin/payroll/employees")
   revalidatePath(`/admin/payroll/employees/${userId}`)
   return { status: "success", message: "Employment details saved." }
+}
+
+/**
+ * Did the salary actually change between the stored profile and the
+ * patch the admin just submitted? Compares all three salary fields
+ * (type, monthly amount, hourly rate). Returns false if every value
+ * matches.
+ */
+function salaryActuallyChanged(
+  existing: {
+    salaryType: (typeof salaryTypes)[number]
+    monthlySalary: number | null
+    hourlyRate: number | null
+  },
+  patch: {
+    salaryType: (typeof salaryTypes)[number]
+    monthlySalary: number | null
+    hourlyRate: number | null
+  },
+): boolean {
+  if (existing.salaryType !== patch.salaryType) return true
+  if ((existing.monthlySalary ?? null) !== (patch.monthlySalary ?? null)) {
+    return true
+  }
+  if ((existing.hourlyRate ?? null) !== (patch.hourlyRate ?? null)) {
+    return true
+  }
+  return false
 }
 
 // ─── Statutory tab ────────────────────────────────────────────────────────
