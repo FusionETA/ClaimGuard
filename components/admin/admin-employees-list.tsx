@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { HoursProgressInline } from "@/components/attendance/hours-progress"
 import { attendanceStatusMeta } from "@/modules/attendance/domain/metadata"
 import type { AttendanceStatus } from "@/modules/attendance/domain/models"
 
@@ -28,6 +29,8 @@ type Employee = {
   project: string | null
   todayStatus: AttendanceStatus | null
   todayTimeIn: string | null
+  monthActualMin: number
+  monthExpectedMin: number
 }
 
 const STATUS_VARIANT: Record<string, string> = {
@@ -149,7 +152,21 @@ export function AdminEmployeesList({ employees }: { employees: Employee[] }) {
                       {e.project ? ` • ${e.project}` : ""}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="hidden text-right md:block"
+                      title="Actual / expected hours this month"
+                    >
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Hours (month)
+                      </p>
+                      <HoursProgressInline
+                        entry={{
+                          actualMin: e.monthActualMin,
+                          expectedMin: e.monthExpectedMin,
+                        }}
+                      />
+                    </div>
                     {e.todayStatus ? (
                       <div className="hidden text-right sm:block">
                         <Badge variant={STATUS_VARIANT[e.todayStatus] as never}>

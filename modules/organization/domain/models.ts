@@ -124,6 +124,9 @@ export type OrganizationProjectOption = {
   workingHoursStart?: string | null
   workingHoursEnd?: string | null
   workingDays?: string | null
+  /// Daily lunch break minutes deducted from the (end-start) span when
+  /// computing expected daily working minutes. Defaults to 60.
+  lunchBreakMinutes?: number | null
   holidays?: ReadonlyArray<{ id: string; date: string; name: string }>
 }
 

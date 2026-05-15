@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 
 import { EmployeeDetailView } from "@/components/attendance/employee-detail-view"
+import { HoursProgress } from "@/components/attendance/hours-progress"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
@@ -29,7 +30,7 @@ export default async function AdminEmployeeDetailPage({
   const session = await requirePortalSession("ADMIN")
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
-  const [data, hoursSummary] = await Promise.all([
+  const [data, hoursSummary, progress] = await Promise.all([
     adminAttendanceService.getEmployeeDetail(
       // Honour the dropdown-selected company; falls back to the home org.
       resolveActiveOrgId(session) ?? null,
@@ -40,6 +41,7 @@ export default async function AdminEmployeeDetailPage({
       new Date(initialFrom),
       new Date(initialTo),
     ),
+    adminAttendanceService.getEmployeeProgress(employeeId),
   ])
   if (!data) notFound()
 
@@ -55,6 +57,16 @@ export default async function AdminEmployeeDetailPage({
         Back to employees
       </Link>
       <EmployeeDetailView data={data} viewerRole="ADMIN" />
+      <HoursProgress
+        weekly={{
+          actualMin: progress.week.actualMin,
+          expectedMin: progress.week.expectedMin,
+        }}
+        monthly={{
+          actualMin: progress.month.actualMin,
+          expectedMin: progress.month.expectedMin,
+        }}
+      />
       <HoursSummaryPanel
         title="Hours summary"
         initialFrom={initialFrom}

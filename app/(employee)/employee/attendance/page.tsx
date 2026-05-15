@@ -1,3 +1,4 @@
+import { HoursProgress } from "@/components/attendance/hours-progress"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
 import { requirePortalSession } from "@/lib/auth/session"
 import { getPrismaClient } from "@/lib/prisma"
@@ -45,7 +46,7 @@ export default async function EmployeeAttendancePage() {
   await requireModuleAccess("attendance")
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
-  const [dashboard, workingHours, projects, hoursSummary, profileExtras, policy] = await Promise.all([
+  const [dashboard, workingHours, projects, hoursSummary, profileExtras, policy, progress] = await Promise.all([
     employeeAttendanceService.getEmployeeDashboard(session.userId),
     employeeAttendanceService.getWorkingHours(session.userId),
     employeeAttendanceService.getAvailableProjects(session.userId),
@@ -56,6 +57,7 @@ export default async function EmployeeAttendancePage() {
     ),
     loadEmployeeProfileExtras(session.userId),
     policyRepository.findForUserId(session.userId),
+    employeeAttendanceService.getProgress(session.userId),
   ])
   // Default to enforcing geofence when no policy is assigned (legacy
   // behavior). Admins disable it per-policy in Settings → Policies.
@@ -76,6 +78,16 @@ export default async function EmployeeAttendancePage() {
         projects={projects}
         requiresSelfieOnClockIn={requiresSelfieOnClockIn}
         enforceGeofence={enforceGeofence}
+      />
+      <HoursProgress
+        weekly={{
+          actualMin: progress.week.actualMin,
+          expectedMin: progress.week.expectedMin,
+        }}
+        monthly={{
+          actualMin: progress.month.actualMin,
+          expectedMin: progress.month.expectedMin,
+        }}
       />
       <HoursSummaryPanel
         title="My hours summary"

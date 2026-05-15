@@ -2930,12 +2930,28 @@ function ProjectWorkingHoursCard({
   const [start, setStart] = useState(project.workingHoursStart ?? "")
   const [end, setEnd] = useState(project.workingHoursEnd ?? "")
   const [days, setDays] = useState<Set<number>>(parseWorkingDays(project.workingDays))
+  const [lunch, setLunch] = useState<string>(
+    project.lunchBreakMinutes !== null && project.lunchBreakMinutes !== undefined
+      ? String(project.lunchBreakMinutes)
+      : "60",
+  )
 
   useEffect(() => {
     setStart(project.workingHoursStart ?? "")
     setEnd(project.workingHoursEnd ?? "")
     setDays(parseWorkingDays(project.workingDays))
-  }, [project.id, project.workingHoursStart, project.workingHoursEnd, project.workingDays])
+    setLunch(
+      project.lunchBreakMinutes !== null && project.lunchBreakMinutes !== undefined
+        ? String(project.lunchBreakMinutes)
+        : "60",
+    )
+  }, [
+    project.id,
+    project.workingHoursStart,
+    project.workingHoursEnd,
+    project.workingDays,
+    project.lunchBreakMinutes,
+  ])
 
   function toggleDay(value: number) {
     setDays((prev) => {
@@ -2948,10 +2964,13 @@ function ProjectWorkingHoursCard({
 
   function handleSave() {
     startTransition(async () => {
+      const lunchNum = Number(lunch.trim())
+      const lunchValid = lunch.trim() !== "" && Number.isFinite(lunchNum)
       const result = await saveProjectCalendarAction(project.id, {
         workingHoursStart: start.trim() || null,
         workingHoursEnd: end.trim() || null,
         workingDays: days.size === 0 ? null : Array.from(days).sort().join(","),
+        lunchBreakMinutes: lunchValid ? lunchNum : null,
       })
       toast({
         title: result.message,
@@ -3032,6 +3051,28 @@ function ProjectWorkingHoursCard({
                 </button>
               )
             })}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold text-foreground">Lunch break</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Minutes deducted from the daily working span when computing the
+            expected (minimum) hours each employee owes. e.g. 09:00–18:00 with
+            a 60-minute lunch = 8 expected hours/day.
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              max={240}
+              step={5}
+              value={lunch}
+              onChange={(event) => setLunch(event.target.value)}
+              disabled={pending}
+              className="h-9 w-24 rounded-md border border-border/60 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <span className="text-xs text-muted-foreground">minutes</span>
           </div>
         </div>
 

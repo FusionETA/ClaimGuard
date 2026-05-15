@@ -3,6 +3,7 @@ import "server-only"
 import { getOrSetCache } from "@/lib/cache"
 import { key } from "@/lib/redis"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import type {
   AdminOrgOverview,
   ApprovalRequestView,
@@ -141,6 +142,12 @@ export const adminAttendanceService = {
 
   async getEmployeeHoursSummary(employeeId: string, from: Date, to: Date) {
     return attendanceRepository.getHoursSummary({ employeeId, from, to })
+  },
+
+  /// Weekly + monthly actual-vs-expected progress for a single employee,
+  /// used by the admin/supervisor employee-detail page.
+  async getEmployeeProgress(employeeId: string) {
+    return employeeAttendanceService.getProgress(employeeId)
   },
 
   async getDailyActivity(

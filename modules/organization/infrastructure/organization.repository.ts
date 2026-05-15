@@ -2218,6 +2218,7 @@ export const organizationRepository = {
       workingHoursStart: row.workingHoursStart,
       workingHoursEnd: row.workingHoursEnd,
       workingDays: row.workingDays,
+      lunchBreakMinutes: row.lunchBreakMinutes,
       holidays: row.holidays.map((h) => ({
         id: h.id,
         date: h.date.toISOString().slice(0, 10),

@@ -58,16 +58,71 @@ export function parseHmToMinutes(value: string | null | undefined): number | nul
   return h * 60 + m
 }
 
+export const DEFAULT_LUNCH_BREAK_MIN = 60
+
 export function standardDailyMinutesFrom(
   start: string | null | undefined,
   end: string | null | undefined,
+  lunchBreakMin: number | null | undefined = DEFAULT_LUNCH_BREAK_MIN,
 ): number {
   const startMin = parseHmToMinutes(start)
   const endMin = parseHmToMinutes(end)
   if (startMin === null || endMin === null || endMin <= startMin) {
     return DEFAULT_STANDARD_DAILY_MIN
   }
-  return endMin - startMin
+  const lunch =
+    typeof lunchBreakMin === "number" && Number.isFinite(lunchBreakMin)
+      ? Math.max(0, Math.floor(lunchBreakMin))
+      : DEFAULT_LUNCH_BREAK_MIN
+  return Math.max(0, endMin - startMin - lunch)
+}
+
+/// Compute the expected (minimum) working minutes for an inclusive
+/// [from, to] UTC date range. Counts each calendar day whose ISO
+/// weekday is in `workingDays` and multiplies by `standardDailyMin`.
+/// Off-days (rest days, public holidays, leave) are intentionally NOT
+/// subtracted — this is a pure "scheduled days × daily hours" target.
+export function expectedMinutesForRange(input: {
+  from: Date
+  to: Date
+  workingDays: Set<number>
+  standardDailyMin: number
+}): number {
+  const { from, to, workingDays, standardDailyMin } = input
+  if (standardDailyMin <= 0) return 0
+  // Normalize to UTC midnight so we iterate full calendar days
+  const start = new Date(
+    Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate()),
+  )
+  const end = new Date(
+    Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate()),
+  )
+  if (end < start) return 0
+  let days = 0
+  const cursor = new Date(start)
+  while (cursor <= end) {
+    if (workingDays.has(isoWeekday(cursor))) days += 1
+    cursor.setUTCDate(cursor.getUTCDate() + 1)
+  }
+  return days * standardDailyMin
+}
+
+/// Format an "actual / expected" pair like "26h / 40h". The actual
+/// number keeps minute granularity ("26h 30m") while the expected
+/// drops minutes when the remainder is zero for a cleaner target.
+export function formatHoursOfTarget(actualMin: number, expectedMin: number): string {
+  const safeActual = Math.max(0, Math.round(actualMin))
+  const safeExpected = Math.max(0, Math.round(expectedMin))
+  const actualH = Math.floor(safeActual / 60)
+  const actualM = safeActual % 60
+  const actualStr = actualM === 0 ? `${actualH}h` : `${actualH}h ${actualM.toString().padStart(2, "0")}m`
+  const expectedH = Math.floor(safeExpected / 60)
+  const expectedM = safeExpected % 60
+  const expectedStr =
+    expectedM === 0
+      ? `${expectedH}h`
+      : `${expectedH}h ${expectedM.toString().padStart(2, "0")}m`
+  return `${actualStr} / ${expectedStr}`
 }
 
 export function bucketRecord(input: BucketInputs): HoursBuckets {

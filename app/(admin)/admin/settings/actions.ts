@@ -1322,12 +1322,13 @@ export async function saveProjectCalendarAction(
     workingHoursStart: string | null
     workingHoursEnd: string | null
     workingDays: string | null
+    lunchBreakMinutes?: number | null
   }
 ): Promise<{ ok: boolean; message: string }> {
   const ctx = await assertProjectInActiveOrg(projectId)
   if (!ctx.ok) return ctx
 
-  const { workingHoursStart, workingHoursEnd, workingDays } = values
+  const { workingHoursStart, workingHoursEnd, workingDays, lunchBreakMinutes } = values
 
   if (workingHoursStart && !TIME_RE.test(workingHoursStart)) {
     return { ok: false, message: "Start time must be HH:MM (24h)." }
@@ -1347,6 +1348,20 @@ export async function saveProjectCalendarAction(
       }
     }
   }
+  let lunchToPersist: number | undefined
+  if (lunchBreakMinutes !== undefined && lunchBreakMinutes !== null) {
+    if (
+      !Number.isFinite(lunchBreakMinutes) ||
+      lunchBreakMinutes < 0 ||
+      lunchBreakMinutes > 240
+    ) {
+      return {
+        ok: false,
+        message: "Lunch break must be between 0 and 240 minutes.",
+      }
+    }
+    lunchToPersist = Math.round(lunchBreakMinutes)
+  }
 
   try {
     await ctx.prisma.xeroProject.update({
@@ -1355,6 +1370,7 @@ export async function saveProjectCalendarAction(
         workingHoursStart: workingHoursStart || null,
         workingHoursEnd: workingHoursEnd || null,
         workingDays: workingDays || null,
+        ...(lunchToPersist !== undefined ? { lunchBreakMinutes: lunchToPersist } : {}),
       },
     })
   } catch (error) {

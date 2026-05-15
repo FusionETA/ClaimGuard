@@ -165,6 +165,53 @@ async function uploadSelfieToXero({
   })
 }
 
+/// Resolves the [Mon..Sun] week and [first..last day of month] month UTC
+/// ranges anchored on "today" in the employee's org timezone. Returned
+/// dates are UTC midnight at the start day and UTC end-of-day at the
+/// last day; the repository further normalizes via startOfDay/endOfDay.
+async function resolveProgressRanges(employeeId: string): Promise<{
+  weekRange: { from: Date; to: Date }
+  monthRange: { from: Date; to: Date }
+}> {
+  const prisma = getPrismaClient()
+  let timezone = "Asia/Kuala_Lumpur"
+  if (prisma) {
+    const user = await prisma.user.findUnique({
+      where: { id: employeeId },
+      select: { organization: { select: { timezone: true } } },
+    })
+    if (user?.organization?.timezone) timezone = user.organization.timezone
+  }
+
+  // Get YYYY-MM-DD in the org's local timezone
+  const fmt = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+  const parts = fmt.formatToParts(new Date())
+  const y = Number(parts.find((p) => p.type === "year")?.value ?? "0")
+  const m = Number(parts.find((p) => p.type === "month")?.value ?? "0")
+  const d = Number(parts.find((p) => p.type === "day")?.value ?? "0")
+  const today = new Date(Date.UTC(y, m - 1, d))
+
+  // ISO week: Monday = 1, Sunday = 7. Find the Monday of today's week.
+  const isoDay = ((today.getUTCDay() + 6) % 7) + 1 // 1..7
+  const weekFrom = new Date(today)
+  weekFrom.setUTCDate(today.getUTCDate() - (isoDay - 1))
+  const weekTo = new Date(weekFrom)
+  weekTo.setUTCDate(weekFrom.getUTCDate() + 6)
+
+  const monthFrom = new Date(Date.UTC(y, m - 1, 1))
+  const monthTo = new Date(Date.UTC(y, m, 0)) // last day of month
+
+  return {
+    weekRange: { from: weekFrom, to: weekTo },
+    monthRange: { from: monthFrom, to: monthTo },
+  }
+}
+
 export const employeeAttendanceService = {
   async getEmployeeDashboard(employeeId: string): Promise<EmployeeAttendanceDashboard> {
     // Today-scoped — include the day in the key so a midnight rollover
@@ -352,6 +399,32 @@ export const employeeAttendanceService = {
 
   async getHoursSummary(employeeId: string, from: Date, to: Date) {
     return attendanceRepository.getHoursSummary({ employeeId, from, to })
+  },
+
+  /// Returns weekly + monthly actual-vs-expected working minutes for the
+  /// employee, anchored on the org's local "today". Used by the
+  /// attendance dashboard's "Hours progress" card and detail pages.
+  async getProgress(employeeId: string): Promise<{
+    week: { from: Date; to: Date; actualMin: number; expectedMin: number }
+    month: { from: Date; to: Date; actualMin: number; expectedMin: number }
+  }> {
+    const { weekRange, monthRange } = await resolveProgressRanges(employeeId)
+    const [week, month] = await Promise.all([
+      attendanceRepository.getEmployeeRangeProgress({
+        employeeId,
+        from: weekRange.from,
+        to: weekRange.to,
+      }),
+      attendanceRepository.getEmployeeRangeProgress({
+        employeeId,
+        from: monthRange.from,
+        to: monthRange.to,
+      }),
+    ])
+    return {
+      week: { ...weekRange, ...week },
+      month: { ...monthRange, ...month },
+    }
   },
 
   async updateTodayRemark(

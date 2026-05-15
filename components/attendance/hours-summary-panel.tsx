@@ -17,11 +17,11 @@ export type HoursSummaryEmployeeRow = {
   name: string
   email: string
   initials: string
-  buckets: HoursBuckets
+  buckets: HoursBuckets & { expectedMin?: number }
 }
 
 export type HoursSummaryData = {
-  totals: HoursBuckets
+  totals: HoursBuckets & { expectedMin?: number }
   employees: HoursSummaryEmployeeRow[]
 }
 
