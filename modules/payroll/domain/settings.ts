@@ -43,6 +43,11 @@ export type PayrollSettingsData = {
   hrdfEnabled: boolean
   hrdfRate: number | null
 
+  // PCB — auto-apply the RM 350/year combined SOCSO + EIS contribution
+  // relief inside the monthly PCB calc. Default ON. When OFF the
+  // relief is treated as a TP1 item.
+  autoApplySocsoEisRelief: boolean
+
   // Employer identifiers
   employerIdNumber: string | null
   myCoOrSsmNumber: string | null

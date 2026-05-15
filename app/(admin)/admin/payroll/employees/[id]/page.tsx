@@ -1,4 +1,5 @@
 import Link from "next/link"
+import type { Route } from "next"
 import { redirect } from "next/navigation"
 import { ChevronLeft } from "lucide-react"
 
@@ -17,8 +18,10 @@ import { isPayrollProfileComplete } from "@/modules/payroll/domain/models"
  */
 export default async function AdminPayrollEmployeeDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { id } = await params
   const data = await getPayrollEmployeeDetailPageData({ userId: id })
@@ -27,6 +30,22 @@ export default async function AdminPayrollEmployeeDetailPage({
     redirect("/admin/payroll/employees")
   }
 
+  // Optional ?from=<absolute internal path> lets the linking page tell
+  // us where the user came from so the Back button can return there.
+  // We validate the value carefully: only same-origin absolute paths
+  // under /admin/ are accepted, to avoid open-redirect risk. Bad or
+  // missing values fall through to the employees list.
+  const sp = (await searchParams) ?? {}
+  const fromRaw = typeof sp.from === "string" ? sp.from : null
+  const safeFrom =
+    fromRaw && /^\/admin\/[A-Za-z0-9_\-/?=&%.]*$/.test(fromRaw)
+      ? fromRaw
+      : null
+  const backHref = (safeFrom ?? "/admin/payroll/employees") as Route
+  const backLabel = safeFrom?.includes("/payroll/runs/")
+    ? "Back to payroll run"
+    : "Back"
+
   const complete = data.profile ? isPayrollProfileComplete(data.profile) : false
 
   return (
@@ -34,9 +53,9 @@ export default async function AdminPayrollEmployeeDetailPage({
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Button asChild variant="ghost" size="sm">
-            <Link href="/admin/payroll/employees">
+            <Link href={backHref}>
               <ChevronLeft className="h-4 w-4" />
-              Back
+              {backLabel}
             </Link>
           </Button>
           <div className="space-y-0.5">

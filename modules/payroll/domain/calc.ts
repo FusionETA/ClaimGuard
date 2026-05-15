@@ -430,6 +430,12 @@ export type CalcPayslipInput = {
     /// via the `deduct_unpaid_leave` line item.
     hrdfEnabled: boolean
     hrdfRate: number | null
+    /// Auto-apply the RM 350/year combined SOCSO + EIS relief in
+    /// the monthly PCB calc. Default true (HReasily-style); set
+    /// false to treat the relief as a TP1 item the employee must
+    /// declare themselves (strict LHDN MTD Spec). Optional so
+    /// pre-existing callers keep compiling.
+    autoApplySocsoEisRelief?: boolean
   }
   /// Period being run.
   periodYear: number
@@ -457,6 +463,12 @@ export type CalcPayslipInput = {
   /// from prior SUBMITTED payslips' `zakat` totals, plus any
   /// prev-employer carryover from `PayrollProfile.prevZakat`.
   ytdZakat?: number
+  /// YTD SOCSO + EIS employee contributions (sum of socsoEmployee +
+  /// eisEmployee) from prior SUBMITTED payslips this calendar year.
+  /// Used by `calcPcb` to apply the RM 350/year SOCSO+EIS relief.
+  /// Defaults to 0; caller (run service) populates from
+  /// `payslipRepository.getYtdForEmployee`.
+  ytdSocsoEis?: number
   /// YTD per-category allowance totals (RM) — used to enforce
   /// `taxExemptLimit` caps. Keyed by `PayrollAdjustmentCategory` (e.g.
   /// `allowance_childcare`). Only the over-cap portion of an
@@ -844,6 +856,23 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   const epfFromNormal = round2(
     Math.max(0, epf.employee - pcbAdditionalRemunerationEpf),
   )
+  // SOCSO + EIS employee contributions feed the RM 350/year combined
+  // relief inside calcPcb. We auto-apply this (it would otherwise be
+  // a TP1 item) because the employer already knows the exact figure
+  // — see SOCSO_EIS_RELIEF_CAP in pcb.ts for the rationale.
+  // Honour the org-level "Auto-apply SOCSO + EIS relief" setting.
+  // When the admin turns it off, we hand calcPcb zero figures so
+  // the RM 350 relief is effectively not applied — the employee
+  // would then claim it at year-end via Form BE or via TP1.
+  // Default true matches the pre-toggle behaviour.
+  const autoApplySocsoEis = settings.autoApplySocsoEisRelief !== false
+  const thisMonthSocsoEis = autoApplySocsoEis
+    ? round2(socso.employee + eis.employee)
+    : 0
+  const ytdSocsoEisForRelief = autoApplySocsoEis
+    ? (input.ytdSocsoEis ?? 0)
+    : 0
+
   const pcbBreakdown = calcPcb({
     isResident: profile.isResident,
     periodMonth,
@@ -855,6 +884,8 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     ytdEpf: input.ytdEpf ?? 0,
     ytdPcb: input.ytdPcb ?? 0,
     ytdZakat: input.ytdZakat ?? 0,
+    thisMonthSocsoEis,
+    ytdSocsoEis: ytdSocsoEisForRelief,
     profile: {
       isOku: profile.isOku,
       spouseWorking: profile.spouseWorking,

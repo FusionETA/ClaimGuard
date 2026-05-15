@@ -3272,6 +3272,7 @@ export const PayrollSettingsScalarFieldEnum = {
   defaultEpfEmployerRate: 'defaultEpfEmployerRate',
   hrdfEnabled: 'hrdfEnabled',
   hrdfRate: 'hrdfRate',
+  autoApplySocsoEisRelief: 'autoApplySocsoEisRelief',
   employerIdNumber: 'employerIdNumber',
   myCoOrSsmNumber: 'myCoOrSsmNumber',
   leaveCarryForwardAllowed: 'leaveCarryForwardAllowed',

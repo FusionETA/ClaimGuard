@@ -174,9 +174,17 @@ export type PayslipData = {
 
 /**
  * Row shape for the payslips list on the run detail page. Same as
- * PayslipData minus the line items (loaded lazily on the detail page).
+ * PayslipData plus a denormalised line-item count so the UI can
+ * render badges or summaries without counting in the client.
+ *
+ * Line items are eagerly loaded with the list because the admin
+ * table renders the earnings breakdown inline under each employee
+ * name (matching the printable Payroll Summary PDF). For a typical
+ * run of 10–100 employees this adds a few KB of payload and saves
+ * the 50+ lazy-load round-trips the previous expand-row design
+ * required.
  */
-export type PayslipRow = Omit<PayslipData, "lineItems"> & {
+export type PayslipRow = PayslipData & {
   lineItemCount: number
 }
 

@@ -1124,6 +1124,15 @@ model PayrollSettings {
   hrdfEnabled Boolean  @default(false)
   hrdfRate    Decimal? @db.Decimal(5, 2)
 
+  // PCB — auto-apply the RM 350/year combined SOCSO + EIS
+  // contribution relief inside the monthly PCB calc. Default ON,
+  // matching HReasily / BrioHR / Talenox. When OFF the relief is
+  // treated as a TP1 item that the employee must declare themselves
+  // (or claim back at year-end via Form BE) — strictest LHDN MTD
+  // Spec reading. See `SOCSO_EIS_RELIEF_CAP` doc in
+  // `modules/payroll/domain/pcb.ts` for the rationale.
+  autoApplySocsoEisRelief Boolean @default(true)
+
   // Employer identifiers (used for both payroll filing and Form E).
   employerIdNumber String?
   myCoOrSsmNumber  String?

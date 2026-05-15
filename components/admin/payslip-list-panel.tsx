@@ -1,10 +1,9 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import Link from "next/link"
-import type { Route } from "next"
-import { ChevronRight, FileText, Search, Sliders } from "lucide-react"
+import { Download, FileText, Search } from "lucide-react"
 
+import { EditAdjustmentDialog } from "@/components/admin/edit-adjustment-dialog"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -14,31 +13,103 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { formatCurrency as formatMyr } from "@/lib/utils"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 import type { PayslipRow } from "@/modules/payroll/domain/runs"
 
 /**
- * Searchable, paginated list of payslips for a payroll run.
- *
- * Identical visual treatment to the previous static list — just adds
- * a search input at the top (matches employee name / code / position)
- * and a 10-per-page pagination control at the bottom. Client-only
- * because the filter + page state live in the URL bar implicitly via
- * React state; the server passes the full payslip array in one shot.
+ * Compact RM formatter. Drops the "RM " prefix (column headers
+ * already imply currency) and shows "—" for zero so the table feels
+ * less noisy. Negative values render with a leading minus sign so
+ * negative line items (unpaid leave deductions, recoveries, etc.)
+ * are obvious in the employee column breakdown.
  */
-const PAGE_SIZE = 10
+function fmt(value: number): string {
+  if (!Number.isFinite(value) || value === 0) return "—"
+  return value.toLocaleString("en-MY", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
 
+/** Signed formatter for line items — keeps the + or − sign. */
+function fmtSigned(value: number): string {
+  if (!Number.isFinite(value) || value === 0) return "0.00"
+  const sign = value < 0 ? "− " : "+ "
+  return (
+    sign +
+    Math.abs(value).toLocaleString("en-MY", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  )
+}
+
+/** Format hour counts — strips trailing zeros and shows "—" for 0. */
+function fmtHours(value: number | null): string {
+  if (value == null || !Number.isFinite(value) || value === 0) return "—"
+  return value.toLocaleString("en-MY", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })
+}
+
+const PAGE_SIZE = 20
+
+/**
+ * Searchable, paginated payroll-run table.
+ *
+ * Layout follows the printable Payroll Summary PDF:
+ *   - Leftmost column: Employee name + breakdown of base salary,
+ *     allowances (green), deductions (red), and any OT pay line.
+ *   - Hours group: Hrs (worked, for hourly), OT N/R/PH.
+ *   - GROSS: prominent total for the employee this run.
+ *   - Employee contributions group (cyan tint): PCB, EPF, SOCSO, EIS.
+ *   - NET: take-home pay.
+ *   - Employer contributions group (orange tint): EPF, SOCSO, EIS, HRDF.
+ *   - COST: total cost to employer.
+ *
+ * Column totals across the filtered set are rendered under each
+ * column heading so the admin can see run-level statutory totals at
+ * a glance — matches the PDF's column-total convention.
+ *
+ * The whole table is wrapped in a `grid-cols-[minmax(0,1fr)]`
+ * containment trick so a tall min-width on the table scrolls *inside*
+ * the card, never spilling out to scroll the window.
+ */
 export function PayslipsListPanel({
   runId,
   payslips,
   showAdjustLink,
+  runIsDraft,
 }: {
   runId: string
   payslips: PayslipRow[]
+  /// Whether to surface the per-row Adjust action. When the run is
+  /// SUBMITTED the action still opens but renders the form read-only.
   showAdjustLink: boolean
+  /// True when the run is still DRAFT. Drives the dialog's read-only
+  /// flag.
+  runIsDraft: boolean
 }) {
   const [query, setQuery] = useState("")
   const [page, setPage] = useState(1)
+
+  // The "Download payroll summary PDF" button is a plain link to the
+  // run's /summary route, which streams a properly-laid-out PDF
+  // generated server-side via @react-pdf/renderer. This is a real
+  // PDF document — not a screenshot of the page — so column widths
+  // and pagination are correct regardless of viewport. The
+  // `?download=1` query forces the browser to save instead of
+  // opening inline; the filename is set by Content-Disposition.
+  const summaryPdfHref = `/admin/payroll/runs/${runId}/summary?download=1`
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -55,23 +126,70 @@ export function PayslipsListPanel({
     })
   }, [payslips, query])
 
+  // Column totals across the current FILTERED set — what the admin
+  // sees in the table at this moment. Mirrors the PDF's header-total
+  // convention and the summary footer below.
+  const totals = useMemo(() => {
+    const init = {
+      gross: 0,
+      pcb: 0,
+      epfEmp: 0,
+      socsoEmp: 0,
+      eisEmp: 0,
+      net: 0,
+      epfEr: 0,
+      socsoEr: 0,
+      eisEr: 0,
+      hrdf: 0,
+      cost: 0,
+      zakat: 0,
+      hrdfWage: 0,
+      hrdfCount: 0,
+    }
+    for (const p of filtered) {
+      init.gross += p.grossPay
+      init.pcb += p.pcb
+      init.epfEmp += p.epfEmployee
+      init.socsoEmp += p.socsoEmployee
+      init.eisEmp += p.eisEmployee
+      init.net += p.netPay
+      init.epfEr += p.epfEmployer
+      init.socsoEr += p.socsoEmployer
+      init.eisEr += p.eisEmployer
+      init.hrdf += p.hrdf
+      init.cost += p.totalCostToEmployer
+      init.zakat += p.zakat
+      init.hrdfWage += p.hrdfWage
+      if (p.hrdf > 0) init.hrdfCount += 1
+    }
+    return init
+  }, [filtered])
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  // Clamp current page if the filter shrank the result set.
   const currentPage = Math.min(page, totalPages)
   const pageStart = (currentPage - 1) * PAGE_SIZE
   const pageRows = filtered.slice(pageStart, pageStart + PAGE_SIZE)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <FileText className="h-4 w-4" />
-          Payslips
-        </CardTitle>
-        <CardDescription>
-          {payslips.length} payslip{payslips.length === 1 ? "" : "s"} on
-          file. Click any row to view the breakdown.
-        </CardDescription>
+    <Card data-payroll-summary-card>
+      <CardHeader className="flex flex-row items-start justify-between gap-3">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4" />
+            Payslips
+          </CardTitle>
+          <CardDescription>
+            {payslips.length} payslip{payslips.length === 1 ? "" : "s"} on
+            file. Column totals shown in the header reflect the current
+            search filter.
+          </CardDescription>
+        </div>
+        <Button asChild variant="outline" size="sm" className="gap-2">
+          <a href={summaryPdfHref}>
+            <Download className="h-4 w-4" />
+            Download payroll summary PDF
+          </a>
+        </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="relative">
@@ -94,17 +212,146 @@ export function PayslipsListPanel({
               : "No payslips on file yet."}
           </p>
         ) : (
-          <div className="space-y-1.5">
-            {pageRows.map((p) => (
-              <PayslipLink
-                key={p.id}
-                runId={runId}
-                payslip={p}
-                showAdjustLink={showAdjustLink}
-              />
-            ))}
+          // Card-internal horizontal scroll. The PDF version is
+          // generated separately at /admin/payroll/runs/[id]/summary
+          // via @react-pdf/renderer, so the on-screen table can be
+          // as wide as it needs to be without worrying about print
+          // fidelity.
+          <div className="grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl border border-border/60">
+            <div className="overflow-x-auto">
+              <Table
+                className={cn(
+                  "min-w-[1500px] text-[11px] [&_td]:px-2 [&_td]:py-2 [&_td]:whitespace-nowrap [&_td]:align-top [&_th]:px-2 [&_th]:py-2 [&_th]:whitespace-nowrap",
+                )}
+              >
+                <TableHeader>
+                  {/* ── Top header row: group labels with coloured
+                       underlines, matching the PDF's "Employee
+                       contributions" / "Employer contributions"
+                       banded headings. */}
+                  <TableRow className="border-b-0 hover:bg-transparent">
+                    <TableHead className="bg-background" colSpan={1}></TableHead>
+                    <TableHead
+                      colSpan={4}
+                      className="text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70"
+                    >
+                      Hours
+                    </TableHead>
+                    <TableHead className="bg-background"></TableHead>
+                    <TableHead
+                      colSpan={4}
+                      className="border-b-2 border-cyan-300 bg-cyan-50/40 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:bg-cyan-950/20"
+                    >
+                      Employee contributions
+                    </TableHead>
+                    <TableHead className="bg-background"></TableHead>
+                    <TableHead
+                      colSpan={4}
+                      className="border-b-2 border-orange-300 bg-orange-50/40 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-700 dark:bg-orange-950/20"
+                    >
+                      Employer contributions
+                    </TableHead>
+                    <TableHead className="bg-background"></TableHead>
+                    {showAdjustLink ? (
+                      <TableHead className="bg-background"></TableHead>
+                    ) : null}
+                  </TableRow>
+                  {/* ── Column heading + total row. The total under
+                       each money column matches the PDF style. */}
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead className="text-right" title="Worked hours (hourly employees)">
+                      Hrs
+                    </TableHead>
+                    <TableHead className="text-right" title="Normal-day OT hours">
+                      OT&nbsp;N
+                    </TableHead>
+                    <TableHead className="text-right" title="Rest-day OT hours">
+                      OT&nbsp;R
+                    </TableHead>
+                    <TableHead className="text-right" title="Public-holiday OT hours">
+                      OT&nbsp;PH
+                    </TableHead>
+                    <TotalHead label="GROSS" total={totals.gross} />
+                    <TotalHead label="PCB" total={totals.pcb} tint="emp" />
+                    <TotalHead label="EPF" total={totals.epfEmp} tint="emp" />
+                    <TotalHead label="SOCSO" total={totals.socsoEmp} tint="emp" />
+                    <TotalHead label="EIS" total={totals.eisEmp} tint="emp" />
+                    <TotalHead label="NET" total={totals.net} bold />
+                    <TotalHead label="EPF" total={totals.epfEr} tint="er" />
+                    <TotalHead label="SOCSO" total={totals.socsoEr} tint="er" />
+                    <TotalHead label="EIS" total={totals.eisEr} tint="er" />
+                    <TotalHead label="HRDF" total={totals.hrdf} tint="er" />
+                    <TotalHead label="COST" total={totals.cost} bold />
+                    {showAdjustLink ? (
+                      <TableHead className="text-right">
+                        ·
+                      </TableHead>
+                    ) : null}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pageRows.map((p) => (
+                    <PayslipRow
+                      key={p.id}
+                      runId={runId}
+                      payslip={p}
+                      showAdjustLink={showAdjustLink}
+                      runIsDraft={runIsDraft}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
+
+        {/* ── Summary footer (mirrors the PDF totals block). */}
+        {filtered.length > 0 ? (
+          <div className="grid gap-x-8 gap-y-2 rounded-2xl border border-border/60 bg-muted/20 px-4 py-3 text-[12px] sm:grid-cols-2 md:grid-cols-3">
+            <SummaryRow label="Number of employees" value={filtered.length} />
+            <SummaryRow
+              label="Total employee net pay"
+              value={fmt(totals.net)}
+              mono
+            />
+            <SummaryRow label="Total PCB payment" value={fmt(totals.pcb)} mono />
+            <SummaryRow
+              label="Employees subject to HRDF"
+              value={totals.hrdfCount}
+            />
+            <SummaryRow
+              label="Total wages subject to HRDF"
+              value={fmt(totals.hrdfWage)}
+              mono
+            />
+            <SummaryRow
+              label="Total EPF payment"
+              value={fmt(totals.epfEmp + totals.epfEr)}
+              mono
+            />
+            <SummaryRow
+              label="Total SOCSO payment"
+              value={fmt(totals.socsoEmp + totals.socsoEr)}
+              mono
+            />
+            <SummaryRow
+              label="Total EIS payment"
+              value={fmt(totals.eisEmp + totals.eisEr)}
+              mono
+            />
+            <SummaryRow
+              label="Total HRDF payment"
+              value={fmt(totals.hrdf)}
+              mono
+            />
+            <SummaryRow
+              label="Total Zakat payment"
+              value={fmt(totals.zakat)}
+              mono
+            />
+          </div>
+        ) : null}
 
         {totalPages > 1 ? (
           <div className="flex flex-col gap-3 rounded-3xl border border-border/70 bg-background/80 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -153,47 +400,236 @@ export function PayslipsListPanel({
   )
 }
 
-function PayslipLink({
+/** Column-header cell that stacks the label on top of a running
+ *  total, with optional tint matching the column group. */
+function TotalHead({
+  label,
+  total,
+  tint,
+  bold,
+}: {
+  label: string
+  total: number
+  tint?: "emp" | "er"
+  bold?: boolean
+}) {
+  return (
+    <TableHead
+      className={cn(
+        "text-right",
+        tint === "emp" && "bg-cyan-50/40 dark:bg-cyan-950/20",
+        tint === "er" && "bg-orange-50/40 dark:bg-orange-950/20",
+      )}
+    >
+      <div className="flex flex-col items-end">
+        <span className={cn("text-[10px] uppercase tracking-[0.18em]", bold && "text-foreground")}>
+          {label}
+        </span>
+        <span className="font-mono text-[11px] text-foreground">
+          {fmt(total)}
+        </span>
+      </div>
+    </TableHead>
+  )
+}
+
+/** One payroll row: employee identity + line-item breakdown on the
+ *  left, statutory + total amounts across the rest. */
+function PayslipRow({
   runId,
   payslip,
   showAdjustLink,
+  runIsDraft,
 }: {
   runId: string
   payslip: PayslipRow
   showAdjustLink: boolean
+  runIsDraft: boolean
+}) {
+  // Build the breakdown items the way the PDF does: base salary
+  // first, then OT pay (computed from columns, with formula text),
+  // then each line item with its sign.
+  const breakdown = useMemo(() => {
+    const items: Array<{ label: string; amount: number; signed: boolean }> = []
+    if (payslip.proratedPay > 0) {
+      items.push({
+        label: "Base salary",
+        amount: payslip.proratedPay,
+        signed: false,
+      })
+    }
+    if (payslip.otPay > 0) {
+      const parts: string[] = []
+      if (payslip.otNormalHours > 0)
+        parts.push(`${payslip.otNormalHours} normal`)
+      if (payslip.otRestHours > 0) parts.push(`${payslip.otRestHours} rest`)
+      if (payslip.otPublicHours > 0)
+        parts.push(`${payslip.otPublicHours} PH`)
+      const tail = parts.length ? ` (${parts.join(" + ")})` : ""
+      items.push({
+        label: `Overtime${tail}`,
+        amount: payslip.otPay,
+        signed: true,
+      })
+    }
+    for (const li of payslip.lineItems) {
+      // Render deductions as negative, allowances + reimbursements
+      // as positive — matches the PDF where unpaid-leave rows are
+      // red minuses and allowances are green pluses.
+      const sign = li.kind === "DEDUCTION" ? -1 : 1
+      items.push({
+        label: li.label,
+        amount: sign * li.amount,
+        signed: true,
+      })
+    }
+    return items
+  }, [payslip])
+
+  return (
+    <TableRow>
+      <TableCell>
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-col">
+            <span className="text-[12px] font-semibold text-foreground">
+              {payslip.snapshotName}
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              {payslip.snapshotEmployeeId}
+              {payslip.snapshotPosition ? ` · ${payslip.snapshotPosition}` : ""}
+            </span>
+          </div>
+          {/* Breakdown lines — kept tight to the name; line items
+              colour-coded by sign. */}
+          <div className="mt-0.5 space-y-0.5 text-[10.5px] leading-tight text-muted-foreground">
+            {breakdown.map((it, i) => (
+              <BreakdownLine
+                key={`${payslip.id}-${i}`}
+                label={it.label}
+                amount={it.amount}
+                signed={it.signed}
+              />
+            ))}
+          </div>
+        </div>
+      </TableCell>
+      <TableCell className="text-right font-mono">
+        {fmtHours(payslip.workedHours)}
+      </TableCell>
+      <TableCell className="text-right font-mono">
+        {fmtHours(payslip.otNormalHours)}
+      </TableCell>
+      <TableCell className="text-right font-mono">
+        {fmtHours(payslip.otRestHours)}
+      </TableCell>
+      <TableCell className="text-right font-mono">
+        {fmtHours(payslip.otPublicHours)}
+      </TableCell>
+      <TableCell className="text-right font-mono font-semibold">
+        {fmt(payslip.grossPay)}
+      </TableCell>
+      <TintedCell tint="emp" value={payslip.pcb} />
+      <TintedCell tint="emp" value={payslip.epfEmployee} />
+      <TintedCell tint="emp" value={payslip.socsoEmployee} />
+      <TintedCell tint="emp" value={payslip.eisEmployee} />
+      <TableCell className="text-right font-mono font-semibold">
+        {fmt(payslip.netPay)}
+      </TableCell>
+      <TintedCell tint="er" value={payslip.epfEmployer} />
+      <TintedCell tint="er" value={payslip.socsoEmployer} />
+      <TintedCell tint="er" value={payslip.eisEmployer} />
+      <TintedCell tint="er" value={payslip.hrdf} />
+      <TableCell className="text-right font-mono font-semibold">
+        {fmt(payslip.totalCostToEmployer)}
+      </TableCell>
+      {showAdjustLink ? (
+        <TableCell className="text-right">
+          <EditAdjustmentDialog
+            runId={runId}
+            employeeProfileId={payslip.employeeProfileId}
+            employeeName={payslip.snapshotName}
+            employeeCode={payslip.snapshotEmployeeId}
+            readOnly={!runIsDraft}
+          />
+        </TableCell>
+      ) : null}
+    </TableRow>
+  )
+}
+
+/** Tinted money cell — matches the column group's header tint so
+ *  the eye can trace each band of contributions vertically. */
+function TintedCell({
+  tint,
+  value,
+}: {
+  tint: "emp" | "er"
+  value: number
 }) {
   return (
-    <div className="flex w-full items-center justify-between gap-2 rounded-lg border border-transparent px-3 py-2 text-sm transition hover:border-primary/40 hover:bg-primary/5">
-      <Link
-        href={`/admin/payroll/runs/${runId}/payslips/${payslip.id}` as Route}
-        className="flex min-w-0 flex-1 items-center justify-between gap-3"
-      >
-        <div className="flex min-w-0 flex-col">
-          <span className="truncate font-medium text-foreground">
-            {payslip.snapshotName}
-            <span className="ml-2 text-xs text-muted-foreground">
-              {payslip.snapshotEmployeeId}
-            </span>
-          </span>
-          <span className="truncate text-xs text-muted-foreground">
-            {payslip.snapshotPosition ?? "—"} · Gross{" "}
-            {formatMyr(payslip.grossPay)} · Net {formatMyr(payslip.netPay)}
-          </span>
-        </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-      </Link>
-      {showAdjustLink && (
-        <Link
-          href={
-            `/admin/payroll/runs/${runId}/employees/${payslip.employeeProfileId}` as Route
-          }
-          title="Edit OT / adjustments"
-          className="inline-flex h-7 items-center gap-1 rounded-md border border-border/70 px-2 text-xs text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
-        >
-          <Sliders className="h-3 w-3" />
-          Adjust
-        </Link>
+    <TableCell
+      className={cn(
+        "text-right font-mono",
+        tint === "emp" && "bg-cyan-50/30 dark:bg-cyan-950/15",
+        tint === "er" && "bg-orange-50/30 dark:bg-orange-950/15",
       )}
+    >
+      {fmt(value)}
+    </TableCell>
+  )
+}
+
+/** One line in the employee-name cell. Renders allowance lines in
+ *  green with a +, deduction lines in red with a − ; base salary
+ *  is monochrome. */
+function BreakdownLine({
+  label,
+  amount,
+  signed,
+}: {
+  label: string
+  amount: number
+  signed: boolean
+}) {
+  const isNegative = amount < 0
+  const isPositive = signed && amount > 0
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="truncate">{label}</span>
+      <span
+        className={cn(
+          "shrink-0 font-mono tabular-nums",
+          isNegative && "text-rose-600",
+          isPositive && "text-emerald-700",
+        )}
+      >
+        {signed
+          ? fmtSigned(amount)
+          : amount.toLocaleString("en-MY", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+      </span>
     </div>
   )
 }
+
+/** Footer-summary row. Bold label / mono value layout matches the
+ *  PDF's run-totals block. */
+function SummaryRow({
+  label,
+  value,
+  mono,
+}: {
+  label: string
+  value: string | number
+  mono?: boolean
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={cn(mono && "font-mono")}>{value}</span>
+    </div>
+  )
+}
+

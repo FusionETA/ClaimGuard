@@ -296,3 +296,116 @@ describe("calcPcb — non-resident", () => {
     expect(result.total).toBe(0)
   })
 })
+
+// ─── SOCSO + EIS RM 350 relief ──────────────────────────────────────────
+
+describe("calcPcb — SOCSO + EIS RM 350 relief (actuals-only)", () => {
+  it("applies only the actual contribution this month, not a forward projection", () => {
+    // RM 8,000/mo, January, no YTD. SOCSO Cat 1 + EIS @ 8k =
+    // ~RM 87.95/mo combined. Actuals-only relief = min(350, 0 + 87.95)
+    // = 87.95 (cap NOT yet reached). Chargeable drops by 87.95 →
+    // 82,912.05. Tax delta = 87.95 × 19% = 16.71 → monthly drop ≈ 1.39.
+    const without = calcPcb({
+      isResident: true,
+      periodMonth: 1,
+      thisMonthTaxable: 8000,
+      thisMonthEpf: 880,
+      ytdTaxable: 0,
+      ytdEpf: 0,
+      ytdPcb: 0,
+      profile: baseProfile,
+    })
+    const withRelief = calcPcb({
+      isResident: true,
+      periodMonth: 1,
+      thisMonthTaxable: 8000,
+      thisMonthEpf: 880,
+      thisMonthSocsoEis: 87.95,
+      ytdSocsoEis: 0,
+      ytdTaxable: 0,
+      ytdEpf: 0,
+      ytdPcb: 0,
+      profile: baseProfile,
+    })
+    expect(withRelief.total).toBeLessThan(without.total)
+    // 87.95 of relief × 19% / 12 ≈ 1.39 monthly drop. With LHDN
+    // rounding up to next 5 sen the delta might be slightly larger.
+    expect(without.total - withRelief.total).toBeLessThan(2.5)
+    expect(without.total - withRelief.total).toBeGreaterThan(0)
+  })
+
+  it("caps at RM 350 once YTD + thisMonth crosses the ceiling", () => {
+    // By August: 8 months × ~87.95 = ~703.60 cumulative. Actuals-only
+    // would already be capped at 350.
+    const overCap = calcPcb({
+      isResident: true,
+      periodMonth: 8,
+      thisMonthTaxable: 8000,
+      thisMonthEpf: 880,
+      thisMonthSocsoEis: 87.95,
+      ytdSocsoEis: 615.65, // 7 months × 87.95
+      ytdTaxable: 56000,
+      ytdEpf: 4400,
+      ytdPcb: 3600,
+      profile: baseProfile,
+    })
+    const wayOver = calcPcb({
+      isResident: true,
+      periodMonth: 8,
+      thisMonthTaxable: 8000,
+      thisMonthEpf: 880,
+      thisMonthSocsoEis: 87.95,
+      ytdSocsoEis: 1000, // way over — should still clamp at 350
+      ytdTaxable: 56000,
+      ytdEpf: 4400,
+      ytdPcb: 3600,
+      profile: baseProfile,
+    })
+    // Both should give the same PCB because the relief is capped.
+    expect(overCap.total).toBeCloseTo(wayOver.total, 2)
+  })
+
+  it("backwards-compatible: missing SOCSO/EIS inputs → same as before", () => {
+    const legacyShape = calcPcb({
+      isResident: true,
+      periodMonth: 1,
+      thisMonthTaxable: 8000,
+      thisMonthEpf: 880,
+      ytdTaxable: 0,
+      ytdEpf: 0,
+      ytdPcb: 0,
+      profile: baseProfile,
+    })
+    const explicitZero = calcPcb({
+      isResident: true,
+      periodMonth: 1,
+      thisMonthTaxable: 8000,
+      thisMonthEpf: 880,
+      thisMonthSocsoEis: 0,
+      ytdSocsoEis: 0,
+      ytdTaxable: 0,
+      ytdEpf: 0,
+      ytdPcb: 0,
+      profile: baseProfile,
+    })
+    expect(legacyShape.total).toBe(explicitZero.total)
+  })
+
+  it("non-resident path is unaffected by SOCSO/EIS relief", () => {
+    // Non-resident PCB is flat 30% with no reliefs — passing SOCSO/EIS
+    // figures must not change the answer.
+    const withFigures = calcPcb({
+      isResident: false,
+      periodMonth: 1,
+      thisMonthTaxable: 7000,
+      thisMonthEpf: 0,
+      thisMonthSocsoEis: 88,
+      ytdSocsoEis: 0,
+      ytdTaxable: 0,
+      ytdEpf: 0,
+      ytdPcb: 0,
+      profile: baseProfile,
+    })
+    expect(withFigures.total).toBeCloseTo(2100, 2) // 7000 × 30%
+  })
+})
