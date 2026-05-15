@@ -38,7 +38,22 @@ async function main() {
   })
   const prisma = new PrismaClient({ adapter })
 
-  const orgs = await prisma.organization.findMany({ select: { id: true, name: true } })
+  const orgs = await prisma.organization.findMany({
+    select: {
+      id: true,
+      name: true,
+      // Legacy org-level OT rate fields. Once the schema is updated to
+      // drop these columns this `select` will need to be removed; the
+      // policy will already hold the values.
+      otRateNormalDay: true,
+      otRateRestDay: true,
+      otRatePublicHoliday: true,
+      restDayInShiftRate: true,
+      publicHolidayInShiftRate: true,
+      otSalaryThreshold: true,
+      otDailyThresholdMinutes: true,
+    },
+  })
   console.log(`Found ${orgs.length} organization(s).`)
 
   for (const org of orgs) {
@@ -103,8 +118,25 @@ async function main() {
       else officeCount++
     }
 
+    // Copy the org's legacy OT rate values onto every policy in the
+    // org. Run AFTER the seeded upserts so newly-created seeds also
+    // inherit the org's existing rates instead of the Prisma defaults.
+    // Safe to re-run — idempotent overwrite to the same values.
+    const otUpdate = await prisma.employeePolicy.updateMany({
+      where: { organizationId: org.id },
+      data: {
+        otRateNormalDay: org.otRateNormalDay,
+        otRateRestDay: org.otRateRestDay,
+        otRatePublicHoliday: org.otRatePublicHoliday,
+        otRateRestDayInShift: org.restDayInShiftRate,
+        otRatePublicHolidayInShift: org.publicHolidayInShiftRate,
+        otSalaryThreshold: org.otSalaryThreshold,
+        otDailyThresholdMinutes: org.otDailyThresholdMinutes,
+      },
+    })
+
     console.log(
-      `Org "${org.name}": seeded policies ✓ — assigned ${hourlyCount} hourly, ${officeCount} office.`,
+      `Org "${org.name}": seeded policies ✓ — assigned ${hourlyCount} hourly, ${officeCount} office; copied OT rates onto ${otUpdate.count} policies.`,
     )
   }
 

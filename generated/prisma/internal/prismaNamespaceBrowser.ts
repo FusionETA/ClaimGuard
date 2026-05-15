@@ -126,18 +126,11 @@ export const OrganizationScalarFieldEnum = {
   updatedAt: 'updatedAt',
   workingHoursEnd: 'workingHoursEnd',
   workingHoursStart: 'workingHoursStart',
-  otRateNormalDay: 'otRateNormalDay',
-  otRatePublicHoliday: 'otRatePublicHoliday',
-  otRateRestDay: 'otRateRestDay',
-  otSalaryThreshold: 'otSalaryThreshold',
-  publicHolidayInShiftRate: 'publicHolidayInShiftRate',
-  restDayInShiftRate: 'restDayInShiftRate',
   geofenceRadiusMeters: 'geofenceRadiusMeters',
   defaultMileageRate: 'defaultMileageRate',
   mileageUnit: 'mileageUnit',
   otEnabled: 'otEnabled',
   timezone: 'timezone',
-  otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   allowedCurrencies: 'allowedCurrencies',
   defaultCurrency: 'defaultCurrency',
   supervisorReportEnabled: 'supervisorReportEnabled',
@@ -162,6 +155,13 @@ export const EmployeePolicyScalarFieldEnum = {
   otMethod: 'otMethod',
   requireGeofence: 'requireGeofence',
   requireSelfie: 'requireSelfie',
+  otRateNormalDay: 'otRateNormalDay',
+  otRateRestDay: 'otRateRestDay',
+  otRatePublicHoliday: 'otRatePublicHoliday',
+  otRateRestDayInShift: 'otRateRestDayInShift',
+  otRatePublicHolidayInShift: 'otRatePublicHolidayInShift',
+  otSalaryThreshold: 'otSalaryThreshold',
+  otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -400,7 +400,8 @@ export const XeroProjectScalarFieldEnum = {
   longitude: 'longitude',
   workingHoursStart: 'workingHoursStart',
   workingHoursEnd: 'workingHoursEnd',
-  workingDays: 'workingDays'
+  workingDays: 'workingDays',
+  lunchBreakMinutes: 'lunchBreakMinutes'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
@@ -647,9 +648,6 @@ export type SalaryChangeScalarFieldEnum = (typeof SalaryChangeScalarFieldEnum)[k
 export const PayrollSettingsScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
-  otRateNormal: 'otRateNormal',
-  otRateRest: 'otRateRest',
-  otRatePublicHoliday: 'otRatePublicHoliday',
   workingDaysRule: 'workingDaysRule',
   defaultEpfEmployeeRate: 'defaultEpfEmployeeRate',
   defaultEpfEmployerRate: 'defaultEpfEmployerRate',

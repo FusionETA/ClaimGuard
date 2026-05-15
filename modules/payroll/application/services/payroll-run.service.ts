@@ -26,6 +26,8 @@ import {
   payslipRepository,
   type CreatePayslipInput,
 } from "@/modules/payroll/infrastructure/payslip.repository"
+import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
+import { deriveDailyHours } from "@/modules/payroll/domain/calc"
 
 /**
  * Page-data + action services for the "Payroll → Runs" surface.
@@ -265,12 +267,27 @@ export async function generatePayrollPayslips(input: {
     throw new Error("Only draft runs can be run again.")
   }
 
-  const [settings, employees, attachments, adjustments] = await Promise.all([
-    payrollSettingsRepository.getByOrgId(orgId),
-    payrollProfileRepository.listReadyForPayroll(orgId),
-    payrollRunClaimRepository.listForCalc(run.id),
-    payrollRunAdjustmentRepository.listForRun(run.id),
-  ])
+  const [settings, employees, attachments, adjustments, policies, orgHours] =
+    await Promise.all([
+      payrollSettingsRepository.getByOrgId(orgId),
+      payrollProfileRepository.listReadyForPayroll(orgId),
+      payrollRunClaimRepository.listForCalc(run.id),
+      payrollRunAdjustmentRepository.listForRun(run.id),
+      policyRepository.listForOrganization(orgId),
+      (async () => {
+        const prisma = getPrismaClient()
+        if (!prisma) return { workingHoursStart: "09:00", workingHoursEnd: "18:00" }
+        const org = await prisma.organization.findUnique({
+          where: { id: orgId },
+          select: { workingHoursStart: true, workingHoursEnd: true },
+        })
+        return {
+          workingHoursStart: org?.workingHoursStart ?? "09:00",
+          workingHoursEnd: org?.workingHoursEnd ?? "18:00",
+        }
+      })(),
+    ])
+  const policyById = new Map(policies.map((p) => [p.id, p]))
 
   if (employees.length === 0) {
     throw new Error(
@@ -290,12 +307,10 @@ export async function generatePayrollPayslips(input: {
     reimbursementsByEmp.set(a.employeeProfileId, list)
   }
 
-  // Fall back to schema defaults if no PayrollSettings row exists yet.
-  // These match the Prisma defaults (otRateNormal 1.5, etc.).
-  const calcSettings = {
-    otRateNormal: settings?.otRateNormal ?? 1.5,
-    otRateRest: settings?.otRateRest ?? 2,
-    otRatePublicHoliday: settings?.otRatePublicHoliday ?? 3,
+  // Org-wide payroll settings shared by every employee. Per-employee OT
+  // multipliers come from each employee's assigned policy below — they
+  // are no longer org-wide.
+  const baseCalcSettings = {
     workingDaysRule: settings?.workingDaysRule ?? "TWENTY_SIX",
     defaultEpfEmployeeRate: settings?.defaultEpfEmployeeRate ?? 11,
     defaultEpfEmployerRate: settings?.defaultEpfEmployerRate ?? 13,
@@ -306,6 +321,30 @@ export async function generatePayrollPayslips(input: {
     // strict LHDN-TP1 reading is preferred.
     autoApplySocsoEisRelief: settings?.autoApplySocsoEisRelief ?? true,
   } as const
+
+  function calcSettingsForEmployee(policyId: string | null): {
+    otRateNormal: number
+    otRateRest: number
+    otRatePublicHoliday: number
+    workingDaysRule: typeof baseCalcSettings.workingDaysRule
+    defaultEpfEmployeeRate: number
+    defaultEpfEmployerRate: number
+    hrdfEnabled: boolean
+    hrdfRate: number | null
+  } {
+    const policy = policyId ? policyById.get(policyId) ?? null : null
+    // OT rates only apply when the policy is in CASH mode. For
+    // TIME_BANK, NO-OT, or unassigned policy, zero out the multipliers
+    // so any leaked OT hours produce zero cash pay.
+    const cashOt =
+      policy !== null && policy.otEnabled && policy.otMethod === "CASH"
+    return {
+      ...baseCalcSettings,
+      otRateNormal: cashOt ? policy!.otRateNormalDay : 0,
+      otRateRest: cashOt ? policy!.otRateRestDay : 0,
+      otRatePublicHoliday: cashOt ? policy!.otRatePublicHoliday : 0,
+    }
+  }
 
   // Fetch YTD per-employee in parallel (needed for the PCB calc).
   // Excludes this current draft so the figure represents what's
@@ -393,11 +432,17 @@ export async function generatePayrollPayslips(input: {
       fixedAllowances: [...overriddenFixed, ...oneOffLines],
     }
 
+    const calcSettings = calcSettingsForEmployee(e.policyId)
+    const dailyHours = deriveDailyHours({
+      project: e.primaryProject,
+      org: orgHours,
+    })
     const result = calcPayslip({
       profile: profileWithAdjAllowances,
       settings: calcSettings,
       periodYear: run.periodYear,
       periodMonth: run.periodMonth,
+      dailyHours,
       // OT hours: from the admin's per-employee adjustment row.
       otNormalHours: adj?.otNormalHours ?? 0,
       otRestHours: adj?.otRestHours ?? 0,

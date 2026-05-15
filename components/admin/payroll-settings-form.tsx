@@ -174,48 +174,6 @@ function GeneralTab(props: {
     <form action={action} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Overtime multipliers</CardTitle>
-          <CardDescription>
-            Applied to hourly rate when computing OT pay. Defaults follow
-            Malaysian Employment Act (1.5× / 2× / 3×).
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <Field label="Normal day OT (×)">
-            <Input
-              name="otRateNormal"
-              type="number"
-              step="0.01"
-              min="1"
-              max="10"
-              defaultValue={s?.otRateNormal ?? 1.5}
-            />
-          </Field>
-          <Field label="Rest day OT (×)">
-            <Input
-              name="otRateRest"
-              type="number"
-              step="0.01"
-              min="1"
-              max="10"
-              defaultValue={s?.otRateRest ?? 2}
-            />
-          </Field>
-          <Field label="Public holiday OT (×)">
-            <Input
-              name="otRatePublicHoliday"
-              type="number"
-              step="0.01"
-              min="1"
-              max="10"
-              defaultValue={s?.otRatePublicHoliday ?? 3}
-            />
-          </Field>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
           <CardTitle className="text-base">
             Working-days rule
           </CardTitle>

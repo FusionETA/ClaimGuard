@@ -46,9 +46,6 @@ function mapPayrollSettings(row: any): PayrollSettingsData {
   return {
     id: row.id,
     organizationId: row.organizationId,
-    otRateNormal: toNumber(row.otRateNormal, 1.5),
-    otRateRest: toNumber(row.otRateRest, 2),
-    otRatePublicHoliday: toNumber(row.otRatePublicHoliday, 3),
     workingDaysRule: row.workingDaysRule,
     defaultEpfEmployeeRate: toNumber(row.defaultEpfEmployeeRate, 11),
     defaultEpfEmployerRate: toNumber(row.defaultEpfEmployerRate, 13),
@@ -75,9 +72,6 @@ function toUpsertData(
   const copy = <K extends keyof typeof patch>(k: K) => {
     if (patch[k] !== undefined) out[k as string] = patch[k]
   }
-  copy("otRateNormal")
-  copy("otRateRest")
-  copy("otRatePublicHoliday")
   copy("workingDaysRule")
   copy("defaultEpfEmployeeRate")
   copy("defaultEpfEmployerRate")

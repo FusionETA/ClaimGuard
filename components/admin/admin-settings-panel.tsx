@@ -21,7 +21,6 @@ import {
   saveMileageAccountsAction,
   saveMileageDefaultsAction,
   saveOrganizationSettingsAction,
-  saveOtRatesAction,
   toggleOrgOtAction,
   saveSupervisorReportSettingsAction,
   saveGeofenceRadiusAction,
@@ -1944,185 +1943,9 @@ export function AdminSettingsPanel({
   )
 }
 
-function OtRatesCard({ organization }: { organization?: OrganizationSummary }) {
-  const rates = organization?.otRates ?? {
-    normalDay: 1.5,
-    restDay: 2.0,
-    publicHoliday: 3.0,
-    restDayInShift: 1.0,
-    publicHolidayInShift: 2.0,
-    salaryThreshold: 4000,
-    dailyThresholdMinutes: 480,
-  }
-  const dailyThresholdHours =
-    Math.round((rates.dailyThresholdMinutes / 60) * 100) / 100
-
-  const [state, formAction, pending] = useActionState(
-    saveOtRatesAction,
-    initialSettingsActionState
-  )
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Overtime rates</CardTitle>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Multipliers used when computing overtime pay. ORP = monthly salary ÷ 26.
-          HRP = ORP ÷ 8. Defaults follow the Malaysian Employment Act.
-        </p>
-      </CardHeader>
-      <CardContent>
-        <form action={formAction} className="space-y-6">
-          <div>
-            <p className="text-sm font-semibold text-foreground">Daily OT threshold</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Time worked beyond this many hours per day counts as overtime
-              (after approval). Applies to all employees.
-            </p>
-            <div className="mt-3 max-w-xs">
-              <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                <span>Threshold (hours/day)</span>
-                <Input
-                  name="otDailyThresholdHours"
-                  type="number"
-                  step="0.25"
-                  min="0"
-                  max="24"
-                  defaultValue={dailyThresholdHours}
-                  disabled={pending}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-foreground">Overtime multiplier</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Applied to HRP for hours worked beyond the regular shift (after 8 hours
-              for monthly-paid; after 8 total for daily-paid).
-            </p>
-            <div className="mt-3 grid gap-4 sm:grid-cols-3">
-              <RateInput
-                name="otRateNormalDay"
-                label="Normal day (Mon–Sat)"
-                suffix="× HRP"
-                defaultValue={rates.normalDay}
-                disabled={pending}
-              />
-              <RateInput
-                name="otRateRestDay"
-                label="Rest day (Sun)"
-                suffix="× HRP"
-                defaultValue={rates.restDay}
-                disabled={pending}
-              />
-              <RateInput
-                name="otRatePublicHoliday"
-                label="Public holiday"
-                suffix="× HRP"
-                defaultValue={rates.publicHoliday}
-                disabled={pending}
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-foreground">Special-day premium</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Applied to ORP for hours worked within the regular shift on rest days
-              or public holidays.
-            </p>
-            <div className="mt-3 grid gap-4 sm:grid-cols-2">
-              <RateInput
-                name="restDayInShiftRate"
-                label="Rest day work"
-                suffix="× ORP"
-                defaultValue={rates.restDayInShift}
-                disabled={pending}
-              />
-              <RateInput
-                name="publicHolidayInShiftRate"
-                label="Public holiday work"
-                suffix="× ORP"
-                defaultValue={rates.publicHolidayInShift}
-                disabled={pending}
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold text-foreground">OT eligibility</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              For staff above this monthly salary cap (basic + fixed allowance), OT
-              requires management approval and is limited to operational/technical roles.
-            </p>
-            <div className="mt-3 max-w-xs">
-              <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-                <span>Salary threshold (RM)</span>
-                <Input
-                  name="otSalaryThreshold"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  defaultValue={rates.salaryThreshold}
-                  disabled={pending}
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm">
-              {state.status === "error" ? (
-                <span className="font-semibold text-destructive">{state.message}</span>
-              ) : state.status === "success" ? (
-                <span className="font-semibold text-success">{state.message}</span>
-              ) : null}
-            </div>
-            <Button type="submit" className="rounded-xl" disabled={pending}>
-              {pending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Saving…</> : "Save OT rates"}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  )
-}
-
-function RateInput({
-  name,
-  label,
-  suffix,
-  defaultValue,
-  disabled,
-}: {
-  name: string
-  label: string
-  suffix: string
-  defaultValue: number
-  disabled?: boolean
-}) {
-  return (
-    <label className="space-y-2 text-sm font-semibold text-muted-foreground">
-      <span>{label}</span>
-      <div className="relative">
-        <Input
-          name={name}
-          type="number"
-          step="0.1"
-          min="1"
-          max="10"
-          defaultValue={defaultValue}
-          disabled={disabled}
-          className="pr-16"
-        />
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
-          {suffix}
-        </span>
-      </div>
-    </label>
-  )
-}
+// OtRatesCard + RateInput were removed alongside the org-wide OT rate
+// columns. OT multipliers now live on EmployeePolicy — admins edit them
+// in Settings → Policies.
 
 function OrgWorkingHoursCard({ initial }: { initial: { start: string; end: string } }) {
   const { toast } = useToast()
@@ -2930,12 +2753,28 @@ function ProjectWorkingHoursCard({
   const [start, setStart] = useState(project.workingHoursStart ?? "")
   const [end, setEnd] = useState(project.workingHoursEnd ?? "")
   const [days, setDays] = useState<Set<number>>(parseWorkingDays(project.workingDays))
+  const [lunch, setLunch] = useState<string>(
+    project.lunchBreakMinutes !== null && project.lunchBreakMinutes !== undefined
+      ? String(project.lunchBreakMinutes)
+      : "60",
+  )
 
   useEffect(() => {
     setStart(project.workingHoursStart ?? "")
     setEnd(project.workingHoursEnd ?? "")
     setDays(parseWorkingDays(project.workingDays))
-  }, [project.id, project.workingHoursStart, project.workingHoursEnd, project.workingDays])
+    setLunch(
+      project.lunchBreakMinutes !== null && project.lunchBreakMinutes !== undefined
+        ? String(project.lunchBreakMinutes)
+        : "60",
+    )
+  }, [
+    project.id,
+    project.workingHoursStart,
+    project.workingHoursEnd,
+    project.workingDays,
+    project.lunchBreakMinutes,
+  ])
 
   function toggleDay(value: number) {
     setDays((prev) => {
@@ -2948,10 +2787,13 @@ function ProjectWorkingHoursCard({
 
   function handleSave() {
     startTransition(async () => {
+      const lunchNum = Number(lunch.trim())
+      const lunchValid = lunch.trim() !== "" && Number.isFinite(lunchNum)
       const result = await saveProjectCalendarAction(project.id, {
         workingHoursStart: start.trim() || null,
         workingHoursEnd: end.trim() || null,
         workingDays: days.size === 0 ? null : Array.from(days).sort().join(","),
+        lunchBreakMinutes: lunchValid ? lunchNum : null,
       })
       toast({
         title: result.message,
@@ -3032,6 +2874,28 @@ function ProjectWorkingHoursCard({
                 </button>
               )
             })}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold text-foreground">Lunch break</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Minutes deducted from the daily working span when computing the
+            expected (minimum) hours each employee owes. e.g. 09:00–18:00 with
+            a 60-minute lunch = 8 expected hours/day.
+          </p>
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="number"
+              min={0}
+              max={240}
+              step={5}
+              value={lunch}
+              onChange={(event) => setLunch(event.target.value)}
+              disabled={pending}
+              className="h-9 w-24 rounded-md border border-border/60 bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+            />
+            <span className="text-xs text-muted-foreground">minutes</span>
           </div>
         </div>
 

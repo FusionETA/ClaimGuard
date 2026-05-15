@@ -135,17 +135,10 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
   }
 
   if (parsed.data.otRates) {
-    try {
-      await organizationRepository.updateOrganizationOtRates({
-        organizationId: orgId,
-        rates: parsed.data.otRates,
-      })
-    } catch (error) {
-      return jsonError(
-        409,
-        error instanceof Error ? error.message : "Could not update OT rates.",
-      )
-    }
+    return jsonError(
+      410,
+      "OT rates are no longer org-wide. Configure them on each Employee Policy via `PATCH /api/v1/policies/{id}` (coming soon) or the admin UI: Settings → Policies.",
+    )
   }
 
   if (parsed.data.currencies) {
@@ -217,7 +210,6 @@ function toExternalSettings(org: OrganizationSummary) {
     name: org.name,
     claimCutoffDay: org.claimCutoffDay,
     otEnabled: org.otEnabled,
-    otRates: org.otRates,
     currencies: {
       allowed: org.allowedCurrencies,
       default: org.defaultCurrency ?? null,

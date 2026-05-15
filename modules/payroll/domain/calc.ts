@@ -338,12 +338,47 @@ export function deriveHourlyRate(input: {
   salaryType: SalaryType
   monthlySalary: number | null
   hourlyRate: number | null
+  /// Working-days basis (e.g. 26 for the Malaysian convention) — comes
+  /// from `PayrollSettings.workingDaysRule`.
   workingDays: number
+  /// Daily working hours. For monthly employees this is the divisor in
+  /// `monthly ÷ (workingDays × dailyHours)`. Defaults to 8 when the
+  /// caller doesn't have a project-derived value.
+  dailyHours?: number
 }): number {
   if (input.salaryType === "HOURLY") return input.hourlyRate ?? 0
   if (input.monthlySalary == null || input.workingDays <= 0) return 0
-  // Common Malaysian convention: monthly / (workingDays * 8 hours)
-  return input.monthlySalary / (input.workingDays * 8)
+  const hours = input.dailyHours && input.dailyHours > 0 ? input.dailyHours : 8
+  return input.monthlySalary / (input.workingDays * hours)
+}
+
+/// Resolve effective daily working hours for an employee. Prefers the
+/// employee's primary project hours (minus the lunch break), falling
+/// back to the organization's working hours.
+export function deriveDailyHours(input: {
+  project: {
+    workingHoursStart: string | null
+    workingHoursEnd: string | null
+    lunchBreakMinutes: number | null
+  } | null
+  org: { workingHoursStart: string; workingHoursEnd: string }
+  defaultLunchMinutes?: number
+}): number {
+  const start =
+    input.project?.workingHoursStart ?? input.org.workingHoursStart
+  const end = input.project?.workingHoursEnd ?? input.org.workingHoursEnd
+  const lunch =
+    input.project?.lunchBreakMinutes ?? input.defaultLunchMinutes ?? 60
+  const startM = hhmmToMinutes(start)
+  const endM = hhmmToMinutes(end)
+  if (endM <= startM) return 8
+  return Math.max(0, endM - startM - lunch) / 60
+}
+
+function hhmmToMinutes(value: string): number {
+  const [h, m] = value.split(":").map((v) => Number(v))
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return 0
+  return h * 60 + m
 }
 
 /**
@@ -440,6 +475,10 @@ export type CalcPayslipInput = {
   /// Period being run.
   periodYear: number
   periodMonth: number
+  /// Daily working hours for the monthly→hourly conversion. Derived
+  /// from the employee's primary project (or the org fallback) by the
+  /// caller. When omitted, defaults to 8 — same as the legacy formula.
+  dailyHours?: number
   /// Optional inputs that aren't stored on the profile.
   otNormalHours?: number
   otRestHours?: number
@@ -587,6 +626,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     monthlySalary: profile.monthlySalary,
     hourlyRate: profile.hourlyRate,
     workingDays: totalWorkingDays,
+    dailyHours: input.dailyHours,
   })
 
   // 2. Basic + proration.

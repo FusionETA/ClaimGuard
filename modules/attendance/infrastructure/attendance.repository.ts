@@ -16,9 +16,11 @@ import type {
   TodayRollCall,
 } from "@/modules/attendance/domain/models"
 import {
+  DEFAULT_LUNCH_BREAK_MIN,
   EMPTY_BUCKETS,
   addBuckets,
   bucketRecord,
+  expectedMinutesForRange,
   formatHm,
   parseWorkingDays,
   standardDailyMinutesFrom,
@@ -364,13 +366,15 @@ async function computeApprovedOtMinutes(
       )
     : false
 
+  // Daily OT threshold lives on the employee's assigned policy now.
+  // Defaults to the legacy 8h fallback when no policy is assigned.
   let otThresholdMin = 8 * 60
-  if (employee?.organizationId) {
-    const org = await prisma.organization.findUnique({
-      where: { id: employee.organizationId },
-      select: { otDailyThresholdMinutes: true },
-    })
-    otThresholdMin = org?.otDailyThresholdMinutes ?? otThresholdMin
+  const profile = await prisma.employeeProfile.findUnique({
+    where: { userId: employeeId },
+    select: { policy: { select: { otDailyThresholdMinutes: true } } },
+  })
+  if (profile?.policy) {
+    otThresholdMin = profile.policy.otDailyThresholdMinutes
   }
 
   const bucket = bucketRecord({
@@ -836,12 +840,28 @@ export const attendanceRepository = {
     // multi-layer chain (filtered by Team.moduleConfig.OT) — the work
     // only buckets as OT once the chain reaches APPROVED.
     if (durationMin && orgId) {
-      const org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { otEnabled: true, otDailyThresholdMinutes: true },
-      })
-      const threshold = org?.otDailyThresholdMinutes ?? 480
-      if (org?.otEnabled && durationMin > threshold) {
+      // OT threshold + per-employee enablement come from the policy
+      // now. Org-level `otEnabled` is still the master kill-switch.
+      const [org, employeeProfile] = await Promise.all([
+        prisma.organization.findUnique({
+          where: { id: orgId },
+          select: { otEnabled: true },
+        }),
+        prisma.employeeProfile.findUnique({
+          where: { userId: employeeId },
+          select: {
+            policy: {
+              select: {
+                otEnabled: true,
+                otDailyThresholdMinutes: true,
+              },
+            },
+          },
+        }),
+      ])
+      const policyOtEnabled = employeeProfile?.policy?.otEnabled ?? true
+      const threshold = employeeProfile?.policy?.otDailyThresholdMinutes ?? 480
+      if (org?.otEnabled && policyOtEnabled && durationMin > threshold) {
         const otMinutes = durationMin - threshold
         const existingOt = await prisma.approvalRequest.findFirst({
           where: { employeeId, date: today, kind: "OT" },
@@ -1380,6 +1400,8 @@ export const attendanceRepository = {
       project: string | null
       todayStatus: AttendanceStatus | null
       todayTimeIn: string | null
+      monthActualMin: number
+      monthExpectedMin: number
     }>
   > {
     if (!orgId) return []
@@ -1397,7 +1419,17 @@ export const attendanceRepository = {
           select: {
             jobTitle: true,
             projectAssignments: {
-              select: { project: { select: { name: true } } },
+              select: {
+                project: {
+                  select: {
+                    name: true,
+                    workingHoursStart: true,
+                    workingHoursEnd: true,
+                    workingDays: true,
+                    lunchBreakMinutes: true,
+                  },
+                },
+              },
               orderBy: { createdAt: "asc" },
             },
           },
@@ -1405,17 +1437,57 @@ export const attendanceRepository = {
       },
     })
     if (users.length === 0) return []
-    const records = await prisma.attendanceRecord.findMany({
+    const todayRecords = await prisma.attendanceRecord.findMany({
       where: { date: today, employeeId: { in: users.map((u) => u.id) } },
       select: { employeeId: true, status: true, timeIn: true },
     })
-    const byUser = new Map(records.map((r) => [r.employeeId, r]))
+    const byUser = new Map(todayRecords.map((r) => [r.employeeId, r]))
+
+    // Month range (UTC calendar month containing today)
+    const now = new Date()
+    const monthFrom = startOfDay(
+      new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)),
+    )
+    const monthTo = endOfDay(
+      new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0)),
+    )
+
+    const org = await prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { workingHoursStart: true, workingHoursEnd: true },
+    })
+
+    const monthDurations = await prisma.attendanceRecord.groupBy({
+      by: ["employeeId"],
+      where: {
+        employeeId: { in: users.map((u) => u.id) },
+        date: { gte: monthFrom, lte: monthTo },
+        durationMin: { not: null },
+      },
+      _sum: { durationMin: true },
+    })
+    const actualByUser = new Map(
+      monthDurations.map((d) => [d.employeeId, d._sum.durationMin ?? 0]),
+    )
+
     return users.map((u) => {
       const today = byUser.get(u.id)
+      const primary = u.employeeProfile?.projectAssignments?.[0]?.project ?? null
       const projectName =
         u.employeeProfile?.projectAssignments
           ?.map((a) => a.project.name)
           .join(", ") || null
+      const start = primary?.workingHoursStart ?? org?.workingHoursStart ?? "09:00"
+      const end = primary?.workingHoursEnd ?? org?.workingHoursEnd ?? "18:00"
+      const lunch = primary?.lunchBreakMinutes ?? DEFAULT_LUNCH_BREAK_MIN
+      const workingDays = parseWorkingDays(primary?.workingDays ?? null)
+      const standardDailyMin = standardDailyMinutesFrom(start, end, lunch)
+      const monthExpectedMin = expectedMinutesForRange({
+        from: monthFrom,
+        to: monthTo,
+        workingDays,
+        standardDailyMin,
+      })
       return {
         id: u.id,
         name: u.name,
@@ -1426,6 +1498,8 @@ export const attendanceRepository = {
         project: projectName,
         todayStatus: (today?.status as AttendanceStatus | undefined) ?? null,
         todayTimeIn: today?.timeIn?.toISOString() ?? null,
+        monthActualMin: actualByUser.get(u.id) ?? 0,
+        monthExpectedMin,
       }
     })
   },
@@ -1958,13 +2032,13 @@ export const attendanceRepository = {
     from: Date
     to: Date
   }): Promise<{
-    totals: HoursBuckets
+    totals: HoursBuckets & { expectedMin: number }
     employees: Array<{
       employeeId: string
       name: string
       email: string
       initials: string
-      buckets: HoursBuckets
+      buckets: HoursBuckets & { expectedMin: number }
     }>
   }> {
     const prisma = getClient()
@@ -1986,7 +2060,10 @@ export const attendanceRepository = {
         q: args.q,
       })
       if (ids && ids.length === 0) {
-        return { totals: { ...EMPTY_BUCKETS }, employees: [] }
+        return {
+          totals: { ...EMPTY_BUCKETS, expectedMin: 0 },
+          employees: [],
+        }
       }
       if (ids) {
         employeeWhere.id = args.employeeId
@@ -2001,7 +2078,10 @@ export const attendanceRepository = {
       select: { id: true, name: true, email: true, organizationId: true },
     })
     if (employees.length === 0) {
-      return { totals: { ...EMPTY_BUCKETS }, employees: [] }
+      return {
+        totals: { ...EMPTY_BUCKETS, expectedMin: 0 },
+        employees: [],
+      }
     }
     const employeeIds = employees.map((e) => e.id)
 
@@ -2017,16 +2097,83 @@ export const attendanceRepository = {
         ? []
         : await prisma.organization.findMany({
             where: { id: { in: orgIds } },
-            select: { id: true, otDailyThresholdMinutes: true },
+            select: {
+              id: true,
+              workingHoursStart: true,
+              workingHoursEnd: true,
+            },
           })
-    const orgThresholdById = new Map(
-      orgs.map((o) => [o.id, o.otDailyThresholdMinutes]),
+    // Per-employee OT threshold now comes from each employee's policy.
+    const policyThresholds =
+      employeeIds.length === 0
+        ? []
+        : await prisma.employeeProfile.findMany({
+            where: { userId: { in: employeeIds } },
+            select: {
+              userId: true,
+              policy: { select: { otDailyThresholdMinutes: true } },
+            },
+          })
+    const employeeThresholdMin = new Map(
+      policyThresholds
+        .filter((p) => p.policy !== null)
+        .map((p) => [p.userId, p.policy!.otDailyThresholdMinutes]),
+    )
+    const orgScheduleById = new Map(
+      orgs.map((o) => [
+        o.id,
+        { start: o.workingHoursStart, end: o.workingHoursEnd },
+      ]),
     )
     const employeeOrgId = new Map(employees.map((e) => [e.id, e.organizationId]))
+
+    // Resolve each employee's "primary" schedule (from their first
+    // project assignment) so we can compute expected hours even when
+    // they have zero attendance records in the range. Falls back to
+    // org-level working hours and Mon-Fri / 60-min lunch defaults.
+    const profilesWithProjects = await prisma.user.findMany({
+      where: { id: { in: employeeIds } },
+      select: {
+        id: true,
+        employeeProfile: {
+          select: {
+            projectAssignments: {
+              select: {
+                project: {
+                  select: {
+                    workingHoursStart: true,
+                    workingHoursEnd: true,
+                    workingDays: true,
+                    lunchBreakMinutes: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+              take: 1,
+            },
+          },
+        },
+      },
+    })
+    type EmpSchedule = {
+      workingDays: Set<number>
+      standardDailyMin: number
+    }
+    const scheduleByEmployee = new Map<string, EmpSchedule>()
+    for (const u of profilesWithProjects) {
+      const proj = u.employeeProfile?.projectAssignments?.[0]?.project ?? null
+      const orgId = employeeOrgId.get(u.id) ?? null
+      const orgSched = orgId ? orgScheduleById.get(orgId) : null
+      const start = proj?.workingHoursStart ?? orgSched?.start ?? "09:00"
+      const end = proj?.workingHoursEnd ?? orgSched?.end ?? "18:00"
+      const lunch = proj?.lunchBreakMinutes ?? DEFAULT_LUNCH_BREAK_MIN
+      scheduleByEmployee.set(u.id, {
+        workingDays: parseWorkingDays(proj?.workingDays ?? null),
+        standardDailyMin: standardDailyMinutesFrom(start, end, lunch),
+      })
+    }
     const otThresholdFor = (employeeId: string): number => {
-      const orgId = employeeOrgId.get(employeeId) ?? args.orgId ?? null
-      const fromMap = orgId ? orgThresholdById.get(orgId) : undefined
-      return fromMap ?? 8 * 60
+      return employeeThresholdMin.get(employeeId) ?? 8 * 60
     }
 
     const records = await prisma.attendanceRecord.findMany({
@@ -2047,6 +2194,7 @@ export const attendanceRepository = {
             workingHoursStart: true,
             workingHoursEnd: true,
             workingDays: true,
+            lunchBreakMinutes: true,
           },
         },
       },
@@ -2099,6 +2247,7 @@ export const attendanceRepository = {
       const standardDailyMin = standardDailyMinutesFrom(
         record.projectRef?.workingHoursStart ?? null,
         record.projectRef?.workingHoursEnd ?? null,
+        record.projectRef?.lunchBreakMinutes ?? null,
       )
       const hasApprovedOT = otSet.has(otKey(record.employeeId, record.date))
 
@@ -2117,19 +2266,106 @@ export const attendanceRepository = {
     }
 
     let totals: HoursBuckets = { ...EMPTY_BUCKETS }
+    let totalsExpectedMin = 0
     const rows = employees.map((e) => {
       const buckets = perEmployee.get(e.id) ?? { ...EMPTY_BUCKETS }
       totals = addBuckets(totals, buckets)
+      const sched = scheduleByEmployee.get(e.id)
+      const expectedMin = sched
+        ? expectedMinutesForRange({
+            from,
+            to,
+            workingDays: sched.workingDays,
+            standardDailyMin: sched.standardDailyMin,
+          })
+        : 0
+      totalsExpectedMin += expectedMin
       return {
         employeeId: e.id,
         name: e.name,
         email: e.email,
         initials: buildInitials(e.name),
-        buckets,
+        buckets: { ...buckets, expectedMin },
       }
     })
 
-    return { totals, employees: rows }
+    return {
+      totals: { ...totals, expectedMin: totalsExpectedMin },
+      employees: rows,
+    }
+  },
+
+  /// Returns actual worked minutes and expected (minimum) minutes for an
+  /// inclusive [from, to] date range. The schedule is resolved from the
+  /// employee's first project assignment (falling back to org defaults).
+  /// Public holidays / approved leave are NOT deducted from the expected
+  /// total per product spec.
+  async getEmployeeRangeProgress(args: {
+    employeeId: string
+    from: Date
+    to: Date
+  }): Promise<{ actualMin: number; expectedMin: number }> {
+    const prisma = getClient()
+    const from = startOfDay(args.from)
+    const to = endOfDay(args.to)
+
+    const user = await prisma.user.findUnique({
+      where: { id: args.employeeId },
+      select: {
+        organizationId: true,
+        organization: {
+          select: { workingHoursStart: true, workingHoursEnd: true },
+        },
+        employeeProfile: {
+          select: {
+            projectAssignments: {
+              select: {
+                project: {
+                  select: {
+                    workingHoursStart: true,
+                    workingHoursEnd: true,
+                    workingDays: true,
+                    lunchBreakMinutes: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+              take: 1,
+            },
+          },
+        },
+      },
+    })
+    if (!user) return { actualMin: 0, expectedMin: 0 }
+
+    const proj = user.employeeProfile?.projectAssignments?.[0]?.project ?? null
+    const start = proj?.workingHoursStart ?? user.organization?.workingHoursStart ?? "09:00"
+    const end = proj?.workingHoursEnd ?? user.organization?.workingHoursEnd ?? "18:00"
+    const lunch = proj?.lunchBreakMinutes ?? DEFAULT_LUNCH_BREAK_MIN
+    const workingDays = parseWorkingDays(proj?.workingDays ?? null)
+    const standardDailyMin = standardDailyMinutesFrom(start, end, lunch)
+
+    const expectedMin = expectedMinutesForRange({
+      from,
+      to,
+      workingDays,
+      standardDailyMin,
+    })
+
+    const records = await prisma.attendanceRecord.findMany({
+      where: {
+        employeeId: args.employeeId,
+        date: { gte: from, lte: to },
+        durationMin: { not: null },
+      },
+      select: { durationMin: true },
+    })
+    const actualMin = records.reduce(
+      (sum, r) => sum + Math.max(0, r.durationMin ?? 0),
+      0,
+    )
+
+    return { actualMin, expectedMin }
   },
 
   /**

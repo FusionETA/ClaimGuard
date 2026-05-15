@@ -1,5 +1,6 @@
 import "server-only"
 
+import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
 import type { EmployeePolicy } from "@/modules/policy/domain/models"
 import type {
@@ -22,6 +23,13 @@ type PolicyRow = {
   otMethod: OtPayoutMethod
   requireGeofence: boolean
   requireSelfie: boolean
+  otRateNormalDay: unknown
+  otRateRestDay: unknown
+  otRatePublicHoliday: unknown
+  otRateRestDayInShift: unknown
+  otRatePublicHolidayInShift: unknown
+  otSalaryThreshold: unknown
+  otDailyThresholdMinutes: number
 }
 
 function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
@@ -40,8 +48,27 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     otMethod: row.otMethod,
     requireGeofence: row.requireGeofence,
     requireSelfie: row.requireSelfie,
+    otRateNormalDay: toNumber(row.otRateNormalDay, 1.5),
+    otRateRestDay: toNumber(row.otRateRestDay, 2.0),
+    otRatePublicHoliday: toNumber(row.otRatePublicHoliday, 3.0),
+    otRateRestDayInShift: toNumber(row.otRateRestDayInShift, 1.0),
+    otRatePublicHolidayInShift: toNumber(row.otRatePublicHolidayInShift, 2.0),
+    otSalaryThreshold:
+      row.otSalaryThreshold == null ? null : toNumber(row.otSalaryThreshold, 0),
+    otDailyThresholdMinutes: row.otDailyThresholdMinutes,
     employeeCount,
   }
+}
+
+export type PolicyOtRateInput = {
+  otRateNormalDay: number
+  otRateRestDay: number
+  otRatePublicHoliday: number
+  otRateRestDayInShift: number
+  otRatePublicHolidayInShift: number
+  /// Optional cap (null = no cap).
+  otSalaryThreshold: number | null
+  otDailyThresholdMinutes: number
 }
 
 export type PolicyCreateInput = {
@@ -57,7 +84,7 @@ export type PolicyCreateInput = {
   requireGeofence: boolean
   requireSelfie: boolean
   isDefault?: boolean
-}
+} & PolicyOtRateInput
 
 export type PolicyUpdateInput = {
   id: string
@@ -72,7 +99,7 @@ export type PolicyUpdateInput = {
   otMethod?: OtPayoutMethod
   requireGeofence?: boolean
   requireSelfie?: boolean
-}
+} & Partial<PolicyOtRateInput>
 
 export const policyRepository = {
   async listForOrganization(organizationId: string): Promise<EmployeePolicy[]> {
@@ -139,6 +166,13 @@ export const policyRepository = {
           otMethod: input.otMethod,
           requireGeofence: input.requireGeofence,
           requireSelfie: input.requireSelfie,
+          otRateNormalDay: input.otRateNormalDay,
+          otRateRestDay: input.otRateRestDay,
+          otRatePublicHoliday: input.otRatePublicHoliday,
+          otRateRestDayInShift: input.otRateRestDayInShift,
+          otRatePublicHolidayInShift: input.otRatePublicHolidayInShift,
+          otSalaryThreshold: input.otSalaryThreshold,
+          otDailyThresholdMinutes: input.otDailyThresholdMinutes,
           isDefault,
         },
       })
@@ -170,6 +204,13 @@ export const policyRepository = {
           otMethod: input.otMethod ?? undefined,
           requireGeofence: input.requireGeofence ?? undefined,
           requireSelfie: input.requireSelfie ?? undefined,
+          otRateNormalDay: input.otRateNormalDay ?? undefined,
+          otRateRestDay: input.otRateRestDay ?? undefined,
+          otRatePublicHoliday: input.otRatePublicHoliday ?? undefined,
+          otRateRestDayInShift: input.otRateRestDayInShift ?? undefined,
+          otRatePublicHolidayInShift: input.otRatePublicHolidayInShift ?? undefined,
+          otSalaryThreshold: input.otSalaryThreshold ?? undefined,
+          otDailyThresholdMinutes: input.otDailyThresholdMinutes ?? undefined,
         },
       })
 

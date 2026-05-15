@@ -7,9 +7,9 @@ export type OtRates = {
   // rest days / public holidays.
   restDayInShift: number
   publicHolidayInShift: number
-  // Salary cap (RM, basic + fixed allowance) above which OT requires
-  // management approval.
-  salaryThreshold: number
+  // Optional salary cap (RM, basic + fixed allowance) above which OT
+  // requires management approval. Null means no cap.
+  salaryThreshold: number | null
   // Daily working minutes after which extra time becomes OT-eligible.
   dailyThresholdMinutes: number
 }
@@ -56,7 +56,6 @@ export type OrganizationSummary = {
   id: string
   name: string
   claimCutoffDay: number
-  otRates: OtRates
   otEnabled: boolean
   defaultMileageRate?: number
   mileageUnit: MileageUnit
@@ -124,6 +123,9 @@ export type OrganizationProjectOption = {
   workingHoursStart?: string | null
   workingHoursEnd?: string | null
   workingDays?: string | null
+  /// Daily lunch break minutes deducted from the (end-start) span when
+  /// computing expected daily working minutes. Defaults to 60.
+  lunchBreakMinutes?: number | null
   holidays?: ReadonlyArray<{ id: string; date: string; name: string }>
 }
 
