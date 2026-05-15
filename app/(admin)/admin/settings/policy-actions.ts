@@ -25,7 +25,8 @@ const baseSchema = z.object({
   otRatePublicHoliday: z.coerce.number().nonnegative().max(20),
   otRateRestDayInShift: z.coerce.number().nonnegative().max(20),
   otRatePublicHolidayInShift: z.coerce.number().nonnegative().max(20),
-  otSalaryThreshold: z.coerce.number().nonnegative().max(1_000_000),
+  /// Optional cap; null means no cap is enforced.
+  otSalaryThreshold: z.number().nonnegative().max(1_000_000).nullable(),
   otDailyThresholdMinutes: z.coerce.number().int().nonnegative().max(1440),
 })
 
@@ -81,19 +82,35 @@ const OT_RATE_DEFAULTS = {
   otRatePublicHoliday: 3.0,
   otRateRestDayInShift: 1.0,
   otRatePublicHolidayInShift: 2.0,
-  otSalaryThreshold: 4000,
-  otDailyThresholdMinutes: 480,
+  /// Daily threshold default, expressed as hours (the form input).
+  otDailyThresholdHours: 8,
 } as const
 
+/// Read the optional salary cap. An empty / missing input means
+/// "no cap" → null. A number means cap at that monthly salary.
+function readOptionalSalaryThreshold(formData: FormData): number | null {
+  const raw = formData.get("otSalaryThreshold")
+  if (raw === null || String(raw).trim() === "") return null
+  const n = Number(raw)
+  return Number.isFinite(n) && n >= 0 ? n : null
+}
+
 function readOtRates(formData: FormData) {
+  const hours = readNumberWithDefault(
+    formData,
+    "otDailyThresholdHours",
+    OT_RATE_DEFAULTS.otDailyThresholdHours,
+  )
   return {
     otRateNormalDay: readNumberWithDefault(formData, "otRateNormalDay", OT_RATE_DEFAULTS.otRateNormalDay),
     otRateRestDay: readNumberWithDefault(formData, "otRateRestDay", OT_RATE_DEFAULTS.otRateRestDay),
     otRatePublicHoliday: readNumberWithDefault(formData, "otRatePublicHoliday", OT_RATE_DEFAULTS.otRatePublicHoliday),
     otRateRestDayInShift: readNumberWithDefault(formData, "otRateRestDayInShift", OT_RATE_DEFAULTS.otRateRestDayInShift),
     otRatePublicHolidayInShift: readNumberWithDefault(formData, "otRatePublicHolidayInShift", OT_RATE_DEFAULTS.otRatePublicHolidayInShift),
-    otSalaryThreshold: readNumberWithDefault(formData, "otSalaryThreshold", OT_RATE_DEFAULTS.otSalaryThreshold),
-    otDailyThresholdMinutes: readNumberWithDefault(formData, "otDailyThresholdMinutes", OT_RATE_DEFAULTS.otDailyThresholdMinutes),
+    otSalaryThreshold: readOptionalSalaryThreshold(formData),
+    // Form captures hours; storage is minutes. Round to nearest integer
+    // so half-hour values land cleanly.
+    otDailyThresholdMinutes: Math.round(hours * 60),
   }
 }
 

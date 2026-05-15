@@ -465,16 +465,17 @@ function PolicyEditorCard({
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <RateField
                   name="otSalaryThreshold"
-                  label="Salary threshold (RM)"
+                  label="Salary threshold (RM, optional)"
                   step="0.01"
-                  defaultValue={policy?.otSalaryThreshold ?? 4000}
+                  defaultValue={policy?.otSalaryThreshold ?? null}
+                  placeholder="No cap"
                   disabled={pending}
                 />
                 <RateField
-                  name="otDailyThresholdMinutes"
-                  label="Daily OT threshold (minutes)"
-                  step="1"
-                  defaultValue={policy?.otDailyThresholdMinutes ?? 480}
+                  name="otDailyThresholdHours"
+                  label="Daily OT threshold (hours)"
+                  step="0.25"
+                  defaultValue={(policy?.otDailyThresholdMinutes ?? 480) / 60}
                   disabled={pending}
                 />
               </div>
@@ -536,12 +537,16 @@ function RateField({
   label,
   defaultValue,
   step = "0.01",
+  placeholder,
   disabled,
 }: {
   name: string
   label: string
-  defaultValue: number
+  /// When null, the input renders empty — used for optional fields like
+  /// the salary threshold where blank = "no cap".
+  defaultValue: number | null
   step?: string
+  placeholder?: string
   disabled?: boolean
 }) {
   return (
@@ -552,7 +557,8 @@ function RateField({
         type="number"
         step={step}
         min="0"
-        defaultValue={defaultValue}
+        defaultValue={defaultValue ?? ""}
+        placeholder={placeholder}
         disabled={disabled}
         className="h-9"
       />

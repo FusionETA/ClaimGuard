@@ -40,7 +40,9 @@ export type EmployeePolicy = {
   otRatePublicHoliday: number
   otRateRestDayInShift: number
   otRatePublicHolidayInShift: number
-  otSalaryThreshold: number
+  /// Optional monthly-salary cap above which OT requires extra
+  /// approval. `null` means no cap is enforced.
+  otSalaryThreshold: number | null
   otDailyThresholdMinutes: number
   /// Number of employees currently assigned. Populated by the
   /// `listForOrganization` query; undefined elsewhere.

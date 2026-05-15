@@ -132,11 +132,13 @@ model EmployeePolicy {
   /// shift on rest days / public holidays.
   otRateRestDayInShift       Decimal   @default(1.00) @db.Decimal(4, 2)
   otRatePublicHolidayInShift Decimal   @default(2.00) @db.Decimal(4, 2)
-  /// Monthly-salary cap above which OT requires extra approval.
-  /// Mirrors the legacy org-wide `Organization.otSalaryThreshold`.
-  otSalaryThreshold          Decimal   @default(4000.00) @db.Decimal(10, 2)
+  /// Optional monthly-salary cap above which OT requires extra approval.
+  /// Null means no cap. Mirrors the legacy org-wide
+  /// `Organization.otSalaryThreshold` but is now opt-in per policy.
+  otSalaryThreshold          Decimal?  @db.Decimal(10, 2)
   /// Daily working minutes after which extra time becomes OT-eligible.
-  /// Mirrors the legacy org-wide `Organization.otDailyThresholdMinutes`.
+  /// Stored as minutes for precision; the admin UI presents this as
+  /// hours (minutes ÷ 60).
   otDailyThresholdMinutes    Int       @default(480)
   organization        Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employees           EmployeeProfile[]

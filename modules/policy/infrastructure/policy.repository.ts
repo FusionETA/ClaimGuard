@@ -53,7 +53,8 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     otRatePublicHoliday: toNumber(row.otRatePublicHoliday, 3.0),
     otRateRestDayInShift: toNumber(row.otRateRestDayInShift, 1.0),
     otRatePublicHolidayInShift: toNumber(row.otRatePublicHolidayInShift, 2.0),
-    otSalaryThreshold: toNumber(row.otSalaryThreshold, 4000),
+    otSalaryThreshold:
+      row.otSalaryThreshold == null ? null : toNumber(row.otSalaryThreshold, 0),
     otDailyThresholdMinutes: row.otDailyThresholdMinutes,
     employeeCount,
   }
@@ -65,7 +66,8 @@ export type PolicyOtRateInput = {
   otRatePublicHoliday: number
   otRateRestDayInShift: number
   otRatePublicHolidayInShift: number
-  otSalaryThreshold: number
+  /// Optional cap (null = no cap).
+  otSalaryThreshold: number | null
   otDailyThresholdMinutes: number
 }
 

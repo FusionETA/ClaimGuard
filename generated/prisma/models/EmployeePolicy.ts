@@ -342,7 +342,7 @@ export type EmployeePolicyGroupByOutputType = {
   otRatePublicHoliday: runtime.Decimal
   otRateRestDayInShift: runtime.Decimal
   otRatePublicHolidayInShift: runtime.Decimal
-  otSalaryThreshold: runtime.Decimal
+  otSalaryThreshold: runtime.Decimal | null
   otDailyThresholdMinutes: number
   _count: EmployeePolicyCountAggregateOutputType | null
   _avg: EmployeePolicyAvgAggregateOutputType | null
@@ -391,7 +391,7 @@ export type EmployeePolicyWhereInput = {
   otRatePublicHoliday?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalNullableFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   employees?: Prisma.EmployeeProfileListRelationFilter
@@ -419,7 +419,7 @@ export type EmployeePolicyOrderByWithRelationInput = {
   otRatePublicHoliday?: Prisma.SortOrder
   otRateRestDayInShift?: Prisma.SortOrder
   otRatePublicHolidayInShift?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrderInput | Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   employees?: Prisma.EmployeeProfileOrderByRelationAggregateInput
@@ -452,7 +452,7 @@ export type EmployeePolicyWhereUniqueInput = Prisma.AtLeast<{
   otRatePublicHoliday?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalNullableFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   employees?: Prisma.EmployeeProfileListRelationFilter
@@ -480,7 +480,7 @@ export type EmployeePolicyOrderByWithAggregationInput = {
   otRatePublicHoliday?: Prisma.SortOrder
   otRateRestDayInShift?: Prisma.SortOrder
   otRatePublicHolidayInShift?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrderInput | Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   _count?: Prisma.EmployeePolicyCountOrderByAggregateInput
   _avg?: Prisma.EmployeePolicyAvgOrderByAggregateInput
@@ -514,7 +514,7 @@ export type EmployeePolicyScalarWhereWithAggregatesInput = {
   otRatePublicHoliday?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalNullableWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntWithAggregatesFilter<"EmployeePolicy"> | number
 }
 
@@ -539,7 +539,7 @@ export type EmployeePolicyCreateInput = {
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: number
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
@@ -567,7 +567,7 @@ export type EmployeePolicyUncheckedCreateInput = {
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: number
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
 }
@@ -593,7 +593,7 @@ export type EmployeePolicyUpdateInput = {
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
@@ -621,7 +621,7 @@ export type EmployeePolicyUncheckedUpdateInput = {
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
 }
@@ -648,7 +648,7 @@ export type EmployeePolicyCreateManyInput = {
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: number
 }
 
@@ -673,7 +673,7 @@ export type EmployeePolicyUpdateManyMutationInput = {
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -699,7 +699,7 @@ export type EmployeePolicyUncheckedUpdateManyInput = {
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -926,7 +926,7 @@ export type EmployeePolicyCreateWithoutOrganizationInput = {
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: number
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
 }
@@ -952,7 +952,7 @@ export type EmployeePolicyUncheckedCreateWithoutOrganizationInput = {
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: number
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
 }
@@ -1008,7 +1008,7 @@ export type EmployeePolicyScalarWhereInput = {
   otRatePublicHoliday?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalNullableFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
 }
 
@@ -1033,7 +1033,7 @@ export type EmployeePolicyCreateWithoutEmployeesInput = {
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: number
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
 }
@@ -1060,7 +1060,7 @@ export type EmployeePolicyUncheckedCreateWithoutEmployeesInput = {
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: number
 }
 
@@ -1101,7 +1101,7 @@ export type EmployeePolicyUpdateWithoutEmployeesInput = {
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
 }
@@ -1128,7 +1128,7 @@ export type EmployeePolicyUncheckedUpdateWithoutEmployeesInput = {
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -1153,7 +1153,7 @@ export type EmployeePolicyCreateManyOrganizationInput = {
   otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: number
 }
 
@@ -1178,7 +1178,7 @@ export type EmployeePolicyUpdateWithoutOrganizationInput = {
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
 }
@@ -1204,7 +1204,7 @@ export type EmployeePolicyUncheckedUpdateWithoutOrganizationInput = {
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
 }
@@ -1230,7 +1230,7 @@ export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationInput = {
   otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -1390,13 +1390,15 @@ export type $EmployeePolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
     otRateRestDayInShift: runtime.Decimal
     otRatePublicHolidayInShift: runtime.Decimal
     /**
-     * Monthly-salary cap above which OT requires extra approval.
-     * Mirrors the legacy org-wide `Organization.otSalaryThreshold`.
+     * Optional monthly-salary cap above which OT requires extra approval.
+     * Null means no cap. Mirrors the legacy org-wide
+     * `Organization.otSalaryThreshold` but is now opt-in per policy.
      */
-    otSalaryThreshold: runtime.Decimal
+    otSalaryThreshold: runtime.Decimal | null
     /**
      * Daily working minutes after which extra time becomes OT-eligible.
-     * Mirrors the legacy org-wide `Organization.otDailyThresholdMinutes`.
+     * Stored as minutes for precision; the admin UI presents this as
+     * hours (minutes ÷ 60).
      */
     otDailyThresholdMinutes: number
   }, ExtArgs["result"]["employeePolicy"]>

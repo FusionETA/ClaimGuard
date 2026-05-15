@@ -7,9 +7,9 @@ export type OtRates = {
   // rest days / public holidays.
   restDayInShift: number
   publicHolidayInShift: number
-  // Salary cap (RM, basic + fixed allowance) above which OT requires
-  // management approval.
-  salaryThreshold: number
+  // Optional salary cap (RM, basic + fixed allowance) above which OT
+  // requires management approval. Null means no cap.
+  salaryThreshold: number | null
   // Daily working minutes after which extra time becomes OT-eligible.
   dailyThresholdMinutes: number
 }
