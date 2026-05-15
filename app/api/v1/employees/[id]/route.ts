@@ -3,11 +3,6 @@ import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
-import {
-  employeePayoutMethods,
-  otPayoutMethods,
-  resolveEmployeePayoutMethod,
-} from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -71,12 +66,9 @@ const updateEmployeeSchema = z
   .object({
     role: z.enum(["EMPLOYEE", "SUPERVISOR"]).optional(),
     jobTitle: z.string().trim().min(1).optional(),
-    payoutMethod: z.enum(employeePayoutMethods).optional(),
-    otPayoutMethod: z.enum(otPayoutMethods).optional(),
-    hourlyRate: z.number().positive().nullable().optional(),
-    /// Assign the employee to an existing Employee Policy. When provided,
-    /// the policy's salaryType + otMethod override payoutMethod/otPayoutMethod.
-    policyId: z.string().min(1).nullable().optional(),
+    /// Assign the employee to an existing Employee Policy. Policies are
+    /// required for employee records, so PATCH may change this but not clear it.
+    policyId: z.string().min(1).optional(),
     /// Legacy direct project assignment list. Most partners should use
     /// `projectAssignments` (which carries team + chain) instead — but
     /// kept supported because the admin form still emits both shapes.
@@ -154,18 +146,6 @@ export const PATCH = handleApiRequest<RouteParams>(
     }
 
     const role = parsed.data.role ?? existing.role
-    // Same coercion the admin form does: SUPERVISOR is forced to
-    // MONTHLY_BASED; OT TIME_BANK only stays if MONTHLY_BASED.
-    const payoutMethod = resolveEmployeePayoutMethod(
-      role,
-      parsed.data.payoutMethod ?? existing.payoutMethod,
-    )
-    const requestedOtMethod = parsed.data.otPayoutMethod ?? existing.otPayoutMethod
-    const otPayoutMethod =
-      payoutMethod === "MONTHLY_BASED" && requestedOtMethod === "TIME_BANK"
-        ? "TIME_BANK"
-        : "CASH"
-
     try {
       await organizationRepository.updateOrganizationMember({
         userId: id,
@@ -178,20 +158,11 @@ export const PATCH = handleApiRequest<RouteParams>(
           parsed.data.projectIds ??
           existing.projects.map((p) => p.id),
         jobTitle: parsed.data.jobTitle ?? existing.jobTitle,
-        payoutMethod,
-        otPayoutMethod,
-        hourlyRate:
-          parsed.data.hourlyRate === undefined
-            ? existing.hourlyRate ?? null
-            : parsed.data.hourlyRate,
         // Preserve whatever xeroConnectionId is on the row today — the
         // external API can't set or change it, but the field still
         // exists on the underlying repo input. Pass through unchanged.
         xeroConnectionId: existing.xeroConnectionId,
-        policyId:
-          parsed.data.policyId === undefined
-            ? undefined
-            : parsed.data.policyId,
+        policyId: parsed.data.policyId ?? existing.policyId ?? "",
         projectAssignments: parsed.data.projectAssignments,
       })
     } catch (error) {
@@ -264,7 +235,6 @@ function toExternalEmployee(member: {
   jobTitle: string
   payoutMethod: string
   otPayoutMethod: string
-  hourlyRate?: number
   xeroConnectionId?: string  // present on input shape but not surfaced
   policyId?: string
   policyName?: string
@@ -287,7 +257,6 @@ function toExternalEmployee(member: {
     jobTitle: member.jobTitle,
     payoutMethod: member.payoutMethod,
     otPayoutMethod: member.otPayoutMethod,
-    hourlyRate: member.hourlyRate ?? null,
     policy: member.policyId
       ? { id: member.policyId, name: member.policyName ?? null }
       : null,

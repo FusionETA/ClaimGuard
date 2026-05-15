@@ -10,14 +10,13 @@ import type {
   AdminOrganizationOption,
   AssignedProject,
   ChartOfAccountOption,
-  EmployeePayoutMethod,
   LimitPeriod,
   LimitScope,
   MileageUnit,
   OrganizationMember,
   OrganizationProjectOption,
   OrganizationSummary,
-  OtPayoutMethod,
+  OtRates,
   TeamDetail,
   TeamMembership,
   TeamModuleConfig,
@@ -32,6 +31,16 @@ import {
   trimModuleConfig,
   validateModuleConfig,
 } from "@/modules/organization/domain/models"
+
+const DEFAULT_OT_RATES: OtRates = {
+  normalDay: 1.5,
+  restDay: 2.0,
+  publicHoliday: 3.0,
+  restDayInShift: 1.0,
+  publicHolidayInShift: 2.0,
+  salaryThreshold: 4000,
+  dailyThresholdMinutes: 480,
+}
 
 export type XeroConnectionRecord = {
   id: string
@@ -52,32 +61,19 @@ export type XeroConnectionRecord = {
 // callers below that pass a fallback positionally.
 const toNumberOr = (value: unknown, fallback: number) => toNumber(value, fallback)
 
-/// Compute the value to write into EmployeeProfile.hourlyRate based on
-/// role + payout method. Throws if HOURLY is selected but the rate is
-/// missing or non-positive. Returns null for SUPERVISOR / MONTHLY_BASED
-/// (the field stays null in those cases).
-///
-/// Returns a string ("12.50") because Prisma's Decimal column accepts a
-/// string and avoids float-rounding surprises.
-function resolveHourlyRateForWrite(
-  role: "EMPLOYEE" | "SUPERVISOR",
-  payoutMethod: EmployeePayoutMethod,
-  rate: number | null | undefined,
-): string | null {
-  const effective = resolveEmployeePayoutMethod(role, payoutMethod)
-  if (effective !== "HOURLY") return null
-  if (rate == null || !Number.isFinite(rate) || rate <= 0) {
-    throw new Error("Hourly rate is required and must be greater than zero.")
-  }
-  return rate.toFixed(2)
-}
-
 function mapOrganizationSummary(
   org?:
     | {
         id: string
         name: string
         claimCutoffDay: number
+        otRateNormalDay?: unknown
+        otRateRestDay?: unknown
+        otRatePublicHoliday?: unknown
+        restDayInShiftRate?: unknown
+        publicHolidayInShiftRate?: unknown
+        otSalaryThreshold?: unknown
+        otDailyThresholdMinutes?: number | null
         otEnabled?: boolean | null
         defaultMileageRate?: unknown
         mileageUnit?: string | null
@@ -104,6 +100,25 @@ function mapOrganizationSummary(
     id: org.id,
     name: org.name,
     claimCutoffDay: org.claimCutoffDay,
+    otRates: {
+      normalDay: toNumberOr(org.otRateNormalDay, DEFAULT_OT_RATES.normalDay),
+      restDay: toNumberOr(org.otRateRestDay, DEFAULT_OT_RATES.restDay),
+      publicHoliday: toNumberOr(org.otRatePublicHoliday, DEFAULT_OT_RATES.publicHoliday),
+      restDayInShift: toNumberOr(org.restDayInShiftRate, DEFAULT_OT_RATES.restDayInShift),
+      publicHolidayInShift: toNumberOr(
+        org.publicHolidayInShiftRate,
+        DEFAULT_OT_RATES.publicHolidayInShift
+      ),
+      salaryThreshold:
+        org.otSalaryThreshold == null
+          ? DEFAULT_OT_RATES.salaryThreshold
+          : toNumberOr(
+              org.otSalaryThreshold,
+              DEFAULT_OT_RATES.salaryThreshold ?? 4000,
+            ),
+      dailyThresholdMinutes:
+        org.otDailyThresholdMinutes ?? DEFAULT_OT_RATES.dailyThresholdMinutes,
+    },
     otEnabled: org.otEnabled ?? true,
     defaultMileageRate,
     mileageUnit: (org.mileageUnit as MileageUnit | null | undefined) === "MILE" ? "MILE" : "KM",
@@ -546,9 +561,28 @@ export const organizationRepository = {
     return mapOrganizationSummary(organization)!
   },
 
-  // updateOrganizationOtRates was removed — OT multipliers + thresholds
-  // live on EmployeePolicy now. See `policyRepository.update` and the
-  // Settings → Policies tab.
+  async updateOrganizationOtRates(data: {
+    organizationId: string
+    rates: OtRates
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await prisma.organization.update({
+      where: { id: data.organizationId },
+      data: {
+        otRateNormalDay: data.rates.normalDay,
+        otRateRestDay: data.rates.restDay,
+        otRatePublicHoliday: data.rates.publicHoliday,
+        restDayInShiftRate: data.rates.restDayInShift,
+        publicHolidayInShiftRate: data.rates.publicHolidayInShift,
+        otSalaryThreshold: data.rates.salaryThreshold,
+        otDailyThresholdMinutes: data.rates.dailyThresholdMinutes,
+      },
+    })
+  },
 
   async updateOrganizationClaimCutoff(data: {
     organizationId: string
@@ -621,7 +655,7 @@ export const organizationRepository = {
               orderBy: { createdAt: "asc" },
             },
             xeroConnection: { select: { id: true, tenantName: true } },
-            policy: { select: { id: true, name: true } },
+            policy: { select: { id: true, name: true, salaryType: true, otEnabled: true, otMethod: true } },
             teamMemberships: {
               include: {
                 team: {
@@ -704,15 +738,18 @@ export const organizationRepository = {
         jobTitle: user.employeeProfile?.jobTitle ?? "Employee",
         payoutMethod: resolveEmployeePayoutMethod(
           user.role as OrganizationMember["role"],
-          user.employeeProfile?.payoutMethod,
+          user.employeeProfile?.policy?.salaryType,
         ),
         otPayoutMethod:
-          user.employeeProfile?.otPayoutMethod === "TIME_BANK" ? "TIME_BANK" : "CASH",
+          user.employeeProfile?.policy?.otEnabled &&
+          user.employeeProfile.policy.otMethod === "TIME_BANK" &&
+          resolveEmployeePayoutMethod(
+            user.role as OrganizationMember["role"],
+            user.employeeProfile.policy.salaryType,
+          ) === "MONTHLY_BASED"
+            ? "TIME_BANK"
+            : "CASH",
         otTimeBalanceMin: user.employeeProfile?.otTimeBalanceMin ?? 0,
-        hourlyRate:
-          user.employeeProfile?.hourlyRate != null
-            ? toNumber(user.employeeProfile.hourlyRate)
-            : undefined,
         xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
         xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
         policyId: user.employeeProfile?.policy?.id ?? undefined,
@@ -728,19 +765,10 @@ export const organizationRepository = {
     organizationId: string
     projectIds: string[]
     jobTitle: string
-    payoutMethod: EmployeePayoutMethod
-    /// CASH for hourly workers; CASH | TIME_BANK for office workers.
-    /// Coerced to CASH automatically when payoutMethod is HOURLY.
-    otPayoutMethod?: OtPayoutMethod
-    /// Required (positive number) when payoutMethod is HOURLY. Null /
-    /// undefined OK for MONTHLY_BASED. When the role flips to SUPERVISOR
-    /// or payoutMethod flips to MONTHLY_BASED, the rate is cleared.
-    hourlyRate?: number | null
     xeroConnectionId?: string
-    /// Employee policy assignment. When provided, the policy's salaryType
-    /// and otMethod override `payoutMethod` / `otPayoutMethod` above and
-    /// the assigned policy is persisted to EmployeeProfile.policyId.
-    policyId?: string | null
+    /// Employee policy assignment. Required: the policy's salaryType
+    /// and otMethod drive compensation/OT behavior.
+    policyId: string
     /// One entry per project the employee should belong to. When provided
     /// (even as []), the employee's team memberships and chain rows are
     /// rewritten from scratch to match. When undefined, those tables are
@@ -903,39 +931,14 @@ export const organizationRepository = {
     })
     if (!profile) throw new Error("Employee profile not found.")
 
-    // Resolve effective payout/OT from policy if one is assigned. The
-    // EmployeeProfile.payoutMethod and .otPayoutMethod columns are kept
-    // in sync with the policy so legacy attendance/payroll branches that
-    // still read those columns keep working unchanged.
-    let effectivePayoutMethod: EmployeePayoutMethod = resolveEmployeePayoutMethod(
-      data.role,
-      data.payoutMethod,
-    )
-    let effectiveOtPayoutMethod: OtPayoutMethod =
-      effectivePayoutMethod === "MONTHLY_BASED"
-        ? data.otPayoutMethod ?? "CASH"
-        : "CASH"
-    if (data.policyId) {
-      const policy = await prisma.employeePolicy.findFirst({
-        where: { id: data.policyId, organizationId: data.organizationId },
-        select: { salaryType: true, otMethod: true, archivedAt: true },
-      })
-      if (!policy) throw new Error("Selected employee policy not found.")
-      if (policy.archivedAt) {
-        throw new Error("Selected employee policy is archived.")
-      }
-      // Supervisors are always monthly-based; if an Hourly policy is
-      // chosen for a supervisor, coerce to MONTHLY_BASED for the column
-      // while still recording the chosen policyId (the admin should pick
-      // a monthly policy for supervisors).
-      effectivePayoutMethod = resolveEmployeePayoutMethod(
-        data.role,
-        policy.salaryType,
-      )
-      effectiveOtPayoutMethod =
-        effectivePayoutMethod === "MONTHLY_BASED" ? policy.otMethod : "CASH"
+    const policy = await prisma.employeePolicy.findFirst({
+      where: { id: data.policyId, organizationId: data.organizationId },
+      select: { salaryType: true, otMethod: true, archivedAt: true },
+    })
+    if (!policy) throw new Error("Selected employee policy not found.")
+    if (policy.archivedAt) {
+      throw new Error("Selected employee policy is archived.")
     }
-
     await prisma.$transaction(async (tx) => {
       await tx.user.update({
         where: { id: data.userId },
@@ -945,15 +948,8 @@ export const organizationRepository = {
         where: { userId: data.userId },
         data: {
           jobTitle: data.jobTitle,
-          payoutMethod: effectivePayoutMethod,
-          otPayoutMethod: effectiveOtPayoutMethod,
-          hourlyRate: resolveHourlyRateForWrite(
-            data.role,
-            effectivePayoutMethod,
-            data.hourlyRate,
-          ),
           xeroConnectionId: data.xeroConnectionId || null,
-          ...(data.policyId !== undefined ? { policyId: data.policyId } : {}),
+          policyId: data.policyId,
         },
       })
       await tx.employeeProjectAssignment.deleteMany({
@@ -1021,17 +1017,10 @@ export const organizationRepository = {
     organizationId: string
     projectIds: string[]
     jobTitle: string
-    payoutMethod: EmployeePayoutMethod
-    /// CASH for hourly workers; CASH | TIME_BANK for office workers.
-    otPayoutMethod?: OtPayoutMethod
-    /// Required (positive number) when payoutMethod is HOURLY. Ignored
-    /// otherwise — supervisors and MONTHLY_BASED employees don't carry
-    /// an hourly rate.
-    hourlyRate?: number | null
     xeroConnectionId?: string
-    /// Employee policy assignment. When provided, the policy's salaryType
-    /// and otMethod override `payoutMethod` / `otPayoutMethod` above.
-    policyId?: string | null
+    /// Employee policy assignment. Required: the policy's salaryType
+    /// and otMethod drive compensation/OT behavior.
+    policyId: string
     /// One entry per project the employee belongs to. Each entry pins the
     /// employee to a team in that project at a specific layer, plus an
     /// explicit per-layer chain (one approver per layer above the
@@ -1057,8 +1046,11 @@ export const organizationRepository = {
       throw new Error("That email is already being used by another account.")
     }
 
-    const existingEmployeeProfile = await prisma.employeeProfile.findUnique({
-      where: { employeeId: data.employeeId },
+    const existingEmployeeProfile = await prisma.employeeProfile.findFirst({
+      where: {
+        employeeId: data.employeeId,
+        user: { organizationId: data.organizationId },
+      },
       select: { id: true },
     })
 
@@ -1194,33 +1186,14 @@ export const organizationRepository = {
       }
     }
 
-    // Resolve effective payout/OT from policy if one is assigned. See
-    // updateOrganizationMember for the same logic.
-    let effectivePayoutMethod: EmployeePayoutMethod = resolveEmployeePayoutMethod(
-      data.role,
-      data.payoutMethod,
-    )
-    let effectiveOtPayoutMethod: OtPayoutMethod =
-      effectivePayoutMethod === "MONTHLY_BASED"
-        ? data.otPayoutMethod ?? "CASH"
-        : "CASH"
-    if (data.policyId) {
-      const policy = await prisma.employeePolicy.findFirst({
-        where: { id: data.policyId, organizationId: data.organizationId },
-        select: { salaryType: true, otMethod: true, archivedAt: true },
-      })
-      if (!policy) throw new Error("Selected employee policy not found.")
-      if (policy.archivedAt) {
-        throw new Error("Selected employee policy is archived.")
-      }
-      effectivePayoutMethod = resolveEmployeePayoutMethod(
-        data.role,
-        policy.salaryType,
-      )
-      effectiveOtPayoutMethod =
-        effectivePayoutMethod === "MONTHLY_BASED" ? policy.otMethod : "CASH"
+    const policy = await prisma.employeePolicy.findFirst({
+      where: { id: data.policyId, organizationId: data.organizationId },
+      select: { salaryType: true, otMethod: true, archivedAt: true },
+    })
+    if (!policy) throw new Error("Selected employee policy not found.")
+    if (policy.archivedAt) {
+      throw new Error("Selected employee policy is archived.")
     }
-
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -1232,16 +1205,9 @@ export const organizationRepository = {
           create: {
             employeeId: data.employeeId,
             jobTitle: data.jobTitle,
-            payoutMethod: effectivePayoutMethod,
-            otPayoutMethod: effectiveOtPayoutMethod,
-            hourlyRate: resolveHourlyRateForWrite(
-              data.role,
-              effectivePayoutMethod,
-              data.hourlyRate,
-            ),
             preferredCurrency: "USD",
             xeroConnectionId: data.xeroConnectionId || null,
-            ...(data.policyId ? { policyId: data.policyId } : {}),
+            policyId: data.policyId,
             projectAssignments: {
               create: data.projectIds.map((projectId) => ({
                 project: { connect: { id: projectId } },
@@ -2168,7 +2134,6 @@ export const organizationRepository = {
       workingHoursStart: row.workingHoursStart,
       workingHoursEnd: row.workingHoursEnd,
       workingDays: row.workingDays,
-      lunchBreakMinutes: row.lunchBreakMinutes,
       holidays: row.holidays.map((h) => ({
         id: h.id,
         date: h.date.toISOString().slice(0, 10),

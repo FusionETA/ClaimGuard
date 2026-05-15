@@ -8,8 +8,9 @@ import { PrismaClient } from "../generated/prisma/client"
 /**
  * Backfill: for every Organization, create two seeded EmployeePolicy rows
  * that mirror the legacy hardcoded "Hourly Worker" / "Office Worker"
- * behavior, then assign each EmployeeProfile to whichever policy matches
- * its existing payoutMethod + otPayoutMethod combination.
+ * behavior, then assign unassigned EmployeeProfile rows to the default
+ * hourly policy. Newer schemas store salary/OT behavior on EmployeePolicy,
+ * not duplicated EmployeeProfile payout columns.
  *
  * Idempotent: re-running will not duplicate policies (matched by
  * organizationId+name) and skips profiles already assigned to a policy.
@@ -42,16 +43,6 @@ async function main() {
     select: {
       id: true,
       name: true,
-      // Legacy org-level OT rate fields. Once the schema is updated to
-      // drop these columns this `select` will need to be removed; the
-      // policy will already hold the values.
-      otRateNormalDay: true,
-      otRateRestDay: true,
-      otRatePublicHoliday: true,
-      restDayInShiftRate: true,
-      publicHolidayInShiftRate: true,
-      otSalaryThreshold: true,
-      otDailyThresholdMinutes: true,
     },
   })
   console.log(`Found ${orgs.length} organization(s).`)
@@ -76,7 +67,7 @@ async function main() {
       },
     })
 
-    const office = await prisma.employeePolicy.upsert({
+    await prisma.employeePolicy.upsert({
       where: { organizationId_name: { organizationId: org.id, name: OFFICE_NAME } },
       update: {},
       create: {
@@ -95,48 +86,27 @@ async function main() {
       },
     })
 
-    // Assign every unassigned profile in this org to one of the two
-    // seeded policies, based on its existing payoutMethod.
+    // Assign every unassigned profile in this org to the default seeded
+    // policy. Existing assigned profiles are left untouched.
     const profiles = await prisma.employeeProfile.findMany({
       where: {
         policyId: null,
         user: { organizationId: org.id },
       },
-      select: { id: true, payoutMethod: true, otPayoutMethod: true },
+      select: { id: true },
     })
 
     let hourlyCount = 0
-    let officeCount = 0
     for (const profile of profiles) {
-      const targetId =
-        profile.payoutMethod === "MONTHLY_BASED" ? office.id : hourly.id
       await prisma.employeeProfile.update({
         where: { id: profile.id },
-        data: { policyId: targetId },
+        data: { policyId: hourly.id },
       })
-      if (targetId === hourly.id) hourlyCount++
-      else officeCount++
+      hourlyCount++
     }
 
-    // Copy the org's legacy OT rate values onto every policy in the
-    // org. Run AFTER the seeded upserts so newly-created seeds also
-    // inherit the org's existing rates instead of the Prisma defaults.
-    // Safe to re-run — idempotent overwrite to the same values.
-    const otUpdate = await prisma.employeePolicy.updateMany({
-      where: { organizationId: org.id },
-      data: {
-        otRateNormalDay: org.otRateNormalDay,
-        otRateRestDay: org.otRateRestDay,
-        otRatePublicHoliday: org.otRatePublicHoliday,
-        otRateRestDayInShift: org.restDayInShiftRate,
-        otRatePublicHolidayInShift: org.publicHolidayInShiftRate,
-        otSalaryThreshold: org.otSalaryThreshold,
-        otDailyThresholdMinutes: org.otDailyThresholdMinutes,
-      },
-    })
-
     console.log(
-      `Org "${org.name}": seeded policies ✓ — assigned ${hourlyCount} hourly, ${officeCount} office; copied OT rates onto ${otUpdate.count} policies.`,
+      `Org "${org.name}": seeded policies ✓ — assigned ${hourlyCount} profile(s) to ${HOURLY_NAME}.`,
     )
   }
 

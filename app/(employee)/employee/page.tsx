@@ -27,8 +27,20 @@ import { DashboardQuickActions } from "./dashboard-quick-actions"
 function deriveClockState(events: ClockEventLite[]): "IN" | "OUT" {
   const last = [...events]
     .reverse()
-    .find((e) => e.kind === "CLOCK_IN" || e.kind === "CLOCK_OUT")
+    .find(
+      (e) =>
+        (e.kind === "CLOCK_IN" || e.kind === "CLOCK_OUT") &&
+        e.status !== "REJECTED",
+    )
   return last?.kind === "CLOCK_IN" ? "IN" : "OUT"
+}
+
+function deriveLatestRejection(events: ClockEventLite[]): ClockEventLite | null {
+  const clockEvents = events.filter(
+    (e) => e.kind === "CLOCK_IN" || e.kind === "CLOCK_OUT",
+  )
+  const last = [...clockEvents].reverse()[0]
+  return last && last.status === "REJECTED" ? last : null
 }
 
 export default async function EmployeeDashboardPage() {
@@ -79,7 +91,6 @@ export default async function EmployeeDashboardPage() {
       ? prisma.employeeProfile.findUnique({
           where: { userId: session.userId },
           select: {
-            payoutMethod: true,
             policy: { select: { requireSelfie: true, requireGeofence: true } },
           },
         })
@@ -89,9 +100,7 @@ export default async function EmployeeDashboardPage() {
     getEmployeePayslipsPageData(),
   ])
   const latestPayslip = payslipPageData?.payslips[0] ?? null
-  const requiresSelfieOnClockIn = profile?.policy
-    ? profile.policy.requireSelfie
-    : profile?.payoutMethod === "HOURLY"
+  const requiresSelfieOnClockIn = profile?.policy?.requireSelfie ?? false
   const enforceGeofence = profile?.policy?.requireGeofence ?? true
   const clockState = attendanceDashboard
     ? deriveClockState(attendanceDashboard.todayEvents)
@@ -138,6 +147,7 @@ export default async function EmployeeDashboardPage() {
             requiresSelfieOnClockIn={requiresSelfieOnClockIn}
             enforceGeofence={enforceGeofence}
             todayRecord={attendanceDashboard.today}
+            latestRejection={deriveLatestRejection(attendanceDashboard.todayEvents)}
           />
         </section>
       ) : null}

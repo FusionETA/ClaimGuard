@@ -6,9 +6,7 @@ import type {
 
 /// Admin-configurable classification for an employee. Replaces the previous
 /// hardcoded "Hourly Worker" / "Office Worker" pair. The policy is the
-/// admin-facing source of truth; the denormalized `payoutMethod` and
-/// `otPayoutMethod` columns on `EmployeeProfile` are kept in sync with it
-/// so legacy attendance/payroll code paths keep working unchanged.
+/// admin-facing source of truth for salary type and OT behavior.
 export type EmployeePolicy = {
   id: string
   organizationId: string

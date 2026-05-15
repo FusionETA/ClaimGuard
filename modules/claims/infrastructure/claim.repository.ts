@@ -8,7 +8,6 @@ import { mapChartAccount } from "@/modules/organization/infrastructure/chart-acc
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 import {
   resolveAssignedProjects,
-  resolveEmployeePayoutMethod,
   resolvePrimaryProjectName,
 } from "@/modules/organization/domain/models"
 import { resolveModuleChain } from "@/modules/organization/application/services/approval-chain.service"
@@ -45,7 +44,9 @@ type PrismaUser = {
         name: string
       }
     }>
-    payoutMethod: string | null
+    policy?: {
+      salaryType: string
+    } | null
     preferredCurrency: string
     xeroConnectionId?: string | null
     xeroConnection?: { tenantName: string } | null
@@ -406,10 +407,12 @@ function mapUser(user: PrismaUser): PortalUser {
     initials: buildInitials(user.name),
     supervisorEmail: firstApprover?.email ?? undefined,
     supervisorName: firstApprover?.name ?? undefined,
-    payoutMethod: resolveEmployeePayoutMethod(
-      user.role === "SUPERVISOR" ? "SUPERVISOR" : "EMPLOYEE",
-      user.employeeProfile?.payoutMethod,
-    ),
+    payoutMethod:
+      user.role === "SUPERVISOR"
+        ? "MONTHLY_BASED"
+        : user.employeeProfile?.policy?.salaryType === "MONTHLY_BASED"
+          ? "MONTHLY_BASED"
+          : "HOURLY",
     preferredCurrency: user.employeeProfile?.preferredCurrency ?? "USD",
     xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
     xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
@@ -503,6 +506,7 @@ const claimInclude = {
             orderBy: { createdAt: "asc" },
           },
           xeroConnection: { select: { tenantName: true } },
+          policy: { select: { salaryType: true } },
         },
       },
       approvalChainSteps: {
@@ -546,6 +550,7 @@ export const claimRepository = {
               orderBy: { createdAt: "asc" },
             },
             xeroConnection: { select: { tenantName: true } },
+            policy: { select: { salaryType: true } },
           },
         },
         approvalChainSteps: {
