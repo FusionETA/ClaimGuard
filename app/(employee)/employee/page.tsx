@@ -52,15 +52,12 @@ export default async function EmployeeDashboardPage() {
       ? prisma.employeeProfile.findUnique({
           where: { userId: session.userId },
           select: {
-            payoutMethod: true,
             policy: { select: { requireSelfie: true, requireGeofence: true } },
           },
         })
       : Promise.resolve(null),
   ])
-  const requiresSelfieOnClockIn = profile?.policy
-    ? profile.policy.requireSelfie
-    : profile?.payoutMethod === "HOURLY"
+  const requiresSelfieOnClockIn = profile?.policy?.requireSelfie ?? false
   const enforceGeofence = profile?.policy?.requireGeofence ?? true
   const clockState = deriveClockState(attendanceDashboard.todayEvents)
   const activeProject = attendanceDashboard.today?.project ?? null

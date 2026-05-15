@@ -18,14 +18,20 @@ async function loadEmployeeProfileExtras(userId: string): Promise<{
   if (!prisma) return null
   const profile = await prisma.employeeProfile.findUnique({
     where: { userId },
-    select: { otPayoutMethod: true, otTimeBalanceMin: true, payoutMethod: true },
+    select: {
+      otTimeBalanceMin: true,
+      policy: { select: { otEnabled: true, otMethod: true, requireSelfie: true } },
+    },
   })
   if (!profile) return null
+  const otPayoutMethod =
+    profile.policy?.otEnabled && profile.policy.otMethod === "TIME_BANK"
+      ? "TIME_BANK"
+      : "CASH"
   return {
-    otPayoutMethod:
-      profile.otPayoutMethod === "TIME_BANK" ? "TIME_BANK" : "CASH",
+    otPayoutMethod,
     otTimeBalanceMin: profile.otTimeBalanceMin,
-    requiresSelfieOnClockIn: profile.payoutMethod === "HOURLY",
+    requiresSelfieOnClockIn: profile.policy?.requireSelfie ?? false,
   }
 }
 
@@ -60,12 +66,7 @@ export default async function EmployeeAttendancePage() {
   // Default to enforcing geofence when no policy is assigned (legacy
   // behavior). Admins disable it per-policy in Settings → Policies.
   const enforceGeofence = policy?.requireGeofence ?? true
-  // Selfie requirement: prefer the policy flag when available, fall back
-  // to the legacy "hourly == selfie" heuristic so un-backfilled orgs
-  // keep their current behavior.
-  const requiresSelfieOnClockIn = policy
-    ? policy.requireSelfie
-    : profileExtras?.requiresSelfieOnClockIn ?? false
+  const requiresSelfieOnClockIn = policy?.requireSelfie ?? profileExtras?.requiresSelfieOnClockIn ?? false
 
   return (
     <div className="space-y-4">

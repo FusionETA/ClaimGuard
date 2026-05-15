@@ -3,11 +3,6 @@ import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
-import {
-  employeePayoutMethods,
-  otPayoutMethods,
-  resolveEmployeePayoutMethod,
-} from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -70,14 +65,9 @@ const createEmployeeSchema = z.object({
   employeeId: z.string().trim().min(1, "Employee ID is required."),
   role: z.enum(["EMPLOYEE", "SUPERVISOR"]),
   jobTitle: z.string().trim().min(1, "Job title is required."),
-  payoutMethod: z.enum(employeePayoutMethods),
-  otPayoutMethod: z.enum(otPayoutMethods).default("CASH"),
-  hourlyRate: z.number().positive().optional(),
-  /// Optional employee policy. When provided, the policy's salaryType
-  /// and otMethod override the `payoutMethod` / `otPayoutMethod` fields
-  /// above. Legacy callers that omit this still work via the seeded
-  /// "Hourly Worker" / "Office Worker" defaults.
-  policyId: z.string().min(1).optional(),
+  /// Required employee policy. Its salaryType and otMethod drive
+  /// compensation/OT behavior.
+  policyId: z.string().min(1, "Employee policy is required."),
   projectIds: z.array(z.string()).default([]),
   projectAssignments: z.array(projectAssignmentSchema).default([]),
 })
@@ -95,7 +85,7 @@ const createEmployeeSchema = z.object({
  * Body:
  *   {
  *     name, email, password, employeeId, role,
- *     jobTitle, payoutMethod, otPayoutMethod, hourlyRate?,
+ *     jobTitle, policyId,
  *     projectIds: string[],
  *     projectAssignments: [
  *       { projectId, teamId, layer, chainApprovers: [{layer, userId}, ...] }
@@ -127,17 +117,6 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
     )
   }
 
-  // Normalize payout-method against role (SUPERVISOR is forced to
-  // MONTHLY_BASED) — same rule as the admin form.
-  const payoutMethod = resolveEmployeePayoutMethod(
-    parsed.data.role,
-    parsed.data.payoutMethod,
-  )
-  const otPayoutMethod =
-    payoutMethod === "MONTHLY_BASED" && parsed.data.otPayoutMethod === "TIME_BANK"
-      ? "TIME_BANK"
-      : "CASH"
-
   let created: { id: string }
   try {
     created = await organizationRepository.createOrganizationMember({
@@ -149,9 +128,6 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
       organizationId: ctx.integration.organizationId,
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
-      payoutMethod,
-      otPayoutMethod,
-      hourlyRate: parsed.data.hourlyRate ?? null,
       policyId: parsed.data.policyId,
       projectAssignments: parsed.data.projectAssignments,
     })
@@ -219,7 +195,6 @@ function toExternalEmployee(member: {
   jobTitle: string
   payoutMethod: string
   otPayoutMethod: string
-  hourlyRate?: number
   policyId?: string
   policyName?: string
   projects: Array<{ id: string; name: string }>
@@ -243,7 +218,6 @@ function toExternalEmployee(member: {
     jobTitle: member.jobTitle,
     payoutMethod: member.payoutMethod,
     otPayoutMethod: member.otPayoutMethod,
-    hourlyRate: member.hourlyRate ?? null,
     policy: member.policyId
       ? { id: member.policyId, name: member.policyName ?? null }
       : null,

@@ -11,12 +11,6 @@ import {
 } from "@/app/(admin)/admin/hierarchy/form-state"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
-import {
-  employeePayoutMethods,
-  otPayoutMethods,
-  resolveEmployeePayoutMethod,
-  type OtPayoutMethod,
-} from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 const hierarchySchema = z.object({
@@ -24,10 +18,7 @@ const hierarchySchema = z.object({
   role: z.enum(["EMPLOYEE", "SUPERVISOR"]),
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
-  payoutMethod: z.enum(employeePayoutMethods),
-  otPayoutMethod: z.enum(otPayoutMethods).default("CASH"),
-  hourlyRate: z.number().positive().optional(),
-  policyId: z.string().min(1).optional(),
+  policyId: z.string().min(1, "Employee policy is required."),
   email: z.string().email(),
 })
 
@@ -39,26 +30,8 @@ const createMemberSchema = z.object({
   role: z.enum(["EMPLOYEE", "SUPERVISOR"]),
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
-  payoutMethod: z.enum(employeePayoutMethods),
-  otPayoutMethod: z.enum(otPayoutMethods).default("CASH"),
-  hourlyRate: z.number().positive().optional(),
-  policyId: z.string().min(1).optional(),
+  policyId: z.string().min(1, "Employee policy is required."),
 })
-
-function parseHourlyRateFromForm(formData: FormData): number | undefined {
-  const raw = String(formData.get("hourlyRate") ?? "").trim()
-  if (!raw) return undefined
-  const n = Number(raw)
-  return Number.isFinite(n) && n > 0 ? n : undefined
-}
-
-function resolveOtPayoutMethod(
-  payoutMethod: string,
-  raw: string,
-): OtPayoutMethod {
-  if (payoutMethod !== "MONTHLY_BASED") return "CASH"
-  return raw === "TIME_BANK" ? "TIME_BANK" : "CASH"
-}
 
 /// Pull the per-project routing config out of FormData. Each project section
 /// emits hidden inputs `proj.{pid}.teamId`, `proj.{pid}.layer`, and one
@@ -116,10 +89,6 @@ export async function updateHierarchyAction(
     role,
     organizationId: "",
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
-    payoutMethod: resolveEmployeePayoutMethod(
-      role,
-      String(formData.get("payoutMethod") ?? "").trim()
-    ),
     xeroConnectionId: xeroConnectionId ?? "",
   }
   const session = await getCurrentSession()
@@ -144,11 +113,6 @@ export async function updateHierarchyAction(
 
   const projectIds = formData.getAll("projectIds").map(String).filter(Boolean)
   const projectAssignments = parseProjectAssignments(formData, projectIds)
-  const hourlyRate = parseHourlyRateFromForm(formData)
-  const otPayoutMethod = resolveOtPayoutMethod(
-    values.payoutMethod,
-    String(formData.get("otPayoutMethod") ?? "").trim(),
-  )
 
   const policyId = String(formData.get("policyId") ?? "").trim() || undefined
   const parsed = hierarchySchema.safeParse({
@@ -156,9 +120,6 @@ export async function updateHierarchyAction(
     role: values.role,
     projectIds,
     jobTitle: values.jobTitle,
-    payoutMethod: values.payoutMethod,
-    otPayoutMethod,
-    hourlyRate,
     policyId,
     email: String(formData.get("email") ?? ""),
   })
@@ -178,9 +139,6 @@ export async function updateHierarchyAction(
       organizationId,
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
-      payoutMethod: parsed.data.payoutMethod,
-      otPayoutMethod: parsed.data.otPayoutMethod,
-      hourlyRate: parsed.data.hourlyRate ?? null,
       xeroConnectionId,
       policyId: parsed.data.policyId,
       projectAssignments,
@@ -212,7 +170,6 @@ export async function updateHierarchyAction(
       role: parsed.data.role,
       organizationId,
       jobTitle: parsed.data.jobTitle,
-      payoutMethod: parsed.data.payoutMethod,
       xeroConnectionId: xeroConnectionId ?? "",
     }),
     status: "success",
@@ -234,10 +191,6 @@ export async function createHierarchyMemberAction(
     role,
     organizationId: "",
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
-    payoutMethod: resolveEmployeePayoutMethod(
-      role,
-      String(formData.get("payoutMethod") ?? "").trim()
-    ),
     xeroConnectionId: xeroConnectionId ?? "",
   }
   const session = await getCurrentSession()
@@ -262,20 +215,11 @@ export async function createHierarchyMemberAction(
 
   const projectIds = formData.getAll("projectIds").map(String).filter(Boolean)
   const projectAssignments = parseProjectAssignments(formData, projectIds)
-  const hourlyRate = parseHourlyRateFromForm(formData)
-
-  const otPayoutMethod = resolveOtPayoutMethod(
-    values.payoutMethod,
-    String(formData.get("otPayoutMethod") ?? "").trim(),
-  )
 
   const policyId = String(formData.get("policyId") ?? "").trim() || undefined
   const parsed = createMemberSchema.safeParse({
     ...values,
     projectIds,
-    payoutMethod: values.payoutMethod,
-    otPayoutMethod,
-    hourlyRate,
     policyId,
   })
 
@@ -297,9 +241,6 @@ export async function createHierarchyMemberAction(
       organizationId,
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
-      payoutMethod: parsed.data.payoutMethod,
-      otPayoutMethod: parsed.data.otPayoutMethod,
-      hourlyRate: parsed.data.hourlyRate ?? null,
       xeroConnectionId,
       policyId: parsed.data.policyId,
       projectAssignments,

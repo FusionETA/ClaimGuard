@@ -97,8 +97,7 @@ model Organization {
 /// have any number of policies. Each EmployeeProfile is assigned to one
 /// policy via `policyId`. The policy controls:
 ///   - which employee modules are visible (Attendance / Claims / Leave)
-///   - salary type (HOURLY vs MONTHLY) — drives hourly-rate validation and
-///     clock-in selfie capture
+///   - salary type (HOURLY vs MONTHLY)
 ///   - OT method (CASH vs TIME_BANK)
 /// Two policies are seeded per org during the migration so existing
 /// behavior is preserved at cutover.
@@ -278,27 +277,16 @@ model PushSubscription {
 model EmployeeProfile {
   id                 String                      @id @default(cuid())
   userId             String                      @unique
-  employeeId         String                      @unique
+  employeeId         String
   jobTitle           String
-  payoutMethod       PayoutMethod?
   preferredCurrency  String                      @default("USD")
   xeroConnectionId   String?
   createdAt          DateTime                    @default(now())
   updatedAt          DateTime                    @updatedAt
-  /// Pay rate per hour. Only populated for employees whose payoutMethod
-  /// is HOURLY; null for MONTHLY_BASED employees and supervisors.
-  hourlyRate         Decimal?                    @db.Decimal(10, 2)
-  /// How approved OT is paid out. CASH = paid via payroll at the org's OT
-  /// rate; TIME_BANK = banked as time-off minutes (Office Workers only).
-  /// Hourly Workers are always CASH.
-  otPayoutMethod     OtPayoutMethod              @default(CASH)
   /// Cumulative banked OT minutes for TIME_BANK Office Workers.
   otTimeBalanceMin   Int                         @default(0)
   /// Employee policy assignment. Drives module visibility and is the
-  /// admin-facing source of truth for salary type + OT method. The
-  /// denormalized columns `payoutMethod` and `otPayoutMethod` above are
-  /// kept in sync with the assigned policy on every write so legacy
-  /// attendance/payroll code paths keep working unchanged.
+  /// admin-facing source of truth for salary type + OT method.
   policyId           String?
   policy             EmployeePolicy?             @relation(fields: [policyId], references: [id], onDelete: SetNull)
   user               User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
@@ -313,6 +301,7 @@ model EmployeeProfile {
 
   @@index([xeroConnectionId])
   @@index([policyId])
+  @@index([employeeId])
 }
 
 model EmployeeProjectAssignment {

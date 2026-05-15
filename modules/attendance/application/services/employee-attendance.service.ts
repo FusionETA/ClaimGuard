@@ -96,18 +96,13 @@ async function uploadSelfieToXero({
   const profile = await prisma.employeeProfile.findUnique({
     where: { userId: employeeId },
     select: {
-      payoutMethod: true,
       xeroConnectionId: true,
       employeeId: true,
       policy: { select: { requireSelfie: true } },
     },
   })
   if (!profile) return
-  // Prefer the policy flag when one is assigned; fall back to the
-  // legacy "HOURLY == selfie" heuristic for un-backfilled rows.
-  const selfieRequired = profile.policy
-    ? profile.policy.requireSelfie
-    : profile.payoutMethod === "HOURLY"
+  const selfieRequired = profile.policy?.requireSelfie ?? false
   if (!selfieRequired) return
 
   // Resolve a Xero connection: profile preference, else org's first.

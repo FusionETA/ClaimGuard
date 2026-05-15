@@ -387,7 +387,7 @@ function PolicyEditorCard({
                 </SelectContent>
               </Select>
               <p className="text-xs font-normal text-muted-foreground">
-                Hourly = clock-in selfie required and an hourly rate must be set per employee.
+                Hourly workers use the hourly salary setup in payroll.
               </p>
             </label>
             <label className="space-y-2 text-sm font-semibold text-muted-foreground">

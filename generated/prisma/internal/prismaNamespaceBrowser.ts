@@ -255,13 +255,10 @@ export const EmployeeProfileScalarFieldEnum = {
   userId: 'userId',
   employeeId: 'employeeId',
   jobTitle: 'jobTitle',
-  payoutMethod: 'payoutMethod',
   preferredCurrency: 'preferredCurrency',
   xeroConnectionId: 'xeroConnectionId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  hourlyRate: 'hourlyRate',
-  otPayoutMethod: 'otPayoutMethod',
   otTimeBalanceMin: 'otTimeBalanceMin',
   policyId: 'policyId'
 } as const
