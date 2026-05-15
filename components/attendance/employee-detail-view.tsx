@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/attendance/ui/avatar"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
-import { OverrideTimesDialog } from "@/components/attendance/override-times-dialog"
+import { SessionEditorDialog } from "@/components/attendance/session-editor-dialog"
 import {
   approvalStatusMeta,
   attendanceStatusMeta,
@@ -125,7 +125,7 @@ export function EmployeeDetailView({
                     {attendanceStatusMeta[todayRecord.status].label}
                   </Badge>
                   {canEdit ? (
-                    <OverrideTimesDialog
+                    <SessionEditorDialog
                       recordId={todayRecord.id}
                       employeeId={todayRecord.employeeId}
                       initialTimeIn={todayRecord.timeIn}
@@ -290,7 +290,7 @@ export function EmployeeDetailView({
                     {attendanceStatusMeta[r.status].label}
                   </Badge>
                   {canEdit ? (
-                    <OverrideTimesDialog
+                    <SessionEditorDialog
                       recordId={r.id}
                       employeeId={r.employeeId}
                       initialTimeIn={r.timeIn}

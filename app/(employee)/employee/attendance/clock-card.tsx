@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react"
 import { createPortal } from "react-dom"
-import { Camera, Coffee, Fingerprint, LogOut, RotateCcw, X } from "lucide-react"
+import { AlertTriangle, Camera, Coffee, Fingerprint, LogOut, RotateCcw, X } from "lucide-react"
 
 import { Card } from "@/components/attendance/ui/card"
 import {
@@ -15,6 +15,7 @@ import {
 import type {
   AttendanceProjectView,
   AttendanceRecordView,
+  ClockEventLite,
 } from "@/modules/attendance/domain/models"
 import { checkGeofence, type GeofenceCheck } from "@/lib/geo"
 
@@ -121,6 +122,10 @@ type Props = {
   enforceGeofence: boolean
   /** Today's full attendance record — drives the clock-out confirmation dialog. */
   todayRecord: AttendanceRecordView | null
+  /** Most recent rejected clock-in/clock-out for today, if any. When present
+   *  a warning banner is rendered above the clock buttons explaining why the
+   *  previous event was rejected and prompting the employee to retry. */
+  latestRejection: ClockEventLite | null
 }
 
 function ClockInButton({ pending }: { pending: boolean }) {
@@ -218,7 +223,9 @@ export function ClockCard({
   requiresSelfieOnClockIn,
   enforceGeofence,
   todayRecord,
+  latestRejection,
 }: Props) {
+  const [rejectionDismissed, setRejectionDismissed] = useState(false)
   const [selected, setSelected] = useState("")
   const [result, formAction] = useActionState<ClockInState, FormData>(
     clockInAction,
@@ -552,6 +559,50 @@ export function ClockCard({
           </div>
         ) : null}
       </div>
+
+      {latestRejection && !rejectionDismissed ? (
+        <div className="mb-4 rounded-[20px] border border-destructive/40 bg-destructive/10 p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-destructive">
+                {latestRejection.kind === "CLOCK_IN"
+                  ? "Your clock-in was rejected"
+                  : "Your clock-out was rejected"}
+              </p>
+              <p className="mt-1 text-xs text-destructive/90">
+                Rejected at{" "}
+                {new Date(latestRejection.eventAt).toLocaleTimeString("en-US", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                {latestRejection.reviewerName
+                  ? ` by ${latestRejection.reviewerName}`
+                  : ""}
+                {". Please "}
+                {latestRejection.kind === "CLOCK_IN"
+                  ? "clock in again"
+                  : "clock out again"}
+                {" when ready."}
+              </p>
+              {latestRejection.reviewNotes ? (
+                <p className="mt-2 rounded-[10px] bg-destructive/15 px-3 py-2 text-xs text-destructive">
+                  <span className="font-semibold">Reason:</span>{" "}
+                  {latestRejection.reviewNotes}
+                </p>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={() => setRejectionDismissed(true)}
+              className="rounded-full p-1 text-destructive/70 hover:bg-destructive/15"
+              aria-label="Dismiss rejection notice"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {state === "OUT" ? (
         <form onSubmit={handleClockIn} className="space-y-3">

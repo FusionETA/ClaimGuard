@@ -38,8 +38,25 @@ function fmtDate(d: Date) {
 function deriveState(events: ClockEventLite[]): "IN" | "OUT" {
   const last = [...events]
     .reverse()
-    .find((e) => e.kind === "CLOCK_IN" || e.kind === "CLOCK_OUT")
+    .find(
+      (e) =>
+        (e.kind === "CLOCK_IN" || e.kind === "CLOCK_OUT") &&
+        e.status !== "REJECTED",
+    )
   return last?.kind === "CLOCK_IN" ? "IN" : "OUT"
+}
+
+/**
+ * Latest CLOCK_IN/CLOCK_OUT for today that ended in REJECTED, only if it
+ * hasn't been superseded by a later APPROVED event of the same kind. This
+ * is what powers the warning banner on the clock card.
+ */
+function deriveLatestRejection(events: ClockEventLite[]): ClockEventLite | null {
+  const clockEvents = events.filter(
+    (e) => e.kind === "CLOCK_IN" || e.kind === "CLOCK_OUT",
+  )
+  const last = [...clockEvents].reverse()[0]
+  return last && last.status === "REJECTED" ? last : null
 }
 
 export function EmployeeAttendanceDashboardView({
@@ -51,6 +68,7 @@ export function EmployeeAttendanceDashboardView({
   enforceGeofence,
 }: Props) {
   const state = deriveState(dashboard.todayEvents)
+  const latestRejection = deriveLatestRejection(dashboard.todayEvents)
   const now = new Date()
 
   return (
@@ -94,6 +112,7 @@ export function EmployeeAttendanceDashboardView({
         requiresSelfieOnClockIn={requiresSelfieOnClockIn}
         enforceGeofence={enforceGeofence}
         todayRecord={dashboard.today}
+        latestRejection={latestRejection}
       />
 
       {dashboard.today ? (

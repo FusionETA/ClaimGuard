@@ -101,6 +101,12 @@ export type ClockEventLite = {
   eventAt: string
   /** For kind="BREAK", whether this event is the start or end of the break. */
   breakSubtype: "start" | "end" | null
+  /** Reviewer's notes when the request was finalised — surfaces the
+   *  rejection reason on the employee's dashboard. Null for pending or
+   *  un-annotated approvals. */
+  reviewNotes: string | null
+  /** Reviewer's display name (best-effort) for rejection banners. */
+  reviewerName: string | null
 }
 
 export type EmployeeAttendanceDashboard = {

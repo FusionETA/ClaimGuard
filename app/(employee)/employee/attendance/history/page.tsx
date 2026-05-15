@@ -59,6 +59,23 @@ export default async function EmployeeHistoryPage() {
     now,
   )
   const otRecords = await employeeAttendanceService.getEmployeeOTRecords(session.userId)
+  const rejectedClockEvents = await employeeAttendanceService.getRejectedClockEvents(
+    session.userId,
+    monthAgo,
+    now,
+  )
+  const rejectionsByDate = new Map<
+    string,
+    Array<{ kind: "CLOCK_IN" | "CLOCK_OUT"; reviewNotes: string | null; reviewerName: string | null }>
+  >()
+  for (const r of rejectedClockEvents) {
+    if (!rejectionsByDate.has(r.date)) rejectionsByDate.set(r.date, [])
+    rejectionsByDate.get(r.date)!.push({
+      kind: r.kind,
+      reviewNotes: r.reviewNotes,
+      reviewerName: r.reviewerName,
+    })
+  }
 
   const byMonth = new Map<string, AttendanceRecordView[]>()
   for (const r of records) {
@@ -127,43 +144,60 @@ export default async function EmployeeHistoryPage() {
               <Card>
                 <CardContent className="p-2">
                   <div className="space-y-1">
-                    {items.map((r) => (
-                      <div
-                        key={r.id}
-                        className={cn(
-                          "flex items-center gap-3 rounded-xl border-l-4 px-4 py-3",
-                          r.status === "ON_TIME"
-                            ? "border-l-success"
-                            : r.status === "LATE"
-                              ? "border-l-tertiary"
-                              : "border-l-destructive",
-                        )}
-                      >
-                        {r.status === "MISSING" ? (
-                          <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
-                        ) : (
-                          <CheckCircle2
-                            className={cn(
-                              "h-5 w-5 shrink-0",
-                              r.status === "ON_TIME" ? "text-success" : "text-tertiary",
+                    {items.map((r) => {
+                      const rejections = rejectionsByDate.get(r.date) ?? []
+                      return (
+                        <div
+                          key={r.id}
+                          className={cn(
+                            "flex flex-col gap-2 rounded-xl border-l-4 px-4 py-3",
+                            r.status === "ON_TIME"
+                              ? "border-l-success"
+                              : r.status === "LATE"
+                                ? "border-l-tertiary"
+                                : "border-l-destructive",
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            {r.status === "MISSING" ? (
+                              <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
+                            ) : (
+                              <CheckCircle2
+                                className={cn(
+                                  "h-5 w-5 shrink-0",
+                                  r.status === "ON_TIME" ? "text-success" : "text-tertiary",
+                                )}
+                              />
                             )}
-                          />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-foreground">
-                            {r.date}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {fmtTime(r.timeIn)}{" "}
-                            {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}{" "}
-                            {r.project ? `• ${r.project}` : r.location ? `• ${r.location}` : ""}
-                          </p>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-semibold text-foreground">
+                                {r.date}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {fmtTime(r.timeIn)}{" "}
+                                {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}{" "}
+                                {r.project ? `• ${r.project}` : r.location ? `• ${r.location}` : ""}
+                              </p>
+                            </div>
+                            <Badge variant={STATUS_VARIANT[r.status] as never}>
+                              {attendanceStatusMeta[r.status].label}
+                            </Badge>
+                          </div>
+                          {rejections.map((rej, idx) => (
+                            <div
+                              key={`${r.id}-rej-${idx}`}
+                              className="ml-8 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-[11px] text-destructive"
+                            >
+                              <span className="font-semibold">
+                                {rej.kind === "CLOCK_IN" ? "Clock-in rejected" : "Clock-out rejected"}
+                              </span>
+                              {rej.reviewerName ? ` by ${rej.reviewerName}` : ""}
+                              {rej.reviewNotes ? ` — ${rej.reviewNotes}` : ""}
+                            </div>
+                          ))}
                         </div>
-                        <Badge variant={STATUS_VARIANT[r.status] as never}>
-                          {attendanceStatusMeta[r.status].label}
-                        </Badge>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>

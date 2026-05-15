@@ -272,6 +272,27 @@ export const employeeAttendanceService = {
     )
   },
 
+  /**
+   * Rejected CLOCK_IN / CLOCK_OUT approvals in a date range, keyed by
+   * `date.toISOString().slice(0,10)`. Used by the history view to annotate
+   * days where a clock event was rejected (the underlying record has
+   * already been cleared by `reviewApproval`, but the employee still
+   * benefits from seeing *why* the day looks empty).
+   */
+  async getRejectedClockEvents(
+    employeeId: string,
+    from: Date,
+    to: Date,
+  ): Promise<Array<{
+    date: string
+    kind: "CLOCK_IN" | "CLOCK_OUT"
+    eventAt: string
+    reviewNotes: string | null
+    reviewerName: string | null
+  }>> {
+    return attendanceRepository.getRejectedClockEvents(employeeId, from, to)
+  },
+
   async getEmployeeOTRecords(employeeId: string): Promise<ApprovalRequestView[]> {
     return getOrSetCache(
       key("user", employeeId, "attendance", "ot-records"),

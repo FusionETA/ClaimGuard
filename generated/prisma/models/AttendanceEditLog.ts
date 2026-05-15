@@ -1063,7 +1063,7 @@ export type $AttendanceEditLogPayload<ExtArgs extends runtime.Types.Extensions.I
     prevRemark: string | null
     nextRemark: string | null
     /**
-     * "DIRECT_EDIT" | "APPROVE_OVERRIDE" | "EMPLOYEE_REMARK"
+     * "DIRECT_EDIT" | "APPROVE_OVERRIDE" | "EMPLOYEE_REMARK" | "APPROVAL_REJECTION"
      */
     source: string
     createdAt: Date
