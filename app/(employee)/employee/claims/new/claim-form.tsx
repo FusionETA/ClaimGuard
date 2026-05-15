@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useMemo, useRef, useState } from "react"
+import { useActionState, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AlertCircle, Camera, LoaderCircle, Upload } from "lucide-react"
 
 import { submitClaimAction } from "@/app/(employee)/employee/claims/new/actions"
@@ -102,12 +102,7 @@ export function ClaimForm({
   )
   const receiptInputRef = useRef<HTMLInputElement | null>(null)
 
-  // Carry the receipt File chosen in the OCR step into the form's hidden
-  // file input. The DataTransfer dance is the supported way to set
-  // `input.files` programmatically in modern browsers (Chrome 73+,
-  // Safari 14.1+, Firefox 62+) — needed so the submit FormData carries
-  // the file the user already picked, instead of forcing them to re-pick.
-  useEffect(() => {
+  const reattachPrefilledReceipt = useCallback(() => {
     if (!prefilledReceiptFile) return
     const input = receiptInputRef.current
     if (!input) return
@@ -121,8 +116,26 @@ export function ClaimForm({
       // showing the filename and letting the user re-tap to upload.
     }
   }, [prefilledReceiptFile])
+
+  // Carry the receipt File chosen in the OCR step into the form's hidden
+  // file input. The DataTransfer dance is the supported way to set
+  // `input.files` programmatically in modern browsers (Chrome 73+,
+  // Safari 14.1+, Firefox 62+) — needed so the submit FormData carries
+  // the file the user already picked, instead of forcing them to re-pick.
+  useEffect(() => {
+    reattachPrefilledReceipt()
+  }, [reattachPrefilledReceipt])
+
+  useEffect(() => {
+    if (state.status === "error") {
+      reattachPrefilledReceipt()
+    }
+  }, [state.status, reattachPrefilledReceipt])
+
   const [claimType, setClaimType] = useState<"EXPENSE" | "MILEAGE">(
-    state?.values?.claimType ?? defaultClaimType ?? "EXPENSE"
+    state.status === "error"
+      ? state.values.claimType
+      : defaultClaimType ?? state.values?.claimType ?? "EXPENSE"
   )
   // String defaults across this form fall back through:
   //   sticky value (after a failed submit) → AI prefill (first render) → ""
@@ -135,9 +148,7 @@ export function ClaimForm({
   const [currency, setCurrency] = useState<string>(() => {
     // Preserve sticky value on resubmit; otherwise prefer AI-detected, then
     // org default, then first allowed code, then fallback "MYR".
-    if (state?.values && "currency" in state.values && typeof (state.values as { currency?: string }).currency === "string") {
-      return (state.values as { currency?: string }).currency!
-    }
+    if (state.values.currency) return state.values.currency
     if (aiPrefill?.currency) return aiPrefill.currency
     if (defaultCurrency) return defaultCurrency
     if (allowedCurrencies.length > 0) return allowedCurrencies[0]!
@@ -158,6 +169,9 @@ export function ClaimForm({
   const [amountInput, setAmountInput] = useState(
     state?.values?.amount || aiPrefill?.amount || ""
   )
+  const [descriptionInput, setDescriptionInput] = useState(
+    state?.values?.description || aiPrefill?.description || ""
+  )
 
   useEffect(() => {
     if (state?.values?.chartOfAccountId) {
@@ -174,9 +188,11 @@ export function ClaimForm({
       setClaimType("EXPENSE")
       setDistance("")
       setAmountInput("")
+      setDescriptionInput("")
+      setCurrency(defaultCurrency ?? allowedCurrencies[0] ?? "MYR")
       onSuccess?.()
     }
-  }, [state.status, onSuccess])
+  }, [state.status, onSuccess, defaultCurrency, allowedCurrencies])
 
   // Re-sync amount with the server-returned sticky value after a failed submit
   // so the form preserves the user's last typed value. Truthy check (not
@@ -194,6 +210,13 @@ export function ClaimForm({
       setPayViaAccountId(state.values.payViaAccountId)
     }
   }, [state?.values?.payViaAccountId])
+
+  useEffect(() => {
+    if (state.status === "error") {
+      setClaimType(state.values.claimType)
+      setDescriptionInput(state.values.description)
+    }
+  }, [state])
 
   useEffect(() => {
     if (paymentType !== "COMPANY") {
@@ -627,7 +650,8 @@ export function ClaimForm({
           id="description"
           name="description"
           placeholder="Describe the expense and why it was necessary for business operations."
-          defaultValue={state.values?.description || aiPrefill?.description || ""}
+          value={descriptionInput}
+          onChange={(event) => setDescriptionInput(event.target.value)}
           aria-invalid={Boolean(state.errors?.description)}
         />
         <FieldError message={state.errors?.description} />
@@ -859,7 +883,12 @@ export function ClaimForm({
 
   if (compact) {
     return (
-      <form action={formAction} className="space-y-4 pb-2" suppressHydrationWarning>
+      <form
+        action={formAction}
+        className="space-y-4 pb-2"
+        suppressHydrationWarning
+        onSubmitCapture={() => reattachPrefilledReceipt()}
+      >
         {(backLink || stepChip) ? (
           <div className="flex items-center justify-between">
             {stepChip}
@@ -879,7 +908,12 @@ export function ClaimForm({
   }
 
   return (
-    <form action={formAction} className="space-y-4 sm:space-y-6" suppressHydrationWarning>
+    <form
+      action={formAction}
+      className="space-y-4 sm:space-y-6"
+      suppressHydrationWarning
+      onSubmitCapture={() => reattachPrefilledReceipt()}
+    >
       {(backLink || stepChip) ? (
         <div className="flex items-center justify-between">
           {stepChip}

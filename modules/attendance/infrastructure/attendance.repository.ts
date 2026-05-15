@@ -364,13 +364,15 @@ async function computeApprovedOtMinutes(
       )
     : false
 
+  // Daily OT threshold lives on the employee's assigned policy now.
+  // Defaults to the legacy 8h fallback when no policy is assigned.
   let otThresholdMin = 8 * 60
-  if (employee?.organizationId) {
-    const org = await prisma.organization.findUnique({
-      where: { id: employee.organizationId },
-      select: { otDailyThresholdMinutes: true },
-    })
-    otThresholdMin = org?.otDailyThresholdMinutes ?? otThresholdMin
+  const profile = await prisma.employeeProfile.findUnique({
+    where: { userId: employeeId },
+    select: { policy: { select: { otDailyThresholdMinutes: true } } },
+  })
+  if (profile?.policy) {
+    otThresholdMin = profile.policy.otDailyThresholdMinutes
   }
 
   const bucket = bucketRecord({

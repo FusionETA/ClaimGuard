@@ -28,29 +28,15 @@ export type AggregateOrganization = {
 
 export type OrganizationAvgAggregateOutputType = {
   claimCutoffDay: number | null
-  otRateNormalDay: runtime.Decimal | null
-  otRatePublicHoliday: runtime.Decimal | null
-  otRateRestDay: runtime.Decimal | null
-  otSalaryThreshold: runtime.Decimal | null
-  publicHolidayInShiftRate: runtime.Decimal | null
-  restDayInShiftRate: runtime.Decimal | null
   geofenceRadiusMeters: number | null
   defaultMileageRate: runtime.Decimal | null
-  otDailyThresholdMinutes: number | null
   supervisorSlaMinutes: number | null
 }
 
 export type OrganizationSumAggregateOutputType = {
   claimCutoffDay: number | null
-  otRateNormalDay: runtime.Decimal | null
-  otRatePublicHoliday: runtime.Decimal | null
-  otRateRestDay: runtime.Decimal | null
-  otSalaryThreshold: runtime.Decimal | null
-  publicHolidayInShiftRate: runtime.Decimal | null
-  restDayInShiftRate: runtime.Decimal | null
   geofenceRadiusMeters: number | null
   defaultMileageRate: runtime.Decimal | null
-  otDailyThresholdMinutes: number | null
   supervisorSlaMinutes: number | null
 }
 
@@ -62,18 +48,11 @@ export type OrganizationMinAggregateOutputType = {
   updatedAt: Date | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
-  otRateNormalDay: runtime.Decimal | null
-  otRatePublicHoliday: runtime.Decimal | null
-  otRateRestDay: runtime.Decimal | null
-  otSalaryThreshold: runtime.Decimal | null
-  publicHolidayInShiftRate: runtime.Decimal | null
-  restDayInShiftRate: runtime.Decimal | null
   geofenceRadiusMeters: number | null
   defaultMileageRate: runtime.Decimal | null
   mileageUnit: $Enums.MileageUnit | null
   otEnabled: boolean | null
   timezone: string | null
-  otDailyThresholdMinutes: number | null
   defaultCurrency: string | null
   supervisorReportEnabled: boolean | null
   supervisorSlaMinutes: number | null
@@ -87,18 +66,11 @@ export type OrganizationMaxAggregateOutputType = {
   updatedAt: Date | null
   workingHoursEnd: string | null
   workingHoursStart: string | null
-  otRateNormalDay: runtime.Decimal | null
-  otRatePublicHoliday: runtime.Decimal | null
-  otRateRestDay: runtime.Decimal | null
-  otSalaryThreshold: runtime.Decimal | null
-  publicHolidayInShiftRate: runtime.Decimal | null
-  restDayInShiftRate: runtime.Decimal | null
   geofenceRadiusMeters: number | null
   defaultMileageRate: runtime.Decimal | null
   mileageUnit: $Enums.MileageUnit | null
   otEnabled: boolean | null
   timezone: string | null
-  otDailyThresholdMinutes: number | null
   defaultCurrency: string | null
   supervisorReportEnabled: boolean | null
   supervisorSlaMinutes: number | null
@@ -112,18 +84,11 @@ export type OrganizationCountAggregateOutputType = {
   updatedAt: number
   workingHoursEnd: number
   workingHoursStart: number
-  otRateNormalDay: number
-  otRatePublicHoliday: number
-  otRateRestDay: number
-  otSalaryThreshold: number
-  publicHolidayInShiftRate: number
-  restDayInShiftRate: number
   geofenceRadiusMeters: number
   defaultMileageRate: number
   mileageUnit: number
   otEnabled: number
   timezone: number
-  otDailyThresholdMinutes: number
   allowedCurrencies: number
   defaultCurrency: number
   supervisorReportEnabled: number
@@ -134,29 +99,15 @@ export type OrganizationCountAggregateOutputType = {
 
 export type OrganizationAvgAggregateInputType = {
   claimCutoffDay?: true
-  otRateNormalDay?: true
-  otRatePublicHoliday?: true
-  otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
-  restDayInShiftRate?: true
   geofenceRadiusMeters?: true
   defaultMileageRate?: true
-  otDailyThresholdMinutes?: true
   supervisorSlaMinutes?: true
 }
 
 export type OrganizationSumAggregateInputType = {
   claimCutoffDay?: true
-  otRateNormalDay?: true
-  otRatePublicHoliday?: true
-  otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
-  restDayInShiftRate?: true
   geofenceRadiusMeters?: true
   defaultMileageRate?: true
-  otDailyThresholdMinutes?: true
   supervisorSlaMinutes?: true
 }
 
@@ -168,18 +119,11 @@ export type OrganizationMinAggregateInputType = {
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
-  otRateNormalDay?: true
-  otRatePublicHoliday?: true
-  otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
-  restDayInShiftRate?: true
   geofenceRadiusMeters?: true
   defaultMileageRate?: true
   mileageUnit?: true
   otEnabled?: true
   timezone?: true
-  otDailyThresholdMinutes?: true
   defaultCurrency?: true
   supervisorReportEnabled?: true
   supervisorSlaMinutes?: true
@@ -193,18 +137,11 @@ export type OrganizationMaxAggregateInputType = {
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
-  otRateNormalDay?: true
-  otRatePublicHoliday?: true
-  otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
-  restDayInShiftRate?: true
   geofenceRadiusMeters?: true
   defaultMileageRate?: true
   mileageUnit?: true
   otEnabled?: true
   timezone?: true
-  otDailyThresholdMinutes?: true
   defaultCurrency?: true
   supervisorReportEnabled?: true
   supervisorSlaMinutes?: true
@@ -218,18 +155,11 @@ export type OrganizationCountAggregateInputType = {
   updatedAt?: true
   workingHoursEnd?: true
   workingHoursStart?: true
-  otRateNormalDay?: true
-  otRatePublicHoliday?: true
-  otRateRestDay?: true
-  otSalaryThreshold?: true
-  publicHolidayInShiftRate?: true
-  restDayInShiftRate?: true
   geofenceRadiusMeters?: true
   defaultMileageRate?: true
   mileageUnit?: true
   otEnabled?: true
   timezone?: true
-  otDailyThresholdMinutes?: true
   allowedCurrencies?: true
   defaultCurrency?: true
   supervisorReportEnabled?: true
@@ -331,18 +261,11 @@ export type OrganizationGroupByOutputType = {
   updatedAt: Date
   workingHoursEnd: string
   workingHoursStart: string
-  otRateNormalDay: runtime.Decimal
-  otRatePublicHoliday: runtime.Decimal
-  otRateRestDay: runtime.Decimal
-  otSalaryThreshold: runtime.Decimal
-  publicHolidayInShiftRate: runtime.Decimal
-  restDayInShiftRate: runtime.Decimal
   geofenceRadiusMeters: number
   defaultMileageRate: runtime.Decimal | null
   mileageUnit: $Enums.MileageUnit
   otEnabled: boolean
   timezone: string
-  otDailyThresholdMinutes: number
   allowedCurrencies: runtime.JsonValue | null
   defaultCurrency: string | null
   supervisorReportEnabled: boolean
@@ -380,18 +303,11 @@ export type OrganizationWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
-  otRateNormalDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFilter<"Organization"> | number
   defaultMileageRate?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFilter<"Organization"> | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   timezone?: Prisma.StringFilter<"Organization"> | string
-  otDailyThresholdMinutes?: Prisma.IntFilter<"Organization"> | number
   allowedCurrencies?: Prisma.JsonNullableFilter<"Organization">
   defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
   supervisorReportEnabled?: Prisma.BoolFilter<"Organization"> | boolean
@@ -401,12 +317,12 @@ export type OrganizationWhereInput = {
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   employeePolicies?: Prisma.EmployeePolicyListRelationFilter
+  payrollCompanyInfo?: Prisma.XOR<Prisma.PayrollCompanyInfoNullableScalarRelationFilter, Prisma.PayrollCompanyInfoWhereInput> | null
+  payrollRuns?: Prisma.PayrollRunListRelationFilter
+  payrollSettings?: Prisma.XOR<Prisma.PayrollSettingsNullableScalarRelationFilter, Prisma.PayrollSettingsWhereInput> | null
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
-  payrollSettings?: Prisma.XOR<Prisma.PayrollSettingsNullableScalarRelationFilter, Prisma.PayrollSettingsWhereInput> | null
-  payrollCompanyInfo?: Prisma.XOR<Prisma.PayrollCompanyInfoNullableScalarRelationFilter, Prisma.PayrollCompanyInfoWhereInput> | null
-  payrollRuns?: Prisma.PayrollRunListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -417,18 +333,11 @@ export type OrganizationOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
-  otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
-  restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
   defaultMileageRate?: Prisma.SortOrderInput | Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
-  otDailyThresholdMinutes?: Prisma.SortOrder
   allowedCurrencies?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
@@ -438,12 +347,12 @@ export type OrganizationOrderByWithRelationInput = {
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
   employeePolicies?: Prisma.EmployeePolicyOrderByRelationAggregateInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoOrderByWithRelationInput
+  payrollRuns?: Prisma.PayrollRunOrderByRelationAggregateInput
+  payrollSettings?: Prisma.PayrollSettingsOrderByWithRelationInput
   users?: Prisma.UserOrderByRelationAggregateInput
   xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
   projects?: Prisma.XeroProjectOrderByRelationAggregateInput
-  payrollSettings?: Prisma.PayrollSettingsOrderByWithRelationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoOrderByWithRelationInput
-  payrollRuns?: Prisma.PayrollRunOrderByRelationAggregateInput
   _relevance?: Prisma.OrganizationOrderByRelevanceInput
 }
 
@@ -458,18 +367,11 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringFilter<"Organization"> | string
-  otRateNormalDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFilter<"Organization"> | number
   defaultMileageRate?: Prisma.DecimalNullableFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFilter<"Organization"> | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   timezone?: Prisma.StringFilter<"Organization"> | string
-  otDailyThresholdMinutes?: Prisma.IntFilter<"Organization"> | number
   allowedCurrencies?: Prisma.JsonNullableFilter<"Organization">
   defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
   supervisorReportEnabled?: Prisma.BoolFilter<"Organization"> | boolean
@@ -479,12 +381,12 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   employeePolicies?: Prisma.EmployeePolicyListRelationFilter
+  payrollCompanyInfo?: Prisma.XOR<Prisma.PayrollCompanyInfoNullableScalarRelationFilter, Prisma.PayrollCompanyInfoWhereInput> | null
+  payrollRuns?: Prisma.PayrollRunListRelationFilter
+  payrollSettings?: Prisma.XOR<Prisma.PayrollSettingsNullableScalarRelationFilter, Prisma.PayrollSettingsWhereInput> | null
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
   projects?: Prisma.XeroProjectListRelationFilter
-  payrollSettings?: Prisma.XOR<Prisma.PayrollSettingsNullableScalarRelationFilter, Prisma.PayrollSettingsWhereInput> | null
-  payrollCompanyInfo?: Prisma.XOR<Prisma.PayrollCompanyInfoNullableScalarRelationFilter, Prisma.PayrollCompanyInfoWhereInput> | null
-  payrollRuns?: Prisma.PayrollRunListRelationFilter
 }, "id" | "name">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -495,18 +397,11 @@ export type OrganizationOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
-  otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
-  restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
   defaultMileageRate?: Prisma.SortOrderInput | Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
-  otDailyThresholdMinutes?: Prisma.SortOrder
   allowedCurrencies?: Prisma.SortOrderInput | Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
@@ -529,18 +424,11 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organization"> | Date | string
   workingHoursEnd?: Prisma.StringWithAggregatesFilter<"Organization"> | string
   workingHoursStart?: Prisma.StringWithAggregatesFilter<"Organization"> | string
-  otRateNormalDay?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntWithAggregatesFilter<"Organization"> | number
   defaultMileageRate?: Prisma.DecimalNullableWithAggregatesFilter<"Organization"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitWithAggregatesFilter<"Organization"> | $Enums.MileageUnit
   otEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   timezone?: Prisma.StringWithAggregatesFilter<"Organization"> | string
-  otDailyThresholdMinutes?: Prisma.IntWithAggregatesFilter<"Organization"> | number
   allowedCurrencies?: Prisma.JsonNullableWithAggregatesFilter<"Organization">
   defaultCurrency?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   supervisorReportEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
@@ -555,18 +443,11 @@ export type OrganizationCreateInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -576,12 +457,12 @@ export type OrganizationCreateInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -592,18 +473,11 @@ export type OrganizationUncheckedCreateInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -613,12 +487,12 @@ export type OrganizationUncheckedCreateInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -629,18 +503,11 @@ export type OrganizationUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -650,12 +517,12 @@ export type OrganizationUpdateInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -666,18 +533,11 @@ export type OrganizationUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -687,12 +547,12 @@ export type OrganizationUncheckedUpdateInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -703,18 +563,11 @@ export type OrganizationCreateManyInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -729,18 +582,11 @@ export type OrganizationUpdateManyMutationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -755,18 +601,11 @@ export type OrganizationUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -792,18 +631,11 @@ export type OrganizationCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
-  otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
-  restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
   defaultMileageRate?: Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
-  otDailyThresholdMinutes?: Prisma.SortOrder
   allowedCurrencies?: Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
@@ -812,15 +644,8 @@ export type OrganizationCountOrderByAggregateInput = {
 
 export type OrganizationAvgOrderByAggregateInput = {
   claimCutoffDay?: Prisma.SortOrder
-  otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
-  otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
-  restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
   defaultMileageRate?: Prisma.SortOrder
-  otDailyThresholdMinutes?: Prisma.SortOrder
   supervisorSlaMinutes?: Prisma.SortOrder
 }
 
@@ -832,18 +657,11 @@ export type OrganizationMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
-  otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
-  restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
   defaultMileageRate?: Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
-  otDailyThresholdMinutes?: Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
   supervisorSlaMinutes?: Prisma.SortOrder
@@ -857,18 +675,11 @@ export type OrganizationMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   workingHoursEnd?: Prisma.SortOrder
   workingHoursStart?: Prisma.SortOrder
-  otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
-  otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
-  restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
   defaultMileageRate?: Prisma.SortOrder
   mileageUnit?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   timezone?: Prisma.SortOrder
-  otDailyThresholdMinutes?: Prisma.SortOrder
   defaultCurrency?: Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
   supervisorSlaMinutes?: Prisma.SortOrder
@@ -876,15 +687,8 @@ export type OrganizationMinOrderByAggregateInput = {
 
 export type OrganizationSumOrderByAggregateInput = {
   claimCutoffDay?: Prisma.SortOrder
-  otRateNormalDay?: Prisma.SortOrder
-  otRatePublicHoliday?: Prisma.SortOrder
-  otRateRestDay?: Prisma.SortOrder
-  otSalaryThreshold?: Prisma.SortOrder
-  publicHolidayInShiftRate?: Prisma.SortOrder
-  restDayInShiftRate?: Prisma.SortOrder
   geofenceRadiusMeters?: Prisma.SortOrder
   defaultMileageRate?: Prisma.SortOrder
-  otDailyThresholdMinutes?: Prisma.SortOrder
   supervisorSlaMinutes?: Prisma.SortOrder
 }
 
@@ -915,14 +719,6 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
-}
-
-export type DecimalFieldUpdateOperationsInput = {
-  set?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type NullableDecimalFieldUpdateOperationsInput = {
@@ -1091,18 +887,11 @@ export type OrganizationCreateWithoutUsersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1112,11 +901,11 @@ export type OrganizationCreateWithoutUsersInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
-  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutUsersInput = {
@@ -1127,18 +916,11 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1148,11 +930,11 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
-  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutUsersInput = {
@@ -1179,18 +961,11 @@ export type OrganizationUpdateWithoutUsersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1200,11 +975,11 @@ export type OrganizationUpdateWithoutUsersInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
-  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutUsersInput = {
@@ -1215,18 +990,11 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1236,11 +1004,11 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
-  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutEmployeePoliciesInput = {
@@ -1251,18 +1019,11 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1271,12 +1032,12 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
@@ -1287,18 +1048,11 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1307,12 +1061,12 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutEmployeePoliciesInput = {
@@ -1339,18 +1093,11 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1359,12 +1106,12 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
@@ -1375,18 +1122,11 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1395,12 +1135,12 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutApiIntegrationsInput = {
@@ -1411,18 +1151,11 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1431,12 +1164,12 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
@@ -1447,18 +1180,11 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1467,12 +1193,12 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutApiIntegrationsInput = {
@@ -1499,18 +1225,11 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1519,12 +1238,12 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
@@ -1535,18 +1254,11 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1555,12 +1267,12 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAdminMembersInput = {
@@ -1571,18 +1283,11 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1591,12 +1296,12 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
@@ -1607,18 +1312,11 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1627,12 +1325,12 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAdminMembersInput = {
@@ -1659,18 +1357,11 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1679,12 +1370,12 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
@@ -1695,18 +1386,11 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1715,12 +1399,12 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutClaimsInput = {
@@ -1731,18 +1415,11 @@ export type OrganizationCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1751,12 +1428,12 @@ export type OrganizationCreateWithoutClaimsInput = {
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutClaimsInput = {
@@ -1767,18 +1444,11 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1787,12 +1457,12 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutClaimsInput = {
@@ -1819,18 +1489,11 @@ export type OrganizationUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1839,12 +1502,12 @@ export type OrganizationUpdateWithoutClaimsInput = {
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutClaimsInput = {
@@ -1855,18 +1518,11 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1875,12 +1531,12 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutChartAccountsInput = {
@@ -1891,18 +1547,11 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1911,12 +1560,12 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
@@ -1927,18 +1576,11 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -1947,12 +1589,12 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutChartAccountsInput = {
@@ -1979,18 +1621,11 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1999,12 +1634,12 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
@@ -2015,18 +1650,11 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2035,12 +1663,12 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutXeroConnectionsInput = {
@@ -2051,18 +1679,11 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2072,11 +1693,11 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
-  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
@@ -2087,18 +1708,11 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2108,11 +1722,11 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutXeroConnectionsInput = {
@@ -2139,18 +1753,11 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2160,11 +1767,11 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
-  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
@@ -2175,18 +1782,11 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2196,11 +1796,11 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutProjectsInput = {
@@ -2211,18 +1811,11 @@ export type OrganizationCreateWithoutProjectsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2232,11 +1825,11 @@ export type OrganizationCreateWithoutProjectsInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
-  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutProjectsInput = {
@@ -2247,18 +1840,11 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2268,11 +1854,11 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
-  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
+  users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutProjectsInput = {
@@ -2299,18 +1885,11 @@ export type OrganizationUpdateWithoutProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2320,11 +1899,11 @@ export type OrganizationUpdateWithoutProjectsInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
-  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutProjectsInput = {
@@ -2335,18 +1914,11 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2356,11 +1928,11 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
-  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
+  users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollSettingsInput = {
@@ -2371,18 +1943,11 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2392,11 +1957,11 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
@@ -2407,18 +1972,11 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2428,11 +1986,11 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollSettingsInput = {
@@ -2459,18 +2017,11 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2480,11 +2031,11 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
@@ -2495,18 +2046,11 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2516,11 +2060,11 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
@@ -2531,18 +2075,11 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2552,11 +2089,11 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
@@ -2567,18 +2104,11 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2588,11 +2118,11 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollCompanyInfoInput = {
@@ -2619,18 +2149,11 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2640,11 +2163,11 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
@@ -2655,18 +2178,11 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2676,11 +2192,11 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPayrollRunsInput = {
@@ -2691,18 +2207,11 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2712,11 +2221,11 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
@@ -2727,18 +2236,11 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   updatedAt?: Date | string
   workingHoursEnd?: string
   workingHoursStart?: string
-  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: number
   defaultMileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: $Enums.MileageUnit
   otEnabled?: boolean
   timezone?: string
-  otDailyThresholdMinutes?: number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
@@ -2748,11 +2250,11 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPayrollRunsInput = {
@@ -2779,18 +2281,11 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2800,11 +2295,11 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
@@ -2815,18 +2310,11 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   workingHoursEnd?: Prisma.StringFieldUpdateOperationsInput | string
   workingHoursStart?: Prisma.StringFieldUpdateOperationsInput | string
-  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  publicHolidayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  restDayInShiftRate?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   geofenceRadiusMeters?: Prisma.IntFieldUpdateOperationsInput | number
   defaultMileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   mileageUnit?: Prisma.EnumMileageUnitFieldUpdateOperationsInput | $Enums.MileageUnit
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   timezone?: Prisma.StringFieldUpdateOperationsInput | string
-  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   allowedCurrencies?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -2836,11 +2324,11 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
+  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
 }
 
 
@@ -2854,10 +2342,10 @@ export type OrganizationCountOutputType = {
   chartAccounts: number
   claims: number
   employeePolicies: number
+  payrollRuns: number
   users: number
   xeroConnections: number
   projects: number
-  payrollRuns: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2866,10 +2354,10 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   chartAccounts?: boolean | OrganizationCountOutputTypeCountChartAccountsArgs
   claims?: boolean | OrganizationCountOutputTypeCountClaimsArgs
   employeePolicies?: boolean | OrganizationCountOutputTypeCountEmployeePoliciesArgs
+  payrollRuns?: boolean | OrganizationCountOutputTypeCountPayrollRunsArgs
   users?: boolean | OrganizationCountOutputTypeCountUsersArgs
   xeroConnections?: boolean | OrganizationCountOutputTypeCountXeroConnectionsArgs
   projects?: boolean | OrganizationCountOutputTypeCountProjectsArgs
-  payrollRuns?: boolean | OrganizationCountOutputTypeCountPayrollRunsArgs
 }
 
 /**
@@ -2920,6 +2408,13 @@ export type OrganizationCountOutputTypeCountEmployeePoliciesArgs<ExtArgs extends
 /**
  * OrganizationCountOutputType without action
  */
+export type OrganizationCountOutputTypeCountPayrollRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PayrollRunWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
 export type OrganizationCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.UserWhereInput
 }
@@ -2938,13 +2433,6 @@ export type OrganizationCountOutputTypeCountProjectsArgs<ExtArgs extends runtime
   where?: Prisma.XeroProjectWhereInput
 }
 
-/**
- * OrganizationCountOutputType without action
- */
-export type OrganizationCountOutputTypeCountPayrollRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.PayrollRunWhereInput
-}
-
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2954,18 +2442,11 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   updatedAt?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
-  otRateNormalDay?: boolean
-  otRatePublicHoliday?: boolean
-  otRateRestDay?: boolean
-  otSalaryThreshold?: boolean
-  publicHolidayInShiftRate?: boolean
-  restDayInShiftRate?: boolean
   geofenceRadiusMeters?: boolean
   defaultMileageRate?: boolean
   mileageUnit?: boolean
   otEnabled?: boolean
   timezone?: boolean
-  otDailyThresholdMinutes?: boolean
   allowedCurrencies?: boolean
   defaultCurrency?: boolean
   supervisorReportEnabled?: boolean
@@ -2975,12 +2456,12 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   employeePolicies?: boolean | Prisma.Organization$employeePoliciesArgs<ExtArgs>
+  payrollCompanyInfo?: boolean | Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>
+  payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
+  payrollSettings?: boolean | Prisma.Organization$payrollSettingsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
-  payrollSettings?: boolean | Prisma.Organization$payrollSettingsArgs<ExtArgs>
-  payrollCompanyInfo?: boolean | Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>
-  payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -2994,37 +2475,30 @@ export type OrganizationSelectScalar = {
   updatedAt?: boolean
   workingHoursEnd?: boolean
   workingHoursStart?: boolean
-  otRateNormalDay?: boolean
-  otRatePublicHoliday?: boolean
-  otRateRestDay?: boolean
-  otSalaryThreshold?: boolean
-  publicHolidayInShiftRate?: boolean
-  restDayInShiftRate?: boolean
   geofenceRadiusMeters?: boolean
   defaultMileageRate?: boolean
   mileageUnit?: boolean
   otEnabled?: boolean
   timezone?: boolean
-  otDailyThresholdMinutes?: boolean
   allowedCurrencies?: boolean
   defaultCurrency?: boolean
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "otRateNormalDay" | "otRatePublicHoliday" | "otRateRestDay" | "otSalaryThreshold" | "publicHolidayInShiftRate" | "restDayInShiftRate" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "otDailyThresholdMinutes" | "allowedCurrencies" | "defaultCurrency" | "supervisorReportEnabled" | "supervisorSlaMinutes", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "allowedCurrencies" | "defaultCurrency" | "supervisorReportEnabled" | "supervisorSlaMinutes", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   employeePolicies?: boolean | Prisma.Organization$employeePoliciesArgs<ExtArgs>
+  payrollCompanyInfo?: boolean | Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>
+  payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
+  payrollSettings?: boolean | Prisma.Organization$payrollSettingsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
-  payrollSettings?: boolean | Prisma.Organization$payrollSettingsArgs<ExtArgs>
-  payrollCompanyInfo?: boolean | Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>
-  payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -3036,12 +2510,12 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     chartAccounts: Prisma.$ChartOfAccountPayload<ExtArgs>[]
     claims: Prisma.$ClaimPayload<ExtArgs>[]
     employeePolicies: Prisma.$EmployeePolicyPayload<ExtArgs>[]
+    payrollCompanyInfo: Prisma.$PayrollCompanyInfoPayload<ExtArgs> | null
+    payrollRuns: Prisma.$PayrollRunPayload<ExtArgs>[]
+    payrollSettings: Prisma.$PayrollSettingsPayload<ExtArgs> | null
     users: Prisma.$UserPayload<ExtArgs>[]
     xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
     projects: Prisma.$XeroProjectPayload<ExtArgs>[]
-    payrollSettings: Prisma.$PayrollSettingsPayload<ExtArgs> | null
-    payrollCompanyInfo: Prisma.$PayrollCompanyInfoPayload<ExtArgs> | null
-    payrollRuns: Prisma.$PayrollRunPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3051,23 +2525,11 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     updatedAt: Date
     workingHoursEnd: string
     workingHoursStart: string
-    otRateNormalDay: runtime.Decimal
-    otRatePublicHoliday: runtime.Decimal
-    otRateRestDay: runtime.Decimal
-    otSalaryThreshold: runtime.Decimal
-    publicHolidayInShiftRate: runtime.Decimal
-    restDayInShiftRate: runtime.Decimal
     geofenceRadiusMeters: number
     defaultMileageRate: runtime.Decimal | null
     mileageUnit: $Enums.MileageUnit
     otEnabled: boolean
     timezone: string
-    /**
-     * Daily working minutes after which extra time becomes OT-eligible.
-     * Defaults to 8h. Applies org-wide regardless of per-project working
-     * hours.
-     */
-    otDailyThresholdMinutes: number
     /**
      * JSON array of ISO 4217 currency codes the admin has enabled for
      * expense claims (e.g. ["MYR","USD","SGD"]). Empty/null falls back to
@@ -3438,12 +2900,12 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   chartAccounts<T extends Prisma.Organization$chartAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$chartAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claims<T extends Prisma.Organization$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employeePolicies<T extends Prisma.Organization$employeePoliciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$employeePoliciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeePolicyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  payrollCompanyInfo<T extends Prisma.Organization$payrollCompanyInfoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>>): Prisma.Prisma__PayrollCompanyInfoClient<runtime.Types.Result.GetResult<Prisma.$PayrollCompanyInfoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  payrollRuns<T extends Prisma.Organization$payrollRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  payrollSettings<T extends Prisma.Organization$payrollSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollSettingsArgs<ExtArgs>>): Prisma.Prisma__PayrollSettingsClient<runtime.Types.Result.GetResult<Prisma.$PayrollSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   users<T extends Prisma.Organization$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   xeroConnections<T extends Prisma.Organization$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.Organization$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  payrollSettings<T extends Prisma.Organization$payrollSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollSettingsArgs<ExtArgs>>): Prisma.Prisma__PayrollSettingsClient<runtime.Types.Result.GetResult<Prisma.$PayrollSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  payrollCompanyInfo<T extends Prisma.Organization$payrollCompanyInfoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>>): Prisma.Prisma__PayrollCompanyInfoClient<runtime.Types.Result.GetResult<Prisma.$PayrollCompanyInfoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-  payrollRuns<T extends Prisma.Organization$payrollRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3480,18 +2942,11 @@ export interface OrganizationFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"Organization", 'DateTime'>
   readonly workingHoursEnd: Prisma.FieldRef<"Organization", 'String'>
   readonly workingHoursStart: Prisma.FieldRef<"Organization", 'String'>
-  readonly otRateNormalDay: Prisma.FieldRef<"Organization", 'Decimal'>
-  readonly otRatePublicHoliday: Prisma.FieldRef<"Organization", 'Decimal'>
-  readonly otRateRestDay: Prisma.FieldRef<"Organization", 'Decimal'>
-  readonly otSalaryThreshold: Prisma.FieldRef<"Organization", 'Decimal'>
-  readonly publicHolidayInShiftRate: Prisma.FieldRef<"Organization", 'Decimal'>
-  readonly restDayInShiftRate: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly geofenceRadiusMeters: Prisma.FieldRef<"Organization", 'Int'>
   readonly defaultMileageRate: Prisma.FieldRef<"Organization", 'Decimal'>
   readonly mileageUnit: Prisma.FieldRef<"Organization", 'MileageUnit'>
   readonly otEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly timezone: Prisma.FieldRef<"Organization", 'String'>
-  readonly otDailyThresholdMinutes: Prisma.FieldRef<"Organization", 'Int'>
   readonly allowedCurrencies: Prisma.FieldRef<"Organization", 'Json'>
   readonly defaultCurrency: Prisma.FieldRef<"Organization", 'String'>
   readonly supervisorReportEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
@@ -3964,6 +3419,68 @@ export type Organization$employeePoliciesArgs<ExtArgs extends runtime.Types.Exte
 }
 
 /**
+ * Organization.payrollCompanyInfo
+ */
+export type Organization$payrollCompanyInfoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PayrollCompanyInfo
+   */
+  select?: Prisma.PayrollCompanyInfoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PayrollCompanyInfo
+   */
+  omit?: Prisma.PayrollCompanyInfoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PayrollCompanyInfoInclude<ExtArgs> | null
+  where?: Prisma.PayrollCompanyInfoWhereInput
+}
+
+/**
+ * Organization.payrollRuns
+ */
+export type Organization$payrollRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PayrollRun
+   */
+  select?: Prisma.PayrollRunSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PayrollRun
+   */
+  omit?: Prisma.PayrollRunOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PayrollRunInclude<ExtArgs> | null
+  where?: Prisma.PayrollRunWhereInput
+  orderBy?: Prisma.PayrollRunOrderByWithRelationInput | Prisma.PayrollRunOrderByWithRelationInput[]
+  cursor?: Prisma.PayrollRunWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PayrollRunScalarFieldEnum | Prisma.PayrollRunScalarFieldEnum[]
+}
+
+/**
+ * Organization.payrollSettings
+ */
+export type Organization$payrollSettingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PayrollSettings
+   */
+  select?: Prisma.PayrollSettingsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PayrollSettings
+   */
+  omit?: Prisma.PayrollSettingsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PayrollSettingsInclude<ExtArgs> | null
+  where?: Prisma.PayrollSettingsWhereInput
+}
+
+/**
  * Organization.users
  */
 export type Organization$usersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4033,68 +3550,6 @@ export type Organization$projectsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.XeroProjectScalarFieldEnum | Prisma.XeroProjectScalarFieldEnum[]
-}
-
-/**
- * Organization.payrollSettings
- */
-export type Organization$payrollSettingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PayrollSettings
-   */
-  select?: Prisma.PayrollSettingsSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the PayrollSettings
-   */
-  omit?: Prisma.PayrollSettingsOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PayrollSettingsInclude<ExtArgs> | null
-  where?: Prisma.PayrollSettingsWhereInput
-}
-
-/**
- * Organization.payrollCompanyInfo
- */
-export type Organization$payrollCompanyInfoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PayrollCompanyInfo
-   */
-  select?: Prisma.PayrollCompanyInfoSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the PayrollCompanyInfo
-   */
-  omit?: Prisma.PayrollCompanyInfoOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PayrollCompanyInfoInclude<ExtArgs> | null
-  where?: Prisma.PayrollCompanyInfoWhereInput
-}
-
-/**
- * Organization.payrollRuns
- */
-export type Organization$payrollRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PayrollRun
-   */
-  select?: Prisma.PayrollRunSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the PayrollRun
-   */
-  omit?: Prisma.PayrollRunOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PayrollRunInclude<ExtArgs> | null
-  where?: Prisma.PayrollRunWhereInput
-  orderBy?: Prisma.PayrollRunOrderByWithRelationInput | Prisma.PayrollRunOrderByWithRelationInput[]
-  cursor?: Prisma.PayrollRunWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.PayrollRunScalarFieldEnum | Prisma.PayrollRunScalarFieldEnum[]
 }
 
 /**

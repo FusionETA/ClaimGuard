@@ -37,7 +37,7 @@ const baseClaimSchema = z.object({
   title: z.string().min(3, "Give the claim a short title."),
   chartOfAccountId: z.string().min(1, "Select the chart of account for this claim."),
   spentAt: z.string().min(1, "Select the expense date."),
-  description: z.string().min(12, "Add enough detail for the reviewer."),
+  description: z.string(),
   receiptUrl: z.string().optional(),
   paymentType: z.enum(["PERSONAL", "COMPANY"]).default("PERSONAL"),
   payViaAccountId: z.string().optional(),

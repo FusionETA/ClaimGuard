@@ -31,6 +31,9 @@ export default async function AdminPayrollRunsPage() {
   if (!data) redirect("/admin")
 
   const drafts = data.runs.filter((r) => r.status === "DRAFT")
+  const pendingApproval = data.runs.filter(
+    (r) => r.status === "PENDING_APPROVAL",
+  )
   const submitted = data.runs.filter((r) => r.status === "SUBMITTED")
   const defaultPeriod = currentPeriod()
 
@@ -65,13 +68,33 @@ export default async function AdminPayrollRunsPage() {
         </CardContent>
       </Card>
 
+      {pendingApproval.length > 0 && (
+        <Card className="border-sky-300/60 bg-sky-50/40 dark:border-sky-700/40 dark:bg-sky-950/20">
+          <CardHeader>
+            <CardTitle className="text-base text-sky-900 dark:text-sky-200">
+              Awaiting approval
+            </CardTitle>
+            <CardDescription className="text-sky-900/80 dark:text-sky-200/80">
+              These runs have been submitted for review. Open one to
+              approve it (payslips go live to employees) or send it
+              back to draft for edits.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            {pendingApproval.map((run) => (
+              <RunRow key={run.id} run={run} />
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {drafts.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Drafts</CardTitle>
             <CardDescription>
               Editable runs. Run payroll and review totals before
-              submitting.
+              submitting for approval.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-1.5">
@@ -134,9 +157,11 @@ function RunRow({ run }: { run: PayrollRunRow }) {
         </span>
         <span className="truncate text-xs text-muted-foreground">
           {run.payslipCount} payslip{run.payslipCount === 1 ? "" : "s"}
-          {run.submittedAt
+          {run.status === "SUBMITTED" && run.submittedAt
             ? ` · submitted ${new Date(run.submittedAt).toLocaleDateString()}`
-            : ""}
+            : run.status === "PENDING_APPROVAL" && run.submittedForApprovalAt
+              ? ` · awaiting approval since ${new Date(run.submittedForApprovalAt).toLocaleDateString()}`
+              : ""}
         </span>
       </div>
       <div className="flex items-center gap-2">
@@ -145,7 +170,9 @@ function RunRow({ run }: { run: PayrollRunRow }) {
           className={
             run.status === "SUBMITTED"
               ? "border-emerald-300/60 text-[10px] text-emerald-700"
-              : "border-amber-300/60 text-[10px] text-amber-700"
+              : run.status === "PENDING_APPROVAL"
+                ? "border-sky-300/60 text-[10px] text-sky-700"
+                : "border-amber-300/60 text-[10px] text-amber-700"
           }
         >
           {PAYROLL_RUN_STATUS_LABELS[run.status]}

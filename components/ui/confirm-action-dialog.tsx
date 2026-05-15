@@ -20,6 +20,13 @@ type ConfirmActionDialogProps = {
   confirmLabel: string
   cancelLabel?: string
   pending?: boolean
+  /// Hard-disable the trigger button independently of the pending
+  /// state. Used by callers that need an outside guard (e.g. the
+  /// Submit Payroll button blocks when the run is stale).
+  disabled?: boolean
+  /// Optional tooltip shown on the trigger when it's disabled —
+  /// helps explain *why* the user can't click.
+  triggerTitle?: string
   triggerLabel: string
   pendingLabel?: string
   triggerVariant?: ButtonProps["variant"]
@@ -36,6 +43,8 @@ export function ConfirmActionDialog({
   confirmLabel,
   cancelLabel = "Cancel",
   pending = false,
+  disabled = false,
+  triggerTitle,
   triggerLabel,
   pendingLabel,
   triggerVariant = "default",
@@ -55,7 +64,8 @@ export function ConfirmActionDialog({
           variant={triggerVariant}
           size={triggerSize}
           className={triggerClassName}
-          disabled={pending}
+          disabled={pending || disabled}
+          title={disabled ? triggerTitle : undefined}
         >
           {pending ? pendingLabel ?? triggerLabel : triggerLabel}
         </Button>
@@ -103,6 +113,8 @@ export function ConfirmSubmitButton({
   confirmLabel,
   cancelLabel = "Cancel",
   pending = false,
+  disabled = false,
+  triggerTitle,
   triggerLabel,
   pendingLabel,
   triggerVariant = "default",
@@ -121,7 +133,8 @@ export function ConfirmSubmitButton({
           variant={triggerVariant}
           size={triggerSize}
           className={triggerClassName}
-          disabled={pending}
+          disabled={pending || disabled}
+          title={disabled ? triggerTitle : undefined}
         >
           {pending ? pendingLabel ?? triggerLabel : triggerLabel}
         </Button>

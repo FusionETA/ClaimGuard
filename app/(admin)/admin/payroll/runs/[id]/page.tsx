@@ -26,7 +26,9 @@ import { GeneratePayslipsButton } from "@/components/admin/generate-payslips-but
 import { PayrollRunEmployeeTables } from "@/components/admin/payroll-run-employee-tables"
 import { PayslipsListPanel } from "@/components/admin/payslip-list-panel"
 import {
+  ApprovePayrollRunButton,
   RevertPayrollRunButton,
+  SendBackToDraftButton,
   SubmitPayrollRunButton,
 } from "@/components/admin/submit-payroll-run-buttons"
 import { getPayrollRunDetailWithPayslipsPageData } from "@/modules/payroll/application/services/payroll-run.service"
@@ -62,6 +64,8 @@ export default async function AdminPayrollRunDetailPage({
   const ready = data.employees.filter((e) => e.ready)
   const needsSetup = data.employees.filter((e) => !e.ready && !e.isArchived)
   const isDraft = data.run.status === "DRAFT"
+  const isPendingApproval = data.run.status === "PENDING_APPROVAL"
+  const isSubmitted = data.run.status === "SUBMITTED"
   const onPayslip = new Set(data.payslips.map((p) => p.employeeProfileId))
   const readyMissingPayslip = ready.filter(
     (e) => !onPayslip.has(e.employeeProfileId),
@@ -94,7 +98,9 @@ export default async function AdminPayrollRunDetailPage({
           className={
             data.run.status === "SUBMITTED"
               ? "border-emerald-300/60 text-emerald-700"
-              : "border-amber-300/60 text-amber-700"
+              : data.run.status === "PENDING_APPROVAL"
+                ? "border-sky-300/60 text-sky-700"
+                : "border-amber-300/60 text-amber-700"
           }
         >
           {PAYROLL_RUN_STATUS_LABELS[data.run.status]}
@@ -196,13 +202,13 @@ export default async function AdminPayrollRunDetailPage({
               data.attachments.length === 0 &&
               data.attachableClaims.length === 0 && (
                 <p className="text-xs text-muted-foreground">
-                  No reviewed + synced + personally-paid claims to
-                  attach. Approve and sync a claim from{" "}
+                  No reviewed personally-paid claims to attach.
+                  Approve a claim and add it from{" "}
                   <Link
-                    href="/admin/claims/sync"
+                    href="/admin/claims/payroll-ready"
                     className="text-primary underline-offset-2 hover:underline"
                   >
-                    Ready to sync
+                    Ready for payroll
                   </Link>{" "}
                   first.
                 </p>
@@ -223,6 +229,51 @@ export default async function AdminPayrollRunDetailPage({
         </Card>
       )}
 
+      {/* Rejection-reason banner — shown only on DRAFT runs that
+          carry a non-empty `approvalRejectionReason`, i.e. an approver
+          previously bounced this run back. Cleared when the admin
+          re-submits for approval (the repo nulls the column on
+          submitForApproval). Helps the submitter remember what to
+          fix without hunting through Slack. */}
+      {isDraft && data.run.approvalRejectionReason ? (
+        <Card className="border-rose-300/60 bg-rose-50/40 dark:border-rose-700/40 dark:bg-rose-950/20 print:hidden">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base text-rose-900 dark:text-rose-200">
+              <ClipboardList className="h-4 w-4" />
+              Sent back to draft
+            </CardTitle>
+            <CardDescription className="text-rose-900/80 dark:text-rose-200/80">
+              An approver bounced this run back. Reason:{" "}
+              <span className="font-medium">
+                {data.run.approvalRejectionReason}
+              </span>
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : null}
+
+      {/* Stale-data banner — shown only when the run has payslips and
+          the admin has edited adjustments / claim attachments since
+          the last Generate. Blocks Submit until they re-run so the
+          payslips reflect the latest figures. */}
+      {isDraft && data.isStale ? (
+        <Card className="border-amber-300/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base text-amber-900 dark:text-amber-200">
+              <ClipboardList className="h-4 w-4" />
+              Run payroll again before submitting
+            </CardTitle>
+            <CardDescription className="text-amber-900/80 dark:text-amber-200/80">
+              You&apos;ve changed OT hours, one-off line items, or
+              reimbursements since the last payroll calculation. The
+              numbers shown on the table reflect the earlier state.
+              Click <strong>Run payroll</strong> to regenerate before
+              submitting.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : null}
+
       {isDraft && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <DeletePayrollRunDraftButton runId={data.run.id} />
@@ -232,13 +283,34 @@ export default async function AdminPayrollRunDetailPage({
               hasExisting={data.payslips.length > 0}
             />
             {data.payslips.length > 0 && (
-              <SubmitPayrollRunButton runId={data.run.id} />
+              <SubmitPayrollRunButton
+                runId={data.run.id}
+                disabled={data.isStale}
+                disabledHint="Re-run payroll first so the payslips reflect your latest changes."
+              />
             )}
           </div>
         </div>
       )}
 
-      {!isDraft && (
+      {isPendingApproval && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            Awaiting approval
+            {data.run.submittedForApprovalAt
+              ? ` since ${new Date(data.run.submittedForApprovalAt).toLocaleString()}`
+              : ""}
+            . The run is locked from edits — approve to release payslips,
+            or send it back to draft to make changes.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <SendBackToDraftButton runId={data.run.id} />
+            <ApprovePayrollRunButton runId={data.run.id} />
+          </div>
+        </div>
+      )}
+
+      {isSubmitted && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
             Submitted

@@ -490,66 +490,85 @@ function TeamEditor(props: EditorProps) {
             <Label>Module approval config</Label>
             <p className="text-xs text-muted-foreground">
               Tick the layers that must approve for each module. By default
-              every layer approves. Empty rows skip approvals entirely (use
-              with caution).
+              every layer approves. Empty columns skip approvals entirely
+              (use with caution).
             </p>
             <div className="overflow-x-auto rounded-lg border">
+              {/*
+                Transposed view: each LAYER is a row and each MODULE is a
+                column. This matches the way the admin tends to reason
+                about a team — "what does L1 approve?" — and keeps the
+                table narrower as more modules are added than layers in
+                a typical team.
+
+                The submitted form payload is unchanged: still one hidden
+                input per module with comma-separated layer numbers. The
+                inputs are rendered once at the bottom of this block (not
+                inside the table) so the table layout stays tidy.
+              */}
               <table className="min-w-full text-sm">
                 <thead className="bg-muted/40">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium">Module</th>
-                    {layers.map((layer) => (
+                    <th className="px-3 py-2 text-left font-medium">Layer</th>
+                    {teamModules.map((module) => (
                       <th
-                        key={layer}
+                        key={module}
                         className="px-3 py-2 text-center font-medium"
                       >
+                        {module}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {layers.map((layer) => (
+                    <tr key={layer} className="border-t">
+                      <td className="px-3 py-2 font-medium text-foreground">
                         L{layer}
                         {layerLabels[layer - 1] ? (
                           <span className="ml-1 text-[10px] text-muted-foreground">
                             ({layerLabels[layer - 1]})
                           </span>
                         ) : null}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {teamModules.map((module) => {
-                    const selected = new Set(moduleConfig[module] ?? [])
-                    return (
-                      <tr key={module} className="border-t">
-                        <td className="px-3 py-2 font-medium text-foreground">
-                          {module}
-                        </td>
-                        {layers.map((layer) => {
-                          const checked = selected.has(layer)
-                          return (
-                            <td
-                              key={layer}
-                              className="px-3 py-2 text-center"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => toggleModuleLayer(module, layer)}
-                                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                              />
-                            </td>
-                          )
-                        })}
-                        <td>
-                          <input
-                            type="hidden"
-                            name={`moduleConfig.${module}`}
-                            value={Array.from(selected).sort((a, b) => a - b).join(",")}
-                          />
-                        </td>
-                      </tr>
-                    )
-                  })}
+                      </td>
+                      {teamModules.map((module) => {
+                        const selected = new Set(moduleConfig[module] ?? [])
+                        const checked = selected.has(layer)
+                        return (
+                          <td
+                            key={module}
+                            className="px-3 py-2 text-center"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleModuleLayer(module, layer)}
+                              className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                            />
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
+            {/* Hidden inputs — one per module, comma-separated sorted
+                layer numbers. The form action reads these keys to
+                reconstruct the moduleConfig map. Rendering them outside
+                the table avoids stray <input> elements inside <td>
+                cells (which validators flag). */}
+            {teamModules.map((module) => {
+              const selected = new Set(moduleConfig[module] ?? [])
+              return (
+                <input
+                  key={module}
+                  type="hidden"
+                  name={`moduleConfig.${module}`}
+                  value={Array.from(selected).sort((a, b) => a - b).join(",")}
+                />
+              )
+            })}
           </div>
 
           <div className="flex flex-wrap items-center gap-2 pt-2">

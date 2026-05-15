@@ -231,6 +231,7 @@ export type WorkingDaysRule = (typeof WorkingDaysRule)[keyof typeof WorkingDaysR
 
 export const PayrollRunStatus = {
   DRAFT: 'DRAFT',
+  PENDING_APPROVAL: 'PENDING_APPROVAL',
   SUBMITTED: 'SUBMITTED'
 } as const
 

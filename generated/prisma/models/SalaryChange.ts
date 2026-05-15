@@ -305,8 +305,8 @@ export type SalaryChangeWhereInput = {
   notes?: Prisma.StringNullableFilter<"SalaryChange"> | string | null
   changedByUserId?: Prisma.StringNullableFilter<"SalaryChange"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SalaryChange"> | Date | string
-  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   changedByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
 }
 
 export type SalaryChangeOrderByWithRelationInput = {
@@ -323,8 +323,8 @@ export type SalaryChangeOrderByWithRelationInput = {
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   changedByUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
   changedByUser?: Prisma.UserOrderByWithRelationInput
+  employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
   _relevance?: Prisma.SalaryChangeOrderByRelevanceInput
 }
 
@@ -345,8 +345,8 @@ export type SalaryChangeWhereUniqueInput = Prisma.AtLeast<{
   notes?: Prisma.StringNullableFilter<"SalaryChange"> | string | null
   changedByUserId?: Prisma.StringNullableFilter<"SalaryChange"> | string | null
   createdAt?: Prisma.DateTimeFilter<"SalaryChange"> | Date | string
-  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   changedByUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
 }, "id">
 
 export type SalaryChangeOrderByWithAggregationInput = {
@@ -401,8 +401,8 @@ export type SalaryChangeCreateInput = {
   reason: $Enums.SalaryChangeReason
   notes?: string | null
   createdAt?: Date | string
-  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutSalaryChangesInput
   changedByUser?: Prisma.UserCreateNestedOneWithoutSalaryChangesAuthoredInput
+  employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutSalaryChangesInput
 }
 
 export type SalaryChangeUncheckedCreateInput = {
@@ -433,8 +433,8 @@ export type SalaryChangeUpdateInput = {
   reason?: Prisma.EnumSalaryChangeReasonFieldUpdateOperationsInput | $Enums.SalaryChangeReason
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutSalaryChangesNestedInput
   changedByUser?: Prisma.UserUpdateOneWithoutSalaryChangesAuthoredNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutSalaryChangesNestedInput
 }
 
 export type SalaryChangeUncheckedUpdateInput = {
@@ -932,8 +932,8 @@ export type SalaryChangeSelect<ExtArgs extends runtime.Types.Extensions.Internal
   notes?: boolean
   changedByUserId?: boolean
   createdAt?: boolean
-  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   changedByUser?: boolean | Prisma.SalaryChange$changedByUserArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["salaryChange"]>
 
 
@@ -956,15 +956,15 @@ export type SalaryChangeSelectScalar = {
 
 export type SalaryChangeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "effectiveDate" | "previousSalaryType" | "previousMonthlySalary" | "previousHourlyRate" | "newSalaryType" | "newMonthlySalary" | "newHourlyRate" | "reason" | "notes" | "changedByUserId" | "createdAt", ExtArgs["result"]["salaryChange"]>
 export type SalaryChangeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   changedByUser?: boolean | Prisma.SalaryChange$changedByUserArgs<ExtArgs>
+  employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
 }
 
 export type $SalaryChangePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SalaryChange"
   objects: {
-    employeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs>
     changedByUser: Prisma.$UserPayload<ExtArgs> | null
+    employeeProfile: Prisma.$EmployeeProfilePayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1334,8 +1334,8 @@ readonly fields: SalaryChangeFieldRefs;
  */
 export interface Prisma__SalaryChangeClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  employeeProfile<T extends Prisma.EmployeeProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   changedByUser<T extends Prisma.SalaryChange$changedByUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SalaryChange$changedByUserArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  employeeProfile<T extends Prisma.EmployeeProfileDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeProfileDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeProfileClient<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
