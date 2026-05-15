@@ -52,18 +52,18 @@ export type PayrollCompanyInfoMinAggregateOutputType = {
   taxAgentLicenceNo: string | null
   taxAgentPhone: string | null
   taxAgentEmail: string | null
-  taxAgentFirmName: string | null
-  taxAgentFirmAddressLine1: string | null
-  taxAgentFirmAddressLine2: string | null
-  taxAgentFirmPostcode: string | null
-  taxAgentFirmCity: string | null
-  taxAgentFirmState: string | null
   declarantName: string | null
   declarantIdType: $Enums.IdType | null
   declarantIdNumber: string | null
   declarantPosition: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  taxAgentFirmAddressLine1: string | null
+  taxAgentFirmAddressLine2: string | null
+  taxAgentFirmCity: string | null
+  taxAgentFirmName: string | null
+  taxAgentFirmPostcode: string | null
+  taxAgentFirmState: string | null
 }
 
 export type PayrollCompanyInfoMaxAggregateOutputType = {
@@ -91,18 +91,18 @@ export type PayrollCompanyInfoMaxAggregateOutputType = {
   taxAgentLicenceNo: string | null
   taxAgentPhone: string | null
   taxAgentEmail: string | null
-  taxAgentFirmName: string | null
-  taxAgentFirmAddressLine1: string | null
-  taxAgentFirmAddressLine2: string | null
-  taxAgentFirmPostcode: string | null
-  taxAgentFirmCity: string | null
-  taxAgentFirmState: string | null
   declarantName: string | null
   declarantIdType: $Enums.IdType | null
   declarantIdNumber: string | null
   declarantPosition: string | null
   createdAt: Date | null
   updatedAt: Date | null
+  taxAgentFirmAddressLine1: string | null
+  taxAgentFirmAddressLine2: string | null
+  taxAgentFirmCity: string | null
+  taxAgentFirmName: string | null
+  taxAgentFirmPostcode: string | null
+  taxAgentFirmState: string | null
 }
 
 export type PayrollCompanyInfoCountAggregateOutputType = {
@@ -130,18 +130,18 @@ export type PayrollCompanyInfoCountAggregateOutputType = {
   taxAgentLicenceNo: number
   taxAgentPhone: number
   taxAgentEmail: number
-  taxAgentFirmName: number
-  taxAgentFirmAddressLine1: number
-  taxAgentFirmAddressLine2: number
-  taxAgentFirmPostcode: number
-  taxAgentFirmCity: number
-  taxAgentFirmState: number
   declarantName: number
   declarantIdType: number
   declarantIdNumber: number
   declarantPosition: number
   createdAt: number
   updatedAt: number
+  taxAgentFirmAddressLine1: number
+  taxAgentFirmAddressLine2: number
+  taxAgentFirmCity: number
+  taxAgentFirmName: number
+  taxAgentFirmPostcode: number
+  taxAgentFirmState: number
   _all: number
 }
 
@@ -171,18 +171,18 @@ export type PayrollCompanyInfoMinAggregateInputType = {
   taxAgentLicenceNo?: true
   taxAgentPhone?: true
   taxAgentEmail?: true
-  taxAgentFirmName?: true
-  taxAgentFirmAddressLine1?: true
-  taxAgentFirmAddressLine2?: true
-  taxAgentFirmPostcode?: true
-  taxAgentFirmCity?: true
-  taxAgentFirmState?: true
   declarantName?: true
   declarantIdType?: true
   declarantIdNumber?: true
   declarantPosition?: true
   createdAt?: true
   updatedAt?: true
+  taxAgentFirmAddressLine1?: true
+  taxAgentFirmAddressLine2?: true
+  taxAgentFirmCity?: true
+  taxAgentFirmName?: true
+  taxAgentFirmPostcode?: true
+  taxAgentFirmState?: true
 }
 
 export type PayrollCompanyInfoMaxAggregateInputType = {
@@ -210,18 +210,18 @@ export type PayrollCompanyInfoMaxAggregateInputType = {
   taxAgentLicenceNo?: true
   taxAgentPhone?: true
   taxAgentEmail?: true
-  taxAgentFirmName?: true
-  taxAgentFirmAddressLine1?: true
-  taxAgentFirmAddressLine2?: true
-  taxAgentFirmPostcode?: true
-  taxAgentFirmCity?: true
-  taxAgentFirmState?: true
   declarantName?: true
   declarantIdType?: true
   declarantIdNumber?: true
   declarantPosition?: true
   createdAt?: true
   updatedAt?: true
+  taxAgentFirmAddressLine1?: true
+  taxAgentFirmAddressLine2?: true
+  taxAgentFirmCity?: true
+  taxAgentFirmName?: true
+  taxAgentFirmPostcode?: true
+  taxAgentFirmState?: true
 }
 
 export type PayrollCompanyInfoCountAggregateInputType = {
@@ -249,18 +249,18 @@ export type PayrollCompanyInfoCountAggregateInputType = {
   taxAgentLicenceNo?: true
   taxAgentPhone?: true
   taxAgentEmail?: true
-  taxAgentFirmName?: true
-  taxAgentFirmAddressLine1?: true
-  taxAgentFirmAddressLine2?: true
-  taxAgentFirmPostcode?: true
-  taxAgentFirmCity?: true
-  taxAgentFirmState?: true
   declarantName?: true
   declarantIdType?: true
   declarantIdNumber?: true
   declarantPosition?: true
   createdAt?: true
   updatedAt?: true
+  taxAgentFirmAddressLine1?: true
+  taxAgentFirmAddressLine2?: true
+  taxAgentFirmCity?: true
+  taxAgentFirmName?: true
+  taxAgentFirmPostcode?: true
+  taxAgentFirmState?: true
   _all?: true
 }
 
@@ -361,18 +361,18 @@ export type PayrollCompanyInfoGroupByOutputType = {
   taxAgentLicenceNo: string | null
   taxAgentPhone: string | null
   taxAgentEmail: string | null
-  taxAgentFirmName: string | null
-  taxAgentFirmAddressLine1: string | null
-  taxAgentFirmAddressLine2: string | null
-  taxAgentFirmPostcode: string | null
-  taxAgentFirmCity: string | null
-  taxAgentFirmState: string | null
   declarantName: string | null
   declarantIdType: $Enums.IdType | null
   declarantIdNumber: string | null
   declarantPosition: string | null
   createdAt: Date
   updatedAt: Date
+  taxAgentFirmAddressLine1: string | null
+  taxAgentFirmAddressLine2: string | null
+  taxAgentFirmCity: string | null
+  taxAgentFirmName: string | null
+  taxAgentFirmPostcode: string | null
+  taxAgentFirmState: string | null
   _count: PayrollCompanyInfoCountAggregateOutputType | null
   _min: PayrollCompanyInfoMinAggregateOutputType | null
   _max: PayrollCompanyInfoMaxAggregateOutputType | null
@@ -421,18 +421,18 @@ export type PayrollCompanyInfoWhereInput = {
   taxAgentLicenceNo?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentPhone?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentEmail?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmAddressLine1?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmAddressLine2?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmPostcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmCity?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmState?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantIdType?: Prisma.EnumIdTypeNullableFilter<"PayrollCompanyInfo"> | $Enums.IdType | null
   declarantIdNumber?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantPosition?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollCompanyInfo"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollCompanyInfo"> | Date | string
+  taxAgentFirmAddressLine1?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmAddressLine2?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmCity?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmPostcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmState?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
@@ -461,18 +461,18 @@ export type PayrollCompanyInfoOrderByWithRelationInput = {
   taxAgentLicenceNo?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmName?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmAddressLine1?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmAddressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmPostcode?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmCity?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmState?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantName?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantIdType?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantPosition?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.PayrollCompanyInfoOrderByRelevanceInput
 }
@@ -505,18 +505,18 @@ export type PayrollCompanyInfoWhereUniqueInput = Prisma.AtLeast<{
   taxAgentLicenceNo?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentPhone?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   taxAgentEmail?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmAddressLine1?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmAddressLine2?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmPostcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmCity?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmState?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantIdType?: Prisma.EnumIdTypeNullableFilter<"PayrollCompanyInfo"> | $Enums.IdType | null
   declarantIdNumber?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   declarantPosition?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollCompanyInfo"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollCompanyInfo"> | Date | string
+  taxAgentFirmAddressLine1?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmAddressLine2?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmCity?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmName?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmPostcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmState?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id" | "organizationId">
 
@@ -545,18 +545,18 @@ export type PayrollCompanyInfoOrderByWithAggregationInput = {
   taxAgentLicenceNo?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrderInput | Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmName?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmAddressLine1?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmAddressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmPostcode?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmCity?: Prisma.SortOrderInput | Prisma.SortOrder
-  taxAgentFirmState?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantName?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantIdType?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   declarantPosition?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrderInput | Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PayrollCompanyInfoCountOrderByAggregateInput
   _max?: Prisma.PayrollCompanyInfoMaxOrderByAggregateInput
   _min?: Prisma.PayrollCompanyInfoMinOrderByAggregateInput
@@ -590,18 +590,18 @@ export type PayrollCompanyInfoScalarWhereWithAggregatesInput = {
   taxAgentLicenceNo?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   taxAgentPhone?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   taxAgentEmail?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmName?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmAddressLine1?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmAddressLine2?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmPostcode?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmCity?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
-  taxAgentFirmState?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   declarantName?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   declarantIdType?: Prisma.EnumIdTypeNullableWithAggregatesFilter<"PayrollCompanyInfo"> | $Enums.IdType | null
   declarantIdNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   declarantPosition?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollCompanyInfo"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollCompanyInfo"> | Date | string
+  taxAgentFirmAddressLine1?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmAddressLine2?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmCity?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmName?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmPostcode?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  taxAgentFirmState?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
 }
 
 export type PayrollCompanyInfoCreateInput = {
@@ -628,18 +628,18 @@ export type PayrollCompanyInfoCreateInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
-  taxAgentFirmName?: string | null
-  taxAgentFirmAddressLine1?: string | null
-  taxAgentFirmAddressLine2?: string | null
-  taxAgentFirmPostcode?: string | null
-  taxAgentFirmCity?: string | null
-  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmState?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollCompanyInfoInput
 }
 
@@ -668,18 +668,18 @@ export type PayrollCompanyInfoUncheckedCreateInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
-  taxAgentFirmName?: string | null
-  taxAgentFirmAddressLine1?: string | null
-  taxAgentFirmAddressLine2?: string | null
-  taxAgentFirmPostcode?: string | null
-  taxAgentFirmCity?: string | null
-  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmState?: string | null
 }
 
 export type PayrollCompanyInfoUpdateInput = {
@@ -706,18 +706,18 @@ export type PayrollCompanyInfoUpdateInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollCompanyInfoNestedInput
 }
 
@@ -746,18 +746,18 @@ export type PayrollCompanyInfoUncheckedUpdateInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollCompanyInfoCreateManyInput = {
@@ -785,18 +785,18 @@ export type PayrollCompanyInfoCreateManyInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
-  taxAgentFirmName?: string | null
-  taxAgentFirmAddressLine1?: string | null
-  taxAgentFirmAddressLine2?: string | null
-  taxAgentFirmPostcode?: string | null
-  taxAgentFirmCity?: string | null
-  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmState?: string | null
 }
 
 export type PayrollCompanyInfoUpdateManyMutationInput = {
@@ -823,18 +823,18 @@ export type PayrollCompanyInfoUpdateManyMutationInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollCompanyInfoUncheckedUpdateManyInput = {
@@ -862,18 +862,18 @@ export type PayrollCompanyInfoUncheckedUpdateManyInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollCompanyInfoNullableScalarRelationFilter = {
@@ -912,18 +912,18 @@ export type PayrollCompanyInfoCountOrderByAggregateInput = {
   taxAgentLicenceNo?: Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrder
-  taxAgentFirmName?: Prisma.SortOrder
-  taxAgentFirmAddressLine1?: Prisma.SortOrder
-  taxAgentFirmAddressLine2?: Prisma.SortOrder
-  taxAgentFirmPostcode?: Prisma.SortOrder
-  taxAgentFirmCity?: Prisma.SortOrder
-  taxAgentFirmState?: Prisma.SortOrder
   declarantName?: Prisma.SortOrder
   declarantIdType?: Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrder
   declarantPosition?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrder
 }
 
 export type PayrollCompanyInfoMaxOrderByAggregateInput = {
@@ -951,18 +951,18 @@ export type PayrollCompanyInfoMaxOrderByAggregateInput = {
   taxAgentLicenceNo?: Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrder
-  taxAgentFirmName?: Prisma.SortOrder
-  taxAgentFirmAddressLine1?: Prisma.SortOrder
-  taxAgentFirmAddressLine2?: Prisma.SortOrder
-  taxAgentFirmPostcode?: Prisma.SortOrder
-  taxAgentFirmCity?: Prisma.SortOrder
-  taxAgentFirmState?: Prisma.SortOrder
   declarantName?: Prisma.SortOrder
   declarantIdType?: Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrder
   declarantPosition?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrder
 }
 
 export type PayrollCompanyInfoMinOrderByAggregateInput = {
@@ -990,18 +990,18 @@ export type PayrollCompanyInfoMinOrderByAggregateInput = {
   taxAgentLicenceNo?: Prisma.SortOrder
   taxAgentPhone?: Prisma.SortOrder
   taxAgentEmail?: Prisma.SortOrder
-  taxAgentFirmName?: Prisma.SortOrder
-  taxAgentFirmAddressLine1?: Prisma.SortOrder
-  taxAgentFirmAddressLine2?: Prisma.SortOrder
-  taxAgentFirmPostcode?: Prisma.SortOrder
-  taxAgentFirmCity?: Prisma.SortOrder
-  taxAgentFirmState?: Prisma.SortOrder
   declarantName?: Prisma.SortOrder
   declarantIdType?: Prisma.SortOrder
   declarantIdNumber?: Prisma.SortOrder
   declarantPosition?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  taxAgentFirmAddressLine1?: Prisma.SortOrder
+  taxAgentFirmAddressLine2?: Prisma.SortOrder
+  taxAgentFirmCity?: Prisma.SortOrder
+  taxAgentFirmName?: Prisma.SortOrder
+  taxAgentFirmPostcode?: Prisma.SortOrder
+  taxAgentFirmState?: Prisma.SortOrder
 }
 
 export type PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput = {
@@ -1060,18 +1060,18 @@ export type PayrollCompanyInfoCreateWithoutOrganizationInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
-  taxAgentFirmName?: string | null
-  taxAgentFirmAddressLine1?: string | null
-  taxAgentFirmAddressLine2?: string | null
-  taxAgentFirmPostcode?: string | null
-  taxAgentFirmCity?: string | null
-  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmState?: string | null
 }
 
 export type PayrollCompanyInfoUncheckedCreateWithoutOrganizationInput = {
@@ -1098,18 +1098,18 @@ export type PayrollCompanyInfoUncheckedCreateWithoutOrganizationInput = {
   taxAgentLicenceNo?: string | null
   taxAgentPhone?: string | null
   taxAgentEmail?: string | null
-  taxAgentFirmName?: string | null
-  taxAgentFirmAddressLine1?: string | null
-  taxAgentFirmAddressLine2?: string | null
-  taxAgentFirmPostcode?: string | null
-  taxAgentFirmCity?: string | null
-  taxAgentFirmState?: string | null
   declarantName?: string | null
   declarantIdType?: $Enums.IdType | null
   declarantIdNumber?: string | null
   declarantPosition?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  taxAgentFirmAddressLine1?: string | null
+  taxAgentFirmAddressLine2?: string | null
+  taxAgentFirmCity?: string | null
+  taxAgentFirmName?: string | null
+  taxAgentFirmPostcode?: string | null
+  taxAgentFirmState?: string | null
 }
 
 export type PayrollCompanyInfoCreateOrConnectWithoutOrganizationInput = {
@@ -1152,18 +1152,18 @@ export type PayrollCompanyInfoUpdateWithoutOrganizationInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollCompanyInfoUncheckedUpdateWithoutOrganizationInput = {
@@ -1190,18 +1190,18 @@ export type PayrollCompanyInfoUncheckedUpdateWithoutOrganizationInput = {
   taxAgentLicenceNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentPhone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   taxAgentEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantIdType?: Prisma.NullableEnumIdTypeFieldUpdateOperationsInput | $Enums.IdType | null
   declarantIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   declarantPosition?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  taxAgentFirmAddressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmAddressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmCity?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmPostcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  taxAgentFirmState?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1231,18 +1231,18 @@ export type PayrollCompanyInfoSelect<ExtArgs extends runtime.Types.Extensions.In
   taxAgentLicenceNo?: boolean
   taxAgentPhone?: boolean
   taxAgentEmail?: boolean
-  taxAgentFirmName?: boolean
-  taxAgentFirmAddressLine1?: boolean
-  taxAgentFirmAddressLine2?: boolean
-  taxAgentFirmPostcode?: boolean
-  taxAgentFirmCity?: boolean
-  taxAgentFirmState?: boolean
   declarantName?: boolean
   declarantIdType?: boolean
   declarantIdNumber?: boolean
   declarantPosition?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  taxAgentFirmAddressLine1?: boolean
+  taxAgentFirmAddressLine2?: boolean
+  taxAgentFirmCity?: boolean
+  taxAgentFirmName?: boolean
+  taxAgentFirmPostcode?: boolean
+  taxAgentFirmState?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payrollCompanyInfo"]>
 
@@ -1273,21 +1273,21 @@ export type PayrollCompanyInfoSelectScalar = {
   taxAgentLicenceNo?: boolean
   taxAgentPhone?: boolean
   taxAgentEmail?: boolean
-  taxAgentFirmName?: boolean
-  taxAgentFirmAddressLine1?: boolean
-  taxAgentFirmAddressLine2?: boolean
-  taxAgentFirmPostcode?: boolean
-  taxAgentFirmCity?: boolean
-  taxAgentFirmState?: boolean
   declarantName?: boolean
   declarantIdType?: boolean
   declarantIdNumber?: boolean
   declarantPosition?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  taxAgentFirmAddressLine1?: boolean
+  taxAgentFirmAddressLine2?: boolean
+  taxAgentFirmCity?: boolean
+  taxAgentFirmName?: boolean
+  taxAgentFirmPostcode?: boolean
+  taxAgentFirmState?: boolean
 }
 
-export type PayrollCompanyInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employerName" | "employerTin" | "registrationNo" | "referenceType" | "referenceNo" | "employerCategory" | "employerStatus" | "cp8dFurnishType" | "addressLine1" | "addressLine2" | "postcode" | "city" | "state" | "country" | "phone" | "handphone" | "email" | "taxAgentName" | "taxAgentTin" | "taxAgentLicenceNo" | "taxAgentPhone" | "taxAgentEmail" | "taxAgentFirmName" | "taxAgentFirmAddressLine1" | "taxAgentFirmAddressLine2" | "taxAgentFirmPostcode" | "taxAgentFirmCity" | "taxAgentFirmState" | "declarantName" | "declarantIdType" | "declarantIdNumber" | "declarantPosition" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollCompanyInfo"]>
+export type PayrollCompanyInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employerName" | "employerTin" | "registrationNo" | "referenceType" | "referenceNo" | "employerCategory" | "employerStatus" | "cp8dFurnishType" | "addressLine1" | "addressLine2" | "postcode" | "city" | "state" | "country" | "phone" | "handphone" | "email" | "taxAgentName" | "taxAgentTin" | "taxAgentLicenceNo" | "taxAgentPhone" | "taxAgentEmail" | "declarantName" | "declarantIdType" | "declarantIdNumber" | "declarantPosition" | "createdAt" | "updatedAt" | "taxAgentFirmAddressLine1" | "taxAgentFirmAddressLine2" | "taxAgentFirmCity" | "taxAgentFirmName" | "taxAgentFirmPostcode" | "taxAgentFirmState", ExtArgs["result"]["payrollCompanyInfo"]>
 export type PayrollCompanyInfoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -1322,18 +1322,18 @@ export type $PayrollCompanyInfoPayload<ExtArgs extends runtime.Types.Extensions.
     taxAgentLicenceNo: string | null
     taxAgentPhone: string | null
     taxAgentEmail: string | null
-    taxAgentFirmName: string | null
-    taxAgentFirmAddressLine1: string | null
-    taxAgentFirmAddressLine2: string | null
-    taxAgentFirmPostcode: string | null
-    taxAgentFirmCity: string | null
-    taxAgentFirmState: string | null
     declarantName: string | null
     declarantIdType: $Enums.IdType | null
     declarantIdNumber: string | null
     declarantPosition: string | null
     createdAt: Date
     updatedAt: Date
+    taxAgentFirmAddressLine1: string | null
+    taxAgentFirmAddressLine2: string | null
+    taxAgentFirmCity: string | null
+    taxAgentFirmName: string | null
+    taxAgentFirmPostcode: string | null
+    taxAgentFirmState: string | null
   }, ExtArgs["result"]["payrollCompanyInfo"]>
   composites: {}
 }
@@ -1728,18 +1728,18 @@ export interface PayrollCompanyInfoFieldRefs {
   readonly taxAgentLicenceNo: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly taxAgentPhone: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly taxAgentEmail: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
-  readonly taxAgentFirmName: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
-  readonly taxAgentFirmAddressLine1: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
-  readonly taxAgentFirmAddressLine2: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
-  readonly taxAgentFirmPostcode: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
-  readonly taxAgentFirmCity: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
-  readonly taxAgentFirmState: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly declarantName: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly declarantIdType: Prisma.FieldRef<"PayrollCompanyInfo", 'IdType'>
   readonly declarantIdNumber: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly declarantPosition: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly createdAt: Prisma.FieldRef<"PayrollCompanyInfo", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PayrollCompanyInfo", 'DateTime'>
+  readonly taxAgentFirmAddressLine1: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmAddressLine2: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmCity: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmName: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmPostcode: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly taxAgentFirmState: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
 }
     
 
