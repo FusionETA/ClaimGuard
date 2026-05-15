@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { ArrowRight, ClipboardCheck, CircleDollarSign, Clock3, FileCheck2 } from "lucide-react"
+import { ArrowRight, ClipboardCheck, CircleDollarSign, Clock3, FileCheck2, Wallet } from "lucide-react"
 
 import { MetricCard } from "@/components/claims/metric-card"
 import { SpendLimitsCard } from "@/components/claims/spend-limits-card"
@@ -18,6 +18,8 @@ import {
   moduleAccessForPolicy,
 } from "@/modules/policy/domain/models"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
+import { getEmployeePayslipsPageData } from "@/modules/payroll/application/services/employee-payroll.service"
+import { periodLabel } from "@/modules/payroll/domain/runs"
 
 import { ClockCard } from "./attendance/clock-card"
 import { DashboardQuickActions } from "./dashboard-quick-actions"
@@ -56,6 +58,7 @@ export default async function EmployeeDashboardPage() {
     pendingClaimApprovals,
     claimSubmissionData,
     profile,
+    payslipPageData,
   ] = await Promise.all([
     moduleAccess.attendance
       ? employeeAttendanceService.getEmployeeDashboard(session.userId)
@@ -81,7 +84,11 @@ export default async function EmployeeDashboardPage() {
           },
         })
       : Promise.resolve(null),
+    // Latest submitted payslips. The repo already sorts newest-first;
+    // we only render the first row on the dashboard.
+    getEmployeePayslipsPageData(),
   ])
+  const latestPayslip = payslipPageData?.payslips[0] ?? null
   const requiresSelfieOnClockIn = profile?.policy
     ? profile.policy.requireSelfie
     : profile?.payoutMethod === "HOURLY"
@@ -199,6 +206,42 @@ export default async function EmployeeDashboardPage() {
         </div>
       ) : null}
 
+      <Link
+        href="/employee/payslips"
+        className="block"
+        aria-label="View all payslips"
+      >
+        <Card className="flex items-center gap-3 p-4 transition hover:border-primary/40">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Wallet className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Latest payslip
+            </p>
+            {latestPayslip ? (
+              <>
+                <p className="truncate text-sm font-bold text-foreground">
+                  {periodLabel(latestPayslip.periodYear, latestPayslip.periodMonth)}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  Gross {formatMyr(latestPayslip.grossPay)} · Net{" "}
+                  {formatMyr(latestPayslip.netPay)}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-bold text-foreground">No payslips yet</p>
+                <p className="text-xs text-muted-foreground">
+                  They&apos;ll appear here once payroll finalises your first run.
+                </p>
+              </>
+            )}
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Card>
+      </Link>
+
       {moduleAccess.claims && claimsData ? (
         <div className="grid gap-4 sm:gap-6 xl:grid-cols-[1.25fr_0.75fr]">
           <Card className="overflow-hidden border border-border/70 bg-card/94 text-foreground shadow-ambient backdrop-blur-sm">
@@ -290,4 +333,12 @@ export default async function EmployeeDashboardPage() {
       ) : null}
     </div>
   )
+}
+
+function formatMyr(value: number) {
+  return new Intl.NumberFormat("en-MY", {
+    style: "currency",
+    currency: "MYR",
+    maximumFractionDigits: 2,
+  }).format(value)
 }
