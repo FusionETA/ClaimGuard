@@ -366,13 +366,15 @@ async function computeApprovedOtMinutes(
       )
     : false
 
+  // Daily OT threshold lives on the employee's assigned policy now.
+  // Defaults to the legacy 8h fallback when no policy is assigned.
   let otThresholdMin = 8 * 60
-  if (employee?.organizationId) {
-    const org = await prisma.organization.findUnique({
-      where: { id: employee.organizationId },
-      select: { otDailyThresholdMinutes: true },
-    })
-    otThresholdMin = org?.otDailyThresholdMinutes ?? otThresholdMin
+  const profile = await prisma.employeeProfile.findUnique({
+    where: { userId: employeeId },
+    select: { policy: { select: { otDailyThresholdMinutes: true } } },
+  })
+  if (profile?.policy) {
+    otThresholdMin = profile.policy.otDailyThresholdMinutes
   }
 
   const bucket = bucketRecord({
@@ -838,12 +840,28 @@ export const attendanceRepository = {
     // multi-layer chain (filtered by Team.moduleConfig.OT) — the work
     // only buckets as OT once the chain reaches APPROVED.
     if (durationMin && orgId) {
-      const org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { otEnabled: true, otDailyThresholdMinutes: true },
-      })
-      const threshold = org?.otDailyThresholdMinutes ?? 480
-      if (org?.otEnabled && durationMin > threshold) {
+      // OT threshold + per-employee enablement come from the policy
+      // now. Org-level `otEnabled` is still the master kill-switch.
+      const [org, employeeProfile] = await Promise.all([
+        prisma.organization.findUnique({
+          where: { id: orgId },
+          select: { otEnabled: true },
+        }),
+        prisma.employeeProfile.findUnique({
+          where: { userId: employeeId },
+          select: {
+            policy: {
+              select: {
+                otEnabled: true,
+                otDailyThresholdMinutes: true,
+              },
+            },
+          },
+        }),
+      ])
+      const policyOtEnabled = employeeProfile?.policy?.otEnabled ?? true
+      const threshold = employeeProfile?.policy?.otDailyThresholdMinutes ?? 480
+      if (org?.otEnabled && policyOtEnabled && durationMin > threshold) {
         const otMinutes = durationMin - threshold
         const existingOt = await prisma.approvalRequest.findFirst({
           where: { employeeId, date: today, kind: "OT" },
@@ -2081,13 +2099,25 @@ export const attendanceRepository = {
             where: { id: { in: orgIds } },
             select: {
               id: true,
-              otDailyThresholdMinutes: true,
               workingHoursStart: true,
               workingHoursEnd: true,
             },
           })
-    const orgThresholdById = new Map(
-      orgs.map((o) => [o.id, o.otDailyThresholdMinutes]),
+    // Per-employee OT threshold now comes from each employee's policy.
+    const policyThresholds =
+      employeeIds.length === 0
+        ? []
+        : await prisma.employeeProfile.findMany({
+            where: { userId: { in: employeeIds } },
+            select: {
+              userId: true,
+              policy: { select: { otDailyThresholdMinutes: true } },
+            },
+          })
+    const employeeThresholdMin = new Map(
+      policyThresholds
+        .filter((p) => p.policy !== null)
+        .map((p) => [p.userId, p.policy!.otDailyThresholdMinutes]),
     )
     const orgScheduleById = new Map(
       orgs.map((o) => [
@@ -2143,9 +2173,7 @@ export const attendanceRepository = {
       })
     }
     const otThresholdFor = (employeeId: string): number => {
-      const orgId = employeeOrgId.get(employeeId) ?? args.orgId ?? null
-      const fromMap = orgId ? orgThresholdById.get(orgId) : undefined
-      return fromMap ?? 8 * 60
+      return employeeThresholdMin.get(employeeId) ?? 8 * 60
     }
 
     const records = await prisma.attendanceRecord.findMany({

@@ -18,7 +18,6 @@ import type {
   OrganizationProjectOption,
   OrganizationSummary,
   OtPayoutMethod,
-  OtRates,
   TeamDetail,
   TeamMembership,
   TeamModuleConfig,
@@ -33,16 +32,6 @@ import {
   trimModuleConfig,
   validateModuleConfig,
 } from "@/modules/organization/domain/models"
-
-const DEFAULT_OT_RATES: OtRates = {
-  normalDay: 1.5,
-  restDay: 2.0,
-  publicHoliday: 3.0,
-  restDayInShift: 1.0,
-  publicHolidayInShift: 2.0,
-  salaryThreshold: 4000,
-  dailyThresholdMinutes: 480,
-}
 
 export type XeroConnectionRecord = {
   id: string
@@ -89,13 +78,6 @@ function mapOrganizationSummary(
         id: string
         name: string
         claimCutoffDay: number
-        otRateNormalDay?: unknown
-        otRateRestDay?: unknown
-        otRatePublicHoliday?: unknown
-        restDayInShiftRate?: unknown
-        publicHolidayInShiftRate?: unknown
-        otSalaryThreshold?: unknown
-        otDailyThresholdMinutes?: number | null
         otEnabled?: boolean | null
         defaultMileageRate?: unknown
         mileageUnit?: string | null
@@ -122,19 +104,6 @@ function mapOrganizationSummary(
     id: org.id,
     name: org.name,
     claimCutoffDay: org.claimCutoffDay,
-    otRates: {
-      normalDay: toNumberOr(org.otRateNormalDay, DEFAULT_OT_RATES.normalDay),
-      restDay: toNumberOr(org.otRateRestDay, DEFAULT_OT_RATES.restDay),
-      publicHoliday: toNumberOr(org.otRatePublicHoliday, DEFAULT_OT_RATES.publicHoliday),
-      restDayInShift: toNumberOr(org.restDayInShiftRate, DEFAULT_OT_RATES.restDayInShift),
-      publicHolidayInShift: toNumberOr(
-        org.publicHolidayInShiftRate,
-        DEFAULT_OT_RATES.publicHolidayInShift
-      ),
-      salaryThreshold: toNumberOr(org.otSalaryThreshold, DEFAULT_OT_RATES.salaryThreshold),
-      dailyThresholdMinutes:
-        org.otDailyThresholdMinutes ?? DEFAULT_OT_RATES.dailyThresholdMinutes,
-    },
     otEnabled: org.otEnabled ?? true,
     defaultMileageRate,
     mileageUnit: (org.mileageUnit as MileageUnit | null | undefined) === "MILE" ? "MILE" : "KM",
@@ -577,28 +546,9 @@ export const organizationRepository = {
     return mapOrganizationSummary(organization)!
   },
 
-  async updateOrganizationOtRates(data: {
-    organizationId: string
-    rates: OtRates
-  }): Promise<void> {
-    const prisma = getPrismaClient()
-    if (!prisma) {
-      throw new Error("Database is not configured.")
-    }
-
-    await prisma.organization.update({
-      where: { id: data.organizationId },
-      data: {
-        otRateNormalDay: data.rates.normalDay,
-        otRateRestDay: data.rates.restDay,
-        otRatePublicHoliday: data.rates.publicHoliday,
-        restDayInShiftRate: data.rates.restDayInShift,
-        publicHolidayInShiftRate: data.rates.publicHolidayInShift,
-        otSalaryThreshold: data.rates.salaryThreshold,
-        otDailyThresholdMinutes: data.rates.dailyThresholdMinutes,
-      },
-    })
-  },
+  // updateOrganizationOtRates was removed — OT multipliers + thresholds
+  // live on EmployeePolicy now. See `policyRepository.update` and the
+  // Settings → Policies tab.
 
   async updateOrganizationClaimCutoff(data: {
     organizationId: string

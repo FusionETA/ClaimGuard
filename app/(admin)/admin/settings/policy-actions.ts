@@ -20,6 +20,13 @@ const baseSchema = z.object({
   otMode: z.enum(["NONE", "CASH", "TIME_BANK"]),
   requireGeofence: z.boolean(),
   requireSelfie: z.boolean(),
+  otRateNormalDay: z.coerce.number().nonnegative().max(20),
+  otRateRestDay: z.coerce.number().nonnegative().max(20),
+  otRatePublicHoliday: z.coerce.number().nonnegative().max(20),
+  otRateRestDayInShift: z.coerce.number().nonnegative().max(20),
+  otRatePublicHolidayInShift: z.coerce.number().nonnegative().max(20),
+  otSalaryThreshold: z.coerce.number().nonnegative().max(1_000_000),
+  otDailyThresholdMinutes: z.coerce.number().int().nonnegative().max(1440),
 })
 
 function splitOtMode(mode: "NONE" | "CASH" | "TIME_BANK"): {
@@ -54,6 +61,42 @@ function parseBoolFlag(formData: FormData, name: string): boolean {
   return str === "on" || str === "true" || str === "1"
 }
 
+/// Read a numeric form field, falling back to `defaultValue` when the
+/// input is absent (e.g. the OT rates section isn't rendered because
+/// the policy is in TIME_BANK mode). The `z.coerce` call still runs to
+/// validate range — invalid strings will surface as Zod errors.
+function readNumberWithDefault(
+  formData: FormData,
+  name: string,
+  defaultValue: number,
+): number {
+  const raw = formData.get(name)
+  if (raw === null || raw === "") return defaultValue
+  return Number(raw)
+}
+
+const OT_RATE_DEFAULTS = {
+  otRateNormalDay: 1.5,
+  otRateRestDay: 2.0,
+  otRatePublicHoliday: 3.0,
+  otRateRestDayInShift: 1.0,
+  otRatePublicHolidayInShift: 2.0,
+  otSalaryThreshold: 4000,
+  otDailyThresholdMinutes: 480,
+} as const
+
+function readOtRates(formData: FormData) {
+  return {
+    otRateNormalDay: readNumberWithDefault(formData, "otRateNormalDay", OT_RATE_DEFAULTS.otRateNormalDay),
+    otRateRestDay: readNumberWithDefault(formData, "otRateRestDay", OT_RATE_DEFAULTS.otRateRestDay),
+    otRatePublicHoliday: readNumberWithDefault(formData, "otRatePublicHoliday", OT_RATE_DEFAULTS.otRatePublicHoliday),
+    otRateRestDayInShift: readNumberWithDefault(formData, "otRateRestDayInShift", OT_RATE_DEFAULTS.otRateRestDayInShift),
+    otRatePublicHolidayInShift: readNumberWithDefault(formData, "otRatePublicHolidayInShift", OT_RATE_DEFAULTS.otRatePublicHolidayInShift),
+    otSalaryThreshold: readNumberWithDefault(formData, "otSalaryThreshold", OT_RATE_DEFAULTS.otSalaryThreshold),
+    otDailyThresholdMinutes: readNumberWithDefault(formData, "otDailyThresholdMinutes", OT_RATE_DEFAULTS.otDailyThresholdMinutes),
+  }
+}
+
 export async function createPolicyAction(
   _prev: PolicyActionState,
   formData: FormData,
@@ -71,6 +114,7 @@ export async function createPolicyAction(
     otMode: String(formData.get("otMode") ?? "CASH"),
     requireGeofence: parseBoolFlag(formData, "requireGeofence"),
     requireSelfie: parseBoolFlag(formData, "requireSelfie"),
+    ...readOtRates(formData),
   })
 
   if (!parsed.success) {
@@ -91,6 +135,13 @@ export async function createPolicyAction(
       otMethod: ot.otMethod,
       requireGeofence: parsed.data.requireGeofence,
       requireSelfie: parsed.data.requireSelfie,
+      otRateNormalDay: parsed.data.otRateNormalDay,
+      otRateRestDay: parsed.data.otRateRestDay,
+      otRatePublicHoliday: parsed.data.otRatePublicHoliday,
+      otRateRestDayInShift: parsed.data.otRateRestDayInShift,
+      otRatePublicHolidayInShift: parsed.data.otRatePublicHolidayInShift,
+      otSalaryThreshold: parsed.data.otSalaryThreshold,
+      otDailyThresholdMinutes: parsed.data.otDailyThresholdMinutes,
     })
   } catch (error) {
     return {
@@ -125,6 +176,7 @@ export async function updatePolicyAction(
     otMode: String(formData.get("otMode") ?? "CASH"),
     requireGeofence: parseBoolFlag(formData, "requireGeofence"),
     requireSelfie: parseBoolFlag(formData, "requireSelfie"),
+    ...readOtRates(formData),
   })
 
   if (!parsed.success) {
@@ -146,6 +198,13 @@ export async function updatePolicyAction(
       otMethod: ot.otMethod,
       requireGeofence: parsed.data.requireGeofence,
       requireSelfie: parsed.data.requireSelfie,
+      otRateNormalDay: parsed.data.otRateNormalDay,
+      otRateRestDay: parsed.data.otRateRestDay,
+      otRatePublicHoliday: parsed.data.otRatePublicHoliday,
+      otRateRestDayInShift: parsed.data.otRateRestDayInShift,
+      otRatePublicHolidayInShift: parsed.data.otRatePublicHolidayInShift,
+      otSalaryThreshold: parsed.data.otSalaryThreshold,
+      otDailyThresholdMinutes: parsed.data.otDailyThresholdMinutes,
     })
   } catch (error) {
     return {

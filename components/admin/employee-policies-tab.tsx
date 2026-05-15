@@ -199,9 +199,11 @@ function PolicyRow({
             <div>
               <dt className="font-semibold text-foreground/80">OT</dt>
               <dd>
-                {policy.otEnabled
-                  ? otPayoutMethodLabels[policy.otMethod]
-                  : "Disabled"}
+                {!policy.otEnabled
+                  ? "Disabled"
+                  : policy.otMethod === "CASH"
+                    ? `Cash · ${policy.otRateNormalDay}× / ${policy.otRateRestDay}× / ${policy.otRatePublicHoliday}×`
+                    : otPayoutMethodLabels[policy.otMethod]}
               </dd>
             </div>
             <div>
@@ -417,6 +419,68 @@ function PolicyEditorCard({
             </label>
           </div>
 
+          {otMode === "CASH" ? (
+            <div>
+              <p className="text-sm font-semibold text-foreground">OT rates</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Multipliers used when computing OT pay for employees on this
+                policy. ORP = monthly salary ÷ (working-days × daily working
+                hours). HRP = ORP ÷ 8. Hourly workers use their per-employee
+                hourly rate × the multiplier.
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <RateField
+                  name="otRateNormalDay"
+                  label="Normal day (× HRP)"
+                  defaultValue={policy?.otRateNormalDay ?? 1.5}
+                  disabled={pending}
+                />
+                <RateField
+                  name="otRateRestDay"
+                  label="Rest day (× HRP)"
+                  defaultValue={policy?.otRateRestDay ?? 2.0}
+                  disabled={pending}
+                />
+                <RateField
+                  name="otRatePublicHoliday"
+                  label="Public holiday (× HRP)"
+                  defaultValue={policy?.otRatePublicHoliday ?? 3.0}
+                  disabled={pending}
+                />
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <RateField
+                  name="otRateRestDayInShift"
+                  label="Rest day in-shift (× ORP)"
+                  defaultValue={policy?.otRateRestDayInShift ?? 1.0}
+                  disabled={pending}
+                />
+                <RateField
+                  name="otRatePublicHolidayInShift"
+                  label="Public holiday in-shift (× ORP)"
+                  defaultValue={policy?.otRatePublicHolidayInShift ?? 2.0}
+                  disabled={pending}
+                />
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <RateField
+                  name="otSalaryThreshold"
+                  label="Salary threshold (RM)"
+                  step="0.01"
+                  defaultValue={policy?.otSalaryThreshold ?? 4000}
+                  disabled={pending}
+                />
+                <RateField
+                  name="otDailyThresholdMinutes"
+                  label="Daily OT threshold (minutes)"
+                  step="1"
+                  defaultValue={policy?.otDailyThresholdMinutes ?? 480}
+                  disabled={pending}
+                />
+              </div>
+            </div>
+          ) : null}
+
           <div>
             <p className="text-sm font-semibold text-foreground">Clock-in checks</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -464,5 +528,34 @@ function PolicyEditorCard({
         </form>
       </CardContent>
     </Card>
+  )
+}
+
+function RateField({
+  name,
+  label,
+  defaultValue,
+  step = "0.01",
+  disabled,
+}: {
+  name: string
+  label: string
+  defaultValue: number
+  step?: string
+  disabled?: boolean
+}) {
+  return (
+    <label className="space-y-1.5 text-xs font-semibold text-muted-foreground">
+      <span>{label}</span>
+      <Input
+        name={name}
+        type="number"
+        step={step}
+        min="0"
+        defaultValue={defaultValue}
+        disabled={disabled}
+        className="h-9"
+      />
+    </label>
   )
 }

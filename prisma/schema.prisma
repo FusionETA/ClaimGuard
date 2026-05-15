@@ -47,21 +47,11 @@ model Organization {
   updatedAt                DateTime            @updatedAt
   workingHoursEnd          String              @default("18:00")
   workingHoursStart        String              @default("09:00")
-  otRateNormalDay          Decimal             @default(1.50) @db.Decimal(4, 2)
-  otRatePublicHoliday      Decimal             @default(3.00) @db.Decimal(4, 2)
-  otRateRestDay            Decimal             @default(2.00) @db.Decimal(4, 2)
-  otSalaryThreshold        Decimal             @default(4000.00) @db.Decimal(10, 2)
-  publicHolidayInShiftRate Decimal             @default(2.00) @db.Decimal(4, 2)
-  restDayInShiftRate       Decimal             @default(1.00) @db.Decimal(4, 2)
   geofenceRadiusMeters     Int                 @default(200)
   defaultMileageRate       Decimal?            @db.Decimal(10, 4)
   mileageUnit              MileageUnit         @default(KM)
   otEnabled                Boolean             @default(true)
   timezone                 String              @default("Asia/Kuala_Lumpur")
-  /// Daily working minutes after which extra time becomes OT-eligible.
-  /// Defaults to 8h. Applies org-wide regardless of per-project working
-  /// hours.
-  otDailyThresholdMinutes  Int                 @default(480)
   /// JSON array of ISO 4217 currency codes the admin has enabled for
   /// expense claims (e.g. ["MYR","USD","SGD"]). Empty/null falls back to
   /// just defaultCurrency. The employee claim form picker shows only
@@ -131,6 +121,23 @@ model EmployeePolicy {
   /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
   /// selfie on for any policy regardless of pay type.
   requireSelfie       Boolean           @default(false)
+  /// OT multipliers (× HRP) — applied only when otMethod === CASH.
+  /// Ignored for TIME_BANK (banks 1:1) and when otEnabled = false.
+  /// Values are kept in the row when OT mode is non-CASH so toggling
+  /// back to CASH restores the admin's chosen rates.
+  otRateNormalDay            Decimal   @default(1.50) @db.Decimal(4, 2)
+  otRateRestDay              Decimal   @default(2.00) @db.Decimal(4, 2)
+  otRatePublicHoliday        Decimal   @default(3.00) @db.Decimal(4, 2)
+  /// In-shift premiums (× ORP) for hours worked within the regular
+  /// shift on rest days / public holidays.
+  otRateRestDayInShift       Decimal   @default(1.00) @db.Decimal(4, 2)
+  otRatePublicHolidayInShift Decimal   @default(2.00) @db.Decimal(4, 2)
+  /// Monthly-salary cap above which OT requires extra approval.
+  /// Mirrors the legacy org-wide `Organization.otSalaryThreshold`.
+  otSalaryThreshold          Decimal   @default(4000.00) @db.Decimal(10, 2)
+  /// Daily working minutes after which extra time becomes OT-eligible.
+  /// Mirrors the legacy org-wide `Organization.otDailyThresholdMinutes`.
+  otDailyThresholdMinutes    Int       @default(480)
   organization        Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employees           EmployeeProfile[]
 
@@ -925,9 +932,11 @@ model SalaryChange {
 model PayrollSettings {
   id                            String          @id @default(cuid())
   organizationId                String          @unique
-  otRateNormal                  Decimal         @default(1.50) @db.Decimal(5, 2)
-  otRateRest                    Decimal         @default(2.00) @db.Decimal(5, 2)
-  otRatePublicHoliday           Decimal         @default(3.00) @db.Decimal(5, 2)
+  /// OT multipliers (otRateNormal / otRateRest / otRatePublicHoliday)
+  /// were removed. They now live on `EmployeePolicy` so each policy
+  /// carries its own rates. See `prisma/backfill-policies.ts` for the
+  /// migration. The `workingDaysRule` below remains org-wide because
+  /// it's the calendar basis, not a multiplier.
   workingDaysRule               WorkingDaysRule @default(TWENTY_SIX)
   defaultEpfEmployeeRate        Decimal         @default(11.00) @db.Decimal(5, 2)
   defaultEpfEmployerRate        Decimal         @default(13.00) @db.Decimal(5, 2)

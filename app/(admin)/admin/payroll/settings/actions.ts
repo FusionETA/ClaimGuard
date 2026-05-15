@@ -19,9 +19,7 @@ import {
 // ─── General tab → PayrollSettings ───────────────────────────────────────
 
 const settingsSchema = z.object({
-  otRateNormal: z.coerce.number().min(1).max(10),
-  otRateRest: z.coerce.number().min(1).max(10),
-  otRatePublicHoliday: z.coerce.number().min(1).max(10),
+  // OT multipliers were removed — they now live on EmployeePolicy.
   workingDaysRule: z.enum(workingDaysRules),
   defaultEpfEmployeeRate: z.coerce.number().min(0).max(100),
   defaultEpfEmployerRate: z.coerce.number().min(0).max(100),
@@ -39,9 +37,6 @@ export async function savePayrollSettingsAction(
   formData: FormData,
 ): Promise<BaseFormState> {
   const parsed = settingsSchema.safeParse({
-    otRateNormal: formData.get("otRateNormal"),
-    otRateRest: formData.get("otRateRest"),
-    otRatePublicHoliday: formData.get("otRatePublicHoliday"),
     workingDaysRule: formData.get("workingDaysRule"),
     defaultEpfEmployeeRate: formData.get("defaultEpfEmployeeRate"),
     defaultEpfEmployerRate: formData.get("defaultEpfEmployerRate"),

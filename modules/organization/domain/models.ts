@@ -56,7 +56,6 @@ export type OrganizationSummary = {
   id: string
   name: string
   claimCutoffDay: number
-  otRates: OtRates
   otEnabled: boolean
   defaultMileageRate?: number
   mileageUnit: MileageUnit

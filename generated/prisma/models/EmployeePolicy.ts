@@ -29,8 +29,30 @@ export type EmployeePolicyModel = runtime.Types.Result.DefaultSelection<Prisma.$
 
 export type AggregateEmployeePolicy = {
   _count: EmployeePolicyCountAggregateOutputType | null
+  _avg: EmployeePolicyAvgAggregateOutputType | null
+  _sum: EmployeePolicySumAggregateOutputType | null
   _min: EmployeePolicyMinAggregateOutputType | null
   _max: EmployeePolicyMaxAggregateOutputType | null
+}
+
+export type EmployeePolicyAvgAggregateOutputType = {
+  otRateNormalDay: runtime.Decimal | null
+  otRateRestDay: runtime.Decimal | null
+  otRatePublicHoliday: runtime.Decimal | null
+  otRateRestDayInShift: runtime.Decimal | null
+  otRatePublicHolidayInShift: runtime.Decimal | null
+  otSalaryThreshold: runtime.Decimal | null
+  otDailyThresholdMinutes: number | null
+}
+
+export type EmployeePolicySumAggregateOutputType = {
+  otRateNormalDay: runtime.Decimal | null
+  otRateRestDay: runtime.Decimal | null
+  otRatePublicHoliday: runtime.Decimal | null
+  otRateRestDayInShift: runtime.Decimal | null
+  otRatePublicHolidayInShift: runtime.Decimal | null
+  otSalaryThreshold: runtime.Decimal | null
+  otDailyThresholdMinutes: number | null
 }
 
 export type EmployeePolicyMinAggregateOutputType = {
@@ -50,6 +72,13 @@ export type EmployeePolicyMinAggregateOutputType = {
   otEnabled: boolean | null
   requireGeofence: boolean | null
   requireSelfie: boolean | null
+  otRateNormalDay: runtime.Decimal | null
+  otRateRestDay: runtime.Decimal | null
+  otRatePublicHoliday: runtime.Decimal | null
+  otRateRestDayInShift: runtime.Decimal | null
+  otRatePublicHolidayInShift: runtime.Decimal | null
+  otSalaryThreshold: runtime.Decimal | null
+  otDailyThresholdMinutes: number | null
 }
 
 export type EmployeePolicyMaxAggregateOutputType = {
@@ -69,6 +98,13 @@ export type EmployeePolicyMaxAggregateOutputType = {
   otEnabled: boolean | null
   requireGeofence: boolean | null
   requireSelfie: boolean | null
+  otRateNormalDay: runtime.Decimal | null
+  otRateRestDay: runtime.Decimal | null
+  otRatePublicHoliday: runtime.Decimal | null
+  otRateRestDayInShift: runtime.Decimal | null
+  otRatePublicHolidayInShift: runtime.Decimal | null
+  otSalaryThreshold: runtime.Decimal | null
+  otDailyThresholdMinutes: number | null
 }
 
 export type EmployeePolicyCountAggregateOutputType = {
@@ -88,9 +124,36 @@ export type EmployeePolicyCountAggregateOutputType = {
   otEnabled: number
   requireGeofence: number
   requireSelfie: number
+  otRateNormalDay: number
+  otRateRestDay: number
+  otRatePublicHoliday: number
+  otRateRestDayInShift: number
+  otRatePublicHolidayInShift: number
+  otSalaryThreshold: number
+  otDailyThresholdMinutes: number
   _all: number
 }
 
+
+export type EmployeePolicyAvgAggregateInputType = {
+  otRateNormalDay?: true
+  otRateRestDay?: true
+  otRatePublicHoliday?: true
+  otRateRestDayInShift?: true
+  otRatePublicHolidayInShift?: true
+  otSalaryThreshold?: true
+  otDailyThresholdMinutes?: true
+}
+
+export type EmployeePolicySumAggregateInputType = {
+  otRateNormalDay?: true
+  otRateRestDay?: true
+  otRatePublicHoliday?: true
+  otRateRestDayInShift?: true
+  otRatePublicHolidayInShift?: true
+  otSalaryThreshold?: true
+  otDailyThresholdMinutes?: true
+}
 
 export type EmployeePolicyMinAggregateInputType = {
   id?: true
@@ -109,6 +172,13 @@ export type EmployeePolicyMinAggregateInputType = {
   otEnabled?: true
   requireGeofence?: true
   requireSelfie?: true
+  otRateNormalDay?: true
+  otRateRestDay?: true
+  otRatePublicHoliday?: true
+  otRateRestDayInShift?: true
+  otRatePublicHolidayInShift?: true
+  otSalaryThreshold?: true
+  otDailyThresholdMinutes?: true
 }
 
 export type EmployeePolicyMaxAggregateInputType = {
@@ -128,6 +198,13 @@ export type EmployeePolicyMaxAggregateInputType = {
   otEnabled?: true
   requireGeofence?: true
   requireSelfie?: true
+  otRateNormalDay?: true
+  otRateRestDay?: true
+  otRatePublicHoliday?: true
+  otRateRestDayInShift?: true
+  otRatePublicHolidayInShift?: true
+  otSalaryThreshold?: true
+  otDailyThresholdMinutes?: true
 }
 
 export type EmployeePolicyCountAggregateInputType = {
@@ -147,6 +224,13 @@ export type EmployeePolicyCountAggregateInputType = {
   otEnabled?: true
   requireGeofence?: true
   requireSelfie?: true
+  otRateNormalDay?: true
+  otRateRestDay?: true
+  otRatePublicHoliday?: true
+  otRateRestDayInShift?: true
+  otRatePublicHolidayInShift?: true
+  otSalaryThreshold?: true
+  otDailyThresholdMinutes?: true
   _all?: true
 }
 
@@ -188,6 +272,18 @@ export type EmployeePolicyAggregateArgs<ExtArgs extends runtime.Types.Extensions
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: EmployeePolicyAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: EmployeePolicySumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: EmployeePolicyMinAggregateInputType
@@ -218,6 +314,8 @@ export type EmployeePolicyGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   _count?: EmployeePolicyCountAggregateInputType | true
+  _avg?: EmployeePolicyAvgAggregateInputType
+  _sum?: EmployeePolicySumAggregateInputType
   _min?: EmployeePolicyMinAggregateInputType
   _max?: EmployeePolicyMaxAggregateInputType
 }
@@ -239,7 +337,16 @@ export type EmployeePolicyGroupByOutputType = {
   otEnabled: boolean
   requireGeofence: boolean
   requireSelfie: boolean
+  otRateNormalDay: runtime.Decimal
+  otRateRestDay: runtime.Decimal
+  otRatePublicHoliday: runtime.Decimal
+  otRateRestDayInShift: runtime.Decimal
+  otRatePublicHolidayInShift: runtime.Decimal
+  otSalaryThreshold: runtime.Decimal
+  otDailyThresholdMinutes: number
   _count: EmployeePolicyCountAggregateOutputType | null
+  _avg: EmployeePolicyAvgAggregateOutputType | null
+  _sum: EmployeePolicySumAggregateOutputType | null
   _min: EmployeePolicyMinAggregateOutputType | null
   _max: EmployeePolicyMaxAggregateOutputType | null
 }
@@ -279,6 +386,13 @@ export type EmployeePolicyWhereInput = {
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  otRateNormalDay?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   employees?: Prisma.EmployeeProfileListRelationFilter
 }
@@ -300,6 +414,13 @@ export type EmployeePolicyOrderByWithRelationInput = {
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
+  otRateNormalDay?: Prisma.SortOrder
+  otRateRestDay?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
+  otRateRestDayInShift?: Prisma.SortOrder
+  otRatePublicHolidayInShift?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
+  otDailyThresholdMinutes?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   employees?: Prisma.EmployeeProfileOrderByRelationAggregateInput
   _relevance?: Prisma.EmployeePolicyOrderByRelevanceInput
@@ -326,6 +447,13 @@ export type EmployeePolicyWhereUniqueInput = Prisma.AtLeast<{
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  otRateNormalDay?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   employees?: Prisma.EmployeeProfileListRelationFilter
 }, "id" | "organizationId_name">
@@ -347,9 +475,18 @@ export type EmployeePolicyOrderByWithAggregationInput = {
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
+  otRateNormalDay?: Prisma.SortOrder
+  otRateRestDay?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
+  otRateRestDayInShift?: Prisma.SortOrder
+  otRatePublicHolidayInShift?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
+  otDailyThresholdMinutes?: Prisma.SortOrder
   _count?: Prisma.EmployeePolicyCountOrderByAggregateInput
+  _avg?: Prisma.EmployeePolicyAvgOrderByAggregateInput
   _max?: Prisma.EmployeePolicyMaxOrderByAggregateInput
   _min?: Prisma.EmployeePolicyMinOrderByAggregateInput
+  _sum?: Prisma.EmployeePolicySumOrderByAggregateInput
 }
 
 export type EmployeePolicyScalarWhereWithAggregatesInput = {
@@ -372,6 +509,13 @@ export type EmployeePolicyScalarWhereWithAggregatesInput = {
   otEnabled?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  otRateNormalDay?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntWithAggregatesFilter<"EmployeePolicy"> | number
 }
 
 export type EmployeePolicyCreateInput = {
@@ -390,6 +534,13 @@ export type EmployeePolicyCreateInput = {
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: number
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
 }
@@ -411,6 +562,13 @@ export type EmployeePolicyUncheckedCreateInput = {
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: number
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
 }
 
@@ -430,6 +588,13 @@ export type EmployeePolicyUpdateInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
 }
@@ -451,6 +616,13 @@ export type EmployeePolicyUncheckedUpdateInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
@@ -471,6 +643,13 @@ export type EmployeePolicyCreateManyInput = {
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: number
 }
 
 export type EmployeePolicyUpdateManyMutationInput = {
@@ -489,6 +668,13 @@ export type EmployeePolicyUpdateManyMutationInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type EmployeePolicyUncheckedUpdateManyInput = {
@@ -508,6 +694,13 @@ export type EmployeePolicyUncheckedUpdateManyInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type EmployeePolicyListRelationFilter = {
@@ -548,6 +741,23 @@ export type EmployeePolicyCountOrderByAggregateInput = {
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
+  otRateNormalDay?: Prisma.SortOrder
+  otRateRestDay?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
+  otRateRestDayInShift?: Prisma.SortOrder
+  otRatePublicHolidayInShift?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
+  otDailyThresholdMinutes?: Prisma.SortOrder
+}
+
+export type EmployeePolicyAvgOrderByAggregateInput = {
+  otRateNormalDay?: Prisma.SortOrder
+  otRateRestDay?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
+  otRateRestDayInShift?: Prisma.SortOrder
+  otRatePublicHolidayInShift?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
+  otDailyThresholdMinutes?: Prisma.SortOrder
 }
 
 export type EmployeePolicyMaxOrderByAggregateInput = {
@@ -567,6 +777,13 @@ export type EmployeePolicyMaxOrderByAggregateInput = {
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
+  otRateNormalDay?: Prisma.SortOrder
+  otRateRestDay?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
+  otRateRestDayInShift?: Prisma.SortOrder
+  otRatePublicHolidayInShift?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
+  otDailyThresholdMinutes?: Prisma.SortOrder
 }
 
 export type EmployeePolicyMinOrderByAggregateInput = {
@@ -586,6 +803,23 @@ export type EmployeePolicyMinOrderByAggregateInput = {
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
+  otRateNormalDay?: Prisma.SortOrder
+  otRateRestDay?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
+  otRateRestDayInShift?: Prisma.SortOrder
+  otRatePublicHolidayInShift?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
+  otDailyThresholdMinutes?: Prisma.SortOrder
+}
+
+export type EmployeePolicySumOrderByAggregateInput = {
+  otRateNormalDay?: Prisma.SortOrder
+  otRateRestDay?: Prisma.SortOrder
+  otRatePublicHoliday?: Prisma.SortOrder
+  otRateRestDayInShift?: Prisma.SortOrder
+  otRatePublicHolidayInShift?: Prisma.SortOrder
+  otSalaryThreshold?: Prisma.SortOrder
+  otDailyThresholdMinutes?: Prisma.SortOrder
 }
 
 export type EmployeePolicyNullableScalarRelationFilter = {
@@ -647,6 +881,14 @@ export type EnumOtPayoutMethodFieldUpdateOperationsInput = {
   set?: $Enums.OtPayoutMethod
 }
 
+export type DecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
 export type EmployeePolicyCreateNestedOneWithoutEmployeesInput = {
   create?: Prisma.XOR<Prisma.EmployeePolicyCreateWithoutEmployeesInput, Prisma.EmployeePolicyUncheckedCreateWithoutEmployeesInput>
   connectOrCreate?: Prisma.EmployeePolicyCreateOrConnectWithoutEmployeesInput
@@ -679,6 +921,13 @@ export type EmployeePolicyCreateWithoutOrganizationInput = {
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: number
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
 }
 
@@ -698,6 +947,13 @@ export type EmployeePolicyUncheckedCreateWithoutOrganizationInput = {
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: number
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
 }
 
@@ -747,6 +1003,13 @@ export type EmployeePolicyScalarWhereInput = {
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  otRateNormalDay?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
 }
 
 export type EmployeePolicyCreateWithoutEmployeesInput = {
@@ -765,6 +1028,13 @@ export type EmployeePolicyCreateWithoutEmployeesInput = {
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: number
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
 }
 
@@ -785,6 +1055,13 @@ export type EmployeePolicyUncheckedCreateWithoutEmployeesInput = {
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: number
 }
 
 export type EmployeePolicyCreateOrConnectWithoutEmployeesInput = {
@@ -819,6 +1096,13 @@ export type EmployeePolicyUpdateWithoutEmployeesInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
 }
 
@@ -839,6 +1123,13 @@ export type EmployeePolicyUncheckedUpdateWithoutEmployeesInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type EmployeePolicyCreateManyOrganizationInput = {
@@ -857,6 +1148,13 @@ export type EmployeePolicyCreateManyOrganizationInput = {
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: number
 }
 
 export type EmployeePolicyUpdateWithoutOrganizationInput = {
@@ -875,6 +1173,13 @@ export type EmployeePolicyUpdateWithoutOrganizationInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
 }
 
@@ -894,6 +1199,13 @@ export type EmployeePolicyUncheckedUpdateWithoutOrganizationInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
@@ -913,6 +1225,13 @@ export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationInput = {
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 
@@ -963,6 +1282,13 @@ export type EmployeePolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: boolean
+  otRateRestDay?: boolean
+  otRatePublicHoliday?: boolean
+  otRateRestDayInShift?: boolean
+  otRatePublicHolidayInShift?: boolean
+  otSalaryThreshold?: boolean
+  otDailyThresholdMinutes?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeePolicyCountOutputTypeDefaultArgs<ExtArgs>
@@ -987,9 +1313,16 @@ export type EmployeePolicySelectScalar = {
   otEnabled?: boolean
   requireGeofence?: boolean
   requireSelfie?: boolean
+  otRateNormalDay?: boolean
+  otRateRestDay?: boolean
+  otRatePublicHoliday?: boolean
+  otRateRestDayInShift?: boolean
+  otRatePublicHolidayInShift?: boolean
+  otSalaryThreshold?: boolean
+  otDailyThresholdMinutes?: boolean
 }
 
-export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otMethod" | "createdAt" | "updatedAt" | "otEnabled" | "requireGeofence" | "requireSelfie", ExtArgs["result"]["employeePolicy"]>
+export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otMethod" | "createdAt" | "updatedAt" | "otEnabled" | "requireGeofence" | "requireSelfie" | "otRateNormalDay" | "otRateRestDay" | "otRatePublicHoliday" | "otRateRestDayInShift" | "otRatePublicHolidayInShift" | "otSalaryThreshold" | "otDailyThresholdMinutes", ExtArgs["result"]["employeePolicy"]>
 export type EmployeePolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
@@ -1041,6 +1374,31 @@ export type $EmployeePolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
      * selfie on for any policy regardless of pay type.
      */
     requireSelfie: boolean
+    /**
+     * OT multipliers (× HRP) — applied only when otMethod === CASH.
+     * Ignored for TIME_BANK (banks 1:1) and when otEnabled = false.
+     * Values are kept in the row when OT mode is non-CASH so toggling
+     * back to CASH restores the admin's chosen rates.
+     */
+    otRateNormalDay: runtime.Decimal
+    otRateRestDay: runtime.Decimal
+    otRatePublicHoliday: runtime.Decimal
+    /**
+     * In-shift premiums (× ORP) for hours worked within the regular
+     * shift on rest days / public holidays.
+     */
+    otRateRestDayInShift: runtime.Decimal
+    otRatePublicHolidayInShift: runtime.Decimal
+    /**
+     * Monthly-salary cap above which OT requires extra approval.
+     * Mirrors the legacy org-wide `Organization.otSalaryThreshold`.
+     */
+    otSalaryThreshold: runtime.Decimal
+    /**
+     * Daily working minutes after which extra time becomes OT-eligible.
+     * Mirrors the legacy org-wide `Organization.otDailyThresholdMinutes`.
+     */
+    otDailyThresholdMinutes: number
   }, ExtArgs["result"]["employeePolicy"]>
   composites: {}
 }
@@ -1428,6 +1786,13 @@ export interface EmployeePolicyFieldRefs {
   readonly otEnabled: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly requireGeofence: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly requireSelfie: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly otRateNormalDay: Prisma.FieldRef<"EmployeePolicy", 'Decimal'>
+  readonly otRateRestDay: Prisma.FieldRef<"EmployeePolicy", 'Decimal'>
+  readonly otRatePublicHoliday: Prisma.FieldRef<"EmployeePolicy", 'Decimal'>
+  readonly otRateRestDayInShift: Prisma.FieldRef<"EmployeePolicy", 'Decimal'>
+  readonly otRatePublicHolidayInShift: Prisma.FieldRef<"EmployeePolicy", 'Decimal'>
+  readonly otSalaryThreshold: Prisma.FieldRef<"EmployeePolicy", 'Decimal'>
+  readonly otDailyThresholdMinutes: Prisma.FieldRef<"EmployeePolicy", 'Int'>
 }
     
 

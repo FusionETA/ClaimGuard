@@ -169,6 +169,17 @@ export const payrollProfileRepository = {
       email: string
       jobTitle: string
       profile: PayrollProfileData
+      /// Assigned policy id (null = legacy, no policy). The payroll-run
+      /// service uses this to resolve per-employee OT rates.
+      policyId: string | null
+      /// Primary project hours, used to derive dailyHours for the
+      /// monthly→hourly conversion. Null when the employee has no
+      /// project assignment with working hours configured.
+      primaryProject: {
+        workingHoursStart: string | null
+        workingHoursEnd: string | null
+        lunchBreakMinutes: number | null
+      } | null
     }>
   > {
     const prisma = getPrismaClient()
@@ -192,7 +203,21 @@ export const payrollProfileRepository = {
             id: true,
             employeeId: true,
             jobTitle: true,
+            policyId: true,
             payrollProfile: true,
+            projectAssignments: {
+              select: {
+                project: {
+                  select: {
+                    workingHoursStart: true,
+                    workingHoursEnd: true,
+                    lunchBreakMinutes: true,
+                  },
+                },
+              },
+              orderBy: { createdAt: "asc" },
+              take: 1,
+            },
           },
         },
       },
@@ -207,6 +232,12 @@ export const payrollProfileRepository = {
       email: string
       jobTitle: string
       profile: PayrollProfileData
+      policyId: string | null
+      primaryProject: {
+        workingHoursStart: string | null
+        workingHoursEnd: string | null
+        lunchBreakMinutes: number | null
+      } | null
     }> = []
 
     for (const u of users) {
@@ -215,6 +246,7 @@ export const payrollProfileRepository = {
       const profile = mapPayrollProfile(ep.payrollProfile)
       if (profile.isArchived) continue
       if (!isPayrollProfileComplete(profile)) continue
+      const primaryProject = ep.projectAssignments[0]?.project ?? null
       rows.push({
         userId: u.id,
         employeeProfileId: ep.id,
@@ -223,6 +255,8 @@ export const payrollProfileRepository = {
         email: u.email,
         jobTitle: ep.jobTitle,
         profile,
+        policyId: ep.policyId ?? null,
+        primaryProject,
       })
     }
 

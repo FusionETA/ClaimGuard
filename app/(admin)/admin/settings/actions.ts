@@ -64,26 +64,8 @@ const currenciesSchema = z
     }
   })
 
-const otRateMultiplier = z.coerce
-  .number({ message: "Rates must be a number." })
-  .min(1, "Rates must be at least 1.0×.")
-  .max(10, "Rates must be at most 10.0×.")
-
-const otRatesSchema = z.object({
-  otRateNormalDay: otRateMultiplier,
-  otRateRestDay: otRateMultiplier,
-  otRatePublicHoliday: otRateMultiplier,
-  restDayInShiftRate: otRateMultiplier,
-  publicHolidayInShiftRate: otRateMultiplier,
-  otSalaryThreshold: z.coerce
-    .number({ message: "Threshold must be a number." })
-    .min(0, "Threshold must be 0 or greater.")
-    .max(1_000_000, "Threshold seems unrealistic."),
-  otDailyThresholdHours: z.coerce
-    .number({ message: "OT threshold must be a number." })
-    .min(0, "OT threshold must be 0 or greater.")
-    .max(24, "OT threshold cannot exceed 24 hours."),
-})
+// otRatesSchema removed alongside saveOtRatesAction — OT multipliers
+// live on EmployeePolicy now. See Settings → Policies.
 
 /**
  * Revalidate Next.js render cache + bust Redis config caches for an
@@ -1066,68 +1048,9 @@ export async function saveAccountLimitAction(
   return { status: "success", message: "Account limit updated." }
 }
 
-export async function saveOtRatesAction(
-  _previousState: SettingsActionState,
-  formData: FormData
-): Promise<SettingsActionState> {
-  const session = await getCurrentSession()
-
-  if (!session || session.role !== "ADMIN") {
-    return { status: "error", message: "Session expired. Please log in again." }
-  }
-
-  const organizationId = resolveActiveOrgId(session)
-  if (!organizationId) {
-    return {
-      status: "error",
-      message: "Create or assign an organization before updating OT rates.",
-    }
-  }
-
-  const parsed = otRatesSchema.safeParse({
-    otRateNormalDay: formData.get("otRateNormalDay"),
-    otRateRestDay: formData.get("otRateRestDay"),
-    otRatePublicHoliday: formData.get("otRatePublicHoliday"),
-    restDayInShiftRate: formData.get("restDayInShiftRate"),
-    publicHolidayInShiftRate: formData.get("publicHolidayInShiftRate"),
-    otSalaryThreshold: formData.get("otSalaryThreshold"),
-    otDailyThresholdHours: formData.get("otDailyThresholdHours"),
-  })
-
-  if (!parsed.success) {
-    return {
-      status: "error",
-      message: parsed.error.issues[0]?.message ?? "Unable to save OT rates.",
-    }
-  }
-
-  try {
-    await organizationRepository.updateOrganizationOtRates({
-      organizationId,
-      rates: {
-        normalDay: parsed.data.otRateNormalDay,
-        restDay: parsed.data.otRateRestDay,
-        publicHoliday: parsed.data.otRatePublicHoliday,
-        restDayInShift: parsed.data.restDayInShiftRate,
-        publicHolidayInShift: parsed.data.publicHolidayInShiftRate,
-        salaryThreshold: parsed.data.otSalaryThreshold,
-        dailyThresholdMinutes: Math.round(parsed.data.otDailyThresholdHours * 60),
-      },
-    })
-  } catch (error) {
-    return {
-      status: "error",
-      message: error instanceof Error ? error.message : "Unable to save OT rates.",
-    }
-  }
-
-  await revalidateAdminSurfaces(organizationId)
-
-  return {
-    status: "success",
-    message: "OT rates updated.",
-  }
-}
+// saveOtRatesAction was removed — OT multipliers now live on
+// EmployeePolicy (see Settings → Policies). The form that used to write
+// to Organization.otRate* has also been removed from admin-settings-panel.
 
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/
 

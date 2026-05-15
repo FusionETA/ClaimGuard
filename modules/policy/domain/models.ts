@@ -1,6 +1,7 @@
 import type {
   EmployeePayoutMethod,
   OtPayoutMethod,
+  OtRates,
 } from "@/modules/organization/domain/models"
 
 /// Admin-configurable classification for an employee. Replaces the previous
@@ -31,9 +32,35 @@ export type EmployeePolicy = {
   /// When true, the clock-in flow gates on a selfie capture. Replaces
   /// the legacy "Hourly Worker == selfie required" hardcoding.
   requireSelfie: boolean
+  /// OT multipliers, salary cap, and daily threshold. Applied only when
+  /// `otEnabled && otMethod === "CASH"`. Always present in the DB row;
+  /// the calc engine ignores them outside CASH mode.
+  otRateNormalDay: number
+  otRateRestDay: number
+  otRatePublicHoliday: number
+  otRateRestDayInShift: number
+  otRatePublicHolidayInShift: number
+  otSalaryThreshold: number
+  otDailyThresholdMinutes: number
   /// Number of employees currently assigned. Populated by the
   /// `listForOrganization` query; undefined elsewhere.
   employeeCount?: number
+}
+
+/// Project an `EmployeePolicy` row into the shared `OtRates` shape used
+/// by the payroll calc engine. Returned values are always populated;
+/// callers should still gate on `policy.otEnabled && otMethod === "CASH"`
+/// before applying them.
+export function otRatesFromPolicy(policy: EmployeePolicy): OtRates {
+  return {
+    normalDay: policy.otRateNormalDay,
+    restDay: policy.otRateRestDay,
+    publicHoliday: policy.otRatePublicHoliday,
+    restDayInShift: policy.otRateRestDayInShift,
+    publicHolidayInShift: policy.otRatePublicHolidayInShift,
+    salaryThreshold: policy.otSalaryThreshold,
+    dailyThresholdMinutes: policy.otDailyThresholdMinutes,
+  }
 }
 
 /// Effective module-access flags resolved for one employee. Drives nav

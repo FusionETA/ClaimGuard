@@ -27,10 +27,8 @@ export type PayrollSettingsData = {
   id: string
   organizationId: string
 
-  // OT multipliers
-  otRateNormal: number
-  otRateRest: number
-  otRatePublicHoliday: number
+  // OT multipliers were removed — they now live on EmployeePolicy
+  // (one set of rates per policy, only applied when otMethod = CASH).
 
   // Working-days rule for proration + hourly conversion
   workingDaysRule: WorkingDaysRule
