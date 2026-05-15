@@ -11,9 +11,27 @@ import {
 import { bustAttendanceCaches } from "@/lib/cache-invalidation"
 import { getPrismaClient } from "@/lib/prisma"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 
 export type OverrideAttendanceState = { ok?: boolean; error?: string }
+
+export type EditSessionBreak = {
+  id?: string
+  startedAt: string // ISO
+  endedAt: string | null // ISO or null
+}
+
+export type EditSessionInput = {
+  recordId: string
+  employeeId: string
+  timeIn: string | null // ISO, or "__CLEAR__" to clear, or null to leave unchanged
+  timeOut: string | null
+  breaks: EditSessionBreak[]
+  reason: string
+}
+
+export type EditSessionResult = { ok?: boolean; error?: string }
 
 function parseLocalDateTime(value: FormDataEntryValue | null): Date | null {
   if (typeof value !== "string" || value.length === 0) return null
@@ -113,5 +131,140 @@ export async function overrideAttendanceAction(
     organizationId: session.organizationId,
   })
 
+  return { ok: true }
+}
+
+/**
+ * Loads the current BreakSession rows for a record so the session editor
+ * can pre-populate the dialog. Authorisation: supervisor of the
+ * employee, or admin in the employee's org.
+ */
+export async function loadSessionBreaksAction(
+  recordId: string,
+  employeeId: string,
+): Promise<{
+  breaks?: Array<{ id: string; startedAt: string; endedAt: string | null }>
+  error?: string
+}> {
+  const session = await getCurrentSession()
+  if (!session) redirect("/login")
+  if (session.role !== "SUPERVISOR" && session.role !== "ADMIN") {
+    return { error: "Only supervisors or admins can view session details." }
+  }
+  if (session.role === "SUPERVISOR") {
+    try {
+      await attendanceRepository.assertSupervisorCanEditEmployee(
+        session.userId,
+        employeeId,
+      )
+    } catch (err) {
+      return {
+        error: err instanceof Error ? err.message : "Not authorised.",
+      }
+    }
+  }
+  const rows = await attendanceRepository.getBreakSessionsForRecord(recordId)
+  return {
+    breaks: rows.map((b) => ({
+      id: b.id,
+      startedAt: b.startedAt.toISOString(),
+      endedAt: b.endedAt ? b.endedAt.toISOString() : null,
+    })),
+  }
+}
+
+const CLEAR_SENTINEL = "__CLEAR__"
+
+function parseEditInput(value: string | null): Date | null | undefined {
+  if (value === null) return undefined
+  if (value === CLEAR_SENTINEL) return null
+  const d = new Date(value)
+  return Number.isNaN(d.getTime()) ? undefined : d
+}
+
+/**
+ * Atomic-from-the-caller's-POV save for an entire attendance session:
+ * adjusts clock-in / clock-out and any combination of break edits in
+ * one call. The repo writes one audit log row per change; durationMin
+ * is recomputed at each step.
+ */
+export async function editSessionAction(
+  input: EditSessionInput,
+): Promise<EditSessionResult> {
+  const session = await getCurrentSession()
+  if (!session) redirect("/login")
+  if (session.role !== "SUPERVISOR" && session.role !== "ADMIN") {
+    return { error: "Only supervisors or admins can edit attendance." }
+  }
+  const reason = input.reason.trim()
+  if (!reason) return { error: "Please add a reason for these changes." }
+
+  const timeIn = parseEditInput(input.timeIn)
+  const timeOut = parseEditInput(input.timeOut)
+
+  const breaks: Array<{
+    id?: string
+    startedAt: Date
+    endedAt: Date | null
+  }> = []
+  for (const b of input.breaks) {
+    const started = new Date(b.startedAt)
+    if (Number.isNaN(started.getTime())) {
+      return { error: "One of the break start times is invalid." }
+    }
+    let ended: Date | null = null
+    if (b.endedAt) {
+      const e = new Date(b.endedAt)
+      if (Number.isNaN(e.getTime())) {
+        return { error: "One of the break end times is invalid." }
+      }
+      if (e.getTime() < started.getTime()) {
+        return { error: "Break end must be after break start." }
+      }
+      ended = e
+    }
+    breaks.push({ id: b.id, startedAt: started, endedAt: ended })
+  }
+
+  if (timeIn instanceof Date && timeOut instanceof Date && timeIn > timeOut) {
+    return { error: "Clock-in must be earlier than clock-out." }
+  }
+
+  // Admin scoping: ensure the target employee is in the admin's active org.
+  if (session.role === "ADMIN") {
+    const prisma = getPrismaClient()
+    if (!prisma) return { error: "Database is not configured." }
+    const employee = await prisma.user.findUnique({
+      where: { id: input.employeeId },
+      select: { organizationId: true },
+    })
+    const adminOrg = resolveActiveOrgId(session) ?? null
+    if (adminOrg && employee?.organizationId && employee.organizationId !== adminOrg) {
+      return { error: "Employee is not in your organisation." }
+    }
+  }
+
+  try {
+    await supervisorAttendanceService.editSession(session.userId, {
+      attendanceRecordId: input.recordId,
+      employeeId: input.employeeId,
+      timeIn,
+      timeOut,
+      breaks,
+      reason,
+      editorRole: session.role === "ADMIN" ? "ADMIN" : "SUPERVISOR",
+    })
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Could not save." }
+  }
+
+  revalidatePath(`/employee/attendance/team/${input.employeeId}`)
+  revalidatePath("/employee/attendance/team")
+  revalidatePath("/admin/attendance")
+  revalidatePath("/employee/attendance/history")
+  await bustAttendanceCaches({
+    employeeUserId: input.employeeId,
+    organizationId: session.organizationId,
+  })
   return { ok: true }
 }

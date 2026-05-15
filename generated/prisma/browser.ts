@@ -171,6 +171,13 @@ export type AttendanceEditLog = Prisma.AttendanceEditLogModel
  */
 export type BreakSession = Prisma.BreakSessionModel
 /**
+ * Model BreakSessionEditLog
+ * Audit trail of supervisor/admin edits to BreakSession rows. One row
+ * per save (or create/delete) — captures the before/after values of
+ * `startedAt` and `endedAt`, plus the originating edit `source` tag.
+ */
+export type BreakSessionEditLog = Prisma.BreakSessionEditLogModel
+/**
  * Model ApprovalRequest
  * 
  */

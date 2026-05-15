@@ -582,7 +582,15 @@ export const attendanceRepository = {
         kind: { in: ["CLOCK_IN", "CLOCK_OUT", "BREAK"] },
       },
       orderBy: { eventAt: "asc" },
-      select: { id: true, kind: true, status: true, eventAt: true, title: true },
+      select: {
+        id: true,
+        kind: true,
+        status: true,
+        eventAt: true,
+        title: true,
+        reviewNotes: true,
+        reviewer: { select: { name: true } },
+      },
     })
     return events.map((e) => {
       const kind = e.kind as "CLOCK_IN" | "CLOCK_OUT" | "BREAK"
@@ -601,8 +609,47 @@ export const attendanceRepository = {
         status: e.status as ApprovalStatus,
         eventAt: (e.eventAt ?? new Date()).toISOString(),
         breakSubtype,
+        reviewNotes: e.reviewNotes,
+        reviewerName: e.reviewer?.name ?? null,
       }
     })
+  },
+
+  async getRejectedClockEvents(
+    employeeId: string,
+    from: Date,
+    to: Date,
+  ): Promise<Array<{
+    date: string
+    kind: "CLOCK_IN" | "CLOCK_OUT"
+    eventAt: string
+    reviewNotes: string | null
+    reviewerName: string | null
+  }>> {
+    const prisma = getClient()
+    const rows = await prisma.approvalRequest.findMany({
+      where: {
+        employeeId,
+        status: "REJECTED",
+        kind: { in: ["CLOCK_IN", "CLOCK_OUT"] },
+        date: { gte: startOfDay(from), lte: endOfDay(to) },
+      },
+      orderBy: { date: "desc" },
+      select: {
+        date: true,
+        kind: true,
+        eventAt: true,
+        reviewNotes: true,
+        reviewer: { select: { name: true } },
+      },
+    })
+    return rows.map((r) => ({
+      date: r.date.toISOString().slice(0, 10),
+      kind: r.kind as "CLOCK_IN" | "CLOCK_OUT",
+      eventAt: (r.eventAt ?? r.date).toISOString(),
+      reviewNotes: r.reviewNotes,
+      reviewerName: r.reviewer?.name ?? null,
+    }))
   },
 
   async getEmployeeOTApprovals(employeeId: string): Promise<ApprovalRequestView[]> {
@@ -1122,7 +1169,7 @@ export const attendanceRepository = {
     attendanceRecordId: string
     editorId: string
     editorRole: "ADMIN" | "SUPERVISOR"
-    source: "DIRECT_EDIT" | "APPROVE_OVERRIDE"
+    source: "DIRECT_EDIT" | "APPROVE_OVERRIDE" | "APPROVAL_REJECTION"
     timeIn?: Date | null
     timeOut?: Date | null
     reason?: string | null
@@ -1227,6 +1274,211 @@ export const attendanceRepository = {
     ])
     void logRow
     return { id: existing.id, timeIn: nextTimeIn, timeOut: nextTimeOut }
+  },
+
+  /**
+   * Returns every BreakSession on a given AttendanceRecord, ordered by
+   * `startedAt`. Used by the session-editor diff in the service layer.
+   */
+  async getBreakSessionsForRecord(
+    attendanceRecordId: string,
+  ): Promise<Array<{ id: string; startedAt: Date; endedAt: Date | null }>> {
+    const prisma = getClient()
+    return prisma.breakSession.findMany({
+      where: { attendanceRecordId },
+      orderBy: { startedAt: "asc" },
+      select: { id: true, startedAt: true, endedAt: true },
+    })
+  },
+
+  /**
+   * Recompute `AttendanceRecord.durationMin` from the current timeIn /
+   * timeOut and the current BreakSession rows. No-ops when the record
+   * doesn't have both clock ends set (duration is meaningless then).
+   * Used after break edits to keep the worked-minutes field in sync.
+   */
+  async recomputeDurationMin(attendanceRecordId: string): Promise<void> {
+    const prisma = getClient()
+    const record = await prisma.attendanceRecord.findUnique({
+      where: { id: attendanceRecordId },
+      select: {
+        id: true,
+        timeIn: true,
+        timeOut: true,
+        projectId: true,
+        employee: { select: { organizationId: true } },
+      },
+    })
+    if (!record) return
+    if (!record.timeIn || !record.timeOut) {
+      await prisma.attendanceRecord.update({
+        where: { id: record.id },
+        data: { durationMin: null },
+      })
+      return
+    }
+    const orgId = record.employee?.organizationId ?? null
+    const [hours, tz] = await Promise.all([
+      this.getWorkingHours(orgId, record.projectId ?? null),
+      this.getOrgTimezone(orgId),
+    ])
+    const expectedStart = expectedTimeOnLocalDay(record.timeIn, hours.start, tz)
+    const effectiveIn =
+      record.timeIn.getTime() < expectedStart.getTime() ? expectedStart : record.timeIn
+    const breaks = await prisma.breakSession.findMany({
+      where: { attendanceRecordId: record.id },
+      select: { startedAt: true, endedAt: true },
+    })
+    const timeOut = record.timeOut
+    const breakMin = breaks.reduce((sum, b) => {
+      const end = b.endedAt ?? timeOut
+      return sum + Math.max(0, diffMinutes(b.startedAt, end))
+    }, 0)
+    const raw = diffMinutes(effectiveIn, timeOut)
+    const durationMin = raw === null ? null : Math.max(0, raw - breakMin)
+    await prisma.attendanceRecord.update({
+      where: { id: record.id },
+      data: { durationMin },
+    })
+  },
+
+  /**
+   * Supervisor/admin override of a single BreakSession's start/end times.
+   * Writes a `BreakSessionEditLog` row and triggers a `durationMin`
+   * recompute on the parent AttendanceRecord. Pass `endedAt: null` to
+   * mark the break still-open; pass `startedAt: undefined` to keep it.
+   */
+  async overrideBreakSession(args: {
+    breakSessionId: string
+    editorId: string
+    editorRole: "ADMIN" | "SUPERVISOR"
+    source: "DIRECT_EDIT" | "APPROVAL_REJECTION"
+    startedAt?: Date
+    endedAt?: Date | null
+    reason?: string | null
+  }): Promise<void> {
+    const prisma = getClient()
+    const existing = await prisma.breakSession.findUnique({
+      where: { id: args.breakSessionId },
+      select: {
+        id: true,
+        attendanceRecordId: true,
+        startedAt: true,
+        endedAt: true,
+      },
+    })
+    if (!existing) throw new Error("Break session not found.")
+    const nextStartedAt = args.startedAt ?? existing.startedAt
+    const nextEndedAt =
+      args.endedAt === undefined ? existing.endedAt : args.endedAt
+    await prisma.$transaction([
+      prisma.breakSession.update({
+        where: { id: existing.id },
+        data: { startedAt: nextStartedAt, endedAt: nextEndedAt },
+      }),
+      prisma.breakSessionEditLog.create({
+        data: {
+          breakSessionId: existing.id,
+          attendanceRecordId: existing.attendanceRecordId,
+          editedById: args.editorId,
+          editorRole: args.editorRole,
+          reason: args.reason?.trim() || null,
+          prevStartedAt: existing.startedAt,
+          nextStartedAt,
+          prevEndedAt: existing.endedAt,
+          nextEndedAt,
+          source: args.source,
+        },
+      }),
+    ])
+    await this.recomputeDurationMin(existing.attendanceRecordId)
+  },
+
+  /**
+   * Supervisor/admin creates a BreakSession the employee forgot to log.
+   * Writes a `BreakSessionEditLog` with `source = "CREATE"` and
+   * recomputes `durationMin`.
+   */
+  async createBreakSessionAsEditor(args: {
+    attendanceRecordId: string
+    editorId: string
+    editorRole: "ADMIN" | "SUPERVISOR"
+    startedAt: Date
+    endedAt: Date | null
+    reason?: string | null
+  }): Promise<{ id: string }> {
+    const prisma = getClient()
+    const record = await prisma.attendanceRecord.findUnique({
+      where: { id: args.attendanceRecordId },
+      select: { id: true },
+    })
+    if (!record) throw new Error("Attendance record not found.")
+    const created = await prisma.breakSession.create({
+      data: {
+        attendanceRecordId: args.attendanceRecordId,
+        startedAt: args.startedAt,
+        endedAt: args.endedAt,
+      },
+      select: { id: true },
+    })
+    await prisma.breakSessionEditLog.create({
+      data: {
+        breakSessionId: created.id,
+        attendanceRecordId: args.attendanceRecordId,
+        editedById: args.editorId,
+        editorRole: args.editorRole,
+        reason: args.reason?.trim() || null,
+        prevStartedAt: null,
+        nextStartedAt: args.startedAt,
+        prevEndedAt: null,
+        nextEndedAt: args.endedAt,
+        source: "CREATE",
+      },
+    })
+    await this.recomputeDurationMin(args.attendanceRecordId)
+    return { id: created.id }
+  },
+
+  /**
+   * Supervisor/admin deletes a BreakSession. Writes a
+   * `BreakSessionEditLog` with `source = "DELETE"` so the audit trail is
+   * preserved (the log row's `breakSessionId` becomes null once the
+   * referenced row is gone, courtesy of `SetNull`). Recomputes
+   * `durationMin` afterward.
+   */
+  async deleteBreakSessionAsEditor(args: {
+    breakSessionId: string
+    editorId: string
+    editorRole: "ADMIN" | "SUPERVISOR"
+    reason?: string | null
+  }): Promise<void> {
+    const prisma = getClient()
+    const existing = await prisma.breakSession.findUnique({
+      where: { id: args.breakSessionId },
+      select: {
+        id: true,
+        attendanceRecordId: true,
+        startedAt: true,
+        endedAt: true,
+      },
+    })
+    if (!existing) throw new Error("Break session not found.")
+    await prisma.breakSessionEditLog.create({
+      data: {
+        breakSessionId: existing.id,
+        attendanceRecordId: existing.attendanceRecordId,
+        editedById: args.editorId,
+        editorRole: args.editorRole,
+        reason: args.reason?.trim() || null,
+        prevStartedAt: existing.startedAt,
+        nextStartedAt: null,
+        prevEndedAt: existing.endedAt,
+        nextEndedAt: null,
+        source: "DELETE",
+      },
+    })
+    await prisma.breakSession.delete({ where: { id: existing.id } })
+    await this.recomputeDurationMin(existing.attendanceRecordId)
   },
 
   /**
@@ -1710,6 +1962,49 @@ export const attendanceRepository = {
         chainHistory: nextHistory as unknown as object,
       },
     })
+
+    // Rejection of a CLOCK_IN/CLOCK_OUT propagates back to the underlying
+    // AttendanceRecord so the employee returns to the correct pre-state
+    // (not-clocked-in for CLOCK_IN, still-clocked-in for CLOCK_OUT) and the
+    // recorded time isn't silently counted by downstream reports.
+    if (
+      finalStatus === "REJECTED" &&
+      (request.kind === "CLOCK_IN" || request.kind === "CLOCK_OUT") &&
+      attendance
+    ) {
+      const fullRecord = await prisma.attendanceRecord.findUnique({
+        where: {
+          employeeId_date: { employeeId: request.employeeId, date: request.date },
+        },
+        select: { id: true },
+      })
+      if (fullRecord) {
+        if (request.kind === "CLOCK_IN") {
+          // Any breaks started under this now-rejected clock-in are wiped.
+          await prisma.breakSession.deleteMany({
+            where: { attendanceRecordId: fullRecord.id },
+          })
+          await this.overrideAttendanceTimes({
+            attendanceRecordId: fullRecord.id,
+            editorId: reviewerId,
+            editorRole: "SUPERVISOR",
+            source: "APPROVAL_REJECTION",
+            timeIn: null,
+            timeOut: null,
+            reason: notes ?? "Clock-in rejected",
+          })
+        } else {
+          await this.overrideAttendanceTimes({
+            attendanceRecordId: fullRecord.id,
+            editorId: reviewerId,
+            editorRole: "SUPERVISOR",
+            source: "APPROVAL_REJECTION",
+            timeOut: null,
+            reason: notes ?? "Clock-out rejected",
+          })
+        }
+      }
+    }
 
     // Approve-with-override: when the supervisor adjusts the event time
     // while approving a CLOCK_IN/CLOCK_OUT request, patch the underlying
