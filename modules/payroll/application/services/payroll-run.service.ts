@@ -316,6 +316,10 @@ export async function generatePayrollPayslips(input: {
     defaultEpfEmployerRate: settings?.defaultEpfEmployerRate ?? 13,
     hrdfEnabled: settings?.hrdfEnabled ?? false,
     hrdfRate: settings?.hrdfRate ?? null,
+    // Default ON when the row is missing (new orgs) so admins get
+    // the HReasily-style monthly PCB out of the box. Turn off if
+    // strict LHDN-TP1 reading is preferred.
+    autoApplySocsoEisRelief: settings?.autoApplySocsoEisRelief ?? true,
   } as const
 
   function calcSettingsForEmployee(policyId: string | null): {
@@ -372,6 +376,14 @@ export async function generatePayrollPayslips(input: {
         ytdPcb: ytd.ytdPcb + (isPrevForSameYear ? e.profile.prevPcb ?? 0 : 0),
         ytdZakat:
           ytd.ytdZakat + (isPrevForSameYear ? e.profile.prevZakat ?? 0 : 0),
+        // Prev-employer SOCSO+EIS carryover is intentionally omitted —
+        // the RM 350 cap saturates at typical contribution levels
+        // within the first ~3-4 months, so a mid-year joiner converges
+        // to the same answer with or without the prior-employer
+        // figure. (We could add a `prevSocsoEis` profile field later
+        // if needed for early-year joiners, but the PCB delta is
+        // typically < RM 5 / month.)
+        ytdSocsoEis: ytd.ytdSocsoEis,
         ytdAllowanceByCategory: ytd.ytdAllowanceByCategory,
       }
     }),
@@ -450,6 +462,7 @@ export async function generatePayrollPayslips(input: {
       ytdEpf: ytd?.ytdEpf ?? 0,
       ytdPcb: ytd?.ytdPcb ?? 0,
       ytdZakat: ytd?.ytdZakat ?? 0,
+      ytdSocsoEis: ytd?.ytdSocsoEis ?? 0,
       // YTD per-category allowance totals — drives taxExemptLimit
       // enforcement for parking / childcare / award etc. caps.
       ytdAllowanceByCategory: ytd?.ytdAllowanceByCategory ?? {},
@@ -515,12 +528,39 @@ export async function generatePayrollPayslips(input: {
  * attachable claims so the admin can manage reimbursements in one
  * place.
  */
+/** Lightweight summary of a PayrollRunAdjustment, for inline
+ *  display on the "ready employees" table BEFORE payroll generation.
+ *  Mirrors what the admin tends to glance at: OT hour totals + how
+ *  many one-off line items + whether any recurring allowance is
+ *  overridden for this run. */
+export type RunEmployeeAdjustmentSummary = {
+  otNormalHours: number
+  otRestHours: number
+  otPublicHours: number
+  /// Count of manual ALLOWANCE-kind line items.
+  allowanceCount: number
+  /// Count of manual DEDUCTION-kind line items.
+  deductionCount: number
+  /// Count of recurring fixed-allowance rows the admin overrode for
+  /// this run (amount changed or skipped).
+  overrideCount: number
+  /// Whether the admin has left an audit note on this adjustment.
+  hasNote: boolean
+}
+
 export async function getPayrollRunDetailWithPayslipsPageData(input: {
   runId: string
 }): Promise<{
   organizationName: string
   run: PayrollRunRow
-  employees: Array<PayrollEmployeeRow & { ready: boolean }>
+  employees: Array<
+    PayrollEmployeeRow & {
+      ready: boolean
+      /// Per-run adjustment summary. Null when the admin hasn't
+      /// edited OT or added any line items for this employee yet.
+      adjustment: RunEmployeeAdjustmentSummary | null
+    }
+  >
   payslips: PayslipRow[]
   attachments: PayrollRunClaimRow[]
   attachableClaims: AttachableClaimRow[]
@@ -533,16 +573,57 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
-  const [payslips, attachments, attachableClaims] = await Promise.all([
-    payslipRepository.listForRun(input.runId),
-    payrollRunClaimRepository.listForRun(input.runId),
-    payrollRunClaimRepository.listAttachableForOrg({
-      organizationId: orgId,
-      excludeAttached: true,
-    }),
-  ])
+  const [payslips, attachments, attachableClaims, adjustments] =
+    await Promise.all([
+      payslipRepository.listForRun(input.runId),
+      payrollRunClaimRepository.listForRun(input.runId),
+      payrollRunClaimRepository.listAttachableForOrg({
+        organizationId: orgId,
+        excludeAttached: true,
+      }),
+      payrollRunAdjustmentRepository.listForRun(input.runId),
+    ])
 
-  return { ...base, payslips, attachments, attachableClaims }
+  // Project every PayrollRunAdjustment row into a serialisable
+  // summary, keyed by employeeProfileId. The "Will be included"
+  // table reads these so admins can see who has OT / line items
+  // set before clicking Generate.
+  const summariesByEmp = new Map<string, RunEmployeeAdjustmentSummary>()
+  for (const [empId, adj] of adjustments.entries()) {
+    let allowanceCount = 0
+    let deductionCount = 0
+    for (const li of adj.manualLineItems) {
+      if (li.kind === "ALLOWANCE") allowanceCount += 1
+      else if (li.kind === "DEDUCTION") deductionCount += 1
+    }
+    let overrideCount = 0
+    for (const v of Object.values(adj.fixedAllowanceOverrides ?? {})) {
+      if (v.skip || v.amount != null) overrideCount += 1
+    }
+    summariesByEmp.set(empId, {
+      otNormalHours: adj.otNormalHours,
+      otRestHours: adj.otRestHours,
+      otPublicHours: adj.otPublicHours,
+      allowanceCount,
+      deductionCount,
+      overrideCount,
+      hasNote:
+        typeof adj.notes === "string" && adj.notes.trim().length > 0,
+    })
+  }
+
+  const enrichedEmployees = base.employees.map((e) => ({
+    ...e,
+    adjustment: summariesByEmp.get(e.employeeProfileId) ?? null,
+  }))
+
+  return {
+    ...base,
+    employees: enrichedEmployees,
+    payslips,
+    attachments,
+    attachableClaims,
+  }
 }
 
 // ─── Bank disbursement (Phase 10) ────────────────────────────────────────

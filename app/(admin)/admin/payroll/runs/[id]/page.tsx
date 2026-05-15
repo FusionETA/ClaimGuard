@@ -5,7 +5,6 @@ import {
   ChevronLeft,
   ClipboardList,
   Download,
-  FileText,
   Receipt,
 } from "lucide-react"
 
@@ -102,87 +101,53 @@ export default async function AdminPayrollRunDetailPage({
         </Badge>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Totals</CardTitle>
-          <CardDescription>
-            {data.payslips.length === 0
-              ? "No payroll results yet. Click Run payroll to compute pay for every ready employee."
-              : isDraft
-                ? "Computed from the latest payroll run. Re-run payroll after editing profiles or settings."
-                : "Final totals from the submitted run."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-          <Stat label="Gross pay" value={data.run.totalGross} />
-          <Stat label="Net pay" value={data.run.totalNet} />
-          <Stat label="Employee EPF" value={data.run.totalEmployeeEpf} />
-          <Stat label="Employer EPF" value={data.run.totalEmployerEpf} />
-          <Stat label="Employee SOCSO" value={data.run.totalEmployeeSocso} />
-          <Stat label="Employer SOCSO" value={data.run.totalEmployerSocso} />
-          <Stat label="Employee EIS" value={data.run.totalEmployeeEis} />
-          <Stat label="Employer EIS" value={data.run.totalEmployerEis} />
-          <Stat label="PCB (income tax)" value={data.run.totalPcb} />
-          <Stat label="HRDF (employer)" value={data.run.totalHrdf} />
-          <Stat
-            label="Total cost to employer"
-            value={data.run.totalCostToEmployer}
-          />
-          <Stat
-            label="Employees"
-            value={data.run.employeeCount}
-            currency={false}
-          />
-        </CardContent>
-      </Card>
+      {/* The "Totals" card used to live here, duplicating every
+          number the new payslips table already shows in its column
+          headers + summary footer. Removed in favour of the single
+          source of truth. The "no payroll results yet" empty state
+          is preserved below in the no-employees-ready section.
+          When data.payslips.length === 0 the table itself doesn't
+          render — that's the empty signal now. */}
+      {data.payslips.length === 0 && ready.length > 0 ? (
+        <Card className="print:hidden">
+          <CardHeader>
+            <CardDescription>
+              No payroll results yet. Click <strong>Run payroll</strong>{" "}
+              to compute pay for every ready employee.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : null}
 
       {isDraft && (needsSetup.length > 0 || readyMissingPayslip.length > 0) ? (
-        <PayrollRunEmployeeTables
-          runId={data.run.id}
-          hasPayslips={data.payslips.length > 0}
-          needsSetup={needsSetup}
-          readyEmployees={readyMissingPayslip}
-        />
+        <div className="print:hidden">
+          <PayrollRunEmployeeTables
+            runId={data.run.id}
+            hasPayslips={data.payslips.length > 0}
+            needsSetup={needsSetup}
+            readyEmployees={readyMissingPayslip}
+          />
+        </div>
       ) : null}
 
       {data.payslips.length > 0 ? (
         <PayslipsListPanel
           runId={data.run.id}
           payslips={data.payslips}
-          showAdjustLink={isDraft}
+          showAdjustLink
+          runIsDraft={isDraft}
         />
       ) : null}
 
-      {data.payslips.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <FileText className="h-4 w-4" />
-              Payroll summary PDF
-            </CardTitle>
-            <CardDescription>
-              Attached to this run from the latest payroll calculation.
-              Re-run payroll after changing profiles or settings to
-              refresh the numbers.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" className="gap-2">
-              <a
-                href={`/admin/payroll/runs/${data.run.id}/summary`}
-                download
-              >
-                <Download className="h-4 w-4" />
-                Download summary PDF
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
+      {/* The Payroll Summary PDF download lives in the payslips
+          card header now — clicking it triggers `window.print()`,
+          which renders the payslips table + summary footer exactly
+          as drawn on screen (single source of truth). The previous
+          server-side PDF endpoint at /summary/route.ts is unused. */}
 
       {(data.attachments.length > 0 ||
         (isDraft && data.attachableClaims.length > 0)) && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Receipt className="h-4 w-4" />
@@ -247,7 +212,7 @@ export default async function AdminPayrollRunDetailPage({
       )}
 
       {ready.length === 0 && data.payslips.length === 0 && (
-        <Card>
+        <Card className="print:hidden">
           <CardHeader>
             <CardDescription>
               No employees ready for payroll. Complete an
@@ -296,26 +261,6 @@ export default async function AdminPayrollRunDetailPage({
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-function Stat(props: {
-  label: string
-  value: number | null
-  currency?: boolean
-}) {
-  const currency = props.currency ?? true
-  return (
-    <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
-      <div className="text-xs text-muted-foreground">{props.label}</div>
-      <div className="mt-1 text-base font-semibold text-foreground">
-        {props.value == null
-          ? "—"
-          : currency
-            ? formatMyr(props.value)
-            : String(props.value)}
-      </div>
     </div>
   )
 }

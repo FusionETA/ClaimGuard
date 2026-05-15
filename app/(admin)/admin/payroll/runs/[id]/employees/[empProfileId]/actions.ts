@@ -1,18 +1,22 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
 import { z } from "zod"
 
 import type { BaseFormState } from "@/lib/form-state"
 import {
   clearPayrollAdjustment,
+  getPayrollAdjustmentPageData,
   savePayrollAdjustment,
 } from "@/modules/payroll/application/services/payroll-run.service"
-import { payrollAdjustmentCategories } from "@/modules/payroll/domain/models"
+import {
+  payrollAdjustmentCategories,
+  type FixedAllowance,
+} from "@/modules/payroll/domain/models"
 import type {
   FixedAllowanceOverrideMap,
   ManualLineItem,
+  PayrollRunAdjustmentData,
 } from "@/modules/payroll/domain/runs"
 
 /**
@@ -189,5 +193,31 @@ export async function clearPayrollAdjustmentAction(
   }
 
   revalidatePath(`/admin/payroll/runs/${parsed.data.runId}`)
-  redirect(`/admin/payroll/runs/${parsed.data.runId}`)
+  return { status: "success", message: "Adjustments cleared." }
+}
+
+/**
+ * Lazy-load the data the per-employee adjustment form needs to render
+ * inside the modal dialog on the run detail page. Mirrors the page-
+ * data service but called from the client (via server action) when
+ * the modal opens, so we don't eagerly load every employee's
+ * adjustment data when the run page first renders.
+ *
+ * Returns null when the session is invalid, the org doesn't match,
+ * or the employee isn't on this run — the dialog renders an error
+ * state in that case.
+ */
+export async function fetchAdjustmentForDialogAction(input: {
+  runId: string
+  employeeProfileId: string
+}): Promise<{
+  adjustment: PayrollRunAdjustmentData | null
+  fixedAllowances: FixedAllowance[]
+} | null> {
+  const data = await getPayrollAdjustmentPageData(input)
+  if (!data) return null
+  return {
+    adjustment: data.adjustment,
+    fixedAllowances: data.fixedAllowances,
+  }
 }

@@ -233,7 +233,42 @@ export function calcResidentReliefsBreakdown(profile: {
 
 // ─── EPF relief cap ─────────────────────────────────────────────────────
 
-const EPF_RELIEF_CAP = 4000
+export const EPF_RELIEF_CAP = 4000
+
+// ─── SOCSO + EIS relief cap ─────────────────────────────────────────────
+
+/**
+ * Combined PERKESO (SOCSO + EIS) employee-contribution relief, capped
+ * at RM 350 per year of assessment.
+ *
+ * **Classification.** Strictly per LHDN MTD Specification 2026 this is
+ * a TP1 (optional) deduction — the employee should submit Form TP1 to
+ * the employer if they want it applied to monthly PCB; otherwise it
+ * gets claimed back via the year-end Form e-BE. We auto-apply it
+ * anyway, the same way HReasily / BrioHR / Talenox do, because the
+ * employer already deducts and knows the exact SOCSO + EIS amount
+ * (zero information asymmetry → no employee-declaration step needed).
+ * The cap of RM 350 is small enough that the over-claim risk is nil:
+ * an employee earning the wage ceiling for both schemes contributes
+ * RM 88.85 SOCSO + RM 9.90 EIS = ~RM 98.75 / month, well above the
+ * cap, so we'll always converge on RM 350 by mid-year.
+ *
+ * The relief stacks alongside EPF (also auto-applied, capped at RM
+ * 4,000) and the compulsory family reliefs (D / S / DU / SU / QC).
+ * TP1 items that the employer has NO way of knowing (life insurance,
+ * lifestyle, parents' medical, etc.) remain employee-declared and are
+ * out of scope for v1.
+ *
+ * **Projection style: actuals-only.** Unlike EPF (which uses LHDN's
+ * forward-projection formula `ytd + thisMonth + thisMonth × futureMonths`
+ * then caps at RM 4,000), SOCSO + EIS relief is computed from
+ * **actual contributions paid to date** — `ytd + thisMonth` only,
+ * capped at RM 350. Matches HReasily / BrioHR / Talenox. Annual PCB
+ * total ends up identical to a projected approach; only the per-
+ * month distribution differs (relief grows until the cap is reached
+ * mid-year, instead of being applied in full from January).
+ */
+export const SOCSO_EIS_RELIEF_CAP = 350
 
 // ─── PCB orchestrator ───────────────────────────────────────────────────
 
@@ -276,6 +311,16 @@ export type CalcPcbInput = {
   /// 0 if no zakat history. Defaults to 0 so legacy callers keep
   /// working unchanged.
   ytdZakat?: number
+  /// This month's SOCSO + EIS employee contribution (from normal
+  /// pay). Defaults to 0 so legacy callers keep working unchanged.
+  /// Used in the actuals-only relief calc: `min(RM 350, YTD + thisMonth)`
+  /// — no forward projection.
+  thisMonthSocsoEis?: number
+  /// YTD SOCSO + EIS employee contributions (sum of socsoEmployee +
+  /// eisEmployee from prior SUBMITTED payslips this calendar year,
+  /// excluding the current month). Defaults to 0. The actuals-only
+  /// relief = `min(RM 350, ytd + thisMonth)`.
+  ytdSocsoEis?: number
   /// Relief data — pulled from PayrollProfile.
   profile: Pick<
     PayrollProfileData,
@@ -377,16 +422,46 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   const reliefs = calcResidentReliefs(input.profile)
   const ytdZakat = Math.max(0, input.ytdZakat ?? 0)
 
+  // SOCSO + EIS relief — actuals-only (NOT projected forward like EPF).
+  //
+  // K2 = min(RM 350, YTD_SOCSO_EIS + thisMonth_SOCSO_EIS)
+  //
+  // Matches HReasily / BrioHR / Talenox: we only credit contributions
+  // already paid, not a forward projection. The relief grows month-
+  // by-month until the RM 350 cap is reached (typically mid-year for
+  // wages above ~RM 4,000). Annual PCB total ends up identical to
+  // the projected approach — only the per-month distribution differs.
+  //
+  // Auto-applied (see SOCSO_EIS_RELIEF_CAP doc comment for why we
+  // don't gate this behind Form TP1). Defaults to 0 when the caller
+  // doesn't pass the SOCSO/EIS figures (legacy callers and non-
+  // resident path remain unaffected).
+  const thisMonthSocsoEis = Math.max(0, input.thisMonthSocsoEis ?? 0)
+  const ytdSocsoEis = Math.max(0, input.ytdSocsoEis ?? 0)
+  const annualSocsoEisRelief = Math.min(
+    SOCSO_EIS_RELIEF_CAP,
+    ytdSocsoEis + thisMonthSocsoEis,
+  )
+
   // LHDN individual rebate doubles to RM 800 when the spouse has no
   // income (Category 2). Same gate as the RM 4,000 S relief, applied
   // both here (rebate) and in calcResidentReliefs (deduction).
   const spouseClaimable = input.profile.spouseWorking === false
 
-  // Chargeable income — without and with the AR.
-  const chargeableNormal = Math.max(0, annualTaxable - annualEpfNormal - reliefs)
+  // Chargeable income — without and with the AR. EPF + SOCSO/EIS
+  // relief both come off the annual taxable income alongside the
+  // personal/family reliefs.
+  const chargeableNormal = Math.max(
+    0,
+    annualTaxable - annualEpfNormal - annualSocsoEisRelief - reliefs,
+  )
   const chargeableWithAr = Math.max(
     0,
-    annualTaxable + arTaxable - annualEpfWithAr - reliefs,
+    annualTaxable +
+      arTaxable -
+      annualEpfWithAr -
+      annualSocsoEisRelief -
+      reliefs,
   )
 
   const annualTaxNormal = applyResidentTaxBands(

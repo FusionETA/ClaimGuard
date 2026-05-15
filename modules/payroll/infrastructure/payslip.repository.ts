@@ -233,16 +233,21 @@ export const payslipRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    // Eager-load line items so the run detail table can render the
+    // earnings breakdown inline under each employee name. Payroll
+    // runs are typically 10-100 employees with 3-8 line items each,
+    // so this stays well under any practical query budget.
     const rows = await prisma.payslip.findMany({
       where: { payrollRunId },
       orderBy: { snapshotEmployeeId: "asc" },
       include: {
+        lineItems: { orderBy: { id: "asc" } },
         _count: { select: { lineItems: true } },
       },
     })
 
     return rows.map((row) => ({
-      ...mapPayslip(row, []),
+      ...mapPayslip(row, row.lineItems.map(mapPayslipLineItem)),
       lineItemCount: row._count.lineItems,
     }))
   },
@@ -270,6 +275,9 @@ export const payslipRepository = {
     /// Subtracted from annual tax inside `calcPcb` because zakat
     /// fully offsets MTD obligation.
     ytdZakat: number
+    /// YTD employee-side SOCSO + EIS contributions. Feeds the RM 350
+    /// SOCSO+EIS relief inside `calcPcb` (annualised, capped).
+    ytdSocsoEis: number
     /// YTD sum of allowance line items grouped by their
     /// `PayrollAdjustmentCategory` code. Used by the next run to
     /// enforce `taxExemptLimit` caps (e.g. childcare RM3,000/year).
@@ -285,6 +293,7 @@ export const payslipRepository = {
         ytdEpf: 0,
         ytdPcb: 0,
         ytdZakat: 0,
+        ytdSocsoEis: 0,
         ytdAllowanceByCategory: {},
       }
     }
@@ -304,6 +313,8 @@ export const payslipRepository = {
           totalAllowances: true,
           otPay: true,
           epfEmployee: true,
+          socsoEmployee: true,
+          eisEmployee: true,
           pcb: true,
           zakat: true,
         },
@@ -342,6 +353,9 @@ export const payslipRepository = {
       ytdEpf: toNumber(agg._sum.epfEmployee, 0),
       ytdPcb: toNumber(agg._sum.pcb, 0),
       ytdZakat: toNumber(agg._sum.zakat, 0),
+      ytdSocsoEis:
+        toNumber(agg._sum.socsoEmployee, 0) +
+        toNumber(agg._sum.eisEmployee, 0),
       ytdAllowanceByCategory,
     }
   },

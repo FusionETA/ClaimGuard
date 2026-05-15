@@ -34,28 +34,28 @@ export type PayrollProfileAvgAggregateOutputType = {
   prevEmploymentYear: number | null
   prevRemuneration: runtime.Decimal | null
   prevEpf: runtime.Decimal | null
+  prevPcb: runtime.Decimal | null
+  prevZakat: runtime.Decimal | null
+  prevAllowableDeductions: runtime.Decimal | null
   epfEmployeeRate: runtime.Decimal | null
   epfEmployeeVoluntary: runtime.Decimal | null
   epfEmployerVoluntary: runtime.Decimal | null
   monthlySalary: runtime.Decimal | null
   hourlyRate: runtime.Decimal | null
-  prevAllowableDeductions: runtime.Decimal | null
-  prevPcb: runtime.Decimal | null
-  prevZakat: runtime.Decimal | null
 }
 
 export type PayrollProfileSumAggregateOutputType = {
   prevEmploymentYear: number | null
   prevRemuneration: runtime.Decimal | null
   prevEpf: runtime.Decimal | null
+  prevPcb: runtime.Decimal | null
+  prevZakat: runtime.Decimal | null
+  prevAllowableDeductions: runtime.Decimal | null
   epfEmployeeRate: runtime.Decimal | null
   epfEmployeeVoluntary: runtime.Decimal | null
   epfEmployerVoluntary: runtime.Decimal | null
   monthlySalary: runtime.Decimal | null
   hourlyRate: runtime.Decimal | null
-  prevAllowableDeductions: runtime.Decimal | null
-  prevPcb: runtime.Decimal | null
-  prevZakat: runtime.Decimal | null
 }
 
 export type PayrollProfileMinAggregateOutputType = {
@@ -89,6 +89,9 @@ export type PayrollProfileMinAggregateOutputType = {
   prevEmploymentYear: number | null
   prevRemuneration: runtime.Decimal | null
   prevEpf: runtime.Decimal | null
+  prevPcb: runtime.Decimal | null
+  prevZakat: runtime.Decimal | null
+  prevAllowableDeductions: runtime.Decimal | null
   contributeToEpf: boolean | null
   epfMemberBefore1998: boolean | null
   epfNumber: string | null
@@ -121,9 +124,6 @@ export type PayrollProfileMinAggregateOutputType = {
   archivedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
-  prevAllowableDeductions: runtime.Decimal | null
-  prevPcb: runtime.Decimal | null
-  prevZakat: runtime.Decimal | null
 }
 
 export type PayrollProfileMaxAggregateOutputType = {
@@ -157,6 +157,9 @@ export type PayrollProfileMaxAggregateOutputType = {
   prevEmploymentYear: number | null
   prevRemuneration: runtime.Decimal | null
   prevEpf: runtime.Decimal | null
+  prevPcb: runtime.Decimal | null
+  prevZakat: runtime.Decimal | null
+  prevAllowableDeductions: runtime.Decimal | null
   contributeToEpf: boolean | null
   epfMemberBefore1998: boolean | null
   epfNumber: string | null
@@ -189,9 +192,6 @@ export type PayrollProfileMaxAggregateOutputType = {
   archivedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
-  prevAllowableDeductions: runtime.Decimal | null
-  prevPcb: runtime.Decimal | null
-  prevZakat: runtime.Decimal | null
 }
 
 export type PayrollProfileCountAggregateOutputType = {
@@ -226,6 +226,9 @@ export type PayrollProfileCountAggregateOutputType = {
   prevEmploymentYear: number
   prevRemuneration: number
   prevEpf: number
+  prevPcb: number
+  prevZakat: number
+  prevAllowableDeductions: number
   contributeToEpf: number
   epfMemberBefore1998: number
   epfNumber: number
@@ -256,14 +259,11 @@ export type PayrollProfileCountAggregateOutputType = {
   payrollPolicy: number
   payrollCycle: number
   leaveEntitlement: number
+  payrollDocuments: number
   isArchived: number
   archivedAt: number
   createdAt: number
   updatedAt: number
-  payrollDocuments: number
-  prevAllowableDeductions: number
-  prevPcb: number
-  prevZakat: number
   _all: number
 }
 
@@ -272,28 +272,28 @@ export type PayrollProfileAvgAggregateInputType = {
   prevEmploymentYear?: true
   prevRemuneration?: true
   prevEpf?: true
+  prevPcb?: true
+  prevZakat?: true
+  prevAllowableDeductions?: true
   epfEmployeeRate?: true
   epfEmployeeVoluntary?: true
   epfEmployerVoluntary?: true
   monthlySalary?: true
   hourlyRate?: true
-  prevAllowableDeductions?: true
-  prevPcb?: true
-  prevZakat?: true
 }
 
 export type PayrollProfileSumAggregateInputType = {
   prevEmploymentYear?: true
   prevRemuneration?: true
   prevEpf?: true
+  prevPcb?: true
+  prevZakat?: true
+  prevAllowableDeductions?: true
   epfEmployeeRate?: true
   epfEmployeeVoluntary?: true
   epfEmployerVoluntary?: true
   monthlySalary?: true
   hourlyRate?: true
-  prevAllowableDeductions?: true
-  prevPcb?: true
-  prevZakat?: true
 }
 
 export type PayrollProfileMinAggregateInputType = {
@@ -327,6 +327,9 @@ export type PayrollProfileMinAggregateInputType = {
   prevEmploymentYear?: true
   prevRemuneration?: true
   prevEpf?: true
+  prevPcb?: true
+  prevZakat?: true
+  prevAllowableDeductions?: true
   contributeToEpf?: true
   epfMemberBefore1998?: true
   epfNumber?: true
@@ -359,9 +362,6 @@ export type PayrollProfileMinAggregateInputType = {
   archivedAt?: true
   createdAt?: true
   updatedAt?: true
-  prevAllowableDeductions?: true
-  prevPcb?: true
-  prevZakat?: true
 }
 
 export type PayrollProfileMaxAggregateInputType = {
@@ -395,6 +395,9 @@ export type PayrollProfileMaxAggregateInputType = {
   prevEmploymentYear?: true
   prevRemuneration?: true
   prevEpf?: true
+  prevPcb?: true
+  prevZakat?: true
+  prevAllowableDeductions?: true
   contributeToEpf?: true
   epfMemberBefore1998?: true
   epfNumber?: true
@@ -427,9 +430,6 @@ export type PayrollProfileMaxAggregateInputType = {
   archivedAt?: true
   createdAt?: true
   updatedAt?: true
-  prevAllowableDeductions?: true
-  prevPcb?: true
-  prevZakat?: true
 }
 
 export type PayrollProfileCountAggregateInputType = {
@@ -464,6 +464,9 @@ export type PayrollProfileCountAggregateInputType = {
   prevEmploymentYear?: true
   prevRemuneration?: true
   prevEpf?: true
+  prevPcb?: true
+  prevZakat?: true
+  prevAllowableDeductions?: true
   contributeToEpf?: true
   epfMemberBefore1998?: true
   epfNumber?: true
@@ -494,14 +497,11 @@ export type PayrollProfileCountAggregateInputType = {
   payrollPolicy?: true
   payrollCycle?: true
   leaveEntitlement?: true
+  payrollDocuments?: true
   isArchived?: true
   archivedAt?: true
   createdAt?: true
   updatedAt?: true
-  payrollDocuments?: true
-  prevAllowableDeductions?: true
-  prevPcb?: true
-  prevZakat?: true
   _all?: true
 }
 
@@ -623,6 +623,9 @@ export type PayrollProfileGroupByOutputType = {
   prevEmploymentYear: number | null
   prevRemuneration: runtime.Decimal | null
   prevEpf: runtime.Decimal | null
+  prevPcb: runtime.Decimal | null
+  prevZakat: runtime.Decimal | null
+  prevAllowableDeductions: runtime.Decimal | null
   contributeToEpf: boolean
   epfMemberBefore1998: boolean
   epfNumber: string | null
@@ -653,14 +656,11 @@ export type PayrollProfileGroupByOutputType = {
   payrollPolicy: string | null
   payrollCycle: string | null
   leaveEntitlement: runtime.JsonValue | null
+  payrollDocuments: runtime.JsonValue
   isArchived: boolean
   archivedAt: Date | null
   createdAt: Date
   updatedAt: Date
-  payrollDocuments: runtime.JsonValue
-  prevAllowableDeductions: runtime.Decimal | null
-  prevPcb: runtime.Decimal | null
-  prevZakat: runtime.Decimal | null
   _count: PayrollProfileCountAggregateOutputType | null
   _avg: PayrollProfileAvgAggregateOutputType | null
   _sum: PayrollProfileSumAggregateOutputType | null
@@ -718,6 +718,9 @@ export type PayrollProfileWhereInput = {
   prevEmploymentYear?: Prisma.IntNullableFilter<"PayrollProfile"> | number | null
   prevRemuneration?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   epfMemberBefore1998?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   epfNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
@@ -748,14 +751,11 @@ export type PayrollProfileWhereInput = {
   payrollPolicy?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   payrollCycle?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   leaveEntitlement?: Prisma.JsonNullableFilter<"PayrollProfile">
+  payrollDocuments?: Prisma.JsonFilter<"PayrollProfile">
   isArchived?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   archivedAt?: Prisma.DateTimeNullableFilter<"PayrollProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
-  payrollDocuments?: Prisma.JsonFilter<"PayrollProfile">
-  prevAllowableDeductions?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   payslips?: Prisma.PayslipListRelationFilter
 }
@@ -792,6 +792,9 @@ export type PayrollProfileOrderByWithRelationInput = {
   prevEmploymentYear?: Prisma.SortOrderInput | Prisma.SortOrder
   prevRemuneration?: Prisma.SortOrderInput | Prisma.SortOrder
   prevEpf?: Prisma.SortOrderInput | Prisma.SortOrder
+  prevPcb?: Prisma.SortOrderInput | Prisma.SortOrder
+  prevZakat?: Prisma.SortOrderInput | Prisma.SortOrder
+  prevAllowableDeductions?: Prisma.SortOrderInput | Prisma.SortOrder
   contributeToEpf?: Prisma.SortOrder
   epfMemberBefore1998?: Prisma.SortOrder
   epfNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -822,14 +825,11 @@ export type PayrollProfileOrderByWithRelationInput = {
   payrollPolicy?: Prisma.SortOrderInput | Prisma.SortOrder
   payrollCycle?: Prisma.SortOrderInput | Prisma.SortOrder
   leaveEntitlement?: Prisma.SortOrderInput | Prisma.SortOrder
+  payrollDocuments?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  payrollDocuments?: Prisma.SortOrder
-  prevAllowableDeductions?: Prisma.SortOrderInput | Prisma.SortOrder
-  prevPcb?: Prisma.SortOrderInput | Prisma.SortOrder
-  prevZakat?: Prisma.SortOrderInput | Prisma.SortOrder
   employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
   payslips?: Prisma.PayslipOrderByRelationAggregateInput
   _relevance?: Prisma.PayrollProfileOrderByRelevanceInput
@@ -870,6 +870,9 @@ export type PayrollProfileWhereUniqueInput = Prisma.AtLeast<{
   prevEmploymentYear?: Prisma.IntNullableFilter<"PayrollProfile"> | number | null
   prevRemuneration?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   epfMemberBefore1998?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   epfNumber?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
@@ -900,14 +903,11 @@ export type PayrollProfileWhereUniqueInput = Prisma.AtLeast<{
   payrollPolicy?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   payrollCycle?: Prisma.StringNullableFilter<"PayrollProfile"> | string | null
   leaveEntitlement?: Prisma.JsonNullableFilter<"PayrollProfile">
+  payrollDocuments?: Prisma.JsonFilter<"PayrollProfile">
   isArchived?: Prisma.BoolFilter<"PayrollProfile"> | boolean
   archivedAt?: Prisma.DateTimeNullableFilter<"PayrollProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollProfile"> | Date | string
-  payrollDocuments?: Prisma.JsonFilter<"PayrollProfile">
-  prevAllowableDeductions?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   payslips?: Prisma.PayslipListRelationFilter
 }, "id" | "employeeProfileId">
@@ -944,6 +944,9 @@ export type PayrollProfileOrderByWithAggregationInput = {
   prevEmploymentYear?: Prisma.SortOrderInput | Prisma.SortOrder
   prevRemuneration?: Prisma.SortOrderInput | Prisma.SortOrder
   prevEpf?: Prisma.SortOrderInput | Prisma.SortOrder
+  prevPcb?: Prisma.SortOrderInput | Prisma.SortOrder
+  prevZakat?: Prisma.SortOrderInput | Prisma.SortOrder
+  prevAllowableDeductions?: Prisma.SortOrderInput | Prisma.SortOrder
   contributeToEpf?: Prisma.SortOrder
   epfMemberBefore1998?: Prisma.SortOrder
   epfNumber?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -974,14 +977,11 @@ export type PayrollProfileOrderByWithAggregationInput = {
   payrollPolicy?: Prisma.SortOrderInput | Prisma.SortOrder
   payrollCycle?: Prisma.SortOrderInput | Prisma.SortOrder
   leaveEntitlement?: Prisma.SortOrderInput | Prisma.SortOrder
+  payrollDocuments?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  payrollDocuments?: Prisma.SortOrder
-  prevAllowableDeductions?: Prisma.SortOrderInput | Prisma.SortOrder
-  prevPcb?: Prisma.SortOrderInput | Prisma.SortOrder
-  prevZakat?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PayrollProfileCountOrderByAggregateInput
   _avg?: Prisma.PayrollProfileAvgOrderByAggregateInput
   _max?: Prisma.PayrollProfileMaxOrderByAggregateInput
@@ -1024,6 +1024,9 @@ export type PayrollProfileScalarWhereWithAggregatesInput = {
   prevEmploymentYear?: Prisma.IntNullableWithAggregatesFilter<"PayrollProfile"> | number | null
   prevRemuneration?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
   epfMemberBefore1998?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
   epfNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
@@ -1054,14 +1057,11 @@ export type PayrollProfileScalarWhereWithAggregatesInput = {
   payrollPolicy?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   payrollCycle?: Prisma.StringNullableWithAggregatesFilter<"PayrollProfile"> | string | null
   leaveEntitlement?: Prisma.JsonNullableWithAggregatesFilter<"PayrollProfile">
+  payrollDocuments?: Prisma.JsonWithAggregatesFilter<"PayrollProfile">
   isArchived?: Prisma.BoolWithAggregatesFilter<"PayrollProfile"> | boolean
   archivedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PayrollProfile"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollProfile"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollProfile"> | Date | string
-  payrollDocuments?: Prisma.JsonWithAggregatesFilter<"PayrollProfile">
-  prevAllowableDeductions?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileCreateInput = {
@@ -1095,6 +1095,9 @@ export type PayrollProfileCreateInput = {
   prevEmploymentYear?: number | null
   prevRemuneration?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: boolean
   epfMemberBefore1998?: boolean
   epfNumber?: string | null
@@ -1125,14 +1128,11 @@ export type PayrollProfileCreateInput = {
   payrollPolicy?: string | null
   payrollCycle?: string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
   payslips?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
 }
@@ -1169,6 +1169,9 @@ export type PayrollProfileUncheckedCreateInput = {
   prevEmploymentYear?: number | null
   prevRemuneration?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: boolean
   epfMemberBefore1998?: boolean
   epfNumber?: string | null
@@ -1199,14 +1202,11 @@ export type PayrollProfileUncheckedCreateInput = {
   payrollPolicy?: string | null
   payrollCycle?: string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
 }
 
@@ -1241,6 +1241,9 @@ export type PayrollProfileUpdateInput = {
   prevEmploymentYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   prevRemuneration?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfMemberBefore1998?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1271,14 +1274,11 @@ export type PayrollProfileUpdateInput = {
   payrollPolicy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
   payslips?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
 }
@@ -1315,6 +1315,9 @@ export type PayrollProfileUncheckedUpdateInput = {
   prevEmploymentYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   prevRemuneration?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfMemberBefore1998?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1345,14 +1348,11 @@ export type PayrollProfileUncheckedUpdateInput = {
   payrollPolicy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
 }
 
@@ -1388,6 +1388,9 @@ export type PayrollProfileCreateManyInput = {
   prevEmploymentYear?: number | null
   prevRemuneration?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: boolean
   epfMemberBefore1998?: boolean
   epfNumber?: string | null
@@ -1418,14 +1421,11 @@ export type PayrollProfileCreateManyInput = {
   payrollPolicy?: string | null
   payrollCycle?: string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileUpdateManyMutationInput = {
@@ -1459,6 +1459,9 @@ export type PayrollProfileUpdateManyMutationInput = {
   prevEmploymentYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   prevRemuneration?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfMemberBefore1998?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1489,14 +1492,11 @@ export type PayrollProfileUpdateManyMutationInput = {
   payrollPolicy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileUncheckedUpdateManyInput = {
@@ -1531,6 +1531,9 @@ export type PayrollProfileUncheckedUpdateManyInput = {
   prevEmploymentYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   prevRemuneration?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfMemberBefore1998?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1561,14 +1564,11 @@ export type PayrollProfileUncheckedUpdateManyInput = {
   payrollPolicy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileNullableScalarRelationFilter = {
@@ -1614,6 +1614,9 @@ export type PayrollProfileCountOrderByAggregateInput = {
   prevEmploymentYear?: Prisma.SortOrder
   prevRemuneration?: Prisma.SortOrder
   prevEpf?: Prisma.SortOrder
+  prevPcb?: Prisma.SortOrder
+  prevZakat?: Prisma.SortOrder
+  prevAllowableDeductions?: Prisma.SortOrder
   contributeToEpf?: Prisma.SortOrder
   epfMemberBefore1998?: Prisma.SortOrder
   epfNumber?: Prisma.SortOrder
@@ -1644,28 +1647,25 @@ export type PayrollProfileCountOrderByAggregateInput = {
   payrollPolicy?: Prisma.SortOrder
   payrollCycle?: Prisma.SortOrder
   leaveEntitlement?: Prisma.SortOrder
+  payrollDocuments?: Prisma.SortOrder
   isArchived?: Prisma.SortOrder
   archivedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  payrollDocuments?: Prisma.SortOrder
-  prevAllowableDeductions?: Prisma.SortOrder
-  prevPcb?: Prisma.SortOrder
-  prevZakat?: Prisma.SortOrder
 }
 
 export type PayrollProfileAvgOrderByAggregateInput = {
   prevEmploymentYear?: Prisma.SortOrder
   prevRemuneration?: Prisma.SortOrder
   prevEpf?: Prisma.SortOrder
+  prevPcb?: Prisma.SortOrder
+  prevZakat?: Prisma.SortOrder
+  prevAllowableDeductions?: Prisma.SortOrder
   epfEmployeeRate?: Prisma.SortOrder
   epfEmployeeVoluntary?: Prisma.SortOrder
   epfEmployerVoluntary?: Prisma.SortOrder
   monthlySalary?: Prisma.SortOrder
   hourlyRate?: Prisma.SortOrder
-  prevAllowableDeductions?: Prisma.SortOrder
-  prevPcb?: Prisma.SortOrder
-  prevZakat?: Prisma.SortOrder
 }
 
 export type PayrollProfileMaxOrderByAggregateInput = {
@@ -1699,6 +1699,9 @@ export type PayrollProfileMaxOrderByAggregateInput = {
   prevEmploymentYear?: Prisma.SortOrder
   prevRemuneration?: Prisma.SortOrder
   prevEpf?: Prisma.SortOrder
+  prevPcb?: Prisma.SortOrder
+  prevZakat?: Prisma.SortOrder
+  prevAllowableDeductions?: Prisma.SortOrder
   contributeToEpf?: Prisma.SortOrder
   epfMemberBefore1998?: Prisma.SortOrder
   epfNumber?: Prisma.SortOrder
@@ -1731,9 +1734,6 @@ export type PayrollProfileMaxOrderByAggregateInput = {
   archivedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  prevAllowableDeductions?: Prisma.SortOrder
-  prevPcb?: Prisma.SortOrder
-  prevZakat?: Prisma.SortOrder
 }
 
 export type PayrollProfileMinOrderByAggregateInput = {
@@ -1767,6 +1767,9 @@ export type PayrollProfileMinOrderByAggregateInput = {
   prevEmploymentYear?: Prisma.SortOrder
   prevRemuneration?: Prisma.SortOrder
   prevEpf?: Prisma.SortOrder
+  prevPcb?: Prisma.SortOrder
+  prevZakat?: Prisma.SortOrder
+  prevAllowableDeductions?: Prisma.SortOrder
   contributeToEpf?: Prisma.SortOrder
   epfMemberBefore1998?: Prisma.SortOrder
   epfNumber?: Prisma.SortOrder
@@ -1799,23 +1802,20 @@ export type PayrollProfileMinOrderByAggregateInput = {
   archivedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  prevAllowableDeductions?: Prisma.SortOrder
-  prevPcb?: Prisma.SortOrder
-  prevZakat?: Prisma.SortOrder
 }
 
 export type PayrollProfileSumOrderByAggregateInput = {
   prevEmploymentYear?: Prisma.SortOrder
   prevRemuneration?: Prisma.SortOrder
   prevEpf?: Prisma.SortOrder
+  prevPcb?: Prisma.SortOrder
+  prevZakat?: Prisma.SortOrder
+  prevAllowableDeductions?: Prisma.SortOrder
   epfEmployeeRate?: Prisma.SortOrder
   epfEmployeeVoluntary?: Prisma.SortOrder
   epfEmployerVoluntary?: Prisma.SortOrder
   monthlySalary?: Prisma.SortOrder
   hourlyRate?: Prisma.SortOrder
-  prevAllowableDeductions?: Prisma.SortOrder
-  prevPcb?: Prisma.SortOrder
-  prevZakat?: Prisma.SortOrder
 }
 
 export type PayrollProfileCreateNestedOneWithoutEmployeeProfileInput = {
@@ -1925,6 +1925,9 @@ export type PayrollProfileCreateWithoutEmployeeProfileInput = {
   prevEmploymentYear?: number | null
   prevRemuneration?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: boolean
   epfMemberBefore1998?: boolean
   epfNumber?: string | null
@@ -1955,14 +1958,11 @@ export type PayrollProfileCreateWithoutEmployeeProfileInput = {
   payrollPolicy?: string | null
   payrollCycle?: string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
 }
 
@@ -1997,6 +1997,9 @@ export type PayrollProfileUncheckedCreateWithoutEmployeeProfileInput = {
   prevEmploymentYear?: number | null
   prevRemuneration?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: boolean
   epfMemberBefore1998?: boolean
   epfNumber?: string | null
@@ -2027,14 +2030,11 @@ export type PayrollProfileUncheckedCreateWithoutEmployeeProfileInput = {
   payrollPolicy?: string | null
   payrollCycle?: string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
 }
 
@@ -2085,6 +2085,9 @@ export type PayrollProfileUpdateWithoutEmployeeProfileInput = {
   prevEmploymentYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   prevRemuneration?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfMemberBefore1998?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2115,14 +2118,11 @@ export type PayrollProfileUpdateWithoutEmployeeProfileInput = {
   payrollPolicy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
 }
 
@@ -2157,6 +2157,9 @@ export type PayrollProfileUncheckedUpdateWithoutEmployeeProfileInput = {
   prevEmploymentYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   prevRemuneration?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfMemberBefore1998?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2187,14 +2190,11 @@ export type PayrollProfileUncheckedUpdateWithoutEmployeeProfileInput = {
   payrollPolicy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
 }
 
@@ -2229,6 +2229,9 @@ export type PayrollProfileCreateWithoutPayslipsInput = {
   prevEmploymentYear?: number | null
   prevRemuneration?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: boolean
   epfMemberBefore1998?: boolean
   epfNumber?: string | null
@@ -2259,14 +2262,11 @@ export type PayrollProfileCreateWithoutPayslipsInput = {
   payrollPolicy?: string | null
   payrollCycle?: string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
 }
 
@@ -2302,6 +2302,9 @@ export type PayrollProfileUncheckedCreateWithoutPayslipsInput = {
   prevEmploymentYear?: number | null
   prevRemuneration?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: boolean
   epfMemberBefore1998?: boolean
   epfNumber?: string | null
@@ -2332,14 +2335,11 @@ export type PayrollProfileUncheckedCreateWithoutPayslipsInput = {
   payrollPolicy?: string | null
   payrollCycle?: string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: boolean
   archivedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  payrollDocuments: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileCreateOrConnectWithoutPayslipsInput = {
@@ -2389,6 +2389,9 @@ export type PayrollProfileUpdateWithoutPayslipsInput = {
   prevEmploymentYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   prevRemuneration?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfMemberBefore1998?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2419,14 +2422,11 @@ export type PayrollProfileUpdateWithoutPayslipsInput = {
   payrollPolicy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
 }
 
@@ -2462,6 +2462,9 @@ export type PayrollProfileUncheckedUpdateWithoutPayslipsInput = {
   prevEmploymentYear?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   prevRemuneration?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevEpf?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   contributeToEpf?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfMemberBefore1998?: Prisma.BoolFieldUpdateOperationsInput | boolean
   epfNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2492,14 +2495,11 @@ export type PayrollProfileUncheckedUpdateWithoutPayslipsInput = {
   payrollPolicy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   payrollCycle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leaveEntitlement?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   isArchived?: Prisma.BoolFieldUpdateOperationsInput | boolean
   archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  payrollDocuments?: Prisma.JsonNullValueInput | runtime.InputJsonValue
-  prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 
@@ -2565,6 +2565,9 @@ export type PayrollProfileSelect<ExtArgs extends runtime.Types.Extensions.Intern
   prevEmploymentYear?: boolean
   prevRemuneration?: boolean
   prevEpf?: boolean
+  prevPcb?: boolean
+  prevZakat?: boolean
+  prevAllowableDeductions?: boolean
   contributeToEpf?: boolean
   epfMemberBefore1998?: boolean
   epfNumber?: boolean
@@ -2595,14 +2598,11 @@ export type PayrollProfileSelect<ExtArgs extends runtime.Types.Extensions.Intern
   payrollPolicy?: boolean
   payrollCycle?: boolean
   leaveEntitlement?: boolean
+  payrollDocuments?: boolean
   isArchived?: boolean
   archivedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  payrollDocuments?: boolean
-  prevAllowableDeductions?: boolean
-  prevPcb?: boolean
-  prevZakat?: boolean
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payslips?: boolean | Prisma.PayrollProfile$payslipsArgs<ExtArgs>
   _count?: boolean | Prisma.PayrollProfileCountOutputTypeDefaultArgs<ExtArgs>
@@ -2642,6 +2642,9 @@ export type PayrollProfileSelectScalar = {
   prevEmploymentYear?: boolean
   prevRemuneration?: boolean
   prevEpf?: boolean
+  prevPcb?: boolean
+  prevZakat?: boolean
+  prevAllowableDeductions?: boolean
   contributeToEpf?: boolean
   epfMemberBefore1998?: boolean
   epfNumber?: boolean
@@ -2672,17 +2675,14 @@ export type PayrollProfileSelectScalar = {
   payrollPolicy?: boolean
   payrollCycle?: boolean
   leaveEntitlement?: boolean
+  payrollDocuments?: boolean
   isArchived?: boolean
   archivedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  payrollDocuments?: boolean
-  prevAllowableDeductions?: boolean
-  prevPcb?: boolean
-  prevZakat?: boolean
 }
 
-export type PayrollProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "phone" | "alternateEmail" | "gender" | "dateOfBirth" | "nationality" | "race" | "hasPr" | "idType" | "idNumber" | "maritalStatus" | "isResident" | "isOku" | "spouseWorking" | "spouseDisabled" | "spousePcbNumber" | "spouseIdNumber" | "addressLine1" | "addressLine2" | "addressLine3" | "city" | "postcode" | "state" | "emergencyContactName" | "emergencyContactPhone" | "emergencyContactRelation" | "childRelief" | "prevEmploymentYear" | "prevRemuneration" | "prevEpf" | "contributeToEpf" | "epfMemberBefore1998" | "epfNumber" | "epfEmployeeRate" | "epfEmployeeVoluntary" | "epfEmployerVoluntary" | "socsoNumber" | "socsoScheme" | "contributeToEis" | "incomeTaxNumber" | "pcbBorneByEmployer" | "ssfwNumber" | "paymentMethod" | "bankName" | "bankAccountHolderName" | "bankAccountNumber" | "salaryType" | "monthlySalary" | "hourlyRate" | "fixedAllowances" | "joinDate" | "leaveDate" | "archiveReason" | "reportedToLhdn" | "department" | "location" | "workSchedule" | "payrollPolicy" | "payrollCycle" | "leaveEntitlement" | "isArchived" | "archivedAt" | "createdAt" | "updatedAt" | "payrollDocuments" | "prevAllowableDeductions" | "prevPcb" | "prevZakat", ExtArgs["result"]["payrollProfile"]>
+export type PayrollProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "phone" | "alternateEmail" | "gender" | "dateOfBirth" | "nationality" | "race" | "hasPr" | "idType" | "idNumber" | "maritalStatus" | "isResident" | "isOku" | "spouseWorking" | "spouseDisabled" | "spousePcbNumber" | "spouseIdNumber" | "addressLine1" | "addressLine2" | "addressLine3" | "city" | "postcode" | "state" | "emergencyContactName" | "emergencyContactPhone" | "emergencyContactRelation" | "childRelief" | "prevEmploymentYear" | "prevRemuneration" | "prevEpf" | "prevPcb" | "prevZakat" | "prevAllowableDeductions" | "contributeToEpf" | "epfMemberBefore1998" | "epfNumber" | "epfEmployeeRate" | "epfEmployeeVoluntary" | "epfEmployerVoluntary" | "socsoNumber" | "socsoScheme" | "contributeToEis" | "incomeTaxNumber" | "pcbBorneByEmployer" | "ssfwNumber" | "paymentMethod" | "bankName" | "bankAccountHolderName" | "bankAccountNumber" | "salaryType" | "monthlySalary" | "hourlyRate" | "fixedAllowances" | "joinDate" | "leaveDate" | "archiveReason" | "reportedToLhdn" | "department" | "location" | "workSchedule" | "payrollPolicy" | "payrollCycle" | "leaveEntitlement" | "payrollDocuments" | "isArchived" | "archivedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollProfile"]>
 export type PayrollProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payslips?: boolean | Prisma.PayrollProfile$payslipsArgs<ExtArgs>
@@ -2753,6 +2753,26 @@ export type $PayrollProfilePayload<ExtArgs extends runtime.Types.Extensions.Inte
      * in the same tax year.
      */
     prevEpf: runtime.Decimal | null
+    /**
+     * X — total MTD (PCB) actually paid by previous employer in the
+     * same tax year. Subtracted from annual tax inside `calcPcb` so
+     * mid-year joiners are not over-withheld until December.
+     */
+    prevPcb: runtime.Decimal | null
+    /**
+     * Z — total zakat already paid in the same tax year (via prior
+     * payroll or self-paid). Subtracted from annual tax inside
+     * `calcPcb` because zakat fully offsets MTD obligation.
+     */
+    prevZakat: runtime.Decimal | null
+    /**
+     * ΣLP — total allowable deductions (TP1 items: life insurance,
+     * medical, lifestyle, etc.) declared in the same tax year. Not
+     * yet consumed by the calc engine (TP1 collection is deferred),
+     * but captured here so future runs can pick it up without a
+     * migration.
+     */
+    prevAllowableDeductions: runtime.Decimal | null
     contributeToEpf: boolean
     /**
      * Pre-1998 EPF members get different statutory rules. Captured for
@@ -2817,14 +2837,6 @@ export type $PayrollProfilePayload<ExtArgs extends runtime.Types.Extensions.Inte
      */
     leaveEntitlement: runtime.JsonValue | null
     /**
-     * Archived profiles are excluded from new payroll runs but their
-     * historical payslips are retained.
-     */
-    isArchived: boolean
-    archivedAt: Date | null
-    createdAt: Date
-    updatedAt: Date
-    /**
      * Uploaded payroll documents (contracts, offer letters, etc.).
      * Stored as a JSON array of `PayrollDocument` records — see
      * `modules/payroll/domain/models.ts`. Files themselves live in
@@ -2832,25 +2844,13 @@ export type $PayrollProfilePayload<ExtArgs extends runtime.Types.Extensions.Inte
      */
     payrollDocuments: runtime.JsonValue
     /**
-     * ΣLP — total allowable deductions (TP1 items: life insurance,
-     * medical, lifestyle, etc.) declared in the same tax year. Not
-     * yet consumed by the calc engine (TP1 collection is deferred),
-     * but captured here so future runs can pick it up without a
-     * migration.
+     * Archived profiles are excluded from new payroll runs but their
+     * historical payslips are retained.
      */
-    prevAllowableDeductions: runtime.Decimal | null
-    /**
-     * X — total MTD (PCB) actually paid by previous employer in the
-     * same tax year. Subtracted from annual tax inside `calcPcb` so
-     * mid-year joiners are not over-withheld until December.
-     */
-    prevPcb: runtime.Decimal | null
-    /**
-     * Z — total zakat already paid in the same tax year (via prior
-     * payroll or self-paid). Subtracted from annual tax inside
-     * `calcPcb` because zakat fully offsets MTD obligation.
-     */
-    prevZakat: runtime.Decimal | null
+    isArchived: boolean
+    archivedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
   }, ExtArgs["result"]["payrollProfile"]>
   composites: {}
 }
@@ -3253,6 +3253,9 @@ export interface PayrollProfileFieldRefs {
   readonly prevEmploymentYear: Prisma.FieldRef<"PayrollProfile", 'Int'>
   readonly prevRemuneration: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
   readonly prevEpf: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
+  readonly prevPcb: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
+  readonly prevZakat: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
+  readonly prevAllowableDeductions: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
   readonly contributeToEpf: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
   readonly epfMemberBefore1998: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
   readonly epfNumber: Prisma.FieldRef<"PayrollProfile", 'String'>
@@ -3283,14 +3286,11 @@ export interface PayrollProfileFieldRefs {
   readonly payrollPolicy: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly payrollCycle: Prisma.FieldRef<"PayrollProfile", 'String'>
   readonly leaveEntitlement: Prisma.FieldRef<"PayrollProfile", 'Json'>
+  readonly payrollDocuments: Prisma.FieldRef<"PayrollProfile", 'Json'>
   readonly isArchived: Prisma.FieldRef<"PayrollProfile", 'Boolean'>
   readonly archivedAt: Prisma.FieldRef<"PayrollProfile", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"PayrollProfile", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PayrollProfile", 'DateTime'>
-  readonly payrollDocuments: Prisma.FieldRef<"PayrollProfile", 'Json'>
-  readonly prevAllowableDeductions: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
-  readonly prevPcb: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
-  readonly prevZakat: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
 }
     
 

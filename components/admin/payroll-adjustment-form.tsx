@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useId, useMemo, useState } from "react"
+import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react"
 import { Plus, RotateCcw, Trash2 } from "lucide-react"
 
 import {
@@ -50,19 +50,61 @@ export function PayrollAdjustmentForm(props: {
   adjustment: PayrollRunAdjustmentData | null
   fixedAllowances: FixedAllowance[]
   readOnly: boolean
+  /// Optional — fires once after a save action lands "success".
+  /// Used by the modal-dialog wrapper to close itself.
+  onSaved?: () => void
+  /// Optional — when the form is rendered inside a dialog, the parent
+  /// provides a stable id so a Save button placed in the dialog's
+  /// own footer can target this form via `form="<id>"`. If not
+  /// provided, a local useId() is generated (standalone use).
+  saveFormId?: string
+  /// Optional — when true, the form does NOT render its own bottom
+  /// action bar. The parent dialog owns the Save + Clear buttons in
+  /// its DialogFooter instead. Default false (inline action bar).
+  hideActions?: boolean
+  /// Optional — fired whenever the save action's pending state flips.
+  /// Lets the dialog's external Save button show "Saving…" without
+  /// reaching back into the form's internal hook.
+  onPendingChange?: (pending: boolean) => void
 }) {
-  // Stable id so the "Save adjustments" submit button can live OUTSIDE
-  // the save form (alongside the "Clear adjustments" button, which has
-  // its own sibling form). HTML doesn't allow nested <form> elements
-  // — both forms must be top-level siblings — but a button can still
-  // submit a non-ancestor form via the HTML5 `form="<id>"` attribute.
-  const saveFormId = useId()
+  // Use the parent-provided id when one is passed (modal mode), else
+  // generate a local one for standalone use. Either way both the
+  // Save button (which may live OUTSIDE the form, in a sibling
+  // DialogFooter) and the form element share the id via the HTML5
+  // `form="<id>"` attribute.
+  const localSaveFormId = useId()
+  const saveFormId = props.saveFormId ?? localSaveFormId
 
   const [state, action, pending] = useActionState(
     savePayrollAdjustmentAction,
     initialSettingsActionState,
   )
   useToastOnAction(state)
+
+  // Report pending state up so an externally-rendered Save button
+  // (in the dialog footer) can disable itself / show a spinner.
+  useEffect(() => {
+    props.onPendingChange?.(pending)
+    // We deliberately don't depend on the callback ref — re-firing on
+    // every render would defeat the purpose of memoising it upstream.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending])
+
+  // Fire `onSaved` exactly once per save-success. We track the last
+  // state ref the callback fired for so a re-render with the same
+  // success state (toast still on screen) doesn't repeat.
+  const lastSavedSignal = useRef<string | null>(null)
+  useEffect(() => {
+    if (state.status === "success" && props.onSaved) {
+      const signal = `${state.status}:${state.message}`
+      if (lastSavedSignal.current !== signal) {
+        lastSavedSignal.current = signal
+        props.onSaved()
+      }
+    }
+    // We only depend on the action result, not on the callback ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.status, state.message])
 
   const [lines, setLines] = useState<ManualLineItem[]>(
     props.adjustment?.manualLineItems ?? [],
@@ -434,11 +476,12 @@ export function PayrollAdjustmentForm(props: {
       </Card>
 
     </form>
-    {/* Action row lives OUTSIDE the save form so the "Clear" form
-        below can be a sibling, not a descendant. The Save button
-        targets the save form via the HTML5 `form` attribute, the
-        Clear button targets its own sibling form. */}
-    {!props.readOnly && (
+    {/* Inline action bar — only rendered when the parent doesn't
+        opt into rendering its own footer (`hideActions`). In modal
+        mode the EditAdjustmentDialog renders Save + Clear in a real
+        DialogFooter so the buttons sit in a proper bottom strip
+        outside the scrolling body. */}
+    {!props.readOnly && !props.hideActions && (
       <div className="flex flex-wrap items-center justify-between gap-3">
         {props.adjustment ? (
           <ClearAdjustmentButton
@@ -594,7 +637,14 @@ function LineRow(props: {
   )
 }
 
-function ClearAdjustmentButton(props: {
+/**
+ * Self-contained "Clear all adjustments" form + confirm button. Can
+ * be rendered inside the form's own action bar (standalone use) OR
+ * inside the dialog's footer (modal use) — the button targets its
+ * sibling form via the `form` attribute, so the form element can
+ * live anywhere in the document.
+ */
+export function ClearAdjustmentButton(props: {
   runId: string
   employeeProfileId: string
 }) {

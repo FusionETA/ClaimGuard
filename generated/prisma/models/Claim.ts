@@ -487,8 +487,8 @@ export type ClaimWhereInput = {
   project?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   approvalEntries?: Prisma.ClaimApprovalEntryListRelationFilter
-  payrollRunAttachment?: Prisma.XOR<Prisma.PayrollRunClaimNullableScalarRelationFilter, Prisma.PayrollRunClaimWhereInput> | null
   payslipLineItem?: Prisma.XOR<Prisma.PayslipLineItemNullableScalarRelationFilter, Prisma.PayslipLineItemWhereInput> | null
+  payrollRunAttachment?: Prisma.XOR<Prisma.PayrollRunClaimNullableScalarRelationFilter, Prisma.PayrollRunClaimWhereInput> | null
 }
 
 export type ClaimOrderByWithRelationInput = {
@@ -536,8 +536,8 @@ export type ClaimOrderByWithRelationInput = {
   project?: Prisma.XeroProjectOrderByWithRelationInput
   reviewer?: Prisma.UserOrderByWithRelationInput
   approvalEntries?: Prisma.ClaimApprovalEntryOrderByRelationAggregateInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimOrderByWithRelationInput
   payslipLineItem?: Prisma.PayslipLineItemOrderByWithRelationInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimOrderByWithRelationInput
   _relevance?: Prisma.ClaimOrderByRelevanceInput
 }
 
@@ -589,8 +589,8 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   project?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
   reviewer?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   approvalEntries?: Prisma.ClaimApprovalEntryListRelationFilter
-  payrollRunAttachment?: Prisma.XOR<Prisma.PayrollRunClaimNullableScalarRelationFilter, Prisma.PayrollRunClaimWhereInput> | null
   payslipLineItem?: Prisma.XOR<Prisma.PayslipLineItemNullableScalarRelationFilter, Prisma.PayslipLineItemWhereInput> | null
+  payrollRunAttachment?: Prisma.XOR<Prisma.PayrollRunClaimNullableScalarRelationFilter, Prisma.PayrollRunClaimWhereInput> | null
 }, "id" | "claimNumber" | "xeroBillId">
 
 export type ClaimOrderByWithAggregationInput = {
@@ -720,8 +720,8 @@ export type ClaimCreateInput = {
   project?: Prisma.XeroProjectCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
   approvalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimUncheckedCreateInput = {
@@ -763,8 +763,8 @@ export type ClaimUncheckedCreateInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimUpdateInput = {
@@ -806,8 +806,8 @@ export type ClaimUpdateInput = {
   project?: Prisma.XeroProjectUpdateOneWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
   approvalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateInput = {
@@ -849,8 +849,8 @@ export type ClaimUncheckedUpdateInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimCreateManyInput = {
@@ -1487,8 +1487,8 @@ export type ClaimCreateWithoutEmployeeInput = {
   project?: Prisma.XeroProjectCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
   approvalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimUncheckedCreateWithoutEmployeeInput = {
@@ -1529,8 +1529,8 @@ export type ClaimUncheckedCreateWithoutEmployeeInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimCreateOrConnectWithoutEmployeeInput = {
@@ -1581,8 +1581,8 @@ export type ClaimCreateWithoutReviewerInput = {
   payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPaidClaimsInput
   project?: Prisma.XeroProjectCreateNestedOneWithoutClaimsInput
   approvalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimUncheckedCreateWithoutReviewerInput = {
@@ -1623,8 +1623,8 @@ export type ClaimUncheckedCreateWithoutReviewerInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimCreateOrConnectWithoutReviewerInput = {
@@ -1750,8 +1750,8 @@ export type ClaimCreateWithoutOrganizationInput = {
   project?: Prisma.XeroProjectCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
   approvalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimUncheckedCreateWithoutOrganizationInput = {
@@ -1792,8 +1792,8 @@ export type ClaimUncheckedCreateWithoutOrganizationInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimCreateOrConnectWithoutOrganizationInput = {
@@ -1860,8 +1860,8 @@ export type ClaimCreateWithoutApprovalEntriesInput = {
   payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPaidClaimsInput
   project?: Prisma.XeroProjectCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimUncheckedCreateWithoutApprovalEntriesInput = {
@@ -1902,8 +1902,8 @@ export type ClaimUncheckedCreateWithoutApprovalEntriesInput = {
   projectId?: string | null
   exceedsLimit?: boolean
   xeroFileId?: string | null
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimCreateOrConnectWithoutApprovalEntriesInput = {
@@ -1960,8 +1960,8 @@ export type ClaimUpdateWithoutApprovalEntriesInput = {
   payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPaidClaimsNestedInput
   project?: Prisma.XeroProjectUpdateOneWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateWithoutApprovalEntriesInput = {
@@ -2002,8 +2002,8 @@ export type ClaimUncheckedUpdateWithoutApprovalEntriesInput = {
   projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimCreateWithoutChartOfAccountInput = {
@@ -2044,8 +2044,8 @@ export type ClaimCreateWithoutChartOfAccountInput = {
   project?: Prisma.XeroProjectCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
   approvalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimUncheckedCreateWithoutChartOfAccountInput = {
@@ -2086,8 +2086,8 @@ export type ClaimUncheckedCreateWithoutChartOfAccountInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimCreateOrConnectWithoutChartOfAccountInput = {
@@ -2138,8 +2138,8 @@ export type ClaimCreateWithoutPayViaAccountInput = {
   project?: Prisma.XeroProjectCreateNestedOneWithoutClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
   approvalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimUncheckedCreateWithoutPayViaAccountInput = {
@@ -2180,8 +2180,8 @@ export type ClaimUncheckedCreateWithoutPayViaAccountInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimCreateOrConnectWithoutPayViaAccountInput = {
@@ -2264,8 +2264,8 @@ export type ClaimCreateWithoutProjectInput = {
   payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPaidClaimsInput
   reviewer?: Prisma.UserCreateNestedOneWithoutReviewsInput
   approvalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimUncheckedCreateWithoutProjectInput = {
@@ -2306,8 +2306,8 @@ export type ClaimUncheckedCreateWithoutProjectInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
 }
 
 export type ClaimCreateOrConnectWithoutProjectInput = {
@@ -2820,8 +2820,8 @@ export type ClaimUpdateWithoutEmployeeInput = {
   project?: Prisma.XeroProjectUpdateOneWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
   approvalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateWithoutEmployeeInput = {
@@ -2862,8 +2862,8 @@ export type ClaimUncheckedUpdateWithoutEmployeeInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateManyWithoutEmployeeInput = {
@@ -2943,8 +2943,8 @@ export type ClaimUpdateWithoutReviewerInput = {
   payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPaidClaimsNestedInput
   project?: Prisma.XeroProjectUpdateOneWithoutClaimsNestedInput
   approvalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateWithoutReviewerInput = {
@@ -2985,8 +2985,8 @@ export type ClaimUncheckedUpdateWithoutReviewerInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateManyWithoutReviewerInput = {
@@ -3105,8 +3105,8 @@ export type ClaimUpdateWithoutOrganizationInput = {
   project?: Prisma.XeroProjectUpdateOneWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
   approvalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateWithoutOrganizationInput = {
@@ -3147,8 +3147,8 @@ export type ClaimUncheckedUpdateWithoutOrganizationInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateManyWithoutOrganizationInput = {
@@ -3306,8 +3306,8 @@ export type ClaimUpdateWithoutChartOfAccountInput = {
   project?: Prisma.XeroProjectUpdateOneWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
   approvalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateWithoutChartOfAccountInput = {
@@ -3348,8 +3348,8 @@ export type ClaimUncheckedUpdateWithoutChartOfAccountInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateManyWithoutChartOfAccountInput = {
@@ -3429,8 +3429,8 @@ export type ClaimUpdateWithoutPayViaAccountInput = {
   project?: Prisma.XeroProjectUpdateOneWithoutClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
   approvalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateWithoutPayViaAccountInput = {
@@ -3471,8 +3471,8 @@ export type ClaimUncheckedUpdateWithoutPayViaAccountInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateManyWithoutPayViaAccountInput = {
@@ -3591,8 +3591,8 @@ export type ClaimUpdateWithoutProjectInput = {
   payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPaidClaimsNestedInput
   reviewer?: Prisma.UserUpdateOneWithoutReviewsNestedInput
   approvalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateWithoutProjectInput = {
@@ -3633,8 +3633,8 @@ export type ClaimUncheckedUpdateWithoutProjectInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
-  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
+  payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
 }
 
 export type ClaimUncheckedUpdateManyWithoutProjectInput = {
@@ -3752,8 +3752,8 @@ export type ClaimSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   project?: boolean | Prisma.Claim$projectArgs<ExtArgs>
   reviewer?: boolean | Prisma.Claim$reviewerArgs<ExtArgs>
   approvalEntries?: boolean | Prisma.Claim$approvalEntriesArgs<ExtArgs>
-  payrollRunAttachment?: boolean | Prisma.Claim$payrollRunAttachmentArgs<ExtArgs>
   payslipLineItem?: boolean | Prisma.Claim$payslipLineItemArgs<ExtArgs>
+  payrollRunAttachment?: boolean | Prisma.Claim$payrollRunAttachmentArgs<ExtArgs>
   _count?: boolean | Prisma.ClaimCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["claim"]>
 
@@ -3808,8 +3808,8 @@ export type ClaimInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   project?: boolean | Prisma.Claim$projectArgs<ExtArgs>
   reviewer?: boolean | Prisma.Claim$reviewerArgs<ExtArgs>
   approvalEntries?: boolean | Prisma.Claim$approvalEntriesArgs<ExtArgs>
-  payrollRunAttachment?: boolean | Prisma.Claim$payrollRunAttachmentArgs<ExtArgs>
   payslipLineItem?: boolean | Prisma.Claim$payslipLineItemArgs<ExtArgs>
+  payrollRunAttachment?: boolean | Prisma.Claim$payrollRunAttachmentArgs<ExtArgs>
   _count?: boolean | Prisma.ClaimCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -3823,8 +3823,14 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     project: Prisma.$XeroProjectPayload<ExtArgs> | null
     reviewer: Prisma.$UserPayload<ExtArgs> | null
     approvalEntries: Prisma.$ClaimApprovalEntryPayload<ExtArgs>[]
-    payrollRunAttachment: Prisma.$PayrollRunClaimPayload<ExtArgs> | null
     payslipLineItem: Prisma.$PayslipLineItemPayload<ExtArgs> | null
+    /**
+     * Attachment to a PayrollRun (Phase 5). At most one — once a claim
+     * is on a draft run it stays attached until detached or the run is
+     * deleted. After the run is submitted, the attachment row persists
+     * for historical audit.
+     */
+    payrollRunAttachment: Prisma.$PayrollRunClaimPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4238,8 +4244,8 @@ export interface Prisma__ClaimClient<T, Null = never, ExtArgs extends runtime.Ty
   project<T extends Prisma.Claim$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$projectArgs<ExtArgs>>): Prisma.Prisma__XeroProjectClient<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   reviewer<T extends Prisma.Claim$reviewerArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$reviewerArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   approvalEntries<T extends Prisma.Claim$approvalEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$approvalEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimApprovalEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  payrollRunAttachment<T extends Prisma.Claim$payrollRunAttachmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$payrollRunAttachmentArgs<ExtArgs>>): Prisma.Prisma__PayrollRunClaimClient<runtime.Types.Result.GetResult<Prisma.$PayrollRunClaimPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   payslipLineItem<T extends Prisma.Claim$payslipLineItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$payslipLineItemArgs<ExtArgs>>): Prisma.Prisma__PayslipLineItemClient<runtime.Types.Result.GetResult<Prisma.$PayslipLineItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  payrollRunAttachment<T extends Prisma.Claim$payrollRunAttachmentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Claim$payrollRunAttachmentArgs<ExtArgs>>): Prisma.Prisma__PayrollRunClaimClient<runtime.Types.Result.GetResult<Prisma.$PayrollRunClaimPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4773,25 +4779,6 @@ export type Claim$approvalEntriesArgs<ExtArgs extends runtime.Types.Extensions.I
 }
 
 /**
- * Claim.payrollRunAttachment
- */
-export type Claim$payrollRunAttachmentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PayrollRunClaim
-   */
-  select?: Prisma.PayrollRunClaimSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the PayrollRunClaim
-   */
-  omit?: Prisma.PayrollRunClaimOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PayrollRunClaimInclude<ExtArgs> | null
-  where?: Prisma.PayrollRunClaimWhereInput
-}
-
-/**
  * Claim.payslipLineItem
  */
 export type Claim$payslipLineItemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4808,6 +4795,25 @@ export type Claim$payslipLineItemArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   include?: Prisma.PayslipLineItemInclude<ExtArgs> | null
   where?: Prisma.PayslipLineItemWhereInput
+}
+
+/**
+ * Claim.payrollRunAttachment
+ */
+export type Claim$payrollRunAttachmentArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PayrollRunClaim
+   */
+  select?: Prisma.PayrollRunClaimSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PayrollRunClaim
+   */
+  omit?: Prisma.PayrollRunClaimOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PayrollRunClaimInclude<ExtArgs> | null
+  where?: Prisma.PayrollRunClaimWhereInput
 }
 
 /**

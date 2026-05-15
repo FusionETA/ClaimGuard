@@ -51,6 +51,10 @@ function mapPayrollSettings(row: any): PayrollSettingsData {
     defaultEpfEmployerRate: toNumber(row.defaultEpfEmployerRate, 13),
     hrdfEnabled: row.hrdfEnabled,
     hrdfRate: row.hrdfRate === null ? null : toNumber(row.hrdfRate, 0),
+    // Default true when the column didn't exist yet on legacy rows
+    // (prisma db push backfills with the schema default, but be
+    // defensive in case the row was hand-inserted).
+    autoApplySocsoEisRelief: row.autoApplySocsoEisRelief ?? true,
     employerIdNumber: row.employerIdNumber ?? null,
     myCoOrSsmNumber: row.myCoOrSsmNumber ?? null,
     leaveCarryForwardAllowed: row.leaveCarryForwardAllowed,
@@ -73,6 +77,7 @@ function toUpsertData(
   copy("defaultEpfEmployerRate")
   copy("hrdfEnabled")
   copy("hrdfRate")
+  copy("autoApplySocsoEisRelief")
   copy("employerIdNumber")
   copy("myCoOrSsmNumber")
   copy("leaveCarryForwardAllowed")

@@ -22,19 +22,19 @@ model User {
   approvalChainSteps     ApprovalChainStep[]  @relation("EmployeeChain")
   approvals              ApprovalRequest[]    @relation("EmployeeApprovals")
   approvalReviews        ApprovalRequest[]    @relation("ReviewerApprovals")
-  attendanceEdits        AttendanceEditLog[]  @relation("AttendanceEditLogActor")
   attendance             AttendanceRecord[]   @relation("EmployeeAttendance")
+  attendanceEdits        AttendanceEditLog[]  @relation("AttendanceEditLogActor")
   claims                 Claim[]              @relation("EmployeeClaims")
   reviews                Claim[]              @relation("AdminReviews")
   claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
   employeeProfile        EmployeeProfile?     @relation("EmployeeProfileUser")
-  submittedPayrollRuns   PayrollRun[]         @relation("PayrollRunSubmittedBy")
   projectManagerOf       ProjectManager[]     @relation("ProjectManagerOf")
   pushSubscriptions      PushSubscription[]
-  salaryChangesAuthored  SalaryChange[]       @relation("salaryChangeAuthor")
   organization           Organization?        @relation(fields: [organizationId], references: [id])
   xeroConnections        XeroConnection[]     @relation("XeroConnectedBy")
   managedProjects        XeroProject[]        @relation("ProjectManager")
+  submittedPayrollRuns   PayrollRun[]         @relation("PayrollRunSubmittedBy")
+  salaryChangesAuthored  SalaryChange[]       @relation("salaryChangeAuthor")
 
   @@index([organizationId])
 }
@@ -74,53 +74,51 @@ model Organization {
   chartAccounts            ChartOfAccount[]
   claims                   Claim[]
   employeePolicies         EmployeePolicy[]
-  payrollCompanyInfo       PayrollCompanyInfo?
-  payrollRuns              PayrollRun[]
-  payrollSettings          PayrollSettings?
   users                    User[]
   xeroConnections          XeroConnection[]
   projects                 XeroProject[]
+  payrollSettings          PayrollSettings?
+  payrollCompanyInfo       PayrollCompanyInfo?
+  payrollRuns              PayrollRun[]
 }
 
 /// Admin-defined classification for an employee. Replaces the previous
 /// hardcoded "Hourly Worker" / "Office Worker" pair. An organization can
 /// have any number of policies. Each EmployeeProfile is assigned to one
 /// policy via `policyId`. The policy controls:
-/// - which employee modules are visible (Attendance / Claims / Leave)
-/// - salary type (HOURLY vs MONTHLY) — drives hourly-rate validation and
-/// clock-in selfie capture
-/// - OT method (CASH vs TIME_BANK)
+///   - which employee modules are visible (Attendance / Claims / Leave)
+///   - salary type (HOURLY vs MONTHLY) — drives hourly-rate validation and
+///     clock-in selfie capture
+///   - OT method (CASH vs TIME_BANK)
 /// Two policies are seeded per org during the migration so existing
 /// behavior is preserved at cutover.
 model EmployeePolicy {
-  id                  String            @id @default(cuid())
-  organizationId      String
-  name                String
-  description         String?
+  id                   String           @id @default(cuid())
+  organizationId       String
+  name                 String
+  description          String?
   /// Exactly one policy per org should be the default (used when creating
   /// a new employee through the admin UI / API without specifying one).
-  isDefault           Boolean           @default(false)
+  isDefault            Boolean          @default(false)
   /// Soft-archive. Archived policies are hidden from new assignments but
   /// kept around so historical employee snapshots stay readable.
-  archivedAt          DateTime?
-  canAccessAttendance Boolean           @default(true)
-  canAccessClaims     Boolean           @default(true)
-  canAccessLeave      Boolean           @default(true)
-  salaryType          PayoutMethod      @default(HOURLY)
-  otMethod            OtPayoutMethod    @default(CASH)
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  archivedAt           DateTime?
+  canAccessAttendance  Boolean          @default(true)
+  canAccessClaims      Boolean          @default(true)
+  canAccessLeave       Boolean          @default(true)
+  salaryType           PayoutMethod     @default(HOURLY)
   /// When false, employees on this policy cannot file OT at all — the
   /// OT method below is ignored and OT-related UI is hidden.
-  otEnabled           Boolean           @default(true)
+  otEnabled            Boolean          @default(true)
+  otMethod             OtPayoutMethod   @default(CASH)
   /// When true, employees on this policy must be inside the project
   /// geofence (radius set on Organization, lat/lng on Project) to clock
   /// in. When false, geofence checks are skipped for these employees.
-  requireGeofence     Boolean           @default(true)
+  requireGeofence      Boolean          @default(true)
   /// When true, the clock-in flow gates on a selfie capture. Replaces
   /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
   /// selfie on for any policy regardless of pay type.
-  requireSelfie       Boolean           @default(false)
+  requireSelfie        Boolean          @default(false)
   /// OT multipliers (× HRP) — applied only when otMethod === CASH.
   /// Ignored for TIME_BANK (banks 1:1) and when otEnabled = false.
   /// Values are kept in the row when OT mode is non-CASH so toggling
@@ -140,8 +138,10 @@ model EmployeePolicy {
   /// Stored as minutes for precision; the admin UI presents this as
   /// hours (minutes ÷ 60).
   otDailyThresholdMinutes    Int       @default(480)
-  organization        Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  employees           EmployeeProfile[]
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  organization         Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees            EmployeeProfile[]
 
   @@unique([organizationId, name])
   @@index([organizationId, isDefault])
@@ -176,8 +176,8 @@ model ApiIntegration {
   /// the admin created the token manually through Settings → API.
   issuedByMasterKeyId String?
   auditLogs           ApiAuditLog[]
-  issuedByMasterKey   MasterApiKey? @relation(fields: [issuedByMasterKeyId], references: [id])
   organization        Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  issuedByMasterKey   MasterApiKey? @relation(fields: [issuedByMasterKeyId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
   @@index([tokenHash])
@@ -221,9 +221,9 @@ model ApiAuditLog {
 /// Token format: `wp_master_<64 hex chars>`. Stored as SHA-256 hash.
 model MasterApiKey {
   id                 String              @id @default(cuid())
-  partnerName        String
+  partnerName        String // human-readable, e.g. "Acme HR portal"
   tokenHash          String              @unique
-  tokenPrefix        String
+  tokenPrefix        String // "wp_master_xxxx" first 14 chars for visual ID
   active             Boolean             @default(true)
   /// Optional internal notes — contract id, contact email, etc. Never
   /// surfaced to the partner.
@@ -285,40 +285,40 @@ model PushSubscription {
 }
 
 model EmployeeProfile {
-  id                    String                      @id @default(cuid())
-  userId                String                      @unique
-  employeeId            String                      @unique
-  jobTitle              String
-  payoutMethod          PayoutMethod?
-  preferredCurrency     String                      @default("USD")
-  xeroConnectionId      String?
-  createdAt             DateTime                    @default(now())
-  updatedAt             DateTime                    @updatedAt
+  id                 String                      @id @default(cuid())
+  userId             String                      @unique
+  employeeId         String                      @unique
+  jobTitle           String
+  payoutMethod       PayoutMethod?
+  preferredCurrency  String                      @default("USD")
+  xeroConnectionId   String?
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
   /// Pay rate per hour. Only populated for employees whose payoutMethod
   /// is HOURLY; null for MONTHLY_BASED employees and supervisors.
-  hourlyRate            Decimal?                    @db.Decimal(10, 2)
+  hourlyRate         Decimal?                    @db.Decimal(10, 2)
   /// How approved OT is paid out. CASH = paid via payroll at the org's OT
   /// rate; TIME_BANK = banked as time-off minutes (Office Workers only).
   /// Hourly Workers are always CASH.
-  otPayoutMethod        OtPayoutMethod              @default(CASH)
+  otPayoutMethod     OtPayoutMethod              @default(CASH)
   /// Cumulative banked OT minutes for TIME_BANK Office Workers.
-  otTimeBalanceMin      Int                         @default(0)
+  otTimeBalanceMin   Int                         @default(0)
   /// Employee policy assignment. Drives module visibility and is the
   /// admin-facing source of truth for salary type + OT method. The
   /// denormalized columns `payoutMethod` and `otPayoutMethod` above are
   /// kept in sync with the assigned policy on every write so legacy
   /// attendance/payroll code paths keep working unchanged.
-  policyId              String?
-  policy                EmployeePolicy?             @relation(fields: [policyId], references: [id])
-  user                  User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
-  xeroConnection        XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
-  projectAssignments    EmployeeProjectAssignment[]
-  teamMemberships       EmployeeTeamMembership[]
-  payrollProfile        PayrollProfile?
-  payrollRunAdjustments PayrollRunAdjustment[]
-  payrollRunClaims      PayrollRunClaim[]
-  payslips              Payslip[]
-  salaryChanges         SalaryChange[]
+  policyId           String?
+  policy             EmployeePolicy?             @relation(fields: [policyId], references: [id], onDelete: SetNull)
+  user               User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
+  xeroConnection     XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
+  projectAssignments EmployeeProjectAssignment[]
+  teamMemberships    EmployeeTeamMembership[]
+  payrollProfile         PayrollProfile?
+  payslips               Payslip[]
+  payrollRunClaims       PayrollRunClaim[]
+  payrollRunAdjustments  PayrollRunAdjustment[]
+  salaryChanges          SalaryChange[]
 
   @@index([xeroConnectionId])
   @@index([policyId])
@@ -400,8 +400,12 @@ model Claim {
   project                   XeroProject?         @relation("ClaimProject", fields: [projectId], references: [id])
   reviewer                  User?                @relation("AdminReviews", fields: [lastReviewerId], references: [id])
   approvalEntries           ClaimApprovalEntry[]
-  payrollRunAttachment      PayrollRunClaim?
   payslipLineItem           PayslipLineItem?
+  /// Attachment to a PayrollRun (Phase 5). At most one — once a claim
+  /// is on a draft run it stays attached until detached or the run is
+  /// deleted. After the run is submitted, the attachment row persists
+  /// for historical audit.
+  payrollRunAttachment      PayrollRunClaim?
 
   @@index([organizationId, submittedAt])
   @@index([chartOfAccountId])
@@ -525,11 +529,8 @@ model XeroProject {
   workingHoursStart String?
   workingHoursEnd   String?
   workingDays       String?
-  /// Daily lunch/meal break duration in minutes. Subtracted from the
-  /// (workingHoursEnd − workingHoursStart) span when computing the
-  /// expected daily working minutes for attendance progress (actual vs
-  /// expected hours displays). Default 60 (1 hour) matches the common
-  /// 9–18 with 1h lunch = 8h schedule.
+  /// Daily lunch break minutes deducted from the (end-start) span when
+  /// computing expected daily working minutes. Defaults to 60.
   lunchBreakMinutes Int                         @default(60)
   attendanceRecords AttendanceRecord[]          @relation("AttendanceRecordProject")
   claims            Claim[]                     @relation("ClaimProject")
@@ -576,7 +577,7 @@ model ProjectManager {
 }
 
 model AttendanceRecord {
-  id               String              @id @default(cuid())
+  id               String           @id @default(cuid())
   employeeId       String
   date             DateTime
   timeIn           DateTime?
@@ -585,14 +586,19 @@ model AttendanceRecord {
   lateByMin        Int?
   location         String?
   project          String?
-  status           AttendanceStatus    @default(MISSING)
+  status           AttendanceStatus @default(MISSING)
   /// System-captured context for the day — off-site warnings prepended
   /// during clock-in/out, etc. Not directly editable by the employee
   /// (those edits go to `remark` instead). Shown to supervisors in the
   /// team detail view.
-  notes            String?             @db.Text
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
+  notes            String?          @db.Text
+  /// Employee's free-form remark about their shift. Set via the clock-
+  /// out summary popup or the dashboard remark card. Kept separate from
+  /// `notes` so off-site context never bleeds into the employee's own
+  /// commentary (and vice-versa).
+  remark           String?          @db.Text
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   projectId        String?
   /// When the file was uploaded to Xero. Independent from timeIn so
   /// re-clocks (re-upload) reset the retention window.
@@ -601,15 +607,10 @@ model AttendanceRecord {
   /// selfie was captured (Office Workers, or upload failed). Cleared
   /// by the prune cron after the retention window.
   xeroSelfieFileId String?
-  /// Employee's free-form remark about their shift. Set via the clock-
-  /// out summary popup or the dashboard remark card. Kept separate from
-  /// `notes` so off-site context never bleeds into the employee's own
-  /// commentary (and vice-versa).
-  remark           String?             @db.Text
-  editLogs         AttendanceEditLog[]
-  employee         User                @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
-  projectRef       XeroProject?        @relation("AttendanceRecordProject", fields: [projectId], references: [id])
+  employee         User             @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
+  projectRef       XeroProject?     @relation("AttendanceRecordProject", fields: [projectId], references: [id])
   breaks           BreakSession[]
+  editLogs         AttendanceEditLog[]
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
@@ -643,6 +644,7 @@ model AttendanceEditLog {
   /// "DIRECT_EDIT" | "APPROVE_OVERRIDE" | "EMPLOYEE_REMARK"
   source             String
   createdAt          DateTime          @default(now())
+
   attendanceRecord   AttendanceRecord  @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
   editor             User              @relation("AttendanceEditLogActor", fields: [editedById], references: [id])
 
@@ -761,459 +763,6 @@ model EmployeeTeamMembership {
   @@index([teamId, layer])
 }
 
-/// One row per employee. Stores all Malaysia-payroll-specific data that
-/// doesn't belong on `EmployeeProfile` (which is shared by claims +
-/// attendance). Lazy-created when admin onboards the employee into
-/// payroll — absence of a PayrollProfile = "employee not yet enrolled
-/// in payroll." Cascade-deletes if the EmployeeProfile is deleted.
-model PayrollProfile {
-  id                       String          @id @default(cuid())
-  employeeProfileId        String          @unique
-  phone                    String?
-  alternateEmail           String?
-  gender                   Gender?
-  dateOfBirth              DateTime?
-  /// Free-text country/nationality string (e.g. "Malaysian",
-  /// "Singaporean"). Drives the foreign-worker EPF branch — anything
-  /// not "Malaysian" uses the foreign-worker rate.
-  nationality              String?
-  /// LHDN race code (M/C/I/O etc). Used for Form E reporting (deferred).
-  race                     String?
-  hasPr                    Boolean         @default(false)
-  idType                   IdType?
-  idNumber                 String?
-  maritalStatus            MaritalStatus?
-  isResident               Boolean         @default(true)
-  /// OKU = disabled. Triggers DU (disabled individual) relief of
-  /// RM 7,000 in the PCB calc.
-  isOku                    Boolean         @default(false)
-  spouseWorking            Boolean?
-  spouseDisabled           Boolean?
-  spousePcbNumber          String?
-  spouseIdNumber           String?
-  addressLine1             String?
-  addressLine2             String?
-  addressLine3             String?
-  city                     String?
-  postcode                 String?
-  state                    String?
-  emergencyContactName     String?
-  emergencyContactPhone    String?
-  emergencyContactRelation String?
-  /// Dependent children — used for the PCB child relief (QC) calc.
-  /// Stored as JSON to keep the row flat. Expected shape:
-  /// [{ age: 12, abilityStatus: "NORMAL"|"DISABLED",
-  /// currentlyStudying: "PRESCHOOL"|"PRIMARY"|"SECONDARY"|"HIGHER_ED"|"NONE",
-  /// pcbDeduction: "FULL"|"HALF"|"NONE" }, ...]
-  childRelief              Json?
-  prevEmploymentYear       Int?
-  /// Y — gross remuneration from previous employer in the same tax year.
-  prevRemuneration         Decimal?        @db.Decimal(12, 2)
-  /// K — total EPF contributed (employee share) by previous employer
-  /// in the same tax year.
-  prevEpf                  Decimal?        @db.Decimal(12, 2)
-  contributeToEpf          Boolean         @default(true)
-  /// Pre-1998 EPF members get different statutory rules. Captured for
-  /// completeness; not used in v1 (defaults to false).
-  epfMemberBefore1998      Boolean         @default(false)
-  epfNumber                String?
-  /// Employee's mandatory EPF rate %. Default 11% per current Malaysian
-  /// law. Per-employee override of the org's defaultEpfEmployeeRate.
-  epfEmployeeRate          Decimal         @default(11.00) @db.Decimal(5, 2)
-  epfEmployeeVoluntary     Decimal         @default(0.00) @db.Decimal(5, 2)
-  epfEmployerVoluntary     Decimal         @default(0.00) @db.Decimal(5, 2)
-  socsoNumber              String?
-  socsoScheme              SocsoScheme?
-  contributeToEis          Boolean         @default(true)
-  incomeTaxNumber          String?
-  pcbBorneByEmployer       Boolean         @default(false)
-  ssfwNumber               String?
-  paymentMethod            PaymentMethod   @default(BANK_TRANSFER)
-  bankName                 String?
-  bankAccountHolderName    String?
-  bankAccountNumber        String?
-  salaryType               SalaryType
-  /// Required when salaryType=MONTHLY. RM.
-  monthlySalary            Decimal?        @db.Decimal(12, 2)
-  /// Required when salaryType=HOURLY. RM per hour.
-  hourlyRate               Decimal?        @db.Decimal(12, 2)
-  /// Fixed adjustments applied to every payroll run.
-  /// JSON shape: [{ category: "allowance_parking", name: "Parking Allowance", amount: 200 }, ...].
-  /// One-off adjustments are added per-run via PayslipLineItem.
-  fixedAllowances          Json?
-  joinDate                 DateTime?
-  /// Set when employee leaves. Triggers proration on their final
-  /// payroll run.
-  leaveDate                DateTime?
-  archiveReason            String?
-  /// True after the employee's final payroll has been reported to LHDN
-  /// (Form E and friends). Excludes them from future runs even if not
-  /// archived yet.
-  reportedToLhdn           Boolean         @default(false)
-  department               String?
-  location                 String?
-  workSchedule             String?
-  payrollPolicy            String?
-  payrollCycle             String?
-  /// Leave entitlement — v2 placeholder for the leave module.
-  /// Shape TBD when leave ships, e.g.
-  /// [{ type: "ANNUAL", days: 14 }, { type: "SICK", days: 30 }]
-  leaveEntitlement         Json?
-  /// Archived profiles are excluded from new payroll runs but their
-  /// historical payslips are retained.
-  isArchived               Boolean         @default(false)
-  archivedAt               DateTime?
-  createdAt                DateTime        @default(now())
-  updatedAt                DateTime        @updatedAt
-  /// Uploaded payroll documents (contracts, offer letters, etc.).
-  /// Stored as a JSON array of `PayrollDocument` records — see
-  /// `modules/payroll/domain/models.ts`. Files themselves live in
-  /// `public/uploads/payroll-documents/{userId}/` on disk.
-  payrollDocuments         Json
-  /// ΣLP — total allowable deductions (TP1 items: life insurance,
-  /// medical, lifestyle, etc.) declared in the same tax year. Not
-  /// yet consumed by the calc engine (TP1 collection is deferred),
-  /// but captured here so future runs can pick it up without a
-  /// migration.
-  prevAllowableDeductions  Decimal?        @db.Decimal(12, 2)
-  /// X — total MTD (PCB) actually paid by previous employer in the
-  /// same tax year. Subtracted from annual tax inside `calcPcb` so
-  /// mid-year joiners are not over-withheld until December.
-  prevPcb                  Decimal?        @db.Decimal(12, 2)
-  /// Z — total zakat already paid in the same tax year (via prior
-  /// payroll or self-paid). Subtracted from annual tax inside
-  /// `calcPcb` because zakat fully offsets MTD obligation.
-  prevZakat                Decimal?        @db.Decimal(12, 2)
-  employeeProfile          EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
-  payslips                 Payslip[]
-}
-
-/// Audit-grade history of legitimate salary changes for an employee.
-/// Created only when the admin explicitly classifies a salary edit
-/// as a real compensation change (not a typo fix). Used for:
-/// - LHDN / SOCSO / EIS audit responses
-/// - Industrial Relations disputes
-/// - Retrenchment / VSS payouts ("last drawn salary")
-/// - HR year-end performance reviews
-/// - Employer-issued salary-history letters (loans, EPF/income proof)
-///
-/// Does NOT drive the calc engine yet — the current `monthlySalary`
-/// on `PayrollProfile` still determines every payroll run. The
-/// `effectiveDate` field is here so a future Level 2 upgrade can
-/// switch to effective-date aware salary resolution without a
-/// migration.
-model SalaryChange {
-  id                    String             @id @default(cuid())
-  employeeProfileId     String
-  /// When the change takes effect. Defaults to today on the UI but the
-  /// admin can backdate.
-  effectiveDate         DateTime           @db.Date
-  /// Snapshot of what the salary was BEFORE this change.
-  previousSalaryType    SalaryType
-  previousMonthlySalary Decimal?           @db.Decimal(12, 2)
-  previousHourlyRate    Decimal?           @db.Decimal(12, 2)
-  /// New values AFTER this change. Mirrors PayrollProfile columns.
-  newSalaryType         SalaryType
-  newMonthlySalary      Decimal?           @db.Decimal(12, 2)
-  newHourlyRate         Decimal?           @db.Decimal(12, 2)
-  reason                SalaryChangeReason
-  notes                 String?            @db.Text
-  /// User (admin) who made the change. Nullable to allow legacy /
-  /// system-generated entries.
-  changedByUserId       String?
-  createdAt             DateTime           @default(now())
-  changedByUser         User?              @relation("salaryChangeAuthor", fields: [changedByUserId], references: [id])
-  employeeProfile       EmployeeProfile    @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
-
-  @@index([employeeProfileId, effectiveDate])
-  @@index([changedByUserId], map: "SalaryChange_changedByUserId_fkey")
-}
-
-/// Per-org payroll rules. Frequently edited by admin (OT multipliers,
-/// EPF defaults). Matches Altomate's `p_settings` table.
-model PayrollSettings {
-  id                            String          @id @default(cuid())
-  organizationId                String          @unique
-  /// OT multipliers (otRateNormal / otRateRest / otRatePublicHoliday)
-  /// were removed. They now live on `EmployeePolicy` so each policy
-  /// carries its own rates. See `prisma/backfill-policies.ts` for the
-  /// migration. The `workingDaysRule` below remains org-wide because
-  /// it's the calendar basis, not a multiplier.
-  workingDaysRule               WorkingDaysRule @default(TWENTY_SIX)
-  defaultEpfEmployeeRate        Decimal         @default(11.00) @db.Decimal(5, 2)
-  defaultEpfEmployerRate        Decimal         @default(13.00) @db.Decimal(5, 2)
-  hrdfEnabled                   Boolean         @default(false)
-  hrdfRate                      Decimal?        @db.Decimal(5, 2)
-  employerIdNumber              String?
-  myCoOrSsmNumber               String?
-  leaveCarryForwardAllowed      Boolean         @default(false)
-  leaveCarryForwardLimitDays    Int?
-  leaveCarryForwardExpiryMonths Int?
-  createdAt                     DateTime        @default(now())
-  updatedAt                     DateTime        @updatedAt
-  autoApplySocsoEisRelief       Boolean         @default(true)
-  organization                  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-}
-
-/// Per-org employer filing profile. Updated rarely (~annual at most).
-/// Separate from PayrollSettings because it's a different concern — the
-/// "filing identity" of the company vs the operational rules. Matches
-/// Altomate's `p_company_settings`.
-model PayrollCompanyInfo {
-  id                       String       @id @default(cuid())
-  organizationId           String       @unique
-  employerName             String?
-  employerTin              String?
-  registrationNo           String?
-  referenceType            String?
-  referenceNo              String?
-  employerCategory         String?
-  employerStatus           String?
-  cp8dFurnishType          String?
-  addressLine1             String?
-  addressLine2             String?
-  postcode                 String?
-  city                     String?
-  state                    String?
-  country                  String?      @default("Malaysia")
-  phone                    String?
-  handphone                String?
-  email                    String?
-  taxAgentName             String?
-  taxAgentTin              String?
-  taxAgentLicenceNo        String?
-  taxAgentPhone            String?
-  taxAgentEmail            String?
-  declarantName            String?
-  declarantIdType          IdType?
-  declarantIdNumber        String?
-  declarantPosition        String?
-  createdAt                DateTime     @default(now())
-  updatedAt                DateTime     @updatedAt
-  taxAgentFirmAddressLine1 String?
-  taxAgentFirmAddressLine2 String?
-  taxAgentFirmCity         String?
-  taxAgentFirmName         String?
-  taxAgentFirmPostcode     String?
-  taxAgentFirmState        String?
-  organization             Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-}
-
-/// One payroll run per (org, year, month). Created in DRAFT state; the
-/// admin reviews payslips, then submits → SUBMITTED. Submission is
-/// revertible until the next month's run is submitted.
-model PayrollRun {
-  id                      String                 @id @default(cuid())
-  organizationId          String
-  periodYear              Int
-  /// 1..12
-  periodMonth             Int
-  status                  PayrollRunStatus       @default(DRAFT)
-  totalGross              Decimal?               @db.Decimal(14, 2)
-  totalNet                Decimal?               @db.Decimal(14, 2)
-  totalEmployeeEpf        Decimal?               @db.Decimal(14, 2)
-  totalEmployerEpf        Decimal?               @db.Decimal(14, 2)
-  totalEmployeeSocso      Decimal?               @db.Decimal(14, 2)
-  totalEmployerSocso      Decimal?               @db.Decimal(14, 2)
-  totalEmployeeEis        Decimal?               @db.Decimal(14, 2)
-  totalEmployerEis        Decimal?               @db.Decimal(14, 2)
-  /// Sum of `Payslip.pcb` across the run. Computed by the PCB
-  /// engine (`modules/payroll/domain/pcb.ts`) using LHDN's
-  /// normal-remuneration + additional-remuneration formulas, with
-  /// zakat offset applied. 0 for employees without an
-  /// `incomeTaxNumber` on file (opt-in signal).
-  totalPcb                Decimal?               @default(0.00) @db.Decimal(14, 2)
-  /// HRDF (HRD Corp levy) totalled across the run. Computed by
-  /// `calcPayslip` when the org has `hrdfEnabled` and the employee is
-  /// a Malaysian citizen.
-  totalHrdf               Decimal?               @default(0.00) @db.Decimal(14, 2)
-  totalZakat              Decimal?               @default(0.00) @db.Decimal(14, 2)
-  employeeCount           Int?
-  /// Only Malaysians count for HRDF eligibility.
-  employeesSubjectToHrdf  Int?                   @default(0)
-  totalWagesSubjectToHrdf Decimal?               @default(0.00) @db.Decimal(14, 2)
-  /// Gross + employer EPF + employer SOCSO + employer EIS + HRDF.
-  totalCostToEmployer     Decimal?               @db.Decimal(14, 2)
-  submittedAt             DateTime?
-  submittedById           String?
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
-  organization            Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  submittedBy             User?                  @relation("PayrollRunSubmittedBy", fields: [submittedById], references: [id])
-  adjustments             PayrollRunAdjustment[]
-  claimAttachments        PayrollRunClaim[]
-  payslips                Payslip[]
-
-  @@unique([organizationId, periodYear, periodMonth])
-  @@index([organizationId, status])
-  @@index([submittedById], map: "PayrollRun_submittedById_fkey")
-}
-
-/// Join row attaching an approved (SYNCED + PERSONAL paymentType)
-/// AltomateHR claim to a payroll run as a REIMBURSEMENT. Persisted
-/// separately from `PayslipLineItem` because the run's payslips are
-/// re-generated from scratch on each "Generate" press, so the line
-/// items get wiped — this row is the source of truth that survives.
-///
-/// The actual `PayslipLineItem` is recreated from this attachment on
-/// each generation, with `claimId` pointing back here for traceability.
-///
-/// Snapshots `label` + `amount` at attach time so later edits to the
-/// underlying claim don't change historical payroll figures.
-model PayrollRunClaim {
-  id                String          @id @default(cuid())
-  payrollRunId      String
-  /// One claim → at most one attachment ever. Detaching deletes the
-  /// row; re-attaching to another run creates a new one.
-  claimId           String          @unique
-  employeeProfileId String
-  label             String
-  amount            Decimal         @db.Decimal(12, 2)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  claim             Claim           @relation(fields: [claimId], references: [id], onDelete: Cascade)
-  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
-  payrollRun        PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
-
-  @@index([payrollRunId])
-  @@index([employeeProfileId])
-}
-
-/// Per-run-per-employee adjustment row. Captures OT hours,
-/// one-off allowances + deductions, and a manually-entered
-/// unpaid-leave amount. Survives payslip regeneration (PayslipLineItem
-/// rows are recreated from these on each "Generate" press).
-///
-/// One row per (runId, employeeProfileId). Admins fill these in from
-/// the per-employee adjustment page; the generator merges them in
-/// alongside fixed adjustments (from PayrollProfile) and reimbursements
-/// (from PayrollRunClaim).
-model PayrollRunAdjustment {
-  id                      String          @id @default(cuid())
-  payrollRunId            String
-  employeeProfileId       String
-  otNormalHours           Decimal         @default(0.00) @db.Decimal(8, 2)
-  otRestHours             Decimal         @default(0.00) @db.Decimal(8, 2)
-  otPublicHours           Decimal         @default(0.00) @db.Decimal(8, 2)
-  /// JSON array of one-off adjustments for this run only:
-  /// `[{ kind: "ALLOWANCE" | "DEDUCTION", label, amount }]`. Stacked on
-  /// top of the PayrollProfile's fixed adjustments.
-  manualLineItems         Json
-  notes                   String?         @db.Text
-  createdAt               DateTime        @default(now())
-  updatedAt               DateTime        @updatedAt
-  /// Per-run overrides on the PayrollProfile's recurring fixed
-  /// adjustments. Keyed by the profile's fixed-allowance index as a
-  /// string, so the JSON shape is:
-  /// `{ "0": { "amount": 250, "skip": false }, "2": { "skip": true } }`
-  /// Missing index = use the profile default. `skip=true` zeroes the
-  /// row for this run only; `amount` overrides the value while keeping
-  /// the original category (so EPF/SOCSO/EIS/PCB subject-to flags
-  /// follow through correctly).
-  fixedAllowanceOverrides Json
-  employeeProfile         EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
-  payrollRun              PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
-
-  @@unique([payrollRunId, employeeProfileId])
-  @@index([payrollRunId])
-  @@index([employeeProfileId], map: "PayrollRunAdjustment_employeeProfileId_fkey")
-}
-
-/// One per (run, employee). Snapshots employee data at the moment of
-/// generation so later edits to PayrollProfile don't rewrite payroll
-/// history.
-model Payslip {
-  id                    String            @id @default(cuid())
-  payrollRunId          String
-  employeeProfileId     String
-  /// Nullable so we can keep payslips when a PayrollProfile is later
-  /// archived/deleted. The snapshot fields hold the source-of-truth
-  /// values; this FK is only for "fetch latest profile" UX.
-  payrollProfileId      String?
-  snapshotName          String
-  snapshotEmployeeId    String
-  snapshotPosition      String?
-  snapshotSalaryType    SalaryType
-  snapshotMonthlySalary Decimal?          @db.Decimal(12, 2)
-  snapshotHourlyRate    Decimal?          @db.Decimal(12, 2)
-  snapshotNationality   String?
-  snapshotIsResident    Boolean           @default(true)
-  /// JSON: { employee, employer, voluntaryEmployee, voluntaryEmployer }
-  snapshotEpfRates      Json
-  basicPay              Decimal           @db.Decimal(12, 2)
-  proratedPay           Decimal           @db.Decimal(12, 2)
-  workedHours           Decimal?          @db.Decimal(8, 2)
-  proratedFactor        Decimal           @default(1.0000) @db.Decimal(5, 4)
-  proratedDays          Int?
-  totalWorkingDays      Int?
-  otNormalHours         Decimal           @default(0.00) @db.Decimal(8, 2)
-  otRestHours           Decimal           @default(0.00) @db.Decimal(8, 2)
-  otPublicHours         Decimal           @default(0.00) @db.Decimal(8, 2)
-  otPay                 Decimal           @default(0.00) @db.Decimal(12, 2)
-  totalAllowances       Decimal           @default(0.00) @db.Decimal(12, 2)
-  /// Sum of REIMBURSEMENT line items (from AltomateHR claims).
-  totalReimbursements   Decimal           @default(0.00) @db.Decimal(12, 2)
-  totalDeductions       Decimal           @default(0.00) @db.Decimal(12, 2)
-  epfEmployee           Decimal           @default(0.00) @db.Decimal(12, 2)
-  epfEmployer           Decimal           @default(0.00) @db.Decimal(12, 2)
-  socsoEmployee         Decimal           @default(0.00) @db.Decimal(12, 2)
-  socsoEmployer         Decimal           @default(0.00) @db.Decimal(12, 2)
-  eisEmployee           Decimal           @default(0.00) @db.Decimal(12, 2)
-  eisEmployer           Decimal           @default(0.00) @db.Decimal(12, 2)
-  pcb                   Decimal           @default(0.00) @db.Decimal(12, 2)
-  hrdf                  Decimal           @default(0.00) @db.Decimal(12, 2)
-  zakat                 Decimal           @default(0.00) @db.Decimal(12, 2)
-  /// Wage base used for HRDF — may differ from gross.
-  hrdfWage              Decimal           @default(0.00) @db.Decimal(12, 2)
-  grossPay              Decimal           @db.Decimal(12, 2)
-  netPay                Decimal           @db.Decimal(12, 2)
-  totalCostToEmployer   Decimal           @db.Decimal(12, 2)
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
-  employeeProfile       EmployeeProfile   @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
-  payrollProfile        PayrollProfile?   @relation(fields: [payrollProfileId], references: [id])
-  payrollRun            PayrollRun        @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
-  lineItems             PayslipLineItem[]
-
-  @@unique([payrollRunId, employeeProfileId])
-  @@index([employeeProfileId])
-  @@index([payrollProfileId], map: "Payslip_payrollProfileId_fkey")
-}
-
-/// Individual line items on a payslip — allowances, deductions,
-/// reimbursements. Maps to Altomate's "additions JSON" but normalised
-/// so claim FKs are queryable.
-model PayslipLineItem {
-  id             String          @id @default(cuid())
-  payslipId      String
-  kind           PayslipLineKind
-  /// Display label. For reimbursements, this is the claim's title.
-  label          String
-  /// Positive for ALLOWANCE/REIMBURSEMENT, positive for DEDUCTION (the
-  /// kind determines sign at calc time).
-  amount         Decimal         @db.Decimal(12, 2)
-  /// FK to the original AltomateHR claim when this line item is a
-  /// REIMBURSEMENT. Unique so a single claim can only ever sit on one
-  /// payslip line item. NULL for manual allowance/deduction entries.
-  claimId        String?         @unique
-  subjectToEpf   Boolean         @default(true)
-  subjectToSocso Boolean         @default(true)
-  subjectToEis   Boolean         @default(true)
-  subjectToPcb   Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  /// `PayrollAdjustmentCategory` code (e.g. `allowance_childcare`,
-  /// `wages_bonus_annual`, `deduct_zakat`). Snapshotted at write time
-  /// so the run service can sum YTD-by-category for `taxExemptLimit`
-  /// enforcement on the next run. Nullable only for legacy rows
-  /// written before this column existed; new line items always carry
-  /// one.
-  category       String?
-  claim          Claim?          @relation(fields: [claimId], references: [id])
-  payslip        Payslip         @relation(fields: [payslipId], references: [id], onDelete: Cascade)
-
-  @@index([payslipId])
-}
-
 enum ClaimApprovalDecision {
   APPROVED
   REJECTED
@@ -1323,6 +872,187 @@ enum OtPayoutMethod {
   TIME_BANK
 }
 
+// ─── Payroll module (Malaysia) ────────────────────────────────────────────
+// Phase 0 schema. v1 supports basic pay + OT + allowances + EPF/SOCSO/EIS.
+// PCB, HRDF, Zakat fields exist for forward-compat but always 0 in v1.
+// See `docs/PAYROLL_V1_PLAN.md` for full design rationale.
+
+/// One row per employee. Stores all Malaysia-payroll-specific data that
+/// doesn't belong on `EmployeeProfile` (which is shared by claims +
+/// attendance). Lazy-created when admin onboards the employee into
+/// payroll — absence of a PayrollProfile = "employee not yet enrolled
+/// in payroll." Cascade-deletes if the EmployeeProfile is deleted.
+model PayrollProfile {
+  id                String          @id @default(cuid())
+  employeeProfileId String          @unique
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  // ── PERSONAL INFORMATION ──
+  phone          String?
+  alternateEmail String?
+  gender         Gender?
+  dateOfBirth    DateTime?
+  /// Free-text country/nationality string (e.g. "Malaysian",
+  /// "Singaporean"). Drives the foreign-worker EPF branch — anything
+  /// not "Malaysian" uses the foreign-worker rate.
+  nationality    String?
+  /// LHDN race code (M/C/I/O etc). Used for Form E reporting (deferred).
+  race           String?
+  hasPr          Boolean        @default(false)
+  idType         IdType?
+  idNumber       String?
+  maritalStatus  MaritalStatus?
+  isResident     Boolean        @default(true)
+  /// OKU = disabled. Triggers DU (disabled individual) relief of
+  /// RM 7,000 in the PCB calc.
+  isOku          Boolean        @default(false)
+
+  // Spouse — used for PCB joint-relief calc.
+  spouseWorking   Boolean?
+  spouseDisabled  Boolean?
+  spousePcbNumber String?
+  spouseIdNumber  String?
+
+  // Address
+  addressLine1 String?
+  addressLine2 String?
+  addressLine3 String?
+  city         String?
+  postcode     String?
+  state        String?
+
+  // Emergency contact
+  emergencyContactName     String?
+  emergencyContactPhone    String?
+  emergencyContactRelation String?
+
+  /// Dependent children — used for the PCB child relief (QC) calc.
+  /// Stored as JSON to keep the row flat. Expected shape:
+  ///   [{ age: 12, abilityStatus: "NORMAL"|"DISABLED",
+  ///      currentlyStudying: "PRESCHOOL"|"PRIMARY"|"SECONDARY"|"HIGHER_ED"|"NONE",
+  ///      pcbDeduction: "FULL"|"HALF"|"NONE" }, ...]
+  childRelief Json?
+
+  // ── PREVIOUS EMPLOYMENT (TP3 carryover for mid-year joiners) ──
+  //
+  // Per LHDN MTD Specification for 2026 § 10 (page 23), TP3 figures
+  // feed into the formula as variables (Y-K), X, Z, and ΣLP. We
+  // store each component separately so the run service can add them
+  // into the right YTD bucket only when `prevEmploymentYear` equals
+  // the current run's calendar year.
+  prevEmploymentYear        Int?
+  /// Y — gross remuneration from previous employer in the same tax year.
+  prevRemuneration          Decimal? @db.Decimal(12, 2)
+  /// K — total EPF contributed (employee share) by previous employer
+  /// in the same tax year.
+  prevEpf                   Decimal? @db.Decimal(12, 2)
+  /// X — total MTD (PCB) actually paid by previous employer in the
+  /// same tax year. Subtracted from annual tax inside `calcPcb` so
+  /// mid-year joiners are not over-withheld until December.
+  prevPcb                   Decimal? @db.Decimal(12, 2)
+  /// Z — total zakat already paid in the same tax year (via prior
+  /// payroll or self-paid). Subtracted from annual tax inside
+  /// `calcPcb` because zakat fully offsets MTD obligation.
+  prevZakat                 Decimal? @db.Decimal(12, 2)
+  /// ΣLP — total allowable deductions (TP1 items: life insurance,
+  /// medical, lifestyle, etc.) declared in the same tax year. Not
+  /// yet consumed by the calc engine (TP1 collection is deferred),
+  /// but captured here so future runs can pick it up without a
+  /// migration.
+  prevAllowableDeductions   Decimal? @db.Decimal(12, 2)
+
+  // ── EPF ──
+  contributeToEpf      Boolean @default(true)
+  /// Pre-1998 EPF members get different statutory rules. Captured for
+  /// completeness; not used in v1 (defaults to false).
+  epfMemberBefore1998  Boolean @default(false)
+  epfNumber            String?
+  /// Employee's mandatory EPF rate %. Default 11% per current Malaysian
+  /// law. Per-employee override of the org's defaultEpfEmployeeRate.
+  epfEmployeeRate      Decimal @default(11.00) @db.Decimal(5, 2)
+  epfEmployeeVoluntary Decimal @default(0) @db.Decimal(5, 2)
+  epfEmployerVoluntary Decimal @default(0) @db.Decimal(5, 2)
+  // Note: employer mandatory rate is wage-derived (13% if wage<=5000,
+  // 12% otherwise) — computed at calc time, not stored.
+
+  // ── SOCSO ──
+  socsoNumber String?
+  socsoScheme SocsoScheme?
+
+  // ── EIS ──
+  contributeToEis Boolean @default(true)
+
+  // ── INCOME TAX / PCB ──
+  // `incomeTaxNumber` is required for the LHDN CP39 submission file
+  // but NOT for the calc — `calcPcb` runs for every employee.
+  // `pcbBorneByEmployer` flag is stored but gross-up is not yet
+  // implemented; until then, runs containing employees with this flag
+  // are under-withheld and should be reviewed manually.
+  incomeTaxNumber    String?
+  pcbBorneByEmployer Boolean @default(false)
+
+  // ── SSFW (Social Security for Foreign Workers) ──
+  ssfwNumber String?
+
+  // ── PAYMENT ──
+  paymentMethod         PaymentMethod @default(BANK_TRANSFER)
+  bankName              String?
+  bankAccountHolderName String?
+  bankAccountNumber     String?
+
+  // ── COMPENSATION ──
+  salaryType    SalaryType
+  /// Required when salaryType=MONTHLY. RM.
+  monthlySalary Decimal?   @db.Decimal(12, 2)
+  /// Required when salaryType=HOURLY. RM per hour.
+  hourlyRate    Decimal?   @db.Decimal(12, 2)
+
+  /// Fixed adjustments applied to every payroll run.
+  /// JSON shape: [{ category: "allowance_parking", name: "Parking Allowance", amount: 200 }, ...].
+  /// One-off adjustments are added per-run via PayslipLineItem.
+  fixedAllowances Json?
+
+  // ── EMPLOYMENT DATES ──
+  joinDate       DateTime?
+  /// Set when employee leaves. Triggers proration on their final
+  /// payroll run.
+  leaveDate      DateTime?
+  archiveReason  String?
+  /// True after the employee's final payroll has been reported to LHDN
+  /// (Form E and friends). Excludes them from future runs even if not
+  /// archived yet.
+  reportedToLhdn Boolean   @default(false)
+
+  // ── GROUPING / REPORTING METADATA (free-text in v1) ──
+  department    String?
+  location      String?
+  workSchedule  String?
+  payrollPolicy String?
+  payrollCycle  String?
+
+  /// Leave entitlement — v2 placeholder for the leave module.
+  /// Shape TBD when leave ships, e.g.
+  ///   [{ type: "ANNUAL", days: 14 }, { type: "SICK", days: 30 }]
+  leaveEntitlement Json?
+
+  /// Uploaded payroll documents (contracts, offer letters, etc.).
+  /// Stored as a JSON array of `PayrollDocument` records — see
+  /// `modules/payroll/domain/models.ts`. Files themselves live in
+  /// `public/uploads/payroll-documents/{userId}/` on disk.
+  payrollDocuments Json @default("[]")
+
+  // ── STATUS ──
+  /// Archived profiles are excluded from new payroll runs but their
+  /// historical payslips are retained.
+  isArchived Boolean   @default(false)
+  archivedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payslips Payslip[]
+}
+
 /// Reason for a SalaryChange entry. Typos / data-entry corrections
 /// are NOT recorded — only legitimate compensation changes that an
 /// HR / audit / legal review would care about.
@@ -1333,6 +1063,402 @@ enum SalaryChangeReason {
   RESTRUCTURE
   OTHER
 }
+
+/// Audit-grade history of legitimate salary changes for an employee.
+/// Created only when the admin explicitly classifies a salary edit
+/// as a real compensation change (not a typo fix). Used for:
+///   - LHDN / SOCSO / EIS audit responses
+///   - Industrial Relations disputes
+///   - Retrenchment / VSS payouts ("last drawn salary")
+///   - HR year-end performance reviews
+///   - Employer-issued salary-history letters (loans, EPF/income proof)
+///
+/// Does NOT drive the calc engine yet — the current `monthlySalary`
+/// on `PayrollProfile` still determines every payroll run. The
+/// `effectiveDate` field is here so a future Level 2 upgrade can
+/// switch to effective-date aware salary resolution without a
+/// migration.
+model SalaryChange {
+  id                String          @id @default(cuid())
+  employeeProfileId String
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  /// When the change takes effect. Defaults to today on the UI but the
+  /// admin can backdate.
+  effectiveDate DateTime @db.Date
+
+  /// Snapshot of what the salary was BEFORE this change.
+  previousSalaryType    SalaryType
+  previousMonthlySalary Decimal?   @db.Decimal(12, 2)
+  previousHourlyRate    Decimal?   @db.Decimal(12, 2)
+
+  /// New values AFTER this change. Mirrors PayrollProfile columns.
+  newSalaryType    SalaryType
+  newMonthlySalary Decimal?   @db.Decimal(12, 2)
+  newHourlyRate    Decimal?   @db.Decimal(12, 2)
+
+  reason SalaryChangeReason
+  notes  String?            @db.Text
+
+  /// User (admin) who made the change. Nullable to allow legacy /
+  /// system-generated entries.
+  changedByUserId String?
+  changedByUser   User?   @relation("salaryChangeAuthor", fields: [changedByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([employeeProfileId, effectiveDate])
+}
+
+/// Per-org payroll rules. Frequently edited by admin (OT multipliers,
+/// EPF defaults). Matches Altomate's `p_settings` table.
+model PayrollSettings {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // OT multipliers were removed — they now live on EmployeePolicy
+  // (one set of rates per policy, only applied when otMethod = CASH).
+
+  // Working-days rule — used for proration + hourly conversion from
+  // monthly salary.
+  workingDaysRule WorkingDaysRule @default(TWENTY_SIX)
+
+  // EPF defaults (overridable per-employee on PayrollProfile)
+  defaultEpfEmployeeRate Decimal @default(11.00) @db.Decimal(5, 2)
+  defaultEpfEmployerRate Decimal @default(13.00) @db.Decimal(5, 2)
+
+  // HRDF (HRD Corp levy) — applied to Malaysian citizens only per
+  // PSMB Act 2001. Rate is 1.0% (Part I, ≥10 employees) or 0.5%
+  // (Part II opt-in, 5-9 employees).
+  hrdfEnabled Boolean  @default(false)
+  hrdfRate    Decimal? @db.Decimal(5, 2)
+
+  // PCB — auto-apply the RM 350/year combined SOCSO + EIS
+  // contribution relief inside the monthly PCB calc. Default ON,
+  // matching HReasily / BrioHR / Talenox. When OFF the relief is
+  // treated as a TP1 item that the employee must declare themselves
+  // (or claim back at year-end via Form BE) — strictest LHDN MTD
+  // Spec reading. See `SOCSO_EIS_RELIEF_CAP` doc in
+  // `modules/payroll/domain/pcb.ts` for the rationale.
+  autoApplySocsoEisRelief Boolean @default(true)
+
+  // Employer identifiers (used for both payroll filing and Form E).
+  employerIdNumber String?
+  myCoOrSsmNumber  String?
+
+  // Leave carry-forward (v2 placeholders — leave module deferred).
+  leaveCarryForwardAllowed      Boolean @default(false)
+  leaveCarryForwardLimitDays    Int?
+  leaveCarryForwardExpiryMonths Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Per-org employer filing profile. Updated rarely (~annual at most).
+/// Separate from PayrollSettings because it's a different concern — the
+/// "filing identity" of the company vs the operational rules. Matches
+/// Altomate's `p_company_settings`.
+model PayrollCompanyInfo {
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Employer basic particulars (Form E)
+  employerName     String?
+  employerTin      String?
+  registrationNo   String?
+  referenceType    String?
+  referenceNo      String?
+  employerCategory String?
+  employerStatus   String?
+  cp8dFurnishType  String?
+
+  // Correspondence
+  addressLine1 String?
+  addressLine2 String?
+  postcode     String?
+  city         String?
+  state        String?
+  country      String? @default("Malaysia")
+  phone        String?
+  handphone    String?
+  email        String?
+
+  // Tax agent (Form E section)
+  taxAgentName      String?
+  taxAgentTin       String?
+  taxAgentLicenceNo String?
+  taxAgentPhone     String?
+  taxAgentEmail     String?
+  taxAgentFirmName         String?
+  taxAgentFirmAddressLine1 String?
+  taxAgentFirmAddressLine2 String?
+  taxAgentFirmPostcode     String?
+  taxAgentFirmCity         String?
+  taxAgentFirmState        String?
+
+  // Declarant (signs Form E)
+  declarantName     String?
+  declarantIdType   IdType?
+  declarantIdNumber String?
+  declarantPosition String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// One payroll run per (org, year, month). Created in DRAFT state; the
+/// admin reviews payslips, then submits → SUBMITTED. Submission is
+/// revertible until the next month's run is submitted.
+model PayrollRun {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  periodYear  Int
+  /// 1..12
+  periodMonth Int
+  status      PayrollRunStatus @default(DRAFT)
+
+  // Cached totals (populated on submit; null while DRAFT).
+  totalGross              Decimal? @db.Decimal(14, 2)
+  totalNet                Decimal? @db.Decimal(14, 2)
+  totalEmployeeEpf        Decimal? @db.Decimal(14, 2)
+  totalEmployerEpf        Decimal? @db.Decimal(14, 2)
+  totalEmployeeSocso      Decimal? @db.Decimal(14, 2)
+  totalEmployerSocso      Decimal? @db.Decimal(14, 2)
+  totalEmployeeEis        Decimal? @db.Decimal(14, 2)
+  totalEmployerEis        Decimal? @db.Decimal(14, 2)
+  /// Sum of `Payslip.pcb` across the run. Computed by the PCB
+  /// engine (`modules/payroll/domain/pcb.ts`) using LHDN's
+  /// normal-remuneration + additional-remuneration formulas, with
+  /// zakat offset applied. 0 for employees without an
+  /// `incomeTaxNumber` on file (opt-in signal).
+  totalPcb                Decimal? @default(0) @db.Decimal(14, 2)
+  /// HRDF (HRD Corp levy) totalled across the run. Computed by
+  /// `calcPayslip` when the org has `hrdfEnabled` and the employee is
+  /// a Malaysian citizen.
+  totalHrdf               Decimal? @default(0) @db.Decimal(14, 2)
+  totalZakat              Decimal? @default(0) @db.Decimal(14, 2)
+  employeeCount           Int?
+  /// Only Malaysians count for HRDF eligibility.
+  employeesSubjectToHrdf  Int?     @default(0)
+  totalWagesSubjectToHrdf Decimal? @default(0) @db.Decimal(14, 2)
+  /// Gross + employer EPF + employer SOCSO + employer EIS + HRDF.
+  totalCostToEmployer     Decimal? @db.Decimal(14, 2)
+
+  submittedAt   DateTime?
+  submittedById String?
+  submittedBy   User?     @relation("PayrollRunSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payslips         Payslip[]
+  claimAttachments PayrollRunClaim[]
+  adjustments      PayrollRunAdjustment[]
+
+  @@unique([organizationId, periodYear, periodMonth])
+  @@index([organizationId, status])
+}
+
+/// Join row attaching an approved (SYNCED + PERSONAL paymentType)
+/// AltomateHR claim to a payroll run as a REIMBURSEMENT. Persisted
+/// separately from `PayslipLineItem` because the run's payslips are
+/// re-generated from scratch on each "Generate" press, so the line
+/// items get wiped — this row is the source of truth that survives.
+///
+/// The actual `PayslipLineItem` is recreated from this attachment on
+/// each generation, with `claimId` pointing back here for traceability.
+///
+/// Snapshots `label` + `amount` at attach time so later edits to the
+/// underlying claim don't change historical payroll figures.
+model PayrollRunClaim {
+  id                String          @id @default(cuid())
+  payrollRunId      String
+  payrollRun        PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  /// One claim → at most one attachment ever. Detaching deletes the
+  /// row; re-attaching to another run creates a new one.
+  claimId           String          @unique
+  claim             Claim           @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  employeeProfileId String
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  // Snapshots — frozen at attach time
+  label             String
+  amount            Decimal         @db.Decimal(12, 2)
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([payrollRunId])
+  @@index([employeeProfileId])
+}
+
+/// Per-run-per-employee adjustment row. Captures OT hours,
+/// one-off allowances + deductions, and a manually-entered
+/// unpaid-leave amount. Survives payslip regeneration (PayslipLineItem
+/// rows are recreated from these on each "Generate" press).
+///
+/// One row per (runId, employeeProfileId). Admins fill these in from
+/// the per-employee adjustment page; the generator merges them in
+/// alongside fixed adjustments (from PayrollProfile) and reimbursements
+/// (from PayrollRunClaim).
+model PayrollRunAdjustment {
+  id                String          @id @default(cuid())
+  payrollRunId      String
+  payrollRun        PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeProfileId String
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  // OT hours by category — the org's OT multipliers (PayrollSettings)
+  // turn these into RM at calc time.
+  otNormalHours Decimal @default(0) @db.Decimal(8, 2)
+  otRestHours   Decimal @default(0) @db.Decimal(8, 2)
+  otPublicHours Decimal @default(0) @db.Decimal(8, 2)
+
+  /// JSON array of one-off adjustments for this run only:
+  /// `[{ kind: "ALLOWANCE" | "DEDUCTION", label, amount }]`. Stacked on
+  /// top of the PayrollProfile's fixed adjustments.
+  manualLineItems Json @default("[]")
+
+  /// Per-run overrides on the PayrollProfile's recurring fixed
+  /// adjustments. Keyed by the profile's fixed-allowance index as a
+  /// string, so the JSON shape is:
+  ///   `{ "0": { "amount": 250, "skip": false }, "2": { "skip": true } }`
+  /// Missing index = use the profile default. `skip=true` zeroes the
+  /// row for this run only; `amount` overrides the value while keeping
+  /// the original category (so EPF/SOCSO/EIS/PCB subject-to flags
+  /// follow through correctly).
+  fixedAllowanceOverrides Json @default("{}")
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([payrollRunId, employeeProfileId])
+  @@index([payrollRunId])
+}
+
+/// One per (run, employee). Snapshots employee data at the moment of
+/// generation so later edits to PayrollProfile don't rewrite payroll
+/// history.
+model Payslip {
+  id                String          @id @default(cuid())
+  payrollRunId      String
+  payrollRun        PayrollRun      @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeProfileId String
+  employeeProfile   EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+  /// Nullable so we can keep payslips when a PayrollProfile is later
+  /// archived/deleted. The snapshot fields hold the source-of-truth
+  /// values; this FK is only for "fetch latest profile" UX.
+  payrollProfileId  String?
+  payrollProfile    PayrollProfile? @relation(fields: [payrollProfileId], references: [id], onDelete: SetNull)
+
+  // ── SNAPSHOTS (frozen at generation time) ──
+  snapshotName          String
+  snapshotEmployeeId    String
+  snapshotPosition      String?
+  snapshotSalaryType    SalaryType
+  snapshotMonthlySalary Decimal?   @db.Decimal(12, 2)
+  snapshotHourlyRate    Decimal?   @db.Decimal(12, 2)
+  snapshotNationality   String?
+  snapshotIsResident    Boolean    @default(true)
+  /// JSON: { employee, employer, voluntaryEmployee, voluntaryEmployer }
+  snapshotEpfRates      Json
+
+  // ── COMPUTED ──
+  basicPay         Decimal  @db.Decimal(12, 2)
+  proratedPay      Decimal  @db.Decimal(12, 2)
+  workedHours      Decimal? @db.Decimal(8, 2)
+  proratedFactor   Decimal  @default(1.0000) @db.Decimal(5, 4)
+  proratedDays     Int?
+  totalWorkingDays Int?
+
+  // OT breakdown
+  otNormalHours Decimal @default(0) @db.Decimal(8, 2)
+  otRestHours   Decimal @default(0) @db.Decimal(8, 2)
+  otPublicHours Decimal @default(0) @db.Decimal(8, 2)
+  otPay         Decimal @default(0) @db.Decimal(12, 2)
+
+  // Aggregates from line items
+  totalAllowances      Decimal @default(0) @db.Decimal(12, 2)
+  /// Sum of REIMBURSEMENT line items (from AltomateHR claims).
+  totalReimbursements  Decimal @default(0) @db.Decimal(12, 2)
+  totalDeductions      Decimal @default(0) @db.Decimal(12, 2)
+
+  // Statutory (v1 calculates EPF/SOCSO/EIS; PCB/HRDF/zakat = 0)
+  epfEmployee   Decimal @default(0) @db.Decimal(12, 2)
+  epfEmployer   Decimal @default(0) @db.Decimal(12, 2)
+  socsoEmployee Decimal @default(0) @db.Decimal(12, 2)
+  socsoEmployer Decimal @default(0) @db.Decimal(12, 2)
+  eisEmployee   Decimal @default(0) @db.Decimal(12, 2)
+  eisEmployer   Decimal @default(0) @db.Decimal(12, 2)
+  pcb           Decimal @default(0) @db.Decimal(12, 2)
+  hrdf          Decimal @default(0) @db.Decimal(12, 2)
+  zakat         Decimal @default(0) @db.Decimal(12, 2)
+  /// Wage base used for HRDF — may differ from gross.
+  hrdfWage      Decimal @default(0) @db.Decimal(12, 2)
+
+  grossPay            Decimal @db.Decimal(12, 2)
+  netPay              Decimal @db.Decimal(12, 2)
+  totalCostToEmployer Decimal @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  lineItems PayslipLineItem[]
+
+  @@unique([payrollRunId, employeeProfileId])
+  @@index([employeeProfileId])
+}
+
+/// Individual line items on a payslip — allowances, deductions,
+/// reimbursements. Maps to Altomate's "additions JSON" but normalised
+/// so claim FKs are queryable.
+model PayslipLineItem {
+  id        String  @id @default(cuid())
+  payslipId String
+  payslip   Payslip @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+
+  kind   PayslipLineKind
+  /// Display label. For reimbursements, this is the claim's title.
+  label  String
+  /// Positive for ALLOWANCE/REIMBURSEMENT, positive for DEDUCTION (the
+  /// kind determines sign at calc time).
+  amount Decimal         @db.Decimal(12, 2)
+  /// `PayrollAdjustmentCategory` code (e.g. `allowance_childcare`,
+  /// `wages_bonus_annual`, `deduct_zakat`). Snapshotted at write time
+  /// so the run service can sum YTD-by-category for `taxExemptLimit`
+  /// enforcement on the next run. Nullable only for legacy rows
+  /// written before this column existed; new line items always carry
+  /// one.
+  category String?
+
+  /// FK to the original AltomateHR claim when this line item is a
+  /// REIMBURSEMENT. Unique so a single claim can only ever sit on one
+  /// payslip line item. NULL for manual allowance/deduction entries.
+  claimId String? @unique
+  claim   Claim?  @relation(fields: [claimId], references: [id], onDelete: SetNull)
+
+  // Statutory applicability (v1 hardcoded based on kind:
+  //   ALLOWANCE/DEDUCTION → all true except for OT-like rows
+  //   REIMBURSEMENT       → all false (true reimbursement, not wages)
+  // v1.1 will let admin override per allowance category.
+  subjectToEpf   Boolean @default(true)
+  subjectToSocso Boolean @default(true)
+  subjectToEis   Boolean @default(true)
+  subjectToPcb   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  @@index([payslipId])
+}
+
+// ─── Payroll enums ────────────────────────────────────────────────────────
 
 enum Gender {
   MALE

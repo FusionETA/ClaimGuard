@@ -2380,11 +2380,8 @@ export type $XeroProjectPayload<ExtArgs extends runtime.Types.Extensions.Interna
     workingHoursEnd: string | null
     workingDays: string | null
     /**
-     * Daily lunch/meal break duration in minutes. Subtracted from the
-     * (workingHoursEnd − workingHoursStart) span when computing the
-     * expected daily working minutes for attendance progress (actual vs
-     * expected hours displays). Default 60 (1 hour) matches the common
-     * 9–18 with 1h lunch = 8h schedule.
+     * Daily lunch break minutes deducted from the (end-start) span when
+     * computing expected daily working minutes. Defaults to 60.
      */
     lunchBreakMinutes: number
   }, ExtArgs["result"]["xeroProject"]>

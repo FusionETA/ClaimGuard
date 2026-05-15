@@ -238,6 +238,26 @@ function GeneralTab(props: {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base">PCB compliance</CardTitle>
+          <CardDescription>
+            Optional reliefs auto-applied in monthly PCB. Strictly
+            per LHDN MTD Spec 2026 these are TP1 items (employee-
+            declared) — but most payroll systems auto-apply them
+            because the employer already knows the exact figures.
+            Turn off to defer them to year-end Form BE.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <Toggle
+            name="autoApplySocsoEisRelief"
+            question="Auto-apply SOCSO + EIS relief?"
+            defaultChecked={s?.autoApplySocsoEisRelief ?? true}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base">Employer identifiers</CardTitle>
           <CardDescription>
             Used in payslip headers and statutory exports.

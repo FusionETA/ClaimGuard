@@ -41,7 +41,15 @@ import { Separator } from "@/components/ui/separator"
 import { useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
-import { calcResidentReliefsBreakdown } from "@/modules/payroll/domain/pcb"
+import {
+  EPF_RELIEF_CAP,
+  SOCSO_EIS_RELIEF_CAP,
+  calcResidentReliefsBreakdown,
+} from "@/modules/payroll/domain/pcb"
+import {
+  lookupEis,
+  lookupSocso,
+} from "@/modules/payroll/domain/statutory-tables"
 import {
   SALARY_CHANGE_REASONS,
   SALARY_CHANGE_REASON_LABELS,
@@ -1613,12 +1621,20 @@ function StatutoryTab(props: {
           {props.profile?.isResident
             ? (() => {
                 // Resolved annual reliefs that will be subtracted from
-                // chargeable income (D + S + DU + SU + Σ children).
-                // EPF (capped RM 4,000), zakat, and TP1 deductions are
-                // handled separately by the calc — not part of this
-                // sum. We show ALL components even when they are RM 0
-                // so the admin can see exactly which LHDN gate is
-                // open/closed for this employee.
+                // chargeable income. We split into:
+                //
+                //   1. Family / personal reliefs (D + S + DU + SU + ΣQC)
+                //      — derived purely from profile state, identical
+                //      every month of the year.
+                //   2. Contribution-based reliefs auto-applied inside
+                //      the PCB calc — EPF (capped RM 4,000) and the
+                //      combined SOCSO + EIS (capped RM 350). These are
+                //      estimates based on the current monthly salary
+                //      annualised; the real calc uses YTD figures from
+                //      submitted payslips.
+                //
+                // Zakat offsets PCB owed directly (not chargeable
+                // income), so it's not in this sum.
                 const breakdown = calcResidentReliefsBreakdown({
                   isOku: props.profile?.isOku ?? false,
                   spouseWorking: props.profile?.spouseWorking ?? null,
@@ -1627,6 +1643,48 @@ function StatutoryTab(props: {
                 })
                 const spouseClaimable =
                   props.profile?.spouseWorking === false
+
+                // ── Estimated EPF relief ─────────────────────────────
+                // Annual EPF employee contribution = monthly × 12,
+                // capped at the LHDN RM 4,000/year relief ceiling.
+                // Uses the profile's employee rate, falling back to
+                // 11% when unset. Only counted when the employee
+                // actually contributes to EPF.
+                const monthly = props.profile?.monthlySalary ?? 0
+                const epfEmpRate = props.profile?.epfEmployeeRate || 11
+                const estEpfMonth =
+                  props.profile?.contributeToEpf && monthly > 0
+                    ? monthly * (epfEmpRate / 100)
+                    : 0
+                const estEpfRelief = Math.min(
+                  EPF_RELIEF_CAP,
+                  Math.round(estEpfMonth * 12 * 100) / 100,
+                )
+
+                // ── Annual SOCSO + EIS relief ────────────────────────
+                // Auto-applied (see SOCSO_EIS_RELIEF_CAP doc in pcb.ts
+                // for the "soft TP1" rationale). Uses the actuals-only
+                // formula: at year-end, total relief = min(RM 350,
+                // sum of monthly contributions). For this preview we
+                // show the year-end ceiling — `min(350, monthly × 12)`
+                // — which is what the employee will end up benefiting
+                // from across the year. The PCB calc applies it
+                // gradually month-by-month (no forward projection),
+                // so the actual monthly impact starts small and grows
+                // until the cap is hit.
+                const cat2 =
+                  props.profile?.socsoScheme === "EMPLOYMENT_INJURY_ONLY"
+                const socsoMonth = props.profile?.socsoScheme
+                  ? lookupSocso(monthly, cat2).employee
+                  : 0
+                const eisMonth = props.profile?.contributeToEis
+                  ? lookupEis(monthly).employee
+                  : 0
+                const estSocsoEisRelief = Math.min(
+                  SOCSO_EIS_RELIEF_CAP,
+                  Math.round((socsoMonth + eisMonth) * 12 * 100) / 100,
+                )
+
                 const items: Array<{
                   label: string
                   amount: number
@@ -1686,11 +1744,42 @@ function StatutoryTab(props: {
                         : "no qualifying children"
                       : undefined,
                 })
+                items.push({
+                  label: "EPF (auto, capped RM 4,000)",
+                  amount: estEpfRelief,
+                  reason:
+                    estEpfRelief === 0
+                      ? !props.profile?.contributeToEpf
+                        ? "employee opted out of EPF"
+                        : monthly === 0
+                          ? "monthly salary not set"
+                          : undefined
+                      : estEpfRelief >= EPF_RELIEF_CAP
+                        ? "at cap — annual contribution exceeds RM 4,000"
+                        : "estimate based on this month's salary × 12",
+                })
+                items.push({
+                  label: "SOCSO + EIS (auto, capped RM 350)",
+                  amount: estSocsoEisRelief,
+                  reason:
+                    estSocsoEisRelief === 0
+                      ? !props.profile?.socsoScheme &&
+                        !props.profile?.contributeToEis
+                        ? "not covered by SOCSO or EIS"
+                        : monthly === 0
+                          ? "monthly salary not set"
+                          : undefined
+                      : estSocsoEisRelief >= SOCSO_EIS_RELIEF_CAP
+                        ? "at cap — annual contribution exceeds RM 350"
+                        : "estimate based on this month's salary × 12",
+                })
+                const totalAllReliefs =
+                  breakdown.total + estEpfRelief + estSocsoEisRelief
                 return (
                   <div className="md:col-span-2">
                     <StatutoryDisplay
                       label="Annual reliefs (PCB chargeable income deduction)"
-                      value={`RM ${breakdown.total.toLocaleString("en-MY", { minimumFractionDigits: 0 })}`}
+                      value={`RM ${totalAllReliefs.toLocaleString("en-MY", { minimumFractionDigits: 0 })}`}
                       note={
                         <div className="space-y-0.5 text-xs">
                           {items.map((it) => (
@@ -1720,10 +1809,15 @@ function StatutoryTab(props: {
                           <p className="mt-1 text-[11px]">
                             Per LHDN MTD Spec 2026: spouse reliefs (S
                             and SU) apply only when spouse has no
-                            income. EPF (capped RM 4,000) and zakat are
-                            subtracted separately by the calc. Update
-                            spouse / OKU / children in the Personal tab
-                            to change these figures.
+                            income. EPF + SOCSO/EIS figures are
+                            estimates from this month&apos;s salary
+                            × 12 — the real PCB run uses YTD figures
+                            from submitted payslips. Zakat is not
+                            shown here because it offsets PCB owed
+                            directly (after the tax bands), not
+                            chargeable income. Update spouse / OKU /
+                            children in the Personal tab to change
+                            family reliefs.
                           </p>
                         </div>
                       }

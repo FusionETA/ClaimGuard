@@ -212,9 +212,11 @@ export default async function AdminPayrollPage() {
                   Basic + OT + taxable allowances + additional
                   remuneration (bonus, commission, arrears, director
                   fee, gratuity). Tax-exempt limits enforced per
-                  category. YTD income, EPF (capped RM 4,000), zakat,
-                  and prior-month PCB carried forward — including TP3
-                  prev-employer figures when applicable.
+                  category. YTD income, EPF (capped RM 4,000), SOCSO
+                  + EIS (actuals-only, capped RM 350, auto-applied so
+                  the employee doesn&apos;t need to submit Form TP1),
+                  zakat, and prior-month PCB carried forward —
+                  including TP3 prev-employer figures when applicable.
                 </TableCell>
                 <TableCell>
                   Normal: <code>[(P − M)R + B − (Z + X)] ÷ (n+1)</code>.

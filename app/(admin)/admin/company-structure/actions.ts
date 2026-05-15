@@ -104,6 +104,15 @@ export async function createTeamAction(
     }
   }
 
+  // Bust the org-config Redis caches — the company-structure +
+  // hierarchy page-data services cache the team list at
+  // `org:{orgId}:config:page:*`, so without this the new team
+  // wouldn't show up until the TTL expired (or the user navigated
+  // away and back enough times to invalidate). Every other team
+  // action (update / delete / membership) already does this; the
+  // create action was the only path missing the bust.
+  await bustOrgConfigCaches({ organizationId })
+
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
   revalidatePath("/admin/hierarchy")
@@ -496,8 +505,16 @@ export async function deleteTeamAction(
     }
   }
 
+  // Mirror every other team mutation in this file: bust the
+  // org-config Redis caches so the company-structure + hierarchy
+  // page-data services re-fetch from the DB on next render. Without
+  // this the deleted team would linger in the cached list until the
+  // TTL expired — same symptom we just fixed for createTeamAction.
+  await bustOrgConfigCaches({ organizationId })
+
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
+  revalidatePath("/admin/hierarchy")
 
   return { status: "success", message: "Team deleted." }
 }
