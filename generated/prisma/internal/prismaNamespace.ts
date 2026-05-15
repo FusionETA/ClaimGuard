@@ -3430,8 +3430,12 @@ export const PayrollRunScalarFieldEnum = {
   totalCostToEmployer: 'totalCostToEmployer',
   submittedAt: 'submittedAt',
   submittedById: 'submittedById',
+  submittedForApprovalAt: 'submittedForApprovalAt',
+  submittedForApprovalById: 'submittedForApprovalById',
+  approvalRejectionReason: 'approvalRejectionReason',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  lastMutatedAt: 'lastMutatedAt'
 } as const
 
 export type PayrollRunScalarFieldEnum = (typeof PayrollRunScalarFieldEnum)[keyof typeof PayrollRunScalarFieldEnum]
@@ -3998,7 +4002,9 @@ export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompany
 export const PayrollRunOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
-  submittedById: 'submittedById'
+  submittedById: 'submittedById',
+  submittedForApprovalById: 'submittedForApprovalById',
+  approvalRejectionReason: 'approvalRejectionReason'
 } as const
 
 export type PayrollRunOrderByRelevanceFieldEnum = (typeof PayrollRunOrderByRelevanceFieldEnum)[keyof typeof PayrollRunOrderByRelevanceFieldEnum]

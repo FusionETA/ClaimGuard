@@ -30,6 +30,7 @@ model User {
   claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
   employeeProfile        EmployeeProfile?     @relation("EmployeeProfileUser")
   submittedPayrollRuns   PayrollRun[]         @relation("PayrollRunSubmittedBy")
+  submittedForApprovalPayrollRuns PayrollRun[] @relation("PayrollRunSubmittedForApprovalBy")
   projectManagerOf       ProjectManager[]     @relation("ProjectManagerOf")
   pushSubscriptions      PushSubscription[]
   salaryChangesAuthored  SalaryChange[]       @relation("salaryChangeAuthor")
@@ -1052,10 +1053,31 @@ model PayrollRun {
   totalCostToEmployer     Decimal?               @db.Decimal(14, 2)
   submittedAt             DateTime?
   submittedById           String?
+  /// When the run entered PENDING_APPROVAL (admin clicked
+  /// "Submit for approval"). Distinct from `submittedAt`, which is
+  /// when the FINAL approver pushed the run live.
+  submittedForApprovalAt  DateTime?
+  submittedForApprovalById String?
+  /// Optional free-text reason captured when the approver sends a
+  /// pending run back to DRAFT. Stays on the run as an audit trail;
+  /// gets shown to the original submitter when they re-open the run.
+  approvalRejectionReason String?
   createdAt               DateTime               @default(now())
   updatedAt               DateTime               @updatedAt
+  /// Explicit "last content mutation" timestamp — set whenever an
+  /// adjustment is saved/cleared OR a claim is attached/detached,
+  /// and CLEARED when payroll is generated.
+  ///
+  /// Drives the "stale run" warning on the run detail page. The run
+  /// is stale when this is non-null AND newer than the latest
+  /// `Payslip.createdAt`. Null means "no pending mutations since the
+  /// last generation" (or the run has never been mutated since
+  /// migration). Status-only changes (submit / revert) don't touch
+  /// this; only content mutations do.
+  lastMutatedAt           DateTime?
   organization            Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submittedBy             User?                  @relation("PayrollRunSubmittedBy", fields: [submittedById], references: [id])
+  submittedForApprovalBy  User?                  @relation("PayrollRunSubmittedForApprovalBy", fields: [submittedForApprovalById], references: [id])
   adjustments             PayrollRunAdjustment[]
   claimAttachments        PayrollRunClaim[]
   payslips                Payslip[]
@@ -1394,6 +1416,11 @@ enum WorkingDaysRule {
 
 enum PayrollRunStatus {
   DRAFT
+  /// Submitter has clicked "Submit for approval" — run is locked
+  /// (no more edits) and awaits an admin's Approve / Send-back-to-
+  /// draft decision. Any admin can approve, including the submitter
+  /// themselves.
+  PENDING_APPROVAL
   SUBMITTED
 }
 

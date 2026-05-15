@@ -10,11 +10,16 @@
 
 // ─── Enums ───────────────────────────────────────────────────────────────
 
-export const payrollRunStatuses = ["DRAFT", "SUBMITTED"] as const
+export const payrollRunStatuses = [
+  "DRAFT",
+  "PENDING_APPROVAL",
+  "SUBMITTED",
+] as const
 export type PayrollRunStatus = (typeof payrollRunStatuses)[number]
 
 export const PAYROLL_RUN_STATUS_LABELS: Record<PayrollRunStatus, string> = {
   DRAFT: "Draft",
+  PENDING_APPROVAL: "Awaiting approval",
   SUBMITTED: "Submitted",
 }
 
@@ -53,9 +58,24 @@ export type PayrollRunData = {
 
   submittedAt: string | null
   submittedById: string | null
+  /// When the run entered PENDING_APPROVAL. Null while still DRAFT
+  /// (or has never been submitted for approval).
+  submittedForApprovalAt: string | null
+  submittedForApprovalById: string | null
+  /// Optional reason captured when an approver sends a pending run
+  /// back to DRAFT. Stays on the run for audit + is shown to the
+  /// original submitter so they know why their submission bounced.
+  approvalRejectionReason: string | null
 
   createdAt: string
   updatedAt: string
+  /// Set on every content mutation (claim attach/detach, adjustment
+  /// save/clear), CLEARED when payroll is generated. Null means "no
+  /// pending mutations" — Submit is safe. When non-null and newer
+  /// than the latest `Payslip.createdAt`, the run is stale and the
+  /// UI prompts the admin to re-run. NOT touched by status changes
+  /// (submit / revert).
+  lastMutatedAt: string | null
 }
 
 /**

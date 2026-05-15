@@ -928,14 +928,21 @@ export const claimRepository = {
   },
 
   /**
-   * Claims that have cleared admin review and are waiting to be pushed
-   * to Xero. Used by the admin "Ready to sync" page. Order: oldest
-   * lastReviewedAt first so claims that have been waiting longest sync
-   * first.
+   * Claims that are REVIEWED + PERSONAL-paid and **not yet attached
+   * to a payroll run** — i.e. the work-list for the new
+   * "/admin/claims/payroll-ready" page. Previously gated on
+   * `xeroSyncStatus: NOT_SYNCED`; that gate is gone because Xero
+   * sync has moved to a post-submit, module-gated step (or is
+   * skipped entirely for orgs that don't use Xero).
+   *
+   * The `xeroConnectionId` parameter is retained for API compat but
+   * unused — the filter no longer scopes by Xero connection. Order:
+   * oldest lastReviewedAt first so longest-waiting claims surface
+   * to the top of the list.
    */
   async getClaimsAwaitingSync(
     organizationId: string,
-    xeroConnectionId?: string,
+    _xeroConnectionId?: string,
   ): Promise<ClaimRecord[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
@@ -944,10 +951,11 @@ export const claimRepository = {
       where: {
         organizationId,
         status: "REVIEWED",
-        xeroSyncStatus: "NOT_SYNCED",
-        ...(xeroConnectionId
-          ? { employee: { employeeProfile: { xeroConnectionId } } }
-          : {}),
+        paymentType: "PERSONAL",
+        // Hide claims already on a payroll run — they appear under
+        // that run's Reimbursements card and only re-surface here if
+        // the admin detaches them.
+        payrollRunAttachment: { is: null },
       },
       include: claimInclude,
       orderBy: { lastReviewedAt: "asc" },

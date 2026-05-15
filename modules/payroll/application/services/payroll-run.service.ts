@@ -165,7 +165,13 @@ export async function createPayrollRunDraft(input: {
  * Pre-conditions: run is DRAFT and has at least one payslip on file
  * (we don't want to submit an empty run).
  */
-export async function submitPayrollRun(input: {
+/**
+ * Step 1 of the two-step approval flow. Locks the run from further
+ * edits and parks it in PENDING_APPROVAL so an admin (any admin —
+ * including the submitter themselves, per org policy) can give it a
+ * final review. Pre-conditions: DRAFT with at least one payslip.
+ */
+export async function submitPayrollRunForApproval(input: {
   runId: string
 }): Promise<void> {
   const session = await getCurrentSession()
@@ -181,18 +187,73 @@ export async function submitPayrollRun(input: {
   })
   if (!run) throw new Error("Payroll run not found.")
   if (run.status !== "DRAFT") {
-    throw new Error("Run has already been submitted.")
+    throw new Error("This run has already been submitted for approval.")
   }
   if (run.payslipCount === 0) {
     throw new Error(
-      "Run payroll before submitting — an empty run can't be finalised.",
+      "Run payroll before submitting for approval — an empty run can't be finalised.",
     )
   }
 
-  await payrollRunRepository.submit({
+  await payrollRunRepository.submitForApproval({
     id: run.id,
     organizationId: orgId,
     submittedById: session.userId,
+  })
+}
+
+/**
+ * Step 2 of the two-step approval flow. Approver flips
+ * PENDING_APPROVAL → SUBMITTED. Records the approver as the
+ * `submittedBy` user so the eventual audit trail names the person
+ * who really put this run live, not just the person who proposed it.
+ */
+export async function approvePayrollRun(input: {
+  runId: string
+}): Promise<void> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    throw new Error("Session expired. Please log in again.")
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) throw new Error("No active organisation.")
+
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  if (!run) throw new Error("Payroll run not found.")
+  if (run.status !== "PENDING_APPROVAL") {
+    throw new Error("Only runs awaiting approval can be approved.")
+  }
+
+  await payrollRunRepository.approve({
+    id: run.id,
+    organizationId: orgId,
+    approvedById: session.userId,
+  })
+}
+
+/**
+ * Approver bounces a PENDING_APPROVAL run back to DRAFT. Captures
+ * an optional reason for the submitter; submitter can then edit
+ * and re-submit.
+ */
+export async function rejectPayrollRunApproval(input: {
+  runId: string
+  reason: string | null
+}): Promise<void> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    throw new Error("Session expired. Please log in again.")
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) throw new Error("No active organisation.")
+
+  await payrollRunRepository.rejectApproval({
+    id: input.runId,
+    organizationId: orgId,
+    reason: input.reason?.trim() || null,
   })
 }
 
@@ -516,6 +577,10 @@ export async function generatePayrollPayslips(input: {
   })
 
   await payslipRepository.refreshRunTotals({ payrollRunId: run.id })
+  // Clear the pending-mutation flag — fresh payslips now reflect the
+  // run state, so the stale-run banner / Submit lockout drops away
+  // until the next mutation.
+  await payrollRunRepository.clearMutated(run.id)
 
   return { count }
 }
@@ -564,6 +629,15 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
   payslips: PayslipRow[]
   attachments: PayrollRunClaimRow[]
   attachableClaims: AttachableClaimRow[]
+  /// True when the run has payslips on file BUT something has
+  /// changed since they were generated — i.e. an adjustment row or a
+  /// claim attachment was created/updated after the latest payslip
+  /// generation. UI uses this to disable "Submit payroll" and prompt
+  /// the admin to re-run first so the payslips reflect the latest
+  /// state. False when the run has never been generated yet (the
+  /// generic "no payslips" empty state handles that), and false when
+  /// everything's in sync.
+  isStale: boolean
 } | null> {
   const base = await getPayrollRunDetailPageData(input)
   if (!base) return null
@@ -617,12 +691,38 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
     adjustment: summariesByEmp.get(e.employeeProfileId) ?? null,
   }))
 
+  // ── Stale-run guard ──────────────────────────────────────────────
+  // The payslips are computed-once snapshots. If the admin edits an
+  // adjustment OR adds/removes a claim attachment AFTER generation,
+  // the on-screen payslips no longer reflect reality. We mark the
+  // run "stale" so the run page can disable Submit + nudge the admin
+  // to re-run.
+  //
+  // `run.lastMutatedAt` is bumped by every content mutation (attach,
+  // detach, adjustment save/clear). Each Generate press freshens
+  // every payslip's `createdAt`. If lastMutatedAt is newer than the
+  // most-recent payslip, the run is stale.
+  //
+  // Detach is now correctly covered: previously we compared against
+  // attachment.createdAt which doesn't change when the attachment is
+  // deleted, so detach didn't mark stale. lastMutatedAt fixes that.
+  let isStale = false
+  if (payslips.length > 0 && base.run.lastMutatedAt != null) {
+    const latestGeneration = payslips
+      .map((p) => p.createdAt)
+      .reduce((acc, v) => (v > acc ? v : acc), payslips[0]!.createdAt)
+    if (base.run.lastMutatedAt > latestGeneration) {
+      isStale = true
+    }
+  }
+
   return {
     ...base,
     employees: enrichedEmployees,
     payslips,
     attachments,
     attachableClaims,
+    isStale,
   }
 }
 
@@ -848,11 +948,15 @@ export async function savePayrollAdjustment(input: {
     )
   }
 
-  return payrollRunAdjustmentRepository.upsert({
+  const result = await payrollRunAdjustmentRepository.upsert({
     payrollRunId: run.id,
     employeeProfileId: input.employeeProfileId,
     patch: input.patch,
   })
+  // Bump the run's lastMutatedAt so the staleness check picks up the
+  // change and the run page shows the "re-run before submit" banner.
+  await payrollRunRepository.markMutated(run.id)
+  return result
 }
 
 /**
@@ -884,6 +988,7 @@ export async function clearPayrollAdjustment(input: {
     payrollRunId: run.id,
     employeeProfileId: input.employeeProfileId,
   })
+  await payrollRunRepository.markMutated(run.id)
 }
 
 // ─── Claim attachment mutations ──────────────────────────────────────────
@@ -932,11 +1037,13 @@ export async function attachClaimToPayrollRun(input: {
       "Only fully-reviewed claims can be added to payroll. Approve the claim first.",
     )
   }
-  if (claim.xeroSyncStatus !== "SYNCED") {
-    throw new Error(
-      "Sync the claim to Xero before adding it to a payroll run.",
-    )
-  }
+  // The old guard required `xeroSyncStatus === "SYNCED"` here — dropped
+  // when the workflow inverted: claims now flow REVIEWED → payroll
+  // attach → submit → (future) Xero sync. The "Ready for payroll"
+  // page (and `listAttachableForOrg`) already filter on REVIEWED +
+  // PERSONAL, so allowing attach without a Xero sync matches the new
+  // pipeline. See modules/payroll/infrastructure/payroll-run-claim.repository.ts
+  // for the matching change on the read side.
   if (claim.paymentType !== "PERSONAL") {
     throw new Error(
       "Only PERSONAL-paymentType claims need reimbursing through payroll.",
@@ -955,6 +1062,7 @@ export async function attachClaimToPayrollRun(input: {
     label: claim.title,
     amount: claim.amount,
   })
+  await payrollRunRepository.markMutated(run.id)
 }
 
 /**
@@ -990,6 +1098,7 @@ export async function detachClaimFromPayrollRun(input: {
   }
 
   await payrollRunClaimRepository.detach({ claimId: input.claimId })
+  if (run) await payrollRunRepository.markMutated(run.id)
 }
 
 /**

@@ -140,11 +140,14 @@ export const payrollRunRepository = {
   },
 
   /**
-   * Submit a draft run, transitioning DRAFT → SUBMITTED. Records
-   * `submittedAt` and `submittedById` for the audit trail. Throws if
-   * the run is already SUBMITTED.
+   * Submit a DRAFT run for approval, transitioning DRAFT →
+   * PENDING_APPROVAL. Records `submittedForApprovalAt` and
+   * `submittedForApprovalById`. Throws if not in DRAFT.
+   *
+   * Also clears any prior `approvalRejectionReason` so a previously-
+   * bounced run doesn't carry its old rejection note forward.
    */
-  async submit(input: {
+  async submitForApproval(input: {
     id: string
     organizationId: string
     submittedById: string
@@ -158,7 +161,41 @@ export const payrollRunRepository = {
     })
     if (!run) throw new Error("Payroll run not found.")
     if (run.status !== "DRAFT") {
-      throw new Error("Run has already been submitted.")
+      throw new Error("Only draft runs can be submitted for approval.")
+    }
+
+    await prisma.payrollRun.update({
+      where: { id: run.id },
+      data: {
+        status: "PENDING_APPROVAL",
+        submittedForApprovalAt: new Date(),
+        submittedForApprovalById: input.submittedById,
+        approvalRejectionReason: null,
+      },
+    })
+  },
+
+  /**
+   * Approve a PENDING_APPROVAL run, transitioning PENDING_APPROVAL
+   * → SUBMITTED. Records `submittedAt` + `submittedById` for the
+   * audit trail of who finalised the run. Per the org's policy any
+   * admin can approve, including the submitter themselves.
+   */
+  async approve(input: {
+    id: string
+    organizationId: string
+    approvedById: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const run = await prisma.payrollRun.findFirst({
+      where: { id: input.id, organizationId: input.organizationId },
+      select: { id: true, status: true },
+    })
+    if (!run) throw new Error("Payroll run not found.")
+    if (run.status !== "PENDING_APPROVAL") {
+      throw new Error("Only runs awaiting approval can be approved.")
     }
 
     await prisma.payrollRun.update({
@@ -166,15 +203,53 @@ export const payrollRunRepository = {
       data: {
         status: "SUBMITTED",
         submittedAt: new Date(),
-        submittedById: input.submittedById,
+        submittedById: input.approvedById,
       },
     })
   },
 
   /**
-   * Reverse a submitted run back to DRAFT. Clears `submittedAt` and
+   * Approver sends a PENDING_APPROVAL run back to DRAFT with an
+   * optional reason. Submitter can then edit and resubmit. The
+   * reason persists on the run as audit (and as a hint to the
+   * submitter). `submittedForApprovalAt` is cleared so re-submission
+   * gets a fresh timestamp.
+   */
+  async rejectApproval(input: {
+    id: string
+    organizationId: string
+    reason: string | null
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const run = await prisma.payrollRun.findFirst({
+      where: { id: input.id, organizationId: input.organizationId },
+      select: { id: true, status: true },
+    })
+    if (!run) throw new Error("Payroll run not found.")
+    if (run.status !== "PENDING_APPROVAL") {
+      throw new Error(
+        "Only runs awaiting approval can be sent back to draft.",
+      )
+    }
+
+    await prisma.payrollRun.update({
+      where: { id: run.id },
+      data: {
+        status: "DRAFT",
+        submittedForApprovalAt: null,
+        submittedForApprovalById: null,
+        approvalRejectionReason: input.reason ?? null,
+      },
+    })
+  },
+
+  /**
+   * Reverse a SUBMITTED run back to DRAFT. Clears `submittedAt` and
    * `submittedById`. Existing payslips and claim attachments stay in
-   * place — the admin can regenerate or edit then re-submit.
+   * place — the admin can regenerate or edit then re-submit for
+   * approval. Skips PENDING_APPROVAL (use `rejectApproval` for that).
    */
   async revertToDraft(input: {
     id: string
@@ -200,6 +275,55 @@ export const payrollRunRepository = {
         submittedById: null,
       },
     })
+  },
+
+  /**
+   * Bump the `lastMutatedAt` timestamp on a run — called after every
+   * content-level mutation: claim attach, detach, adjustment save,
+   * adjustment clear. Drives the "stale run" warning by being
+   * compared against the latest `Payslip.createdAt`. Generate
+   * doesn't bump this; only user edits do.
+   *
+   * Best-effort: if the run doesn't exist (unusual — caller should
+   * have verified earlier) the update is a no-op rather than
+   * raising, so a benign race condition doesn't fail the parent
+   * mutation that already succeeded.
+   */
+  async markMutated(runId: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) return
+    try {
+      await prisma.payrollRun.update({
+        where: { id: runId },
+        data: { lastMutatedAt: new Date() },
+      })
+    } catch (err) {
+      // The user's actual mutation succeeded; the staleness flag is
+      // a UX nicety, so we don't re-throw. But we DO log so silent
+      // failures don't lead to the "I changed things but the banner
+      // never appears" bug class going undetected.
+      console.error("[payrollRunRepository.markMutated]", { runId, err })
+    }
+  },
+
+  /**
+   * Clear the pending-mutation flag — called from the Generate flow
+   * right after fresh payslips are written. This is what flips the
+   * "stale run" warning off: with `lastMutatedAt` back to null, the
+   * Submit button re-enables. Also called once during the column
+   * migration so legacy rows aren't false-positive flagged.
+   */
+  async clearMutated(runId: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) return
+    try {
+      await prisma.payrollRun.update({
+        where: { id: runId },
+        data: { lastMutatedAt: null },
+      })
+    } catch (err) {
+      console.error("[payrollRunRepository.clearMutated]", { runId, err })
+    }
   },
 
   /**
@@ -269,7 +393,18 @@ function mapPayrollRun(row: any): PayrollRunData {
         : toNumber(row.totalWagesSubjectToHrdf, 0),
     submittedAt: row.submittedAt ? row.submittedAt.toISOString() : null,
     submittedById: row.submittedById ?? null,
+    submittedForApprovalAt: row.submittedForApprovalAt
+      ? row.submittedForApprovalAt.toISOString()
+      : null,
+    submittedForApprovalById: row.submittedForApprovalById ?? null,
+    approvalRejectionReason: row.approvalRejectionReason ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
+    // Null when no pending content mutations since the last
+    // generation (or since migration). Generate clears this; mutations
+    // set it. The UI's stale-run check is null-safe.
+    lastMutatedAt: row.lastMutatedAt
+      ? row.lastMutatedAt.toISOString()
+      : null,
   }
 }

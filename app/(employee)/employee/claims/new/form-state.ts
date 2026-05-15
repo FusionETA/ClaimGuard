@@ -5,6 +5,7 @@ export type ClaimFormValues = {
   spentAt: string
   description: string
   receiptUrl: string
+  currency: string
   paymentType: "PERSONAL" | "COMPANY"
   payViaAccountId: string
   projectId: string
@@ -31,6 +32,7 @@ export const initialClaimFormState: ClaimFormState = {
     spentAt: "",
     description: "",
     receiptUrl: "",
+    currency: "",
     paymentType: "PERSONAL",
     payViaAccountId: "",
     projectId: "",

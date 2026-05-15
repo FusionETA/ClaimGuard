@@ -153,8 +153,12 @@ export const payrollRunClaimRepository = {
       where: {
         organizationId: input.organizationId,
         status: "REVIEWED",
-        xeroSyncStatus: "SYNCED",
         paymentType: "PERSONAL",
+        // The old gate required `xeroSyncStatus: "SYNCED"` here — we
+        // dropped it so reviewed personal-paid claims can flow
+        // straight into a payroll run without going through Xero
+        // first. Xero sync becomes a post-submit, module-gated step
+        // (or is skipped entirely for orgs that don't use Xero).
         ...(input.excludeAttached
           ? { payrollRunAttachment: { is: null } }
           : {}),

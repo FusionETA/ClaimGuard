@@ -6,13 +6,15 @@ import { z } from "zod"
 
 import type { BaseFormState } from "@/lib/form-state"
 import {
+  approvePayrollRun,
   attachClaimToPayrollRun,
   createPayrollRunDraft,
   deletePayrollRunDraft,
   detachClaimFromPayrollRun,
   generatePayrollPayslips,
+  rejectPayrollRunApproval,
   revertPayrollRunToDraft,
-  submitPayrollRun,
+  submitPayrollRunForApproval,
 } from "@/modules/payroll/application/services/payroll-run.service"
 
 /**
@@ -195,28 +197,72 @@ export async function detachClaimFromPayrollRunAction(
   return { status: "success", message: "Claim removed from payroll run." }
 }
 
-// ─── Submit / revert (Phase 6) ───────────────────────────────────────────
+// ─── Approval flow (Phase 21) ────────────────────────────────────────────
 
-const submitSchema = z.object({
+const submitForApprovalSchema = z.object({
   runId: z.string().min(1),
 })
 
-export async function submitPayrollRunAction(
+/**
+ * Step 1: Admin submits a draft run "for approval".
+ * Transitions DRAFT → PENDING_APPROVAL and locks edits. Another admin
+ * (or the same admin) must then call the approve action to actually
+ * finalise the run.
+ */
+export async function submitPayrollRunForApprovalAction(
   _prev: BaseFormState,
   formData: FormData,
 ): Promise<BaseFormState> {
-  const parsed = submitSchema.safeParse({ runId: formData.get("runId") })
+  const parsed = submitForApprovalSchema.safeParse({
+    runId: formData.get("runId"),
+  })
   if (!parsed.success) {
     return { status: "error", message: "Missing run id." }
   }
 
   try {
-    await submitPayrollRun({ runId: parsed.data.runId })
+    await submitPayrollRunForApproval({ runId: parsed.data.runId })
   } catch (err) {
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not submit payroll run.",
+        err instanceof Error
+          ? err.message
+          : "Could not submit run for approval.",
+    }
+  }
+
+  revalidatePath(`/admin/payroll/runs/${parsed.data.runId}`)
+  revalidatePath("/admin/payroll/runs")
+  revalidatePath("/admin/payroll")
+  return { status: "success", message: "Payroll run sent for approval." }
+}
+
+const approveSchema = z.object({
+  runId: z.string().min(1),
+})
+
+/**
+ * Step 2: Approver finalises a PENDING_APPROVAL run.
+ * Transitions PENDING_APPROVAL → SUBMITTED, exposes payslips to the
+ * affected employees, and records the approver as `submittedBy`.
+ */
+export async function approvePayrollRunAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const parsed = approveSchema.safeParse({ runId: formData.get("runId") })
+  if (!parsed.success) {
+    return { status: "error", message: "Missing run id." }
+  }
+
+  try {
+    await approvePayrollRun({ runId: parsed.data.runId })
+  } catch (err) {
+    return {
+      status: "error",
+      message:
+        err instanceof Error ? err.message : "Could not approve payroll run.",
     }
   }
 
@@ -224,7 +270,50 @@ export async function submitPayrollRunAction(
   revalidatePath("/admin/payroll/runs")
   revalidatePath("/admin/payroll")
   revalidatePath("/employee/payslips")
-  return { status: "success", message: "Payroll run submitted." }
+  return { status: "success", message: "Payroll run approved and submitted." }
+}
+
+const rejectApprovalSchema = z.object({
+  runId: z.string().min(1),
+  reason: z.string().max(500).optional(),
+})
+
+/**
+ * Approver bounces a PENDING_APPROVAL run back to DRAFT.
+ * An optional reason is captured and persisted on the run so the
+ * original submitter knows what to fix before re-submitting.
+ */
+export async function rejectPayrollRunApprovalAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const parsed = rejectApprovalSchema.safeParse({
+    runId: formData.get("runId"),
+    reason: formData.get("reason") ?? undefined,
+  })
+  if (!parsed.success) {
+    return { status: "error", message: "Missing run id." }
+  }
+
+  try {
+    await rejectPayrollRunApproval({
+      runId: parsed.data.runId,
+      reason: parsed.data.reason?.trim() || null,
+    })
+  } catch (err) {
+    return {
+      status: "error",
+      message:
+        err instanceof Error
+          ? err.message
+          : "Could not send the payroll run back to draft.",
+    }
+  }
+
+  revalidatePath(`/admin/payroll/runs/${parsed.data.runId}`)
+  revalidatePath("/admin/payroll/runs")
+  revalidatePath("/admin/payroll")
+  return { status: "success", message: "Payroll run sent back to draft." }
 }
 
 const revertSchema = z.object({
