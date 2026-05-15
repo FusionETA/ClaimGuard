@@ -870,10 +870,15 @@ export const attendanceRepository = {
         if (!existingOt) {
           const profile = await prisma.employeeProfile.findUnique({
             where: { userId: employeeId },
-            select: { id: true, otPayoutMethod: true },
+            select: {
+              id: true,
+              policy: { select: { otEnabled: true, otMethod: true } },
+            },
           })
           const payout =
-            profile?.otPayoutMethod === "TIME_BANK" ? "TIME_BANK" : "CASH"
+            profile?.policy?.otEnabled && profile.policy.otMethod === "TIME_BANK"
+              ? "TIME_BANK"
+              : "CASH"
           await prisma.approvalRequest.create({
             data: {
               employeeId,
@@ -1736,17 +1741,23 @@ export const attendanceRepository = {
       }
     }
 
-    // When an OT request reaches APPROVED and the employee's payout method
+    // When an OT request reaches APPROVED and the effective payout method
     // is TIME_BANK, credit the OT minutes to their time balance. Snapshot
     // wins if present (locks treatment); otherwise fall back to the
-    // employee's current profile setting.
+    // employee's current policy setting.
     if (finalStatus === "APPROVED" && request.kind === "OT") {
       const profile = await prisma.employeeProfile.findUnique({
         where: { userId: request.employeeId },
-        select: { id: true, otPayoutMethod: true },
+        select: {
+          id: true,
+          policy: { select: { otEnabled: true, otMethod: true } },
+        },
       })
       const effectivePayout =
-        request.otPayoutMethod ?? profile?.otPayoutMethod ?? "CASH"
+        request.otPayoutMethod ??
+        (profile?.policy?.otEnabled && profile.policy.otMethod === "TIME_BANK"
+          ? "TIME_BANK"
+          : "CASH")
       if (effectivePayout === "TIME_BANK" && profile) {
         const otMinutes = await computeApprovedOtMinutes(
           prisma,

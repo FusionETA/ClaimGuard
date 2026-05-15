@@ -34,8 +34,7 @@ export type Organization = Prisma.OrganizationModel
  * have any number of policies. Each EmployeeProfile is assigned to one
  * policy via `policyId`. The policy controls:
  * - which employee modules are visible (Attendance / Claims / Leave)
- * - salary type (HOURLY vs MONTHLY) — drives hourly-rate validation and
- * clock-in selfie capture
+ * - salary type (HOURLY vs MONTHLY)
  * - OT method (CASH vs TIME_BANK)
  * Two policies are seeded per org during the migration so existing
  * behavior is preserved at cutover.

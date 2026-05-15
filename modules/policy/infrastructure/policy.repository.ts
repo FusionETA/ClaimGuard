@@ -213,20 +213,6 @@ export const policyRepository = {
           otDailyThresholdMinutes: input.otDailyThresholdMinutes ?? undefined,
         },
       })
-
-      // If salaryType or otMethod changed, propagate to assigned profiles so
-      // the denormalized columns stay in sync with the policy.
-      if (input.salaryType || input.otMethod) {
-        await tx.employeeProfile.updateMany({
-          where: { policyId: input.id },
-          data: {
-            ...(input.salaryType
-              ? { payoutMethod: input.salaryType }
-              : {}),
-            ...(input.otMethod ? { otPayoutMethod: input.otMethod } : {}),
-          },
-        })
-      }
       return toPolicy(updated as unknown as PolicyRow)
     })
   },

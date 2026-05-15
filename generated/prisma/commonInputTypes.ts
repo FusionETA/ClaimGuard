@@ -399,23 +399,6 @@ export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
   _max?: Prisma.NestedJsonFilter<$PrismaModel>
 }
 
-export type EnumPayoutMethodNullableFilter<$PrismaModel = never> = {
-  equals?: $Enums.PayoutMethod | Prisma.EnumPayoutMethodFieldRefInput<$PrismaModel> | null
-  in?: $Enums.PayoutMethod[] | null
-  notIn?: $Enums.PayoutMethod[] | null
-  not?: Prisma.NestedEnumPayoutMethodNullableFilter<$PrismaModel> | $Enums.PayoutMethod | null
-}
-
-export type EnumPayoutMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.PayoutMethod | Prisma.EnumPayoutMethodFieldRefInput<$PrismaModel> | null
-  in?: $Enums.PayoutMethod[] | null
-  notIn?: $Enums.PayoutMethod[] | null
-  not?: Prisma.NestedEnumPayoutMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.PayoutMethod | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumPayoutMethodNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumPayoutMethodNullableFilter<$PrismaModel>
-}
-
 export type EnumClaimCategoryFilter<$PrismaModel = never> = {
   equals?: $Enums.ClaimCategory | Prisma.EnumClaimCategoryFieldRefInput<$PrismaModel>
   in?: $Enums.ClaimCategory[]
@@ -1271,23 +1254,6 @@ export type NestedJsonFilterBase<$PrismaModel = never> = {
   gt?: runtime.InputJsonValue
   gte?: runtime.InputJsonValue
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
-}
-
-export type NestedEnumPayoutMethodNullableFilter<$PrismaModel = never> = {
-  equals?: $Enums.PayoutMethod | Prisma.EnumPayoutMethodFieldRefInput<$PrismaModel> | null
-  in?: $Enums.PayoutMethod[] | null
-  notIn?: $Enums.PayoutMethod[] | null
-  not?: Prisma.NestedEnumPayoutMethodNullableFilter<$PrismaModel> | $Enums.PayoutMethod | null
-}
-
-export type NestedEnumPayoutMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.PayoutMethod | Prisma.EnumPayoutMethodFieldRefInput<$PrismaModel> | null
-  in?: $Enums.PayoutMethod[] | null
-  notIn?: $Enums.PayoutMethod[] | null
-  not?: Prisma.NestedEnumPayoutMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.PayoutMethod | null
-  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumPayoutMethodNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumPayoutMethodNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumClaimCategoryFilter<$PrismaModel = never> = {
