@@ -375,7 +375,9 @@ export const XeroConnectionScalarFieldEnum = {
   connectedByAdminId: 'connectedByAdminId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  lastReauthVersion: 'lastReauthVersion'
+  lastReauthVersion: 'lastReauthVersion',
+  xeroTrackingCategoryId: 'xeroTrackingCategoryId',
+  xeroTrackingCategoryName: 'xeroTrackingCategoryName'
 } as const
 
 export type XeroConnectionScalarFieldEnum = (typeof XeroConnectionScalarFieldEnum)[keyof typeof XeroConnectionScalarFieldEnum]
@@ -386,6 +388,7 @@ export const XeroProjectScalarFieldEnum = {
   organizationId: 'organizationId',
   xeroConnectionId: 'xeroConnectionId',
   xeroProjectId: 'xeroProjectId',
+  xeroTrackingOptionId: 'xeroTrackingOptionId',
   name: 'name',
   status: 'status',
   createdAt: 'createdAt',
@@ -1087,7 +1090,9 @@ export const XeroConnectionOrderByRelevanceFieldEnum = {
   scope: 'scope',
   tokenType: 'tokenType',
   connectedByAdminId: 'connectedByAdminId',
-  lastReauthVersion: 'lastReauthVersion'
+  lastReauthVersion: 'lastReauthVersion',
+  xeroTrackingCategoryId: 'xeroTrackingCategoryId',
+  xeroTrackingCategoryName: 'xeroTrackingCategoryName'
 } as const
 
 export type XeroConnectionOrderByRelevanceFieldEnum = (typeof XeroConnectionOrderByRelevanceFieldEnum)[keyof typeof XeroConnectionOrderByRelevanceFieldEnum]
@@ -1098,6 +1103,7 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   organizationId: 'organizationId',
   xeroConnectionId: 'xeroConnectionId',
   xeroProjectId: 'xeroProjectId',
+  xeroTrackingOptionId: 'xeroTrackingOptionId',
   name: 'name',
   status: 'status',
   location: 'location',

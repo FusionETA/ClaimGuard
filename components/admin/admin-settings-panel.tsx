@@ -39,6 +39,10 @@ import {
   updateProjectAction,
 } from "@/app/(admin)/admin/settings/actions"
 import { EmployeePoliciesTab } from "@/components/admin/employee-policies-tab"
+import {
+  XeroTrackingCategoryPicker,
+  type XeroTrackingCategoryOption,
+} from "@/components/admin/xero-tracking-category-picker"
 import { XeroConnectionCard } from "@/components/admin/xero-connection-card"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -88,11 +92,24 @@ function CoordinatePairInputs({
   defaultLng = null,
   onChange,
   className,
+  /// Whether to render the long "Open Google Maps, right-click…" helper
+  /// paragraph under the inputs. Defaults to true so existing callers
+  /// (manual project creation) keep their inline hint. The project
+  /// cards in the Projects tab pass false — the hint is rendered ONCE
+  /// above the grid instead of N times per card.
+  showHelper = true,
+  /// Compact layout: lat/long inputs flex to fill width, My-location
+  /// becomes an icon-only square button (no text). Used inside the
+  /// narrow Projects-tab cards so all three controls sit on one row
+  /// regardless of viewport breakpoint.
+  compact = false,
 }: {
   defaultLat?: number | null
   defaultLng?: number | null
   onChange?: (lat: number | null, lng: number | null) => void
   className?: string
+  showHelper?: boolean
+  compact?: boolean
 }) {
   const [lat, setLat] = useState<string>(defaultLat != null ? String(defaultLat) : "")
   const [lng, setLng] = useState<string>(defaultLng != null ? String(defaultLng) : "")
@@ -126,7 +143,16 @@ function CoordinatePairInputs({
 
   return (
     <div className={cn("space-y-1", className)}>
-      <div className="flex flex-wrap items-center gap-2">
+      <div
+        className={cn(
+          "flex items-center gap-2",
+          // Compact mode skips flex-wrap so lat/lng + the icon button
+          // all stay on one row inside a narrow card. Outside compact
+          // mode we keep the flex-wrap behaviour for the manual
+          // project-creation form so it degrades nicely on phones.
+          compact ? "min-w-0" : "flex-wrap",
+        )}
+      >
         <Input
           name="latitude"
           type="number"
@@ -137,7 +163,12 @@ function CoordinatePairInputs({
           placeholder="Latitude"
           value={lat}
           onChange={(e) => update(e.target.value, lng)}
-          className="h-9 w-32 text-sm"
+          className={cn(
+            "h-9 text-sm",
+            // In compact mode, lat/lng share remaining width 50/50 so
+            // the icon button sits comfortably on the right.
+            compact ? "flex-1 min-w-0" : "w-32",
+          )}
         />
         <Input
           name="longitude"
@@ -149,30 +180,44 @@ function CoordinatePairInputs({
           placeholder="Longitude"
           value={lng}
           onChange={(e) => update(lat, e.target.value)}
-          className="h-9 w-32 text-sm"
+          className={cn(
+            "h-9 text-sm",
+            compact ? "flex-1 min-w-0" : "w-32",
+          )}
         />
         <button
           type="button"
           onClick={handleUseMyLocation}
           disabled={locating}
           title="Use my current location"
-          className="inline-flex h-9 items-center gap-1 rounded-md border border-border px-2 text-xs font-semibold text-muted-foreground transition-colors hover:text-primary disabled:opacity-50"
+          aria-label="Use my current location"
+          className={cn(
+            "inline-flex items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-primary disabled:opacity-50",
+            // Compact = square icon button, no text label.
+            compact
+              ? "h-9 w-9 shrink-0"
+              : "h-9 gap-1 px-2 text-xs font-semibold",
+          )}
         >
           {locating ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <MapPin className="h-4 w-4" />
           )}
-          <span className="hidden sm:inline">My location</span>
+          {!compact && (
+            <span className="hidden sm:inline">My location</span>
+          )}
         </button>
       </div>
-      <p className="text-[11px] text-muted-foreground">
-        Open Google Maps, right-click the project location, then click the
-        <span className="mx-1 font-mono">1.234567, 103.456789</span>
-        coordinates at the top of the menu to copy. Paste them into the two
-        fields. Or tap <span className="font-semibold">My location</span> if
-        you&apos;re already on site.
-      </p>
+      {showHelper ? (
+        <p className="text-[11px] text-muted-foreground">
+          Open Google Maps, right-click the project location, then click the
+          <span className="mx-1 font-mono">1.234567, 103.456789</span>
+          coordinates at the top of the menu to copy. Paste them into the two
+          fields. Or tap <span className="font-semibold">My location</span> if
+          you&apos;re already on site.
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -410,12 +455,19 @@ function ProjectCard({
   )
 
   return (
-    <div className="rounded-[20px] border border-border/70 bg-surface-low p-4 space-y-3">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="font-bold text-foreground">{project.name}</p>
-          {project.status ? (
-            <p className="mt-0.5 text-xs text-muted-foreground">{project.status}</p>
+    <div className="rounded-[16px] border border-border/70 bg-surface-low p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p
+            className="truncate text-sm font-semibold text-foreground"
+            title={project.name}
+          >
+            {project.name}
+          </p>
+          {project.status && project.status !== "ACTIVE" ? (
+            <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+              {project.status}
+            </p>
           ) : null}
         </div>
         {onDelete ? (
@@ -424,42 +476,38 @@ function ProjectCard({
             onClick={() => onDelete(project.id)}
             className="shrink-0 text-muted-foreground hover:text-destructive transition-colors"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-3.5 w-3.5" />
           </button>
         ) : null}
       </div>
-      <div className="space-y-1.5">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-          Project managers
-        </p>
-        <SearchableMultiSelect
-          options={supervisorMembers.map((m) => ({ id: m.id, label: m.name }))}
-          selectedIds={pmIds}
-          onToggle={(id) =>
-            setPmIds((prev) =>
-              prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-            )
-          }
-          placeholder="Pick project managers"
-          emptyText="No supervisor matches that name"
-          noOptionsText="No supervisors yet — add some first"
-        />
-        {pmIds.length > 0 ? (
-          <p className="text-[11px] text-muted-foreground">
-            {pmIds.length} manager{pmIds.length === 1 ? "" : "s"} selected
-          </p>
-        ) : null}
-      </div>
+      <SearchableMultiSelect
+        options={supervisorMembers.map((m) => ({ id: m.id, label: m.name }))}
+        selectedIds={pmIds}
+        onToggle={(id) =>
+          setPmIds((prev) =>
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+          )
+        }
+        placeholder={
+          pmIds.length === 0
+            ? "Pick project managers"
+            : `${pmIds.length} manager${pmIds.length === 1 ? "" : "s"}`
+        }
+        emptyText="No supervisor matches that name"
+        noOptionsText="No supervisors yet — add some first"
+      />
       <CoordinatePairInputs
         defaultLat={project.latitude ?? null}
         defaultLng={project.longitude ?? null}
         onChange={(lat, lng) => setCoords({ lat, lng })}
+        showHelper={false}
+        compact
       />
       <Button
         type="button"
         size="sm"
         variant="outline"
-        className="rounded-xl w-full"
+        className="rounded-lg w-full h-8 text-xs"
         onClick={handleSave}
         disabled={saving}
       >
@@ -491,6 +539,10 @@ export function AdminSettingsPanel({
   currentAdminEmail,
   apiIntegrations = [],
   policies = [],
+  xeroTrackingCategories,
+  xeroTrackingCategoriesError,
+  pickedTrackingCategoryId,
+  pickedTrackingCategoryName,
 }: {
   admin: AdminProfile
   organization?: OrganizationSummary
@@ -500,6 +552,19 @@ export function AdminSettingsPanel({
   projects: OrganizationProjectOption[]
   members: OrganizationMember[]
   activeXeroConnectionId?: string
+  /// Live-fetched Xero tracking categories for the active connection.
+  /// Undefined when there's no Xero connection at all. Empty array
+  /// when the connection has no active categories. Drives the
+  /// "source tracking category" picker on the Projects tab.
+  xeroTrackingCategories?: XeroTrackingCategoryOption[]
+  /// Error string surfaced when the live tracking-categories fetch
+  /// failed (e.g. expired token). The picker renders this in place
+  /// of the dropdown.
+  xeroTrackingCategoriesError?: string
+  /// The category the admin has already picked. Echoed back as the
+  /// dropdown's initial value + the "currently syncing from X" line.
+  pickedTrackingCategoryId?: string | null
+  pickedTrackingCategoryName?: string | null
   xeroStatus?: string
   xeroReason?: string
   pendingTenants?: XeroTenant[]
@@ -602,6 +667,15 @@ export function AdminSettingsPanel({
 
   const accountSearchLower = accountSearch.toLowerCase()
   const projectSearchLower = projectSearch.toLowerCase()
+  /// Pagination state for the Projects tab grid. 20 cards per page —
+  /// keeps the tab usable for orgs with hundreds of projects without
+  /// forcing virtualisation. Reset to page 1 whenever the search term
+  /// changes (handled by an effect below).
+  const PROJECTS_PER_PAGE = 20
+  const [projectPage, setProjectPage] = useState(1)
+  useEffect(() => {
+    setProjectPage(1)
+  }, [projectSearch])
 
   const [organizationState, organizationAction, organizationPending] = useActionState(
     saveOrganizationSettingsAction,
@@ -1765,28 +1839,47 @@ export function AdminSettingsPanel({
             <CardHeader className="flex-row items-start justify-between gap-4">
               <div>
                 <CardTitle>
-                  {isCustomMode ? "Projects" : `Xero projects — ${activeConnection?.tenantName ?? "Xero"}`}
+                  {isCustomMode
+                    ? "Projects"
+                    : `Projects (Tracking Category) — ${activeConnection?.tenantName ?? "Xero"}`}
                 </CardTitle>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   {isCustomMode
                     ? "Create and manage projects. Assign a project manager and location to each."
-                    : "Sync projects from Xero. You can assign a project manager and location to each."}
+                    : "Each option in the chosen Xero Tracking Category becomes a project here. Sync to pull the latest options; assign a project manager and location per project."}
                 </p>
               </div>
-              {!isCustomMode && activeXeroConnectionId ? (
+              {!isCustomMode &&
+              activeXeroConnectionId &&
+              pickedTrackingCategoryId ? (
                 <form action={projectsAction}>
                   <input type="hidden" name="connectionId" value={activeXeroConnectionId} />
                   <Button type="submit" variant="outline" className="rounded-xl" disabled={projectsPending}>
                     {projectsPending ? (
                       <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Syncing…</>
                     ) : (
-                      "Sync Xero projects"
+                      "Sync now"
                     )}
                   </Button>
                 </form>
               ) : null}
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Tracking-category picker — only in Xero mode. Lets the
+                  admin choose which Xero Tracking Category drives our
+                  Projects list. Opens a consequences dialog on change
+                  before saving. Hidden in custom-mode where there's
+                  no Xero connection to source options from. */}
+              {!isCustomMode && activeXeroConnectionId ? (
+                <XeroTrackingCategoryPicker
+                  connectionId={activeXeroConnectionId}
+                  categories={xeroTrackingCategories ?? []}
+                  currentTrackingCategoryId={pickedTrackingCategoryId ?? ""}
+                  currentTrackingCategoryName={pickedTrackingCategoryName ?? null}
+                  loadError={xeroTrackingCategoriesError}
+                />
+              ) : null}
+
               {/* Manual project creation — only when no Xero connected */}
               {isCustomMode ? (
                 <form action={createProjectAction} className="space-y-3">
@@ -1841,37 +1934,118 @@ export function AdminSettingsPanel({
                 <div className="rounded-[24px] bg-surface-low p-5 text-sm leading-6 text-muted-foreground">
                   {isCustomMode
                     ? "No projects yet. Add one above."
-                    : "No Xero projects imported yet. Use the Sync button."}
+                    : pickedTrackingCategoryId
+                      ? "No projects yet. Click Sync now to pull options from the chosen tracking category."
+                      : "Pick a Xero Tracking Category above to start syncing projects."}
                 </div>
               ) : (
-                <>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="Search projects…"
-                      value={projectSearch}
-                      onChange={(e) => setProjectSearch(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {projects
-                      .filter((p) =>
-                        projectSearchLower === "" ||
-                        p.name.toLowerCase().includes(projectSearchLower)
-                      )
-                      .map((project) => (
-                        <ProjectCard
-                          key={project.id}
-                          project={project}
-                          members={members}
-                          onUpdate={handleUpdateProject}
-                          onDelete={project.isManual ? handleDeleteProject : undefined}
+                (() => {
+                  // Filter + paginate. Both derive from the projects
+                  // array on every render — fine at this scale (~hundreds
+                  // of rows max); no useMemo needed.
+                  const filtered = projects.filter(
+                    (p) =>
+                      projectSearchLower === "" ||
+                      p.name.toLowerCase().includes(projectSearchLower),
+                  )
+                  const totalPages = Math.max(
+                    1,
+                    Math.ceil(filtered.length / PROJECTS_PER_PAGE),
+                  )
+                  const clampedPage = Math.min(projectPage, totalPages)
+                  const startIdx = (clampedPage - 1) * PROJECTS_PER_PAGE
+                  const endIdx = startIdx + PROJECTS_PER_PAGE
+                  const pageItems = filtered.slice(startIdx, endIdx)
+                  return (
+                    <>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          placeholder="Search projects…"
+                          value={projectSearch}
+                          onChange={(e) => setProjectSearch(e.target.value)}
+                          className="pl-9"
                         />
-                      ))}
-                  </div>
-                </>
+                      </div>
+
+                      {/* One-line hint shown above the grid instead of
+                          repeated inside every card. Saves ~60px of
+                          height per card when the list is long. The
+                          inline <MapPin> icon mirrors the icon-only
+                          button on each card so admins know which
+                          button "My location" refers to. */}
+                      <p className="text-[11px] text-muted-foreground">
+                        For each project&apos;s location: open Google
+                        Maps, right-click the spot, click the{" "}
+                        <span className="font-mono">1.23, 103.45</span>{" "}
+                        coordinates to copy, then paste into the lat/long
+                        fields. Or tap the{" "}
+                        <span className="inline-flex items-center gap-1 align-middle">
+                          <MapPin className="h-3 w-3" />
+                          <span className="font-semibold">My location</span>
+                        </span>{" "}
+                        if you are on site.
+                      </p>
+
+                      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+                        {pageItems.map((project) => (
+                          <ProjectCard
+                            key={project.id}
+                            project={project}
+                            members={members}
+                            onUpdate={handleUpdateProject}
+                            onDelete={
+                              project.isManual
+                                ? handleDeleteProject
+                                : undefined
+                            }
+                          />
+                        ))}
+                      </div>
+
+                      {filtered.length > PROJECTS_PER_PAGE ? (
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                          <p className="text-[11px] text-muted-foreground">
+                            Showing {startIdx + 1}–
+                            {Math.min(endIdx, filtered.length)} of{" "}
+                            {filtered.length}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-lg text-xs"
+                              onClick={() =>
+                                setProjectPage((p) => Math.max(1, p - 1))
+                              }
+                              disabled={clampedPage <= 1}
+                            >
+                              Previous
+                            </Button>
+                            <p className="text-[11px] text-muted-foreground">
+                              Page {clampedPage} of {totalPages}
+                            </p>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-lg text-xs"
+                              onClick={() =>
+                                setProjectPage((p) =>
+                                  Math.min(totalPages, p + 1),
+                                )
+                              }
+                              disabled={clampedPage >= totalPages}
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </>
+                  )
+                })()
               )}
             </CardContent>
           </Card>

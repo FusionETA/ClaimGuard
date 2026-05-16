@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react"
-import { Building2, Layers, Plus, Trash2, Users, X } from "lucide-react"
+import { Building2, Layers, Plus, Search, Trash2, Users, X } from "lucide-react"
 
 import {
   addEmployeeToProjectAction,
@@ -68,16 +68,36 @@ export function AdminCompanyStructure({
     projects[0]?.id ?? null,
   )
   const [selectedTeamId, setSelectedTeamId] = useState<string | "new" | null>(null)
+  // Client-side search for the Projects and Teams columns. Both are
+  // case-insensitive substring matches against the entity name; we
+  // keep the lowercased term in a ref-free derivation rather than a
+  // state to keep the filtering pure on every render.
+  const [projectSearch, setProjectSearch] = useState("")
+  const [teamSearch, setTeamSearch] = useState("")
 
   const projectsById = useMemo(
     () => new Map(projects.map((p) => [p.id, p])),
     [projects],
   )
 
+  const filteredProjects = useMemo(() => {
+    const q = projectSearch.trim().toLowerCase()
+    if (q === "") return projects
+    return projects.filter((p) => p.name.toLowerCase().includes(q))
+  }, [projects, projectSearch])
+
   const teamsInSelectedProject = useMemo(
     () => teams.filter((t) => t.projectId === selectedProjectId),
     [teams, selectedProjectId],
   )
+
+  const filteredTeamsInSelectedProject = useMemo(() => {
+    const q = teamSearch.trim().toLowerCase()
+    if (q === "") return teamsInSelectedProject
+    return teamsInSelectedProject.filter((t) =>
+      t.name.toLowerCase().includes(q),
+    )
+  }, [teamsInSelectedProject, teamSearch])
 
   const teamCountByProject = useMemo(() => {
     const map = new Map<string, number>()
@@ -114,37 +134,63 @@ export function AdminCompanyStructure({
             </CardTitle>
             <CardDescription>{projects.length} total</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-1.5 md:flex-1 md:overflow-y-auto">
+          <CardContent className="md:flex md:flex-1 md:flex-col md:overflow-hidden">
             {projects.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Create projects in Settings first.
               </p>
             ) : (
-              projects.map((project) => {
-                const isActive = selectedProjectId === project.id
-                const count = teamCountByProject.get(project.id) ?? 0
-                return (
-                  <button
-                    key={project.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedProjectId(project.id)
-                      setSelectedTeamId(null)
-                    }}
-                    className={cn(
-                      "flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm transition",
-                      isActive
-                        ? "border-primary/50 bg-primary/5 text-foreground"
-                        : "border-transparent hover:bg-muted/50 text-muted-foreground",
-                    )}
-                  >
-                    <span className="truncate">{project.name}</span>
-                    <Badge variant="outline" className="text-[10px]">
-                      {count}
-                    </Badge>
-                  </button>
-                )
-              })
+              <>
+                {/* Search bar — fixed above the scrollable list so it
+                    stays visible while the list scrolls. Only shown
+                    once the project count exceeds ~5 so small orgs
+                    don't see clutter; threshold is intentionally low
+                    so it kicks in early as the list grows. */}
+                {projects.length > 5 ? (
+                  <div className="relative mt-1 mb-3">
+                    <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Search projects…"
+                      value={projectSearch}
+                      onChange={(e) => setProjectSearch(e.target.value)}
+                      className="h-9 pl-8 text-sm"
+                    />
+                  </div>
+                ) : null}
+                <div className="space-y-1.5 md:flex-1 md:overflow-y-auto">
+                  {filteredProjects.length === 0 ? (
+                    <p className="px-1 py-2 text-xs text-muted-foreground">
+                      No project matches that search.
+                    </p>
+                  ) : (
+                    filteredProjects.map((project) => {
+                      const isActive = selectedProjectId === project.id
+                      const count = teamCountByProject.get(project.id) ?? 0
+                      return (
+                        <button
+                          key={project.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedProjectId(project.id)
+                            setSelectedTeamId(null)
+                          }}
+                          className={cn(
+                            "flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm transition",
+                            isActive
+                              ? "border-primary/50 bg-primary/5 text-foreground"
+                              : "border-transparent hover:bg-muted/50 text-muted-foreground",
+                          )}
+                        >
+                          <span className="truncate">{project.name}</span>
+                          <Badge variant="outline" className="text-[10px]">
+                            {count}
+                          </Badge>
+                        </button>
+                      )
+                    })
+                  )}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -173,13 +219,31 @@ export function AdminCompanyStructure({
               <Plus className="h-3.5 w-3.5" /> New
             </Button>
           </CardHeader>
-          <CardContent className="space-y-1.5 md:flex-1 md:overflow-y-auto">
+          <CardContent className="md:flex md:flex-1 md:flex-col md:overflow-hidden">
             {!selectedProjectId ? null : teamsInSelectedProject.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No teams yet. Click &ldquo;New&rdquo; to create one.
               </p>
             ) : (
-              teamsInSelectedProject.map((team) => {
+              <>
+                {teamsInSelectedProject.length > 5 ? (
+                  <div className="relative mt-1 mb-3">
+                    <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Search teams…"
+                      value={teamSearch}
+                      onChange={(e) => setTeamSearch(e.target.value)}
+                      className="h-9 pl-8 text-sm"
+                    />
+                  </div>
+                ) : null}
+                <div className="space-y-1.5 md:flex-1 md:overflow-y-auto">
+                  {filteredTeamsInSelectedProject.length === 0 ? (
+                    <p className="px-1 py-2 text-xs text-muted-foreground">
+                      No team matches that search.
+                    </p>
+                  ) : (
+                    filteredTeamsInSelectedProject.map((team) => {
                 const isActive = selectedTeamId === team.id
                 return (
                   <button
@@ -210,6 +274,9 @@ export function AdminCompanyStructure({
                   </button>
                 )
               })
+                  )}
+                </div>
+              </>
             )}
           </CardContent>
         </Card>

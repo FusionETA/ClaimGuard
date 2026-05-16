@@ -486,6 +486,13 @@ model XeroConnection {
   /// trigger the "Update permissions" button in the admin UI. Null = never
   /// re-auth'd (or env var was unset at the time of original connect).
   lastReauthVersion    String?
+  /// Which Xero Tracking Category drives the "Projects" list on our side.
+  /// Picked by the admin from the org's active tracking categories. Null
+  /// when the admin hasn't picked one yet — projects sync stays no-op
+  /// until they do. Cached name is for display in the settings UI so we
+  /// don't have to round-trip Xero on every settings page load.
+  xeroTrackingCategoryId   String?
+  xeroTrackingCategoryName String?
   chartAccounts        ChartOfAccount[]
   employeeProfiles     EmployeeProfile[]
   connectedByAdmin     User?             @relation("XeroConnectedBy", fields: [connectedByAdminId], references: [id])
@@ -502,7 +509,17 @@ model XeroProject {
   id                String                      @id @default(cuid())
   organizationId    String
   xeroConnectionId  String?
+  /// Legacy: populated for rows synced from the old `/Projects` API
+  /// before we switched to tracking categories. Kept for back-compat
+  /// so existing claims/attendance FKs keep working. New rows from
+  /// the tracking-category sync use `xeroTrackingOptionId` instead.
   xeroProjectId     String?
+  /// Populated for rows synced from a Xero Tracking Category option.
+  /// Coexists with `xeroProjectId` on the same model so legacy rows
+  /// and new tracking-option rows live side-by-side. See
+  /// `XeroConnection.xeroTrackingCategoryId` for which category this
+  /// option belongs to.
+  xeroTrackingOptionId String?
   name              String
   status            String?
   createdAt         DateTime                    @default(now())
@@ -530,6 +547,7 @@ model XeroProject {
   xeroConnection    XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
 
   @@unique([xeroConnectionId, xeroProjectId])
+  @@unique([xeroConnectionId, xeroTrackingOptionId])
   @@index([xeroConnectionId, name])
   @@index([organizationId], map: "XeroProject_organizationId_fkey")
   @@index([projectManagerId])

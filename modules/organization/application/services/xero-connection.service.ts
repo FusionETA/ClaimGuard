@@ -2,9 +2,10 @@ import "server-only"
 
 import {
   getXeroAccounts,
-  getXeroProjects,
   getXeroRuntimeConfigStatus,
+  getXeroTrackingCategories,
   refreshXeroToken,
+  type XeroTrackingCategory,
 } from "@/lib/xero"
 import type {
   ChartOfAccountOption,
@@ -171,6 +172,23 @@ export async function syncOrganizationChartAccounts(
   }
 }
 
+/**
+ * Pull the active options from the picked Xero Tracking Category and
+ * upsert each as a XeroProject row. Treats each tracking option as
+ * "a project" — keeps the same DB shape (and same FKs on Claim /
+ * AttendanceRecord) so the rest of the app keeps working without
+ * caring whether the underlying record came from the old Projects API
+ * or the new Tracking Category sync.
+ *
+ * Pre-condition: the admin has picked a tracking category in settings
+ * (`XeroConnection.xeroTrackingCategoryId` is set). If not, this
+ * returns a friendly error pointing them to the picker.
+ *
+ * Legacy `XeroProject` rows (from the old `/Projects` API sync) stay
+ * untouched — they coexist with new tracking-option rows in the same
+ * table. Existing claims/attendance FKs continue to point at the
+ * legacy rows.
+ */
 export async function syncOrganizationProjects(
   connectionId: string
 ): Promise<{
@@ -201,31 +219,151 @@ export async function syncOrganizationProjects(
     return { ok: false, message: "Xero connection not found." }
   }
 
+  if (!connectionRecord.xeroTrackingCategoryId) {
+    return {
+      ok: false,
+      message:
+        "Pick a Xero Tracking Category in Settings before syncing projects.",
+    }
+  }
+
   try {
-    const projects = await getXeroProjects({
+    const categories = await getXeroTrackingCategories({
       accessToken: connection.accessToken,
       tenantId: connection.tenantId,
     })
+    const picked = categories.find(
+      (c) => c.xeroTrackingCategoryId === connectionRecord.xeroTrackingCategoryId,
+    )
+    if (!picked) {
+      return {
+        ok: false,
+        message:
+          "The tracking category linked to this connection no longer exists in Xero (it may have been archived or deleted). Pick a different one in Settings.",
+      }
+    }
 
-    await organizationRepository.upsertProjectsFromXero({
+    // Refresh the cached name in case the admin renamed the category
+    // in Xero since the last sync.
+    if (picked.name !== connectionRecord.xeroTrackingCategoryName) {
+      await organizationRepository.setXeroTrackingCategory({
+        connectionId,
+        xeroTrackingCategoryId: picked.xeroTrackingCategoryId,
+        xeroTrackingCategoryName: picked.name,
+      })
+    }
+
+    await organizationRepository.upsertTrackingOptionsFromXero({
       xeroConnectionId: connectionId,
       organizationId: connectionRecord.organizationId,
-      projects,
+      options: picked.options.map((o) => ({
+        xeroTrackingOptionId: o.xeroTrackingOptionId,
+        name: o.name,
+        status: o.status,
+      })),
     })
 
     const stored = await organizationRepository.getProjectsForConnection(connectionId)
 
     return {
       ok: true,
-      message: `Imported ${projects.length} Xero projects for this connection.`,
+      message: `Imported ${picked.options.length} options from "${picked.name}".`,
       projects: stored,
     }
   } catch (error) {
     return {
       ok: false,
-      message: `Unable to import Xero projects right now: ${trimErrorMessage(error)}`,
+      message: `Unable to import projects right now: ${trimErrorMessage(error)}`,
     }
   }
+}
+
+/**
+ * Lists the connection's active Xero tracking categories for the
+ * settings picker. Live read from Xero — categories change rarely so
+ * the round-trip is fine on a settings page load. Returns the
+ * full XeroTrackingCategory shape including each category's options
+ * (used to preview the # of options in the picker).
+ */
+export async function listXeroTrackingCategoriesForConnection(
+  connectionId: string,
+): Promise<{
+  ok: boolean
+  message?: string
+  categories?: XeroTrackingCategory[]
+}> {
+  const runtime = getXeroRuntimeConfigStatus()
+  if (!runtime.configured) {
+    return {
+      ok: false,
+      message: `Xero is not configured. Missing: ${runtime.missing.join(", ")}.`,
+    }
+  }
+
+  const connection = await getUsableXeroAccessToken(connectionId)
+  if (!connection) {
+    return { ok: false, message: "Xero connection not found or expired." }
+  }
+
+  try {
+    const categories = await getXeroTrackingCategories({
+      accessToken: connection.accessToken,
+      tenantId: connection.tenantId,
+    })
+    return { ok: true, categories }
+  } catch (error) {
+    return {
+      ok: false,
+      message: `Unable to read Xero tracking categories: ${trimErrorMessage(error)}`,
+    }
+  }
+}
+
+/**
+ * Persist the admin's tracking-category pick on the connection.
+ * Doesn't trigger a sync — the admin separately clicks "Sync now" or
+ * waits for the next scheduled sync. We DO live-validate the ID
+ * against Xero to make sure the admin can't save a stale GUID; if
+ * Xero doesn't return the category we refuse the write.
+ *
+ * Passing `null` clears the pick (and effectively disables further
+ * project sync until a new pick is made).
+ */
+export async function setXeroTrackingCategoryForConnection(input: {
+  connectionId: string
+  xeroTrackingCategoryId: string | null
+}): Promise<{ ok: boolean; message?: string; name?: string | null }> {
+  if (input.xeroTrackingCategoryId === null) {
+    await organizationRepository.setXeroTrackingCategory({
+      connectionId: input.connectionId,
+      xeroTrackingCategoryId: null,
+      xeroTrackingCategoryName: null,
+    })
+    return { ok: true, name: null }
+  }
+
+  const live = await listXeroTrackingCategoriesForConnection(input.connectionId)
+  if (!live.ok || !live.categories) {
+    return { ok: false, message: live.message ?? "Could not validate pick." }
+  }
+
+  const picked = live.categories.find(
+    (c) => c.xeroTrackingCategoryId === input.xeroTrackingCategoryId,
+  )
+  if (!picked) {
+    return {
+      ok: false,
+      message:
+        "That tracking category doesn't exist in Xero anymore. Pick a different one.",
+    }
+  }
+
+  await organizationRepository.setXeroTrackingCategory({
+    connectionId: input.connectionId,
+    xeroTrackingCategoryId: picked.xeroTrackingCategoryId,
+    xeroTrackingCategoryName: picked.name,
+  })
+  return { ok: true, name: picked.name }
 }
 
 export async function disconnectXeroConnection(data: {

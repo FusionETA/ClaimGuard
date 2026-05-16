@@ -43,6 +43,7 @@ export type XeroProjectMinAggregateOutputType = {
   organizationId: string | null
   xeroConnectionId: string | null
   xeroProjectId: string | null
+  xeroTrackingOptionId: string | null
   name: string | null
   status: string | null
   createdAt: Date | null
@@ -64,6 +65,7 @@ export type XeroProjectMaxAggregateOutputType = {
   organizationId: string | null
   xeroConnectionId: string | null
   xeroProjectId: string | null
+  xeroTrackingOptionId: string | null
   name: string | null
   status: string | null
   createdAt: Date | null
@@ -85,6 +87,7 @@ export type XeroProjectCountAggregateOutputType = {
   organizationId: number
   xeroConnectionId: number
   xeroProjectId: number
+  xeroTrackingOptionId: number
   name: number
   status: number
   createdAt: number
@@ -120,6 +123,7 @@ export type XeroProjectMinAggregateInputType = {
   organizationId?: true
   xeroConnectionId?: true
   xeroProjectId?: true
+  xeroTrackingOptionId?: true
   name?: true
   status?: true
   createdAt?: true
@@ -141,6 +145,7 @@ export type XeroProjectMaxAggregateInputType = {
   organizationId?: true
   xeroConnectionId?: true
   xeroProjectId?: true
+  xeroTrackingOptionId?: true
   name?: true
   status?: true
   createdAt?: true
@@ -162,6 +167,7 @@ export type XeroProjectCountAggregateInputType = {
   organizationId?: true
   xeroConnectionId?: true
   xeroProjectId?: true
+  xeroTrackingOptionId?: true
   name?: true
   status?: true
   createdAt?: true
@@ -270,6 +276,7 @@ export type XeroProjectGroupByOutputType = {
   organizationId: string
   xeroConnectionId: string | null
   xeroProjectId: string | null
+  xeroTrackingOptionId: string | null
   name: string
   status: string | null
   createdAt: Date
@@ -314,6 +321,7 @@ export type XeroProjectWhereInput = {
   organizationId?: Prisma.StringFilter<"XeroProject"> | string
   xeroConnectionId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   xeroProjectId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
+  xeroTrackingOptionId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   name?: Prisma.StringFilter<"XeroProject"> | string
   status?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   createdAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
@@ -344,6 +352,7 @@ export type XeroProjectOrderByWithRelationInput = {
   organizationId?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroProjectId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroTrackingOptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -373,12 +382,14 @@ export type XeroProjectOrderByWithRelationInput = {
 export type XeroProjectWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   xeroConnectionId_xeroProjectId?: Prisma.XeroProjectXeroConnectionIdXeroProjectIdCompoundUniqueInput
+  xeroConnectionId_xeroTrackingOptionId?: Prisma.XeroProjectXeroConnectionIdXeroTrackingOptionIdCompoundUniqueInput
   AND?: Prisma.XeroProjectWhereInput | Prisma.XeroProjectWhereInput[]
   OR?: Prisma.XeroProjectWhereInput[]
   NOT?: Prisma.XeroProjectWhereInput | Prisma.XeroProjectWhereInput[]
   organizationId?: Prisma.StringFilter<"XeroProject"> | string
   xeroConnectionId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   xeroProjectId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
+  xeroTrackingOptionId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   name?: Prisma.StringFilter<"XeroProject"> | string
   status?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   createdAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
@@ -402,13 +413,14 @@ export type XeroProjectWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   projectManager?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
-}, "id" | "xeroConnectionId_xeroProjectId">
+}, "id" | "xeroConnectionId_xeroProjectId" | "xeroConnectionId_xeroTrackingOptionId">
 
 export type XeroProjectOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroProjectId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroTrackingOptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -438,6 +450,7 @@ export type XeroProjectScalarWhereWithAggregatesInput = {
   organizationId?: Prisma.StringWithAggregatesFilter<"XeroProject"> | string
   xeroConnectionId?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
   xeroProjectId?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
+  xeroTrackingOptionId?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
   name?: Prisma.StringWithAggregatesFilter<"XeroProject"> | string
   status?: Prisma.StringNullableWithAggregatesFilter<"XeroProject"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"XeroProject"> | Date | string
@@ -457,6 +470,7 @@ export type XeroProjectScalarWhereWithAggregatesInput = {
 export type XeroProjectCreateInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -486,6 +500,7 @@ export type XeroProjectUncheckedCreateInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -511,6 +526,7 @@ export type XeroProjectUncheckedCreateInput = {
 export type XeroProjectUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -540,6 +556,7 @@ export type XeroProjectUncheckedUpdateInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -567,6 +584,7 @@ export type XeroProjectCreateManyInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -586,6 +604,7 @@ export type XeroProjectCreateManyInput = {
 export type XeroProjectUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -606,6 +625,7 @@ export type XeroProjectUncheckedUpdateManyInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -653,11 +673,17 @@ export type XeroProjectXeroConnectionIdXeroProjectIdCompoundUniqueInput = {
   xeroProjectId: string
 }
 
+export type XeroProjectXeroConnectionIdXeroTrackingOptionIdCompoundUniqueInput = {
+  xeroConnectionId: string
+  xeroTrackingOptionId: string
+}
+
 export type XeroProjectCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrder
   xeroProjectId?: Prisma.SortOrder
+  xeroTrackingOptionId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -685,6 +711,7 @@ export type XeroProjectMaxOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrder
   xeroProjectId?: Prisma.SortOrder
+  xeroTrackingOptionId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -706,6 +733,7 @@ export type XeroProjectMinOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   xeroConnectionId?: Prisma.SortOrder
   xeroProjectId?: Prisma.SortOrder
+  xeroTrackingOptionId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -953,6 +981,7 @@ export type XeroProjectUpdateOneRequiredWithoutTeamsNestedInput = {
 export type XeroProjectCreateWithoutProjectManagerInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -981,6 +1010,7 @@ export type XeroProjectUncheckedCreateWithoutProjectManagerInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1036,6 +1066,7 @@ export type XeroProjectScalarWhereInput = {
   organizationId?: Prisma.StringFilter<"XeroProject"> | string
   xeroConnectionId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   xeroProjectId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
+  xeroTrackingOptionId?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   name?: Prisma.StringFilter<"XeroProject"> | string
   status?: Prisma.StringNullableFilter<"XeroProject"> | string | null
   createdAt?: Prisma.DateTimeFilter<"XeroProject"> | Date | string
@@ -1055,6 +1086,7 @@ export type XeroProjectScalarWhereInput = {
 export type XeroProjectCreateWithoutOrganizationInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1082,6 +1114,7 @@ export type XeroProjectUncheckedCreateWithoutOrganizationInput = {
   id?: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1133,6 +1166,7 @@ export type XeroProjectUpdateManyWithWhereWithoutOrganizationInput = {
 export type XeroProjectCreateWithoutAssignedEmployeesInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1161,6 +1195,7 @@ export type XeroProjectUncheckedCreateWithoutAssignedEmployeesInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1201,6 +1236,7 @@ export type XeroProjectUpdateToOneWithWhereWithoutAssignedEmployeesInput = {
 export type XeroProjectUpdateWithoutAssignedEmployeesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1229,6 +1265,7 @@ export type XeroProjectUncheckedUpdateWithoutAssignedEmployeesInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1253,6 +1290,7 @@ export type XeroProjectUncheckedUpdateWithoutAssignedEmployeesInput = {
 export type XeroProjectCreateWithoutClaimsInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1281,6 +1319,7 @@ export type XeroProjectUncheckedCreateWithoutClaimsInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1321,6 +1360,7 @@ export type XeroProjectUpdateToOneWithWhereWithoutClaimsInput = {
 export type XeroProjectUpdateWithoutClaimsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1349,6 +1389,7 @@ export type XeroProjectUncheckedUpdateWithoutClaimsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1373,6 +1414,7 @@ export type XeroProjectUncheckedUpdateWithoutClaimsInput = {
 export type XeroProjectCreateWithoutXeroConnectionInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1400,6 +1442,7 @@ export type XeroProjectUncheckedCreateWithoutXeroConnectionInput = {
   id?: string
   organizationId: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1451,6 +1494,7 @@ export type XeroProjectUpdateManyWithWhereWithoutXeroConnectionInput = {
 export type XeroProjectCreateWithoutHolidaysInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1479,6 +1523,7 @@ export type XeroProjectUncheckedCreateWithoutHolidaysInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1519,6 +1564,7 @@ export type XeroProjectUpdateToOneWithWhereWithoutHolidaysInput = {
 export type XeroProjectUpdateWithoutHolidaysInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1547,6 +1593,7 @@ export type XeroProjectUncheckedUpdateWithoutHolidaysInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1571,6 +1618,7 @@ export type XeroProjectUncheckedUpdateWithoutHolidaysInput = {
 export type XeroProjectCreateWithoutProjectManagersInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1599,6 +1647,7 @@ export type XeroProjectUncheckedCreateWithoutProjectManagersInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1639,6 +1688,7 @@ export type XeroProjectUpdateToOneWithWhereWithoutProjectManagersInput = {
 export type XeroProjectUpdateWithoutProjectManagersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1667,6 +1717,7 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagersInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1691,6 +1742,7 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagersInput = {
 export type XeroProjectCreateWithoutAttendanceRecordsInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1719,6 +1771,7 @@ export type XeroProjectUncheckedCreateWithoutAttendanceRecordsInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1759,6 +1812,7 @@ export type XeroProjectUpdateToOneWithWhereWithoutAttendanceRecordsInput = {
 export type XeroProjectUpdateWithoutAttendanceRecordsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1787,6 +1841,7 @@ export type XeroProjectUncheckedUpdateWithoutAttendanceRecordsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1811,6 +1866,7 @@ export type XeroProjectUncheckedUpdateWithoutAttendanceRecordsInput = {
 export type XeroProjectCreateWithoutTeamsInput = {
   id?: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1839,6 +1895,7 @@ export type XeroProjectUncheckedCreateWithoutTeamsInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1879,6 +1936,7 @@ export type XeroProjectUpdateToOneWithWhereWithoutTeamsInput = {
 export type XeroProjectUpdateWithoutTeamsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1907,6 +1965,7 @@ export type XeroProjectUncheckedUpdateWithoutTeamsInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1933,6 +1992,7 @@ export type XeroProjectCreateManyProjectManagerInput = {
   organizationId: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -1951,6 +2011,7 @@ export type XeroProjectCreateManyProjectManagerInput = {
 export type XeroProjectUpdateWithoutProjectManagerInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1979,6 +2040,7 @@ export type XeroProjectUncheckedUpdateWithoutProjectManagerInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2005,6 +2067,7 @@ export type XeroProjectUncheckedUpdateManyWithoutProjectManagerInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2024,6 +2087,7 @@ export type XeroProjectCreateManyOrganizationInput = {
   id?: string
   xeroConnectionId?: string | null
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -2043,6 +2107,7 @@ export type XeroProjectCreateManyOrganizationInput = {
 export type XeroProjectUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2070,6 +2135,7 @@ export type XeroProjectUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2096,6 +2162,7 @@ export type XeroProjectUncheckedUpdateManyWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2116,6 +2183,7 @@ export type XeroProjectCreateManyXeroConnectionInput = {
   id?: string
   organizationId: string
   xeroProjectId?: string | null
+  xeroTrackingOptionId?: string | null
   name: string
   status?: string | null
   createdAt?: Date | string
@@ -2135,6 +2203,7 @@ export type XeroProjectCreateManyXeroConnectionInput = {
 export type XeroProjectUpdateWithoutXeroConnectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2162,6 +2231,7 @@ export type XeroProjectUncheckedUpdateWithoutXeroConnectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2188,6 +2258,7 @@ export type XeroProjectUncheckedUpdateManyWithoutXeroConnectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroProjectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroTrackingOptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2285,6 +2356,7 @@ export type XeroProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   organizationId?: boolean
   xeroConnectionId?: boolean
   xeroProjectId?: boolean
+  xeroTrackingOptionId?: boolean
   name?: boolean
   status?: boolean
   createdAt?: boolean
@@ -2318,6 +2390,7 @@ export type XeroProjectSelectScalar = {
   organizationId?: boolean
   xeroConnectionId?: boolean
   xeroProjectId?: boolean
+  xeroTrackingOptionId?: boolean
   name?: boolean
   status?: boolean
   createdAt?: boolean
@@ -2334,7 +2407,7 @@ export type XeroProjectSelectScalar = {
   lunchBreakMinutes?: boolean
 }
 
-export type XeroProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroProjectId" | "name" | "status" | "createdAt" | "updatedAt" | "isManual" | "location" | "projectManagerId" | "isDisabled" | "latitude" | "longitude" | "workingHoursStart" | "workingHoursEnd" | "workingDays" | "lunchBreakMinutes", ExtArgs["result"]["xeroProject"]>
+export type XeroProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroConnectionId" | "xeroProjectId" | "xeroTrackingOptionId" | "name" | "status" | "createdAt" | "updatedAt" | "isManual" | "location" | "projectManagerId" | "isDisabled" | "latitude" | "longitude" | "workingHoursStart" | "workingHoursEnd" | "workingDays" | "lunchBreakMinutes", ExtArgs["result"]["xeroProject"]>
 export type XeroProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendanceRecords?: boolean | Prisma.XeroProject$attendanceRecordsArgs<ExtArgs>
   claims?: boolean | Prisma.XeroProject$claimsArgs<ExtArgs>
@@ -2365,7 +2438,21 @@ export type $XeroProjectPayload<ExtArgs extends runtime.Types.Extensions.Interna
     id: string
     organizationId: string
     xeroConnectionId: string | null
+    /**
+     * Legacy: populated for rows synced from the old `/Projects` API
+     * before we switched to tracking categories. Kept for back-compat
+     * so existing claims/attendance FKs keep working. New rows from
+     * the tracking-category sync use `xeroTrackingOptionId` instead.
+     */
     xeroProjectId: string | null
+    /**
+     * Populated for rows synced from a Xero Tracking Category option.
+     * Coexists with `xeroProjectId` on the same model so legacy rows
+     * and new tracking-option rows live side-by-side. See
+     * `XeroConnection.xeroTrackingCategoryId` for which category this
+     * option belongs to.
+     */
+    xeroTrackingOptionId: string | null
     name: string
     status: string | null
     createdAt: Date
@@ -2766,6 +2853,7 @@ export interface XeroProjectFieldRefs {
   readonly organizationId: Prisma.FieldRef<"XeroProject", 'String'>
   readonly xeroConnectionId: Prisma.FieldRef<"XeroProject", 'String'>
   readonly xeroProjectId: Prisma.FieldRef<"XeroProject", 'String'>
+  readonly xeroTrackingOptionId: Prisma.FieldRef<"XeroProject", 'String'>
   readonly name: Prisma.FieldRef<"XeroProject", 'String'>
   readonly status: Prisma.FieldRef<"XeroProject", 'String'>
   readonly createdAt: Prisma.FieldRef<"XeroProject", 'DateTime'>

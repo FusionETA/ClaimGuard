@@ -8,6 +8,8 @@ const XERO_CONNECTIONS_URL = "https://api.xero.com/connections"
 const XERO_INVOICES_URL = "https://api.xero.com/api.xro/2.0/Invoices"
 const XERO_ACCOUNTS_URL = "https://api.xero.com/api.xro/2.0/Accounts"
 const XERO_PROJECTS_URL = "https://api.xero.com/projects.xro/2.0/projects"
+const XERO_TRACKING_CATEGORIES_URL =
+  "https://api.xero.com/api.xro/2.0/TrackingCategories"
 const XERO_FILES_BASE_URL = "https://api.xero.com/files.xro/1.0"
 /// Top-level folder name used for receipt uploads from this app. The
 /// folder is created once per tenant on first upload; subsequent uploads
@@ -54,6 +56,37 @@ export type XeroProject = {
   name: string
   status?: string
   contactId?: string
+}
+
+/**
+ * One option within a Xero Tracking Category. Matches the shape
+ * returned by GET TrackingCategories under `Options[]`. We strip the
+ * camelCase noise and only surface the four fields we actually use
+ * (the others — HasValidationErrors / IsDeleted etc. — are not
+ * useful for our "project list" projection).
+ */
+export type XeroTrackingOption = {
+  xeroTrackingOptionId: string
+  name: string
+  /// "ACTIVE" | "ARCHIVED" per Xero status codes. Archived options
+  /// are filtered out by default by `getXeroTrackingCategories`.
+  status: string
+}
+
+/**
+ * One tracking category with its options. Matches the response shape
+ * of GET TrackingCategories — categories come back with their options
+ * already nested, so one round-trip serves both the settings picker
+ * (admin chooses a category) AND the sync (we pull options from the
+ * chosen category).
+ */
+export type XeroTrackingCategory = {
+  xeroTrackingCategoryId: string
+  name: string
+  /// "ACTIVE" | "ARCHIVED". Archived categories are filtered out by
+  /// default by the fetcher.
+  status: string
+  options: XeroTrackingOption[]
 }
 
 type XeroTokenResponse = {
@@ -374,6 +407,85 @@ export async function getXeroProjects({
       name: project.name as string,
       status: project.status,
       contactId: project.contactId,
+    }))
+}
+
+/**
+ * GET https://api.xero.com/api.xro/2.0/TrackingCategories
+ *
+ * Returns active tracking categories AND their options in one round
+ * trip. Used by both:
+ *   - The settings picker (admin chooses which category drives our
+ *     "projects" list — Xero allows up to 2 active per org).
+ *   - The sync flow (we pull options from the chosen category and
+ *     upsert them as XeroProject rows).
+ *
+ * Default behaviour drops archived categories + archived options so
+ * the caller doesn't have to filter again. Pass `includeArchived` if
+ * you ever need the full set.
+ */
+export async function getXeroTrackingCategories({
+  accessToken,
+  tenantId,
+  includeArchived = false,
+}: {
+  accessToken: string
+  tenantId: string
+  includeArchived?: boolean
+}): Promise<XeroTrackingCategory[]> {
+  const url = includeArchived
+    ? `${XERO_TRACKING_CATEGORIES_URL}?includeArchived=true`
+    : XERO_TRACKING_CATEGORIES_URL
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+      "xero-tenant-id": tenantId,
+    },
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    const errorBody = await parseXeroResponse(response)
+    throw new Error(
+      `Xero tracking-categories request failed with ${response.status}: ${JSON.stringify(errorBody)}`,
+    )
+  }
+
+  const json = (await response.json()) as {
+    TrackingCategories?: Array<{
+      TrackingCategoryID?: string
+      Name?: string
+      Status?: string
+      Options?: Array<{
+        TrackingOptionID?: string
+        Name?: string
+        Status?: string
+        IsArchived?: boolean
+      }>
+    }>
+  }
+
+  const categories = json.TrackingCategories ?? []
+  return categories
+    .filter((cat) => cat.TrackingCategoryID && cat.Name)
+    .filter((cat) => includeArchived || cat.Status === "ACTIVE")
+    .map((cat) => ({
+      xeroTrackingCategoryId: cat.TrackingCategoryID as string,
+      name: cat.Name as string,
+      status: cat.Status ?? "ACTIVE",
+      options: (cat.Options ?? [])
+        .filter((opt) => opt.TrackingOptionID && opt.Name)
+        .filter(
+          (opt) =>
+            includeArchived ||
+            (opt.Status === "ACTIVE" && opt.IsArchived !== true),
+        )
+        .map((opt) => ({
+          xeroTrackingOptionId: opt.TrackingOptionID as string,
+          name: opt.Name as string,
+          status: opt.Status ?? "ACTIVE",
+        })),
     }))
 }
 

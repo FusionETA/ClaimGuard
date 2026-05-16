@@ -15,6 +15,7 @@ import { deleteXeroConnection } from "@/lib/xero"
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import {
   disconnectXeroConnection,
+  setXeroTrackingCategoryForConnection,
   syncOrganizationChartAccounts,
   syncOrganizationProjects,
 } from "@/modules/organization/application/services/xero-connection.service"
@@ -211,6 +212,46 @@ export async function syncXeroProjectsAction(
   return {
     status: result.ok ? "success" : "error",
     message: result.message,
+  }
+}
+
+/**
+ * Save the admin's picked Xero Tracking Category for a connection.
+ * Passes `null` clears the pick. Does NOT trigger a sync — the admin
+ * presses "Sync now" separately after picking.
+ */
+export async function saveXeroTrackingCategoryAction(
+  _previousState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+
+  const connectionId = String(formData.get("connectionId") ?? "").trim()
+  if (!connectionId) {
+    return { status: "error", message: "No Xero connection selected." }
+  }
+  const raw = String(formData.get("xeroTrackingCategoryId") ?? "").trim()
+  const xeroTrackingCategoryId = raw === "" ? null : raw
+
+  const result = await setXeroTrackingCategoryForConnection({
+    connectionId,
+    xeroTrackingCategoryId,
+  })
+
+  if (!result.ok) {
+    return { status: "error", message: result.message ?? "Could not save pick." }
+  }
+
+  await revalidateAdminSurfaces(resolveActiveOrgId(session) ?? undefined)
+
+  return {
+    status: "success",
+    message: xeroTrackingCategoryId
+      ? `Tracking category set to "${result.name}". Click "Sync now" to import its options.`
+      : "Tracking category cleared. Project sync will stay paused until you pick one.",
   }
 }
 

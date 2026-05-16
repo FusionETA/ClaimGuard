@@ -55,6 +55,12 @@ export type XeroConnectionRecord = {
   accessTokenExpiresAt: Date
   createdAt: Date
   updatedAt: Date
+  /// Xero Tracking Category the admin picked to drive the projects
+  /// list. Null until the admin chooses one in settings — sync is a
+  /// no-op while null. Name is cached so the settings UI doesn't
+  /// have to round-trip Xero on every page load.
+  xeroTrackingCategoryId: string | null
+  xeroTrackingCategoryName: string | null
 }
 
 // `toNumber` lives in `lib/decimal.ts` — re-aliased locally for the older
@@ -2459,6 +2465,79 @@ export const organizationRepository = {
 
     await prisma.user.delete({ where: { id: user.id } })
     return { ok: true }
+  },
+
+  /**
+   * Upsert tracking-category OPTIONS as XeroProject rows. Keyed by
+   * `xeroTrackingOptionId` (the second unique constraint on
+   * XeroProject). Coexists with legacy `xeroProjectId` rows — both
+   * can live in the same table.
+   *
+   * Used by `syncOrganizationProjects` after the admin picks a
+   * tracking category in settings. Legacy rows from the old
+   * `/Projects` API sync stay untouched.
+   */
+  async upsertTrackingOptionsFromXero(data: {
+    xeroConnectionId: string
+    organizationId: string
+    options: Array<{
+      xeroTrackingOptionId: string
+      name: string
+      status?: string
+    }>
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await Promise.all(
+      data.options.map((opt) =>
+        prisma.xeroProject.upsert({
+          where: {
+            xeroConnectionId_xeroTrackingOptionId: {
+              xeroConnectionId: data.xeroConnectionId,
+              xeroTrackingOptionId: opt.xeroTrackingOptionId,
+            },
+          },
+          create: {
+            organizationId: data.organizationId,
+            xeroConnectionId: data.xeroConnectionId,
+            xeroTrackingOptionId: opt.xeroTrackingOptionId,
+            name: opt.name,
+            status: opt.status,
+            isManual: false,
+          },
+          update: {
+            name: opt.name,
+            status: opt.status,
+          },
+        }),
+      ),
+    )
+  },
+
+  /**
+   * Persist the admin's tracking-category pick on the XeroConnection.
+   * Caches the display name so the settings UI can show it without
+   * round-tripping Xero. Pass `null` for both to clear the pick.
+   */
+  async setXeroTrackingCategory(data: {
+    connectionId: string
+    xeroTrackingCategoryId: string | null
+    xeroTrackingCategoryName: string | null
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+    await prisma.xeroConnection.update({
+      where: { id: data.connectionId },
+      data: {
+        xeroTrackingCategoryId: data.xeroTrackingCategoryId,
+        xeroTrackingCategoryName: data.xeroTrackingCategoryName,
+      },
+    })
   },
 
   async upsertProjectsFromXero(data: {

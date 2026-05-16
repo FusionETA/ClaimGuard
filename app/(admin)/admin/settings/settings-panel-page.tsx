@@ -14,6 +14,8 @@ import {
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
+import { listXeroTrackingCategoriesForConnection } from "@/modules/organization/application/services/xero-connection.service"
+import type { XeroTrackingCategoryOption } from "@/components/admin/xero-tracking-category-picker"
 
 const XERO_PENDING_COOKIE = "claimguard_xero_pending"
 const ACTIVE_CONNECTION_COOKIE = "claimguard_active_connection"
@@ -60,6 +62,37 @@ export async function AdminSettingsPanelPage({
   const policies = orgIdForAdmins
     ? await policyRepository.listForOrganization(orgIdForAdmins)
     : []
+
+  // Live read of the org's Xero Tracking Categories for the picker on the
+  // Projects tab. Skipped when there's no active connection. We also pull
+  // the currently-picked category id + name from the connection record so
+  // the dropdown can seed its initial value and show "currently syncing
+  // from X". Fetch errors surface as `xeroTrackingCategoriesError` and
+  // the picker renders an inline error in place of the dropdown.
+  let xeroTrackingCategories: XeroTrackingCategoryOption[] | undefined
+  let xeroTrackingCategoriesError: string | undefined
+  let pickedTrackingCategoryId: string | null = null
+  let pickedTrackingCategoryName: string | null = null
+  if (data.activeXeroConnectionId) {
+    const connection = await organizationRepository.getXeroConnectionById(
+      data.activeXeroConnectionId,
+    )
+    pickedTrackingCategoryId = connection?.xeroTrackingCategoryId ?? null
+    pickedTrackingCategoryName = connection?.xeroTrackingCategoryName ?? null
+
+    const live = await listXeroTrackingCategoriesForConnection(
+      data.activeXeroConnectionId,
+    )
+    if (live.ok && live.categories) {
+      xeroTrackingCategories = live.categories.map((c) => ({
+        xeroTrackingCategoryId: c.xeroTrackingCategoryId,
+        name: c.name,
+        optionCount: c.options.length,
+      }))
+    } else {
+      xeroTrackingCategoriesError = live.message
+    }
+  }
 
   // OAuth callback "select-tenant" handling — read the pending cookie and
   // resolve which tenants are already in use by other orgs. Cookie/URL
@@ -122,6 +155,10 @@ export async function AdminSettingsPanelPage({
           : undefined)
       }
       visibleTabs={visibleTabs}
+      xeroTrackingCategories={xeroTrackingCategories}
+      xeroTrackingCategoriesError={xeroTrackingCategoriesError}
+      pickedTrackingCategoryId={pickedTrackingCategoryId}
+      pickedTrackingCategoryName={pickedTrackingCategoryName}
     />
   )
 }
