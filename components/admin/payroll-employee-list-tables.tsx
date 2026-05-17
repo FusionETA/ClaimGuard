@@ -375,6 +375,20 @@ function PayrollStatusBadge({
   state: PayrollState
 }) {
   if (state === "complete") {
+    // Salary = 0 is an intentional opt-out — render a neutral grey
+    // "Excluded" chip so admins can tell at a glance that this person
+    // is set up correctly but won't be picked up by payroll runs.
+    if (employee.isExcluded) {
+      return (
+        <Badge
+          variant="outline"
+          className="border-slate-300/60 text-[10px] text-slate-600"
+          title="Salary set to 0 — excluded from payroll runs"
+        >
+          Excluded
+        </Badge>
+      )
+    }
     return (
       <Badge
         variant="outline"
@@ -413,7 +427,8 @@ function filterEmployees(employees: PayrollEmployeeRow[], query: string) {
       employee.employeeId,
       employee.jobTitle,
       employee.hasProfile ? "incomplete" : "not set up",
-      employee.isComplete ? "ready" : "",
+      employee.isComplete && !employee.isExcluded ? "ready" : "",
+      employee.isExcluded ? "excluded" : "",
       employee.isArchived ? "archived" : "",
     ]
       .join(" ")

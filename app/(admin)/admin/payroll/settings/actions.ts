@@ -31,6 +31,8 @@ const settingsSchema = z.object({
   leaveCarryForwardAllowed: booleanString(),
   leaveCarryForwardLimitDays: nullableInt(),
   leaveCarryForwardExpiryMonths: nullableInt(),
+  syncClaimsToXeroOnSubmit: booleanString(),
+  syncPayrollToXeroOnSubmit: booleanString(),
 })
 
 export async function savePayrollSettingsAction(
@@ -49,6 +51,8 @@ export async function savePayrollSettingsAction(
     leaveCarryForwardAllowed: formData.get("leaveCarryForwardAllowed"),
     leaveCarryForwardLimitDays: formData.get("leaveCarryForwardLimitDays"),
     leaveCarryForwardExpiryMonths: formData.get("leaveCarryForwardExpiryMonths"),
+    syncClaimsToXeroOnSubmit: formData.get("syncClaimsToXeroOnSubmit"),
+    syncPayrollToXeroOnSubmit: formData.get("syncPayrollToXeroOnSubmit"),
   })
 
   if (!parsed.success) {

@@ -984,6 +984,13 @@ model PayrollSettings {
   leaveCarryForwardAllowed      Boolean         @default(false)
   leaveCarryForwardLimitDays    Int?
   leaveCarryForwardExpiryMonths Int?
+  /// When true, submitting a payroll run posts the reimbursable claims
+  /// attached to that run to Xero as "Awaiting Payment" bills. UI is
+  /// gated behind an active Xero connection — see settings page.
+  syncClaimsToXeroOnSubmit      Boolean         @default(false)
+  /// When true, submitting a payroll run posts the payroll summary to
+  /// Xero as a Manual Journal. Same Xero-connection UI gate.
+  syncPayrollToXeroOnSubmit     Boolean         @default(false)
   createdAt                     DateTime        @default(now())
   updatedAt                     DateTime        @updatedAt
   autoApplySocsoEisRelief       Boolean         @default(true)

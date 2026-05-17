@@ -60,6 +60,11 @@ function mapPayrollSettings(row: any): PayrollSettingsData {
     leaveCarryForwardAllowed: row.leaveCarryForwardAllowed,
     leaveCarryForwardLimitDays: row.leaveCarryForwardLimitDays ?? null,
     leaveCarryForwardExpiryMonths: row.leaveCarryForwardExpiryMonths ?? null,
+    // ?? false guards legacy rows minted before these columns existed;
+    // prisma db push backfills with the schema default, but defensive
+    // anyway.
+    syncClaimsToXeroOnSubmit: row.syncClaimsToXeroOnSubmit ?? false,
+    syncPayrollToXeroOnSubmit: row.syncPayrollToXeroOnSubmit ?? false,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   }
@@ -83,5 +88,7 @@ function toUpsertData(
   copy("leaveCarryForwardAllowed")
   copy("leaveCarryForwardLimitDays")
   copy("leaveCarryForwardExpiryMonths")
+  copy("syncClaimsToXeroOnSubmit")
+  copy("syncPayrollToXeroOnSubmit")
   return out
 }

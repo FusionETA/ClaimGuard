@@ -827,6 +827,10 @@ export type PayrollEmployeeRow = {
   /// True when the profile is archived. Archived rows are still shown on
   /// the list (greyed out) so admin can un-archive.
   isArchived: boolean
+  /// True when the employee's salary is set to 0 — an intentional opt-out
+  /// from payroll runs. Drives a grey "Excluded — no salary" chip on
+  /// the list page instead of the red "Incomplete" warning.
+  isExcluded: boolean
 }
 
 // ─── Completion check ─────────────────────────────────────────────────────
@@ -849,11 +853,14 @@ export type PayrollEmployeeRow = {
  * to actually disburse. So we don't gate completeness on it.
  */
 export function isPayrollProfileComplete(p: PayrollProfileData): boolean {
-  // Compensation: must have a salary value for the chosen type.
-  if (p.salaryType === "MONTHLY" && (p.monthlySalary == null || p.monthlySalary <= 0)) {
+  // Compensation: salary must be a number (null = not yet entered =
+  // incomplete). 0 is a VALID, complete state — it means "exclude this
+  // employee from payroll runs" and is handled by `isExcludedFromPayroll`
+  // below. Negative values are nonsensical, treat as incomplete.
+  if (p.salaryType === "MONTHLY" && (p.monthlySalary == null || p.monthlySalary < 0)) {
     return false
   }
-  if (p.salaryType === "HOURLY" && (p.hourlyRate == null || p.hourlyRate <= 0)) {
+  if (p.salaryType === "HOURLY" && (p.hourlyRate == null || p.hourlyRate < 0)) {
     return false
   }
 
@@ -882,4 +889,24 @@ export function isPayrollProfileComplete(p: PayrollProfileData): boolean {
   }
 
   return true
+}
+
+/**
+ * Pure helper: a profile is "excluded from payroll" when its salary
+ * value for the chosen type is exactly 0. This is an intentional opt-out
+ * (e.g. directors who don't draw a salary, employees on unpaid leave,
+ * contractors paid outside payroll) — separate from "incomplete".
+ *
+ * Used by `listReadyForPayroll` to skip these employees from run drafts,
+ * and by the admin UI to render an "Excluded" chip in place of the red
+ * "Incomplete" warning.
+ *
+ * Assumes the profile is already complete (`isPayrollProfileComplete`
+ * returned true), so monthlySalary / hourlyRate is non-null for the
+ * relevant type.
+ */
+export function isExcludedFromPayroll(p: PayrollProfileData): boolean {
+  if (p.salaryType === "MONTHLY") return p.monthlySalary === 0
+  if (p.salaryType === "HOURLY") return p.hourlyRate === 0
+  return false
 }

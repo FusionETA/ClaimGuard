@@ -55,6 +55,13 @@ export type PayrollSettingsData = {
   leaveCarryForwardLimitDays: number | null
   leaveCarryForwardExpiryMonths: number | null
 
+  // Xero sync — opt-in toggles that fire when the admin submits a
+  // payroll run. The actual sync logic is not implemented yet; these
+  // flags just persist the admin's preference. UI is hidden when the
+  // org has no Xero connection.
+  syncClaimsToXeroOnSubmit: boolean
+  syncPayrollToXeroOnSubmit: boolean
+
   createdAt: string
   updatedAt: string
 }

@@ -7,6 +7,7 @@ import type {
   PayrollCompanyInfoData,
   PayrollSettingsData,
 } from "@/modules/payroll/domain/settings"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { payrollCompanyInfoRepository } from "@/modules/payroll/infrastructure/payroll-company-info.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 
@@ -40,6 +41,11 @@ export async function getPayrollSettingsPageData(): Promise<{
   /// the org. Drives the HRDF tier display in the settings form.
   malaysianEmployeeCount: number
   hrdfTier: HrdfTier
+  /// True when the org has at least one Xero connection. Used to gate
+  /// the "sync claims / payroll to Xero on submit" toggles in the
+  /// settings UI — when there's no connection, those toggles are
+  /// hidden entirely (and persisted as false).
+  hasXeroConnection: boolean
 } | null> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") return null
@@ -49,15 +55,17 @@ export async function getPayrollSettingsPageData(): Promise<{
   const prisma = getPrismaClient()
   if (!prisma) return null
 
-  const [org, settings, companyInfo, malaysianEmployeeCount] = await Promise.all([
-    prisma.organization.findUnique({
-      where: { id: orgId },
-      select: { name: true },
-    }),
-    payrollSettingsRepository.getByOrgId(orgId),
-    payrollCompanyInfoRepository.getByOrgId(orgId),
-    countActiveMalaysianEmployees(prisma, orgId),
-  ])
+  const [org, settings, companyInfo, malaysianEmployeeCount, xeroConnections] =
+    await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: orgId },
+        select: { name: true },
+      }),
+      payrollSettingsRepository.getByOrgId(orgId),
+      payrollCompanyInfoRepository.getByOrgId(orgId),
+      countActiveMalaysianEmployees(prisma, orgId),
+      organizationRepository.getXeroConnections(orgId),
+    ])
 
   return {
     organizationName: org?.name ?? "",
@@ -65,6 +73,7 @@ export async function getPayrollSettingsPageData(): Promise<{
     companyInfo,
     malaysianEmployeeCount,
     hrdfTier: hrdfTierFromCount(malaysianEmployeeCount),
+    hasXeroConnection: xeroConnections.length > 0,
   }
 }
 

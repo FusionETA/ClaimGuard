@@ -23,11 +23,25 @@ import {
   visibleStatusOptions,
   type ClaimRecord,
   type ClaimStatus,
+  type ClaimStatusFilter,
 } from "@/modules/claims/domain/models"
 
-const statusOptions = ["ALL", ...visibleStatusOptions] as const
+// Supervisors don't care about the admin-only "REVIEWED" stage — once
+// a claim leaves their step it's either still in flight (Approved) or
+// rejected. Strip REVIEWED from their filter; admin/other views keep
+// the full set.
+const SUPERVISOR_STATUS_OPTIONS: readonly ClaimStatusFilter[] = [
+  "ALL",
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+]
+const DEFAULT_STATUS_OPTIONS: readonly ClaimStatusFilter[] = [
+  "ALL",
+  ...visibleStatusOptions,
+]
 
-type StatusFilter = (typeof statusOptions)[number]
+type StatusFilter = ClaimStatusFilter
 const PAGE_SIZE = 10
 
 function getSupervisorStep(claim: ClaimRecord, supervisorId?: string) {
@@ -63,6 +77,9 @@ export function AdminClaimsQueue({
   claims: ClaimRecord[]
   supervisorId?: string
 }) {
+  const statusOptions = supervisorId
+    ? SUPERVISOR_STATUS_OPTIONS
+    : DEFAULT_STATUS_OPTIONS
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL")
   const [searchTerm, setSearchTerm] = useState("")
   const [page, setPage] = useState(1)

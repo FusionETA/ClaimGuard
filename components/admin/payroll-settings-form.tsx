@@ -73,6 +73,10 @@ export function PayrollSettingsForm(props: {
   /// the HRDF toggle is locked or editable.
   malaysianEmployeeCount: number
   hrdfTier: HrdfTier
+  /// True when the org has at least one Xero connection. When false,
+  /// the "sync to Xero on submit" toggles in the General tab are not
+  /// rendered at all — both flags stay false in the DB.
+  hasXeroConnection: boolean
 }) {
   const [tab, setTab] = useState<Tab>("general")
   const generalComplete = props.settings !== null
@@ -102,6 +106,7 @@ export function PayrollSettingsForm(props: {
           settings={props.settings}
           malaysianEmployeeCount={props.malaysianEmployeeCount}
           hrdfTier={props.hrdfTier}
+          hasXeroConnection={props.hasXeroConnection}
         />
       )}
       {tab === "formE" && <FormETab companyInfo={props.companyInfo} />}
@@ -161,6 +166,7 @@ function GeneralTab(props: {
   settings: PayrollSettingsData | null
   malaysianEmployeeCount: number
   hrdfTier: HrdfTier
+  hasXeroConnection: boolean
 }) {
   const [state, action, pending] = useActionState(
     savePayrollSettingsAction,
@@ -280,6 +286,32 @@ function GeneralTab(props: {
           </Field>
         </CardContent>
       </Card>
+
+      {props.hasXeroConnection ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Xero sync on submit</CardTitle>
+            <CardDescription>
+              When a payroll run is submitted, push the reimbursable
+              claims attached to that run into Xero as bills awaiting
+              payment, and post the payroll summary as a manual
+              journal. Leave both off if you reconcile in Xero manually.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2">
+            <Toggle
+              name="syncClaimsToXeroOnSubmit"
+              question="Sync claims to Xero (Awaiting Payment)?"
+              defaultChecked={s?.syncClaimsToXeroOnSubmit ?? false}
+            />
+            <Toggle
+              name="syncPayrollToXeroOnSubmit"
+              question="Sync payroll to Xero (Manual Journal)?"
+              defaultChecked={s?.syncPayrollToXeroOnSubmit ?? false}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

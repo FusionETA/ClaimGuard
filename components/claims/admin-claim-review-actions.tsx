@@ -8,6 +8,7 @@ import { reviewClaimAction } from "@/app/(employee)/employee/review/actions"
 import { createInitialReviewClaimFormState } from "@/app/(admin)/admin/claims/form-state"
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
 import { Button } from "@/components/ui/button"
+import { notifyClaimsReviewed } from "@/lib/badge-refresh"
 import {
   Dialog,
   DialogContent,
@@ -62,6 +63,19 @@ export function AdminClaimReviewActions({
       toast({ title: state.message, variant: "error" })
     }
   }, [claim.id, onReviewed, router, state.status, state.message, toast])
+
+  // Optimistic badge decrement fires on CLICK rather than on the
+  // useActionState success branch. Reason: Next.js's revalidatePath
+  // inside the action causes the parent queue to re-render with the
+  // claim removed, which unmounts this component before its own
+  // useEffect with `state.status === "success"` can run. The click
+  // handler always fires, so the badge always decrements. If the
+  // server action ends up failing (e.g. validation: reject with no
+  // reason), the 400 ms re-sync inside the handler corrects the count
+  // back to the truth.
+  function handleReviewClicked() {
+    notifyClaimsReviewed()
+  }
 
   const currentStatus = state.claimStatus ?? displayStatus ?? claim.status
   const actionable = actionableOverride ?? isActionableStatus(currentStatus)
@@ -197,6 +211,7 @@ export function AdminClaimReviewActions({
                   name="decision"
                   value="APPROVED"
                   disabled={!actionable || pending}
+                  onClick={handleReviewClicked}
                 >
                   {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
                   Approve
@@ -207,6 +222,7 @@ export function AdminClaimReviewActions({
                   value="REJECTED"
                   variant="destructive"
                   disabled={!actionable || pending}
+                  onClick={handleReviewClicked}
                 >
                   {pending ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
                   Reject with reason

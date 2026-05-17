@@ -677,6 +677,8 @@ export const PayrollSettingsScalarFieldEnum = {
   leaveCarryForwardAllowed: 'leaveCarryForwardAllowed',
   leaveCarryForwardLimitDays: 'leaveCarryForwardLimitDays',
   leaveCarryForwardExpiryMonths: 'leaveCarryForwardExpiryMonths',
+  syncClaimsToXeroOnSubmit: 'syncClaimsToXeroOnSubmit',
+  syncPayrollToXeroOnSubmit: 'syncPayrollToXeroOnSubmit',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   autoApplySocsoEisRelief: 'autoApplySocsoEisRelief'

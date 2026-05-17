@@ -56,6 +56,8 @@ export type PayrollSettingsMinAggregateOutputType = {
   leaveCarryForwardAllowed: boolean | null
   leaveCarryForwardLimitDays: number | null
   leaveCarryForwardExpiryMonths: number | null
+  syncClaimsToXeroOnSubmit: boolean | null
+  syncPayrollToXeroOnSubmit: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   autoApplySocsoEisRelief: boolean | null
@@ -74,6 +76,8 @@ export type PayrollSettingsMaxAggregateOutputType = {
   leaveCarryForwardAllowed: boolean | null
   leaveCarryForwardLimitDays: number | null
   leaveCarryForwardExpiryMonths: number | null
+  syncClaimsToXeroOnSubmit: boolean | null
+  syncPayrollToXeroOnSubmit: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   autoApplySocsoEisRelief: boolean | null
@@ -92,6 +96,8 @@ export type PayrollSettingsCountAggregateOutputType = {
   leaveCarryForwardAllowed: number
   leaveCarryForwardLimitDays: number
   leaveCarryForwardExpiryMonths: number
+  syncClaimsToXeroOnSubmit: number
+  syncPayrollToXeroOnSubmit: number
   createdAt: number
   updatedAt: number
   autoApplySocsoEisRelief: number
@@ -128,6 +134,8 @@ export type PayrollSettingsMinAggregateInputType = {
   leaveCarryForwardAllowed?: true
   leaveCarryForwardLimitDays?: true
   leaveCarryForwardExpiryMonths?: true
+  syncClaimsToXeroOnSubmit?: true
+  syncPayrollToXeroOnSubmit?: true
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
@@ -146,6 +154,8 @@ export type PayrollSettingsMaxAggregateInputType = {
   leaveCarryForwardAllowed?: true
   leaveCarryForwardLimitDays?: true
   leaveCarryForwardExpiryMonths?: true
+  syncClaimsToXeroOnSubmit?: true
+  syncPayrollToXeroOnSubmit?: true
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
@@ -164,6 +174,8 @@ export type PayrollSettingsCountAggregateInputType = {
   leaveCarryForwardAllowed?: true
   leaveCarryForwardLimitDays?: true
   leaveCarryForwardExpiryMonths?: true
+  syncClaimsToXeroOnSubmit?: true
+  syncPayrollToXeroOnSubmit?: true
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
@@ -269,6 +281,8 @@ export type PayrollSettingsGroupByOutputType = {
   leaveCarryForwardAllowed: boolean
   leaveCarryForwardLimitDays: number | null
   leaveCarryForwardExpiryMonths: number | null
+  syncClaimsToXeroOnSubmit: boolean
+  syncPayrollToXeroOnSubmit: boolean
   createdAt: Date
   updatedAt: Date
   autoApplySocsoEisRelief: boolean
@@ -310,6 +324,8 @@ export type PayrollSettingsWhereInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFilter<"PayrollSettings"> | boolean
   leaveCarryForwardLimitDays?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
   leaveCarryForwardExpiryMonths?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFilter<"PayrollSettings"> | boolean
@@ -329,6 +345,8 @@ export type PayrollSettingsOrderByWithRelationInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrderInput | Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrderInput | Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -352,6 +370,8 @@ export type PayrollSettingsWhereUniqueInput = Prisma.AtLeast<{
   leaveCarryForwardAllowed?: Prisma.BoolFilter<"PayrollSettings"> | boolean
   leaveCarryForwardLimitDays?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
   leaveCarryForwardExpiryMonths?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFilter<"PayrollSettings"> | boolean
@@ -371,6 +391,8 @@ export type PayrollSettingsOrderByWithAggregationInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrderInput | Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrderInput | Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -397,6 +419,8 @@ export type PayrollSettingsScalarWhereWithAggregatesInput = {
   leaveCarryForwardAllowed?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
   leaveCarryForwardLimitDays?: Prisma.IntNullableWithAggregatesFilter<"PayrollSettings"> | number | null
   leaveCarryForwardExpiryMonths?: Prisma.IntNullableWithAggregatesFilter<"PayrollSettings"> | number | null
+  syncClaimsToXeroOnSubmit?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
@@ -414,6 +438,8 @@ export type PayrollSettingsCreateInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -433,6 +459,8 @@ export type PayrollSettingsUncheckedCreateInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -450,6 +478,8 @@ export type PayrollSettingsUpdateInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -469,6 +499,8 @@ export type PayrollSettingsUncheckedUpdateInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -487,6 +519,8 @@ export type PayrollSettingsCreateManyInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -504,6 +538,8 @@ export type PayrollSettingsUpdateManyMutationInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -522,6 +558,8 @@ export type PayrollSettingsUncheckedUpdateManyInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -551,6 +589,8 @@ export type PayrollSettingsCountOrderByAggregateInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -577,6 +617,8 @@ export type PayrollSettingsMaxOrderByAggregateInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -595,6 +637,8 @@ export type PayrollSettingsMinOrderByAggregateInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -656,6 +700,8 @@ export type PayrollSettingsCreateWithoutOrganizationInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -673,6 +719,8 @@ export type PayrollSettingsUncheckedCreateWithoutOrganizationInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -706,6 +754,8 @@ export type PayrollSettingsUpdateWithoutOrganizationInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -723,6 +773,8 @@ export type PayrollSettingsUncheckedUpdateWithoutOrganizationInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -743,6 +795,8 @@ export type PayrollSettingsSelect<ExtArgs extends runtime.Types.Extensions.Inter
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: boolean
   leaveCarryForwardExpiryMonths?: boolean
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   autoApplySocsoEisRelief?: boolean
@@ -764,12 +818,14 @@ export type PayrollSettingsSelectScalar = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: boolean
   leaveCarryForwardExpiryMonths?: boolean
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   autoApplySocsoEisRelief?: boolean
 }
 
-export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "employerIdNumber" | "myCoOrSsmNumber" | "leaveCarryForwardAllowed" | "leaveCarryForwardLimitDays" | "leaveCarryForwardExpiryMonths" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief", ExtArgs["result"]["payrollSettings"]>
+export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "employerIdNumber" | "myCoOrSsmNumber" | "leaveCarryForwardAllowed" | "leaveCarryForwardLimitDays" | "leaveCarryForwardExpiryMonths" | "syncClaimsToXeroOnSubmit" | "syncPayrollToXeroOnSubmit" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief", ExtArgs["result"]["payrollSettings"]>
 export type PayrollSettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -792,6 +848,17 @@ export type $PayrollSettingsPayload<ExtArgs extends runtime.Types.Extensions.Int
     leaveCarryForwardAllowed: boolean
     leaveCarryForwardLimitDays: number | null
     leaveCarryForwardExpiryMonths: number | null
+    /**
+     * When true, submitting a payroll run posts the reimbursable claims
+     * attached to that run to Xero as "Awaiting Payment" bills. UI is
+     * gated behind an active Xero connection — see settings page.
+     */
+    syncClaimsToXeroOnSubmit: boolean
+    /**
+     * When true, submitting a payroll run posts the payroll summary to
+     * Xero as a Manual Journal. Same Xero-connection UI gate.
+     */
+    syncPayrollToXeroOnSubmit: boolean
     createdAt: Date
     updatedAt: Date
     autoApplySocsoEisRelief: boolean
@@ -1177,6 +1244,8 @@ export interface PayrollSettingsFieldRefs {
   readonly leaveCarryForwardAllowed: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
   readonly leaveCarryForwardLimitDays: Prisma.FieldRef<"PayrollSettings", 'Int'>
   readonly leaveCarryForwardExpiryMonths: Prisma.FieldRef<"PayrollSettings", 'Int'>
+  readonly syncClaimsToXeroOnSubmit: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
+  readonly syncPayrollToXeroOnSubmit: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"PayrollSettings", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PayrollSettings", 'DateTime'>
   readonly autoApplySocsoEisRelief: Prisma.FieldRef<"PayrollSettings", 'Boolean'>

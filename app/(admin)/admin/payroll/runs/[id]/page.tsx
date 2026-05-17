@@ -62,7 +62,16 @@ export default async function AdminPayrollRunDetailPage({
   if (!data) redirect("/admin/payroll/runs")
 
   const ready = data.employees.filter((e) => e.ready)
-  const needsSetup = data.employees.filter((e) => !e.ready && !e.isArchived)
+  // Excluded employees (salary = 0) are NOT in the "needs setup"
+  // bucket — they're intentionally opted out, not broken. Keep them
+  // visible in their own section so admins can see who's being
+  // skipped and re-enable by editing the salary.
+  const excluded = data.employees.filter(
+    (e) => e.isExcluded && !e.isArchived,
+  )
+  const needsSetup = data.employees.filter(
+    (e) => !e.ready && !e.isArchived && !e.isExcluded,
+  )
   const isDraft = data.run.status === "DRAFT"
   const isPendingApproval = data.run.status === "PENDING_APPROVAL"
   const isSubmitted = data.run.status === "SUBMITTED"
@@ -134,6 +143,55 @@ export default async function AdminPayrollRunDetailPage({
             readyEmployees={readyMissingPayslip}
           />
         </div>
+      ) : null}
+
+      {isDraft && excluded.length > 0 ? (
+        <Card className="print:hidden">
+          <CardHeader>
+            <CardTitle className="text-base">
+              Excluded from this run
+            </CardTitle>
+            <CardDescription>
+              {excluded.length} employee
+              {excluded.length === 1 ? "" : "s"} with salary set to 0 —
+              skipped from payroll. Edit their salary to include them.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <ul className="divide-y divide-border/40 text-sm">
+              {excluded.map((e) => (
+                <li
+                  key={e.employeeProfileId}
+                  className="flex items-center justify-between gap-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-foreground">
+                      {e.name}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {e.employeeId} · {e.jobTitle}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="border-slate-300/60 text-[10px] text-slate-600"
+                    >
+                      Excluded
+                    </Badge>
+                    <Button asChild variant="ghost" size="sm">
+                      <Link
+                        href={`/admin/payroll/employees/${e.userId}` as Route}
+                      >
+                        Edit
+                      </Link>
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       ) : null}
 
       {data.payslips.length > 0 ? (

@@ -1150,9 +1150,10 @@ export async function getPayrollPayslipDetailPageData(input: {
 
 /**
  * An employee is "ready for payroll" when they have a complete
- * PayrollProfile and are not archived. This is the filter that
- * decides who shows up on a run's draft.
+ * PayrollProfile, are not archived, and are not intentionally excluded
+ * (salary = 0). This is the filter that decides who shows up on a
+ * run's draft.
  */
 function isReadyForPayroll(row: PayrollEmployeeRow): boolean {
-  return row.hasProfile && row.isComplete && !row.isArchived
+  return row.hasProfile && row.isComplete && !row.isArchived && !row.isExcluded
 }

@@ -3,6 +3,7 @@ import "server-only"
 import { getPrismaClient } from "@/lib/prisma"
 import { toNumber } from "@/lib/decimal"
 import {
+  isExcludedFromPayroll,
   isPayrollProfileComplete,
   PAYROLL_ADJUSTMENT_CATEGORY_META,
   payrollAdjustmentCategories,
@@ -146,6 +147,7 @@ export const payrollProfileRepository = {
           hasProfile: pp !== null,
           isComplete: projected ? isPayrollProfileComplete(projected) : false,
           isArchived: projected?.isArchived ?? false,
+          isExcluded: projected ? isExcludedFromPayroll(projected) : false,
         }
       })
   },
@@ -246,6 +248,9 @@ export const payrollProfileRepository = {
       const profile = mapPayrollProfile(ep.payrollProfile)
       if (profile.isArchived) continue
       if (!isPayrollProfileComplete(profile)) continue
+      // Salary = 0 is an intentional opt-out — skip these employees from
+      // the run draft. See `isExcludedFromPayroll` for the rationale.
+      if (isExcludedFromPayroll(profile)) continue
       const primaryProject = ep.projectAssignments[0]?.project ?? null
       rows.push({
         userId: u.id,

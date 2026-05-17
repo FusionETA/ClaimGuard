@@ -4,7 +4,7 @@ import type { Route } from "next"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import {
   CalendarClock,
   CalendarDays,
@@ -19,6 +19,7 @@ import { PushNotificationPrompt } from "@/components/pwa/push-notification-promp
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import type { AuthenticatedSession } from "@/lib/auth/types"
+import { registerClaimsReviewedHandler } from "@/lib/badge-refresh"
 import { cn } from "@/lib/utils"
 
 type EmployeeNavItem = {
@@ -139,6 +140,21 @@ function NotificationDot() {
   )
 }
 
+function NotificationCountBadge({ count, className }: { count: number; className?: string }) {
+  if (count <= 0) return null
+  return (
+    <span
+      aria-label={`${count} pending approval${count === 1 ? "" : "s"}`}
+      className={cn(
+        "ml-auto flex h-5 min-w-[1.25rem] shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground",
+        className,
+      )}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  )
+}
+
 export function EmployeeShell({
   children,
   user,
@@ -152,41 +168,78 @@ export function EmployeeShell({
   const [pendingApprovals, setPendingApprovals] = useState(0)
   const [pendingClaimApprovals, setPendingClaimApprovals] = useState(0)
 
+  const fetchContext = useCallback(
+    (signal?: AbortSignal) => {
+      return fetch("/api/employee/context", {
+        cache: "no-store",
+        credentials: "include",
+        signal,
+      })
+        .then(async (response) => {
+          if (!response.ok) {
+            return null
+          }
+
+          return response.json() as Promise<{
+            organizationName?: string | null
+            pendingApprovals?: number
+            pendingClaimApprovals?: number
+          }>
+        })
+        .then((data) => {
+          if (data?.organizationName) {
+            setDisplayOrganizationName(data.organizationName)
+          }
+
+          setPendingApprovals(data?.pendingApprovals ?? 0)
+          setPendingClaimApprovals(data?.pendingClaimApprovals ?? 0)
+        })
+        .catch(() => null)
+    },
+    [],
+  )
+
   useEffect(() => {
     if (user.role !== "SUPERVISOR" && organizationName) {
       return
     }
 
     const controller = new AbortController()
-
-    void fetch("/api/employee/context", {
-      cache: "no-store",
-      credentials: "include",
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          return null
-        }
-
-        return response.json() as Promise<{
-          organizationName?: string | null
-          pendingApprovals?: number
-          pendingClaimApprovals?: number
-        }>
-      })
-      .then((data) => {
-        if (data?.organizationName) {
-          setDisplayOrganizationName(data.organizationName)
-        }
-
-        setPendingApprovals(data?.pendingApprovals ?? 0)
-        setPendingClaimApprovals(data?.pendingClaimApprovals ?? 0)
-      })
-      .catch(() => null)
-
+    void fetchContext(controller.signal)
     return () => controller.abort()
-  }, [organizationName, user.role])
+  }, [organizationName, user.role, fetchContext])
+
+  // Re-pull the badge counts whenever the supervisor navigates between
+  // pages. Belt-and-braces for the rare case where the optimistic event
+  // path below misses (HMR, dropped event, etc.) — at worst the badge
+  // becomes correct the next time they click a nav item.
+  useEffect(() => {
+    if (user.role !== "SUPERVISOR") return
+    const controller = new AbortController()
+    void fetchContext(controller.signal)
+    return () => controller.abort()
+  }, [pathname, user.role, fetchContext])
+
+  // After a supervisor approves/rejects a claim, AdminClaimReviewActions
+  // calls `notifyClaimsReviewed()` (a module-level callback registry —
+  // see lib/badge-refresh.ts) so the navigation badge can decrement
+  // immediately instead of waiting for the next mount. We optimistically
+  // drop the count by 1 and then re-sync from the server for accuracy
+  // (in case there were concurrent submissions). The re-sync is delayed
+  // slightly so the DB transaction has time to settle — without the
+  // delay we'd occasionally read the OLD count and overwrite the
+  // optimistic 0.
+  useEffect(() => {
+    if (user.role !== "SUPERVISOR") return
+
+    registerClaimsReviewedHandler(() => {
+      setPendingClaimApprovals((current) => Math.max(0, current - 1))
+      window.setTimeout(() => {
+        void fetchContext()
+      }, 400)
+    })
+    return () => registerClaimsReviewedHandler(null)
+  }, [user.role, fetchContext])
 
   const visibleNav = employeeNav
     .filter((item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR")
@@ -198,7 +251,6 @@ export function EmployeeShell({
       return true
     })
   const hasPendingApprovals = pendingApprovals > 0
-  const hasPendingClaimApprovals = pendingClaimApprovals > 0
 
   return (
     <div className="attendance-module min-h-screen bg-background [background-image:none] lg:grid lg:grid-cols-[280px_1fr]">
@@ -242,8 +294,8 @@ export function EmployeeShell({
                   <span>{item.label}</span>
                   {item.href === ATTENDANCE_HREF && hasPendingApprovals ? (
                     <NotificationDot />
-                  ) : item.href === CLAIMS_HREF && hasPendingClaimApprovals ? (
-                    <NotificationDot />
+                  ) : item.href === CLAIMS_HREF ? (
+                    <NotificationCountBadge count={pendingClaimApprovals} />
                   ) : null}
                 </Link>
 
@@ -267,8 +319,8 @@ export function EmployeeShell({
                             <span>{child.label}</span>
                             {child.href === APPROVALS_HREF && hasPendingApprovals ? (
                               <NotificationDot />
-                            ) : child.href === CLAIMS_QUEUE_HREF && hasPendingClaimApprovals ? (
-                              <NotificationDot />
+                            ) : child.href === CLAIMS_QUEUE_HREF ? (
+                              <NotificationCountBadge count={pendingClaimApprovals} />
                             ) : null}
                           </Link>
                         )
@@ -332,9 +384,10 @@ export function EmployeeShell({
               const active = pathname === item.href
               const Icon = item.icon
 
-              const showDot =
-                (item.href === ATTENDANCE_HREF && hasPendingApprovals) ||
-                (item.href === CLAIMS_HREF && hasPendingClaimApprovals)
+              const showAttendanceDot =
+                item.href === ATTENDANCE_HREF && hasPendingApprovals
+              const showClaimCount =
+                item.href === CLAIMS_HREF && pendingClaimApprovals > 0
 
               return (
                 <Link
@@ -347,11 +400,19 @@ export function EmployeeShell({
                 >
                   <Icon className="h-4 w-4 shrink-0" />
                   <span className="line-clamp-2">{item.label}</span>
-                  {showDot ? (
+                  {showAttendanceDot ? (
                     <span
                       aria-label="pending approvals"
                       className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive"
                     />
+                  ) : null}
+                  {showClaimCount ? (
+                    <span
+                      aria-label={`${pendingClaimApprovals} pending claim approval${pendingClaimApprovals === 1 ? "" : "s"}`}
+                      className="absolute right-1 top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground"
+                    >
+                      {pendingClaimApprovals > 99 ? "99+" : pendingClaimApprovals}
+                    </span>
                   ) : null}
                 </Link>
               )

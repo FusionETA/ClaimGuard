@@ -35,6 +35,7 @@ export default async function AdminPayrollSettingsPage() {
         companyInfo={data.companyInfo}
         malaysianEmployeeCount={data.malaysianEmployeeCount}
         hrdfTier={data.hrdfTier}
+        hasXeroConnection={data.hasXeroConnection}
       />
     </div>
   )
