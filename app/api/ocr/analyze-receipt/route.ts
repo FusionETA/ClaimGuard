@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { analyzeReceipt } from "@/lib/ai"
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "AI provider request failed."
+      safeErrorMessage(error, "AI provider request failed.")
     console.error("[ocr/analyze-receipt] Provider error:", message)
     // 502 because the upstream LLM (or a misconfigured key) is the cause.
     return NextResponse.json({ error: message }, { status: 502 })

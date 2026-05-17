@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 
 import { redirect } from "next/navigation"
 
@@ -118,7 +119,7 @@ export async function overrideAttendanceAction(
     }
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Could not save changes.",
+      error: safeErrorMessage(err, "Could not save changes."),
     }
   }
 
@@ -159,7 +160,7 @@ export async function loadSessionBreaksAction(
       )
     } catch (err) {
       return {
-        error: err instanceof Error ? err.message : "Not authorised.",
+        error: safeErrorMessage(err, "Not authorised."),
       }
     }
   }
@@ -255,7 +256,7 @@ export async function editSessionAction(
       editorRole: session.role === "ADMIN" ? "ADMIN" : "SUPERVISOR",
     })
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Could not save." }
+    return { error: safeErrorMessage(err, "Could not save.") }
   }
 
   revalidatePath(`/employee/attendance/team/${input.employeeId}`)

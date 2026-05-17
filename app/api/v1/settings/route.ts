@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -129,7 +130,7 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
     } catch (error) {
       return jsonError(
         409,
-        error instanceof Error ? error.message : "Could not update claim cutoff.",
+        safeErrorMessage(error, "Could not update claim cutoff."),
       )
     }
   }
@@ -165,7 +166,7 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
     } catch (error) {
       return jsonError(
         409,
-        error instanceof Error ? error.message : "Could not update currencies.",
+        safeErrorMessage(error, "Could not update currencies."),
       )
     }
   }
@@ -180,7 +181,7 @@ export const PATCH = handleApiRequest(["settings:write"], async (request, ctx) =
     } catch (error) {
       return jsonError(
         409,
-        error instanceof Error ? error.message : "Could not update mileage defaults.",
+        safeErrorMessage(error, "Could not update mileage defaults."),
       )
     }
   }

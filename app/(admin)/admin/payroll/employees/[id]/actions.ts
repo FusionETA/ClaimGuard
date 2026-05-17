@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { getCurrentSession } from "@/lib/auth/session"
@@ -125,7 +126,7 @@ export async function savePayrollPersonalAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Could not save profile.",
+      message: safeErrorMessage(err, "Could not save profile."),
     }
   }
 
@@ -256,7 +257,7 @@ export async function savePayrollEmploymentAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Could not save profile.",
+      message: safeErrorMessage(err, "Could not save profile."),
     }
   }
 
@@ -396,7 +397,7 @@ export async function savePayrollStatutoryAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Could not save profile.",
+      message: safeErrorMessage(err, "Could not save profile."),
     }
   }
 
@@ -420,7 +421,7 @@ export async function archivePayrollProfileAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Could not archive.",
+      message: safeErrorMessage(err, "Could not archive."),
     }
   }
 
@@ -441,7 +442,7 @@ export async function unarchivePayrollProfileAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Could not unarchive.",
+      message: safeErrorMessage(err, "Could not unarchive."),
     }
   }
 
@@ -473,7 +474,7 @@ export async function uploadPayrollDocumentAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Upload failed.",
+      message: safeErrorMessage(err, "Upload failed."),
     }
   }
 
@@ -498,7 +499,7 @@ export async function deletePayrollDocumentAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Delete failed.",
+      message: safeErrorMessage(err, "Delete failed."),
     }
   }
 

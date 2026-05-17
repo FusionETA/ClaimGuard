@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { safeErrorMessage } from "@/lib/errors"
 import {
   ArrowLeft,
   Camera,
@@ -328,7 +329,7 @@ function ReceiptStep({
       onComplete(prefill, receiptFile)
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Receipt scan failed."
+        safeErrorMessage(error, "Receipt scan failed.")
       setStatus({ phase: "error", message })
     }
   }

@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import type { BaseFormState } from "@/lib/form-state"
@@ -157,7 +158,7 @@ export async function savePayrollAdjustmentAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not save adjustments.",
+        safeErrorMessage(err, "Could not save adjustments."),
     }
   }
 
@@ -188,7 +189,7 @@ export async function clearPayrollAdjustmentAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not clear adjustments.",
+        safeErrorMessage(err, "Could not clear adjustments."),
     }
   }
 

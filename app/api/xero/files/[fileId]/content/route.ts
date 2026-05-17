@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 
 import { getCurrentSession } from "@/lib/auth/session"
 import { getXeroFileContent } from "@/lib/xero"
@@ -82,7 +83,7 @@ export async function GET(
       },
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Xero fetch failed."
+    const message = safeErrorMessage(error, "Xero fetch failed.")
     return NextResponse.json({ error: message }, { status: 502 })
   }
 }

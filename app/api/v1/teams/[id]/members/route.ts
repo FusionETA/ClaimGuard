@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -130,7 +131,7 @@ export const POST = handleApiRequest<RouteParams>(
       })
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not assign member."
+        safeErrorMessage(error, "Could not assign member.")
       // Distinguish "team / employee not in this org" (404) from
       // validation failures (409). Cheap message-substring match.
       if (/not found/i.test(message)) {
@@ -149,7 +150,7 @@ export const POST = handleApiRequest<RouteParams>(
         })
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Could not set chain."
+          safeErrorMessage(error, "Could not set chain.")
         // The membership already committed; surface chain failure as
         // 409 so partner can retry the chain alone via PATCH (TBD)
         // without re-creating the membership.

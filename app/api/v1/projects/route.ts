@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -110,7 +111,7 @@ export const POST = handleApiRequest(["projects:write"], async (request, ctx) =>
     )
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Could not create project."
+      safeErrorMessage(error, "Could not create project.")
     return jsonError(409, message)
   }
 })

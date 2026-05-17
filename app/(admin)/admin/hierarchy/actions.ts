@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import {
@@ -148,7 +149,7 @@ export async function updateHierarchyAction(
       ...createInitialHierarchyFormState(values),
       status: "error",
       message:
-        error instanceof Error ? error.message : "Unable to save hierarchy changes.",
+        safeErrorMessage(error, "Unable to save hierarchy changes."),
     }
   }
 
@@ -250,7 +251,7 @@ export async function createHierarchyMemberAction(
       ...createInitialAddHierarchyMemberFormState(values),
       status: "error",
       message:
-        error instanceof Error ? error.message : "Unable to create employee right now.",
+        safeErrorMessage(error, "Unable to create employee right now."),
     }
   }
 

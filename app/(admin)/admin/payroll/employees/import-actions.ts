@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 
 import { aiMapCsvColumns } from "@/lib/ai/csv-mapper-ai"
 import { getTargetSchemaForHeaders } from "@/lib/ai/csv-mapper"
@@ -53,7 +54,7 @@ export async function importPayrollEmployeesAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Import failed.",
+      message: safeErrorMessage(err, "Import failed."),
     }
   }
 }
@@ -126,7 +127,7 @@ export async function aiMapCsvAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Mapping failed.",
+      message: safeErrorMessage(err, "Mapping failed."),
     }
   }
 
@@ -161,7 +162,7 @@ export async function previewMappedCsvAction(input: {
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Preview failed.",
+      message: safeErrorMessage(err, "Preview failed."),
     }
   }
 }
@@ -187,7 +188,7 @@ export async function importMappedCsvAction(input: {
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Import failed.",
+      message: safeErrorMessage(err, "Import failed."),
     }
   }
 }

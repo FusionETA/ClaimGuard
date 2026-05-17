@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 
 import { handleApiRequest } from "@/lib/api-auth"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
@@ -53,7 +54,7 @@ export const DELETE = handleApiRequest<RouteParams>(
       })
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not remove manager."
+        safeErrorMessage(error, "Could not remove manager.")
       return jsonError(409, message)
     }
 

@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -100,7 +101,7 @@ export async function createTeamAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to create team.",
+      message: safeErrorMessage(error, "Unable to create team."),
     }
   }
 
@@ -173,7 +174,7 @@ export async function updateTeamAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to update team.",
+      message: safeErrorMessage(error, "Unable to update team."),
     }
   }
 
@@ -236,7 +237,7 @@ export async function setProjectManagersAction(
     return {
       status: "error",
       message:
-        error instanceof Error ? error.message : "Unable to update project managers.",
+        safeErrorMessage(error, "Unable to update project managers."),
     }
   }
 
@@ -353,7 +354,7 @@ export async function addEmployeeToProjectAction(
     return {
       status: "error",
       message:
-        error instanceof Error ? error.message : "Unable to add employee to project.",
+        safeErrorMessage(error, "Unable to add employee to project."),
     }
   }
 
@@ -417,7 +418,7 @@ export async function assignTeamMemberAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to update team member.",
+      message: safeErrorMessage(error, "Unable to update team member."),
     }
   }
 
@@ -466,7 +467,7 @@ export async function removeTeamMemberAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to remove member.",
+      message: safeErrorMessage(error, "Unable to remove member."),
     }
   }
 
@@ -501,7 +502,7 @@ export async function deleteTeamAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to delete team.",
+      message: safeErrorMessage(error, "Unable to delete team."),
     }
   }
 

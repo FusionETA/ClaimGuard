@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 
@@ -60,7 +61,7 @@ export async function createPayrollRunDraftAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not create payroll run.",
+        safeErrorMessage(err, "Could not create payroll run."),
     }
   }
 
@@ -91,7 +92,7 @@ export async function deletePayrollRunDraftAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not delete payroll run.",
+        safeErrorMessage(err, "Could not delete payroll run."),
     }
   }
 
@@ -121,7 +122,7 @@ export async function generatePayrollPayslipsAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not run payroll.",
+        safeErrorMessage(err, "Could not run payroll."),
     }
   }
 
@@ -158,7 +159,7 @@ export async function attachClaimToPayrollRunAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not attach claim.",
+        safeErrorMessage(err, "Could not attach claim."),
     }
   }
 
@@ -189,7 +190,7 @@ export async function detachClaimFromPayrollRunAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not detach claim.",
+        safeErrorMessage(err, "Could not detach claim."),
     }
   }
 
@@ -262,7 +263,7 @@ export async function approvePayrollRunAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not approve payroll run.",
+        safeErrorMessage(err, "Could not approve payroll run."),
     }
   }
 
@@ -335,7 +336,7 @@ export async function revertPayrollRunAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not revert payroll run.",
+        safeErrorMessage(err, "Could not revert payroll run."),
     }
   }
 

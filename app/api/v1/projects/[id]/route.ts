@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -107,7 +108,7 @@ export const PATCH = handleApiRequest<RouteParams>(
       })
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not update project."
+        safeErrorMessage(error, "Could not update project.")
       return jsonError(409, message)
     }
 

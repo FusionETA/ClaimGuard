@@ -1,6 +1,7 @@
 "use server"
 
 import { cookies } from "next/headers"
+import { safeErrorMessage } from "@/lib/errors"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -19,6 +20,11 @@ import {
   syncOrganizationChartAccounts,
   syncOrganizationProjects,
 } from "@/modules/organization/application/services/xero-connection.service"
+import {
+  importCustomChartAccountsCsv,
+  importManualProjectsCsv,
+  type CsvImportResult,
+} from "@/modules/organization/application/services/csv-import.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { getPrismaClient } from "@/lib/prisma"
 
@@ -366,13 +372,116 @@ export async function createCustomAccountAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to create account.",
+      message: safeErrorMessage(error, "Unable to create account."),
     }
   }
 
   await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Custom account created." }
+}
+
+/**
+ * Bulk-import custom chart of accounts from a CSV file. Append-only:
+ * rows whose `code` already exists are skipped. Returns row-level
+ * counts + errors so the admin sees exactly what happened.
+ *
+ * Only meaningful in custom mode (no Xero connection) — Xero-connected
+ * orgs sync their COA from Xero instead. The UI hides this button when
+ * a Xero connection exists.
+ */
+export type ImportCsvActionResult =
+  | ({ status: "success" } & CsvImportResult)
+  | { status: "error"; message: string }
+
+export async function importCustomChartAccountsAction(
+  _previousState: ImportCsvActionResult | null,
+  formData: FormData,
+): Promise<ImportCsvActionResult> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "Create an organization before importing accounts." }
+  }
+
+  const file = formData.get("file")
+  if (!(file instanceof File) || file.size === 0) {
+    return { status: "error", message: "Pick a CSV file to upload." }
+  }
+
+  let csvText: string
+  try {
+    csvText = await file.text()
+  } catch {
+    return { status: "error", message: "Could not read the file. Make sure it's a plain-text CSV." }
+  }
+
+  let result: CsvImportResult
+  try {
+    result = await importCustomChartAccountsCsv({ organizationId, csvText })
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Import failed."),
+    }
+  }
+
+  if (result.imported > 0) {
+    await revalidateAdminSurfaces(organizationId)
+  }
+
+  return { status: "success", ...result }
+}
+
+/**
+ * Bulk-import manual projects from a CSV file. Append-only: rows whose
+ * `name` already exists in the org are skipped. Project managers are
+ * NOT settable via CSV — the admin attaches them per-project after
+ * import.
+ */
+export async function importManualProjectsAction(
+  _previousState: ImportCsvActionResult | null,
+  formData: FormData,
+): Promise<ImportCsvActionResult> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "Create an organization before importing projects." }
+  }
+
+  const file = formData.get("file")
+  if (!(file instanceof File) || file.size === 0) {
+    return { status: "error", message: "Pick a CSV file to upload." }
+  }
+
+  let csvText: string
+  try {
+    csvText = await file.text()
+  } catch {
+    return { status: "error", message: "Could not read the file. Make sure it's a plain-text CSV." }
+  }
+
+  let result: CsvImportResult
+  try {
+    result = await importManualProjectsCsv({ organizationId, csvText })
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Import failed."),
+    }
+  }
+
+  if (result.imported > 0) {
+    await revalidateAdminSurfaces(organizationId)
+  }
+
+  return { status: "success", ...result }
 }
 
 export async function deleteCustomAccountAction(
@@ -397,7 +506,7 @@ export async function deleteCustomAccountAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to delete account.",
+      message: safeErrorMessage(error, "Unable to delete account."),
     }
   }
 
@@ -573,7 +682,7 @@ export async function createOrganizationAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to create organization.",
+      message: safeErrorMessage(error, "Unable to create organization."),
     }
   }
 
@@ -675,7 +784,7 @@ export async function createManualProjectAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to create project.",
+      message: safeErrorMessage(error, "Unable to create project."),
     }
   }
 
@@ -728,7 +837,7 @@ export async function updateProjectAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to update project.",
+      message: safeErrorMessage(error, "Unable to update project."),
     }
   }
 
@@ -759,7 +868,7 @@ export async function deleteManualProjectAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to delete project.",
+      message: safeErrorMessage(error, "Unable to delete project."),
     }
   }
 
@@ -927,7 +1036,7 @@ export async function saveMileageDefaultsAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to save mileage defaults.",
+      message: safeErrorMessage(error, "Unable to save mileage defaults."),
     }
   }
 
@@ -990,7 +1099,7 @@ export async function saveMileageAccountsAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to save mileage accounts.",
+      message: safeErrorMessage(error, "Unable to save mileage accounts."),
     }
   }
 
@@ -1080,7 +1189,7 @@ export async function saveAccountLimitAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to save limit.",
+      message: safeErrorMessage(error, "Unable to save limit."),
     }
   }
 
@@ -1142,7 +1251,7 @@ export async function saveOrgWorkingHoursAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to save working hours.",
+      message: safeErrorMessage(error, "Unable to save working hours."),
     }
   }
 
@@ -1177,7 +1286,7 @@ export async function saveOrgTimezoneAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to save timezone.",
+      message: safeErrorMessage(error, "Unable to save timezone."),
     }
   }
 
@@ -1205,7 +1314,7 @@ export async function toggleOrgOtAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to update OT setting.",
+      message: safeErrorMessage(error, "Unable to update OT setting."),
     }
   }
 
@@ -1241,7 +1350,7 @@ export async function saveSupervisorReportSettingsAction(
     return {
       ok: false,
       message:
-        error instanceof Error ? error.message : "Unable to save supervisor report settings.",
+        safeErrorMessage(error, "Unable to save supervisor report settings."),
     }
   }
 
@@ -1272,7 +1381,7 @@ export async function saveGeofenceRadiusAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to update geofence radius.",
+      message: safeErrorMessage(error, "Unable to update geofence radius."),
     }
   }
 
@@ -1340,7 +1449,7 @@ export async function saveProjectCalendarAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to save calendar.",
+      message: safeErrorMessage(error, "Unable to save calendar."),
     }
   }
 
@@ -1373,7 +1482,7 @@ export async function addProjectHolidayAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to add holiday.",
+      message: safeErrorMessage(error, "Unable to add holiday."),
     }
   }
 
@@ -1412,7 +1521,7 @@ async function fetchNagerHolidays(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Could not reach date.nager.at.",
+      message: safeErrorMessage(error, "Could not reach date.nager.at."),
     }
   }
 }
@@ -1465,7 +1574,7 @@ async function fetchCalendarificHolidays(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Could not reach Calendarific.",
+      message: safeErrorMessage(error, "Could not reach Calendarific."),
     }
   }
 }
@@ -1565,7 +1674,7 @@ export async function deleteProjectHolidayAction(
   } catch (error) {
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Unable to delete holiday.",
+      message: safeErrorMessage(error, "Unable to delete holiday."),
     }
   }
 
@@ -1640,7 +1749,7 @@ export async function createAdminAction(
     return {
       status: "error",
       message:
-        error instanceof Error ? error.message : "Could not create admin.",
+        safeErrorMessage(error, "Could not create admin."),
     }
   }
 
@@ -1729,7 +1838,7 @@ export async function createApiTokenAction(formData: FormData): Promise<{
     return {
       ok: false,
       message:
-        error instanceof Error ? error.message : "Could not create token.",
+        safeErrorMessage(error, "Could not create token."),
     }
   }
 

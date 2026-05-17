@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -85,7 +86,7 @@ export const PATCH = handleApiRequest<RouteParams>(
         })
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Could not update layer."
+          safeErrorMessage(error, "Could not update layer.")
         return jsonError(409, message)
       }
     }
@@ -102,7 +103,7 @@ export const PATCH = handleApiRequest<RouteParams>(
         })
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Could not update chain."
+          safeErrorMessage(error, "Could not update chain.")
         return jsonError(409, message)
       }
     }
@@ -172,7 +173,7 @@ export const DELETE = handleApiRequest<RouteParams>(
       })
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not remove member."
+        safeErrorMessage(error, "Could not remove member.")
       if (/not found/i.test(message)) {
         return jsonError(404, message)
       }

@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import type { BaseFormState } from "@/lib/form-state"
@@ -67,7 +68,7 @@ export async function savePayrollSettingsAction(
   } catch (err) {
     return {
       status: "error",
-      message: err instanceof Error ? err.message : "Could not save settings.",
+      message: safeErrorMessage(err, "Could not save settings."),
     }
   }
 
@@ -178,7 +179,7 @@ export async function savePayrollCompanyInfoAction(
     return {
       status: "error",
       message:
-        err instanceof Error ? err.message : "Could not save company info.",
+        safeErrorMessage(err, "Could not save company info."),
     }
   }
 

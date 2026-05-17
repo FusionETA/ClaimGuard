@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -163,7 +164,7 @@ export async function createPolicyAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to create policy.",
+      message: safeErrorMessage(error, "Unable to create policy."),
     }
   }
 
@@ -226,7 +227,7 @@ export async function updatePolicyAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to update policy.",
+      message: safeErrorMessage(error, "Unable to update policy."),
     }
   }
 
@@ -252,7 +253,7 @@ export async function setDefaultPolicyAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to set default.",
+      message: safeErrorMessage(error, "Unable to set default."),
     }
   }
 
@@ -275,7 +276,7 @@ export async function archivePolicyAction(
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to archive policy.",
+      message: safeErrorMessage(error, "Unable to archive policy."),
     }
   }
 

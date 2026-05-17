@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -100,7 +101,7 @@ export const POST = handleApiRequest(
       )
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not create account."
+        safeErrorMessage(error, "Could not create account.")
       return jsonError(409, message)
     }
   },

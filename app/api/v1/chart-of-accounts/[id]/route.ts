@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -143,7 +144,7 @@ export const PATCH = handleApiRequest<RouteParams>(
         })
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Could not update account."
+          safeErrorMessage(error, "Could not update account.")
         return jsonError(409, message)
       }
     }
@@ -166,7 +167,7 @@ export const PATCH = handleApiRequest<RouteParams>(
         })
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : "Could not update limit."
+          safeErrorMessage(error, "Could not update limit.")
         return jsonError(409, message)
       }
     }

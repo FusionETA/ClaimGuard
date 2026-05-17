@@ -15,6 +15,8 @@ import {
   deleteCustomAccountAction,
   deleteManualProjectAction,
   createAdminAction,
+  importCustomChartAccountsAction,
+  importManualProjectsAction,
   saveAccountLimitAction,
   saveClaimRunSettingsAction,
   saveCurrencySettingsAction,
@@ -38,6 +40,7 @@ import {
   syncXeroProjectsAction,
   updateProjectAction,
 } from "@/app/(admin)/admin/settings/actions"
+import { ImportCsvButton } from "@/components/admin/import-csv-button"
 import { EmployeePoliciesTab } from "@/components/admin/employee-policies-tab"
 import {
   XeroTrackingCategoryPicker,
@@ -1110,6 +1113,28 @@ export function AdminSettingsPanel({
               {/* Custom account creation form */}
               {isCustomMode ? (
                 <div className="space-y-6">
+                  {/* Bulk import — only meaningful in custom mode. Xero-
+                      connected orgs sync their COA from Xero instead. */}
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      Add accounts one at a time below, or upload a CSV.
+                    </p>
+                    <ImportCsvButton
+                      buttonLabel="Import CSV"
+                      dialogTitle="Import chart of accounts"
+                      dialogDescription="Append accounts in bulk from a CSV. Rows whose code already exists in this org are skipped."
+                      action={importCustomChartAccountsAction}
+                      templateFilename="chart-of-accounts-template.csv"
+                      templateCsv="code,name,type,selectable"
+                      exampleRows={[
+                        "code,name,type,selectable",
+                        "5100,Office supplies,EXPENSE,true",
+                        "5200,Travel & entertainment,EXPENSE,true",
+                        "1010,Operating bank account,BANK,false",
+                      ]}
+                    />
+                  </div>
+
                   <form action={createAccountAction} className="space-y-3">
                     <p className="text-sm font-semibold text-muted-foreground">Add custom account</p>
                     <div className="flex flex-wrap gap-3">
@@ -1882,6 +1907,26 @@ export function AdminSettingsPanel({
 
               {/* Manual project creation — only when no Xero connected */}
               {isCustomMode ? (
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      Add projects one at a time below, or upload a CSV.
+                    </p>
+                    <ImportCsvButton
+                      buttonLabel="Import CSV"
+                      dialogTitle="Import projects"
+                      dialogDescription="Append projects in bulk from a CSV. Rows whose name already exists in this org are skipped. Project managers are not set via CSV — assign them per-project after import."
+                      action={importManualProjectsAction}
+                      templateFilename="projects-template.csv"
+                      templateCsv="name,location,latitude,longitude"
+                      exampleRows={[
+                        "name,location,latitude,longitude",
+                        "HQ Operations,Kuala Lumpur,,",
+                        "Project Alpha,Penang,5.4164,100.3327",
+                        "Project Beta,,,",
+                      ]}
+                    />
+                  </div>
                 <form action={createProjectAction} className="space-y-3">
                   <p className="text-sm font-semibold text-muted-foreground">Add project</p>
                   <div className="flex flex-wrap gap-3">
@@ -1928,6 +1973,7 @@ export function AdminSettingsPanel({
                     )}
                   </Button>
                 </form>
+                </>
               ) : null}
 
               {projects.length === 0 ? (

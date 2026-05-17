@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -104,7 +105,7 @@ export const PATCH = handleApiRequest<RouteParams>(
       return NextResponse.json({ data: toExternalTeamSummary(updated) })
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not update team."
+        safeErrorMessage(error, "Could not update team.")
       // "Team not found." → 404, everything else (validation /
       // shrink-with-members) → 409. Cheap string match because the repo
       // throws plain `Error("Team not found.")`.
@@ -138,7 +139,7 @@ export const DELETE = handleApiRequest<RouteParams>(
       return NextResponse.json({ ok: true })
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not delete team."
+        safeErrorMessage(error, "Could not delete team.")
       if (/not found/i.test(message)) {
         return jsonError(404, message)
       }

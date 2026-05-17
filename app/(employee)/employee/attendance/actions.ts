@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { safeErrorMessage } from "@/lib/errors"
 
 import { requirePortalSession } from "@/lib/auth/session"
 import { bustAttendanceCaches } from "@/lib/cache-invalidation"
@@ -76,7 +77,7 @@ export async function clockInAction(
       selfie,
     )
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Could not clock in" }
+    return { error: safeErrorMessage(err, "Could not clock in") }
   }
   await revalidateAll({
     userId: session.userId,
@@ -118,7 +119,7 @@ export async function clockOutAction(
   try {
     await employeeAttendanceService.clockOut(session.userId, coords, notes)
   } catch (err) {
-    return { error: err instanceof Error ? err.message : "Could not clock out" }
+    return { error: safeErrorMessage(err, "Could not clock out") }
   }
   await revalidateAll({
     userId: session.userId,
@@ -198,7 +199,7 @@ export async function updateTodayRemarkAction(
     )
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Could not save remark",
+      error: safeErrorMessage(err, "Could not save remark"),
     }
   }
   await revalidateAll({

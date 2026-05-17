@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -133,7 +134,7 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
     })
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Could not create employee."
+      safeErrorMessage(error, "Could not create employee.")
     // Email collision / employeeId collision come back here; surface
     // verbatim so the partner can react.
     return NextResponse.json(

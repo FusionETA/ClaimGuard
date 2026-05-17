@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
@@ -107,7 +108,7 @@ export const POST = handleApiRequest(["teams:write"], async (request, ctx) => {
     return NextResponse.json({ data: toExternalTeam(created) }, { status: 201 })
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Could not create team."
+      safeErrorMessage(error, "Could not create team.")
     return jsonError(409, message)
   }
 })
