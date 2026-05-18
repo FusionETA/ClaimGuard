@@ -17,9 +17,22 @@ import { getEmployeePayslipDetailPageData } from "@/modules/payroll/application/
 import { periodLabel } from "@/modules/payroll/domain/runs"
 import type { PayslipLineItemData } from "@/modules/payroll/domain/runs"
 import {
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
   SALARY_TYPE_LABELS,
+  type PayrollAdjustmentCategory,
   type SalaryType,
 } from "@/modules/payroll/domain/models"
+
+/**
+ * Split allowance line items into cash vs non-cash (BIK). The category
+ * meta tells us which is which — see `nonCash` flag in domain/models.ts.
+ * Line items without a known category default to cash (legacy / free-form).
+ */
+function isNonCashAllowance(category: string | null | undefined): boolean {
+  if (!category) return false
+  const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
+  return Boolean(meta?.nonCash)
+}
 
 /**
  * /employee/payslips/[id] — employee-facing payslip detail. Same
@@ -36,7 +49,15 @@ export default async function EmployeePayslipDetailPage({
   if (!data) redirect("/employee/payslips" as Route)
 
   const { payslip, run } = data
-  const allowances = payslip.lineItems.filter((li) => li.kind === "ALLOWANCE")
+  // Cash allowances feed gross pay. Non-cash BIK items are listed
+  // separately under "Benefits in Kind" since they're disclosed for
+  // tax purposes but the employee doesn't receive them in cash.
+  const allowances = payslip.lineItems.filter(
+    (li) => li.kind === "ALLOWANCE" && !isNonCashAllowance(li.category),
+  )
+  const benefitsInKind = payslip.lineItems.filter(
+    (li) => li.kind === "ALLOWANCE" && isNonCashAllowance(li.category),
+  )
   const deductions = payslip.lineItems.filter((li) => li.kind === "DEDUCTION")
   const reimbursements = payslip.lineItems.filter(
     (li) => li.kind === "REIMBURSEMENT",
@@ -123,6 +144,24 @@ export default async function EmployeePayslipDetailPage({
           <div className="border-t border-border pt-3">
             <Line label="Gross pay" value={payslip.grossPay} bold />
           </div>
+          {benefitsInKind.length > 0 && (
+            <>
+              <LineItemGroup label="Benefits in Kind" items={benefitsInKind} />
+              <div className="rounded-md bg-muted/30 px-3 py-2 text-xs leading-5 text-muted-foreground">
+                Benefits in Kind are non-cash (e.g. company car,
+                accommodation) and are NOT paid as part of your gross
+                salary. They are disclosed here for tax purposes — your
+                taxable income is {payslip.totalBenefitsInKind > 0 ? "the sum of Gross pay and Benefits in Kind" : "your Gross pay"}.
+              </div>
+              <div className="border-t border-border pt-3">
+                <Line
+                  label="Taxable income (for PCB)"
+                  value={payslip.grossPay + payslip.totalBenefitsInKind}
+                  bold
+                />
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

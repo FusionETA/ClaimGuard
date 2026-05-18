@@ -33,7 +33,23 @@ import {
   View,
 } from "@react-pdf/renderer"
 
+import {
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
 import type { PayslipRow } from "@/modules/payroll/domain/runs"
+
+/**
+ * True when the line item is a non-cash BIK / perquisite. These rows
+ * are listed for tax transparency but do NOT add into gross pay — the
+ * breakdown column flags them so the admin doesn't expect the numbers
+ * to sum to grossPay.
+ */
+function isNonCashLineItem(category: string | null | undefined): boolean {
+  if (!category) return false
+  const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
+  return Boolean(meta?.nonCash)
+}
 
 // ─── Colours ────────────────────────────────────────────────────────────
 
@@ -302,6 +318,7 @@ export function PayrollSummaryPdfDocument({
   const totals = payslips.reduce(
     (acc, p) => {
       acc.gross += p.grossPay
+      acc.bik += p.totalBenefitsInKind
       acc.pcb += p.pcb
       acc.epfEmp += p.epfEmployee
       acc.socsoEmp += p.socsoEmployee
@@ -319,6 +336,7 @@ export function PayrollSummaryPdfDocument({
     },
     {
       gross: 0,
+      bik: 0,
       pcb: 0,
       epfEmp: 0,
       socsoEmp: 0,
@@ -449,6 +467,12 @@ export function PayrollSummaryPdfDocument({
           />
           <SummaryRow label="Total HRDF payment" value={fmt(totals.hrdf)} />
           <SummaryRow label="Total Zakat payment" value={fmt(totals.zakat)} />
+          {totals.bik > 0 ? (
+            <SummaryRow
+              label="Total Benefits in Kind (non-cash, for tax)"
+              value={fmt(totals.bik)}
+            />
+          ) : null}
         </View>
 
         {/* ── Running page footer ─────────────────────────────── */}
@@ -530,6 +554,18 @@ function PayslipBodyRow({ payslip }: { payslip: PayslipRow }) {
     })
   }
   for (const li of payslip.lineItems) {
+    // BIK / perquisite rows are non-cash — they don't add to gross.
+    // Tag them and render without a sign so the admin sees they're
+    // disclosure-only, not part of the gross math.
+    const nonCash = li.kind === "ALLOWANCE" && isNonCashLineItem(li.category)
+    if (nonCash) {
+      breakdown.push({
+        label: `${li.label} (BIK · non-cash)`,
+        amount: li.amount,
+        signed: false,
+      })
+      continue
+    }
     const sign = li.kind === "DEDUCTION" ? -1 : 1
     breakdown.push({
       label: li.label,

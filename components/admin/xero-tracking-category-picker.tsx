@@ -98,14 +98,18 @@ export function XeroTrackingCategoryPicker(props: {
     })
   }, [router])
 
-  // Close dialog automatically after a successful save.
+  // Close dialog automatically after a successful save. Depend on the
+  // state reference so back-to-back successes (rare here, but possible
+  // if the dialog is reopened without state being reset) re-fire.
+  // The lastStatus ref still prevents firing on the initial mount.
   const lastStatus = React.useRef(state.status)
   React.useEffect(() => {
     if (state.status === "success" && lastStatus.current !== "success") {
       setPendingId(null)
     }
     lastStatus.current = state.status
-  }, [state.status])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
 
   const pendingCategory =
     pendingId !== null

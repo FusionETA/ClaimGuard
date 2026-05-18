@@ -22,7 +22,17 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
+import {
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
 import type { PayslipRow } from "@/modules/payroll/domain/runs"
+
+function isNonCashLineItem(category: string | null | undefined): boolean {
+  if (!category) return false
+  const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[category as PayrollAdjustmentCategory]
+  return Boolean(meta?.nonCash)
+}
 
 /**
  * Compact RM formatter. Drops the "RM " prefix (column headers
@@ -132,6 +142,7 @@ export function PayslipsListPanel({
   const totals = useMemo(() => {
     const init = {
       gross: 0,
+      bik: 0,
       pcb: 0,
       epfEmp: 0,
       socsoEmp: 0,
@@ -148,6 +159,7 @@ export function PayslipsListPanel({
     }
     for (const p of filtered) {
       init.gross += p.grossPay
+      init.bik += p.totalBenefitsInKind
       init.pcb += p.pcb
       init.epfEmp += p.epfEmployee
       init.socsoEmp += p.socsoEmployee
@@ -350,6 +362,13 @@ export function PayslipsListPanel({
               value={fmt(totals.zakat)}
               mono
             />
+            {totals.bik > 0 ? (
+              <SummaryRow
+                label="Total Benefits in Kind (non-cash, for tax)"
+                value={fmt(totals.bik)}
+                mono
+              />
+            ) : null}
           </div>
         ) : null}
 
@@ -473,6 +492,17 @@ function PayslipRow({
       })
     }
     for (const li of payslip.lineItems) {
+      // BIK / perquisite rows are non-cash — they don't add to gross.
+      // Tag them so the breakdown's visual math matches grossPay.
+      const nonCash = li.kind === "ALLOWANCE" && isNonCashLineItem(li.category)
+      if (nonCash) {
+        items.push({
+          label: `${li.label} (BIK · non-cash)`,
+          amount: li.amount,
+          signed: false,
+        })
+        continue
+      }
       // Render deductions as negative, allowances + reimbursements
       // as positive — matches the PDF where unpaid-leave rows are
       // red minuses and allowances are green pluses.

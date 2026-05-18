@@ -62,7 +62,10 @@ export function AdminClaimReviewActions({
     if (state.status === "error" && state.message) {
       toast({ title: state.message, variant: "error" })
     }
-  }, [claim.id, onReviewed, router, state.status, state.message, toast])
+    // Depend on the state reference — re-submissions that hit the
+    // same error must still fire the toast.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [claim.id, onReviewed, router, state, toast])
 
   // Optimistic badge decrement fires on CLICK rather than on the
   // useActionState success branch. Reason: Next.js's revalidatePath

@@ -166,6 +166,9 @@ export type PayslipData = {
 
   // Aggregates
   totalAllowances: number
+  /// Non-cash benefits (BIK / perquisites) — disclosed separately
+  /// from gross. May be 0. See calc.ts for the split rationale.
+  totalBenefitsInKind: number
   totalReimbursements: number
   totalDeductions: number
 

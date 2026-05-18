@@ -552,6 +552,7 @@ export async function generatePayrollPayslips(input: {
       otPublicHours: result.otPublicHours,
       otPay: result.otPay,
       totalAllowances: result.totalAllowances,
+      totalBenefitsInKind: result.totalBenefitsInKind,
       totalReimbursements: result.totalReimbursements,
       totalDeductions: result.totalDeductions,
       epfEmployee: result.epfEmployee,

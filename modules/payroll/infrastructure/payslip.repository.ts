@@ -50,6 +50,7 @@ export type CreatePayslipInput = {
   otPublicHours: number
   otPay: number
   totalAllowances: number
+  totalBenefitsInKind: number
   totalReimbursements: number
   totalDeductions: number
   epfEmployee: number
@@ -126,6 +127,7 @@ export const payslipRepository = {
             otPublicHours: p.otPublicHours,
             otPay: p.otPay,
             totalAllowances: p.totalAllowances,
+            totalBenefitsInKind: p.totalBenefitsInKind,
             totalReimbursements: p.totalReimbursements,
             totalDeductions: p.totalDeductions,
             epfEmployee: p.epfEmployee,
@@ -502,6 +504,8 @@ function mapPayslip(row: any, lineItems: PayslipLineItemData[]): PayslipData {
     otPublicHours: toNumber(row.otPublicHours, 0),
     otPay: toNumber(row.otPay, 0),
     totalAllowances: toNumber(row.totalAllowances, 0),
+    // ?? 0 guards rows minted before the column was added.
+    totalBenefitsInKind: toNumber(row.totalBenefitsInKind ?? 0, 0),
     totalReimbursements: toNumber(row.totalReimbursements, 0),
     totalDeductions: toNumber(row.totalDeductions, 0),
     epfEmployee: toNumber(row.epfEmployee, 0),

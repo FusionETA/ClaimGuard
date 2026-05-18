@@ -1214,6 +1214,12 @@ model Payslip {
   otPublicHours         Decimal           @default(0.00) @db.Decimal(8, 2)
   otPay                 Decimal           @default(0.00) @db.Decimal(12, 2)
   totalAllowances       Decimal           @default(0.00) @db.Decimal(12, 2)
+  /// Sum of non-cash BIK / perquisite line items. NOT included in
+  /// `grossPay` or `netPay` (employee never receives this in cash),
+  /// but DOES feed the PCB taxable base for line items that have
+  /// `subjectToPcb: true`. Surfaced separately on the payslip and
+  /// in Form EA disclosures.
+  totalBenefitsInKind   Decimal           @default(0.00) @db.Decimal(12, 2)
   /// Sum of REIMBURSEMENT line items (from AltomateHR claims).
   totalReimbursements   Decimal           @default(0.00) @db.Decimal(12, 2)
   totalDeductions       Decimal           @default(0.00) @db.Decimal(12, 2)

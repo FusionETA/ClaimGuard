@@ -102,9 +102,12 @@ export function PayrollAdjustmentForm(props: {
         props.onSaved()
       }
     }
-    // We only depend on the action result, not on the callback ref.
+    // Depend on the state reference, not just primitives — see
+    // useToastOnAction in components/ui/toaster.tsx for the rationale.
+    // The lastSavedSignal ref handles the "fired-already-for-this-result"
+    // de-dupe so depending on the reference doesn't double-trigger.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.status, state.message])
+  }, [state])
 
   const [lines, setLines] = useState<ManualLineItem[]>(
     props.adjustment?.manualLineItems ?? [],

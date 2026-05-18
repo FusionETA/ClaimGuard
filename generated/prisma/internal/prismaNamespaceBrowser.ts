@@ -819,6 +819,7 @@ export const PayslipScalarFieldEnum = {
   otPublicHours: 'otPublicHours',
   otPay: 'otPay',
   totalAllowances: 'totalAllowances',
+  totalBenefitsInKind: 'totalBenefitsInKind',
   totalReimbursements: 'totalReimbursements',
   totalDeductions: 'totalDeductions',
   epfEmployee: 'epfEmployee',

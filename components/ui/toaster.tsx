@@ -96,15 +96,19 @@ export function useToast() {
 }
 
 /**
- * Convenience hook that fires a toast every time a server-action's state
- * transitions to "success" or "error". Removes the boilerplate
+ * Convenience hook that fires a toast every time a server-action's
+ * state transitions — including back-to-back errors with the same
+ * message. Removes the boilerplate
  *
  *   useEffect(() => {
  *     if (state.status === "success") toast({ ... })
  *     if (state.status === "error")   toast({ ... })
- *   }, [state.status, state.message])
+ *   }, [state])
  *
- * which used to be repeated for every `useActionState` call.
+ * which used to be repeated for every `useActionState` call. Important:
+ * the dependency MUST be the state reference (not just `state.status`
+ * / `state.message`) so a second submission that produces the same
+ * shape still re-fires.
  */
 export function useToastOnAction(state: {
   status: "idle" | "success" | "error"
@@ -118,9 +122,17 @@ export function useToastOnAction(state: {
     } else if (state.status === "error") {
       toast({ title: state.message, variant: "error" })
     }
-    // We intentionally depend on status + message rather than the full state
-    // object so a state literal that happens to share status/message doesn't
-    // re-fire the toast.
+    // Depend on the STATE REFERENCE, not on status+message primitives.
+    //
+    // Why: useActionState returns a brand-new state object after every
+    // submission. With the old `[state.status, state.message]` deps a
+    // second submission that produced the same status + message (e.g.
+    // the user fixes one validation error, hits submit, hits another
+    // copy of the same error) wouldn't re-fire the toast — both
+    // primitives were unchanged so React skipped the effect, and the
+    // user perceived the submit button as broken. Depending on the
+    // reference catches every submission because useActionState always
+    // returns a fresh object.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.status, state.message])
+  }, [state])
 }

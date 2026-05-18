@@ -109,12 +109,16 @@ function AdminFinalApprovalDialog({
 
   useToastOnAction(state)
 
-  // Close the dialog on a successful submission.
+  // Close the dialog on a successful submission. Depend on the state
+  // reference, not on state.status — see useToastOnAction for the
+  // rationale. Without this, a second successful submission with the
+  // same status wouldn't re-trigger close.
   useEffect(() => {
     if (state.status === "success") {
       onClose()
     }
-  }, [state.status, onClose])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, onClose])
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>

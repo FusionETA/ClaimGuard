@@ -555,6 +555,11 @@ export type CalcPayslipResult = {
   grossPay: number
   netPay: number
   totalCostToEmployer: number
+  /// Sum of non-cash benefits (BIK / perquisites) attached to this
+  /// payslip. Does NOT contribute to grossPay or netPay — surfaced
+  /// separately so the payslip can show "Gross + BIK = Taxable
+  /// Income" for transparency (Form EA reflects this split too).
+  totalBenefitsInKind: number
   /// Sub-breakdown of `pcb`. `normal` is the PCB on recurring monthly
   /// pay; `additional` is the PCB attributable to one-off remuneration
   /// (bonus, commission, etc.) computed via the LHDN AR formula.
@@ -687,6 +692,11 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   const exemptUsedByCat: Record<string, number> = {}
   const lineItems: CalcPayslipResult["lineItems"] = []
   let totalAllowances = 0
+  /// Sum of non-cash benefits (BIK / perquisites). These contribute to
+  /// PCB taxable income (via `pcbAdjustmentBase`) but NOT to gross
+  /// pay, since the employee never receives the amount in cash. The
+  /// payslip surfaces this as a separate "Benefits in Kind" subtotal.
+  let totalBenefitsInKind = 0
   let totalRecurringDeductions = 0
   let totalRecurringReimbursements = 0
   let epfAdjustmentBase = 0
@@ -737,23 +747,50 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     } else if (meta.kind === "REIMBURSEMENT") {
       totalRecurringReimbursements += amt
     } else {
-      totalAllowances += amt
-      if (meta.subjectToEpf) epfAdjustmentBase += amt
-      if (meta.subjectToSocso) socsoAdjustmentBase += amt
-      if (meta.subjectToEis) eisAdjustmentBase += amt
-      if (meta.subjectToHrdf) hrdfAdjustmentBase += amt
-      if (meta.subjectToPcb) {
-        if (meta.isAdditionalRemuneration) {
-          pcbAdditionalRemuneration += pcbTaxable
-          // AR EPF — only the portion of EPF attributable to the AR
-          // row needs to count toward the with-AR annual EPF bucket.
-          // EPF cap (RM4k) is honoured by `calcPcb` regardless.
-          if (meta.subjectToEpf) {
-            const rate = profile.epfEmployeeRate || settings.defaultEpfEmployeeRate
-            pcbAdditionalRemunerationEpf += round2(amt * (rate / 100))
+      // Non-cash benefits (BIK / perquisites) go into a separate
+      // bucket — they DON'T inflate gross pay because the employee
+      // never receives them in cash. They still feed the PCB taxable
+      // base when `subjectToPcb: true` (e.g. company car, share
+      // scheme, living accommodation), and they're flagged in the
+      // line-item list so the payslip can show them under "Benefits
+      // in Kind" instead of "Allowances".
+      //
+      // Cash allowances (the default) feed `totalAllowances` and
+      // therefore gross pay, plus the relevant statutory bases per
+      // the meta flags.
+      if (meta.nonCash) {
+        totalBenefitsInKind += amt
+        // BIK is not wage income, so it's never EPF/SOCSO/EIS/HRDF
+        // subject. The flags on each BIK meta entry should already
+        // be false for those — defensive assertion handled by the
+        // existing `subjectTo*` flags (we just don't add to those
+        // bases here).
+        if (meta.subjectToPcb) {
+          if (meta.isAdditionalRemuneration) {
+            pcbAdditionalRemuneration += pcbTaxable
+          } else {
+            pcbAdjustmentBase += pcbTaxable
           }
-        } else {
-          pcbAdjustmentBase += pcbTaxable
+        }
+      } else {
+        totalAllowances += amt
+        if (meta.subjectToEpf) epfAdjustmentBase += amt
+        if (meta.subjectToSocso) socsoAdjustmentBase += amt
+        if (meta.subjectToEis) eisAdjustmentBase += amt
+        if (meta.subjectToHrdf) hrdfAdjustmentBase += amt
+        if (meta.subjectToPcb) {
+          if (meta.isAdditionalRemuneration) {
+            pcbAdditionalRemuneration += pcbTaxable
+            // AR EPF — only the portion of EPF attributable to the AR
+            // row needs to count toward the with-AR annual EPF bucket.
+            // EPF cap (RM4k) is honoured by `calcPcb` regardless.
+            if (meta.subjectToEpf) {
+              const rate = profile.epfEmployeeRate || settings.defaultEpfEmployeeRate
+              pcbAdditionalRemunerationEpf += round2(amt * (rate / 100))
+            }
+          } else {
+            pcbAdjustmentBase += pcbTaxable
+          }
         }
       }
     }
@@ -769,6 +806,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     })
   }
   totalAllowances = round2(totalAllowances)
+  totalBenefitsInKind = round2(totalBenefitsInKind)
   totalRecurringDeductions = round2(totalRecurringDeductions)
   totalRecurringReimbursements = round2(totalRecurringReimbursements)
   pcbAdditionalRemuneration = round2(pcbAdditionalRemuneration)
@@ -1034,6 +1072,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     otRestHours,
     otPublicHours,
     totalAllowances,
+    totalBenefitsInKind,
     totalReimbursements,
     totalDeductions,
     epfEmployee: epf.employee,

@@ -735,7 +735,11 @@ function AddHierarchyMemberDialog({
     if (state.status === "error" && state.message) {
       toast({ title: state.message, variant: "error" })
     }
-  }, [state.status, state.message, toast, router])
+    // Depend on the state reference, not primitives — re-submissions
+    // that return the same status+message must still re-fire. See
+    // useToastOnAction in components/ui/toaster.tsx for the rationale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, toast, router])
 
   useEffect(() => {
     if (open) {
@@ -1259,7 +1263,10 @@ function HierarchyEditDialog({
     if (state.status === "error" && state.message) {
       toast({ title: state.message, variant: "error" })
     }
-  }, [state.status, state.message, toast, router])
+    // Depend on the state reference, not primitives — re-submissions
+    // that return the same status+message must still re-fire.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, toast, router])
 
   // Reset on open/member change
   useEffect(() => {

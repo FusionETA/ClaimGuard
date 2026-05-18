@@ -113,14 +113,18 @@ export function SendBackToDraftButton(props: { runId: string }) {
   useToastOnAction(state)
 
   // Close the dialog on success so the submitter (or admin) sees the
-  // run-detail page refresh into its DRAFT state.
+  // run-detail page refresh into its DRAFT state. Depend on the state
+  // reference (not state.status) so repeat submissions still fire —
+  // see useToastOnAction for the rationale. The lastStatus ref
+  // prevents firing on initial mount.
   const lastStatus = React.useRef(state.status)
   React.useEffect(() => {
     if (state.status === "success" && lastStatus.current !== "success") {
       setOpen(false)
     }
     lastStatus.current = state.status
-  }, [state.status])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state])
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

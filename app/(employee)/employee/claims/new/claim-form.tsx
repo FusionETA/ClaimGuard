@@ -130,7 +130,11 @@ export function ClaimForm({
     if (state.status === "error") {
       reattachPrefilledReceipt()
     }
-  }, [state.status, reattachPrefilledReceipt])
+    // Depend on the state reference so back-to-back validation errors
+    // still re-fire (so the receipt gets re-attached after every
+    // failed submit, not just the first one). See useToastOnAction.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, reattachPrefilledReceipt])
 
   const [claimType, setClaimType] = useState<"EXPENSE" | "MILEAGE">(
     state.status === "error"
@@ -192,7 +196,10 @@ export function ClaimForm({
       setCurrency(defaultCurrency ?? allowedCurrencies[0] ?? "MYR")
       onSuccess?.()
     }
-  }, [state.status, onSuccess, defaultCurrency, allowedCurrencies])
+    // Depend on the state reference so back-to-back successes still
+    // re-fire (e.g. user submits, succeeds, immediately submits again).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, onSuccess, defaultCurrency, allowedCurrencies])
 
   // Re-sync amount with the server-returned sticky value after a failed submit
   // so the form preserves the user's last typed value. Truthy check (not

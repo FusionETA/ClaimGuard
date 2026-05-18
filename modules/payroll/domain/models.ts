@@ -175,6 +175,15 @@ export type PayrollAdjustmentCategoryMeta = {
   /// for the month (capped at the PCB amount). Currently used by
   /// zakat — see `calcPayslip`.
   offsetsPcb?: boolean
+  /// When true, this line is the value of a non-cash benefit (BIK /
+  /// perquisite). It DOES NOT contribute to gross / net pay because
+  /// the employee never receives the amount in cash — the employer
+  /// pays it out elsewhere (rent for accommodation, lease for company
+  /// car, etc.) But it DOES contribute to the PCB taxable income
+  /// base when `subjectToPcb: true`, and to Form EA disclosures.
+  /// The calc engine accumulates these into `totalBenefitsInKind`
+  /// rather than `totalAllowances`.
+  nonCash?: boolean
 }
 
 export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
@@ -468,6 +477,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: true,
     subjectToHrdf: false,
+    nonCash: true,
   },
   bik_medical: {
     code: "bik_medical",
@@ -479,6 +489,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: false,
     subjectToHrdf: false,
+    nonCash: true,
   },
   bik_award: {
     code: "bik_award",
@@ -503,6 +514,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: true,
     subjectToHrdf: false,
+    nonCash: true,
   },
   bik_share_scheme: {
     code: "bik_share_scheme",
@@ -515,6 +527,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToPcb: true,
     subjectToHrdf: false,
     isAdditionalRemuneration: true,
+    nonCash: true,
   },
   bik_subsidised_loan: {
     // Subsidised interest on housing/education/car loan. Per LHDN
@@ -535,6 +548,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: false,
     subjectToHrdf: false,
+    nonCash: true,
   },
   bik_phone_pda_gift: {
     // One-time gift of fixed-line / mobile phone / pager / PDA, in
@@ -551,6 +565,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: false,
     subjectToHrdf: false,
+    nonCash: true,
   },
   bik_other_exempt: {
     code: "bik_other_exempt",
@@ -562,6 +577,7 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: false,
     subjectToPcb: false,
     subjectToHrdf: false,
+    nonCash: true,
   },
   deduct_unpaid_leave: {
     code: "deduct_unpaid_leave",
