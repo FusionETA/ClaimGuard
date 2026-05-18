@@ -24,6 +24,8 @@ export const API_SCOPE_CATALOG = [
   "leave:write",
   "settings:read",
   "settings:write",
+  "policies:read",
+  "policies:write",
   "approvals:write",
 ] as const
 

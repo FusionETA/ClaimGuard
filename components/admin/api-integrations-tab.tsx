@@ -53,6 +53,8 @@ const SCOPE_DESCRIPTIONS: Record<ApiScope, string> = {
   "leave:write": "Create / edit leave requests",
   "settings:read": "View org settings (cutoff, currencies, OT rates, etc)",
   "settings:write": "Update org settings",
+  "policies:read": "List & view employee policies",
+  "policies:write": "Create, edit, archive employee policies",
   "approvals:write": "Approve / reject claims & attendance approvals",
 }
 
