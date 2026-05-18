@@ -7,6 +7,10 @@ import { z } from "zod"
 
 import type { BaseFormState } from "@/lib/form-state"
 import {
+  buildPayrollSyncPreview,
+  type PayrollSyncPreviewResult,
+} from "@/modules/payroll/application/services/xero-sync-preview.service"
+import {
   approvePayrollRun,
   attachClaimToPayrollRun,
   createPayrollRunDraft,
@@ -257,8 +261,16 @@ export async function approvePayrollRunAction(
     return { status: "error", message: "Missing run id." }
   }
 
+  let xeroSyncOutcome: Awaited<
+    ReturnType<typeof approvePayrollRun>
+  >["xeroSync"]
+  let claimXeroSyncOutcome: Awaited<
+    ReturnType<typeof approvePayrollRun>
+  >["claimXeroSync"]
   try {
-    await approvePayrollRun({ runId: parsed.data.runId })
+    const result = await approvePayrollRun({ runId: parsed.data.runId })
+    xeroSyncOutcome = result.xeroSync
+    claimXeroSyncOutcome = result.claimXeroSync
   } catch (err) {
     return {
       status: "error",
@@ -271,7 +283,33 @@ export async function approvePayrollRunAction(
   revalidatePath("/admin/payroll/runs")
   revalidatePath("/admin/payroll")
   revalidatePath("/employee/payslips")
-  return { status: "success", message: "Payroll run approved and submitted." }
+
+  // Build a message that includes the Xero sync outcome so the admin
+  // gets one toast covering both events.
+  let message = "Payroll run approved and submitted."
+  if (claimXeroSyncOutcome?.status === "synced") {
+    message += ` Created ${claimXeroSyncOutcome.created} Xero bill${
+      claimXeroSyncOutcome.created === 1 ? "" : "s"
+    } for attached claims.`
+  } else if (claimXeroSyncOutcome?.status === "skipped") {
+    message += ` Claim bill sync skipped — ${claimXeroSyncOutcome.message}`
+  } else if (claimXeroSyncOutcome?.status === "error") {
+    message += ` Claim bill sync failed — ${claimXeroSyncOutcome.message}`
+  }
+  if (xeroSyncOutcome?.status === "synced") {
+    message += ` Posted to Xero — journal ${xeroSyncOutcome.narration}.`
+  } else if (xeroSyncOutcome?.status === "skipped") {
+    message += ` Xero sync skipped — ${xeroSyncOutcome.message}`
+  } else if (xeroSyncOutcome?.status === "error") {
+    // Approval succeeded but Xero failed — still success-shaped so
+    // the admin sees the approval landed; they can retry sync from
+    // the run page.
+    return {
+      status: "success",
+      message: `${message} Xero sync failed: ${xeroSyncOutcome.message}`,
+    }
+  }
+  return { status: "success", message }
 }
 
 const rejectApprovalSchema = z.object({
@@ -345,4 +383,72 @@ export async function revertPayrollRunAction(
   revalidatePath("/admin/payroll")
   revalidatePath("/employee/payslips")
   return { status: "success", message: "Payroll run reverted to draft." }
+}
+
+// ─── Xero sync: preview + retry ──────────────────────────────────────────
+
+/**
+ * Build a preview of what will be posted to Xero when this run is
+ * approved. Used by the pre-approval modal so the admin sees the
+ * journal lines + attached-claim bills before clicking Confirm.
+ */
+export async function getPayrollSyncPreviewAction(input: {
+  runId: string
+}): Promise<PayrollSyncPreviewResult> {
+  if (!input.runId) {
+    return { status: "error", message: "Missing run id." }
+  }
+  try {
+    return await buildPayrollSyncPreview(input.runId)
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not load sync preview."),
+    }
+  }
+}
+
+const retrySyncSchema = z.object({
+  runId: z.string().min(1),
+})
+
+/**
+ * Re-attempt the manual-journal post for a SUBMITTED run whose
+ * earlier sync failed. The same `syncPayrollRunToXero` service runs
+ * — it'll either succeed (status flips to SYNCED, error cleared) or
+ * fail again (error message refreshed, run stays SUBMITTED).
+ *
+ * Idempotent: refuses if `xeroManualJournalId` is already set, so
+ * an admin can't accidentally double-post.
+ */
+export async function retryPayrollRunXeroSyncAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const parsed = retrySyncSchema.safeParse({ runId: formData.get("runId") })
+  if (!parsed.success) {
+    return { status: "error", message: "Missing run id." }
+  }
+  try {
+    const { syncPayrollRunToXero } = await import(
+      "@/modules/payroll/application/services/xero-payroll-sync.service"
+    )
+    const result = await syncPayrollRunToXero(parsed.data.runId)
+    revalidatePath(`/admin/payroll/runs/${parsed.data.runId}`)
+    if (result.status === "synced") {
+      return {
+        status: "success",
+        message: `Posted to Xero — journal ${result.narration}.`,
+      }
+    }
+    if (result.status === "skipped") {
+      return { status: "success", message: `Sync skipped: ${result.message}` }
+    }
+    return { status: "error", message: result.message }
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Retry failed."),
+    }
+  }
 }

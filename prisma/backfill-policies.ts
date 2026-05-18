@@ -7,19 +7,26 @@ import { PrismaClient } from "../generated/prisma/client"
 
 /**
  * Backfill: for every Organization, create two seeded EmployeePolicy rows
- * that mirror the legacy hardcoded "Hourly Worker" / "Office Worker"
- * behavior, then assign unassigned EmployeeProfile rows to the default
- * hourly policy. Newer schemas store salary/OT behavior on EmployeePolicy,
- * not duplicated EmployeeProfile payout columns.
+ * that mirror the legacy hardcoded "Hourly Worker" / "Monthly Worker"
+ * pair (previously labelled "Office Worker"), then assign unassigned
+ * EmployeeProfile rows to the default hourly policy. Newer schemas store
+ * salary/OT behavior on EmployeePolicy, not duplicated EmployeeProfile
+ * payout columns.
  *
  * Idempotent: re-running will not duplicate policies (matched by
  * organizationId+name) and skips profiles already assigned to a policy.
+ *
+ * Re-running this script against an org that already has the legacy
+ * "Office Worker" policy will create a SECOND policy named
+ * "Monthly Worker"; the old one stays untouched (no admin data lost).
+ * Admins can archive the duplicate from Settings → Policies if they
+ * don't want it.
  *
  * Run AFTER `prisma db push` so the new columns/table exist.
  */
 
 const HOURLY_NAME = "Hourly Worker"
-const OFFICE_NAME = "Office Worker"
+const MONTHLY_NAME = "Monthly Worker"
 
 async function main() {
   const config = getDatabaseConnectionConfig()
@@ -68,12 +75,12 @@ async function main() {
     })
 
     await prisma.employeePolicy.upsert({
-      where: { organizationId_name: { organizationId: org.id, name: OFFICE_NAME } },
+      where: { organizationId_name: { organizationId: org.id, name: MONTHLY_NAME } },
       update: {},
       create: {
         organizationId: org.id,
-        name: OFFICE_NAME,
-        description: "Default policy for monthly-salaried office staff. OT accrues to the time-balance bank.",
+        name: MONTHLY_NAME,
+        description: "Default policy for monthly-salaried staff. OT accrues to the time-balance bank.",
         isDefault: false,
         canAccessAttendance: true,
         canAccessClaims: true,

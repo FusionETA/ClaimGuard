@@ -41,6 +41,7 @@ const COLUMNS: Column[] = [
   { key: "email", required: true, description: "Login email, must be unique in the org" },
   { key: "employeeId", required: true, description: "Org-specific employee code, e.g. EMP-001" },
   { key: "jobTitle", required: true, description: "Free-text job title" },
+  { key: "employeeType", required: true, description: "EMPLOYEE | SUPERVISOR — admins cannot be created via import" },
   { key: "joinDate", required: true, description: "YYYY-MM-DD; required for proration" },
   { key: "leaveDate", required: false, description: "YYYY-MM-DD — last day of employment (only if leaving)" },
   { key: "archiveReason", required: false, description: "Reason for leaving — only if leaveDate is set" },
@@ -99,6 +100,17 @@ const COLUMNS: Column[] = [
   { key: "bankAccountHolderName", required: false, description: "Defaults to employee name if blank" },
   { key: "bankAccountNumber", required: false, description: "Account number" },
   { key: "paymentMethod", required: false, description: "BANK_TRANSFER | CASH | CHEQUE (default BANK_TRANSFER)" },
+
+  // ── Hierarchy ──
+  // The import wizard's preview picker offers "+ Create new" inline
+  // for any of these that don't already exist in this org. Names are
+  // matched case-insensitively, so "Fusion" and "FUSION" resolve to
+  // the same record. If a CSV row leaves these blank, the admin can
+  // assign them per-row in the preview picker before committing.
+  { key: "policyName", required: true, description: "Name of the employee policy in this org (pick or + Create in the preview picker if missing)" },
+  { key: "projectCode", required: true, description: "Project name in this org (pick or + Create in the preview picker if missing)" },
+  { key: "teamCode", required: true, description: "Team name within the project (pick or + Create in the preview picker if missing)" },
+  { key: "teamLayer", required: true, description: "Hierarchy layer (1 = bottom). Must be ≤ team.layerCount" },
 ]
 
 function buildTemplateCsv(): string {

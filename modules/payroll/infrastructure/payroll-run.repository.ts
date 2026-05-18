@@ -406,5 +406,12 @@ function mapPayrollRun(row: any): PayrollRunData {
     lastMutatedAt: row.lastMutatedAt
       ? row.lastMutatedAt.toISOString()
       : null,
+    xeroManualJournalId: row.xeroManualJournalId ?? null,
+    xeroJournalNumber: row.xeroJournalNumber ?? null,
+    xeroSyncStatus: row.xeroSyncStatus ?? "NOT_SYNCED",
+    xeroSyncError: row.xeroSyncError ?? null,
+    xeroSyncedAt: row.xeroSyncedAt
+      ? row.xeroSyncedAt.toISOString()
+      : null,
   }
 }

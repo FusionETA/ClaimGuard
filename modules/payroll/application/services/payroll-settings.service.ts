@@ -137,6 +137,85 @@ export async function upsertPayrollSettings(
   return payrollSettingsRepository.upsert({ organizationId: orgId, patch })
 }
 
+/**
+ * Fetch the COA list + tracking categories for the active org's Xero
+ * connection. Surfaced in the settings UI as dropdown options.
+ *
+ * Returns `null` when:
+ *   - the admin's session has no active org, OR
+ *   - the org has no Xero connection, OR
+ *   - the Xero token can't be refreshed (admin must reconnect).
+ *
+ * The caller (settings page / action) shows a friendly empty state in
+ * those cases — no exception bubbles up.
+ */
+export async function getXeroMappingOptions(): Promise<{
+  accounts: Array<{ id: string; code: string; name: string; type?: string }>
+  trackingCategories: Array<{
+    id: string
+    name: string
+    options: Array<{ id: string; name: string }>
+  }>
+} | null> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") return null
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return null
+
+  const connections = await organizationRepository.getXeroConnections(orgId)
+  const connection = connections[0]
+  if (!connection) return null
+
+  // Lazy-import the heavier Xero + connection helpers so the settings
+  // service module stays cheap to load when Xero isn't configured.
+  const { getUsableXeroAccessToken } = await import(
+    "@/modules/organization/application/services/xero-connection.service"
+  )
+  const { getXeroAccounts, getXeroTrackingCategories } = await import(
+    "@/lib/xero"
+  )
+
+  const token = await getUsableXeroAccessToken(connection.id)
+  if (!token) return null
+
+  try {
+    const [accounts, trackingCategories] = await Promise.all([
+      getXeroAccounts({
+        accessToken: token.accessToken,
+        tenantId: token.tenantId,
+        includeTypes: ["EXPENSE", "LIABILITY", "CURRLIAB", "TERMLIAB"],
+      }),
+      getXeroTrackingCategories({
+        accessToken: token.accessToken,
+        tenantId: token.tenantId,
+      }),
+    ])
+    return {
+      accounts: accounts
+        .map((a) => ({
+          id: a.xeroAccountId,
+          code: a.code,
+          name: a.name,
+          type: a.type,
+        }))
+        .sort((a, b) => a.code.localeCompare(b.code)),
+      trackingCategories: trackingCategories.map((cat) => ({
+        id: cat.xeroTrackingCategoryId,
+        name: cat.name,
+        options: cat.options.map((o) => ({
+          id: o.xeroTrackingOptionId,
+          name: o.name,
+        })),
+      })),
+    }
+  } catch (err) {
+    // Don't fail the whole page if Xero is down — return null and the
+    // UI shows a "Xero unreachable" message.
+    console.error("[payroll-settings] Xero mapping options fetch failed:", err)
+    return null
+  }
+}
+
 export async function upsertPayrollCompanyInfo(
   patch: Parameters<typeof payrollCompanyInfoRepository.upsert>[0]["patch"],
 ): Promise<PayrollCompanyInfoData> {

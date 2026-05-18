@@ -1,10 +1,13 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useEffect, useState } from "react"
 
 import {
+  getXeroPayrollMappingOptionsAction,
   savePayrollCompanyInfoAction,
   savePayrollSettingsAction,
+  savePayrollXeroMappingAction,
+  type XeroMappingOptionsActionResult,
 } from "@/app/(admin)/admin/payroll/settings/actions"
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import { Button } from "@/components/ui/button"
@@ -26,16 +29,23 @@ import { cn } from "@/lib/utils"
 import { ID_TYPE_LABELS, idTypes } from "@/modules/payroll/domain/models"
 import {
   CP8D_FURNISH_TYPE_OPTIONS,
+  DEFAULT_PAYROLL_XERO_MAPPING,
   EMPLOYER_CATEGORY_OPTIONS,
   EMPLOYER_STATUS_OPTIONS,
+  PAYROLL_XERO_ACCOUNT_GROUPS,
+  PAYROLL_XERO_ACCOUNT_LABELS,
   REFERENCE_TYPE_OPTIONS,
   WORKING_DAYS_RULE_LABELS,
+  XERO_AGGREGATION_MODE_LABELS,
   workingDaysRules,
+  xeroAggregationModes,
   type PayrollCompanyInfoData,
   type PayrollSettingsData,
+  type PayrollXeroAccountKey,
+  type XeroAggregationMode,
 } from "@/modules/payroll/domain/settings"
 
-type Tab = "general" | "formE"
+type Tab = "general" | "formE" | "xero"
 
 const FORM_E_COMPLETION_FIELDS: Array<keyof PayrollCompanyInfoData> = [
   "employerName",
@@ -81,6 +91,7 @@ export function PayrollSettingsForm(props: {
   const [tab, setTab] = useState<Tab>("general")
   const generalComplete = props.settings !== null
   const formEComplete = isFormEComplete(props.companyInfo)
+  const xeroComplete = isXeroMappingComplete(props.settings)
 
   return (
     <div className="space-y-6">
@@ -99,6 +110,15 @@ export function PayrollSettingsForm(props: {
         >
           Form E (LHDN)
         </TabPill>
+        {props.hasXeroConnection ? (
+          <TabPill
+            active={tab === "xero"}
+            complete={xeroComplete}
+            onClick={() => setTab("xero")}
+          >
+            Xero sync
+          </TabPill>
+        ) : null}
       </nav>
 
       {tab === "general" && (
@@ -110,8 +130,39 @@ export function PayrollSettingsForm(props: {
         />
       )}
       {tab === "formE" && <FormETab companyInfo={props.companyInfo} />}
+      {tab === "xero" && props.hasXeroConnection ? (
+        <XeroMappingTab settings={props.settings} />
+      ) : null}
     </div>
   )
+}
+
+/**
+ * "Complete" for the Xero tab = aggregation mode set, tracking category
+ * picked, AND every required-category account (core expenses + accruals)
+ * has an ID. Optional extras (bonus / commission / overtime) don't gate
+ * completeness — they fall back to the Salary account at sync time.
+ */
+function isXeroMappingComplete(settings: PayrollSettingsData | null): boolean {
+  const m = settings?.xeroMapping
+  if (!m) return false
+  if (!m.trackingCategoryId) return false
+  const requiredKeys: PayrollXeroAccountKey[] = [
+    "salary",
+    "allowance",
+    "directorSalary",
+    "directorFee",
+    "epfEmployer",
+    "socsoEmployer",
+    "eisEmployer",
+    "hrdfEmployer",
+    "accrualEpf",
+    "accrualSocso",
+    "accrualEis",
+    "accrualPcb",
+    "accrualSalary",
+  ]
+  return requiredKeys.every((k) => Boolean(m.accounts[k]))
 }
 
 function hasValue(value: unknown) {
@@ -820,5 +871,219 @@ function Field({
       <Label className="text-xs">{label}</Label>
       {children}
     </div>
+  )
+}
+
+// ─── Xero mapping tab ────────────────────────────────────────────────────
+
+/**
+ * Xero sync mapping form. Fetches COA + tracking category options
+ * from the active Xero connection on mount, then renders:
+ *   - an aggregation toggle (per-employee vs sum-by-project)
+ *   - a tracking-category picker (single)
+ *   - per-category COA dropdowns grouped as Expense / Accrual / Extras
+ *
+ * Form values come from `settings.xeroMapping` (or `DEFAULT_*` when
+ * unset). Saves via `savePayrollXeroMappingAction`.
+ */
+function XeroMappingTab({
+  settings,
+}: {
+  settings: PayrollSettingsData | null
+}) {
+  const current = settings?.xeroMapping ?? DEFAULT_PAYROLL_XERO_MAPPING
+
+  const [state, action, pending] = useActionState(
+    savePayrollXeroMappingAction,
+    initialSettingsActionState,
+  )
+  useToastOnAction(state)
+
+  // Controlled state — start from the persisted mapping. We don't
+  // need every keystroke to be controlled, but the aggregation +
+  // tracking category drive other UX (e.g. clearing the team picker
+  // when project changes) so they're easier as React state.
+  const [aggregationMode, setAggregationMode] = useState<XeroAggregationMode>(
+    current.aggregationMode,
+  )
+  const [trackingCategoryId, setTrackingCategoryId] = useState<string>(
+    current.trackingCategoryId ?? "",
+  )
+  const [accounts, setAccounts] = useState<
+    Partial<Record<PayrollXeroAccountKey, string>>
+  >(() => {
+    const seed: Partial<Record<PayrollXeroAccountKey, string>> = {}
+    for (const [key, id] of Object.entries(current.accounts)) {
+      if (id) seed[key as PayrollXeroAccountKey] = id
+    }
+    return seed
+  })
+
+  // Fetch dropdown options once on mount.
+  const [options, setOptions] = useState<XeroMappingOptionsActionResult | null>(
+    null,
+  )
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const result = await getXeroPayrollMappingOptionsAction()
+      if (!cancelled) setOptions(result)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (options === null) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <p className="text-sm text-muted-foreground">Loading Xero options…</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (options.status === "empty") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Xero sync</CardTitle>
+          <CardDescription>
+            Connect Xero to map payroll categories to your chart of accounts.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            No active Xero connection found. Connect Xero from{" "}
+            <span className="font-medium">Settings → Integrations</span> first.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (options.status === "error") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Xero sync</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-destructive">
+            Could not reach Xero: {options.message}
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const { accounts: accountOptions, trackingCategories } = options.options
+  const accrualAccountKeys = new Set<PayrollXeroAccountKey>([
+    "accrualEpf",
+    "accrualSocso",
+    "accrualEis",
+    "accrualPcb",
+    "accrualSalary",
+  ])
+  const accountOptionsFor = (key: PayrollXeroAccountKey) => {
+    const liabilityTypes = new Set(["LIABILITY", "CURRLIAB", "TERMLIAB"])
+    return accountOptions.filter((acc) =>
+      accrualAccountKeys.has(key)
+        ? Boolean(acc.type && liabilityTypes.has(acc.type))
+        : acc.type === "EXPENSE",
+    )
+  }
+
+  return (
+    <form action={action} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Aggregation</CardTitle>
+          <CardDescription>
+            How expense lines roll up on the manual journal we post to Xero.
+            Accruals are always summed regardless of this setting.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Field label="Expense line aggregation">
+            <NativeSelect
+              name="aggregationMode"
+              value={aggregationMode}
+              onChange={(e) =>
+                setAggregationMode(e.target.value as XeroAggregationMode)
+              }
+            >
+              {xeroAggregationModes.map((mode) => (
+                <option key={mode} value={mode}>
+                  {XERO_AGGREGATION_MODE_LABELS[mode]}
+                </option>
+              ))}
+            </NativeSelect>
+          </Field>
+          <Field label="Tracking category (for project)">
+            <NativeSelect
+              name="trackingCategoryId"
+              value={trackingCategoryId}
+              onChange={(e) => setTrackingCategoryId(e.target.value)}
+            >
+              <option value="">— None —</option>
+              {trackingCategories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name} ({cat.options.length} options)
+                </option>
+              ))}
+            </NativeSelect>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Each bill / journal line will be stamped with the project name as
+              the value for this tracking category.
+            </p>
+          </Field>
+        </CardContent>
+      </Card>
+
+      {PAYROLL_XERO_ACCOUNT_GROUPS.map((group) => (
+        <Card key={group.title}>
+          <CardHeader>
+            <CardTitle>{group.title}</CardTitle>
+            <CardDescription>{group.description}</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 sm:grid-cols-2">
+            {group.keys.map((key) => (
+              <Field key={key} label={PAYROLL_XERO_ACCOUNT_LABELS[key]}>
+                {(() => {
+                  const scopedAccountOptions = accountOptionsFor(key)
+                  return (
+                <NativeSelect
+                  name={`account.${key}`}
+                  value={accounts[key] ?? ""}
+                  onChange={(e) =>
+                    setAccounts((prev) => ({
+                      ...prev,
+                      [key]: e.target.value || undefined,
+                    }))
+                  }
+                >
+                  <option value="">— Not set —</option>
+                  {scopedAccountOptions.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.code} — {acc.name}
+                    </option>
+                  ))}
+                </NativeSelect>
+                  )
+                })()}
+              </Field>
+            ))}
+          </CardContent>
+        </Card>
+      ))}
+
+      <div className="flex justify-end">
+        <Button type="submit" disabled={pending}>
+          {pending ? "Saving…" : "Save Xero mapping"}
+        </Button>
+      </div>
+    </form>
   )
 }

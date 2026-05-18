@@ -207,10 +207,31 @@ export async function submitPayrollRunForApproval(input: {
  * PENDING_APPROVAL → SUBMITTED. Records the approver as the
  * `submittedBy` user so the eventual audit trail names the person
  * who really put this run live, not just the person who proposed it.
+ *
+ * Optionally fires the Xero manual journal post (when the org has
+ * `syncPayrollToXeroOnSubmit` enabled and a complete `xeroMapping`).
+ * Xero sync failures DO NOT block approval — the run flips to
+ * SUBMITTED regardless. Sync errors are persisted on the run for the
+ * UI to surface + offer a retry.
+ *
+ * Returns the Xero sync outcome so the caller can show a panel:
+ *   - `synced`  → "Approved. Posted to Xero as journal #X."
+ *   - `skipped` → "Approved. Xero sync skipped: <reason>."
+ *   - `error`   → "Approved. Xero sync failed: <message>. [Retry]"
+ *   - undefined → admin disabled Xero sync; run approved silently.
  */
 export async function approvePayrollRun(input: {
   runId: string
-}): Promise<void> {
+}): Promise<{
+  xeroSync?:
+    | { status: "synced"; manualJournalId: string; narration: string }
+    | { status: "skipped"; message: string }
+    | { status: "error"; message: string }
+  claimXeroSync?:
+    | { status: "synced"; created: number; skipped: number; message: string }
+    | { status: "skipped"; message: string }
+    | { status: "error"; created: number; skipped: number; failed: number; message: string }
+}> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") {
     throw new Error("Session expired. Please log in again.")
@@ -232,6 +253,75 @@ export async function approvePayrollRun(input: {
     organizationId: orgId,
     approvedById: session.userId,
   })
+
+  // Best-effort Xero sync. Lazy-imported to keep the payroll-run
+  // service light when Xero isn't configured.
+  const settings = await payrollSettingsRepository.getByOrgId(orgId)
+  const result: Awaited<ReturnType<typeof approvePayrollRun>> = {}
+
+  if (settings?.syncClaimsToXeroOnSubmit) {
+    const attachedClaims = await payrollRunClaimRepository.listForRun(run.id)
+    if (attachedClaims.length === 0) {
+      result.claimXeroSync = {
+        status: "skipped",
+        message: "No attached claims to sync.",
+      }
+    } else {
+      try {
+        const { syncApprovedClaimToXero } = await import(
+          "@/modules/organization/application/services/xero-connection.service"
+        )
+        const outcomes = await Promise.all(
+          attachedClaims.map((claim) => syncApprovedClaimToXero(claim.claimId)),
+        )
+        const created = outcomes.filter((outcome) => outcome.status === "synced").length
+        const skipped = outcomes.filter((outcome) => outcome.status === "skipped").length
+        const errors = outcomes.filter((outcome) => outcome.status === "error")
+        if (errors.length > 0) {
+          result.claimXeroSync = {
+            status: "error",
+            created,
+            skipped,
+            failed: errors.length,
+            message: errors.map((error) => error.message).join("; "),
+          }
+        } else {
+          result.claimXeroSync = {
+            status: "synced",
+            created,
+            skipped,
+            message: `${created} claim bill${created === 1 ? "" : "s"} created in Xero.`,
+          }
+        }
+      } catch (err) {
+        console.error("[payroll-run] claim bill Xero sync threw:", err)
+        result.claimXeroSync = {
+          status: "error",
+          created: 0,
+          skipped: 0,
+          failed: attachedClaims.length,
+          message: "Claim bill sync failed unexpectedly.",
+        }
+      }
+    }
+  }
+
+  if (settings?.syncPayrollToXeroOnSubmit) {
+    try {
+      const { syncPayrollRunToXero } = await import(
+        "@/modules/payroll/application/services/xero-payroll-sync.service"
+      )
+      result.xeroSync = await syncPayrollRunToXero(run.id)
+    } catch (err) {
+      console.error("[payroll-run] post-approval Xero sync threw:", err)
+      result.xeroSync = {
+        status: "error",
+        message: "Xero sync failed unexpectedly. Use the retry button.",
+      }
+    }
+  }
+
+  return result
 }
 
 /**

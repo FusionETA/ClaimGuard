@@ -60,6 +60,7 @@ export const ModelName = {
   MasterApiAuditLog: 'MasterApiAuditLog',
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
+  EmployeeImportDraft: 'EmployeeImportDraft',
   EmployeeProfile: 'EmployeeProfile',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
@@ -251,6 +252,21 @@ export const PushSubscriptionScalarFieldEnum = {
 export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
 
 
+export const EmployeeImportDraftScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  fileName: 'fileName',
+  step: 'step',
+  rowCount: 'rowCount',
+  state: 'state',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeImportDraftScalarFieldEnum = (typeof EmployeeImportDraftScalarFieldEnum)[keyof typeof EmployeeImportDraftScalarFieldEnum]
+
+
 export const EmployeeProfileScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -375,6 +391,7 @@ export const XeroConnectionScalarFieldEnum = {
   connectedByAdminId: 'connectedByAdminId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  reauthorizedAt: 'reauthorizedAt',
   lastReauthVersion: 'lastReauthVersion',
   xeroTrackingCategoryId: 'xeroTrackingCategoryId',
   xeroTrackingCategoryName: 'xeroTrackingCategoryName'
@@ -679,6 +696,7 @@ export const PayrollSettingsScalarFieldEnum = {
   leaveCarryForwardExpiryMonths: 'leaveCarryForwardExpiryMonths',
   syncClaimsToXeroOnSubmit: 'syncClaimsToXeroOnSubmit',
   syncPayrollToXeroOnSubmit: 'syncPayrollToXeroOnSubmit',
+  xeroMapping: 'xeroMapping',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   autoApplySocsoEisRelief: 'autoApplySocsoEisRelief'
@@ -757,7 +775,12 @@ export const PayrollRunScalarFieldEnum = {
   approvalRejectionReason: 'approvalRejectionReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  lastMutatedAt: 'lastMutatedAt'
+  lastMutatedAt: 'lastMutatedAt',
+  xeroManualJournalId: 'xeroManualJournalId',
+  xeroJournalNumber: 'xeroJournalNumber',
+  xeroSyncStatus: 'xeroSyncStatus',
+  xeroSyncError: 'xeroSyncError',
+  xeroSyncedAt: 'xeroSyncedAt'
 } as const
 
 export type PayrollRunScalarFieldEnum = (typeof PayrollRunScalarFieldEnum)[keyof typeof PayrollRunScalarFieldEnum]
@@ -1008,6 +1031,17 @@ export const PushSubscriptionOrderByRelevanceFieldEnum = {
 } as const
 
 export type PushSubscriptionOrderByRelevanceFieldEnum = (typeof PushSubscriptionOrderByRelevanceFieldEnum)[keyof typeof PushSubscriptionOrderByRelevanceFieldEnum]
+
+
+export const EmployeeImportDraftOrderByRelevanceFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  fileName: 'fileName',
+  step: 'step'
+} as const
+
+export type EmployeeImportDraftOrderByRelevanceFieldEnum = (typeof EmployeeImportDraftOrderByRelevanceFieldEnum)[keyof typeof EmployeeImportDraftOrderByRelevanceFieldEnum]
 
 
 export const EmployeeProfileOrderByRelevanceFieldEnum = {
@@ -1330,7 +1364,10 @@ export const PayrollRunOrderByRelevanceFieldEnum = {
   organizationId: 'organizationId',
   submittedById: 'submittedById',
   submittedForApprovalById: 'submittedForApprovalById',
-  approvalRejectionReason: 'approvalRejectionReason'
+  approvalRejectionReason: 'approvalRejectionReason',
+  xeroManualJournalId: 'xeroManualJournalId',
+  xeroJournalNumber: 'xeroJournalNumber',
+  xeroSyncError: 'xeroSyncError'
 } as const
 
 export type PayrollRunOrderByRelevanceFieldEnum = (typeof PayrollRunOrderByRelevanceFieldEnum)[keyof typeof PayrollRunOrderByRelevanceFieldEnum]

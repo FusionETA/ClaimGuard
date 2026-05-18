@@ -76,6 +76,19 @@ export type PayrollRunData = {
   /// UI prompts the admin to re-run. NOT touched by status changes
   /// (submit / revert).
   lastMutatedAt: string | null
+
+  // ── Xero sync ──────────────────────────────────────────────────────
+  /// Xero ManualJournalID set when the run was successfully posted.
+  /// Null until then. Surface on the run page as "Posted to Xero".
+  xeroManualJournalId: string | null
+  /// Friendly journal narration echoed back from Xero.
+  xeroJournalNumber: string | null
+  /// Per-run sync state. NOT_SYNCED until first attempt; SYNCED on
+  /// success; ERROR on failure (the run page renders a retry button
+  /// when this is ERROR).
+  xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
+  xeroSyncError: string | null
+  xeroSyncedAt: string | null
 }
 
 /**

@@ -319,9 +319,32 @@ function parseMappingResponse(
       },
   )
 
+  // Safety net: whenever a source header EXACTLY matches a target
+  // schema key, force-map to that key — regardless of what the AI
+  // returned. We've observed both failure modes from GROQ on the
+  // SAME response:
+  //   • returning `ourField: null` for some exact matches
+  //     (e.g. policyName → null), AND
+  //   • returning a wrong non-null target for other exact matches
+  //     (e.g. projectCode → employeeId).
+  // An exact key match is canonical — admin renaming columns to our
+  // exact key names is the universal "I know what this is" signal,
+  // and the AI should never override that.
+  const finalMappings: ColumnMapping[] = orderedMappings.map((m) => {
+    if (validFields.has(m.sourceColumn) && m.ourField !== m.sourceColumn) {
+      return {
+        sourceColumn: m.sourceColumn,
+        ourField: m.sourceColumn,
+        confidence: "high" as const,
+        reason: "Header matches our schema key exactly (auto-corrected).",
+      }
+    }
+    return m
+  })
+
   const warnings = Array.isArray(raw.warnings)
     ? raw.warnings.filter((w): w is string => typeof w === "string")
     : []
 
-  return { mappings: orderedMappings, warnings }
+  return { mappings: finalMappings, warnings }
 }

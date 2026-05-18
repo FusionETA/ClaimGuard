@@ -2,7 +2,14 @@ import "server-only"
 
 import { getPrismaClient } from "@/lib/prisma"
 import { toNumber } from "@/lib/decimal"
-import type { PayrollSettingsData } from "@/modules/payroll/domain/settings"
+import {
+  PAYROLL_XERO_ACCOUNT_KEYS,
+  xeroAggregationModes,
+  type PayrollSettingsData,
+  type PayrollXeroAccountKey,
+  type PayrollXeroMapping,
+  type XeroAggregationMode,
+} from "@/modules/payroll/domain/settings"
 
 /**
  * Per-org `PayrollSettings` (OT rates, working-days rule, EPF defaults,
@@ -65,8 +72,53 @@ function mapPayrollSettings(row: any): PayrollSettingsData {
     // anyway.
     syncClaimsToXeroOnSubmit: row.syncClaimsToXeroOnSubmit ?? false,
     syncPayrollToXeroOnSubmit: row.syncPayrollToXeroOnSubmit ?? false,
+    xeroMapping: parseXeroMapping(row.xeroMapping),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
+  }
+}
+
+/**
+ * Tolerant loader for the JSON `xeroMapping` blob. Older blobs missing
+ * keys round-trip as `null` for those keys; unknown keys are ignored.
+ * A future schema bump just changes the `v` discriminator and adds a
+ * new branch here.
+ */
+function parseXeroMapping(value: unknown): PayrollXeroMapping | null {
+  if (!value || typeof value !== "object") return null
+  const v = value as Record<string, unknown>
+  if (v.v !== 1) return null
+
+  const aggregationModeRaw = v.aggregationMode
+  const aggregationMode: XeroAggregationMode =
+    typeof aggregationModeRaw === "string" &&
+    (xeroAggregationModes as readonly string[]).includes(aggregationModeRaw)
+      ? (aggregationModeRaw as XeroAggregationMode)
+      : "PER_EMPLOYEE"
+
+  const trackingCategoryId =
+    typeof v.trackingCategoryId === "string" ? v.trackingCategoryId : null
+
+  const rawAccounts =
+    v.accounts && typeof v.accounts === "object"
+      ? (v.accounts as Record<string, unknown>)
+      : {}
+  const accounts: Partial<Record<PayrollXeroAccountKey, string | null>> = {}
+  for (const key of PAYROLL_XERO_ACCOUNT_KEYS) {
+    const id = rawAccounts[key]
+    if (typeof id === "string" && id.length > 0) {
+      accounts[key] = id
+    } else if (id === null) {
+      accounts[key] = null
+    }
+    // missing keys stay absent (== unset)
+  }
+
+  return {
+    v: 1,
+    aggregationMode,
+    trackingCategoryId,
+    accounts,
   }
 }
 
@@ -90,5 +142,13 @@ function toUpsertData(
   copy("leaveCarryForwardExpiryMonths")
   copy("syncClaimsToXeroOnSubmit")
   copy("syncPayrollToXeroOnSubmit")
+  // The Json column round-trips through Prisma as `InputJsonValue`.
+  // The domain shape is a plain object so it's safe to pass through.
+  if (patch.xeroMapping !== undefined) {
+    out.xeroMapping =
+      patch.xeroMapping === null
+        ? null
+        : (patch.xeroMapping as unknown as Record<string, unknown>)
+  }
   return out
 }

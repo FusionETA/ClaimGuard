@@ -393,6 +393,7 @@ export const ModelName = {
   MasterApiAuditLog: 'MasterApiAuditLog',
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
+  EmployeeImportDraft: 'EmployeeImportDraft',
   EmployeeProfile: 'EmployeeProfile',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
@@ -434,7 +435,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1029,6 +1030,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PushSubscriptionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PushSubscriptionCountAggregateOutputType> | number
+        }
+      }
+    }
+    EmployeeImportDraft: {
+      payload: Prisma.$EmployeeImportDraftPayload<ExtArgs>
+      fields: Prisma.EmployeeImportDraftFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EmployeeImportDraftFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeImportDraftPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EmployeeImportDraftFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeImportDraftPayload>
+        }
+        findFirst: {
+          args: Prisma.EmployeeImportDraftFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeImportDraftPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EmployeeImportDraftFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeImportDraftPayload>
+        }
+        findMany: {
+          args: Prisma.EmployeeImportDraftFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeImportDraftPayload>[]
+        }
+        create: {
+          args: Prisma.EmployeeImportDraftCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeImportDraftPayload>
+        }
+        createMany: {
+          args: Prisma.EmployeeImportDraftCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.EmployeeImportDraftDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeImportDraftPayload>
+        }
+        update: {
+          args: Prisma.EmployeeImportDraftUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeImportDraftPayload>
+        }
+        deleteMany: {
+          args: Prisma.EmployeeImportDraftDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EmployeeImportDraftUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.EmployeeImportDraftUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EmployeeImportDraftPayload>
+        }
+        aggregate: {
+          args: Prisma.EmployeeImportDraftAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEmployeeImportDraft>
+        }
+        groupBy: {
+          args: Prisma.EmployeeImportDraftGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeImportDraftGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EmployeeImportDraftCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EmployeeImportDraftCountAggregateOutputType> | number
         }
       }
     }
@@ -2934,6 +3001,21 @@ export const PushSubscriptionScalarFieldEnum = {
 export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
 
 
+export const EmployeeImportDraftScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  fileName: 'fileName',
+  step: 'step',
+  rowCount: 'rowCount',
+  state: 'state',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeImportDraftScalarFieldEnum = (typeof EmployeeImportDraftScalarFieldEnum)[keyof typeof EmployeeImportDraftScalarFieldEnum]
+
+
 export const EmployeeProfileScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -3058,6 +3140,7 @@ export const XeroConnectionScalarFieldEnum = {
   connectedByAdminId: 'connectedByAdminId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  reauthorizedAt: 'reauthorizedAt',
   lastReauthVersion: 'lastReauthVersion',
   xeroTrackingCategoryId: 'xeroTrackingCategoryId',
   xeroTrackingCategoryName: 'xeroTrackingCategoryName'
@@ -3362,6 +3445,7 @@ export const PayrollSettingsScalarFieldEnum = {
   leaveCarryForwardExpiryMonths: 'leaveCarryForwardExpiryMonths',
   syncClaimsToXeroOnSubmit: 'syncClaimsToXeroOnSubmit',
   syncPayrollToXeroOnSubmit: 'syncPayrollToXeroOnSubmit',
+  xeroMapping: 'xeroMapping',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   autoApplySocsoEisRelief: 'autoApplySocsoEisRelief'
@@ -3440,7 +3524,12 @@ export const PayrollRunScalarFieldEnum = {
   approvalRejectionReason: 'approvalRejectionReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  lastMutatedAt: 'lastMutatedAt'
+  lastMutatedAt: 'lastMutatedAt',
+  xeroManualJournalId: 'xeroManualJournalId',
+  xeroJournalNumber: 'xeroJournalNumber',
+  xeroSyncStatus: 'xeroSyncStatus',
+  xeroSyncError: 'xeroSyncError',
+  xeroSyncedAt: 'xeroSyncedAt'
 } as const
 
 export type PayrollRunScalarFieldEnum = (typeof PayrollRunScalarFieldEnum)[keyof typeof PayrollRunScalarFieldEnum]
@@ -3691,6 +3780,17 @@ export const PushSubscriptionOrderByRelevanceFieldEnum = {
 } as const
 
 export type PushSubscriptionOrderByRelevanceFieldEnum = (typeof PushSubscriptionOrderByRelevanceFieldEnum)[keyof typeof PushSubscriptionOrderByRelevanceFieldEnum]
+
+
+export const EmployeeImportDraftOrderByRelevanceFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  fileName: 'fileName',
+  step: 'step'
+} as const
+
+export type EmployeeImportDraftOrderByRelevanceFieldEnum = (typeof EmployeeImportDraftOrderByRelevanceFieldEnum)[keyof typeof EmployeeImportDraftOrderByRelevanceFieldEnum]
 
 
 export const EmployeeProfileOrderByRelevanceFieldEnum = {
@@ -4013,7 +4113,10 @@ export const PayrollRunOrderByRelevanceFieldEnum = {
   organizationId: 'organizationId',
   submittedById: 'submittedById',
   submittedForApprovalById: 'submittedForApprovalById',
-  approvalRejectionReason: 'approvalRejectionReason'
+  approvalRejectionReason: 'approvalRejectionReason',
+  xeroManualJournalId: 'xeroManualJournalId',
+  xeroJournalNumber: 'xeroJournalNumber',
+  xeroSyncError: 'xeroSyncError'
 } as const
 
 export type PayrollRunOrderByRelevanceFieldEnum = (typeof PayrollRunOrderByRelevanceFieldEnum)[keyof typeof PayrollRunOrderByRelevanceFieldEnum]
@@ -4412,6 +4515,7 @@ export type GlobalOmitConfig = {
   masterApiAuditLog?: Prisma.MasterApiAuditLogOmit
   adminOrganization?: Prisma.AdminOrganizationOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
+  employeeImportDraft?: Prisma.EmployeeImportDraftOmit
   employeeProfile?: Prisma.EmployeeProfileOmit
   employeeProjectAssignment?: Prisma.EmployeeProjectAssignmentOmit
   claim?: Prisma.ClaimOmit

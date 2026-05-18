@@ -6,6 +6,8 @@ const XERO_AUTHORIZE_URL = "https://login.xero.com/identity/connect/authorize"
 const XERO_TOKEN_URL = "https://identity.xero.com/connect/token"
 const XERO_CONNECTIONS_URL = "https://api.xero.com/connections"
 const XERO_INVOICES_URL = "https://api.xero.com/api.xro/2.0/Invoices"
+const XERO_MANUAL_JOURNALS_URL =
+  "https://api.xero.com/api.xro/2.0/ManualJournals"
 const XERO_ACCOUNTS_URL = "https://api.xero.com/api.xro/2.0/Accounts"
 const XERO_PROJECTS_URL = "https://api.xero.com/projects.xro/2.0/projects"
 const XERO_TRACKING_CATEGORIES_URL =
@@ -41,6 +43,20 @@ export type XeroBillPayload = {
   amount: number
   description: string
   reference: string
+  /**
+   * Xero account CODE (e.g. "453") for the line. Optional — when not
+   * provided, the legacy `XERO_DEFAULT_ACCOUNT_CODE` env var is used.
+   * New code paths should always pass this from the claim's
+   * `chartOfAccount.code`.
+   */
+  accountCode?: string
+  /**
+   * Optional tracking dimension stamped on the line. Up to two
+   * tracking entries per line are allowed by Xero. The wizard uses
+   * this for the project dimension; pass `{ name: "<Tracking
+   * Category Name>", option: "<Tracking Option Name>" }`.
+   */
+  tracking?: Array<{ name: string; option: string }>
 }
 
 export type XeroAccount = {
@@ -49,6 +65,7 @@ export type XeroAccount = {
   name: string
   type?: string
   status?: string
+  systemAccount?: string
 }
 
 export type XeroProject = {
@@ -108,13 +125,27 @@ function getRequiredEnv(name: string) {
 }
 
 export function getXeroScopes() {
-  // `files` is required for the Xero Files API (folder + file upload +
-  // file content + invoice association). Existing connections issued
-  // before this scope was added need to disconnect and reconnect Xero
-  // for the new scope to be granted on the access token.
+  // Scopes summary:
+  //   • `offline_access`            — refresh tokens (mandatory).
+  //   • `accounting.transactions`   — bills, invoices, bank tx, etc.
+  //   • `accounting.manualjournals` — manual journals (separate scope
+  //                                    from `accounting.transactions`
+  //                                    on the Xero side; payroll runs
+  //                                    sync as manual journals).
+  //   • `accounting.contacts`       — bill contact (employee) records.
+  //   • `accounting.settings`       — accounts + tracking categories.
+  //   • `accounting.attachments`    — attach receipts to bills.
+  //   • `files`                     — Xero Files API for uploading
+  //                                    receipts.
+  //
+  // Existing connections issued before any of these scopes were added
+  // need to disconnect and reconnect Xero for the new scope to be
+  // granted on the access token. The `XERO_REAUTH_VERSION` tag bumps
+  // when scopes change so admins see an "Update permissions" prompt
+  // on their Xero connection.
   return (
     process.env.XERO_SCOPES?.trim() ||
-    "offline_access accounting.transactions accounting.contacts accounting.attachments files"
+    "openid profile email offline_access accounting.invoices accounting.contacts accounting.settings accounting.manualjournals projects files"
   )
 }
 
@@ -129,9 +160,23 @@ export function getXeroScopes() {
  * connection until the next bump. Empty / unset disables the feature
  * entirely.
  */
+/**
+ * Built-in fallback tag for the reauth prompt. Bump whenever the
+ * default scope set in `getXeroScopes()` changes so existing
+ * connections automatically show "Update permissions" without the
+ * admin having to set `XERO_REAUTH_VERSION` in env.
+ *
+ * Format: YYYY-MM-DD-<short-reason>. Use the date of the deploy
+ * that ships the new scope set.
+ */
+const DEFAULT_REAUTH_VERSION = "2026-05-18-manualjournals-scopes"
+
 export function getXeroReauthVersion(): string | null {
+  // Env override wins so admins can force a re-auth even when no
+  // scope change shipped (e.g. revoking suspect tokens).
   const raw = process.env.XERO_REAUTH_VERSION?.trim()
-  return raw && raw.length > 0 ? raw : null
+  if (raw && raw.length > 0) return raw
+  return DEFAULT_REAUTH_VERSION
 }
 
 export function getXeroRuntimeConfigStatus() {
@@ -178,6 +223,27 @@ async function parseXeroResponse(response: Response) {
   } catch {
     return text
   }
+}
+
+function collectXeroValidationMessages(value: unknown): string[] {
+  const messages: string[] = []
+  const visit = (node: unknown) => {
+    if (!node || typeof node !== "object") return
+    const record = node as Record<string, unknown>
+    if (typeof record.Message === "string" && record.Message.trim()) {
+      messages.push(record.Message.trim())
+    }
+    for (const key of ["ValidationErrors", "Elements", "JournalLines"] as const) {
+      const child = record[key]
+      if (Array.isArray(child)) {
+        for (const item of child) visit(item)
+      }
+    }
+  }
+  visit(value)
+  return Array.from(new Set(messages)).filter(
+    (message) => message !== "A validation exception occurred",
+  )
 }
 
 async function requestToken(body: URLSearchParams): Promise<XeroTokenSet> {
@@ -293,9 +359,11 @@ export async function deleteXeroConnection(accessToken: string, connectionId: st
 export async function getXeroAccounts({
   accessToken,
   tenantId,
+  includeTypes = ["EXPENSE", "BANK"],
 }: {
   accessToken: string
   tenantId: string
+  includeTypes?: string[]
 }): Promise<XeroAccount[]> {
   const response = await fetch(XERO_ACCOUNTS_URL, {
     headers: {
@@ -322,6 +390,7 @@ export async function getXeroAccounts({
       Status?: string
       EnablePaymentsToAccount?: boolean
       ShowInExpenseClaims?: boolean
+      SystemAccount?: string
     }>
   }
 
@@ -335,8 +404,13 @@ export async function getXeroAccounts({
         return false
       }
 
-      // EXPENSE → Claim accounts tab. BANK → Bank accounts tab.
-      return account.Type === "EXPENSE" || account.Type === "BANK"
+      // EXPENSE → Claim/payroll account tabs. BANK → Bank accounts tab.
+      // Xero system accounts can appear as EXPENSE (e.g. Bank
+      // Revaluations), but the Manual Journal API rejects them.
+      if (account.SystemAccount) {
+        return false
+      }
+      return Boolean(account.Type && includeTypes.includes(account.Type))
     })
     .map((account) => ({
       xeroAccountId: account.AccountID as string,
@@ -344,6 +418,7 @@ export async function getXeroAccounts({
       name: account.Name as string,
       type: account.Type,
       status: account.Status,
+      systemAccount: account.SystemAccount,
     }))
 }
 
@@ -494,13 +569,34 @@ export async function createXeroBill({
   tenantId,
   payload,
   idempotencyKey,
+  status = "AUTHORISED",
 }: {
   accessToken: string
   tenantId: string
   payload: XeroBillPayload
   idempotencyKey: string
+  /**
+   * Xero bill status on create. `AUTHORISED` = Awaiting Payment
+   * (admin's preferred default). `DRAFT` = Draft state (legacy).
+   */
+  status?: "DRAFT" | "AUTHORISED"
 }) {
-  const accountCode = getRequiredEnv("XERO_DEFAULT_ACCOUNT_CODE")
+  const accountCode = payload.accountCode ?? getRequiredEnv("XERO_DEFAULT_ACCOUNT_CODE")
+
+  const lineItem: Record<string, unknown> = {
+    Description: payload.description,
+    Quantity: 1,
+    UnitAmount: payload.amount,
+    AccountCode: accountCode,
+  }
+  // Tracking dimensions (max 2 per line per Xero docs). The new
+  // wizard fills exactly one: the project tracking option.
+  if (payload.tracking && payload.tracking.length > 0) {
+    lineItem.Tracking = payload.tracking.slice(0, 2).map((t) => ({
+      Name: t.name,
+      Option: t.option,
+    }))
+  }
 
   const response = await fetch(XERO_INVOICES_URL, {
     method: "POST",
@@ -515,7 +611,7 @@ export async function createXeroBill({
       Invoices: [
         {
           Type: "ACCPAY",
-          Status: "DRAFT",
+          Status: status,
           Contact: {
             Name: payload.contactName,
             EmailAddress: payload.contactEmail,
@@ -525,14 +621,7 @@ export async function createXeroBill({
           CurrencyCode: payload.currency,
           Reference: payload.reference,
           LineAmountTypes: "Exclusive",
-          LineItems: [
-            {
-              Description: payload.description,
-              Quantity: 1,
-              UnitAmount: payload.amount,
-              AccountCode: accountCode,
-            },
-          ],
+          LineItems: [lineItem],
         },
       ],
     }),
@@ -562,6 +651,133 @@ export async function createXeroBill({
   return {
     invoiceId: invoice.InvoiceID,
     invoiceNumber: invoice.InvoiceNumber,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Xero Manual Journals
+// ---------------------------------------------------------------------------
+//
+// Used to post a per-payroll-run summary journal. Single API call
+// creates ALL lines on ONE journal (vs Invoices which is one bill
+// per call). The line items array carries every debit + credit; Xero
+// validates that the sum balances to zero.
+
+export type XeroManualJournalLine = {
+  /// Debit lines have a positive LineAmount; credit lines have a
+  /// negative LineAmount. Both share the same "AccountCode" field
+  /// (account-code-based, not AccountID).
+  accountCode: string
+  /// Use a positive number for debit, negative for credit. We accept
+  /// signed numbers here so the journal-builder service can be
+  /// natural about it.
+  amount: number
+  description: string
+  /// Optional tracking dimensions (max 2 per Xero docs). Used for
+  /// the project dimension on payroll lines.
+  tracking?: Array<{ name: string; option: string }>
+}
+
+export type XeroManualJournalPayload = {
+  narration: string
+  /// YYYY-MM-DD. The journal posts on this date.
+  date: string
+  lines: XeroManualJournalLine[]
+}
+
+/**
+ * Post a manual journal to Xero. Status starts as `POSTED` so it
+ * lands in the P&L immediately — the admin's "approve payroll" act
+ * is the approval signal; no need for a Xero-side review step.
+ */
+export async function createXeroManualJournal({
+  accessToken,
+  tenantId,
+  payload,
+  idempotencyKey,
+}: {
+  accessToken: string
+  tenantId: string
+  payload: XeroManualJournalPayload
+  idempotencyKey: string
+}): Promise<{ manualJournalId: string; narration: string }> {
+  const response = await fetch(XERO_MANUAL_JOURNALS_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "xero-tenant-id": tenantId,
+      "Idempotency-Key": idempotencyKey,
+    },
+    body: JSON.stringify({
+      ManualJournals: [
+        {
+          Narration: payload.narration,
+          Date: payload.date,
+          Status: "POSTED",
+          LineAmountTypes: "NoTax",
+          JournalLines: payload.lines.map((line) => {
+            const item: Record<string, unknown> = {
+              LineAmount: line.amount,
+              AccountCode: line.accountCode,
+              Description: line.description,
+            }
+            if (line.tracking && line.tracking.length > 0) {
+              item.Tracking = line.tracking.slice(0, 2).map((t) => ({
+                Name: t.name,
+                Option: t.option,
+              }))
+            }
+            return item
+          }),
+        },
+      ],
+    }),
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    const errorBody = await parseXeroResponse(response)
+    // Xero returns 401 "AuthorizationUnsuccessful" for manual
+    // journals when the connected user lacks the right Xero role
+    // (Adviser, or Standard + reports). The same token can post
+    // bills fine — manual journals are gated separately. Re-pack
+    // this case with a clearer hint so the admin doesn't go on a
+    // scope-debugging tangent.
+    if (response.status === 401) {
+      throw new Error(
+        "Xero rejected the manual journal post (401 AuthorizationUnsuccessful). " +
+          "Manual journals require the connected Xero user to have the 'Adviser' role " +
+          "(or 'Standard + reports') and a Xero plan that supports journals (not Cashbook/Ledger). " +
+          "Fix the user's role in Xero → Settings → Users, then disconnect & reconnect this Xero integration.",
+      )
+    }
+    const validationMessages = collectXeroValidationMessages(errorBody)
+    throw new Error(
+      validationMessages.length > 0
+        ? `Xero manual journal creation failed: ${validationMessages.join("; ")}`
+        : `Xero manual journal creation failed with ${response.status}: ${JSON.stringify(errorBody)}`,
+    )
+  }
+
+  const json = (await response.json()) as {
+    ManualJournals?: Array<{
+      ManualJournalID?: string
+      Narration?: string
+    }>
+  }
+
+  const journal = json.ManualJournals?.[0]
+  if (!journal?.ManualJournalID) {
+    throw new Error(
+      "Xero manual journal creation succeeded but no ManualJournalID was returned.",
+    )
+  }
+
+  return {
+    manualJournalId: journal.ManualJournalID,
+    narration: journal.Narration ?? payload.narration,
   }
 }
 

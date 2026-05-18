@@ -6,8 +6,14 @@ import { z } from "zod"
 
 import type { BaseFormState } from "@/lib/form-state"
 import { idTypes } from "@/modules/payroll/domain/models"
-import { workingDaysRules } from "@/modules/payroll/domain/settings"
 import {
+  PAYROLL_XERO_ACCOUNT_KEYS,
+  workingDaysRules,
+  xeroAggregationModes,
+  type PayrollXeroMapping,
+} from "@/modules/payroll/domain/settings"
+import {
+  getXeroMappingOptions,
   upsertPayrollCompanyInfo,
   upsertPayrollSettings,
 } from "@/modules/payroll/application/services/payroll-settings.service"
@@ -239,4 +245,98 @@ function booleanString() {
       const t = String(v).toLowerCase().trim()
       return t === "true" || t === "on" || t === "1"
     })
+}
+
+// ─── Xero mapping tab → PayrollSettings.xeroMapping ──────────────────────
+
+export type XeroMappingOptionsActionResult =
+  | {
+      status: "success"
+      options: NonNullable<Awaited<ReturnType<typeof getXeroMappingOptions>>>
+    }
+  | {
+      status: "empty"
+      reason:
+        | "no_session"
+        | "no_org"
+        | "no_connection"
+        | "xero_unreachable"
+    }
+  | { status: "error"; message: string }
+
+/**
+ * Returns the COA + tracking-category options the admin can pick
+ * from in the Xero mapping form. Called once when the tab opens.
+ *
+ * Distinguishes "not configured" (empty state) from "fetch error"
+ * (toast) so the UI can render the right empty-state message.
+ */
+export async function getXeroPayrollMappingOptionsAction(): Promise<XeroMappingOptionsActionResult> {
+  try {
+    const options = await getXeroMappingOptions()
+    if (!options) {
+      return { status: "empty", reason: "no_connection" }
+    }
+    return { status: "success", options }
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not load Xero options."),
+    }
+  }
+}
+
+const xeroMappingSchema = z.object({
+  aggregationMode: z.enum(xeroAggregationModes),
+  trackingCategoryId: nullableString(),
+  // Per-account fields are normalised below (all 16 keys at once).
+})
+
+export async function savePayrollXeroMappingAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const baseParsed = xeroMappingSchema.safeParse({
+    aggregationMode: formData.get("aggregationMode"),
+    trackingCategoryId: formData.get("trackingCategoryId"),
+  })
+
+  if (!baseParsed.success) {
+    return {
+      status: "error",
+      message: baseParsed.error.issues[0]?.message ?? "Invalid input.",
+    }
+  }
+
+  // Pull each account ID by key. Empty/missing values become null
+  // (admin hasn't configured this category yet).
+  const accounts: Partial<Record<string, string | null>> = {}
+  for (const key of PAYROLL_XERO_ACCOUNT_KEYS) {
+    const raw = formData.get(`account.${key}`)
+    if (raw == null || raw instanceof File) {
+      accounts[key] = null
+      continue
+    }
+    const v = String(raw).trim()
+    accounts[key] = v.length > 0 ? v : null
+  }
+
+  const xeroMapping: PayrollXeroMapping = {
+    v: 1,
+    aggregationMode: baseParsed.data.aggregationMode,
+    trackingCategoryId: baseParsed.data.trackingCategoryId,
+    accounts,
+  }
+
+  try {
+    await upsertPayrollSettings({ xeroMapping })
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not save Xero mapping."),
+    }
+  }
+
+  revalidatePath("/admin/payroll/settings")
+  return { status: "success", message: "Xero mapping saved." }
 }

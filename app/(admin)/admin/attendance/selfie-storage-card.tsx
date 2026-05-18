@@ -99,7 +99,7 @@ export function SelfieStorageCard({
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             Removes the photo from Xero and clears the link on each
-            AttendanceRecord. Hourly Worker selfies only — Office Workers
+            AttendanceRecord. Hourly Worker selfies only — Monthly Workers
             never have one.
           </p>
           <div className="mt-3 flex flex-wrap items-end gap-2">
