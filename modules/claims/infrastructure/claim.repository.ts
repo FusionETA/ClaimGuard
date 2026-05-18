@@ -1298,6 +1298,163 @@ export const claimRepository = {
     )
   },
 
+  /**
+   * Paginated claim list for the admin "Reports" page. Supports
+   * optional date-range + multi-id filters on project / team / member.
+   * Returns `{ rows, total, totalAmount }` so the caller can render a
+   * page of results plus an "X of Y / total RM Z" summary header
+   * without a second round-trip.
+   *
+   * `teamIds` filter joins through `Team.employees` because Claim has
+   * no direct team FK — a team's "members" are EmployeeProfile rows
+   * with a matching `teamId`. We resolve the matching employeeIds in
+   * one extra query, then OR them into the where clause alongside the
+   * supplied memberIds.
+   */
+  async listClaimsForReports(input: {
+    organizationId: string
+    /// Inclusive start date (UTC). Compared against `Claim.spentAt`.
+    dateFrom?: Date
+    /// Exclusive end date (UTC). Use the first instant AFTER the
+    /// admin's chosen end day so claims with timestamp 23:59 still
+    /// match.
+    dateTo?: Date
+    projectIds?: string[]
+    teamIds?: string[]
+    memberIds?: string[]
+    /// Zero-based offset. Defaults to 0.
+    skip?: number
+    /// Page size. Defaults to 20.
+    take?: number
+  }): Promise<{ rows: ClaimRecord[]; total: number; totalAmount: number }> {
+    const prisma = getPrismaClient()
+    if (!prisma) return { rows: [], total: 0, totalAmount: 0 }
+
+    // Resolve teamIds → employeeIds first, then merge with any
+    // explicit memberIds. Done before the main query so the final
+    // where clause is a single `employeeId: { in: [...] }`.
+    let memberIdSet: Set<string> | null = null
+    if (input.memberIds && input.memberIds.length > 0) {
+      memberIdSet = new Set(input.memberIds)
+    }
+    if (input.teamIds && input.teamIds.length > 0) {
+      // Team → EmployeeTeamMembership → EmployeeProfile.userId.
+      // Claim.employeeId is User.id (not EmployeeProfile.id), so we
+      // pull userId off the joined profile.
+      const teamRows = await prisma.team.findMany({
+        where: { id: { in: input.teamIds } },
+        select: {
+          memberships: {
+            select: {
+              employeeProfile: { select: { userId: true } },
+            },
+          },
+        },
+      })
+      const teamMemberIds = new Set(
+        teamRows.flatMap((t) =>
+          t.memberships.map((m) => m.employeeProfile.userId),
+        ),
+      )
+      if (memberIdSet) {
+        // Intersect — pickedTeams ∩ pickedMembers
+        const intersected = new Set<string>()
+        for (const id of memberIdSet) if (teamMemberIds.has(id)) intersected.add(id)
+        memberIdSet = intersected
+      } else {
+        memberIdSet = teamMemberIds
+      }
+      // If the team filter produced zero employeeIds the query is
+      // statically empty — short-circuit so we don't return "all
+      // claims" by accident.
+      if (memberIdSet.size === 0) {
+        return { rows: [], total: 0, totalAmount: 0 }
+      }
+    }
+
+    const where: Prisma.ClaimWhereInput = {
+      organizationId: input.organizationId,
+      ...(input.dateFrom || input.dateTo
+        ? {
+            spentAt: {
+              ...(input.dateFrom ? { gte: input.dateFrom } : {}),
+              ...(input.dateTo ? { lt: input.dateTo } : {}),
+            },
+          }
+        : {}),
+      ...(input.projectIds && input.projectIds.length > 0
+        ? { projectId: { in: input.projectIds } }
+        : {}),
+      ...(memberIdSet ? { employeeId: { in: Array.from(memberIdSet) } } : {}),
+    }
+
+    const [rows, total, sumRow] = await Promise.all([
+      prisma.claim.findMany({
+        where,
+        include: claimInclude,
+        orderBy: { spentAt: "desc" },
+        skip: input.skip ?? 0,
+        take: input.take ?? 20,
+      }),
+      prisma.claim.count({ where }),
+      prisma.claim.aggregate({
+        where,
+        _sum: { amount: true },
+      }),
+    ])
+
+    // Reuse the same chain-resolver pattern as the other listing
+    // queries so each row carries `approvalChain` for downstream UI.
+    const tupleKey = (e: string, p: string | null) => `${e}::${p ?? ""}`
+    const tuples = new Map<string, { employeeId: string; projectId: string | null }>()
+    for (const r of rows) {
+      const k = tupleKey(r.employeeId, r.projectId)
+      if (!tuples.has(k)) {
+        tuples.set(k, { employeeId: r.employeeId, projectId: r.projectId })
+      }
+    }
+    const chainByTuple = new Map<string, GroupedChainStep[]>()
+    if (tuples.size > 0) {
+      const resolved = await Promise.all(
+        Array.from(tuples.entries()).map(async ([k, t]) => ({
+          k,
+          steps: await resolveModuleChain(
+            t.employeeId,
+            "CLAIMS",
+            t.projectId ?? undefined,
+          ),
+        })),
+      )
+      for (const { k, steps } of resolved) {
+        chainByTuple.set(
+          k,
+          steps.map((s) => ({
+            step: s.step,
+            approvers: s.approvers.map((a) => ({
+              approverId: a.approverId,
+              name: a.name,
+              email: a.email,
+              role: a.role,
+            })),
+          })),
+        )
+      }
+    }
+
+    const mapped = rows.map((row) => {
+      const key = tupleKey(row.employeeId, row.projectId)
+      const single = new Map<string, GroupedChainStep[]>()
+      single.set(row.employeeId, chainByTuple.get(key) ?? [])
+      return mapClaim(row, single)
+    })
+
+    return {
+      rows: mapped,
+      total,
+      totalAmount: toNumber(sumRow._sum.amount, 0),
+    }
+  },
+
   async getMemberClaimsForBreakdown(input: {
     organizationId: string
     projectId: string
