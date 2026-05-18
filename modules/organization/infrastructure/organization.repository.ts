@@ -1336,6 +1336,7 @@ export const organizationRepository = {
         tenantType: true,
         createdAt: true,
         updatedAt: true,
+        reauthorizedAt: true,
         lastReauthVersion: true,
       },
     })
@@ -1345,7 +1346,7 @@ export const organizationRepository = {
       tenantId: row.tenantId,
       tenantName: row.tenantName,
       tenantType: row.tenantType ?? undefined,
-      connectedAt: row.createdAt.toISOString(),
+      connectedAt: (row.reauthorizedAt ?? row.createdAt).toISOString(),
       lastTokenRefreshAt: row.updatedAt.toISOString(),
       requiresReauth: Boolean(requiredReauth) && row.lastReauthVersion !== requiredReauth,
     }))
@@ -1375,6 +1376,7 @@ export const organizationRepository = {
         tenantType: true,
         createdAt: true,
         updatedAt: true,
+        reauthorizedAt: true,
         lastReauthVersion: true,
       },
       orderBy: { createdAt: "asc" },
@@ -1388,7 +1390,7 @@ export const organizationRepository = {
         tenantId: row.tenantId,
         tenantName: row.tenantName,
         tenantType: row.tenantType ?? undefined,
-        connectedAt: row.createdAt.toISOString(),
+        connectedAt: (row.reauthorizedAt ?? row.createdAt).toISOString(),
         lastTokenRefreshAt: row.updatedAt.toISOString(),
         requiresReauth: Boolean(requiredReauth) && row.lastReauthVersion !== requiredReauth,
       })),
@@ -1433,6 +1435,7 @@ export const organizationRepository = {
     // in this deployment — we still write null so old marks don't leak
     // through after the env var is cleared.
     const reauthVersion = getXeroReauthVersion()
+    const now = new Date()
 
     await prisma.xeroConnection.upsert({
       where: {
@@ -1453,6 +1456,7 @@ export const organizationRepository = {
         tokenType: data.tokenType,
         accessTokenExpiresAt: data.accessTokenExpiresAt,
         connectedByAdminId: data.connectedByAdminId,
+        reauthorizedAt: now,
         lastReauthVersion: reauthVersion,
       },
       update: {
@@ -1464,6 +1468,7 @@ export const organizationRepository = {
         tokenType: data.tokenType,
         accessTokenExpiresAt: data.accessTokenExpiresAt,
         connectedByAdminId: data.connectedByAdminId,
+        reauthorizedAt: now,
         lastReauthVersion: reauthVersion,
       },
     })
@@ -2086,7 +2091,16 @@ export const organizationRepository = {
   async listTeamsForOrganization(
     organizationId: string,
     projectId?: string | null,
-  ): Promise<Array<{ id: string; name: string; projectId: string; projectName: string }>> {
+  ): Promise<
+    Array<{
+      id: string
+      name: string
+      projectId: string
+      projectName: string
+      /** Max hierarchy layer this team supports (1..10). */
+      layerCount: number
+    }>
+  > {
     const prisma = getPrismaClient()
     if (!prisma) return []
     const rows = await prisma.team.findMany({
@@ -2102,6 +2116,7 @@ export const organizationRepository = {
       name: t.name,
       projectId: t.projectId,
       projectName: t.project.name,
+      layerCount: t.layerCount,
     }))
   },
 

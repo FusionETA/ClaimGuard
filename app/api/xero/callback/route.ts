@@ -1,6 +1,8 @@
+import { revalidatePath } from "next/cache"
 import { NextRequest, NextResponse } from "next/server"
 
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
+import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { exchangeXeroCodeForTokens, getXeroTenants } from "@/lib/xero"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
@@ -22,6 +24,13 @@ export async function GET(request: NextRequest) {
   const cookieState = request.cookies.get(XERO_STATE_COOKIE)?.value
 
   const finish = (destination: string) => {
+    // Bust the Next.js Router Cache so the settings page re-renders against
+    // fresh DB state (new `reauthorizedAt`, cleared `requiresReauth`, etc.).
+    // Without this the user lands on a cached snapshot taken BEFORE the
+    // OAuth dance — the success banner shows but the connection card still
+    // displays the old timestamp and the "Update permissions" badge.
+    revalidatePath("/admin/settings")
+    revalidatePath("/admin", "layout")
     const response = NextResponse.redirect(new URL(destination, request.url))
     response.cookies.set(XERO_STATE_COOKIE, "", {
       httpOnly: true,
@@ -63,6 +72,8 @@ export async function GET(request: NextRequest) {
         tenants,
       })
 
+      revalidatePath("/admin/settings")
+      revalidatePath("/admin", "layout")
       const response = NextResponse.redirect(
         new URL("/admin/settings?xero=select-tenant", request.url)
       )
@@ -143,6 +154,8 @@ export async function GET(request: NextRequest) {
     if (isFirstXeroConnect) {
       await organizationRepository.disableCustomRecordsOnXeroConnect(organizationId)
     }
+
+    await bustOrgConfigCaches({ organizationId })
 
     return finish("/admin/settings?xero=connected")
   } catch (callbackError) {

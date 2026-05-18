@@ -7,6 +7,7 @@ import {
   refreshXeroToken,
   type XeroTrackingCategory,
 } from "@/lib/xero"
+import { safeErrorMessage } from "@/lib/errors"
 import type {
   ChartOfAccountOption,
   OrganizationProjectOption,
@@ -422,40 +423,128 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
     }
   }
 
-  return {
-    status: "skipped",
-    message: "Automatic Xero bill creation is currently disabled while the final sync stage is being defined.",
+  // The claim's expense account must be linked to a Xero connection.
+  // Custom (non-Xero) accounts can't produce a bill — surface a clear
+  // error so the admin knows to either pick a different account or
+  // mark the claim paid manually.
+  const xeroConnectionId = claim.chartOfAccount?.xeroConnectionId ?? null
+  const xeroAccountCode = claim.chartOfAccount?.code ?? null
+  if (!xeroConnectionId || !xeroAccountCode) {
+    return {
+      status: "error",
+      message:
+        "Claim's expense account isn't linked to Xero. Pick a Xero-linked account before syncing.",
+    }
   }
 
-  // Future re-enable point. When bill creation is turned back on, the
-  // shape is roughly:
-  //
-  //   const connection = await getUsableXeroAccessToken(claim.xeroConnectionId)
-  //   if (!connection) { ... }
-  //   const bill = await createXeroBill({
-  //     accessToken: connection.accessToken,
-  //     tenantId: connection.tenantId,
-  //     payload: { ... }
-  //   })
-  //   await claimRepository.markClaimXeroSynced({
-  //     claimId: claim.id,
-  //     xeroBillId: bill.invoiceId,
-  //     xeroBillRef: bill.invoiceNumber,
-  //   })
-  //
-  //   // Bonus: attach the receipt that was uploaded to Xero Files at
-  //   // submission time so it appears in the bill's Files panel.
-  //   if (claim.xeroFileId) {
-  //     try {
-  //       await associateFileWithInvoice({
-  //         accessToken: connection.accessToken,
-  //         tenantId: connection.tenantId,
-  //         fileId: claim.xeroFileId,
-  //         invoiceId: bill.invoiceId,
-  //       })
-  //     } catch {
-  //       // Non-fatal: bill is still created. Surface as a partial-sync
-  //       // warning if you want to track it.
-  //     }
-  //   }
+  const connection = await getUsableXeroAccessToken(xeroConnectionId)
+  if (!connection) {
+    return {
+      status: "error",
+      message:
+        "Xero connection unavailable. Reconnect Xero in Settings → Integrations.",
+    }
+  }
+
+  // Pull the org's payroll-settings xeroMapping for the tracking
+  // category. We import the repo lazily to avoid pulling payroll
+  // code into claim flows when Xero isn't configured.
+  let trackingCategoryName: string | null = null
+  let trackingOptions: Set<string> | null = null
+  if (claim.organizationId && claim.project?.name) {
+    const { payrollSettingsRepository } = await import(
+      "@/modules/payroll/infrastructure/payroll-settings.repository"
+    )
+    const settings = await payrollSettingsRepository.getByOrgId(
+      claim.organizationId,
+    )
+    const trackingCategoryId = settings?.xeroMapping?.trackingCategoryId
+    if (trackingCategoryId) {
+      // Look up the tracking category's NAME (Xero's bill API needs
+      // the category Name + option Name, not their IDs).
+      try {
+        const { getXeroTrackingCategories } = await import("@/lib/xero")
+        const cats = await getXeroTrackingCategories({
+          accessToken: connection.accessToken,
+          tenantId: connection.tenantId,
+        })
+        const cat = cats.find(
+          (c) => c.xeroTrackingCategoryId === trackingCategoryId,
+        )
+        if (cat) {
+          trackingCategoryName = cat.name
+          trackingOptions = new Set(cat.options.map((option) => option.name))
+        }
+      } catch (err) {
+        // Non-fatal: bill still posts, just without tracking.
+        console.warn("[xero-sync] tracking category lookup failed:", err)
+      }
+    }
+  }
+
+  try {
+    const { createXeroBill, associateFileWithInvoice } = await import(
+      "@/lib/xero"
+    )
+    const today = new Date()
+    const dueDate = new Date(today)
+    dueDate.setDate(dueDate.getDate() + 30) // 30-day default term
+    const fmt = (d: Date) => d.toISOString().slice(0, 10)
+
+    const bill = await createXeroBill({
+      accessToken: connection.accessToken,
+      tenantId: connection.tenantId,
+      idempotencyKey: `claim-${claim.id}`,
+      status: "AUTHORISED",
+      payload: {
+        contactName: claim.employee.name,
+        contactEmail: claim.employee.email,
+        date: fmt(today),
+        dueDate: fmt(dueDate),
+        currency: claim.currency,
+        amount: claim.amount,
+        description: `${claim.claimNumber} — ${claim.title}`,
+        reference: claim.claimNumber,
+        accountCode: xeroAccountCode,
+        tracking:
+          trackingCategoryName &&
+          claim.project?.name &&
+          trackingOptions?.has(claim.project.name)
+            ? [{ name: trackingCategoryName, option: claim.project.name }]
+            : undefined,
+      },
+    })
+
+    // Persist the bill IDs so we never double-post.
+    await claimRepository.markClaimXeroSynced({
+      claimId: claim.id,
+      xeroBillId: bill.invoiceId,
+      xeroBillRef: bill.invoiceNumber,
+    })
+
+    // Best-effort: attach the receipt to the bill in Xero so it
+    // shows up in the bill's Files panel.
+    if (claim.xeroFileId) {
+      try {
+        await associateFileWithInvoice({
+          accessToken: connection.accessToken,
+          tenantId: connection.tenantId,
+          fileId: claim.xeroFileId,
+          invoiceId: bill.invoiceId,
+        })
+      } catch (err) {
+        console.warn("[xero-sync] receipt attach failed:", err)
+      }
+    }
+
+    return {
+      status: "synced",
+      message: `Bill ${bill.invoiceNumber ?? bill.invoiceId} created in Xero.`,
+    }
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Xero bill creation failed."),
+    }
+  }
 }

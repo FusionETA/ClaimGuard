@@ -36,6 +36,14 @@ export type SalaryType = (typeof salaryTypes)[number]
 export const paymentMethods = ["BANK_TRANSFER", "CASH", "CHEQUE"] as const
 export type PaymentMethod = (typeof paymentMethods)[number]
 
+/**
+ * Employee types accepted by the bulk import. Subset of `UserRole`
+ * minus `ADMIN` — admins are created via the admin UI only, never
+ * through a CSV import.
+ */
+export const importableEmployeeTypes = ["EMPLOYEE", "SUPERVISOR"] as const
+export type ImportableEmployeeType = (typeof importableEmployeeTypes)[number]
+
 // Human-readable labels for the dropdowns.
 export const SOCSO_SCHEME_LABELS: Record<SocsoScheme, string> = {
   EMPLOYMENT_INJURY_INVALIDITY: "Employment Injury & Invalidity Scheme",

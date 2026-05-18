@@ -62,6 +62,7 @@ export const FIELD_CATEGORIES = [
   "Spouse & Dependents",
   "Statutory & Payroll",
   "Bank",
+  "Hierarchy",
 ] as const
 export type FieldCategory = (typeof FIELD_CATEGORIES)[number]
 
@@ -91,6 +92,7 @@ const TARGET_SCHEMA: SchemaField[] = [
   { key: "email", required: true, description: "Login email, must be unique", category: "Identity & Employment" },
   { key: "employeeId", required: true, description: "Org-specific employee code, e.g. EMP-001", category: "Identity & Employment" },
   { key: "jobTitle", required: true, description: "Job title / position / designation", category: "Identity & Employment" },
+  { key: "employeeType", required: true, description: "EMPLOYEE or SUPERVISOR — admins cannot be created via import", category: "Identity & Employment" },
   { key: "joinDate", required: true, description: "Date employee joined (YYYY-MM-DD)", category: "Identity & Employment" },
   { key: "leaveDate", required: false, description: "Last day of employment (YYYY-MM-DD) — fill when archiving an employee", category: "Identity & Employment" },
   { key: "archiveReason", required: false, description: "Reason for leaving — only used when leaveDate is set", category: "Identity & Employment" },
@@ -149,6 +151,18 @@ const TARGET_SCHEMA: SchemaField[] = [
   { key: "bankAccountHolderName", required: false, description: "Bank account holder name (same as 'Account Name')", category: "Bank" },
   { key: "bankAccountNumber", required: false, description: "Bank account number", category: "Bank" },
   { key: "paymentMethod", required: false, description: "BANK_TRANSFER, CASH, or CHEQUE", category: "Bank" },
+
+  // ── Hierarchy ──
+  // All four end up on the EmployeeProfile. They stay flagged
+  // `required` so the schema documents the desired end state, but the
+  // import wizard treats them as PREVIEW-PICKABLE — the admin can
+  // either map a CSV column or assign them per-row in the preview
+  // step's picker (which also supports inline "+ Create new"). The
+  // column-mapping step does NOT block on these being unmapped.
+  { key: "policyName", required: true, description: "Employee policy name — pick a CSV column, or set it per-row in the preview picker (inline + Create supported)", category: "Hierarchy" },
+  { key: "projectCode", required: true, description: "Project name — pick a CSV column, or set it per-row in the preview picker (inline + Create supported)", category: "Hierarchy" },
+  { key: "teamCode", required: true, description: "Team name within the project — pick a CSV column, or set it per-row in the preview picker (inline + Create supported)", category: "Hierarchy" },
+  { key: "teamLayer", required: true, description: "Hierarchy layer this employee sits on within the team (1 = bottom, must be ≤ team.layerCount). Set in preview if no CSV column.", category: "Hierarchy" },
 ]
 
 /// Sub-fields per detected child slot. Kept here so detect/getSchema/
@@ -264,6 +278,15 @@ const HEURISTIC_SYNONYMS: Record<string, string> = {
   position: "jobTitle",
   designation: "jobTitle",
   title: "jobTitle",
+  employeetype: "employeeType",
+  employmenttype: "employeeType",
+  role: "employeeType",
+  userrole: "employeeType",
+  staffrole: "employeeType",
+  staffcategory: "employeeType",
+  category: "employeeType",
+  level: "employeeType",
+  rank: "employeeType",
   joindate: "joinDate",
   startdate: "joinDate",
   hiredate: "joinDate",

@@ -27,6 +27,7 @@ import { PayrollRunEmployeeTables } from "@/components/admin/payroll-run-employe
 import { PayslipsListPanel } from "@/components/admin/payslip-list-panel"
 import {
   ApprovePayrollRunButton,
+  RetryXeroSyncButton,
   RevertPayrollRunButton,
   SendBackToDraftButton,
   SubmitPayrollRunButton,
@@ -369,27 +370,85 @@ export default async function AdminPayrollRunDetailPage({
       )}
 
       {isSubmitted && (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">
-            Submitted
-            {data.run.submittedAt
-              ? ` on ${new Date(data.run.submittedAt).toLocaleString()}`
-              : ""}
-            . Payslips are visible to employees.
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button asChild variant="outline" className="gap-2">
-              <a
-                href={`/admin/payroll/runs/${data.run.id}/disbursement`}
-                download
-              >
-                <Download className="h-4 w-4" />
-                Download bank CSV
-              </a>
-            </Button>
-            <RevertPayrollRunButton runId={data.run.id} />
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground">
+              Submitted
+              {data.run.submittedAt
+                ? ` on ${new Date(data.run.submittedAt).toLocaleString()}`
+                : ""}
+              . Payslips are visible to employees.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button asChild variant="outline" className="gap-2">
+                <a
+                  href={`/admin/payroll/runs/${data.run.id}/disbursement`}
+                  download
+                >
+                  <Download className="h-4 w-4" />
+                  Download bank CSV
+                </a>
+              </Button>
+              <RevertPayrollRunButton runId={data.run.id} />
+            </div>
           </div>
-        </div>
+
+          {/* Xero sync status. Renders three states:
+                • SYNCED → green pill with journal number + sync time
+                • ERROR  → red banner with the captured error + retry
+                • NOT_SYNCED → grey hint that sync didn't fire (admin
+                              disabled it or mapping was missing)
+              All three are skipped when the run has been reverted and
+              never synced — the absence of any Xero status is a valid
+              empty state.
+          */}
+          {data.run.xeroSyncStatus === "SYNCED" ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-300/60 bg-emerald-50/40 p-3 dark:border-emerald-700/40 dark:bg-emerald-950/20">
+              <div className="text-xs">
+                <p className="font-medium text-foreground">
+                  Posted to Xero
+                </p>
+                <p className="text-muted-foreground">
+                  Journal{" "}
+                  <span className="font-mono">
+                    {data.run.xeroJournalNumber ??
+                      data.run.xeroManualJournalId}
+                  </span>
+                  {data.run.xeroSyncedAt
+                    ? ` · synced ${new Date(
+                        data.run.xeroSyncedAt,
+                      ).toLocaleString()}`
+                    : ""}
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {data.run.xeroSyncStatus === "ERROR" ? (
+            <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-destructive/40 bg-destructive/5 p-3">
+              <div className="min-w-0 text-xs">
+                <p className="font-medium text-destructive">
+                  Xero sync failed
+                </p>
+                <p className="mt-0.5 break-words text-muted-foreground">
+                  {data.run.xeroSyncError ?? "Unknown error."}
+                </p>
+              </div>
+              <RetryXeroSyncButton runId={data.run.id} />
+            </div>
+          ) : null}
+
+          {data.run.xeroSyncStatus === "NOT_SYNCED" &&
+          !data.run.xeroManualJournalId ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/30 p-3">
+              <p className="text-xs text-muted-foreground">
+                Not posted to Xero. Sync was disabled or the mapping was
+                incomplete when this run was approved.
+              </p>
+              <RetryXeroSyncButton runId={data.run.id} />
+            </div>
+          ) : null}
+        </>
       )}
     </div>
   )

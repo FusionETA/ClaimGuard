@@ -1,11 +1,14 @@
 "use client"
 
 import * as React from "react"
-import { useActionState, useId } from "react"
+import { useActionState, useEffect, useId, useState } from "react"
+import { ChevronDown, ChevronRight, RefreshCw } from "lucide-react"
 
 import {
   approvePayrollRunAction,
+  getPayrollSyncPreviewAction,
   rejectPayrollRunApprovalAction,
+  retryPayrollRunXeroSyncAction,
   revertPayrollRunAction,
   submitPayrollRunForApprovalAction,
 } from "@/app/(admin)/admin/payroll/runs/actions"
@@ -24,6 +27,11 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { useToastOnAction } from "@/components/ui/toaster"
+import { cn } from "@/lib/utils"
+import type {
+  PayrollSyncPreview,
+  PayrollSyncPreviewResult,
+} from "@/modules/payroll/application/services/xero-sync-preview.service"
 
 /**
  * Submit a DRAFT run *for approval*. Locks the run from edits and parks
@@ -72,12 +80,352 @@ export function SubmitPayrollRunButton(props: {
 /**
  * Step 2 of the two-step approval flow. Approver flips a
  * PENDING_APPROVAL run to SUBMITTED — payslips become visible to
- * employees and the run is officially finalised.
+ * employees and the run is officially finalised. When Xero sync is
+ * enabled, the modal also previews:
+ *   - Number of Bills that will be created (one per attached claim,
+ *     posted as each claim is approved).
+ *   - The single Manual Journal that posts immediately on approval,
+ *     with every debit / credit line.
+ * Both sections are collapsible — the count is always visible; the
+ * details unfold on click.
  */
 export function ApprovePayrollRunButton(props: { runId: string }) {
   const formId = useId()
+  const [open, setOpen] = useState(false)
+  const [preview, setPreview] = useState<PayrollSyncPreviewResult | null>(null)
   const [state, action, pending] = useActionState(
     approvePayrollRunAction,
+    initialSettingsActionState,
+  )
+  useToastOnAction(state)
+
+  // Load the preview the first time the modal opens (or every open?
+  // Run state is stable while in PENDING_APPROVAL, but a re-load on
+  // every open keeps numbers fresh if the admin opens/cancels/opens
+  // — cheap, all DB-side).
+  useEffect(() => {
+    if (!open) {
+      setPreview(null)
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const result = await getPayrollSyncPreviewAction({ runId: props.runId })
+      if (!cancelled) setPreview(result)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [open, props.runId])
+
+  // Close on success so the page refreshes into the SUBMITTED state.
+  const lastStatus = React.useRef(state.status)
+  useEffect(() => {
+    if (state.status === "success" && lastStatus.current !== "success") {
+      setOpen(false)
+    }
+    lastStatus.current = state.status
+  }, [state])
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button type="button">Approve</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Approve and submit payroll run?</DialogTitle>
+          <DialogDescription>
+            This finalises the run, exposes every payslip to the affected
+            employees, and posts the entries below to Xero. You can still
+            revert to draft later if corrections are needed.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="max-h-[55vh] overflow-y-auto pr-1">
+          <SyncPreviewPanel preview={preview} />
+        </div>
+
+        <form action={action}>
+          <input type="hidden" name="runId" value={props.runId} hidden />
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="ghost" disabled={pending}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Approving…" : "Approve and post"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/**
+ * Renders the bill + journal preview inside the approval modal.
+ * Three states:
+ *   - `preview === null` → still loading.
+ *   - `status === "error"` → friendly error, modal still lets the
+ *     admin proceed (approval works even if preview fails).
+ *   - `status === "success" | "skipped"` → bills + journal sections.
+ *     "skipped" means the run will land but no Xero post will fire
+ *     (e.g. mapping incomplete). Banner explains why.
+ */
+function SyncPreviewPanel({
+  preview,
+}: {
+  preview: PayrollSyncPreviewResult | null
+}) {
+  if (preview === null) {
+    return (
+      <p className="py-6 text-center text-xs text-muted-foreground">
+        Loading preview…
+      </p>
+    )
+  }
+  if (preview.status === "error") {
+    return (
+      <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive">
+        Could not load Xero preview: {preview.message}. Approval will still
+        work; sync can be retried later.
+      </div>
+    )
+  }
+
+  const data = preview.preview
+  if (!data) return null
+
+  const skippedBanner =
+    preview.status === "skipped" ? (
+      <div className="rounded-lg border border-amber-300/60 bg-amber-50/40 p-3 text-xs dark:border-amber-700/40 dark:bg-amber-950/20">
+        <span className="font-medium text-foreground">Xero post skipped:</span>{" "}
+        {"message" in preview ? preview.message : ""}
+      </div>
+    ) : null
+
+  return (
+    <div className="space-y-3 py-2">
+      {skippedBanner}
+      <BillsSection
+        bills={data.bills}
+        willPost={data.claimsSyncEnabled && preview.status === "success"}
+      />
+      <JournalSection
+        journal={data.journal}
+        willPost={preview.status === "success"}
+      />
+    </div>
+  )
+}
+
+function BillsSection({
+  bills,
+  willPost,
+}: {
+  bills: PayrollSyncPreview["bills"]
+  willPost: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const pendingBills = bills.filter((bill) => !bill.alreadySynced)
+
+  return (
+    <SectionToggle
+      open={open}
+      onToggle={() => setOpen((o) => !o)}
+      headline={
+        <>
+          <span className="font-semibold text-foreground">
+            {willPost ? pendingBills.length : 0} Bill
+            {(willPost ? pendingBills.length : 0) === 1 ? "" : "s"}
+          </span>{" "}
+          will {willPost ? "be created" : "be skipped"}
+          <span className="ml-2 text-xs text-muted-foreground">
+            · {bills.length} attached claim
+            {bills.length === 1 ? "" : "s"}
+            {bills.some((bill) => bill.alreadySynced) ? " · some already synced" : ""}
+          </span>
+        </>
+      }
+    >
+      <div className="space-y-2 px-3 py-2 text-xs">
+        {bills.length === 0 ? (
+          <p className="text-muted-foreground">
+            No reimbursable claims are attached to this payroll run.
+          </p>
+        ) : (
+          <table className="w-full">
+            <tbody>
+              {bills.map((bill) => (
+                <tr key={bill.claimId} className="border-t border-border/40 first:border-t-0">
+                  <td className="py-1.5 pr-2 align-top">
+                    <div className="text-foreground">
+                      {bill.claimNumber} — {bill.title}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      → {bill.employeeName}
+                      {bill.alreadySynced
+                        ? ` · already synced${bill.xeroBillRef ? ` (${bill.xeroBillRef})` : ""}`
+                        : ""}
+                    </div>
+                  </td>
+                  <td className="py-1.5 pl-2 text-right font-mono tabular-nums">
+                    {bill.currency} {bill.amount.toFixed(2)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </SectionToggle>
+  )
+}
+
+function JournalSection({
+  journal,
+  willPost,
+}: {
+  journal: PayrollSyncPreview["journal"]
+  willPost: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const debits = journal.lines.filter((l) => l.amount > 0)
+  const credits = journal.lines.filter((l) => l.amount < 0)
+
+  return (
+    <SectionToggle
+      open={open}
+      onToggle={() => setOpen((o) => !o)}
+      headline={
+        <>
+          <span className="font-semibold text-foreground">
+            {willPost ? "1" : "0"} Manual Journal
+          </span>{" "}
+          will {willPost ? "be posted" : "be skipped"}
+          <span className="ml-2 text-xs text-muted-foreground">
+            · {journal.lines.length} line
+            {journal.lines.length === 1 ? "" : "s"} ·{" "}
+            {journal.isBalanced ? (
+              <span className="text-emerald-700">balanced</span>
+            ) : (
+              <span className="text-destructive">unbalanced</span>
+            )}
+          </span>
+        </>
+      }
+    >
+      <div className="space-y-3 px-3 py-2 text-xs">
+        <div className="text-muted-foreground">
+          <div>
+            <span className="font-medium text-foreground">Narration:</span>{" "}
+            {journal.narration}
+          </div>
+          <div>
+            <span className="font-medium text-foreground">Date:</span>{" "}
+            {journal.date}
+          </div>
+        </div>
+        <JournalLineTable title="Debits" lines={debits} />
+        <JournalLineTable title="Credits" lines={credits} />
+        <div className="flex justify-end gap-6 border-t border-border/60 pt-2 text-[11px] tabular-nums">
+          <span>
+            <span className="text-muted-foreground">Total debits:</span>{" "}
+            <span className="font-mono">{journal.totalDebits.toFixed(2)}</span>
+          </span>
+          <span>
+            <span className="text-muted-foreground">Total credits:</span>{" "}
+            <span className="font-mono">{journal.totalCredits.toFixed(2)}</span>
+          </span>
+        </div>
+      </div>
+    </SectionToggle>
+  )
+}
+
+function JournalLineTable({
+  title,
+  lines,
+}: {
+  title: string
+  lines: PayrollSyncPreview["journal"]["lines"]
+}) {
+  if (lines.length === 0) return null
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </p>
+      <table className="mt-1 w-full">
+        <tbody>
+          {lines.map((line, i) => (
+            <tr key={i} className="border-t border-border/40">
+              <td className="py-1 pr-2 align-top">
+                <div className="text-foreground">{line.description}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  → {line.accountLabel}
+                  {line.trackingOption ? ` · ${line.trackingOption}` : ""}
+                </div>
+              </td>
+              <td className="py-1 pl-2 text-right font-mono tabular-nums">
+                {Math.abs(line.amount).toFixed(2)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function SectionToggle({
+  open,
+  onToggle,
+  headline,
+  children,
+}: {
+  open: boolean
+  onToggle: () => void
+  headline: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-border/60 bg-card/60">
+      <button
+        type="button"
+        onClick={onToggle}
+        className={cn(
+          "flex w-full items-center gap-2 px-3 py-2 text-left text-sm",
+          "hover:bg-muted/30",
+        )}
+      >
+        {open ? (
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        )}
+        <span className="flex-1">{headline}</span>
+      </button>
+      {open ? <div className="border-t border-border/60">{children}</div> : null}
+    </div>
+  )
+}
+
+/**
+ * Retry button rendered on the run page when `xeroSyncStatus` is
+ * ERROR (or NOT_SYNCED on a SUBMITTED run, e.g. admin disabled sync
+ * at approval time and later enabled it). Calls
+ * `retryPayrollRunXeroSyncAction` and shows a toast with the result.
+ */
+export function RetryXeroSyncButton(props: {
+  runId: string
+  variant?: "default" | "outline"
+}) {
+  const formId = useId()
+  const [state, action, pending] = useActionState(
+    retryPayrollRunXeroSyncAction,
     initialSettingsActionState,
   )
   useToastOnAction(state)
@@ -85,15 +433,16 @@ export function ApprovePayrollRunButton(props: { runId: string }) {
   return (
     <form id={formId} action={action}>
       <input type="hidden" name="runId" value={props.runId} hidden />
-      <ConfirmSubmitButton
-        formId={formId}
-        title="Approve and submit payroll run?"
-        description="This finalises the run and exposes every payslip to the affected employees. You can still revert back to draft if corrections are needed later."
-        confirmLabel="Approve and submit"
-        triggerLabel="Approve"
-        pendingLabel="Approving..."
-        pending={pending}
-      />
+      <Button
+        type="submit"
+        variant={props.variant ?? "outline"}
+        size="sm"
+        disabled={pending}
+        className="gap-2"
+      >
+        <RefreshCw className={cn("h-3.5 w-3.5", pending && "animate-spin")} />
+        {pending ? "Retrying…" : "Retry Xero sync"}
+      </Button>
     </form>
   )
 }

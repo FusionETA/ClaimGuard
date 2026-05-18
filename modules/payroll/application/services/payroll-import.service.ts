@@ -5,15 +5,24 @@ import { z } from "zod"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { hashPassword } from "@/lib/auth/password"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
+import type { Prisma } from "@/generated/prisma/client"
 import { getPrismaClient } from "@/lib/prisma"
 import {
   genders,
   idTypes,
+  importableEmployeeTypes,
   maritalStatuses,
   paymentMethods,
   salaryTypes,
   socsoSchemes,
 } from "@/modules/payroll/domain/models"
+import {
+  CATEGORICAL_TARGETS,
+  getCategoricalTargetSpec,
+  heuristicMatchCategorical,
+  type RowOverrides,
+  type ValueMap,
+} from "@/lib/ai/csv-value-mapper"
 
 /**
  * Bulk employee import service.
@@ -145,6 +154,9 @@ const rowSchema = z
     email: requiredString.pipe(z.string().email("Invalid email")),
     employeeId: requiredString,
     jobTitle: requiredString,
+    // Subset of UserRole minus ADMIN. Admins must be created via the
+    // admin UI, never via CSV import.
+    employeeType: requiredString.pipe(z.enum(importableEmployeeTypes)),
     joinDate: dateString,
     leaveDate: nullableDate,
     archiveReason: nullableString,
@@ -203,8 +215,22 @@ const rowSchema = z
     bankAccountNumber: nullableString,
     paymentMethod: nullableEnum(paymentMethods),
     // ── Hierarchy ──
+    // Hierarchy fields are accepted as `nullable` at Zod time so rows
+    // with empty hierarchy cells still make it into the preview step.
+    // From there the admin uses per-row Policy / Project / Team /
+    // Layer pickers to supply the IDs (with inline + Create). The
+    // importer's hierarchy block treats a row with no CSV value AND
+    // no override as "skip hierarchy assignment for this row".
+    //
+    // If a row DOES carry CSV values, the importer still resolves
+    // them by name; un-resolvable names surface as friendly errors at
+    // import time so the admin can use the preview picker to fix
+    // them. teamLayer is 1-indexed and clamped against the resolved
+    // team's layerCount.
+    policyName: nullableString,
     projectCode: nullableString,
     teamCode: nullableString,
+    teamLayer: nullableNumber,
     supervisorEmployeeId: nullableString,
   })
   .superRefine((row, ctx) => {
@@ -801,6 +827,87 @@ function translateImportError(err: unknown): ImportError {
 }
 
 /**
+ * Pre-load all policies / projects / teams in the org and return
+ * case-insensitive name → id maps. Used by both import paths so the
+ * per-row hierarchy resolution doesn't depend on the DB's collation
+ * for case-insensitive matching ("Fusion" must match "fusion").
+ *
+ * Takes a Prisma `tx` so it can run inside a transaction — the import
+ * resolves references in the same scope it writes employees, so any
+ * concurrent admin change is visible.
+ */
+type HierarchyMaps = {
+  policyIdByName: Map<string, string>
+  projectIdByName: Map<string, string>
+  /** Key = `${lower(projectName)}::${lower(teamName)}` */
+  teamByKey: Map<string, { id: string; layerCount: number }>
+  /// ID-keyed lookups used by the per-row override path. The wizard
+  /// hands us IDs from its preview dropdowns; we validate them against
+  /// these sets to defend against stale or cross-org IDs from the
+  /// client.
+  validPolicyIds: Set<string>
+  validProjectIds: Set<string>
+  teamById: Map<string, { layerCount: number; projectId: string }>
+}
+
+async function loadHierarchyMaps(
+  tx: Prisma.TransactionClient,
+  organizationId: string,
+): Promise<HierarchyMaps> {
+  const [policyRows, projectRows, teamRows] = await Promise.all([
+    tx.employeePolicy.findMany({
+      where: { organizationId, archivedAt: null },
+      select: { id: true, name: true },
+    }),
+    tx.xeroProject.findMany({
+      where: { organizationId },
+      select: { id: true, name: true },
+    }),
+    tx.team.findMany({
+      where: { project: { organizationId } },
+      select: {
+        id: true,
+        name: true,
+        layerCount: true,
+        projectId: true,
+        project: { select: { name: true } },
+      },
+    }),
+  ])
+
+  const policyIdByName = new Map<string, string>()
+  const validPolicyIds = new Set<string>()
+  for (const p of policyRows) {
+    policyIdByName.set(p.name.trim().toLowerCase(), p.id)
+    validPolicyIds.add(p.id)
+  }
+  const projectIdByName = new Map<string, string>()
+  const validProjectIds = new Set<string>()
+  for (const p of projectRows) {
+    projectIdByName.set(p.name.trim().toLowerCase(), p.id)
+    validProjectIds.add(p.id)
+  }
+  const teamByKey = new Map<string, { id: string; layerCount: number }>()
+  const teamById = new Map<
+    string,
+    { layerCount: number; projectId: string }
+  >()
+  for (const t of teamRows) {
+    const key = `${t.project.name.trim().toLowerCase()}::${t.name.trim().toLowerCase()}`
+    teamByKey.set(key, { id: t.id, layerCount: t.layerCount })
+    teamById.set(t.id, { layerCount: t.layerCount, projectId: t.projectId })
+  }
+  return {
+    policyIdByName,
+    projectIdByName,
+    teamByKey,
+    validPolicyIds,
+    validProjectIds,
+    teamById,
+  }
+}
+
+/**
  * Parse → validate → write. If ANY row has a validation error, the
  * whole batch is rejected and no DB writes happen.
  */
@@ -908,6 +1015,11 @@ export async function bulkImportPayrollEmployees(input: {
   let updated = 0
   try {
     await prisma.$transaction(async (tx) => {
+    // Pre-load the org's policies / projects / teams once. Per-row
+    // hierarchy resolution uses these maps so name matching is
+    // case-insensitive regardless of the DB's collation.
+    const hierarchy = await loadHierarchyMaps(tx, orgId)
+
     for (const row of validRows) {
       // Match by email (chosen as the only unique key per user
       // decision). If a user exists with this email in this org,
@@ -916,6 +1028,7 @@ export async function bulkImportPayrollEmployees(input: {
         where: { email: row.email, organizationId: orgId },
         select: {
           id: true,
+          role: true,
           employeeProfile: {
             select: { id: true, payrollProfile: { select: { id: true } } },
           },
@@ -926,9 +1039,14 @@ export async function bulkImportPayrollEmployees(input: {
 
       let userId: string
       if (existing) {
+        // ADMIN role is never overwritten by a CSV import — admin
+        // assignment is an admin-UI-only operation. EMPLOYEE and
+        // SUPERVISOR rows can flip between each other freely.
+        const nextRole =
+          existing.role === "ADMIN" ? "ADMIN" : row.employeeType
         await tx.user.update({
           where: { id: existing.id },
-          data: { name: row.name },
+          data: { name: row.name, role: nextRole },
         })
         userId = existing.id
         updated += 1
@@ -937,7 +1055,7 @@ export async function bulkImportPayrollEmployees(input: {
           data: {
             email: row.email,
             name: row.name,
-            role: "EMPLOYEE",
+            role: row.employeeType,
             passwordHash,
             organizationId: orgId,
           },
@@ -976,54 +1094,68 @@ export async function bulkImportPayrollEmployees(input: {
         update: buildPayrollProfileUpdate(row),
       })
 
-      // Hierarchy: project + team assignment (best-effort, silently
-      // skip if the project/team doesn't exist). Match by name —
-      // XeroProject and Team only have a `name` column, no `code`.
-      if (row.projectCode) {
-        const project = await tx.xeroProject.findFirst({
-          where: { organizationId: orgId, name: row.projectCode },
-          select: { id: true },
+      // Hierarchy: policy + project + team (mandatory). Resolved via
+      // the pre-loaded case-insensitive maps so "Fusion"/"FUSION"/
+      // "fusion" all match the same record regardless of DB collation.
+      if (row.policyName) {
+        const policyId = hierarchy.policyIdByName.get(
+          row.policyName.trim().toLowerCase(),
+        )
+        if (!policyId) {
+          throw new Error(
+            `Policy "${row.policyName}" not found in this organisation.`,
+          )
+        }
+        await tx.employeeProfile.update({
+          where: { id: employeeProfileId },
+          data: { policyId },
         })
-        if (project) {
-          await tx.employeeProjectAssignment.upsert({
+      }
+      if (row.projectCode) {
+        const projectId = hierarchy.projectIdByName.get(
+          row.projectCode.trim().toLowerCase(),
+        )
+        if (!projectId) {
+          throw new Error(
+            `Project "${row.projectCode}" not found in this organisation.`,
+          )
+        }
+        await tx.employeeProjectAssignment.upsert({
+          where: {
+            employeeProfileId_projectId: {
+              employeeProfileId,
+              projectId,
+            },
+          },
+          create: { employeeProfileId, projectId },
+          update: {},
+        })
+        if (row.teamCode) {
+          const teamKey = `${row.projectCode.trim().toLowerCase()}::${row.teamCode.trim().toLowerCase()}`
+          const team = hierarchy.teamByKey.get(teamKey)
+          if (!team) {
+            throw new Error(
+              `Team "${row.teamCode}" not found in project "${row.projectCode}".`,
+            )
+          }
+          const desiredLayer =
+            typeof row.teamLayer === "number" && row.teamLayer > 0
+              ? Math.min(Math.floor(row.teamLayer), team.layerCount)
+              : 1
+          await tx.employeeTeamMembership.upsert({
             where: {
-              employeeProfileId_projectId: {
+              employeeProfileId_teamId: {
                 employeeProfileId,
-                projectId: project.id,
+                teamId: team.id,
               },
             },
-            create: { employeeProfileId, projectId: project.id },
-            update: {},
+            create: {
+              employeeProfileId,
+              teamId: team.id,
+              layer: desiredLayer,
+            },
+            update: { layer: desiredLayer },
           })
-          if (row.teamCode) {
-            const team = await tx.team.findUnique({
-              where: {
-                projectId_name: {
-                  projectId: project.id,
-                  name: row.teamCode,
-                },
-              },
-              select: { id: true },
-            })
-            if (team) {
-              await tx.employeeTeamMembership.upsert({
-                where: {
-                  employeeProfileId_teamId: {
-                    employeeProfileId,
-                    teamId: team.id,
-                  },
-                },
-                create: {
-                  employeeProfileId,
-                  teamId: team.id,
-                  // Default to the bottom layer (1). Admins can move
-                  // them later via the company-structure UI.
-                  layer: 1,
-                },
-                update: {},
-              })
-            }
-          }
         }
       }
     }
@@ -1103,16 +1235,311 @@ export type MappedImportResult = {
   errors: ImportError[]
 }
 
+/**
+ * Source columns we hide from the AI-mapping wizard. These are
+ * legacy template-only column names that historically went through a
+ * different code path; they're not in our public schema and have no
+ * useful auto-mapping.
+ *
+ * IMPORTANT: do NOT add column names here that match a schema field
+ * key — the wizard will silently swallow those columns, leaving the
+ * admin unable to map them. (e.g. `projectcode` and `teamcode` used
+ * to be here from the pre-Hierarchy template design and broke the
+ * new per-category wizard for any CSV with hierarchy columns.)
+ */
 const HIDDEN_MAPPED_IMPORT_HEADERS = new Set([
   "department",
   "location",
-  "projectcode",
-  "teamcode",
   "supervisoremployeeid",
 ])
 
 function normaliseMappedImportHeader(header: string): string {
   return header.toLowerCase().replace(/[^a-z0-9]/g, "")
+}
+
+/**
+ * For each name set referenced in the CSV, check which already exist
+ * in the active org and which are missing. Drives the wizard's
+ * RESOLVE step — the admin is asked to create the missing ones (via
+ * an inline shortcut) before the import can proceed.
+ *
+ * Lookups are name-based + case-INSENSITIVE because the CSV is
+ * authored in spreadsheets where "QA" and "qa" are usually meant to
+ * collide. The matching record's id is returned alongside so the
+ * importer can reference it without a second round-trip.
+ */
+export type ReferenceResolutionResult = {
+  policies: {
+    existing: Array<{ name: string; id: string; canonicalName: string }>
+    missing: string[]
+  }
+  projects: {
+    existing: Array<{ name: string; id: string; canonicalName: string }>
+    missing: string[]
+  }
+  teams: {
+    existing: Array<{
+      project: string
+      team: string
+      projectId: string
+      teamId: string
+      canonicalTeamName: string
+    }>
+    /**
+     * Missing teams may target a project that's ALSO missing — those
+     * appear here too so the admin sees "needs a project first" in
+     * the UI. The inline create form handles ordering: project must
+     * be resolved before its teams can be.
+     */
+    missing: Array<{ project: string; team: string }>
+  }
+}
+
+export async function resolveCsvReferences(input: {
+  organizationId: string
+  references: CsvReferences
+}): Promise<ReferenceResolutionResult> {
+  const prisma = getPrismaClient()
+  if (!prisma) {
+    return {
+      policies: { existing: [], missing: input.references.policies },
+      projects: { existing: [], missing: input.references.projects },
+      teams: { existing: [], missing: input.references.teams },
+    }
+  }
+
+  // Case-insensitive name lookup. We pull every policy/project/team
+  // in the org (small N, no need for IN clauses) and bucket in JS.
+  const [policyRows, projectRows, teamRows] = await Promise.all([
+    prisma.employeePolicy.findMany({
+      where: { organizationId: input.organizationId, archivedAt: null },
+      select: { id: true, name: true },
+    }),
+    prisma.xeroProject.findMany({
+      where: { organizationId: input.organizationId },
+      select: { id: true, name: true },
+    }),
+    prisma.team.findMany({
+      where: { project: { organizationId: input.organizationId } },
+      select: {
+        id: true,
+        name: true,
+        project: { select: { id: true, name: true } },
+      },
+    }),
+  ])
+
+  const policyByName = new Map(
+    policyRows.map((p) => [p.name.trim().toLowerCase(), p]),
+  )
+  const projectByName = new Map(
+    projectRows.map((p) => [p.name.trim().toLowerCase(), p]),
+  )
+  const teamByKey = new Map(
+    teamRows.map((t) => [
+      `${t.project.name.trim().toLowerCase()}::${t.name.trim().toLowerCase()}`,
+      t,
+    ]),
+  )
+
+  const policiesExisting: ReferenceResolutionResult["policies"]["existing"] = []
+  const policiesMissing: string[] = []
+  for (const name of input.references.policies) {
+    const hit = policyByName.get(name.trim().toLowerCase())
+    if (hit) {
+      policiesExisting.push({ name, id: hit.id, canonicalName: hit.name })
+    } else {
+      policiesMissing.push(name)
+    }
+  }
+
+  const projectsExisting: ReferenceResolutionResult["projects"]["existing"] = []
+  const projectsMissing: string[] = []
+  for (const name of input.references.projects) {
+    const hit = projectByName.get(name.trim().toLowerCase())
+    if (hit) {
+      projectsExisting.push({ name, id: hit.id, canonicalName: hit.name })
+    } else {
+      projectsMissing.push(name)
+    }
+  }
+
+  const teamsExisting: ReferenceResolutionResult["teams"]["existing"] = []
+  const teamsMissing: ReferenceResolutionResult["teams"]["missing"] = []
+  for (const t of input.references.teams) {
+    const key = `${t.project.trim().toLowerCase()}::${t.team.trim().toLowerCase()}`
+    const hit = teamByKey.get(key)
+    if (hit) {
+      teamsExisting.push({
+        project: t.project,
+        team: t.team,
+        projectId: hit.project.id,
+        teamId: hit.id,
+        canonicalTeamName: hit.name,
+      })
+    } else {
+      teamsMissing.push(t)
+    }
+  }
+
+  return {
+    policies: { existing: policiesExisting, missing: policiesMissing },
+    projects: { existing: projectsExisting, missing: projectsMissing },
+    teams: { existing: teamsExisting, missing: teamsMissing },
+  }
+}
+
+/**
+ * Walk a mapped CSV once and collect the unique policy / project /
+ * (project, team) references it touches. Used by the import wizard's
+ * RESOLVE step to ask the admin whether each reference exists in the
+ * DB and to offer inline-create shortcuts for the ones that don't.
+ *
+ * No Zod validation runs here — we only care about the raw
+ * `policyName`, `projectCode`, `teamCode` values per row. Rows
+ * missing any of those simply contribute nothing to the reference
+ * set (full-row validation happens later in `previewMappedCsv` /
+ * `importMappedCsv` and surfaces those rows as "missing required").
+ */
+export type CsvReferences = {
+  policies: string[]
+  projects: string[]
+  teams: Array<{ project: string; team: string }>
+}
+
+export function extractCsvReferences(input: {
+  csv: string
+  mapping: Record<string, string | null>
+}): CsvReferences {
+  const rows = parseCsv(input.csv)
+  if (rows.length === 0) {
+    return { policies: [], projects: [], teams: [] }
+  }
+  const sourceHeaders = rows[0].map((c) => c.trim())
+  const dataRows = rows.slice(1).filter((row) => {
+    const first = row[0]?.trim() ?? ""
+    return !first.startsWith("#")
+  })
+
+  const sourceIndex = new Map<string, number>()
+  for (const [i, h] of sourceHeaders.entries()) {
+    sourceIndex.set(h, i)
+  }
+  // target field → source column index
+  function indexFor(target: string): number | null {
+    for (const [source, mappedTarget] of Object.entries(input.mapping)) {
+      if (mappedTarget === target) {
+        return sourceIndex.get(source) ?? null
+      }
+    }
+    return null
+  }
+  const policyIdx = indexFor("policyName")
+  const projectIdx = indexFor("projectCode")
+  const teamIdx = indexFor("teamCode")
+
+  const policies = new Set<string>()
+  const projects = new Set<string>()
+  const teamKey = (p: string, t: string) => `${p}::${t}`
+  const teams = new Map<string, { project: string; team: string }>()
+
+  for (const row of dataRows) {
+    if (policyIdx != null) {
+      const v = (row[policyIdx] ?? "").trim()
+      if (v) policies.add(v)
+    }
+    const project = projectIdx != null ? (row[projectIdx] ?? "").trim() : ""
+    if (project) projects.add(project)
+    if (teamIdx != null) {
+      const team = (row[teamIdx] ?? "").trim()
+      // Teams are scoped to a project. Without the project we can't
+      // disambiguate (two projects can have a "Backend" team), so we
+      // drop the team here. The caller's RESOLVE step will still
+      // catch any rows that reference a team without a project via
+      // standard "missing required" validation.
+      if (project && team) {
+        teams.set(teamKey(project, team), { project, team })
+      }
+    }
+  }
+
+  return {
+    policies: Array.from(policies).sort((a, b) => a.localeCompare(b)),
+    projects: Array.from(projects).sort((a, b) => a.localeCompare(b)),
+    teams: Array.from(teams.values()).sort((a, b) =>
+      a.project === b.project
+        ? a.team.localeCompare(b.team)
+        : a.project.localeCompare(b.project),
+    ),
+  }
+}
+
+/**
+ * Walk the CSV and collect distinct raw values for every source
+ * column whose admin-confirmed target is a categorical (enum/boolean)
+ * field. Used to feed the wizard's "Map values" step — the AI is
+ * asked to map every distinct raw value to one of our canonical enum
+ * values.
+ *
+ * Columns whose target is non-categorical (free text, numeric, date,
+ * reference) are skipped — value mapping does not apply.
+ */
+export type DistinctValueColumn = {
+  target: string
+  sourceColumn: string
+  rawValues: string[]
+}
+
+export function extractCsvDistinctCategoricalValues(input: {
+  csv: string
+  mapping: Record<string, string | null>
+}): DistinctValueColumn[] {
+  const rows = parseCsv(input.csv)
+  if (rows.length === 0) return []
+  const sourceHeaders = rows[0].map((c) => c.trim())
+  const dataRows = rows.slice(1).filter((row) => {
+    const first = row[0]?.trim() ?? ""
+    return !first.startsWith("#")
+  })
+
+  const sourceIndex = new Map<string, number>()
+  for (const [i, h] of sourceHeaders.entries()) {
+    sourceIndex.set(h, i)
+  }
+
+  // Walk the mapping and keep only entries whose target is categorical.
+  // Multiple source columns can map to the same target — that's
+  // unusual but we'd rather merge distinct values than silently drop.
+  const perTarget = new Map<
+    string,
+    { sourceColumn: string; values: Set<string> }
+  >()
+
+  for (const [source, target] of Object.entries(input.mapping)) {
+    if (!target || target.trim() === "") continue
+    if (!(target in CATEGORICAL_TARGETS)) continue
+    const idx = sourceIndex.get(source)
+    if (idx == null) continue
+    const bucket = perTarget.get(target) ?? {
+      sourceColumn: source,
+      values: new Set<string>(),
+    }
+    for (const row of dataRows) {
+      const v = (row[idx] ?? "").trim()
+      if (v !== "") bucket.values.add(v)
+    }
+    perTarget.set(target, bucket)
+  }
+
+  return Array.from(perTarget.entries())
+    .map(([target, bucket]) => ({
+      target,
+      sourceColumn: bucket.sourceColumn,
+      rawValues: Array.from(bucket.values).sort((a, b) => a.localeCompare(b)),
+    }))
+    // Stable display order — categoricals are usually few, alphabetical
+    // by target is fine.
+    .sort((a, b) => a.target.localeCompare(b.target))
 }
 
 /**
@@ -1159,6 +1586,13 @@ export function extractCsvPreview(csv: string): {
 function reshapeAndNormalize(input: {
   csv: string
   mapping: Record<string, string | null>
+  /**
+   * Admin-confirmed value-to-enum map from the wizard's "Map values"
+   * step. When a target field has an entry for the raw CSV value, the
+   * mapped canonical value wins over the importer's hardcoded synonyms.
+   * Threaded through here from `previewMappedCsv` / `importMappedCsv`.
+   */
+  valueMap?: ValueMap
 }): {
   parsedRows: RowWithChildren[]
   skipped: SkippedRow[]
@@ -1205,9 +1639,10 @@ function reshapeAndNormalize(input: {
 
     // Normalise each value to the canonical form our Zod schema
     // expects (TRUE/FALSE, YYYY-MM-DD, enum SHOUTING_CASE, etc.).
+    // The admin-confirmed `valueMap` wins over the heuristic synonyms.
     const normalised: Record<string, string> = {}
     for (const [key, value] of Object.entries(reshaped)) {
-      normalised[key] = normaliseValue(key, value)
+      normalised[key] = normaliseValue(key, value, input.valueMap)
     }
 
     // Pull child slot fields out before rowSchema runs — they aren't
@@ -1254,6 +1689,7 @@ const REQUIRED_FIELDS = [
   "email",
   "employeeId",
   "jobTitle",
+  "employeeType",
   "salaryType",
   "joinDate",
   "nationality",
@@ -1276,19 +1712,12 @@ function findMissingRequired(row: Record<string, string>): string[] {
 }
 
 // ─── Value normalisation ────────────────────────────────────────────────
+//
+// Categorical fields (enums + booleans) used to live in a giant switch
+// here. They now live in `lib/ai/csv-value-mapper.ts` as
+// `CATEGORICAL_TARGETS`, so the AI prompt, the UI dropdowns, and the
+// importer all read from one source.
 
-const BOOLEAN_TARGETS = new Set([
-  "hasPr",
-  "epfMemberBefore1998",
-  "contributeToEis",
-  "isResident",
-  "isOku",
-  "reportedToLhdn",
-  "spouseWorking",
-  "spouseDisabled",
-  "contributeToEpf",
-  "pcbBorneByEmployer",
-])
 const DATE_TARGETS = new Set(["joinDate", "dateOfBirth", "leaveDate"])
 const NUMERIC_TARGETS = new Set([
   "monthlySalary",
@@ -1298,89 +1727,43 @@ const NUMERIC_TARGETS = new Set([
   "epfEmployerVoluntary",
 ])
 
-function normaliseValue(target: string, raw: string): string {
+/**
+ * Normalise a single cell value for a known target field.
+ *
+ * Categorical fields (enums + booleans) check the admin-confirmed
+ * `valueMap` first; if there's no entry, we fall back to the shared
+ * synonym heuristic. Date / numeric paths are unchanged.
+ *
+ * Returning the raw value (rather than throwing) keeps the existing
+ * contract: Zod runs after this and produces a friendly per-row error
+ * if normalisation can't recognise the input.
+ */
+function normaliseValue(
+  target: string,
+  raw: string,
+  valueMap?: ValueMap,
+): string {
   const v = (raw ?? "").trim()
   if (v === "") return ""
 
-  if (BOOLEAN_TARGETS.has(target)) {
-    return normaliseBoolean(v)
+  // Admin-confirmed value-to-enum mapping wins over everything.
+  const mapped = valueMap?.[target]?.[v]
+  if (mapped !== undefined) {
+    return mapped ?? ""
   }
+
   if (DATE_TARGETS.has(target)) {
     return normaliseDate(v)
   }
   if (NUMERIC_TARGETS.has(target)) {
     return normaliseNumeric(v)
   }
-  switch (target) {
-    case "salaryType":
-      return normaliseEnum(v, {
-        MONTHLY: ["monthly", "month", "m", "salaried"],
-        HOURLY: ["hourly", "hour", "h", "per hour"],
-      })
-    case "gender":
-      return normaliseEnum(v, {
-        MALE: ["male", "m", "man", "lelaki"],
-        FEMALE: ["female", "f", "woman", "perempuan"],
-      })
-    case "maritalStatus":
-      return normaliseEnum(v, {
-        SINGLE: ["single", "bujang", "never married"],
-        MARRIED: ["married", "kahwin"],
-        DIVORCED: ["divorced", "bercerai"],
-        WIDOWED: ["widowed", "widow", "balu", "duda"],
-      })
-    case "idType":
-      return normaliseEnum(v, {
-        NRIC: ["nric", "ic", "mykad", "kad pengenalan"],
-        PASSPORT: ["passport", "pasport"],
-        ARMY_NO: ["army", "tentera", "army_no"],
-        POLICE_NO: ["police", "polis", "police_no"],
-      })
-    case "socsoScheme":
-      return normaliseEnum(v, {
-        EMPLOYMENT_INJURY_INVALIDITY: [
-          "employment injury and invalidity",
-          "employment injury & invalidity",
-          "cat 1",
-          "category 1",
-          "first category",
-          "scheme 1",
-        ],
-        EMPLOYMENT_INJURY_ONLY: [
-          "employment injury only",
-          "cat 2",
-          "category 2",
-          "second category",
-          "scheme 2",
-        ],
-      })
-    case "paymentMethod":
-      return normaliseEnum(v, {
-        BANK_TRANSFER: [
-          "bank transfer",
-          "bank",
-          "transfer",
-          "giro",
-          "online transfer",
-        ],
-        CASH: ["cash", "tunai"],
-        CHEQUE: ["cheque", "check"],
-      })
-    default:
-      return v
+  const spec = getCategoricalTargetSpec(target)
+  if (spec) {
+    const heuristic = heuristicMatchCategorical(spec, v)
+    return heuristic ?? raw
   }
-}
-
-function normaliseBoolean(raw: string): string {
-  const t = raw.toLowerCase().trim()
-  if (["true", "1", "yes", "y", "ya", "active", "tick", "x", "✓"].includes(t)) {
-    return "TRUE"
-  }
-  if (["false", "0", "no", "n", "tidak", "inactive", ""].includes(t)) {
-    return "FALSE"
-  }
-  // Unknown boolean — return as-is and let Zod reject.
-  return raw
+  return v
 }
 
 /**
@@ -1454,26 +1837,20 @@ function normaliseNumeric(raw: string): string {
   return String(n)
 }
 
-function normaliseEnum(
-  raw: string,
-  map: Record<string, string[]>,
-): string {
-  const v = raw.toLowerCase().trim()
-  // Already canonical?
-  if (map[raw] != null) return raw
-  for (const [canonical, synonyms] of Object.entries(map)) {
-    if (canonical.toLowerCase() === v) return canonical
-    if (synonyms.some((s) => s.toLowerCase() === v)) return canonical
-  }
-  // Unknown — return raw, Zod will reject.
-  return raw
-}
-
 // ─── Preview action ──────────────────────────────────────────────────────
 
 export async function previewMappedCsv(input: {
   csv: string
   mapping: Record<string, string | null>
+  /** Optional admin-confirmed value-to-enum map from the wizard. */
+  valueMap?: ValueMap
+  /**
+   * Optional per-row policy/project/team/layer overrides set in the
+   * preview step. Accepted here so callers can pass a single `input`
+   * shape to both `previewMappedCsv` and `importMappedCsv`; the
+   * preview itself does not consume these (the preview is name-based).
+   */
+  rowOverrides?: RowOverrides
 }): Promise<PreviewResult> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") {
@@ -1483,7 +1860,11 @@ export async function previewMappedCsv(input: {
     throw new Error("No active organisation.")
   }
 
-  const { parsedRows, skipped, errors, total } = reshapeAndNormalize(input)
+  const { parsedRows, skipped, errors, total } = reshapeAndNormalize({
+    csv: input.csv,
+    mapping: input.mapping,
+    valueMap: input.valueMap,
+  })
 
   // Pick the first 5 fully-normalised rows for preview.
   const preview = parsedRows.slice(0, 5).map((r) => {
@@ -1520,6 +1901,16 @@ export async function previewMappedCsv(input: {
 export async function importMappedCsv(input: {
   csv: string
   mapping: Record<string, string | null>
+  /** Optional admin-confirmed value-to-enum map from the wizard. */
+  valueMap?: ValueMap
+  /**
+   * Optional per-row Policy/Project/Team/Layer overrides from the
+   * preview step. When present for a row, the importer uses the IDs
+   * directly and skips the CSV-name → DB lookup for that row.
+   * Currently accepted but not yet consumed — wired up in a later
+   * step of the import-wizard redesign.
+   */
+  rowOverrides?: RowOverrides
 }): Promise<MappedImportResult> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") {
@@ -1531,7 +1922,11 @@ export async function importMappedCsv(input: {
   const prisma = getPrismaClient()
   if (!prisma) throw new Error("Database is not configured.")
 
-  const { parsedRows, skipped, errors, total } = reshapeAndNormalize(input)
+  const { parsedRows, skipped, errors, total } = reshapeAndNormalize({
+    csv: input.csv,
+    mapping: input.mapping,
+    valueMap: input.valueMap,
+  })
 
   // Conflict pre-check (intra-CSV duplicates + DB collisions). If
   // there's a problem, return the friendly errors instead of letting
@@ -1561,11 +1956,25 @@ export async function importMappedCsv(input: {
   let updated = 0
   try {
     await prisma.$transaction(async (tx) => {
-    for (const row of parsedRows) {
+    // Pre-load org hierarchy maps ONCE — used by every row's policy /
+    // project / team lookup. Case-insensitive matching is enforced
+    // here (not via DB collation), so "Fusion" and "FUSION" resolve
+    // to the same record regardless of MySQL collation settings.
+    const hierarchy = await loadHierarchyMaps(tx, orgId)
+
+    for (const [rowIndex, row] of parsedRows.entries()) {
+      // The wizard's preview is in the same order as `parsedRows`, so
+      // `rowOverrides[rowIndex]` is the admin's per-row override for
+      // this employee. Per-row IDs win over CSV-name lookups when
+      // present; if neither resolves, the row throws below with a
+      // friendly message naming the CSV value.
+      const override = input.rowOverrides?.[rowIndex]
+
       const existing = await tx.user.findFirst({
         where: { email: row.email, organizationId: orgId },
         select: {
           id: true,
+          role: true,
           employeeProfile: { select: { id: true } },
         },
       })
@@ -1576,9 +1985,16 @@ export async function importMappedCsv(input: {
 
       let userId: string
       if (existing) {
+        // Update name + role. Role updates are skipped when the
+        // existing user is an ADMIN — the CSV can't demote an admin
+        // through this path (admins must be managed via the admin
+        // UI). For EMPLOYEE/SUPERVISOR rows the role is updated to
+        // reflect any change in the CSV.
+        const nextRole =
+          existing.role === "ADMIN" ? "ADMIN" : row.employeeType
         await tx.user.update({
           where: { id: existing.id },
-          data: { name: row.name },
+          data: { name: row.name, role: nextRole },
         })
         userId = existing.id
         updated += 1
@@ -1587,7 +2003,7 @@ export async function importMappedCsv(input: {
           data: {
             email: row.email,
             name: row.name,
-            role: "EMPLOYEE",
+            role: row.employeeType,
             passwordHash,
             organizationId: orgId,
           },
@@ -1624,50 +2040,105 @@ export async function importMappedCsv(input: {
         update: buildPayrollProfileUpdate(row),
       })
 
-      // Hierarchy: project + team (best-effort).
-      if (row.projectCode) {
-        const project = await tx.xeroProject.findFirst({
-          where: { organizationId: orgId, name: row.projectCode },
-          select: { id: true },
+      // Hierarchy: policy + project + team. Resolution order is
+      // (1) per-row override ID from the preview picker → (2) CSV
+      // name match → (3) error. The error mentions the picker UI so
+      // admins know where to fix it.
+      const resolvedPolicyId =
+        override?.policyId && hierarchy.validPolicyIds.has(override.policyId)
+          ? override.policyId
+          : row.policyName
+            ? hierarchy.policyIdByName.get(
+                row.policyName.trim().toLowerCase(),
+              )
+            : null
+
+      if (row.policyName || override?.policyId) {
+        if (!resolvedPolicyId) {
+          throw new Error(
+            `Policy "${row.policyName ?? "(unset)"}" not found. Pick or create it in the preview picker.`,
+          )
+        }
+        await tx.employeeProfile.update({
+          where: { id: employeeProfileId },
+          data: { policyId: resolvedPolicyId },
         })
-        if (project) {
-          await tx.employeeProjectAssignment.upsert({
+      }
+
+      const resolvedProjectId =
+        override?.projectId && hierarchy.validProjectIds.has(override.projectId)
+          ? override.projectId
+          : row.projectCode
+            ? hierarchy.projectIdByName.get(
+                row.projectCode.trim().toLowerCase(),
+              )
+            : null
+
+      if (row.projectCode || override?.projectId) {
+        if (!resolvedProjectId) {
+          throw new Error(
+            `Project "${row.projectCode ?? "(unset)"}" not found. Pick or create it in the preview picker.`,
+          )
+        }
+        await tx.employeeProjectAssignment.upsert({
+          where: {
+            employeeProfileId_projectId: {
+              employeeProfileId,
+              projectId: resolvedProjectId,
+            },
+          },
+          create: { employeeProfileId, projectId: resolvedProjectId },
+          update: {},
+        })
+
+        // Team: per-row override ID → CSV name + project key → error.
+        // Override `teamId` must belong to the resolved project so a
+        // stale picker pick can't write a cross-project membership.
+        let resolvedTeam: { id: string; layerCount: number } | undefined
+        if (override?.teamId) {
+          const t = hierarchy.teamById.get(override.teamId)
+          if (t && t.projectId === resolvedProjectId) {
+            resolvedTeam = { id: override.teamId, layerCount: t.layerCount }
+          }
+        }
+        if (!resolvedTeam && row.teamCode && row.projectCode) {
+          const teamKey = `${row.projectCode.trim().toLowerCase()}::${row.teamCode.trim().toLowerCase()}`
+          const t = hierarchy.teamByKey.get(teamKey)
+          if (t) resolvedTeam = t
+        }
+
+        if (row.teamCode || override?.teamId) {
+          if (!resolvedTeam) {
+            throw new Error(
+              `Team "${row.teamCode ?? "(unset)"}" not found in this project. Pick or create it in the preview picker.`,
+            )
+          }
+          // Layer source: override → CSV → 1. Clamp to layerCount so
+          // we never write a non-existent layer.
+          const desiredLayerRaw =
+            typeof override?.teamLayer === "number"
+              ? override.teamLayer
+              : typeof row.teamLayer === "number" && row.teamLayer > 0
+                ? row.teamLayer
+                : 1
+          const desiredLayer = Math.max(
+            1,
+            Math.min(Math.floor(desiredLayerRaw), resolvedTeam.layerCount),
+          )
+          await tx.employeeTeamMembership.upsert({
             where: {
-              employeeProfileId_projectId: {
+              employeeProfileId_teamId: {
                 employeeProfileId,
-                projectId: project.id,
+                teamId: resolvedTeam.id,
               },
             },
-            create: { employeeProfileId, projectId: project.id },
-            update: {},
+            create: {
+              employeeProfileId,
+              teamId: resolvedTeam.id,
+              layer: desiredLayer,
+            },
+            update: { layer: desiredLayer },
           })
-          if (row.teamCode) {
-            const team = await tx.team.findUnique({
-              where: {
-                projectId_name: {
-                  projectId: project.id,
-                  name: row.teamCode,
-                },
-              },
-              select: { id: true },
-            })
-            if (team) {
-              await tx.employeeTeamMembership.upsert({
-                where: {
-                  employeeProfileId_teamId: {
-                    employeeProfileId,
-                    teamId: team.id,
-                  },
-                },
-                create: {
-                  employeeProfileId,
-                  teamId: team.id,
-                  layer: 1,
-                },
-                update: {},
-              })
-            }
-          }
         }
       }
     }

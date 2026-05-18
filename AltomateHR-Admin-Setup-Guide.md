@@ -11,13 +11,13 @@ This guide walks you through setting up AltomateHR for the first time. Each step
 ```
 Step 1  → Set Up Your Organisation
 Step 2  → Connect to Xero
-Step 3  → Sync Projects from Xero
+Step 3  → Sync Projects (Tracking Category) from Xero
 Step 4  → Sync Chart of Accounts from Xero
 Step 5  → Create Employee Policies
+Step 9  → Create Teams
 Step 6  → Add Project Managers
 Step 7  → Assign Project Managers to Their Projects
 Step 8  → Add Supervisors
-Step 9  → Create Teams
 Step 10 → Add Employees
 ```
 

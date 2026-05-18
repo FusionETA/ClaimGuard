@@ -365,13 +365,28 @@ export type ClaimForXeroSync = {
   spentAt: Date
   xeroBillId: string | null
   /// Set when the receipt was uploaded to Xero Files at submission time.
-  /// When the bill-creation flow is re-enabled, call
+  /// When the bill is created we'll call
   /// associateFileWithInvoice({ fileId: xeroFileId, invoiceId: bill.invoiceId })
-  /// after the bill is created so the receipt shows up in the bill's
-  /// Files panel in Xero.
+  /// so the receipt shows up in the bill's Files panel in Xero.
   xeroFileId: string | null
+  organizationId: string | null
   chartOfAccount?: {
     code: string
+    name: string
+    /// Xero AccountID (UUID). Used as the bill line's account
+    /// target when the claim's expense COA is linked to a Xero
+    /// connection. Null for custom (non-Xero) accounts; in that
+    /// case the bill can't be created and we surface a friendly
+    /// "pick a Xero-linked account" error.
+    xeroAccountId: string | null
+    /// Which Xero connection the COA belongs to. The bill is
+    /// posted under this connection's tenant.
+    xeroConnectionId: string | null
+  } | null
+  /// Project the claim is filed against. Surfaced on the bill line's
+  /// tracking dimension when the org has a tracking category set in
+  /// payroll settings.
+  project: {
     name: string
   } | null
   employee: {
@@ -1941,11 +1956,17 @@ export const claimRepository = {
         spentAt: true,
         xeroBillId: true,
         xeroFileId: true,
+        organizationId: true,
         chartOfAccount: {
           select: {
             code: true,
             name: true,
+            xeroAccountId: true,
+            xeroConnectionId: true,
           },
+        },
+        project: {
+          select: { name: true },
         },
         employee: {
           select: {
@@ -1968,7 +1989,9 @@ export const claimRepository = {
       spentAt: claim.spentAt,
       xeroBillId: claim.xeroBillId,
       xeroFileId: claim.xeroFileId,
+      organizationId: claim.organizationId,
       chartOfAccount: claim.chartOfAccount,
+      project: claim.project,
       employee: claim.employee,
     }
   },

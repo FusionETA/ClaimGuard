@@ -29,6 +29,7 @@ model User {
   reviews                Claim[]              @relation("AdminReviews")
   claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
   employeeProfile        EmployeeProfile?     @relation("EmployeeProfileUser")
+  employeeImportDrafts   EmployeeImportDraft[]
   submittedPayrollRuns   PayrollRun[]         @relation("PayrollRunSubmittedBy")
   submittedForApprovalPayrollRuns PayrollRun[] @relation("PayrollRunSubmittedForApprovalBy")
   projectManagerOf       ProjectManager[]     @relation("ProjectManagerOf")
@@ -75,6 +76,7 @@ model Organization {
   apiIntegrations         ApiIntegration[]
   chartAccounts           ChartOfAccount[]
   claims                  Claim[]
+  employeeImportDrafts    EmployeeImportDraft[]
   employeePolicies        EmployeePolicy[]
   payrollCompanyInfo      PayrollCompanyInfo?
   payrollRuns             PayrollRun[]
@@ -285,6 +287,45 @@ model PushSubscription {
   @@index([userId])
 }
 
+/// Resumable draft of the bulk-employee-import wizard. One draft per
+/// (user, organization). Auto-saved by the wizard on every state
+/// change (debounced), restored when the admin re-opens the dialog.
+///
+/// `state` is the full client-side wizard state as JSON — CSV text,
+/// AI mapping suggestions, admin-confirmed column / value mappings,
+/// per-row overrides, current step, etc. Stored as `LongText` so the
+/// 5 MB CSV upload cap fits comfortably.
+///
+/// Drafts older than 7 days are purged on each `getDraftForUser` call
+/// so stale drafts never bother an admin who's moved on.
+model EmployeeImportDraft {
+  id             String       @id @default(cuid())
+  userId         String
+  organizationId String
+  /// Original uploaded file name (best-effort display only).
+  fileName       String?
+  /// The wizard step the admin was on when last saved. One of
+  /// "upload" | "map" | "values" | "preview" | "done". Stored as a
+  /// loose string so adding a step doesn't require a migration.
+  step           String
+  /// Row count from the most recent preview/normalisation. Surfaced
+  /// in the "Continue draft" panel so admins can recognise their draft
+  /// at a glance.
+  rowCount       Int          @default(0)
+  /// Full wizard state as JSON. See the wizard component for the
+  /// serialised shape — fields are optional and the loader is
+  /// tolerant of partial blobs so older drafts survive code changes.
+  state          Json
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([updatedAt])
+}
+
 model EmployeeProfile {
   id                    String                      @id @default(cuid())
   userId                String                      @unique
@@ -480,6 +521,13 @@ model XeroConnection {
   connectedByAdminId   String?
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
+  /// Wall-clock timestamp of the most recent successful OAuth flow against
+  /// this connection. Distinct from `updatedAt` because silent token
+  /// refreshes also bump `updatedAt`, which would make this read as "last
+  /// connected at" when really only a background refresh happened. Null on
+  /// rows that pre-date this column — UI falls back to `createdAt` in that
+  /// case.
+  reauthorizedAt       DateTime?
   /// Records the most recent value of XERO_REAUTH_VERSION env var that the
   /// admin completed an OAuth flow against. When the env var is bumped (e.g.
   /// scopes expanded), connections whose lastReauthVersion no longer matches
@@ -991,6 +1039,22 @@ model PayrollSettings {
   /// When true, submitting a payroll run posts the payroll summary to
   /// Xero as a Manual Journal. Same Xero-connection UI gate.
   syncPayrollToXeroOnSubmit     Boolean         @default(false)
+  /// Xero sync mapping config — JSON blob shaped like
+  /// `PayrollXeroMapping` (see `modules/payroll/domain/settings.ts`):
+  ///   - `aggregationMode`: "PER_EMPLOYEE" | "SUM_BY_PROJECT" — only
+  ///     affects expense-side debit lines on the manual journal;
+  ///     accruals are always summed.
+  ///   - `trackingCategoryId`: Xero tracking category to use for the
+  ///     "project" dimension on every line (bills + journals).
+  ///   - `accounts`: map of payroll-category → Xero account ID
+  ///     (salary, allowance, directorSalary, directorFee,
+  ///     epfEmployer, socsoEmployer, eisEmployer, hrdfEmployer,
+  ///     accrualEpf, accrualSocso, accrualEis, accrualPcb,
+  ///     accrualSalary, bonus, commission, overtime).
+  ///
+  /// `null` means the admin hasn't configured Xero sync yet — the
+  /// sync paths fall back to "skip" with a friendly UI prompt.
+  xeroMapping                   Json?
   createdAt                     DateTime        @default(now())
   updatedAt                     DateTime        @updatedAt
   autoApplySocsoEisRelief       Boolean         @default(true)
@@ -1100,6 +1164,20 @@ model PayrollRun {
   /// migration). Status-only changes (submit / revert) don't touch
   /// this; only content mutations do.
   lastMutatedAt           DateTime?
+  /// Xero Manual Journal ID returned by the create-journal API
+  /// after the admin approves this run. `null` until the sync runs.
+  xeroManualJournalId     String?                @unique
+  /// Human-readable journal number / narration (echoed back from
+  /// Xero). Surfaced on the run page so admins can find the entry
+  /// in Xero quickly.
+  xeroJournalNumber       String?
+  /// Per-run sync status. NOT_SYNCED is the default; transitions to
+  /// SYNCED on success or FAILED if Xero returned an error.
+  xeroSyncStatus          XeroSyncStatus         @default(NOT_SYNCED)
+  /// Captured error message when xeroSyncStatus = FAILED. Cleared
+  /// on a retry that succeeds.
+  xeroSyncError           String?                @db.Text
+  xeroSyncedAt            DateTime?
   organization            Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   submittedBy             User?                  @relation("PayrollRunSubmittedBy", fields: [submittedById], references: [id])
   submittedForApprovalBy  User?                  @relation("PayrollRunSubmittedForApprovalBy", fields: [submittedForApprovalById], references: [id])

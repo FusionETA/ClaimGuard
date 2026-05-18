@@ -29,7 +29,7 @@ export type EmployeePayoutMethod = (typeof employeePayoutMethods)[number]
 
 export const employeePayoutMethodLabels: Record<EmployeePayoutMethod, string> = {
   HOURLY: "Hourly Worker",
-  MONTHLY_BASED: "Office Worker",
+  MONTHLY_BASED: "Monthly Worker",
 }
 
 export function resolveEmployeePayoutMethod(
