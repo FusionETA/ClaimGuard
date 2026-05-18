@@ -11,14 +11,13 @@ import {
   CalendarDays,
   LayoutDashboard,
   Loader2,
-  LogOut,
   Network,
   Plus,
   Receipt,
   Settings2,
 } from "lucide-react"
 
-import { logoutAction } from "@/app/login/actions"
+import { LogoutButton } from "@/components/layout/logout-button"
 import {
   createOrganizationAction,
   switchActiveOrganizationAction,
@@ -422,12 +421,7 @@ export function AdminShell({
                   <p className="text-sm font-bold">{user.name}</p>
                   <p className="text-xs text-muted-foreground">{user.subtitle}</p>
                 </div>
-                <form action={logoutAction} suppressHydrationWarning>
-                  <Button type="submit" variant="ghost" size="sm" className="rounded-full">
-                    <LogOut className="h-4 w-4" />
-                    <span className="hidden sm:inline">Log out</span>
-                  </Button>
-                </form>
+                <LogoutButton />
               </div>
             </div>
           </div>

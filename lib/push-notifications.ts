@@ -119,3 +119,47 @@ export async function subscribeToPushNotifications() {
 
   return syncPushSubscription()
 }
+
+/**
+ * Release the device's push subscription on logout.
+ *
+ * Order matters:
+ *   1. Tell the server to drop the DB row (while the session cookie is
+ *      still valid — calling /api/push/unsubscribe AFTER the cookie is
+ *      cleared would 401).
+ *   2. Then ask the browser/OS to unsubscribe the pushManager, which
+ *      tears down the channel with the platform push service (APNs /
+ *      FCM). Without this, the OS keeps the channel alive and a later
+ *      login on the same device gets back the same endpoint — fine,
+ *      but means the user is never re-prompted for notification
+ *      permission even if they expected to be.
+ *
+ * Both steps are best-effort: any failure is swallowed because
+ * `logoutAction` ALSO wipes the row server-side as a fallback, so the
+ * worst case is the OS-level channel hangs around with no rows
+ * pointing at it (harmless — nothing to push).
+ */
+export async function unsubscribeFromPushNotifications(): Promise<void> {
+  if (!pushNotificationsSupported()) return
+
+  const registration = await navigator.serviceWorker
+    .getRegistration()
+    .catch(() => null)
+  if (!registration) return
+
+  const subscription = await registration.pushManager
+    .getSubscription()
+    .catch(() => null)
+  if (!subscription) return
+
+  // Step 1 — server-side row cleanup (best effort, session still valid)
+  await fetch("/api/push/unsubscribe", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ endpoint: subscription.endpoint }),
+  }).catch(() => null)
+
+  // Step 2 — OS-level pushManager unsubscribe (best effort)
+  await subscription.unsubscribe().catch(() => null)
+}

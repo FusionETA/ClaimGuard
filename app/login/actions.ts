@@ -14,6 +14,7 @@ import {
   getCurrentSession,
   getHomePathForRole,
 } from "@/lib/auth/session"
+import { pushSubscriptionRepository } from "@/modules/notifications/infrastructure/push-subscription.repository"
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address."),
@@ -69,6 +70,22 @@ export async function loginAction(
 }
 
 export async function logoutAction() {
+  // Read the session BEFORE clearing it so we know whose push
+  // subscriptions to drop. Without this step the DB row stays linked
+  // to the previous user, and the server keeps pushing notifications
+  // to the device long after the user has logged out (was: a real bug
+  // reported on the PWA — log out, still get notifications for the old
+  // account).
+  //
+  // This is the server-side belt-and-braces. The client-side
+  // (LogoutButton) also calls pushManager.unsubscribe() to release the
+  // OS-level subscription; this fallback ensures the DB is always
+  // clean even if that client-side step never runs.
+  const session = await getCurrentSession()
+  if (session?.email) {
+    await pushSubscriptionRepository.deleteAllForUserEmail(session.email)
+  }
+
   await clearUserSession()
   redirect("/login")
 }

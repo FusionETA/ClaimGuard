@@ -59,4 +59,29 @@ export const pushSubscriptionRepository = {
         // subscription may already be gone — not worth surfacing
       })
   },
+
+  /**
+   * Delete every push subscription belonging to the given user. Called from
+   * `logoutAction` so the server-side state never lingers — even if the
+   * client-side `pushManager.unsubscribe()` step didn't run (browser
+   * closed mid-logout, network blip, JS disabled, etc.). Without this,
+   * the DB row keeps pointing at the device and the user keeps receiving
+   * notifications for the previous account.
+   *
+   * Silently swallows missing-row errors — by the time the caller's
+   * session is cleared, there's nothing useful to do with a failure
+   * here anyway.
+   */
+  async deleteAllForUserEmail(email: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) return
+
+    await prisma.pushSubscription
+      .deleteMany({
+        where: { user: { email } },
+      })
+      .catch(() => {
+        // best-effort cleanup — not worth surfacing
+      })
+  },
 }

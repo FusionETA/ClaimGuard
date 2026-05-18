@@ -10,11 +10,10 @@ import {
   CalendarDays,
   FileText,
   Home,
-  LogOut,
   Receipt,
 } from "lucide-react"
 
-import { logoutAction } from "@/app/login/actions"
+import { LogoutButton } from "@/components/layout/logout-button"
 import { PushNotificationPrompt } from "@/components/pwa/push-notification-prompt"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -360,12 +359,7 @@ export function EmployeeShell({
                   <p className="text-xs text-muted-foreground">{user.subtitle}</p>
                 </div>
               </Link>
-              <form action={logoutAction} suppressHydrationWarning>
-                <Button type="submit" variant="ghost" size="sm" className="rounded-full">
-                  <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">Log out</span>
-                </Button>
-              </form>
+              <LogoutButton />
             </div>
           </div>
         </header>
