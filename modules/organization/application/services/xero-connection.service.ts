@@ -147,9 +147,23 @@ export async function syncOrganizationChartAccounts(
   }
 
   try {
+    // Pull EXPENSE + BANK + every LIABILITY-style account type so the
+    // payroll Xero-mapping settings can point accrual lines (EPF /
+    // SOCSO / EIS / PCB / Salary payable) at the right liability
+    // accounts. `LIABILITY` is the legacy type code; modern Xero
+    // splits this into `CURRLIAB` (current) and `TERMLIAB`
+    // (long-term/non-current). We include all three to be safe across
+    // tenant configurations.
     const accounts = await getXeroAccounts({
       accessToken: connection.accessToken,
       tenantId: connection.tenantId,
+      includeTypes: [
+        "EXPENSE",
+        "BANK",
+        "LIABILITY",
+        "CURRLIAB",
+        "TERMLIAB",
+      ],
     })
 
     await organizationRepository.upsertChartAccountsFromXero({

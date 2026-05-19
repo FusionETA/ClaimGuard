@@ -10,10 +10,14 @@ import { createXeroManualJournal, getXeroTrackingCategories } from "@/lib/xero"
 import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
-import type {
-  PayrollXeroAccountKey,
-  PayrollXeroMapping,
+import {
+  PAYROLL_XERO_ALLOWANCE_CATEGORIES,
+  PAYROLL_XERO_DEDUCTION_CATEGORIES,
+  getPayrollAdjustmentLabel,
+  type PayrollXeroAccountKey,
+  type PayrollXeroMapping,
 } from "@/modules/payroll/domain/settings"
+import type { PayrollAdjustmentCategory } from "@/modules/payroll/domain/models"
 
 /**
  * Builds and posts a Xero Manual Journal that mirrors the payroll
@@ -125,6 +129,20 @@ export async function syncPayrollRunToXero(
           eisEmployer: true,
           pcb: true,
           hrdf: true,
+          // Line items — needed to drive per-category allowance /
+          // deduction mapping under the v2 schema. Each row tags
+          // itself with a kind (ALLOWANCE / DEDUCTION / REIMBURSEMENT)
+          // and an optional `category` (PayrollAdjustmentCategory).
+          // Reimbursements are skipped here — they post as Bills on
+          // claim approval, not in this journal.
+          lineItems: {
+            select: {
+              kind: true,
+              category: true,
+              amount: true,
+              label: true,
+            },
+          },
           employeeProfile: {
             select: {
               projectAssignments: {
@@ -273,10 +291,32 @@ export async function syncPayrollRunToXero(
     return [{ name: trackingCategoryName, option }]
   }
 
-  // Normalised payslip rows with project name lookup once.
+  // Normalised payslip rows with project + line-item lookup once.
+  // Line items are split into allowance vs deduction buckets so the
+  // builder can iterate each independently — reimbursements come from
+  // claims and post as Bills on claim approval, never here.
   const rows = run.payslips.map((p) => {
     const projectName =
       p.employeeProfile?.projectAssignments[0]?.project?.name ?? null
+    const allowanceLines: Array<{
+      category: PayrollAdjustmentCategory | null
+      amount: number
+      label: string
+    }> = []
+    const deductionLines: Array<{
+      category: PayrollAdjustmentCategory | null
+      amount: number
+      label: string
+    }> = []
+    for (const li of p.lineItems) {
+      const amount = toNumber(li.amount, 0)
+      if (amount <= 0) continue
+      const cat = (li.category as PayrollAdjustmentCategory | null) ?? null
+      const entry = { category: cat, amount, label: li.label }
+      if (li.kind === "ALLOWANCE") allowanceLines.push(entry)
+      else if (li.kind === "DEDUCTION") deductionLines.push(entry)
+      // REIMBURSEMENT lines stay on the Bill side — ignored here.
+    }
     return {
       id: p.id,
       employeeName: p.snapshotName,
@@ -284,7 +324,6 @@ export async function syncPayrollRunToXero(
       projectName: projectName ?? NO_PROJECT,
       basicPay: toNumber(p.basicPay, 0),
       otPay: toNumber(p.otPay, 0),
-      totalAllowances: toNumber(p.totalAllowances, 0),
       totalReimbursements: toNumber(p.totalReimbursements, 0),
       netPay: toNumber(p.netPay, 0),
       epfEmployee: toNumber(p.epfEmployee, 0),
@@ -295,15 +334,57 @@ export async function syncPayrollRunToXero(
       eisEmployer: toNumber(p.eisEmployer, 0),
       pcb: toNumber(p.pcb, 0),
       hrdf: toNumber(p.hrdf, 0),
+      allowanceLines,
+      deductionLines,
     }
   })
 
-  const salaryCode = codeFor("salary")!
-  const allowanceCode = codeFor("allowance") ?? salaryCode
-  const overtimeCode = codeForWithFallback("overtime", "salary") ?? salaryCode
+  // ── Per-category mapping resolution ──
+  // Resolve a category to a Xero account code:
+  //   - UNIFIED mode: always return the unified account.
+  //   - PER_CATEGORY: look up per-category map; missing = unmapped.
+  // `unmappedAllowanceCategories` / `unmappedDeductionCategories`
+  // collect categories that appeared on a payslip line but weren't
+  // mapped under PER_CATEGORY mode — surfaced in the pre-flight
+  // error message so the admin knows exactly which categories to
+  // configure before retrying.
+  const unmappedAllowanceCategories = new Set<PayrollAdjustmentCategory>()
+  const unmappedDeductionCategories = new Set<PayrollAdjustmentCategory>()
 
+  function allowanceCodeForCategory(
+    cat: PayrollAdjustmentCategory | null,
+  ): string | null {
+    if (mapping?.allowanceMode === "PER_CATEGORY") {
+      if (!cat) return codeFor("allowance") ?? null // legacy null-cat → fallback
+      const id = mapping.allowanceAccounts[cat]
+      if (!id) {
+        unmappedAllowanceCategories.add(cat)
+        return null
+      }
+      return accountCodeById.get(id) ?? null
+    }
+    return codeFor("allowance") ?? null
+  }
+  function deductionCodeForCategory(
+    cat: PayrollAdjustmentCategory | null,
+  ): string | null {
+    if (mapping?.deductionMode === "PER_CATEGORY") {
+      if (!cat) return codeFor("deduction") ?? null
+      const id = mapping.deductionAccounts[cat]
+      if (!id) {
+        unmappedDeductionCategories.add(cat)
+        return null
+      }
+      return accountCodeById.get(id) ?? null
+    }
+    return codeFor("deduction") ?? null
+  }
+
+  const salaryCode = codeFor("salary")!
+
+  // Per-employee SALARY debits — basicPay only (allowances + OT now
+  // come from line items, not the summed payslip column).
   if (mapping.aggregationMode === "PER_EMPLOYEE") {
-    // ── Per-employee debit lines ──
     for (const r of rows) {
       if (r.basicPay > 0) {
         lines.push({
@@ -313,65 +394,131 @@ export async function syncPayrollRunToXero(
           tracking: track(r.projectName),
         })
       }
-      if (r.totalAllowances > 0) {
-        lines.push({
-          accountCode: allowanceCode,
-          amount: round2(r.totalAllowances),
-          description: `ALLOWANCE - ${r.employeeName}`,
-          tracking: track(r.projectName),
-        })
-      }
+      // OT pay is tracked separately from the line-item bucket
+      // because the payroll engine writes it as `otPay`, not as
+      // an allowance line item. We still want it as an allowance
+      // line on the journal — resolve via the `wages_overtime`
+      // category (which falls back to the unified allowance
+      // account in UNIFIED mode).
       if (r.otPay > 0) {
+        const code = allowanceCodeForCategory("wages_overtime")
+        if (code) {
+          lines.push({
+            accountCode: code,
+            amount: round2(r.otPay),
+            description: `OVERTIME - ${r.employeeName}`,
+            tracking: track(r.projectName),
+          })
+        }
+      }
+      // Per-category allowance lines from PayslipLineItem rows.
+      for (const li of r.allowanceLines) {
+        const code = allowanceCodeForCategory(li.category)
+        if (!code) continue // collected into unmappedAllowanceCategories
+        const catLabel = li.category
+          ? getPayrollAdjustmentLabel(li.category).toUpperCase()
+          : "ALLOWANCE"
         lines.push({
-          accountCode: overtimeCode,
-          amount: round2(r.otPay),
-          description: `OVERTIME - ${r.employeeName}`,
+          accountCode: code,
+          amount: round2(li.amount),
+          description: `${catLabel} - ${r.employeeName}${
+            li.label ? ` (${li.label})` : ""
+          }`,
           tracking: track(r.projectName),
         })
       }
     }
   } else {
-    // ── Sum-by-project debit lines ──
-    const buckets = new Map<
+    // ── Sum-by-project: bucket basicPay, OT, and each allowance
+    // category by (project, account). Same per-category mapping
+    // applies; we just collapse the per-employee dimension.
+    const salaryBuckets = new Map<string, number>()
+    const otBuckets = new Map<string, number>()
+    const allowanceBuckets = new Map<
       string,
-      { salary: number; allowance: number; overtime: number }
+      Map<PayrollAdjustmentCategory | "null", number>
     >()
     for (const r of rows) {
-      const b = buckets.get(r.projectName) ?? {
-        salary: 0,
-        allowance: 0,
-        overtime: 0,
+      salaryBuckets.set(
+        r.projectName,
+        (salaryBuckets.get(r.projectName) ?? 0) + r.basicPay,
+      )
+      otBuckets.set(
+        r.projectName,
+        (otBuckets.get(r.projectName) ?? 0) + r.otPay,
+      )
+      const byCat =
+        allowanceBuckets.get(r.projectName) ??
+        new Map<PayrollAdjustmentCategory | "null", number>()
+      for (const li of r.allowanceLines) {
+        const k = li.category ?? "null"
+        byCat.set(k, (byCat.get(k) ?? 0) + li.amount)
       }
-      b.salary += r.basicPay
-      b.allowance += r.totalAllowances
-      b.overtime += r.otPay
-      buckets.set(r.projectName, b)
+      allowanceBuckets.set(r.projectName, byCat)
     }
-    for (const [project, b] of buckets.entries()) {
-      if (b.salary > 0) {
+    for (const [project, total] of salaryBuckets.entries()) {
+      if (total > 0) {
         lines.push({
           accountCode: salaryCode,
-          amount: round2(b.salary),
+          amount: round2(total),
           description: `SALARY - ${project}`,
           tracking: track(project),
         })
       }
-      if (b.allowance > 0) {
+    }
+    for (const [project, total] of otBuckets.entries()) {
+      if (total > 0) {
+        const code = allowanceCodeForCategory("wages_overtime")
+        if (code) {
+          lines.push({
+            accountCode: code,
+            amount: round2(total),
+            description: `OVERTIME - ${project}`,
+            tracking: track(project),
+          })
+        }
+      }
+    }
+    for (const [project, byCat] of allowanceBuckets.entries()) {
+      for (const [k, total] of byCat.entries()) {
+        const cat = k === "null" ? null : (k as PayrollAdjustmentCategory)
+        const code = allowanceCodeForCategory(cat)
+        if (!code) continue
+        const catLabel = cat
+          ? getPayrollAdjustmentLabel(cat).toUpperCase()
+          : "ALLOWANCE"
         lines.push({
-          accountCode: allowanceCode,
-          amount: round2(b.allowance),
-          description: `ALLOWANCE - ${project}`,
+          accountCode: code,
+          amount: round2(total),
+          description: `${catLabel} - ${project}`,
           tracking: track(project),
         })
       }
-      if (b.overtime > 0) {
-        lines.push({
-          accountCode: overtimeCode,
-          amount: round2(b.overtime),
-          description: `OVERTIME - ${project}`,
-          tracking: track(project),
-        })
-      }
+    }
+  }
+
+  // ── Pre-flight: any categories present on the run but not mapped?
+  // (Only fires for PER_CATEGORY modes, since UNIFIED uses a single
+  // fallback account that's already pre-flighted in REQUIRED_ACCOUNT_KEYS.)
+  // We push these checks BEFORE the credit lines emit deductions —
+  // and BEFORE the actual Xero post — so admins see exactly what
+  // categories to map.
+  if (
+    unmappedAllowanceCategories.size > 0 ||
+    unmappedDeductionCategories.size > 0
+  ) {
+    const a = Array.from(unmappedAllowanceCategories)
+      .map((c) => getPayrollAdjustmentLabel(c))
+      .join(", ")
+    const d = Array.from(unmappedDeductionCategories)
+      .map((c) => getPayrollAdjustmentLabel(c))
+      .join(", ")
+    const parts: string[] = []
+    if (a) parts.push(`Allowance categories missing an account: ${a}`)
+    if (d) parts.push(`Deduction categories missing an account: ${d}`)
+    return {
+      status: "error",
+      message: `${parts.join(". ")}. Map them in Payroll Settings → Xero sync, then retry.`,
     }
   }
 

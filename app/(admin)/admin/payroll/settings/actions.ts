@@ -5,12 +5,18 @@ import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import type { BaseFormState } from "@/lib/form-state"
-import { idTypes } from "@/modules/payroll/domain/models"
+import {
+  idTypes,
+  payrollAdjustmentCategories,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
 import {
   PAYROLL_XERO_ACCOUNT_KEYS,
   workingDaysRules,
   xeroAggregationModes,
+  xeroLineGroupingModes,
   type PayrollXeroMapping,
+  type XeroLineGroupingMode,
 } from "@/modules/payroll/domain/settings"
 import {
   getXeroMappingOptions,
@@ -321,11 +327,51 @@ export async function savePayrollXeroMappingAction(
     accounts[key] = v.length > 0 ? v : null
   }
 
+  // Allowance / deduction mode toggles + per-category maps. Persisted
+  // even when the toggle is UNIFIED so the admin doesn't lose their
+  // per-category picks when flipping back and forth.
+  const allowanceModeRaw = formData.get("allowanceMode")
+  const allowanceMode: XeroLineGroupingMode =
+    typeof allowanceModeRaw === "string" &&
+    (xeroLineGroupingModes as readonly string[]).includes(allowanceModeRaw)
+      ? (allowanceModeRaw as XeroLineGroupingMode)
+      : "UNIFIED"
+  const deductionModeRaw = formData.get("deductionMode")
+  const deductionMode: XeroLineGroupingMode =
+    typeof deductionModeRaw === "string" &&
+    (xeroLineGroupingModes as readonly string[]).includes(deductionModeRaw)
+      ? (deductionModeRaw as XeroLineGroupingMode)
+      : "UNIFIED"
+
+  const allowanceAccounts: Record<string, string | null> = {}
+  const deductionAccounts: Record<string, string | null> = {}
+  // We iterate the canonical category list to ignore any junk keys an
+  // attacker might inject. Empty strings → null.
+  const validCategoryKeys = new Set<PayrollAdjustmentCategory>(
+    payrollAdjustmentCategories,
+  )
+  for (const key of validCategoryKeys) {
+    const a = formData.get(`allowanceAccount.${key}`)
+    if (typeof a === "string") {
+      const v = a.trim()
+      allowanceAccounts[key] = v.length > 0 ? v : null
+    }
+    const d = formData.get(`deductionAccount.${key}`)
+    if (typeof d === "string") {
+      const v = d.trim()
+      deductionAccounts[key] = v.length > 0 ? v : null
+    }
+  }
+
   const xeroMapping: PayrollXeroMapping = {
-    v: 1,
+    v: 2,
     aggregationMode: baseParsed.data.aggregationMode,
     trackingCategoryId: baseParsed.data.trackingCategoryId,
     accounts,
+    allowanceMode,
+    allowanceAccounts,
+    deductionMode,
+    deductionAccounts,
   }
 
   try {

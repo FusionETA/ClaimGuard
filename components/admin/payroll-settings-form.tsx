@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
+import { useActionState, useEffect, useMemo, useState } from "react"
 
 import {
   getXeroPayrollMappingOptionsAction,
@@ -26,7 +26,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
-import { ID_TYPE_LABELS, idTypes } from "@/modules/payroll/domain/models"
+import {
+  ID_TYPE_LABELS,
+  idTypes,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
 import {
   CP8D_FURNISH_TYPE_OPTIONS,
   DEFAULT_PAYROLL_XERO_MAPPING,
@@ -34,15 +38,21 @@ import {
   EMPLOYER_STATUS_OPTIONS,
   PAYROLL_XERO_ACCOUNT_GROUPS,
   PAYROLL_XERO_ACCOUNT_LABELS,
+  PAYROLL_XERO_ALLOWANCE_CATEGORIES,
+  PAYROLL_XERO_DEDUCTION_CATEGORIES,
   REFERENCE_TYPE_OPTIONS,
   WORKING_DAYS_RULE_LABELS,
   XERO_AGGREGATION_MODE_LABELS,
+  getPayrollAdjustmentGroup,
+  getPayrollAdjustmentLabel,
   workingDaysRules,
   xeroAggregationModes,
+  xeroLineGroupingModes,
   type PayrollCompanyInfoData,
   type PayrollSettingsData,
   type PayrollXeroAccountKey,
   type XeroAggregationMode,
+  type XeroLineGroupingMode,
 } from "@/modules/payroll/domain/settings"
 
 type Tab = "general" | "formE" | "xero"
@@ -139,9 +149,12 @@ export function PayrollSettingsForm(props: {
 
 /**
  * "Complete" for the Xero tab = aggregation mode set, tracking category
- * picked, AND every required-category account (core expenses + accruals)
- * has an ID. Optional extras (bonus / commission / overtime) don't gate
- * completeness — they fall back to the Salary account at sync time.
+ * picked, every core + accrual account has an ID, AND the allowance /
+ * deduction sections satisfy their chosen mode:
+ *   - UNIFIED mode → the unified account (`accounts.allowance` or
+ *     `accounts.deduction`) is set.
+ *   - PER_CATEGORY → every category in the section's list has an
+ *     account ID in the per-category map.
  */
 function isXeroMappingComplete(settings: PayrollSettingsData | null): boolean {
   const m = settings?.xeroMapping
@@ -149,7 +162,6 @@ function isXeroMappingComplete(settings: PayrollSettingsData | null): boolean {
   if (!m.trackingCategoryId) return false
   const requiredKeys: PayrollXeroAccountKey[] = [
     "salary",
-    "allowance",
     "directorSalary",
     "directorFee",
     "epfEmployer",
@@ -162,7 +174,31 @@ function isXeroMappingComplete(settings: PayrollSettingsData | null): boolean {
     "accrualPcb",
     "accrualSalary",
   ]
-  return requiredKeys.every((k) => Boolean(m.accounts[k]))
+  if (!requiredKeys.every((k) => Boolean(m.accounts[k]))) return false
+
+  if (m.allowanceMode === "UNIFIED") {
+    if (!m.accounts.allowance) return false
+  } else {
+    if (
+      !PAYROLL_XERO_ALLOWANCE_CATEGORIES.every((c) =>
+        Boolean(m.allowanceAccounts[c]),
+      )
+    ) {
+      return false
+    }
+  }
+  if (m.deductionMode === "UNIFIED") {
+    if (!m.accounts.deduction) return false
+  } else {
+    if (
+      !PAYROLL_XERO_DEDUCTION_CATEGORIES.every((c) =>
+        Boolean(m.deductionAccounts[c]),
+      )
+    ) {
+      return false
+    }
+  }
+  return true
 }
 
 function hasValue(value: unknown) {
@@ -919,32 +955,70 @@ function XeroMappingTab({
     return seed
   })
 
-  // Fetch dropdown options once on mount.
-  const [options, setOptions] = useState<XeroMappingOptionsActionResult | null>(
-    null,
+  // Allowance + Deduction mode toggles and per-category account maps.
+  // Both maps are kept ALWAYS — flipping the toggle doesn't clear the
+  // other mode's data so admins can experiment freely.
+  const [allowanceMode, setAllowanceMode] = useState<XeroLineGroupingMode>(
+    current.allowanceMode,
   )
+  const [allowanceAccounts, setAllowanceAccounts] = useState<
+    Record<string, string>
+  >(() => {
+    const seed: Record<string, string> = {}
+    for (const [k, v] of Object.entries(current.allowanceAccounts)) {
+      if (v) seed[k] = v
+    }
+    return seed
+  })
+  const [deductionMode, setDeductionMode] = useState<XeroLineGroupingMode>(
+    current.deductionMode,
+  )
+  const [deductionAccounts, setDeductionAccounts] = useState<
+    Record<string, string>
+  >(() => {
+    const seed: Record<string, string> = {}
+    for (const [k, v] of Object.entries(current.deductionAccounts)) {
+      if (v) seed[k] = v
+    }
+    return seed
+  })
+
+  // Fetch dropdown options in the background. The form renders
+  // immediately with empty option lists; once the action returns,
+  // the dropdowns get populated. This avoids a "Loading Xero options"
+  // spinner blocking the UI — admins see the structure right away.
+  const [accountOptions, setAccountOptions] = useState<
+    Array<{ id: string; code: string; name: string; type?: string }>
+  >([])
+  const [trackingCategories, setTrackingCategories] = useState<
+    Array<{
+      id: string
+      name: string
+      options: Array<{ id: string; name: string }>
+    }>
+  >([])
+  const [optionsError, setOptionsError] = useState<string | null>(null)
+  const [hasNoConnection, setHasNoConnection] = useState(false)
   useEffect(() => {
     let cancelled = false
     void (async () => {
       const result = await getXeroPayrollMappingOptionsAction()
-      if (!cancelled) setOptions(result)
+      if (cancelled) return
+      if (result.status === "success") {
+        setAccountOptions(result.options.accounts)
+        setTrackingCategories(result.options.trackingCategories)
+      } else if (result.status === "empty") {
+        setHasNoConnection(true)
+      } else {
+        setOptionsError(result.message)
+      }
     })()
     return () => {
       cancelled = true
     }
   }, [])
 
-  if (options === null) {
-    return (
-      <Card>
-        <CardContent className="py-8">
-          <p className="text-sm text-muted-foreground">Loading Xero options…</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (options.status === "empty") {
+  if (hasNoConnection) {
     return (
       <Card>
         <CardHeader>
@@ -962,23 +1036,6 @@ function XeroMappingTab({
       </Card>
     )
   }
-
-  if (options.status === "error") {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Xero sync</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-destructive">
-            Could not reach Xero: {options.message}
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const { accounts: accountOptions, trackingCategories } = options.options
   const accrualAccountKeys = new Set<PayrollXeroAccountKey>([
     "accrualEpf",
     "accrualSocso",
@@ -1079,11 +1136,232 @@ function XeroMappingTab({
         </Card>
       ))}
 
+      {/* Allowance card */}
+      <LineGroupCard
+        title="Allowances"
+        description="Where allowance, bonus, OT and other non-salary earnings post to. Pick one account for everything, or map each category to its own COA for a tidier P&L."
+        mode={allowanceMode}
+        onModeChange={setAllowanceMode}
+        modeFieldName="allowanceMode"
+        unifiedAccountKey="allowance"
+        unifiedAccountValue={accounts.allowance ?? ""}
+        unifiedAccountFieldName="account.allowance"
+        unifiedAccountPlaceholder="Account every allowance posts to"
+        onUnifiedAccountChange={(value) =>
+          setAccounts((prev) => ({
+            ...prev,
+            allowance: value || undefined,
+          }))
+        }
+        perCategoryFieldPrefix="allowanceAccount"
+        categories={PAYROLL_XERO_ALLOWANCE_CATEGORIES}
+        perCategoryValues={allowanceAccounts}
+        onPerCategoryChange={(cat, value) =>
+          setAllowanceAccounts((prev) => {
+            const next = { ...prev }
+            if (value) next[cat] = value
+            else delete next[cat]
+            return next
+          })
+        }
+        accountOptions={accountOptions.filter((a) => a.type === "EXPENSE")}
+      />
+
+      {/* Deduction card */}
+      <LineGroupCard
+        title="Deductions"
+        description="Admin-entered deductions only (unpaid leave, salary adjustments, advance recovery). Statutory deductions like PCB, Zakat and CP38 post via their existing accrual accounts."
+        mode={deductionMode}
+        onModeChange={setDeductionMode}
+        modeFieldName="deductionMode"
+        unifiedAccountKey="deduction"
+        unifiedAccountValue={accounts.deduction ?? ""}
+        unifiedAccountFieldName="account.deduction"
+        unifiedAccountPlaceholder="Account every deduction posts to"
+        onUnifiedAccountChange={(value) =>
+          setAccounts((prev) => ({
+            ...prev,
+            deduction: value || undefined,
+          }))
+        }
+        perCategoryFieldPrefix="deductionAccount"
+        categories={PAYROLL_XERO_DEDUCTION_CATEGORIES}
+        perCategoryValues={deductionAccounts}
+        onPerCategoryChange={(cat, value) =>
+          setDeductionAccounts((prev) => {
+            const next = { ...prev }
+            if (value) next[cat] = value
+            else delete next[cat]
+            return next
+          })
+        }
+        accountOptions={accountOptions.filter((a) => a.type === "EXPENSE")}
+      />
+
       <div className="flex justify-end">
         <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save Xero mapping"}
         </Button>
       </div>
     </form>
+  )
+}
+
+// ─── Allowance / Deduction line-group card ───────────────────────────────
+
+/**
+ * Reusable card for the Allowance and Deduction sections. Shows a
+ * mode toggle and either a single COA picker (UNIFIED) or a per-
+ * category table (PER_CATEGORY). The state for both modes is
+ * preserved so admins can flip back and forth without losing data.
+ */
+function LineGroupCard(props: {
+  title: string
+  description: string
+  mode: XeroLineGroupingMode
+  onModeChange: (mode: XeroLineGroupingMode) => void
+  modeFieldName: string
+  unifiedAccountKey: string
+  unifiedAccountValue: string
+  unifiedAccountFieldName: string
+  unifiedAccountPlaceholder: string
+  onUnifiedAccountChange: (value: string) => void
+  perCategoryFieldPrefix: string
+  categories: PayrollAdjustmentCategory[]
+  perCategoryValues: Record<string, string>
+  onPerCategoryChange: (cat: PayrollAdjustmentCategory, value: string) => void
+  accountOptions: Array<{ id: string; code: string; name: string }>
+}) {
+  // Group the categories by their `group` label so the table shows
+  // sensible section headers (Allowances / Recurring Monthly,
+  // Remuneration, Benefits-in-kind / Perquisites, Deductions).
+  const groupedCategories = useMemo(() => {
+    const buckets = new Map<string, PayrollAdjustmentCategory[]>()
+    for (const cat of props.categories) {
+      const group = getPayrollAdjustmentGroup(cat) || "Other"
+      const list = buckets.get(group) ?? []
+      list.push(cat)
+      buckets.set(group, list)
+    }
+    return Array.from(buckets.entries())
+  }, [props.categories])
+
+  return (
+    <Card>
+      <CardHeader>
+        {/* No flex-wrap — keep the toggle pinned top-right even on
+            long descriptions. `min-w-0 flex-1` lets the title block
+            shrink so the toggle never gets pushed onto a new line. */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <CardTitle>{props.title}</CardTitle>
+            <CardDescription>{props.description}</CardDescription>
+          </div>
+          <div
+            role="radiogroup"
+            aria-label={`${props.title} mapping mode`}
+            className="grid shrink-0 grid-cols-2 gap-1 rounded-xl border border-border/60 bg-muted/30 p-1 text-xs"
+          >
+            <input
+              type="hidden"
+              name={props.modeFieldName}
+              value={props.mode}
+            />
+            {xeroLineGroupingModes.map((m) => {
+              const active = m === props.mode
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => props.onModeChange(m)}
+                  className={cn(
+                    "rounded-lg px-3 py-1 transition-colors",
+                    active
+                      ? "bg-background font-medium text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {m === "UNIFIED" ? "One account" : "Per category"}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {props.mode === "UNIFIED" ? (
+          <Field label={`${props.title} account`}>
+            <NativeSelect
+              name={props.unifiedAccountFieldName}
+              value={props.unifiedAccountValue}
+              onChange={(e) => props.onUnifiedAccountChange(e.target.value)}
+            >
+              <option value="">— {props.unifiedAccountPlaceholder} —</option>
+              {props.accountOptions.map((acc) => (
+                <option key={acc.id} value={acc.id}>
+                  {acc.code} — {acc.name}
+                </option>
+              ))}
+            </NativeSelect>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Every {props.title.toLowerCase()} line on the manual journal
+              will post to this account.
+            </p>
+          </Field>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Pick a Chart of Account for each category. The sync refuses to
+              post a payroll run if any category present on a payslip is left
+              unmapped, so the admin sees exactly what's missing before approval.
+            </p>
+            {groupedCategories.map(([group, cats]) => (
+              <div
+                key={group}
+                className="overflow-hidden rounded-xl border border-border/60"
+              >
+                <div className="bg-muted/40 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {group}
+                </div>
+                <table className="w-full text-sm">
+                  <tbody>
+                    {cats.map((cat) => (
+                      <tr key={cat} className="border-t border-border/40">
+                        <td className="w-1/2 px-3 py-2 align-middle">
+                          <span className="font-medium text-foreground">
+                            {getPayrollAdjustmentLabel(cat)}
+                          </span>
+                          <span className="ml-2 font-mono text-[10px] text-muted-foreground">
+                            {cat}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 align-middle">
+                          <NativeSelect
+                            name={`${props.perCategoryFieldPrefix}.${cat}`}
+                            value={props.perCategoryValues[cat] ?? ""}
+                            onChange={(e) =>
+                              props.onPerCategoryChange(cat, e.target.value)
+                            }
+                          >
+                            <option value="">— Not set —</option>
+                            {props.accountOptions.map((acc) => (
+                              <option key={acc.id} value={acc.id}>
+                                {acc.code} — {acc.name}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

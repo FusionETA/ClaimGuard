@@ -5,10 +5,12 @@ import { toNumber } from "@/lib/decimal"
 import {
   PAYROLL_XERO_ACCOUNT_KEYS,
   xeroAggregationModes,
+  xeroLineGroupingModes,
   type PayrollSettingsData,
   type PayrollXeroAccountKey,
   type PayrollXeroMapping,
   type XeroAggregationMode,
+  type XeroLineGroupingMode,
 } from "@/modules/payroll/domain/settings"
 
 /**
@@ -79,15 +81,19 @@ function mapPayrollSettings(row: any): PayrollSettingsData {
 }
 
 /**
- * Tolerant loader for the JSON `xeroMapping` blob. Older blobs missing
- * keys round-trip as `null` for those keys; unknown keys are ignored.
- * A future schema bump just changes the `v` discriminator and adds a
- * new branch here.
+ * Tolerant loader for the JSON `xeroMapping` blob. Handles both v1
+ * (legacy single-allowance shape) and v2 (with allowance/deduction
+ * mode + per-category maps). v1 blobs upgrade to v2 in-flight:
+ * UNIFIED mode for both allowance and deduction, with empty
+ * per-category maps. Unknown / future versions return null so the
+ * admin sees the empty state and re-saves.
  */
 function parseXeroMapping(value: unknown): PayrollXeroMapping | null {
   if (!value || typeof value !== "object") return null
   const v = value as Record<string, unknown>
-  if (v.v !== 1) return null
+  // Accept both v=1 (legacy) and v=2 (current). Anything else is
+  // unknown — refuse to load, admin re-saves.
+  if (v.v !== 1 && v.v !== 2) return null
 
   const aggregationModeRaw = v.aggregationMode
   const aggregationMode: XeroAggregationMode =
@@ -114,12 +120,47 @@ function parseXeroMapping(value: unknown): PayrollXeroMapping | null {
     // missing keys stay absent (== unset)
   }
 
+  // v2-only fields. v1 blobs default to UNIFIED mode + empty per-
+  // category maps so the admin can flip the toggle without losing
+  // the previously-saved unified account.
+  const allowanceMode = parseGroupingMode(v.allowanceMode)
+  const deductionMode = parseGroupingMode(v.deductionMode)
+  const allowanceAccounts = parseCategoryAccounts(v.allowanceAccounts)
+  const deductionAccounts = parseCategoryAccounts(v.deductionAccounts)
+
   return {
-    v: 1,
+    v: 2,
     aggregationMode,
     trackingCategoryId,
     accounts,
+    allowanceMode,
+    allowanceAccounts,
+    deductionMode,
+    deductionAccounts,
   }
+}
+
+function parseGroupingMode(raw: unknown): XeroLineGroupingMode {
+  if (
+    typeof raw === "string" &&
+    (xeroLineGroupingModes as readonly string[]).includes(raw)
+  ) {
+    return raw as XeroLineGroupingMode
+  }
+  return "UNIFIED"
+}
+
+function parseCategoryAccounts(
+  raw: unknown,
+): Record<string, string | null> {
+  if (!raw || typeof raw !== "object") return {}
+  const out: Record<string, string | null> = {}
+  for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
+    if (typeof val === "string" && val.length > 0) out[key] = val
+    else if (val === null) out[key] = null
+    // missing / wrong-typed values stay absent
+  }
+  return out
 }
 
 function toUpsertData(

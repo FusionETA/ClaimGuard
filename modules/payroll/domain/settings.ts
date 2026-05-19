@@ -9,6 +9,11 @@
  * tabbed UI for convenience.
  */
 
+import {
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  payrollAdjustmentCategories,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
 import type { IdType } from "@/modules/payroll/domain/models"
 
 // ─── Enums (re-exported as const arrays for form pickers) ────────────────
@@ -121,10 +126,8 @@ export const PAYROLL_XERO_ACCOUNT_KEYS = [
   "accrualEis",
   "accrualPcb",
   "accrualSalary",
-  // ── Optional extras (debit) ──
-  "bonus",
-  "commission",
-  "overtime",
+  // ── Generic deduction account (used in UNIFIED deduction mode) ──
+  "deduction",
 ] as const
 export type PayrollXeroAccountKey = (typeof PAYROLL_XERO_ACCOUNT_KEYS)[number]
 
@@ -164,12 +167,6 @@ export const PAYROLL_XERO_ACCOUNT_GROUPS: Array<{
       "accrualSalary",
     ],
   },
-  {
-    title: "Optional extras",
-    description:
-      "Only used when a payroll run carries these line types. Leave blank to fall back to the Salary account.",
-    keys: ["bonus", "commission", "overtime"],
-  },
 ]
 
 /**
@@ -181,7 +178,7 @@ export const PAYROLL_XERO_ACCOUNT_LABELS: Record<
   string
 > = {
   salary: "Salary",
-  allowance: "Allowance",
+  allowance: "Allowance (unified mode)",
   directorSalary: "Director salary",
   directorFee: "Director fee",
   epfEmployer: "EPF — employer contribution",
@@ -193,9 +190,7 @@ export const PAYROLL_XERO_ACCOUNT_LABELS: Record<
   accrualEis: "Accrual — EIS",
   accrualPcb: "Accrual — PCB (employee tax)",
   accrualSalary: "Accrual — net salary payable",
-  bonus: "Bonus",
-  commission: "Commission",
-  overtime: "Overtime",
+  deduction: "Deduction (unified mode)",
 }
 
 /**
@@ -207,30 +202,67 @@ export const PAYROLL_XERO_ACCOUNT_LABELS: Record<
  * every CORE expense + accrual account is set (extras stay optional
  * and fall back to the salary account).
  */
+/**
+ * Mode toggle for the Allowance / Deduction cards:
+ *   - `UNIFIED`      — every allowance (or deduction) line posts to
+ *                      one configured COA. Simple, one dropdown to
+ *                      maintain.
+ *   - `PER_CATEGORY` — each PayrollAdjustmentCategory maps to its
+ *                      own COA via the `*AccountsByCategory` map.
+ *                      Cleaner P&L; the sync refuses to post if any
+ *                      category appearing on a payslip isn't mapped.
+ */
+export const xeroLineGroupingModes = ["UNIFIED", "PER_CATEGORY"] as const
+export type XeroLineGroupingMode = (typeof xeroLineGroupingModes)[number]
+
 export type PayrollXeroMapping = {
   /// Schema version. Bump when the shape changes — the loader uses
   /// this to migrate or ignore older blobs gracefully.
-  v: 1
+  /// v1 = legacy (single allowance + bonus/commission/overtime keys).
+  /// v2 = allowance + deduction mode toggles with per-category maps.
+  v: 2
   aggregationMode: XeroAggregationMode
   /// Xero tracking-category ID. The project name fills the option
   /// slot on every line. `null` means the admin hasn't picked one
   /// yet (UI surfaces a prompt).
   trackingCategoryId: string | null
-  /// Xero account ID per payroll category. `null` for any key the
-  /// admin hasn't picked yet.
+  /// Xero account ID per top-level payroll category. `null` for any
+  /// key the admin hasn't picked yet.
   accounts: Partial<Record<PayrollXeroAccountKey, string | null>>
+  /// How to map allowance line items to Xero accounts.
+  ///   - UNIFIED       → use `accounts.allowance` for every allowance.
+  ///   - PER_CATEGORY  → use `allowanceAccounts[<category>]`.
+  allowanceMode: XeroLineGroupingMode
+  /// Per-category allowance account IDs. Only consumed when
+  /// `allowanceMode === "PER_CATEGORY"`. Keys are
+  /// `PayrollAdjustmentCategory` codes (e.g. `allowance_meal`,
+  /// `wages_bonus_annual`, `bik_car`). Persisted even in UNIFIED mode
+  /// so flipping the toggle back doesn't lose the admin's picks.
+  allowanceAccounts: Record<string, string | null>
+  /// How to map deduction line items.
+  deductionMode: XeroLineGroupingMode
+  /// Per-category deduction account IDs. Same shape as
+  /// allowanceAccounts but with deduction-flavour category keys
+  /// (`deduct_unpaid_leave`, `deduct_salary_adjustment`,
+  /// `deduct_advance`).
+  deductionAccounts: Record<string, string | null>
 }
 
 /**
  * Default mapping used when `PayrollSettings.xeroMapping` is null on
- * a fresh save. The form starts with PER_EMPLOYEE aggregation and
- * everything else empty — admin fills in as they go.
+ * a fresh save. The form starts with PER_EMPLOYEE aggregation,
+ * UNIFIED mode for both allowances and deductions, and everything
+ * else empty — admin fills in as they go.
  */
 export const DEFAULT_PAYROLL_XERO_MAPPING: PayrollXeroMapping = {
-  v: 1,
+  v: 2,
   aggregationMode: "PER_EMPLOYEE",
   trackingCategoryId: null,
   accounts: {},
+  allowanceMode: "UNIFIED",
+  allowanceAccounts: {},
+  deductionMode: "UNIFIED",
+  deductionAccounts: {},
 }
 
 // ─── PayrollCompanyInfo (per-org employer filing identity) ───────────────
@@ -336,3 +368,36 @@ export const CP8D_FURNISH_TYPE_OPTIONS: Array<{
   },
   { value: "2 - Via paper form", label: "2 - Via paper form" },
 ]
+
+// ─── Allowance / Deduction category groupings for Xero mapping ──────────
+//
+// Both the settings UI and the journal builder need a stable list of
+// categories per card. Allowances cover everything that lands on the
+// debit side that isn't already mapped via the core expense keys
+// (salary, director salary, employer contributions). Deductions
+// cover the admin-controlled deductions only — statutory deductions
+// (PCB, Zakat, CP38, TP1) already post via the accrualPcb account
+// and aren't re-mapped here.
+
+export const PAYROLL_XERO_ALLOWANCE_CATEGORIES: PayrollAdjustmentCategory[] =
+  payrollAdjustmentCategories.filter(
+    (cat) => PAYROLL_ADJUSTMENT_CATEGORY_META[cat].kind === "ALLOWANCE",
+  )
+
+export const PAYROLL_XERO_DEDUCTION_CATEGORIES: PayrollAdjustmentCategory[] = [
+  "deduct_unpaid_leave",
+  "deduct_salary_adjustment",
+  "deduct_advance",
+]
+
+export function getPayrollAdjustmentLabel(
+  cat: PayrollAdjustmentCategory,
+): string {
+  return PAYROLL_ADJUSTMENT_CATEGORY_META[cat]?.label ?? cat
+}
+
+export function getPayrollAdjustmentGroup(
+  cat: PayrollAdjustmentCategory,
+): string {
+  return PAYROLL_ADJUSTMENT_CATEGORY_META[cat]?.group ?? ""
+}

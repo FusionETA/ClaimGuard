@@ -166,39 +166,62 @@ export async function getXeroMappingOptions(): Promise<{
   const connection = connections[0]
   if (!connection) return null
 
-  // Lazy-import the heavier Xero + connection helpers so the settings
-  // service module stays cheap to load when Xero isn't configured.
+  // Accounts come from our LOCAL ChartOfAccount table (already synced
+  // from Xero). Instant — no Xero API call, no auth dance, no spinner.
+  // Tracking categories still come from Xero live; they're a small
+  // list (~1–5 categories) and we don't currently cache them.
+  const localAccounts =
+    await organizationRepository.getXeroLinkedChartAccountsForOrganization(orgId)
+
+  // Mapper for the local-accounts result — used in both the success
+  // and the degraded path so we don't repeat the sort/projection.
+  const projectAccounts = () =>
+    localAccounts
+      .map((a) => ({
+        id: a.xeroAccountId,
+        code: a.code,
+        name: a.name,
+        type: a.type ?? undefined,
+      }))
+      .sort((a, b) => a.code.localeCompare(b.code))
+
+  // Lazy-import the heavier Xero helpers so the settings service stays
+  // cheap to load when Xero isn't configured.
   const { getUsableXeroAccessToken } = await import(
     "@/modules/organization/application/services/xero-connection.service"
   )
-  const { getXeroAccounts, getXeroTrackingCategories } = await import(
-    "@/lib/xero"
-  )
+  const { getXeroTrackingCategories } = await import("@/lib/xero")
 
-  const token = await getUsableXeroAccessToken(connection.id)
-  if (!token) return null
+  // If token refresh fails / times out, we still render the page with
+  // local accounts — the tracking-category picker just shows an empty
+  // list. Better than hanging on "Loading…" forever.
+  const token = await getUsableXeroAccessToken(connection.id).catch(() => null)
+  if (!token) {
+    return { accounts: projectAccounts(), trackingCategories: [] }
+  }
 
   try {
-    const [accounts, trackingCategories] = await Promise.all([
-      getXeroAccounts({
-        accessToken: token.accessToken,
-        tenantId: token.tenantId,
-        includeTypes: ["EXPENSE", "LIABILITY", "CURRLIAB", "TERMLIAB"],
-      }),
+    // Race the Xero call against a 5-second timeout. If Xero is slow
+    // or unreachable we still return the page with accounts loaded.
+    const trackingCategories = await Promise.race<
+      Awaited<ReturnType<typeof getXeroTrackingCategories>> | null
+    >([
       getXeroTrackingCategories({
         accessToken: token.accessToken,
         tenantId: token.tenantId,
       }),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 5_000)),
     ])
+    if (!trackingCategories) {
+      // Timed out — render the settings page anyway. Admin can save
+      // accounts now and pick the tracking category later.
+      console.warn(
+        "[payroll-settings] tracking category fetch timed out after 5s",
+      )
+      return { accounts: projectAccounts(), trackingCategories: [] }
+    }
     return {
-      accounts: accounts
-        .map((a) => ({
-          id: a.xeroAccountId,
-          code: a.code,
-          name: a.name,
-          type: a.type,
-        }))
-        .sort((a, b) => a.code.localeCompare(b.code)),
+      accounts: projectAccounts(),
       trackingCategories: trackingCategories.map((cat) => ({
         id: cat.xeroTrackingCategoryId,
         name: cat.name,
@@ -209,10 +232,12 @@ export async function getXeroMappingOptions(): Promise<{
       })),
     }
   } catch (err) {
-    // Don't fail the whole page if Xero is down — return null and the
-    // UI shows a "Xero unreachable" message.
-    console.error("[payroll-settings] Xero mapping options fetch failed:", err)
-    return null
+    // Don't fail the whole page if the tracking-category fetch
+    // throws. Return what we have so the admin can still see /
+    // configure the COA dropdowns; the tracking-category picker
+    // just shows an empty list.
+    console.error("[payroll-settings] tracking category fetch failed:", err)
+    return { accounts: projectAccounts(), trackingCategories: [] }
   }
 }
 

@@ -1607,6 +1607,52 @@ export const organizationRepository = {
     return rows.map((row) => mapChartAccount(row)!)
   },
 
+  /**
+   * Lightweight projection of every Xero-linked Chart of Account for
+   * an org, returning the raw `xeroAccountId` so the Xero-mapping
+   * settings form can render dropdowns without a live Xero API call.
+   *
+   * Only includes accounts that are synced from a Xero connection
+   * (i.e. have a non-null `xeroAccountId`) — custom-only accounts
+   * can't be used for Xero postings.
+   */
+  async getXeroLinkedChartAccountsForOrganization(
+    organizationId: string,
+  ): Promise<
+    Array<{
+      xeroAccountId: string
+      code: string
+      name: string
+      /** Xero account type (EXPENSE / LIABILITY / etc). Used by the
+       *  settings UI to filter accrual vs expense pickers. */
+      type: string | null
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const rows = await prisma.chartOfAccount.findMany({
+      where: {
+        organizationId,
+        isDisabled: false,
+        xeroAccountId: { not: null },
+      },
+      select: { xeroAccountId: true, code: true, name: true, type: true },
+      orderBy: [{ code: "asc" }, { name: "asc" }],
+    })
+
+    return rows
+      .filter((r): r is { xeroAccountId: string; code: string; name: string; type: string | null } =>
+        Boolean(r.xeroAccountId),
+      )
+      .map((r) => ({
+        xeroAccountId: r.xeroAccountId,
+        code: r.code,
+        name: r.name,
+        type: r.type ?? null,
+      }))
+  },
+
   async getCustomChartAccountsForOrganization(
     organizationId: string
   ): Promise<ChartOfAccountOption[]> {

@@ -659,11 +659,19 @@ export function AdminSettingsPanel({
   const activeConnection = xeroConnection.connections.find((c) => c.id === activeXeroConnectionId)
 
   // In Xero mode BANK-type accounts live on the Bank accounts tab — keep this
-  // list expense-only. In custom mode users still see their BANK rows here so
-  // they can manage/delete them.
+  // list expense-only. Liability accounts (LIABILITY / CURRLIAB / TERMLIAB)
+  // are synced too so the payroll Xero-mapping dropdowns can reach them, but
+  // they should NOT appear here as selectable claim accounts. In custom mode
+  // users still see their BANK rows here so they can manage/delete them.
+  const CLAIM_HIDDEN_ACCOUNT_TYPES = new Set([
+    "BANK",
+    "LIABILITY",
+    "CURRLIAB",
+    "TERMLIAB",
+  ])
   const displayAccounts = isCustomMode
     ? customAccounts
-    : chartAccounts.filter((a) => a.type !== "BANK")
+    : chartAccounts.filter((a) => !CLAIM_HIDDEN_ACCOUNT_TYPES.has(a.type ?? ""))
   const accountTypes = Array.from(
     new Set(displayAccounts.map((a) => a.type).filter(Boolean) as string[])
   ).sort()
