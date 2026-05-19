@@ -1,7 +1,10 @@
 import "server-only"
 
+import { getOrSetCache } from "@/lib/cache"
+import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getPrismaClient } from "@/lib/prisma"
+import { key } from "@/lib/redis"
 import { calcPayslip } from "@/modules/payroll/domain/calc"
 import { periodLabel } from "@/modules/payroll/domain/runs"
 import type {
@@ -52,6 +55,22 @@ export async function getPayrollRunsPageData(): Promise<{
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
+  // 1-hour TTL — runs list + eligible-employee count rarely change
+  // between admin visits, and every payroll mutation busts the
+  // `org:<orgId>:payroll:*` namespace via `bustPayrollCaches`. The TTL
+  // is just a backstop when a bust is missed.
+  return getOrSetCache(
+    key("org", orgId, "payroll", "page", "runs-list"),
+    3600,
+    () => loadPayrollRunsPageData(orgId),
+  )
+}
+
+async function loadPayrollRunsPageData(orgId: string): Promise<{
+  organizationName: string
+  runs: PayrollRunRow[]
+  eligibleEmployeeCount: number
+} | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
 
@@ -150,11 +169,13 @@ export async function createPayrollRunDraft(input: {
     )
   }
 
-  return payrollRunRepository.createDraft({
+  const draft = await payrollRunRepository.createDraft({
     organizationId: orgId,
     periodYear: input.periodYear,
     periodMonth: input.periodMonth,
   })
+  await bustPayrollCaches({ organizationId: orgId })
+  return draft
 }
 
 /**
@@ -200,6 +221,7 @@ export async function submitPayrollRunForApproval(input: {
     organizationId: orgId,
     submittedById: session.userId,
   })
+  await bustPayrollCaches({ organizationId: orgId })
 }
 
 /**
@@ -253,6 +275,10 @@ export async function approvePayrollRun(input: {
     organizationId: orgId,
     approvedById: session.userId,
   })
+  // Bust early — Xero sync below also mutates the run (xeroSyncStatus),
+  // and any errors there bust again. The early bust guarantees the
+  // status flip is visible even if sync hangs or the request aborts.
+  await bustPayrollCaches({ organizationId: orgId })
 
   // Best-effort Xero sync. Lazy-imported to keep the payroll-run
   // service light when Xero isn't configured.
@@ -345,6 +371,7 @@ export async function rejectPayrollRunApproval(input: {
     organizationId: orgId,
     reason: input.reason?.trim() || null,
   })
+  await bustPayrollCaches({ organizationId: orgId })
 }
 
 /**
@@ -366,6 +393,7 @@ export async function revertPayrollRunToDraft(input: {
     id: input.runId,
     organizationId: orgId,
   })
+  await bustPayrollCaches({ organizationId: orgId })
 }
 
 export async function deletePayrollRunDraft(input: {
@@ -382,6 +410,7 @@ export async function deletePayrollRunDraft(input: {
     id: input.runId,
     organizationId: orgId,
   })
+  await bustPayrollCaches({ organizationId: orgId })
 }
 
 /**
@@ -673,6 +702,7 @@ export async function generatePayrollPayslips(input: {
   // until the next mutation.
   await payrollRunRepository.clearMutated(run.id)
 
+  await bustPayrollCaches({ organizationId: orgId })
   return { count }
 }
 
@@ -704,9 +734,7 @@ export type RunEmployeeAdjustmentSummary = {
   hasNote: boolean
 }
 
-export async function getPayrollRunDetailWithPayslipsPageData(input: {
-  runId: string
-}): Promise<{
+export type PayrollRunDetailWithPayslipsPageData = {
   organizationName: string
   run: PayrollRunRow
   employees: Array<
@@ -729,14 +757,33 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
   /// generic "no payslips" empty state handles that), and false when
   /// everything's in sync.
   isStale: boolean
-} | null> {
-  const base = await getPayrollRunDetailPageData(input)
-  if (!base) return null
+}
 
+export async function getPayrollRunDetailWithPayslipsPageData(input: {
+  runId: string
+}): Promise<PayrollRunDetailWithPayslipsPageData | null> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
+
+  // 1-hour TTL — keyed on runId so each run has its own slot. Every
+  // payroll mutation (generate, adjustment save, attach/detach, status
+  // transition, Xero sync) calls `bustPayrollCaches({ organizationId })`
+  // which sweeps `org:<orgId>:payroll:*` — that includes this key.
+  return getOrSetCache(
+    key("org", orgId, "payroll", "page", "run-detail", input.runId),
+    3600,
+    () => loadPayrollRunDetailWithPayslipsPageData(input, orgId),
+  )
+}
+
+async function loadPayrollRunDetailWithPayslipsPageData(
+  input: { runId: string },
+  orgId: string,
+): Promise<PayrollRunDetailWithPayslipsPageData | null> {
+  const base = await getPayrollRunDetailPageData(input)
+  if (!base) return null
 
   const [payslips, attachments, attachableClaims, adjustments] =
     await Promise.all([
@@ -1047,6 +1094,7 @@ export async function savePayrollAdjustment(input: {
   // Bump the run's lastMutatedAt so the staleness check picks up the
   // change and the run page shows the "re-run before submit" banner.
   await payrollRunRepository.markMutated(run.id)
+  await bustPayrollCaches({ organizationId: orgId })
   return result
 }
 
@@ -1080,6 +1128,7 @@ export async function clearPayrollAdjustment(input: {
     employeeProfileId: input.employeeProfileId,
   })
   await payrollRunRepository.markMutated(run.id)
+  await bustPayrollCaches({ organizationId: orgId })
 }
 
 // ─── Claim attachment mutations ──────────────────────────────────────────
@@ -1154,6 +1203,7 @@ export async function attachClaimToPayrollRun(input: {
     amount: claim.amount,
   })
   await payrollRunRepository.markMutated(run.id)
+  await bustPayrollCaches({ organizationId: orgId })
 }
 
 /**
@@ -1190,6 +1240,7 @@ export async function detachClaimFromPayrollRun(input: {
 
   await payrollRunClaimRepository.detach({ claimId: input.claimId })
   if (run) await payrollRunRepository.markMutated(run.id)
+  await bustPayrollCaches({ organizationId: orgId })
 }
 
 /**

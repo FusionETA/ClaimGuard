@@ -101,3 +101,21 @@ export async function bustOrgConfigCaches(args: {
     key("org", args.organizationId, "user", "*", "config", "*"),
   ])
 }
+
+/**
+ * Invalidate every cached payroll page-data slice for an organisation:
+ * runs list, run detail, and the payroll settings tabs. Called from
+ * every payroll mutation (create/submit/approve/revert/delete runs,
+ * generate payslips, save/clear adjustments, attach/detach claims,
+ * settings + company-info + xeroMapping saves, Xero sync writes).
+ *
+ * Patterns busted:
+ *   - org:{orgId}:payroll:*  (every payroll page-data cache key)
+ */
+export async function bustPayrollCaches(args: {
+  organizationId: string
+}): Promise<void> {
+  await deleteCacheMany([
+    key("org", args.organizationId, "payroll", "*"),
+  ])
+}

@@ -1,7 +1,10 @@
 import "server-only"
 
+import { getOrSetCache } from "@/lib/cache"
+import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getPrismaClient } from "@/lib/prisma"
+import { key } from "@/lib/redis"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
 import type {
   PayrollCompanyInfoData,
@@ -33,7 +36,7 @@ export type HrdfTier = "PART_I" | "PART_II" | "NOT_APPLICABLE"
  * action writes only its own table.
  */
 
-export async function getPayrollSettingsPageData(): Promise<{
+export type PayrollSettingsPageData = {
   organizationName: string
   settings: PayrollSettingsData | null
   companyInfo: PayrollCompanyInfoData | null
@@ -46,12 +49,27 @@ export async function getPayrollSettingsPageData(): Promise<{
   /// settings UI — when there's no connection, those toggles are
   /// hidden entirely (and persisted as false).
   hasXeroConnection: boolean
-} | null> {
+}
+
+export async function getPayrollSettingsPageData(): Promise<PayrollSettingsPageData | null> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
+  // 1-hour TTL — settings/company-info/xeroMapping change rarely; each
+  // mutation calls `bustPayrollCaches({ organizationId })` so the next
+  // render is always fresh. The TTL is just a backstop.
+  return getOrSetCache(
+    key("org", orgId, "payroll", "page", "settings"),
+    3600,
+    () => loadPayrollSettingsPageData(orgId),
+  )
+}
+
+async function loadPayrollSettingsPageData(
+  orgId: string,
+): Promise<PayrollSettingsPageData | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
 
@@ -134,7 +152,12 @@ export async function upsertPayrollSettings(
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
 
-  return payrollSettingsRepository.upsert({ organizationId: orgId, patch })
+  const result = await payrollSettingsRepository.upsert({
+    organizationId: orgId,
+    patch,
+  })
+  await bustPayrollCaches({ organizationId: orgId })
+  return result
 }
 
 /**
@@ -251,5 +274,10 @@ export async function upsertPayrollCompanyInfo(
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
 
-  return payrollCompanyInfoRepository.upsert({ organizationId: orgId, patch })
+  const result = await payrollCompanyInfoRepository.upsert({
+    organizationId: orgId,
+    patch,
+  })
+  await bustPayrollCaches({ organizationId: orgId })
+  return result
 }

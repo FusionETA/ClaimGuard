@@ -3,6 +3,7 @@ import "server-only"
 import { createHash } from "node:crypto"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { safeErrorMessage } from "@/lib/errors"
 import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
@@ -687,6 +688,10 @@ export async function syncPayrollRunToXero(
       },
     })
 
+    // Bust the payroll caches so the run detail page re-renders with the
+    // fresh xeroSyncStatus / journal number on the next visit.
+    await bustPayrollCaches({ organizationId: orgId })
+
     return {
       status: "synced",
       manualJournalId: result.manualJournalId,
@@ -711,6 +716,10 @@ export async function syncPayrollRunToXero(
       .catch(() => {
         /* best-effort */
       })
+    // Bust caches so the run page surfaces the new ERROR status + retry
+    // button on the next visit, even if it was sitting in cache as
+    // "NOT_SYNCED" before.
+    await bustPayrollCaches({ organizationId: orgId })
     return { status: "error", message }
   }
 }

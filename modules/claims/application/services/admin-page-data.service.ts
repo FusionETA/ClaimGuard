@@ -127,13 +127,13 @@ export async function getAdminHierarchyPageData(input: {
   if (!input.organizationId) {
     return loadAdminHierarchyPageData(input)
   }
-  // 1-day TTL — hierarchy + projects + Xero connections change rarely.
+  // 1-hour TTL — hierarchy + projects + Xero connections change rarely.
   // `bustOrgConfigCaches` invalidates this on hierarchy / settings /
-  // project mutations, so the next page load is always fresh. The long
-  // TTL is the backstop in case a bust ever fails.
+  // project mutations, so the next page load is always fresh. The TTL
+  // is the backstop in case a bust ever fails.
   return getOrSetCache(
     key("org", input.organizationId, "config", "page", "hierarchy"),
-    86400,
+    3600,
     () => loadAdminHierarchyPageData(input),
   )
 }
@@ -196,7 +196,7 @@ export async function getAdminSettingsPageData(input: {
   // Cache key has to encode both org AND admin email AND preferred Xero
   // connection — the same org viewed by two admins, or with different
   // active connections, can resolve to different settings (Xero
-  // chart-of-accounts is connection-scoped). 1-day TTL — settings
+  // chart-of-accounts is connection-scoped). 1-hour TTL — settings
   // change infrequently and `bustOrgConfigCaches` sweeps the org
   // namespace on any settings/chart-account/project mutation.
   return getOrSetCache(
@@ -209,7 +209,7 @@ export async function getAdminSettingsPageData(input: {
       input.adminEmail,
       input.preferredConnectionId ?? "_none",
     ),
-    86400,
+    3600,
     () => loadAdminSettingsPageData(input),
   )
 }
@@ -307,12 +307,12 @@ export async function getAdminCompanyStructurePageData(input: {
 }): Promise<AdminCompanyStructurePageData | null> {
   if (!input.organizationId) return null
 
-  // 1-day TTL — projects/teams/members change rarely once an org is
+  // 1-hour TTL — projects/teams/members change rarely once an org is
   // set up, and `bustOrgConfigCaches` invalidates on every team /
   // member / project mutation.
   return getOrSetCache(
     key("org", input.organizationId, "config", "page", "company-structure"),
-    86400,
+    3600,
     () => loadAdminCompanyStructurePageData(input.organizationId!),
   )
 }
