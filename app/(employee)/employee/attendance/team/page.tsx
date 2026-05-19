@@ -3,19 +3,28 @@ import { ChevronRight, ClipboardCheck, Clock, UmbrellaOff, Users } from "lucide-
 
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
-import { requirePortalSession } from "@/lib/auth/session"
+import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 import { cn } from "@/lib/utils"
 
-function fmtTime(iso: string | null) {
+function fmtTime(iso: string | null, tz: string) {
   return iso
-    ? new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    ? new Date(iso).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: tz,
+      })
     : "—"
 }
 
 export default async function TeamOverviewPage() {
   const session = await requirePortalSession("SUPERVISOR")
-  const overview = await supervisorAttendanceService.getTeamOverview(session.userId)
+  const orgId = resolveActiveOrgId(session) ?? null
+  const [overview, tz] = await Promise.all([
+    supervisorAttendanceService.getTeamOverview(session.userId),
+    attendanceRepository.getOrgTimezone(orgId),
+  ])
 
   const attendanceRate =
     overview.teamSize > 0
@@ -109,7 +118,7 @@ export default async function TeamOverviewPage() {
                     <p className="text-sm font-semibold text-foreground">{m.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {m.today
-                        ? `${fmtTime(m.today.timeIn)} ${
+                        ? `${fmtTime(m.today.timeIn, tz)} ${
                             m.today.location ? `• ${m.today.location}` : ""
                           }`
                         : "No clock-in yet today"}

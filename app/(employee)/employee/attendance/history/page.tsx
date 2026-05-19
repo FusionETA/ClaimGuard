@@ -2,7 +2,8 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
-import { requirePortalSession } from "@/lib/auth/session"
+import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import {
   approvalStatusMeta,
@@ -27,14 +28,18 @@ const APPROVAL_VARIANT: Record<string, string> = {
   REJECTED: "rejected",
 }
 
-function monthKey(iso: string) {
+function monthKey(iso: string, tz: string) {
   const d = new Date(iso)
-  return d.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+  return d.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: tz })
 }
 
-function fmtTime(iso: string | null) {
+function fmtTime(iso: string | null, tz: string) {
   return iso
-    ? new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    ? new Date(iso).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: tz,
+      })
     : "—"
 }
 
@@ -53,6 +58,8 @@ export default async function EmployeeHistoryPage() {
   const session = await requirePortalSession("EMPLOYEE")
   const now = new Date()
   const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const orgId = resolveActiveOrgId(session) ?? null
+  const tz = await attendanceRepository.getOrgTimezone(orgId)
   const records = await employeeAttendanceService.getEmployeeHistory(
     session.userId,
     monthAgo,
@@ -79,7 +86,7 @@ export default async function EmployeeHistoryPage() {
 
   const byMonth = new Map<string, AttendanceRecordView[]>()
   for (const r of records) {
-    const key = monthKey(r.date)
+    const key = monthKey(r.date, tz)
     if (!byMonth.has(key)) byMonth.set(key, [])
     byMonth.get(key)!.push(r)
   }
@@ -174,8 +181,8 @@ export default async function EmployeeHistoryPage() {
                                 {r.date}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {fmtTime(r.timeIn)}{" "}
-                                {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}{" "}
+                                {fmtTime(r.timeIn, tz)}{" "}
+                                {r.timeOut ? `– ${fmtTime(r.timeOut, tz)}` : ""}{" "}
                                 {r.project ? `• ${r.project}` : r.location ? `• ${r.location}` : ""}
                               </p>
                             </div>

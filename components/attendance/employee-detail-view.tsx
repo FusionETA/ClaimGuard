@@ -37,9 +37,13 @@ const CLOCK_LABEL: Record<string, string> = {
   BREAK: "Break",
 }
 
-function fmtTime(iso: string | null) {
+function fmtTime(iso: string | null, tz: string) {
   return iso
-    ? new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    ? new Date(iso).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: tz,
+      })
     : "—"
 }
 
@@ -51,11 +55,13 @@ import type { EmployeeDetailData } from "@/modules/attendance/domain/models"
 export function EmployeeDetailView({
   data,
   viewerRole,
+  timezone,
 }: {
   data: EmployeeDetailData
   /** Role of the user viewing this page. Only SUPERVISOR or ADMIN
    *  see the "Edit times" affordance. */
   viewerRole?: "ADMIN" | "SUPERVISOR" | "EMPLOYEE"
+  timezone: string
 }) {
   const { profile, todayRecord, todayEvents, monthSummary, history, otRecords } = data
   const monthHours = Math.floor(monthSummary.totalMin / 60)
@@ -118,7 +124,7 @@ export function EmployeeDetailView({
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-bold text-foreground">
-                  {fmtTime(todayRecord.timeIn)} – {fmtTime(todayRecord.timeOut)}
+                  {fmtTime(todayRecord.timeIn, timezone)} – {fmtTime(todayRecord.timeOut, timezone)}
                 </p>
                 <div className="flex items-center gap-2">
                   <Badge variant={STATUS_VARIANT[todayRecord.status] as never}>
@@ -185,7 +191,7 @@ export function EmployeeDetailView({
                           : CLOCK_LABEL[e.kind]}
                     </Badge>
                     <span className="text-xs font-semibold text-foreground">
-                      {fmtTime(e.eventAt)}
+                      {fmtTime(e.eventAt, timezone)}
                     </span>
                     <span className="ml-auto text-[10px] text-muted-foreground">
                       {e.status === "PENDING"
@@ -270,8 +276,8 @@ export function EmployeeDetailView({
                       {r.date}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {fmtTime(r.timeIn)}{" "}
-                      {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}{" "}
+                      {fmtTime(r.timeIn, timezone)}{" "}
+                      {r.timeOut ? `– ${fmtTime(r.timeOut, timezone)}` : ""}{" "}
                       {r.project ? `• ${r.project}` : ""}
                     </p>
                     {r.notes ? (

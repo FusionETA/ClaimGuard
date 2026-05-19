@@ -19,19 +19,25 @@ type Props = {
   projects: AttendanceProjectView[]
   requiresSelfieOnClockIn: boolean
   enforceGeofence: boolean
+  timezone: string
 }
 
-function fmtTime(iso: string | null) {
+function fmtTime(iso: string | null, tz: string) {
   return iso
-    ? new Date(iso).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    ? new Date(iso).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: tz,
+      })
     : "—"
 }
 
-function fmtDate(d: Date) {
+function fmtDate(d: Date, tz: string) {
   return d.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
+    timeZone: tz,
   })
 }
 
@@ -66,6 +72,7 @@ export function EmployeeAttendanceDashboardView({
   projects,
   requiresSelfieOnClockIn,
   enforceGeofence,
+  timezone,
 }: Props) {
   const state = deriveState(dashboard.todayEvents)
   const latestRejection = deriveLatestRejection(dashboard.todayEvents)
@@ -75,7 +82,7 @@ export function EmployeeAttendanceDashboardView({
     <div className="space-y-4">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {fmtDate(now)}
+          {fmtDate(now, timezone)}
         </p>
         <h2 className="mt-0.5 text-xl font-bold text-foreground">
           Hello, {firstName} 👋
@@ -153,7 +160,7 @@ export function EmployeeAttendanceDashboardView({
                             : "Break"}
                   </Badge>
                   <span className="text-sm font-semibold text-foreground">
-                    {fmtTime(e.eventAt)}
+                    {fmtTime(e.eventAt, timezone)}
                   </span>
                   <span className="ml-auto text-[11px] text-muted-foreground">
                     {e.status === "PENDING"
@@ -204,8 +211,8 @@ export function EmployeeAttendanceDashboardView({
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-foreground">{r.date}</p>
                   <p className="text-xs text-muted-foreground">
-                    {fmtTime(r.timeIn)}{" "}
-                    {r.timeOut ? `– ${fmtTime(r.timeOut)}` : ""}{" "}
+                    {fmtTime(r.timeIn, timezone)}{" "}
+                    {r.timeOut ? `– ${fmtTime(r.timeOut, timezone)}` : ""}{" "}
                     {r.project ? `• ${r.project}` : ""}
                   </p>
                 </div>

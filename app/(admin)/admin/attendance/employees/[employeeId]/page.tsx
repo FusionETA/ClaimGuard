@@ -7,6 +7,7 @@ import { HoursProgress } from "@/components/attendance/hours-progress"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 
 import { loadEmployeeHoursSummaryAction } from "../../hours-summary-actions"
 
@@ -28,12 +29,13 @@ export default async function AdminEmployeeDetailPage({
 }) {
   const { employeeId } = await params
   const session = await requirePortalSession("ADMIN")
+  const orgId = resolveActiveOrgId(session) ?? null
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
-  const [data, hoursSummary, progress] = await Promise.all([
+  const [data, hoursSummary, progress, timezone] = await Promise.all([
     adminAttendanceService.getEmployeeDetail(
       // Honour the dropdown-selected company; falls back to the home org.
-      resolveActiveOrgId(session) ?? null,
+      orgId,
       employeeId,
     ),
     adminAttendanceService.getEmployeeHoursSummary(
@@ -42,6 +44,7 @@ export default async function AdminEmployeeDetailPage({
       new Date(initialTo),
     ),
     adminAttendanceService.getEmployeeProgress(employeeId),
+    attendanceRepository.getOrgTimezone(orgId),
   ])
   if (!data) notFound()
 
@@ -56,7 +59,7 @@ export default async function AdminEmployeeDetailPage({
         <ArrowLeft className="h-3.5 w-3.5" />
         Back to employees
       </Link>
-      <EmployeeDetailView data={data} viewerRole="ADMIN" />
+      <EmployeeDetailView data={data} viewerRole="ADMIN" timezone={timezone} />
       <HoursProgress
         weekly={{
           actualMin: progress.week.actualMin,

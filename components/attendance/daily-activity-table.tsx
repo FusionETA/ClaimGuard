@@ -17,13 +17,22 @@ const TIME_FORMAT: Intl.DateTimeFormatOptions = {
 
 const DATE_FORMAT: Intl.DateTimeFormatOptions = { dateStyle: "long" }
 
-function formatTime(iso: string | null): string | null {
+function formatTime(iso: string | null, tz: string): string | null {
   if (!iso) return null
-  return new Date(iso).toLocaleTimeString("en-MY", TIME_FORMAT)
+  return new Date(iso).toLocaleTimeString("en-MY", { ...TIME_FORMAT, timeZone: tz })
 }
 
-export function DailyActivityTable({ rows }: { rows: DailyActivityRow[] }) {
-  const todayLabel = new Intl.DateTimeFormat("en-MY", DATE_FORMAT).format(new Date())
+export function DailyActivityTable({
+  rows,
+  timezone,
+}: {
+  rows: DailyActivityRow[]
+  timezone: string
+}) {
+  const todayLabel = new Intl.DateTimeFormat("en-MY", {
+    ...DATE_FORMAT,
+    timeZone: timezone,
+  }).format(new Date())
 
   return (
     <Card>
@@ -47,8 +56,8 @@ export function DailyActivityTable({ rows }: { rows: DailyActivityRow[] }) {
               <span>Clock out</span>
             </div>
             {rows.map((row) => {
-              const inLabel = formatTime(row.timeIn)
-              const outLabel = formatTime(row.timeOut)
+              const inLabel = formatTime(row.timeIn, timezone)
+              const outLabel = formatTime(row.timeOut, timezone)
               const meta =
                 [row.project, row.jobTitle].filter(Boolean).join(" · ") || "—"
               return (

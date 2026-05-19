@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getPrismaClient } from "@/lib/prisma"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type { RollCallPerson } from "@/modules/attendance/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
@@ -109,6 +110,7 @@ export default async function AdminAttendancePage({
     selfieStats,
     dailyActivity,
     supervisorPerformance,
+    timezone,
   ] = await Promise.all([
     adminAttendanceService.getOrgOverview(orgId, null),
     adminAttendanceService.getAggregateStats(
@@ -163,6 +165,7 @@ export default async function AdminAttendancePage({
           q: supFilter.q,
         })
       : Promise.resolve([]),
+    attendanceRepository.getOrgTimezone(orgId),
   ])
 
   const presentRate =
@@ -239,7 +242,7 @@ export default async function AdminAttendancePage({
           teams={teamOptions}
           value={daFilter}
         />
-        <DailyActivityTable rows={dailyActivity} />
+        <DailyActivityTable rows={dailyActivity} timezone={timezone} />
       </div>
 
       <div className="space-y-2">
