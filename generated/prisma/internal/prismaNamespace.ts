@@ -417,6 +417,7 @@ export const ModelName = {
   PayrollSettings: 'PayrollSettings',
   PayrollCompanyInfo: 'PayrollCompanyInfo',
   PayrollRun: 'PayrollRun',
+  PayrollRunReport: 'PayrollRunReport',
   PayrollRunClaim: 'PayrollRunClaim',
   PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
@@ -436,7 +437,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2618,6 +2619,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PayrollRunReport: {
+      payload: Prisma.$PayrollRunReportPayload<ExtArgs>
+      fields: Prisma.PayrollRunReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PayrollRunReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PayrollRunReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunReportPayload>
+        }
+        findFirst: {
+          args: Prisma.PayrollRunReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PayrollRunReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunReportPayload>
+        }
+        findMany: {
+          args: Prisma.PayrollRunReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunReportPayload>[]
+        }
+        create: {
+          args: Prisma.PayrollRunReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunReportPayload>
+        }
+        createMany: {
+          args: Prisma.PayrollRunReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.PayrollRunReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunReportPayload>
+        }
+        update: {
+          args: Prisma.PayrollRunReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.PayrollRunReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PayrollRunReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.PayrollRunReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollRunReportPayload>
+        }
+        aggregate: {
+          args: Prisma.PayrollRunReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePayrollRunReport>
+        }
+        groupBy: {
+          args: Prisma.PayrollRunReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollRunReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PayrollRunReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollRunReportCountAggregateOutputType> | number
+        }
+      }
+    }
     PayrollRunClaim: {
       payload: Prisma.$PayrollRunClaimPayload<ExtArgs>
       fields: Prisma.PayrollRunClaimFieldRefs
@@ -3617,6 +3684,21 @@ export const PayrollRunScalarFieldEnum = {
 export type PayrollRunScalarFieldEnum = (typeof PayrollRunScalarFieldEnum)[keyof typeof PayrollRunScalarFieldEnum]
 
 
+export const PayrollRunReportScalarFieldEnum = {
+  id: 'id',
+  payrollRunId: 'payrollRunId',
+  kind: 'kind',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  contentHash: 'contentHash',
+  generatedAt: 'generatedAt'
+} as const
+
+export type PayrollRunReportScalarFieldEnum = (typeof PayrollRunReportScalarFieldEnum)[keyof typeof PayrollRunReportScalarFieldEnum]
+
+
 export const PayrollRunClaimScalarFieldEnum = {
   id: 'id',
   payrollRunId: 'payrollRunId',
@@ -4217,6 +4299,18 @@ export const PayrollRunOrderByRelevanceFieldEnum = {
 export type PayrollRunOrderByRelevanceFieldEnum = (typeof PayrollRunOrderByRelevanceFieldEnum)[keyof typeof PayrollRunOrderByRelevanceFieldEnum]
 
 
+export const PayrollRunReportOrderByRelevanceFieldEnum = {
+  id: 'id',
+  payrollRunId: 'payrollRunId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  contentHash: 'contentHash'
+} as const
+
+export type PayrollRunReportOrderByRelevanceFieldEnum = (typeof PayrollRunReportOrderByRelevanceFieldEnum)[keyof typeof PayrollRunReportOrderByRelevanceFieldEnum]
+
+
 export const PayrollRunClaimOrderByRelevanceFieldEnum = {
   id: 'id',
   payrollRunId: 'payrollRunId',
@@ -4501,6 +4595,13 @@ export type EnumPayrollRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
 
 
 /**
+ * Reference to a field of type 'PayrollReportKind'
+ */
+export type EnumPayrollReportKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollReportKind'>
+    
+
+
+/**
  * Reference to a field of type 'PayslipLineKind'
  */
 export type EnumPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayslipLineKind'>
@@ -4634,6 +4735,7 @@ export type GlobalOmitConfig = {
   payrollSettings?: Prisma.PayrollSettingsOmit
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoOmit
   payrollRun?: Prisma.PayrollRunOmit
+  payrollRunReport?: Prisma.PayrollRunReportOmit
   payrollRunClaim?: Prisma.PayrollRunClaimOmit
   payrollRunAdjustment?: Prisma.PayrollRunAdjustmentOmit
   payslip?: Prisma.PayslipOmit

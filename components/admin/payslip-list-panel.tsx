@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Download, FileText, Search } from "lucide-react"
+import { FileText, Search } from "lucide-react"
 
 import { EditAdjustmentDialog } from "@/components/admin/edit-adjustment-dialog"
 import { Button } from "@/components/ui/button"
@@ -112,14 +112,11 @@ export function PayslipsListPanel({
   const [query, setQuery] = useState("")
   const [page, setPage] = useState(1)
 
-  // The "Download payroll summary PDF" button is a plain link to the
-  // run's /summary route, which streams a properly-laid-out PDF
-  // generated server-side via @react-pdf/renderer. This is a real
-  // PDF document — not a screenshot of the page — so column widths
-  // and pagination are correct regardless of viewport. The
-  // `?download=1` query forces the browser to save instead of
-  // opening inline; the filename is set by Content-Disposition.
-  const summaryPdfHref = `/admin/payroll/runs/${runId}/summary?download=1`
+  // The standalone "Download payroll summary PDF" button moved into the
+  // run-level "Download files" modal alongside the 6 other generated
+  // files (and the bank disbursement CSV). The legacy
+  // `/admin/payroll/runs/${runId}/summary` route still works for
+  // anyone with the bookmarked URL.
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -184,24 +181,20 @@ export function PayslipsListPanel({
 
   return (
     <Card data-payroll-summary-card>
-      <CardHeader className="flex flex-row items-start justify-between gap-3">
-        <div>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <FileText className="h-4 w-4" />
-            Payslips
-          </CardTitle>
-          <CardDescription>
-            {payslips.length} payslip{payslips.length === 1 ? "" : "s"} on
-            file. Column totals shown in the header reflect the current
-            search filter.
-          </CardDescription>
-        </div>
-        <Button asChild variant="outline" size="sm" className="gap-2">
-          <a href={summaryPdfHref}>
-            <Download className="h-4 w-4" />
-            Download payroll summary PDF
-          </a>
-        </Button>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <FileText className="h-4 w-4" />
+          Payslips
+        </CardTitle>
+        <CardDescription>
+          {payslips.length} payslip{payslips.length === 1 ? "" : "s"} on
+          file. Column totals shown in the header reflect the current
+          search filter.{" "}
+          {/* The old per-card "Download payroll summary PDF" button moved
+              into the run-level "Download files" modal (shows once the
+              run is SUBMITTED). All 7 generated files + the bank CSV
+              live there now — one entry point. */}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="relative">

@@ -24,6 +24,7 @@ import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payro
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { payrollRunAdjustmentRepository } from "@/modules/payroll/infrastructure/payroll-run-adjustment.repository"
 import { payrollRunClaimRepository } from "@/modules/payroll/infrastructure/payroll-run-claim.repository"
+import { payrollRunReportRepository } from "@/modules/payroll/infrastructure/payroll-run-report.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import {
   payslipRepository,
@@ -393,6 +394,11 @@ export async function revertPayrollRunToDraft(input: {
     id: input.runId,
     organizationId: orgId,
   })
+  // Clear any cached generated reports for this run — their numbers may
+  // become stale once the admin edits the draft, so we force a
+  // re-generation on the next submit. Cascade still handles full
+  // deletion separately.
+  await payrollRunReportRepository.deleteForRun(input.runId)
   await bustPayrollCaches({ organizationId: orgId })
 }
 

@@ -9,6 +9,19 @@
 * 🟢 You can import this file directly.
 */
 
+export const PayrollReportKind = {
+  PAYROLL_SUMMARY_PDF: 'PAYROLL_SUMMARY_PDF',
+  PAYMENT_SCHEDULE_PDF: 'PAYMENT_SCHEDULE_PDF',
+  DETAILED_CALCULATIONS_PDF: 'DETAILED_CALCULATIONS_PDF',
+  BULK_PAYSLIPS_PDF: 'BULK_PAYSLIPS_PDF',
+  EPF_CSV: 'EPF_CSV',
+  SOCSO_EIS_TXT: 'SOCSO_EIS_TXT',
+  PCB_TXT: 'PCB_TXT'
+} as const
+
+export type PayrollReportKind = (typeof PayrollReportKind)[keyof typeof PayrollReportKind]
+
+
 export const ClaimApprovalDecision = {
   APPROVED: 'APPROVED',
   REJECTED: 'REJECTED'

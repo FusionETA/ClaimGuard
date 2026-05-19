@@ -4,7 +4,6 @@ import { redirect } from "next/navigation"
 import {
   ChevronLeft,
   ClipboardList,
-  Download,
   Receipt,
 } from "lucide-react"
 
@@ -23,6 +22,7 @@ import {
 } from "@/components/admin/claim-attachment-buttons"
 import { DeletePayrollRunDraftButton } from "@/components/admin/delete-payroll-run-draft-button"
 import { GeneratePayslipsButton } from "@/components/admin/generate-payslips-button"
+import { PayrollDownloadsModal } from "@/components/admin/payroll-downloads-modal"
 import { PayrollRunEmployeeTables } from "@/components/admin/payroll-run-employee-tables"
 import { PayslipsListPanel } from "@/components/admin/payslip-list-panel"
 import {
@@ -32,6 +32,7 @@ import {
   SendBackToDraftButton,
   SubmitPayrollRunButton,
 } from "@/components/admin/submit-payroll-run-buttons"
+import { getPayrollReportsModalData } from "@/modules/payroll/application/services/payroll-reports.service"
 import { getPayrollRunDetailWithPayslipsPageData } from "@/modules/payroll/application/services/payroll-run.service"
 import {
   PAYROLL_RUN_STATUS_LABELS,
@@ -61,6 +62,14 @@ export default async function AdminPayrollRunDetailPage({
   const { id } = await params
   const data = await getPayrollRunDetailWithPayslipsPageData({ runId: id })
   if (!data) redirect("/admin/payroll/runs")
+
+  // Modal data — only meaningful once the run is SUBMITTED (the
+  // statutory files + cached PDFs all require finalised payslips). We
+  // still fetch it so the modal can render the empty state cleanly.
+  const reportsModalData =
+    data.run.status === "SUBMITTED"
+      ? await getPayrollReportsModalData({ runId: id })
+      : null
 
   const ready = data.employees.filter((e) => e.ready)
   // Excluded employees (salary = 0) are NOT in the "needs setup"
@@ -380,15 +389,19 @@ export default async function AdminPayrollRunDetailPage({
               . Payslips are visible to employees.
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <Button asChild variant="outline" className="gap-2">
-                <a
-                  href={`/admin/payroll/runs/${data.run.id}/disbursement`}
-                  download
-                >
-                  <Download className="h-4 w-4" />
-                  Download bank CSV
-                </a>
-              </Button>
+              {reportsModalData ? (
+                <PayrollDownloadsModal
+                  runId={reportsModalData.runId}
+                  organizationName={reportsModalData.organizationName}
+                  periodLabel={periodLabel(
+                    data.run.periodYear,
+                    data.run.periodMonth,
+                  )}
+                  canGenerate={reportsModalData.canGenerate}
+                  rows={reportsModalData.rows}
+                  showBankCsv
+                />
+              ) : null}
               <RevertPayrollRunButton runId={data.run.id} />
             </div>
           </div>

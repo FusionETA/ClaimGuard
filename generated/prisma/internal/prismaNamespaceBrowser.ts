@@ -84,6 +84,7 @@ export const ModelName = {
   PayrollSettings: 'PayrollSettings',
   PayrollCompanyInfo: 'PayrollCompanyInfo',
   PayrollRun: 'PayrollRun',
+  PayrollRunReport: 'PayrollRunReport',
   PayrollRunClaim: 'PayrollRunClaim',
   PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
@@ -802,6 +803,21 @@ export const PayrollRunScalarFieldEnum = {
 export type PayrollRunScalarFieldEnum = (typeof PayrollRunScalarFieldEnum)[keyof typeof PayrollRunScalarFieldEnum]
 
 
+export const PayrollRunReportScalarFieldEnum = {
+  id: 'id',
+  payrollRunId: 'payrollRunId',
+  kind: 'kind',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  contentHash: 'contentHash',
+  generatedAt: 'generatedAt'
+} as const
+
+export type PayrollRunReportScalarFieldEnum = (typeof PayrollRunReportScalarFieldEnum)[keyof typeof PayrollRunReportScalarFieldEnum]
+
+
 export const PayrollRunClaimScalarFieldEnum = {
   id: 'id',
   payrollRunId: 'payrollRunId',
@@ -1400,6 +1416,18 @@ export const PayrollRunOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayrollRunOrderByRelevanceFieldEnum = (typeof PayrollRunOrderByRelevanceFieldEnum)[keyof typeof PayrollRunOrderByRelevanceFieldEnum]
+
+
+export const PayrollRunReportOrderByRelevanceFieldEnum = {
+  id: 'id',
+  payrollRunId: 'payrollRunId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  contentHash: 'contentHash'
+} as const
+
+export type PayrollRunReportOrderByRelevanceFieldEnum = (typeof PayrollRunReportOrderByRelevanceFieldEnum)[keyof typeof PayrollRunReportOrderByRelevanceFieldEnum]
 
 
 export const PayrollRunClaimOrderByRelevanceFieldEnum = {

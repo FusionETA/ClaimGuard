@@ -1,6 +1,9 @@
 "use server"
 
+import { safeErrorMessage } from "@/lib/errors"
+import { generatePayrollReport } from "@/modules/payroll/application/services/payroll-reports.service"
 import { getPayrollPayslipDetailPageData } from "@/modules/payroll/application/services/payroll-run.service"
+import type { PayrollReportKind } from "@/modules/payroll/domain/reports"
 import type { PayslipData } from "@/modules/payroll/domain/runs"
 
 /**
@@ -21,4 +24,52 @@ export async function fetchPayslipDetailForExpansionAction(input: {
   })
   if (!result) return null
   return result.payslip
+}
+
+/**
+ * Server action called from the "Download files" modal. Generates the
+ * requested report on the first click (caching to disk + DB), or
+ * returns the cached entry on subsequent clicks. The client then
+ * triggers a download against `fileUrl`.
+ *
+ * Always returns a result object — never throws — so the client can
+ * surface a clean toast on failure.
+ */
+export type GeneratePayrollReportActionResult =
+  | {
+      status: "ready"
+      fileName: string
+      fileUrl: string
+      mimeType: string
+      sizeBytes: number
+      alreadyCached: boolean
+    }
+  | {
+      status: "error"
+      message: string
+    }
+
+export async function generatePayrollReportAction(input: {
+  runId: string
+  kind: PayrollReportKind
+}): Promise<GeneratePayrollReportActionResult> {
+  try {
+    const result = await generatePayrollReport({
+      runId: input.runId,
+      kind: input.kind,
+    })
+    return {
+      status: "ready",
+      fileName: result.fileName,
+      fileUrl: result.fileUrl,
+      mimeType: result.mimeType,
+      sizeBytes: result.sizeBytes,
+      alreadyCached: result.alreadyCached,
+    }
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not generate this file."),
+    }
+  }
 }

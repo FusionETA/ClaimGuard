@@ -891,6 +891,23 @@ export type EnumPayrollRunStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPayrollRunStatusFilter<$PrismaModel>
 }
 
+export type EnumPayrollReportKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.PayrollReportKind | Prisma.EnumPayrollReportKindFieldRefInput<$PrismaModel>
+  in?: $Enums.PayrollReportKind[]
+  notIn?: $Enums.PayrollReportKind[]
+  not?: Prisma.NestedEnumPayrollReportKindFilter<$PrismaModel> | $Enums.PayrollReportKind
+}
+
+export type EnumPayrollReportKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PayrollReportKind | Prisma.EnumPayrollReportKindFieldRefInput<$PrismaModel>
+  in?: $Enums.PayrollReportKind[]
+  notIn?: $Enums.PayrollReportKind[]
+  not?: Prisma.NestedEnumPayrollReportKindWithAggregatesFilter<$PrismaModel> | $Enums.PayrollReportKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPayrollReportKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPayrollReportKindFilter<$PrismaModel>
+}
+
 export type EnumPayslipLineKindFilter<$PrismaModel = never> = {
   equals?: $Enums.PayslipLineKind | Prisma.EnumPayslipLineKindFieldRefInput<$PrismaModel>
   in?: $Enums.PayslipLineKind[]
@@ -1735,6 +1752,23 @@ export type NestedEnumPayrollRunStatusWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPayrollRunStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPayrollRunStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumPayrollReportKindFilter<$PrismaModel = never> = {
+  equals?: $Enums.PayrollReportKind | Prisma.EnumPayrollReportKindFieldRefInput<$PrismaModel>
+  in?: $Enums.PayrollReportKind[]
+  notIn?: $Enums.PayrollReportKind[]
+  not?: Prisma.NestedEnumPayrollReportKindFilter<$PrismaModel> | $Enums.PayrollReportKind
+}
+
+export type NestedEnumPayrollReportKindWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PayrollReportKind | Prisma.EnumPayrollReportKindFieldRefInput<$PrismaModel>
+  in?: $Enums.PayrollReportKind[]
+  notIn?: $Enums.PayrollReportKind[]
+  not?: Prisma.NestedEnumPayrollReportKindWithAggregatesFilter<$PrismaModel> | $Enums.PayrollReportKind
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPayrollReportKindFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPayrollReportKindFilter<$PrismaModel>
 }
 
 export type NestedEnumPayslipLineKindFilter<$PrismaModel = never> = {
