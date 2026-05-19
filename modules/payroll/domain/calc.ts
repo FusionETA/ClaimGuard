@@ -183,7 +183,13 @@ export function calcEpf(input: CalcEpfInput): {
       employerRateHigh = 6
       break
     case "POST_1998_NON_MALAYSIAN":
-      // Part F — flat 2%/2% effective Oct 2025 salary.
+      // Part F — flat 2%/2% per the KWSP Contribution Rate table.
+      // Applies to non-Malaysians who registered as members on or
+      // after 1 August 1998, regardless of age. Supersedes the older
+      // Third Schedule Parts B / D (flat RM 5 + 11% or 5.5% employee).
+      // Effective for October 2025 salary / November 2025 contribution
+      // month. Source: KWSP official Contribution Rate table — Third
+      // Schedule Part F.
       employeeRate = 2
       employerRateLow = 2
       employerRateHigh = 2

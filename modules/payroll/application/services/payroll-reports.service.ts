@@ -107,6 +107,10 @@ export async function getPayrollReportsModalData(input: {
 export async function generatePayrollReport(input: {
   runId: string
   kind: PayrollReportKind
+  /// Override the payment date — only consumed by `BANK_PB_ECP_XLSX`.
+  /// When set, the cached file is invalidated and re-rendered with
+  /// the new date. ISO date string (YYYY-MM-DD).
+  paymentDate?: string
 }): Promise<{
   fileName: string
   fileUrl: string
@@ -132,11 +136,21 @@ export async function generatePayrollReport(input: {
     )
   }
 
+  // PB ECP is the one kind where the user-supplied payment date is
+  // part of the file CONTENT (Row 1) + filename (DDMMYY). Cache key
+  // doesn't include date, so we sidestep the cache for this kind —
+  // each click regenerates with the current admin-supplied date.
+  // File size is small (low KBs) so re-rendering on every click is
+  // cheap.
+  const skipCacheRead = input.kind === "BANK_PB_ECP_XLSX"
+
   // Cache hit — return the existing entry without re-rendering.
-  const cached = await payrollRunReportRepository.getByRunAndKind({
-    payrollRunId: run.id,
-    kind: input.kind,
-  })
+  const cached = skipCacheRead
+    ? null
+    : await payrollRunReportRepository.getByRunAndKind({
+        payrollRunId: run.id,
+        kind: input.kind,
+      })
   if (cached) {
     return {
       fileName: cached.fileName,
@@ -150,16 +164,40 @@ export async function generatePayrollReport(input: {
   // Cache miss — render the bytes via the matching renderer.
   const meta = PAYROLL_REPORT_META[input.kind]
   const generatedAt = new Date()
-  const fileName = buildReportFileName({
+  let fileName = buildReportFileName({
     kind: input.kind,
     periodYear: run.periodYear,
     periodMonth: run.periodMonth,
     generatedAt,
   })
+  // PB ECP filename is bank-spec'd (`<account>PR<DDMMYY><NN>.xlsx`).
+  // Override the generic name with the proper PB filename so the
+  // file the admin downloads is upload-ready into PB enterprise.
+  // Payment date defaults to the last day of the period month when
+  // the admin doesn't override it.
+  let resolvedPaymentDate: Date | undefined
+  if (input.kind === "BANK_PB_ECP_XLSX") {
+    const { payrollSettingsRepository } = await import(
+      "@/modules/payroll/infrastructure/payroll-settings.repository"
+    )
+    const { buildPbEcpFileName } = await import(
+      "@/modules/payroll/application/services/report-renderers/pb-ecp-xlsx"
+    )
+    const settings = await payrollSettingsRepository.getByOrgId(orgId)
+    const acc = settings?.ecpPayorAccountNo ?? "0000000000"
+    resolvedPaymentDate = input.paymentDate
+      ? parseIsoDate(input.paymentDate)
+      : new Date(run.periodYear, run.periodMonth, 0)
+    fileName = buildPbEcpFileName({
+      payorAccountNo: acc,
+      paymentDate: resolvedPaymentDate,
+    })
+  }
 
   const bytes = await renderPayrollReport({
     runId: run.id,
     kind: input.kind,
+    paymentDate: resolvedPaymentDate,
   })
 
   // Persist to disk under public/uploads/payroll-reports/<runId>/.
@@ -204,4 +242,11 @@ export async function generatePayrollReport(input: {
     sizeBytes: bytes.byteLength,
     alreadyCached: false,
   }
+}
+
+/// Parse a YYYY-MM-DD string into a Date at local midnight.
+function parseIsoDate(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number)
+  if (!y || !m || !d) return new Date()
+  return new Date(y, m - 1, d)
 }

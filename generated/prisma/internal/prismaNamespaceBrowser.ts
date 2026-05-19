@@ -85,6 +85,7 @@ export const ModelName = {
   PayrollCompanyInfo: 'PayrollCompanyInfo',
   PayrollRun: 'PayrollRun',
   PayrollRunReport: 'PayrollRunReport',
+  PayrollAnnualReport: 'PayrollAnnualReport',
   PayrollRunClaim: 'PayrollRunClaim',
   PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
@@ -716,7 +717,9 @@ export const PayrollSettingsScalarFieldEnum = {
   xeroMapping: 'xeroMapping',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  autoApplySocsoEisRelief: 'autoApplySocsoEisRelief'
+  autoApplySocsoEisRelief: 'autoApplySocsoEisRelief',
+  ecpPayorAccountNo: 'ecpPayorAccountNo',
+  ecpPayorBic: 'ecpPayorBic'
 } as const
 
 export type PayrollSettingsScalarFieldEnum = (typeof PayrollSettingsScalarFieldEnum)[keyof typeof PayrollSettingsScalarFieldEnum]
@@ -816,6 +819,22 @@ export const PayrollRunReportScalarFieldEnum = {
 } as const
 
 export type PayrollRunReportScalarFieldEnum = (typeof PayrollRunReportScalarFieldEnum)[keyof typeof PayrollRunReportScalarFieldEnum]
+
+
+export const PayrollAnnualReportScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  year: 'year',
+  kind: 'kind',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  contentHash: 'contentHash',
+  generatedAt: 'generatedAt'
+} as const
+
+export type PayrollAnnualReportScalarFieldEnum = (typeof PayrollAnnualReportScalarFieldEnum)[keyof typeof PayrollAnnualReportScalarFieldEnum]
 
 
 export const PayrollRunClaimScalarFieldEnum = {
@@ -1359,7 +1378,9 @@ export const PayrollSettingsOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   employerIdNumber: 'employerIdNumber',
-  myCoOrSsmNumber: 'myCoOrSsmNumber'
+  myCoOrSsmNumber: 'myCoOrSsmNumber',
+  ecpPayorAccountNo: 'ecpPayorAccountNo',
+  ecpPayorBic: 'ecpPayorBic'
 } as const
 
 export type PayrollSettingsOrderByRelevanceFieldEnum = (typeof PayrollSettingsOrderByRelevanceFieldEnum)[keyof typeof PayrollSettingsOrderByRelevanceFieldEnum]
@@ -1428,6 +1449,18 @@ export const PayrollRunReportOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayrollRunReportOrderByRelevanceFieldEnum = (typeof PayrollRunReportOrderByRelevanceFieldEnum)[keyof typeof PayrollRunReportOrderByRelevanceFieldEnum]
+
+
+export const PayrollAnnualReportOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  contentHash: 'contentHash'
+} as const
+
+export type PayrollAnnualReportOrderByRelevanceFieldEnum = (typeof PayrollAnnualReportOrderByRelevanceFieldEnum)[keyof typeof PayrollAnnualReportOrderByRelevanceFieldEnum]
 
 
 export const PayrollRunClaimOrderByRelevanceFieldEnum = {

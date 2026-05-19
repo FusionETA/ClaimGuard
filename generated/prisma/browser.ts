@@ -301,6 +301,17 @@ export type PayrollRun = Prisma.PayrollRunModel
  */
 export type PayrollRunReport = Prisma.PayrollRunReportModel
 /**
+ * Model PayrollAnnualReport
+ * Year-level annual tax forms aggregating every SUBMITTED run in a
+ * calendar year. Cached lazily on first download — busted whenever
+ * any underlying run for the year changes state (approve / revert /
+ * delete) so the cached file always reflects the live SUBMITTED set.
+ * 
+ * Cascade on org delete; explicit cleanup on run state changes via
+ * `payrollAnnualReportRepository.deleteForYear`.
+ */
+export type PayrollAnnualReport = Prisma.PayrollAnnualReportModel
+/**
  * Model PayrollRunClaim
  * Join row attaching an approved (SYNCED + PERSONAL paymentType)
  * AltomateHR claim to a payroll run as a REIMBURSEMENT. Persisted

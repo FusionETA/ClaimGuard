@@ -19,17 +19,19 @@ export const payrollReportKinds = [
   "EPF_CSV",
   "SOCSO_EIS_TXT",
   "PCB_TXT",
+  "BANK_PB_ECP_XLSX",
 ] as const
 
 export type PayrollReportKind = (typeof payrollReportKinds)[number]
 
 /**
- * Grouping shown as a section header in the modal. Three groups:
+ * Grouping shown as a section header in the modal:
  *   - REPORTS — internal documents the admin keeps for management.
  *   - STATUTORY — files the admin uploads to government portals.
  *   - PAYSLIPS — bulk payslip PDF for distribution to employees.
+ *   - BANK — bank disbursement upload files (PB ECP, etc.).
  */
-export type PayrollReportGroup = "REPORTS" | "STATUTORY" | "PAYSLIPS"
+export type PayrollReportGroup = "REPORTS" | "STATUTORY" | "PAYSLIPS" | "BANK"
 
 export type PayrollReportMeta = {
   kind: PayrollReportKind
@@ -41,7 +43,7 @@ export type PayrollReportMeta = {
   /// Hint of which portal/system this file uploads to, when applicable.
   portal: string | null
   /// File extension (without the dot).
-  extension: "pdf" | "csv" | "txt"
+  extension: "pdf" | "csv" | "txt" | "xlsx"
   /// MIME type written to disk + sent on the download response.
   mimeType: string
 }
@@ -120,12 +122,24 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
     extension: "pdf",
     mimeType: "application/pdf",
   },
+  BANK_PB_ECP_XLSX: {
+    kind: "BANK_PB_ECP_XLSX",
+    group: "BANK",
+    title: "Public Bank ECP (Bulk Payroll)",
+    description:
+      "Bulk salary disbursement Excel for upload to PB enterprise → Bulk Payroll. Auto-fills BIC codes from each employee's bank.",
+    portal: "PB enterprise (Public Bank)",
+    extension: "xlsx",
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  },
 }
 
 export const PAYROLL_REPORT_GROUP_LABELS: Record<PayrollReportGroup, string> = {
   REPORTS: "Reports",
   STATUTORY: "Statutory uploads",
   PAYSLIPS: "Payslips",
+  BANK: "Bank disbursement",
 }
 
 /**
@@ -187,6 +201,13 @@ export function buildReportFileName(input: {
       return `SOCSO_EIS_${mmyyyy}.${meta.extension}`
     case "PCB_TXT":
       return `PCB_${mmyyyy}.${meta.extension}`
+    case "BANK_PB_ECP_XLSX":
+      // PB ECP filename format: `<10-digit account>PR<DDMMYY><NN>.xlsx`.
+      // The account number isn't available in this pure-domain
+      // function, so we return a placeholder; the service overrides
+      // the filename with the real PB filename at generation time
+      // (see `pb-ecp-xlsx.ts → buildPbEcpFileName`).
+      return `PB_ECP_Payroll_${mmyyyy}.${meta.extension}`
   }
 }
 

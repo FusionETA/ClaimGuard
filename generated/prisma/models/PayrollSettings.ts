@@ -61,6 +61,8 @@ export type PayrollSettingsMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   autoApplySocsoEisRelief: boolean | null
+  ecpPayorAccountNo: string | null
+  ecpPayorBic: string | null
 }
 
 export type PayrollSettingsMaxAggregateOutputType = {
@@ -81,6 +83,8 @@ export type PayrollSettingsMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   autoApplySocsoEisRelief: boolean | null
+  ecpPayorAccountNo: string | null
+  ecpPayorBic: string | null
 }
 
 export type PayrollSettingsCountAggregateOutputType = {
@@ -102,6 +106,8 @@ export type PayrollSettingsCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   autoApplySocsoEisRelief: number
+  ecpPayorAccountNo: number
+  ecpPayorBic: number
   _all: number
 }
 
@@ -140,6 +146,8 @@ export type PayrollSettingsMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
+  ecpPayorAccountNo?: true
+  ecpPayorBic?: true
 }
 
 export type PayrollSettingsMaxAggregateInputType = {
@@ -160,6 +168,8 @@ export type PayrollSettingsMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
+  ecpPayorAccountNo?: true
+  ecpPayorBic?: true
 }
 
 export type PayrollSettingsCountAggregateInputType = {
@@ -181,6 +191,8 @@ export type PayrollSettingsCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
+  ecpPayorAccountNo?: true
+  ecpPayorBic?: true
   _all?: true
 }
 
@@ -289,6 +301,8 @@ export type PayrollSettingsGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   autoApplySocsoEisRelief: boolean
+  ecpPayorAccountNo: string | null
+  ecpPayorBic: string | null
   _count: PayrollSettingsCountAggregateOutputType | null
   _avg: PayrollSettingsAvgAggregateOutputType | null
   _sum: PayrollSettingsSumAggregateOutputType | null
@@ -333,6 +347,8 @@ export type PayrollSettingsWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  ecpPayorAccountNo?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
+  ecpPayorBic?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
@@ -355,6 +371,8 @@ export type PayrollSettingsOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  ecpPayorAccountNo?: Prisma.SortOrderInput | Prisma.SortOrder
+  ecpPayorBic?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.PayrollSettingsOrderByRelevanceInput
 }
@@ -381,6 +399,8 @@ export type PayrollSettingsWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  ecpPayorAccountNo?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
+  ecpPayorBic?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id" | "organizationId">
 
@@ -403,6 +423,8 @@ export type PayrollSettingsOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  ecpPayorAccountNo?: Prisma.SortOrderInput | Prisma.SortOrder
+  ecpPayorBic?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PayrollSettingsCountOrderByAggregateInput
   _avg?: Prisma.PayrollSettingsAvgOrderByAggregateInput
   _max?: Prisma.PayrollSettingsMaxOrderByAggregateInput
@@ -432,6 +454,8 @@ export type PayrollSettingsScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
+  ecpPayorAccountNo?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
+  ecpPayorBic?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
 }
 
 export type PayrollSettingsCreateInput = {
@@ -452,6 +476,8 @@ export type PayrollSettingsCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  ecpPayorAccountNo?: string | null
+  ecpPayorBic?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollSettingsInput
 }
 
@@ -474,6 +500,8 @@ export type PayrollSettingsUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  ecpPayorAccountNo?: string | null
+  ecpPayorBic?: string | null
 }
 
 export type PayrollSettingsUpdateInput = {
@@ -494,6 +522,8 @@ export type PayrollSettingsUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollSettingsNestedInput
 }
 
@@ -516,6 +546,8 @@ export type PayrollSettingsUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollSettingsCreateManyInput = {
@@ -537,6 +569,8 @@ export type PayrollSettingsCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  ecpPayorAccountNo?: string | null
+  ecpPayorBic?: string | null
 }
 
 export type PayrollSettingsUpdateManyMutationInput = {
@@ -557,6 +591,8 @@ export type PayrollSettingsUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollSettingsUncheckedUpdateManyInput = {
@@ -578,6 +614,8 @@ export type PayrollSettingsUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollSettingsNullableScalarRelationFilter = {
@@ -610,6 +648,8 @@ export type PayrollSettingsCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  ecpPayorAccountNo?: Prisma.SortOrder
+  ecpPayorBic?: Prisma.SortOrder
 }
 
 export type PayrollSettingsAvgOrderByAggregateInput = {
@@ -638,6 +678,8 @@ export type PayrollSettingsMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  ecpPayorAccountNo?: Prisma.SortOrder
+  ecpPayorBic?: Prisma.SortOrder
 }
 
 export type PayrollSettingsMinOrderByAggregateInput = {
@@ -658,6 +700,8 @@ export type PayrollSettingsMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  ecpPayorAccountNo?: Prisma.SortOrder
+  ecpPayorBic?: Prisma.SortOrder
 }
 
 export type PayrollSettingsSumOrderByAggregateInput = {
@@ -722,6 +766,8 @@ export type PayrollSettingsCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  ecpPayorAccountNo?: string | null
+  ecpPayorBic?: string | null
 }
 
 export type PayrollSettingsUncheckedCreateWithoutOrganizationInput = {
@@ -742,6 +788,8 @@ export type PayrollSettingsUncheckedCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  ecpPayorAccountNo?: string | null
+  ecpPayorBic?: string | null
 }
 
 export type PayrollSettingsCreateOrConnectWithoutOrganizationInput = {
@@ -778,6 +826,8 @@ export type PayrollSettingsUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PayrollSettingsUncheckedUpdateWithoutOrganizationInput = {
@@ -798,6 +848,8 @@ export type PayrollSettingsUncheckedUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -821,6 +873,8 @@ export type PayrollSettingsSelect<ExtArgs extends runtime.Types.Extensions.Inter
   createdAt?: boolean
   updatedAt?: boolean
   autoApplySocsoEisRelief?: boolean
+  ecpPayorAccountNo?: boolean
+  ecpPayorBic?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["payrollSettings"]>
 
@@ -845,9 +899,11 @@ export type PayrollSettingsSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   autoApplySocsoEisRelief?: boolean
+  ecpPayorAccountNo?: boolean
+  ecpPayorBic?: boolean
 }
 
-export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "employerIdNumber" | "myCoOrSsmNumber" | "leaveCarryForwardAllowed" | "leaveCarryForwardLimitDays" | "leaveCarryForwardExpiryMonths" | "syncClaimsToXeroOnSubmit" | "syncPayrollToXeroOnSubmit" | "xeroMapping" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief", ExtArgs["result"]["payrollSettings"]>
+export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "employerIdNumber" | "myCoOrSsmNumber" | "leaveCarryForwardAllowed" | "leaveCarryForwardLimitDays" | "leaveCarryForwardExpiryMonths" | "syncClaimsToXeroOnSubmit" | "syncPayrollToXeroOnSubmit" | "xeroMapping" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief" | "ecpPayorAccountNo" | "ecpPayorBic", ExtArgs["result"]["payrollSettings"]>
 export type PayrollSettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -902,6 +958,20 @@ export type $PayrollSettingsPayload<ExtArgs extends runtime.Types.Extensions.Int
     createdAt: Date
     updatedAt: Date
     autoApplySocsoEisRelief: boolean
+    /**
+     * 10-digit Public Bank debiting account used as the payor on the
+     * PB ECP Payroll upload file. Required for the
+     * `BANK_PB_ECP_XLSX` report. Null when not configured — the modal
+     * surfaces a clear prompt to set it under Payroll Settings.
+     */
+    ecpPayorAccountNo: string | null
+    /**
+     * SWIFT/BIC code of the payor's bank. Defaults to Public Bank
+     * (PBBEMYKL) since the PB ECP flow is targeted at Public Bank
+     * customers — admins can override if they're using a different
+     * bank's bulk-payroll service.
+     */
+    ecpPayorBic: string | null
   }, ExtArgs["result"]["payrollSettings"]>
   composites: {}
 }
@@ -1290,6 +1360,8 @@ export interface PayrollSettingsFieldRefs {
   readonly createdAt: Prisma.FieldRef<"PayrollSettings", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PayrollSettings", 'DateTime'>
   readonly autoApplySocsoEisRelief: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
+  readonly ecpPayorAccountNo: Prisma.FieldRef<"PayrollSettings", 'String'>
+  readonly ecpPayorBic: Prisma.FieldRef<"PayrollSettings", 'String'>
 }
     
 

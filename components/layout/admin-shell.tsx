@@ -99,6 +99,10 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
       { href: "/admin/payroll" as Route, label: "Overview" },
       { href: "/admin/payroll/employees" as Route, label: "Employees" },
       { href: "/admin/payroll/runs" as Route, label: "Payroll Runs" },
+      {
+        href: "/admin/payroll/annual-forms" as Route,
+        label: "Annual Tax Forms",
+      },
       { href: "/admin/payroll/settings" as Route, label: "Settings" },
     ],
   },

@@ -418,6 +418,7 @@ export const ModelName = {
   PayrollCompanyInfo: 'PayrollCompanyInfo',
   PayrollRun: 'PayrollRun',
   PayrollRunReport: 'PayrollRunReport',
+  PayrollAnnualReport: 'PayrollAnnualReport',
   PayrollRunClaim: 'PayrollRunClaim',
   PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
@@ -437,7 +438,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2685,6 +2686,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PayrollAnnualReport: {
+      payload: Prisma.$PayrollAnnualReportPayload<ExtArgs>
+      fields: Prisma.PayrollAnnualReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PayrollAnnualReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollAnnualReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PayrollAnnualReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollAnnualReportPayload>
+        }
+        findFirst: {
+          args: Prisma.PayrollAnnualReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollAnnualReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PayrollAnnualReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollAnnualReportPayload>
+        }
+        findMany: {
+          args: Prisma.PayrollAnnualReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollAnnualReportPayload>[]
+        }
+        create: {
+          args: Prisma.PayrollAnnualReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollAnnualReportPayload>
+        }
+        createMany: {
+          args: Prisma.PayrollAnnualReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.PayrollAnnualReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollAnnualReportPayload>
+        }
+        update: {
+          args: Prisma.PayrollAnnualReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollAnnualReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.PayrollAnnualReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PayrollAnnualReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.PayrollAnnualReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollAnnualReportPayload>
+        }
+        aggregate: {
+          args: Prisma.PayrollAnnualReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePayrollAnnualReport>
+        }
+        groupBy: {
+          args: Prisma.PayrollAnnualReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollAnnualReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PayrollAnnualReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollAnnualReportCountAggregateOutputType> | number
+        }
+      }
+    }
     PayrollRunClaim: {
       payload: Prisma.$PayrollRunClaimPayload<ExtArgs>
       fields: Prisma.PayrollRunClaimFieldRefs
@@ -3597,7 +3664,9 @@ export const PayrollSettingsScalarFieldEnum = {
   xeroMapping: 'xeroMapping',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  autoApplySocsoEisRelief: 'autoApplySocsoEisRelief'
+  autoApplySocsoEisRelief: 'autoApplySocsoEisRelief',
+  ecpPayorAccountNo: 'ecpPayorAccountNo',
+  ecpPayorBic: 'ecpPayorBic'
 } as const
 
 export type PayrollSettingsScalarFieldEnum = (typeof PayrollSettingsScalarFieldEnum)[keyof typeof PayrollSettingsScalarFieldEnum]
@@ -3697,6 +3766,22 @@ export const PayrollRunReportScalarFieldEnum = {
 } as const
 
 export type PayrollRunReportScalarFieldEnum = (typeof PayrollRunReportScalarFieldEnum)[keyof typeof PayrollRunReportScalarFieldEnum]
+
+
+export const PayrollAnnualReportScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  year: 'year',
+  kind: 'kind',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  contentHash: 'contentHash',
+  generatedAt: 'generatedAt'
+} as const
+
+export type PayrollAnnualReportScalarFieldEnum = (typeof PayrollAnnualReportScalarFieldEnum)[keyof typeof PayrollAnnualReportScalarFieldEnum]
 
 
 export const PayrollRunClaimScalarFieldEnum = {
@@ -4240,7 +4325,9 @@ export const PayrollSettingsOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   employerIdNumber: 'employerIdNumber',
-  myCoOrSsmNumber: 'myCoOrSsmNumber'
+  myCoOrSsmNumber: 'myCoOrSsmNumber',
+  ecpPayorAccountNo: 'ecpPayorAccountNo',
+  ecpPayorBic: 'ecpPayorBic'
 } as const
 
 export type PayrollSettingsOrderByRelevanceFieldEnum = (typeof PayrollSettingsOrderByRelevanceFieldEnum)[keyof typeof PayrollSettingsOrderByRelevanceFieldEnum]
@@ -4309,6 +4396,18 @@ export const PayrollRunReportOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayrollRunReportOrderByRelevanceFieldEnum = (typeof PayrollRunReportOrderByRelevanceFieldEnum)[keyof typeof PayrollRunReportOrderByRelevanceFieldEnum]
+
+
+export const PayrollAnnualReportOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  mimeType: 'mimeType',
+  contentHash: 'contentHash'
+} as const
+
+export type PayrollAnnualReportOrderByRelevanceFieldEnum = (typeof PayrollAnnualReportOrderByRelevanceFieldEnum)[keyof typeof PayrollAnnualReportOrderByRelevanceFieldEnum]
 
 
 export const PayrollRunClaimOrderByRelevanceFieldEnum = {
@@ -4602,6 +4701,13 @@ export type EnumPayrollReportKindFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'PayrollAnnualReportKind'
+ */
+export type EnumPayrollAnnualReportKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollAnnualReportKind'>
+    
+
+
+/**
  * Reference to a field of type 'PayslipLineKind'
  */
 export type EnumPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayslipLineKind'>
@@ -4736,6 +4842,7 @@ export type GlobalOmitConfig = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoOmit
   payrollRun?: Prisma.PayrollRunOmit
   payrollRunReport?: Prisma.PayrollRunReportOmit
+  payrollAnnualReport?: Prisma.PayrollAnnualReportOmit
   payrollRunClaim?: Prisma.PayrollRunClaimOmit
   payrollRunAdjustment?: Prisma.PayrollRunAdjustmentOmit
   payslip?: Prisma.PayslipOmit

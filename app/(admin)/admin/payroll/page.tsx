@@ -1,9 +1,11 @@
 import Link from "next/link"
+import type { Route } from "next"
 import { redirect } from "next/navigation"
 import {
   Banknote,
   ClipboardList,
   Clock,
+  FileSpreadsheet,
   Settings2,
   Users,
 } from "lucide-react"
@@ -51,9 +53,9 @@ export default async function AdminPayrollPage() {
         </p>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="flex h-full flex-col">
+          <CardHeader className="flex-1">
             <CardTitle className="flex items-center gap-2 text-base">
               <Users className="h-4 w-4" />
               Employees
@@ -63,15 +65,15 @@ export default async function AdminPayrollPage() {
               banking, salary, and statutory contributions.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <Button asChild>
               <Link href="/admin/payroll/employees">Manage employees</Link>
             </Button>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
+        <Card className="flex h-full flex-col">
+          <CardHeader className="flex-1">
             <CardTitle className="flex items-center gap-2 text-base">
               <ClipboardList className="h-4 w-4" />
               Payroll Runs
@@ -81,15 +83,35 @@ export default async function AdminPayrollPage() {
               attach approved claims as reimbursements.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <Button asChild>
               <Link href="/admin/payroll/runs">Open runs</Link>
             </Button>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
+        <Card className="flex h-full flex-col">
+          <CardHeader className="flex-1">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileSpreadsheet className="h-4 w-4" />
+              Annual Tax Forms
+            </CardTitle>
+            <CardDescription>
+              Year-end Form EA, Form E + CP8D, and CP8D TXT files for
+              LHDN&apos;s e-CP8D upload.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="mt-auto">
+            <Button asChild>
+              <Link href={"/admin/payroll/annual-forms" as Route}>
+                Open annual forms
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="flex h-full flex-col">
+          <CardHeader className="flex-1">
             <CardTitle className="flex items-center gap-2 text-base">
               <Settings2 className="h-4 w-4" />
               Settings
@@ -99,7 +121,7 @@ export default async function AdminPayrollPage() {
               E employer particulars.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="mt-auto">
             <Button asChild>
               <Link href="/admin/payroll/settings">Open settings</Link>
             </Button>

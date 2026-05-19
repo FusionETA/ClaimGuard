@@ -67,6 +67,12 @@ export function PayrollDownloadsModal(props: {
   // Local row state so a successful generation immediately shows the
   // "Generated <date>" label without waiting for a server refresh.
   const [rows, setRows] = useState(props.rows)
+  // Admin-picked payment date for the PB ECP file. Defaults to the
+  // last day of the period month on first open. PB accepts up to 60
+  // days future-dated.
+  const [pbEcpPaymentDate, setPbEcpPaymentDate] = useState<string>(() =>
+    defaultPaymentDateIso(props.periodLabel),
+  )
 
   function handleDownload(kind: PayrollReportKind) {
     setPendingKind(kind)
@@ -75,6 +81,8 @@ export function PayrollDownloadsModal(props: {
         const result = await generatePayrollReportAction({
           runId: props.runId,
           kind,
+          paymentDate:
+            kind === "BANK_PB_ECP_XLSX" ? pbEcpPaymentDate : undefined,
         })
         if (result.status === "error") {
           toast({
@@ -108,11 +116,12 @@ export function PayrollDownloadsModal(props: {
     })
   }
 
-  // Group rows by section in the order REPORTS → STATUTORY → PAYSLIPS.
+  // Group rows by section in the order REPORTS → STATUTORY → PAYSLIPS → BANK.
   const grouped: Record<PayrollReportGroup, PayrollReportRow[]> = {
     REPORTS: rows.filter((r) => r.group === "REPORTS"),
     STATUTORY: rows.filter((r) => r.group === "STATUTORY"),
     PAYSLIPS: rows.filter((r) => r.group === "PAYSLIPS"),
+    BANK: rows.filter((r) => r.group === "BANK"),
   }
 
   return (
@@ -136,7 +145,7 @@ export function PayrollDownloadsModal(props: {
         </DialogHeader>
 
         <div className="space-y-5 py-2">
-          {(["REPORTS", "STATUTORY", "PAYSLIPS"] as const).map((group) => {
+          {(["REPORTS", "STATUTORY", "PAYSLIPS", "BANK"] as const).map((group) => {
             const groupRows = grouped[group]
             if (groupRows.length === 0) return null
             return (
@@ -144,6 +153,33 @@ export function PayrollDownloadsModal(props: {
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {PAYROLL_REPORT_GROUP_LABELS[group]}
                 </h3>
+                {/* PB ECP needs a payment-date picker since the date is
+                    embedded in both the file content (Row 1) and the
+                    filename (DDMMYY). Render it once at the top of the
+                    BANK group when there's a PB ECP row in the list. */}
+                {group === "BANK" &&
+                groupRows.some((r) => r.kind === "BANK_PB_ECP_XLSX") ? (
+                  <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-xs">
+                    <label
+                      htmlFor="pb-ecp-payment-date"
+                      className="font-medium text-foreground"
+                    >
+                      PB ECP payment date
+                    </label>
+                    <input
+                      id="pb-ecp-payment-date"
+                      type="date"
+                      value={pbEcpPaymentDate}
+                      onChange={(e) => setPbEcpPaymentDate(e.target.value)}
+                      min={todayIso()}
+                      max={maxFutureDateIso(60)}
+                      className="rounded-md border border-border/60 bg-background px-2 py-1 text-xs"
+                    />
+                    <span className="text-muted-foreground">
+                      (Up to 60 days future-dated)
+                    </span>
+                  </div>
+                ) : null}
                 <ul className="space-y-1.5">
                   {groupRows.map((row) => (
                     <ReportRow
@@ -159,14 +195,34 @@ export function PayrollDownloadsModal(props: {
             )
           })}
 
-          {/* Bank disbursement CSV lives in the same modal but bypasses
-              the cached-generator pipeline — it's served fresh from the
-              existing `/disbursement` route on each click. We render it
-              as its own section to make the mental separation clear. */}
-          {props.showBankCsv && (
+          {/* Generic bank disbursement CSV — fallback for non-PB banks
+              or admins who prefer to paste rows into their bank's own
+              bulk-transfer template. Served fresh from the existing
+              `/disbursement` route (no caching). Renders under the
+              Bank disbursement group only when no PB ECP row is
+              available for this org. */}
+          {props.showBankCsv && grouped.BANK.length === 0 && (
             <section className="space-y-2">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Bank disbursement
+              </h3>
+              <ul className="space-y-1.5">
+                <li>
+                  <BankCsvRow
+                    runId={props.runId}
+                    disabled={!props.canGenerate}
+                  />
+                </li>
+              </ul>
+            </section>
+          )}
+          {/* When the BANK group has rows (e.g. PB ECP), we still
+              render the generic CSV alongside as a fallback option
+              inside the same section. */}
+          {props.showBankCsv && grouped.BANK.length > 0 && (
+            <section className="space-y-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Generic CSV (fallback)
               </h3>
               <ul className="space-y-1.5">
                 <li>
@@ -310,4 +366,47 @@ function triggerDownload(url: string, fileName: string) {
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
+}
+
+function toIsoDate(d: Date): string {
+  const yyyy = String(d.getFullYear())
+  const mm = String(d.getMonth() + 1).padStart(2, "0")
+  const dd = String(d.getDate()).padStart(2, "0")
+  return `${yyyy}-${mm}-${dd}`
+}
+
+function todayIso(): string {
+  return toIsoDate(new Date())
+}
+
+function maxFutureDateIso(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return toIsoDate(d)
+}
+
+/// Default payment date for the modal — last day of the run's period
+/// month, OR today if that day has already passed. `periodLabel` comes
+/// in as "January 2026" / "Jan 2026" — fall back to today if it can't
+/// be parsed.
+function defaultPaymentDateIso(periodLabel: string): string {
+  const today = new Date()
+  const match = periodLabel.match(/(\w+)\s+(\d{4})/)
+  if (!match) return toIsoDate(today)
+  const month = parseMonth(match[1])
+  const year = Number(match[2])
+  if (month == null || !Number.isInteger(year)) return toIsoDate(today)
+  const lastDay = new Date(year, month, 0)
+  // If the period has already ended, default to today so the picker
+  // doesn't start on a backdated value (PB rejects backdated files).
+  return lastDay < today ? toIsoDate(today) : toIsoDate(lastDay)
+}
+
+function parseMonth(s: string): number | null {
+  const t = s.trim().slice(0, 3).toLowerCase()
+  const months: Record<string, number> = {
+    jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+    jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12,
+  }
+  return months[t] ?? null
 }

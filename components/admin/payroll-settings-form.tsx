@@ -374,6 +374,31 @@ function GeneralTab(props: {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">
+            Bank disbursement (Public Bank ECP)
+          </CardTitle>
+          <CardDescription>
+            Required for the &ldquo;Public Bank ECP (Bulk Payroll)&rdquo;
+            file under Payroll runs → Download files. Leave blank if
+            you don&apos;t use Public Bank&apos;s bulk-payroll service.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <Field label="Public Bank payor account number (10 digits)">
+            <Input
+              name="ecpPayorAccountNo"
+              defaultValue={s?.ecpPayorAccountNo ?? ""}
+              placeholder="3111111111"
+              maxLength={10}
+              inputMode="numeric"
+              pattern="[0-9]{10}"
+            />
+          </Field>
+        </CardContent>
+      </Card>
+
       {props.hasXeroConnection ? (
         <Card>
           <CardHeader>

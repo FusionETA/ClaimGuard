@@ -141,8 +141,11 @@ export function applyResidentTaxBands(
  *
  * Half-relief (when PCB share is HALF) halves the figures — happens
  * when both parents claim 50/50.
+ *
+ * Exported so the annual data loader (CP8D / Form EA) can compute the
+ * yearly relief total without re-implementing the rules.
  */
-function reliefForChild(child: ChildRelief): number {
+export function reliefForChild(child: ChildRelief): number {
   if (child.pcbDeduction === "NONE") return 0
   const isDisabled = child.abilityStatus === "DISABLED"
   const isHigherEd = child.currentlyStudying === "HIGHER_ED"

@@ -9,6 +9,16 @@
 * 🟢 You can import this file directly.
 */
 
+export const PayrollAnnualReportKind = {
+  FORM_EA_BULK_PDF: 'FORM_EA_BULK_PDF',
+  FORM_E_CP8D_PDF: 'FORM_E_CP8D_PDF',
+  CP8D_EMPLOYER_TXT: 'CP8D_EMPLOYER_TXT',
+  CP8D_EMPLOYEE_TXT: 'CP8D_EMPLOYEE_TXT'
+} as const
+
+export type PayrollAnnualReportKind = (typeof PayrollAnnualReportKind)[keyof typeof PayrollAnnualReportKind]
+
+
 export const PayrollReportKind = {
   PAYROLL_SUMMARY_PDF: 'PAYROLL_SUMMARY_PDF',
   PAYMENT_SCHEDULE_PDF: 'PAYMENT_SCHEDULE_PDF',
@@ -16,7 +26,8 @@ export const PayrollReportKind = {
   BULK_PAYSLIPS_PDF: 'BULK_PAYSLIPS_PDF',
   EPF_CSV: 'EPF_CSV',
   SOCSO_EIS_TXT: 'SOCSO_EIS_TXT',
-  PCB_TXT: 'PCB_TXT'
+  PCB_TXT: 'PCB_TXT',
+  BANK_PB_ECP_XLSX: 'BANK_PB_ECP_XLSX'
 } as const
 
 export type PayrollReportKind = (typeof PayrollReportKind)[keyof typeof PayrollReportKind]

@@ -52,11 +52,14 @@ export type GeneratePayrollReportActionResult =
 export async function generatePayrollReportAction(input: {
   runId: string
   kind: PayrollReportKind
+  /// Optional admin-supplied payment date (PB ECP only). ISO YYYY-MM-DD.
+  paymentDate?: string
 }): Promise<GeneratePayrollReportActionResult> {
   try {
     const result = await generatePayrollReport({
       runId: input.runId,
       kind: input.kind,
+      paymentDate: input.paymentDate,
     })
     return {
       status: "ready",

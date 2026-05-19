@@ -385,14 +385,13 @@ export function DetailedCalculationsPdfDocument(
               <CalcRow
                 label={
                   p.snapshotIsResident
-                    ? "Resident MTD: [(P − M)R + B − (Z + X)] ÷ (n+1)"
+                    ? p.zakat > 0
+                      ? "Resident MTD (post-zakat offset)"
+                      : "Resident MTD: [(P − M)R + B − (Z + X)] ÷ (n+1)"
                     : "Non-resident MTD: 30% flat"
                 }
                 amount={p.pcb}
               />
-              {p.zakat > 0 ? (
-                <CalcRow label="Zakat (offsets PCB)" amount={-p.zakat} />
-              ) : null}
             </View>
 
             <View style={detailedStyles.calcGroup}>
@@ -581,8 +580,12 @@ export function BulkPayslipsPdfDocument(props: BulkPayslipsPdfDocumentProps) {
             ) : null}
             <View style={payslipStyles.subTotal}>
               <Text style={payslipStyles.subTotalLabel}>Total earnings</Text>
+              {/* grossPay already includes proratedPay + otPay +
+                  totalAllowances + totalReimbursements (per calc.ts
+                  L1019). Don't add reimbursements again or we
+                  double-count. */}
               <Text style={payslipStyles.subTotalAmount}>
-                {fmtMyr(p.grossPay + p.totalReimbursements)}
+                {fmtMyr(p.grossPay)}
               </Text>
             </View>
           </View>
@@ -590,24 +593,39 @@ export function BulkPayslipsPdfDocument(props: BulkPayslipsPdfDocumentProps) {
           <View style={{ marginTop: 14 }}>
             <Text style={payslipStyles.colTitle}>Deductions</Text>
             <PayRow label="Employee EPF" amount={p.epfEmployee} />
+            {/* PCB shown here is post-zakat-offset (calc.ts already
+                subtracted zakat). Zakat is also rolled into
+                `totalDeductions`, so when we display zakat separately
+                we have to subtract it from "Other deductions" to
+                avoid double-counting. */}
             <PayRow label="PCB / MTD" amount={p.pcb} />
             <PayRow label="Employee SOCSO" amount={p.socsoEmployee} />
             <PayRow label="Employee EIS" amount={p.eisEmployee} />
             {p.zakat > 0 ? (
               <PayRow label="Zakat" amount={p.zakat} />
             ) : null}
-            {p.totalDeductions > 0 ? (
-              <PayRow label="Other deductions" amount={p.totalDeductions} />
-            ) : null}
+            {(() => {
+              const otherDeductions = Math.max(
+                0,
+                p.totalDeductions - p.zakat,
+              )
+              return otherDeductions > 0 ? (
+                <PayRow label="Other deductions" amount={otherDeductions} />
+              ) : null
+            })()}
             <View style={payslipStyles.subTotal}>
               <Text style={payslipStyles.subTotalLabel}>Total deductions</Text>
+              {/* Match the calc engine's netPay formula:
+                    netPay = grossPay − epf − socso − eis − pcb
+                            − totalDeductions
+                  Zakat is inside totalDeductions, so we don't add it
+                  again here. */}
               <Text style={payslipStyles.subTotalAmount}>
                 {fmtMyr(
                   p.epfEmployee +
                     p.pcb +
                     p.socsoEmployee +
                     p.eisEmployee +
-                    p.zakat +
                     p.totalDeductions,
                 )}
               </Text>

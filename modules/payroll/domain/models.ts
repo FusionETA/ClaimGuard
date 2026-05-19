@@ -210,6 +210,11 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToHrdf: true,
   },
   allowance_travel_official: {
+    // Travelling / petrol / toll for travel in EXERCISING the
+    // employment (not commuting). PCB-exempt up to RM 6,000/year per
+    // LHDN Public Ruling 5/2019 §7.2.1. If the employee keeps proper
+    // records, they can claim the actual amount as a deduction at
+    // year-end (out of scope for monthly PCB).
     code: "allowance_travel_official",
     label: "Travel/Petrol/Toll (Official Duty)",
     group: "Allowances / Recurring Monthly",
@@ -233,6 +238,10 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToHrdf: false,
   },
   allowance_parking: {
+    // Parking rate or parking allowance — fully PCB-exempt per LHDN
+    // Public Ruling 5/2019 §7.2.2. Includes parking rate paid by the
+    // employer directly to the parking operator. Admin is expected to
+    // keep the amount "reasonable and not excessive" (LHDN's wording).
     code: "allowance_parking",
     label: "Parking Allowance",
     group: "Allowances / Recurring Monthly",
@@ -244,6 +253,11 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToHrdf: true,
   },
   allowance_meal: {
+    // Meal allowance given on a regular basis (daily/monthly) at the
+    // same rate to all employees — fully PCB-exempt per LHDN Public
+    // Ruling 5/2019 §7.2.3. "Reasonable and not excessive" amount.
+    // Outstation / overtime / per-diem meal allowances are also
+    // exempt when given per internal-circular rates.
     code: "allowance_meal",
     label: "Meal Allowance",
     group: "Allowances / Recurring Monthly",
@@ -255,6 +269,12 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToHrdf: true,
   },
   allowance_childcare: {
+    // Child-care allowance paid to the employee or directly to the
+    // child-care centre. PCB-exempt up to RM 2,400/year per LHDN
+    // Public Ruling 5/2019 §7.2.4. "Child" = under 12 years old; the
+    // admin is responsible for verifying eligibility. Excess above
+    // RM 2,400 YTD becomes PCB-subject; EPF/SOCSO/EIS/HRDF treatment
+    // is unaffected (the allowance is wages for those purposes).
     code: "allowance_childcare",
     label: "Childcare Allowance",
     group: "Allowances / Recurring Monthly",
@@ -264,9 +284,15 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToEis: true,
     subjectToPcb: true,
     subjectToHrdf: true,
-    taxExemptLimit: 3000,
+    taxExemptLimit: 2400,
   },
   allowance_phone_bill: {
+    // Monthly bills for fixed-line / mobile / pager / PDA / broadband
+    // registered under the employee's name — fully PCB-exempt per
+    // LHDN Public Ruling 5/2019 §7.4.2 + §7.4.3. Cost of registration
+    // and installation included. Exemption is LIMITED TO ONE UNIT per
+    // asset category per year — admin enforces this manually (we
+    // don't track per-line-item unit counts).
     code: "allowance_phone_bill",
     label: "Phone/Internet Bill Payment",
     group: "Allowances / Recurring Monthly",
@@ -278,6 +304,11 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToHrdf: true,
   },
   allowance_phone_fixed: {
+    // FIXED phone allowance (cash paid to the employee, not a bill
+    // reimbursed by the employer). Fully PCB-taxable per LHDN Public
+    // Ruling 5/2019 §7.4.4 — "the full amount of that telephone
+    // allowance is taxable as part of his gross income from
+    // employment".
     code: "allowance_phone_fixed",
     label: "Phone Allowance (Fixed)",
     group: "Allowances / Recurring Monthly",

@@ -46,6 +46,18 @@ const settingsSchema = z.object({
   leaveCarryForwardExpiryMonths: nullableInt(),
   syncClaimsToXeroOnSubmit: booleanString(),
   syncPayrollToXeroOnSubmit: booleanString(),
+  // Public Bank ECP — 10-digit debiting account number. Empty / null
+  // is fine (just disables the PB ECP file download). Validate as
+  // either empty or exactly 10 digits to match the spec.
+  ecpPayorAccountNo: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => (v == null || v === "" ? null : v.replace(/[^0-9]/g, "")))
+    .refine(
+      (v) => v === null || v.length === 10,
+      "Public Bank account number must be exactly 10 digits.",
+    ),
 })
 
 export async function savePayrollSettingsAction(
@@ -66,6 +78,7 @@ export async function savePayrollSettingsAction(
     leaveCarryForwardExpiryMonths: formData.get("leaveCarryForwardExpiryMonths"),
     syncClaimsToXeroOnSubmit: formData.get("syncClaimsToXeroOnSubmit"),
     syncPayrollToXeroOnSubmit: formData.get("syncPayrollToXeroOnSubmit"),
+    ecpPayorAccountNo: formData.get("ecpPayorAccountNo"),
   })
 
   if (!parsed.success) {

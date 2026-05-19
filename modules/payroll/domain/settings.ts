@@ -69,6 +69,13 @@ export type PayrollSettingsData = {
   // `null` when the admin hasn't configured Xero yet.
   xeroMapping: PayrollXeroMapping | null
 
+  // Bank disbursement — Public Bank ECP Payroll bulk-upload config.
+  // `ecpPayorAccountNo` is the 10-digit Public Bank debiting account
+  // the salary is paid FROM; `ecpPayorBic` defaults to PBBEMYKL when
+  // null (Public Bank).
+  ecpPayorAccountNo: string | null
+  ecpPayorBic: string | null
+
   createdAt: string
   updatedAt: string
 }

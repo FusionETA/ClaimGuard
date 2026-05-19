@@ -80,6 +80,7 @@ model Organization {
   employeePolicies        EmployeePolicy[]
   payrollCompanyInfo      PayrollCompanyInfo?
   payrollRuns             PayrollRun[]
+  payrollAnnualReports    PayrollAnnualReport[]
   payrollSettings         PayrollSettings?
   users                   User[]
   xeroConnections         XeroConnection[]
@@ -1097,6 +1098,16 @@ model PayrollSettings {
   createdAt                     DateTime        @default(now())
   updatedAt                     DateTime        @updatedAt
   autoApplySocsoEisRelief       Boolean         @default(true)
+  /// 10-digit Public Bank debiting account used as the payor on the
+  /// PB ECP Payroll upload file. Required for the
+  /// `BANK_PB_ECP_XLSX` report. Null when not configured — the modal
+  /// surfaces a clear prompt to set it under Payroll Settings.
+  ecpPayorAccountNo             String?
+  /// SWIFT/BIC code of the payor's bank. Defaults to Public Bank
+  /// (PBBEMYKL) since the PB ECP flow is targeted at Public Bank
+  /// customers — admins can override if they're using a different
+  /// bank's bulk-payroll service.
+  ecpPayorBic                   String?
   organization                  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
@@ -1274,9 +1285,47 @@ model PayrollRunReport {
   @@index([payrollRunId])
 }
 
+/// Year-level annual tax forms aggregating every SUBMITTED run in a
+/// calendar year. Cached lazily on first download — busted whenever
+/// any underlying run for the year changes state (approve / revert /
+/// delete) so the cached file always reflects the live SUBMITTED set.
+///
+/// Cascade on org delete; explicit cleanup on run state changes via
+/// `payrollAnnualReportRepository.deleteForYear`.
+model PayrollAnnualReport {
+  id             String                  @id @default(cuid())
+  organizationId String
+  /// Calendar year (e.g. 2026 covers Jan-Dec 2026 SUBMITTED runs).
+  year           Int
+  kind           PayrollAnnualReportKind
+  fileName       String
+  fileUrl        String
+  mimeType       String
+  sizeBytes      Int
+  contentHash    String
+  generatedAt    DateTime                @default(now())
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, year, kind])
+  @@index([organizationId, year])
+}
+
+/// Which annual file a `PayrollAnnualReport` row represents.
+///   FORM_EA_BULK_PDF       — One Form EA per employee, concatenated.
+///   FORM_E_CP8D_PDF        — Employer's annual return cover + CP8D.
+///   CP8D_EMPLOYER_TXT      — `M{employerNo}_{year}.TXT`, employer row.
+///   CP8D_EMPLOYEE_TXT      — `P{employerNo}_{year}.TXT`, one row per emp.
+enum PayrollAnnualReportKind {
+  FORM_EA_BULK_PDF
+  FORM_E_CP8D_PDF
+  CP8D_EMPLOYER_TXT
+  CP8D_EMPLOYEE_TXT
+}
+
 /// Which downloadable file a `PayrollRunReport` row represents. The
 /// modal on the run detail page renders one row per kind, grouped
-/// into Reports / Statutory uploads / Payslips sections.
+/// into Reports / Statutory uploads / Payslips / Bank disbursement
+/// sections.
 enum PayrollReportKind {
   PAYROLL_SUMMARY_PDF
   PAYMENT_SCHEDULE_PDF
@@ -1285,6 +1334,11 @@ enum PayrollReportKind {
   EPF_CSV
   SOCSO_EIS_TXT
   PCB_TXT
+  /// Public Bank ECP Payroll Excel — bulk salary disbursement file.
+  /// Uploaded to PB enterprise > Bulk Payroll. Filename follows
+  /// `{10-digit account}PR{DDMMYY}{NN}.xlsx`. Required configuration:
+  /// `PayrollSettings.ecpPayorAccountNo`.
+  BANK_PB_ECP_XLSX
 }
 
 /// Join row attaching an approved (SYNCED + PERSONAL paymentType)

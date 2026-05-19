@@ -24,6 +24,7 @@ import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payro
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { payrollRunAdjustmentRepository } from "@/modules/payroll/infrastructure/payroll-run-adjustment.repository"
 import { payrollRunClaimRepository } from "@/modules/payroll/infrastructure/payroll-run-claim.repository"
+import { payrollAnnualReportRepository } from "@/modules/payroll/infrastructure/payroll-annual-report.repository"
 import { payrollRunReportRepository } from "@/modules/payroll/infrastructure/payroll-run-report.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import {
@@ -280,6 +281,13 @@ export async function approvePayrollRun(input: {
   // and any errors there bust again. The early bust guarantees the
   // status flip is visible even if sync hangs or the request aborts.
   await bustPayrollCaches({ organizationId: orgId })
+  // Approving this run added a new month into the year's annual
+  // aggregates — clear cached annual reports so the next generate
+  // includes this period.
+  await payrollAnnualReportRepository.deleteForYear({
+    organizationId: orgId,
+    year: run.periodYear,
+  })
 
   // Best-effort Xero sync. Lazy-imported to keep the payroll-run
   // service light when Xero isn't configured.
@@ -390,6 +398,13 @@ export async function revertPayrollRunToDraft(input: {
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
 
+  // Fetch the run first so we know which year's annual reports to bust.
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  if (!run) throw new Error("Payroll run not found.")
+
   await payrollRunRepository.revertToDraft({
     id: input.runId,
     organizationId: orgId,
@@ -399,6 +414,12 @@ export async function revertPayrollRunToDraft(input: {
   // re-generation on the next submit. Cascade still handles full
   // deletion separately.
   await payrollRunReportRepository.deleteForRun(input.runId)
+  // Annual reports for this run's year are also invalidated — this run
+  // is no longer SUBMITTED so its contribution shouldn't be included.
+  await payrollAnnualReportRepository.deleteForYear({
+    organizationId: orgId,
+    year: run.periodYear,
+  })
   await bustPayrollCaches({ organizationId: orgId })
 }
 

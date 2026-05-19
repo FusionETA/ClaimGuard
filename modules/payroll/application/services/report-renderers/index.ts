@@ -6,6 +6,7 @@ import { renderDetailedCalculationsPdf } from "@/modules/payroll/application/ser
 import { renderEpfCsv } from "@/modules/payroll/application/services/report-renderers/epf-csv"
 import { renderPaymentSchedulePdf } from "@/modules/payroll/application/services/report-renderers/payment-schedule-pdf"
 import { renderPayrollSummaryPdf } from "@/modules/payroll/application/services/report-renderers/payroll-summary-pdf"
+import { renderPbEcpXlsx } from "@/modules/payroll/application/services/report-renderers/pb-ecp-xlsx"
 import { renderPcbTxt } from "@/modules/payroll/application/services/report-renderers/pcb-txt"
 import { renderSocsoEisTxt } from "@/modules/payroll/application/services/report-renderers/socso-eis-txt"
 
@@ -17,6 +18,8 @@ import { renderSocsoEisTxt } from "@/modules/payroll/application/services/report
 export async function renderPayrollReport(input: {
   runId: string
   kind: PayrollReportKind
+  /// Admin-supplied payment date — only consumed by PB ECP today.
+  paymentDate?: Date
 }): Promise<Buffer> {
   switch (input.kind) {
     case "PAYROLL_SUMMARY_PDF":
@@ -33,5 +36,10 @@ export async function renderPayrollReport(input: {
       return renderSocsoEisTxt({ runId: input.runId })
     case "PCB_TXT":
       return renderPcbTxt({ runId: input.runId })
+    case "BANK_PB_ECP_XLSX":
+      return renderPbEcpXlsx({
+        runId: input.runId,
+        paymentDate: input.paymentDate,
+      })
   }
 }
