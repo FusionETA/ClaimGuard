@@ -1,6 +1,0 @@
-name,email,employeeId,jobTitle,joinDate,dateOfBirth,nationality,salaryType,monthlySalary,gender,maritalStatus,isResident,phone,bankName,bankAccountNumber,paymentMethod,policyName,projectCode,teamCode,teamLayer
-Lim Wei Jie,lim.weijie@example.com,EMP-101,Software Engineer,15/01/2024,12/07/1996,Malaysian,MONTHLY,5500,MALE,SINGLE,TRUE,012-3456789,Maybank,1.23457E+12,BANK_TRANSFER,,,,
-Tan Mei Ling,tan.meiling@example.com,EMP-102,QA Engineer,01/03/2024,25/02/1994,Malaysian,MONTHLY,4800,FEMALE,MARRIED,TRUE,011-9876543,CIMB,9.98878E+12,BANK_TRANSFER,,,,
-Ahmad Faisal Bin Rahman,ahmad.faisal@example.com,EMP-103,Project Manager,10/09/2023,03/11/1988,Malaysian,MONTHLY,8200,MALE,MARRIED,TRUE,019-2233445,Public Bank,4.45567E+12,BANK_TRANSFER,,,,
-Priya Subramaniam,priya.s@example.com,EMP-104,UI Designer,18/06/2024,19/04/1998,Malaysian,MONTHLY,4200,FEMALE,SINGLE,TRUE,016-7788990,RHB,3.34456E+12,BANK_TRANSFER,,,,
-Daniel Wong,daniel.wong@example.com,EMP-105,DevOps Engineer,05/02/2024,08/12/1992,Malaysian,MONTHLY,6500,MALE,MARRIED,TRUE,013-4455667,Hong Leong,5.56678E+12,BANK_TRANSFER,,,,

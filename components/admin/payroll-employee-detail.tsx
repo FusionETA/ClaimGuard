@@ -178,13 +178,13 @@ function isEmploymentTabComplete(profile: PayrollProfileData | null) {
   if (!profile.joinDate) return false
   if (
     profile.salaryType === "MONTHLY" &&
-    (profile.monthlySalary == null || profile.monthlySalary <= 0)
+    (profile.monthlySalary == null || profile.monthlySalary < 0)
   ) {
     return false
   }
   if (
     profile.salaryType === "HOURLY" &&
-    (profile.hourlyRate == null || profile.hourlyRate <= 0)
+    (profile.hourlyRate == null || profile.hourlyRate < 0)
   ) {
     return false
   }

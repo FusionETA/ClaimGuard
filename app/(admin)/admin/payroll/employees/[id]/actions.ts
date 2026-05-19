@@ -215,13 +215,13 @@ export async function savePayrollEmploymentAction(
   }
 
   // Cross-field rules:
-  if (parsed.data.salaryType === "MONTHLY" && !parsed.data.monthlySalary) {
+  if (parsed.data.salaryType === "MONTHLY" && parsed.data.monthlySalary == null) {
     return {
       status: "error",
       message: "Monthly salary is required when salary type is MONTHLY.",
     }
   }
-  if (parsed.data.salaryType === "HOURLY" && !parsed.data.hourlyRate) {
+  if (parsed.data.salaryType === "HOURLY" && parsed.data.hourlyRate == null) {
     return {
       status: "error",
       message: "Hourly rate is required when salary type is HOURLY.",

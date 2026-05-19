@@ -5,6 +5,7 @@ import { z } from "zod"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { hashPassword } from "@/lib/auth/password"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
+import { safeErrorMessage } from "@/lib/errors"
 import type { Prisma } from "@/generated/prisma/client"
 import { getPrismaClient } from "@/lib/prisma"
 import {
@@ -32,12 +33,11 @@ import {
  *   2. Strip BOM + comment rows (lines starting with `#`).
  *   3. Map header → column index (header cells prefixed with `*` are
  *      the required-tier markers; strip the `*` for matching).
- *   4. Validate every row with Zod. If ANY row fails Tier 1/2, reject
- *      the whole batch and return per-row errors.
- *   5. If all rows pass, run a single Prisma transaction that creates
- *      or updates User + EmployeeProfile + PayrollProfile per row.
+ *   4. Validate every row with Zod and collect per-row errors.
+ *   5. Skip only invalid/conflicting rows; clean rows still import.
+ *   6. Create/update User + EmployeeProfile + PayrollProfile per row.
  *      Match by email.
- *   6. Return {created, updated, errors}.
+ *   7. Return {created, updated, errors}.
  *
  * Default password: `<email><MMDD>` where MMDD is the employee's DOB
  * month + day, zero-padded (e.g. born 23 Nov → `weiming@example.com1123`).
@@ -238,22 +238,22 @@ const rowSchema = z
     // salary type chosen.
     if (
       row.salaryType === "MONTHLY" &&
-      (row.monthlySalary == null || row.monthlySalary <= 0)
+      (row.monthlySalary == null || row.monthlySalary < 0)
     ) {
       ctx.addIssue({
         path: ["monthlySalary"],
         code: z.ZodIssueCode.custom,
-        message: "monthlySalary > 0 required when salaryType=MONTHLY",
+        message: "monthlySalary >= 0 required when salaryType=MONTHLY",
       })
     }
     if (
       row.salaryType === "HOURLY" &&
-      (row.hourlyRate == null || row.hourlyRate <= 0)
+      (row.hourlyRate == null || row.hourlyRate < 0)
     ) {
       ctx.addIssue({
         path: ["hourlyRate"],
         code: z.ZodIssueCode.custom,
-        message: "hourlyRate > 0 required when salaryType=HOURLY",
+        message: "hourlyRate >= 0 required when salaryType=HOURLY",
       })
     }
   })
@@ -666,6 +666,9 @@ type ConflictCheckRow = {
   email: string
   employeeId: string
   name?: string
+  /// 1-based data-row number from the uploaded CSV. When omitted, the
+  /// helper falls back to the array index for legacy callers.
+  rowNumber?: number
 }
 
 /**
@@ -698,8 +701,13 @@ async function findImportConflicts(input: {
   //    error onto each offending row so the admin sees both/all.
   const idGroups = new Map<string, number[]>() // employeeId -> rowNumbers
   const emailGroups = new Map<string, number[]>()
+  const rowNumberFor = (row: ConflictCheckRow, idx: number) =>
+    row.rowNumber ?? idx + 1
+  const otherRows = (rowNumbers: number[], rowNumber: number) =>
+    rowNumbers.filter((n) => n !== rowNumber).join(", ")
+
   rows.forEach((row, idx) => {
-    const rowNumber = idx + 1
+    const rowNumber = rowNumberFor(row, idx)
     if (row.employeeId) {
       const list = idGroups.get(row.employeeId) ?? []
       list.push(rowNumber)
@@ -719,28 +727,63 @@ async function findImportConflicts(input: {
   }
   for (const [employeeId, rowNumbers] of idGroups) {
     if (rowNumbers.length <= 1) continue
-    const others = rowNumbers.join(", ")
     for (const rowNumber of rowNumbers) {
       pushRowError(
         rowNumber,
         "employeeId",
-        `Duplicate employee code "${employeeId}" — also appears on row${rowNumbers.length > 2 ? "s" : ""} ${others.replace(`${rowNumber}, `, "").replace(`, ${rowNumber}`, "").replace(`${rowNumber}`, "")}. Each row must have a unique code.`,
+        `Duplicate employee code "${employeeId}" — also appears on row${rowNumbers.length > 2 ? "s" : ""} ${otherRows(rowNumbers, rowNumber)}. This row will be skipped; each imported row must have a unique employee code.`,
       )
     }
   }
   for (const [email, rowNumbers] of emailGroups) {
     if (rowNumbers.length <= 1) continue
-    const others = rowNumbers.join(", ")
     for (const rowNumber of rowNumbers) {
       pushRowError(
         rowNumber,
         "email",
-        `Duplicate email "${email}" — also appears on row${rowNumbers.length > 2 ? "s" : ""} ${others.replace(`${rowNumber}, `, "").replace(`, ${rowNumber}`, "").replace(`${rowNumber}`, "")}. Each row must have a unique email.`,
+        `Duplicate email "${email}" — also appears on row${rowNumbers.length > 2 ? "s" : ""} ${otherRows(rowNumbers, rowNumber)}. This row will be skipped; each imported row must have a unique email.`,
       )
     }
   }
 
-  // 2. DB conflicts: any EmployeeProfile in this org with one of our
+  // 2a. DB conflicts: User.email is globally unique. Rows with an
+  //     email that already belongs to a different organization cannot
+  //     be imported into this org, so flag the exact CSV row before
+  //     Prisma throws a generic P2002.
+  const importEmailList = Array.from(emailGroups.keys())
+  if (importEmailList.length > 0) {
+    const existingUsers = await prisma.user.findMany({
+      where: { email: { in: importEmailList } },
+      select: {
+        email: true,
+        name: true,
+        organizationId: true,
+        organization: { select: { name: true } },
+        employeeProfile: { select: { employeeId: true } },
+      },
+    })
+    const userByEmail = new Map(
+      existingUsers.map((u) => [u.email.toLowerCase(), u]),
+    )
+
+    rows.forEach((row, idx) => {
+      const email = row.email.toLowerCase()
+      const existing = userByEmail.get(email)
+      if (!existing) return
+      if (existing.organizationId === organizationId) return
+      const existingEmployeeId = existing.employeeProfile?.employeeId
+      const existingOrg = existing.organization?.name ?? "another company"
+      pushRowError(
+        rowNumberFor(row, idx),
+        "email",
+        `Email "${row.email}" is already used by ${existing.name}${
+          existingEmployeeId ? ` (${existingEmployeeId})` : ""
+        } in ${existingOrg}. This row will be skipped; use a different email or update that existing employee instead.`,
+      )
+    })
+  }
+
+  // 2b. DB conflicts: any EmployeeProfile in this org with one of our
   //    employeeIds, attached to a user whose email is NOT in our
   //    upload (= different person).
   const importEmails = new Set(rows.map((r) => r.email.toLowerCase()))
@@ -772,9 +815,9 @@ async function findImportConflicts(input: {
       const conflict = conflictByEmployeeId.get(row.employeeId)
       if (!conflict) return
       pushRowError(
-        idx + 1,
+        rowNumberFor(row, idx),
         "employeeId",
-        `Employee code "${row.employeeId}" is already assigned to ${conflict.name} (${conflict.email}). Use a different code, or update that employee by uploading with their email.`,
+        `Employee code "${row.employeeId}" is already assigned to ${conflict.name} (${conflict.email}). This row will be skipped; use a different code, or update that employee by uploading with their email.`,
       )
     })
   }
@@ -795,7 +838,7 @@ async function findImportConflicts(input: {
  * catch — `findImportConflicts` should already prevent the common
  * P2002 cases.
  */
-function translateImportError(err: unknown): ImportError {
+function translateImportError(err: unknown, rowNumber = 0): ImportError {
   // Prisma's P2002 unique-constraint violation. The `meta.target`
   // array tells us which column(s) collided.
   const e = err as { code?: string; meta?: { target?: string[] | string }; message?: string }
@@ -804,7 +847,7 @@ function translateImportError(err: unknown): ImportError {
       ? e.meta?.target?.join(", ")
       : e.meta?.target ?? "field"
     return {
-      rowNumber: 0,
+      rowNumber,
       errors: [
         {
           field: String(target ?? "field"),
@@ -813,17 +856,23 @@ function translateImportError(err: unknown): ImportError {
       ],
     }
   }
-  // Generic fallback — never surface the stack trace.
+  // Generic fallback — never surface the stack trace or SQL/Prisma text.
   return {
-    rowNumber: 0,
+    rowNumber,
     errors: [
       {
         field: "(import)",
-        message:
-          "The import failed unexpectedly. Please check the file and try again, or contact support if it continues.",
+        message: safeErrorMessage(
+          err,
+          "This row could not be imported. Please check the row and try again.",
+        ),
       },
     ],
   }
+}
+
+function rowNumbersWithErrors(errors: ImportError[]): Set<number> {
+  return new Set(errors.map((e) => e.rowNumber).filter((n) => n > 0))
 }
 
 /**
@@ -851,7 +900,7 @@ type HierarchyMaps = {
 }
 
 async function loadHierarchyMaps(
-  tx: Prisma.TransactionClient,
+  tx: Prisma.TransactionClient | NonNullable<ReturnType<typeof getPrismaClient>>,
   organizationId: string,
 ): Promise<HierarchyMaps> {
   const [policyRows, projectRows, teamRows] = await Promise.all([
@@ -908,8 +957,8 @@ async function loadHierarchyMaps(
 }
 
 /**
- * Parse → validate → write. If ANY row has a validation error, the
- * whole batch is rejected and no DB writes happen.
+ * Parse → validate → write. Invalid/conflicting rows are reported and
+ * skipped; clean rows still write.
  */
 export async function bulkImportPayrollEmployees(input: {
   csv: string
@@ -947,8 +996,9 @@ export async function bulkImportPayrollEmployees(input: {
 
   // 4. Parse + validate each row.
   const errors: ImportError[] = []
-  const validRows: RowWithChildren[] = []
+  const validRows: Array<{ rowNumber: number; row: RowWithChildren }> = []
   for (const [idx, raw] of dataRows.entries()) {
+    const rowNumber = idx + 1
     const obj: Record<string, string> = {}
     for (const [name, ci] of colIndex.entries()) {
       obj[name] = raw[ci] ?? ""
@@ -964,7 +1014,7 @@ export async function bulkImportPayrollEmployees(input: {
     const parsed = rowSchema.safeParse(normalised)
     if (!parsed.success) {
       errors.push({
-        rowNumber: idx + 1,
+        rowNumber,
         errors: parsed.error.issues.map((issue) => ({
           field: issue.path.join(".") || "(row)",
           message: issue.message,
@@ -973,19 +1023,12 @@ export async function bulkImportPayrollEmployees(input: {
       continue
     }
     validRows.push({
-      ...parsed.data,
-      childRelief: foldChildRelief(childRawSlots),
+      rowNumber,
+      row: {
+        ...parsed.data,
+        childRelief: foldChildRelief(childRawSlots),
+      },
     })
-  }
-
-  if (errors.length > 0) {
-    // Reject the whole batch — admin fixes the file and re-uploads.
-    return {
-      created: 0,
-      updated: 0,
-      total: dataRows.length,
-      errors,
-    }
   }
 
   // 4b. Conflict pre-check — catches intra-CSV duplicates and DB
@@ -993,34 +1036,37 @@ export async function bulkImportPayrollEmployees(input: {
   // we surface a friendly error instead of letting Prisma blow up
   // mid-transaction with a P2002 stack trace.
   const conflicts = await findImportConflicts({
-    rows: validRows.map((r) => ({
-      email: r.email,
-      employeeId: r.employeeId,
-      name: r.name,
+    rows: validRows.map(({ rowNumber, row }) => ({
+      rowNumber,
+      email: row.email,
+      employeeId: row.employeeId,
+      name: row.name,
     })),
     prisma,
     organizationId: orgId,
   })
-  if (conflicts.length > 0) {
+  const rowErrors = [...errors, ...conflicts]
+  const blockedRows = rowNumbersWithErrors(rowErrors)
+  const importRows = validRows.filter((entry) => !blockedRows.has(entry.rowNumber))
+
+  if (importRows.length === 0) {
     return {
       created: 0,
       updated: 0,
       total: dataRows.length,
-      errors: conflicts,
+      errors: rowErrors,
     }
   }
 
-  // 5. Apply all rows atomically.
+  // 5. Apply rows independently. Bad rows are reported and skipped,
+  // while clean rows still land in the database.
   let created = 0
   let updated = 0
-  try {
-    await prisma.$transaction(async (tx) => {
-    // Pre-load the org's policies / projects / teams once. Per-row
-    // hierarchy resolution uses these maps so name matching is
-    // case-insensitive regardless of the DB's collation.
-    const hierarchy = await loadHierarchyMaps(tx, orgId)
+  const hierarchy = await loadHierarchyMaps(prisma, orgId)
 
-    for (const row of validRows) {
+  for (const { rowNumber, row } of importRows) {
+    try {
+      const outcome = await prisma.$transaction(async (tx) => {
       // Match by email (chosen as the only unique key per user
       // decision). If a user exists with this email in this org,
       // update them; otherwise create.
@@ -1038,6 +1084,7 @@ export async function bulkImportPayrollEmployees(input: {
       const passwordHash = hashPassword(defaultPassword(row.email, row.dateOfBirth))
 
       let userId: string
+      let outcome: "created" | "updated"
       if (existing) {
         // ADMIN role is never overwritten by a CSV import — admin
         // assignment is an admin-UI-only operation. EMPLOYEE and
@@ -1049,7 +1096,7 @@ export async function bulkImportPayrollEmployees(input: {
           data: { name: row.name, role: nextRole },
         })
         userId = existing.id
-        updated += 1
+        outcome = "updated"
       } else {
         const u = await tx.user.create({
           data: {
@@ -1061,7 +1108,7 @@ export async function bulkImportPayrollEmployees(input: {
           },
         })
         userId = u.id
-        created += 1
+        outcome = "created"
       }
 
       // EmployeeProfile — match by userId, since EmployeeProfile.userId is unique.
@@ -1158,29 +1205,20 @@ export async function bulkImportPayrollEmployees(input: {
           })
         }
       }
-    }
-  }, {
-    // Each row sequentially calls findFirst + create/update + upsert
-    // + optional hierarchy upserts — multiplied by N rows, on a
-    // remote MySQL with ~150ms round-trip, the default 5s timeout is
-    // tight. Lift both `maxWait` and `timeout` so batches up to
-    // ~50-100 rows comfortably fit. For larger imports (1000+ rows)
-    // we'd want to chunk + commit, but that's a v2 problem.
-    maxWait: 15_000,
-    timeout: 120_000,
-  })
-  } catch (err) {
-    // Defence in depth: `findImportConflicts` should have caught the
-    // common P2002 cases already, but if a different unique
-    // constraint fires (e.g. someone races us between the pre-check
-    // and the transaction), we never let the raw Prisma stack trace
-    // escape to the UI.
-    console.error("[payroll-import] bulkImportPayrollEmployees failed:", err)
-    return {
-      created: 0,
-      updated: 0,
-      total: dataRows.length,
-      errors: [translateImportError(err)],
+        return outcome
+      }, {
+        maxWait: 15_000,
+        timeout: 120_000,
+      })
+
+      if (outcome === "created") created += 1
+      else updated += 1
+    } catch (err) {
+      console.error(
+        `[payroll-import] bulkImportPayrollEmployees row ${rowNumber} failed:`,
+        err,
+      )
+      rowErrors.push(translateImportError(err, rowNumber))
     }
   }
 
@@ -1195,7 +1233,7 @@ export async function bulkImportPayrollEmployees(input: {
     created,
     updated,
     total: dataRows.length,
-    errors: [],
+    errors: rowErrors,
   }
 }
 
@@ -1594,7 +1632,7 @@ function reshapeAndNormalize(input: {
    */
   valueMap?: ValueMap
 }): {
-  parsedRows: RowWithChildren[]
+  parsedRows: Array<{ rowNumber: number; row: RowWithChildren }>
   skipped: SkippedRow[]
   errors: ImportError[]
   total: number
@@ -1626,7 +1664,7 @@ function reshapeAndNormalize(input: {
     targetToSourceIdx.set(target, idx)
   }
 
-  const parsedRows: RowWithChildren[] = []
+  const parsedRows: Array<{ rowNumber: number; row: RowWithChildren }> = []
   const skipped: SkippedRow[] = []
   const errors: ImportError[] = []
 
@@ -1676,8 +1714,11 @@ function reshapeAndNormalize(input: {
       continue
     }
     parsedRows.push({
-      ...parsed.data,
-      childRelief: foldChildRelief(childRawSlots),
+      rowNumber: i + 1,
+      row: {
+        ...parsed.data,
+        childRelief: foldChildRelief(childRawSlots),
+      },
     })
   }
 
@@ -1867,9 +1908,9 @@ export async function previewMappedCsv(input: {
   })
 
   // Pick the first 5 fully-normalised rows for preview.
-  const preview = parsedRows.slice(0, 5).map((r) => {
+  const preview = parsedRows.slice(0, 5).map(({ row }) => {
     const obj: Record<string, string | null> = {}
-    for (const [k, v] of Object.entries(r)) {
+    for (const [k, v] of Object.entries(row)) {
       if (v == null) {
         obj[k] = null
       } else if (k === "childRelief" && Array.isArray(v)) {
@@ -1928,41 +1969,35 @@ export async function importMappedCsv(input: {
     valueMap: input.valueMap,
   })
 
-  // Conflict pre-check (intra-CSV duplicates + DB collisions). If
-  // there's a problem, return the friendly errors instead of letting
-  // Prisma blow up with a P2002 stack trace.
-  if (parsedRows.length > 0) {
-    const conflicts = await findImportConflicts({
-      rows: parsedRows.map((r) => ({
-        email: r.email,
-        employeeId: r.employeeId,
-        name: r.name,
-      })),
-      prisma,
-      organizationId: orgId,
-    })
-    if (conflicts.length > 0) {
-      return {
-        created: 0,
-        updated: 0,
-        total,
-        skipped,
-        errors: [...errors, ...conflicts],
-      }
-    }
-  }
+  // Conflict pre-check (intra-CSV duplicates + DB collisions). Conflicted
+  // rows are skipped, but clean rows still import.
+  const conflicts =
+    parsedRows.length > 0
+      ? await findImportConflicts({
+          rows: parsedRows.map(({ rowNumber, row }) => ({
+            rowNumber,
+            email: row.email,
+            employeeId: row.employeeId,
+            name: row.name,
+          })),
+          prisma,
+          organizationId: orgId,
+        })
+      : []
+  const rowErrors = [...errors, ...conflicts]
+  const blockedRows = rowNumbersWithErrors(rowErrors)
+  const importRows = parsedRows
+    .map((entry, rowIndex) => ({ ...entry, rowIndex }))
+    .filter((entry) => !blockedRows.has(entry.rowNumber))
 
   let created = 0
   let updated = 0
-  try {
-    await prisma.$transaction(async (tx) => {
-    // Pre-load org hierarchy maps ONCE — used by every row's policy /
-    // project / team lookup. Case-insensitive matching is enforced
-    // here (not via DB collation), so "Fusion" and "FUSION" resolve
-    // to the same record regardless of MySQL collation settings.
-    const hierarchy = await loadHierarchyMaps(tx, orgId)
+  const skippedRows = [...skipped]
+  const hierarchy = await loadHierarchyMaps(prisma, orgId)
 
-    for (const [rowIndex, row] of parsedRows.entries()) {
+  for (const { rowNumber, row, rowIndex } of importRows) {
+    try {
+      const outcome = await prisma.$transaction(async (tx) => {
       // The wizard's preview is in the same order as `parsedRows`, so
       // `rowOverrides[rowIndex]` is the admin's per-row override for
       // this employee. Per-row IDs win over CSV-name lookups when
@@ -1984,6 +2019,7 @@ export async function importMappedCsv(input: {
       )
 
       let userId: string
+      let outcome: "created" | "updated"
       if (existing) {
         // Update name + role. Role updates are skipped when the
         // existing user is an ADMIN — the CSV can't demote an admin
@@ -1997,7 +2033,7 @@ export async function importMappedCsv(input: {
           data: { name: row.name, role: nextRole },
         })
         userId = existing.id
-        updated += 1
+        outcome = "updated"
       } else {
         const u = await tx.user.create({
           data: {
@@ -2009,7 +2045,7 @@ export async function importMappedCsv(input: {
           },
         })
         userId = u.id
-        created += 1
+        outcome = "created"
       }
 
       const epExisting = await tx.employeeProfile.findUnique({
@@ -2141,24 +2177,21 @@ export async function importMappedCsv(input: {
           })
         }
       }
-    }
-  }, {
-    // See `bulkImportPayrollEmployees` for the rationale on these
-    // limits — long-running interactive transaction on a remote
-    // MySQL with sequential per-row writes.
-    maxWait: 15_000,
-    timeout: 120_000,
-  })
-  } catch (err) {
-    // Defence in depth — never let a raw Prisma stack trace reach the
-    // UI. The pre-check above catches the common P2002 cases.
-    console.error("[payroll-import] importMappedCsv failed:", err)
-    return {
-      created: 0,
-      updated: 0,
-      total,
-      skipped,
-      errors: [translateImportError(err)],
+        return outcome
+      }, {
+        maxWait: 15_000,
+        timeout: 120_000,
+      })
+
+      if (outcome === "created") created += 1
+      else updated += 1
+    } catch (err) {
+      console.error(
+        `[payroll-import] importMappedCsv row ${rowNumber} failed:`,
+        err,
+      )
+      const importError = translateImportError(err, rowNumber)
+      rowErrors.push(importError)
     }
   }
 
@@ -2169,5 +2202,5 @@ export async function importMappedCsv(input: {
     await bustOrgConfigCaches({ organizationId: orgId })
   }
 
-  return { created, updated, total, skipped, errors }
+  return { created, updated, total, skipped: skippedRows, errors: rowErrors }
 }
