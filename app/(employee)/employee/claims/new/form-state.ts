@@ -13,6 +13,9 @@ export type ClaimFormValues = {
   distance: string
   mileageOriginAddress: string
   mileageDestinationAddress: string
+  /// Optional free-text "who you spent the money with" — client name,
+  /// vendor name, internal team. Capped at 200 chars server-side.
+  spendingWith: string
 }
 
 export type ClaimFormState = {
@@ -40,6 +43,7 @@ export const initialClaimFormState: ClaimFormState = {
     distance: "",
     mileageOriginAddress: "",
     mileageDestinationAddress: "",
+    spendingWith: "",
   },
   errors: {},
 }

@@ -106,6 +106,19 @@ type PrismaClaim = {
   chartOfAccount: PrismaChartAccount | null
   payViaAccount?: PrismaChartAccount | null
   employee: PrismaUser
+  /// Optional free-text "who you spent with" — surfaced on review
+  /// screens.
+  spendingWith?: string | null
+  /// Optional supporting files. Only present when the relation was
+  /// included; absent on selects that didn't ask for it.
+  supportingAttachments?: Array<{
+    id: string
+    fileName: string
+    fileUrl: string | null
+    xeroFileId: string | null
+    mimeType: string | null
+    sizeBytes: number | null
+  }>
   /// Per-step audit entries. Optional because old claim selects without
   /// the include don't return them; the chain renderer treats absent
   /// entries as "legacy claim, unknown actor".
@@ -331,6 +344,22 @@ export type CreateClaimData = {
   mileageDestinationAddress?: string
   mileageRateUsed?: string
   mileageUnitUsed?: "KM" | "MILE"
+  /// Optional free-text "who you spent with" (e.g. client / vendor
+  /// name). Surfaced on the review screens; not validated server-side
+  /// against any list — purely informational.
+  spendingWith?: string | null
+  /// Optional extra files supporting this claim (quotations, invoices,
+  /// approval emails, secondary receipts). Each entry already has a
+  /// resolved `fileUrl` and/or `xeroFileId` from the storage pipeline.
+  /// The primary OCR'd receipt lives on `receiptUrl` + `xeroFileId` —
+  /// these are EXTRAS only.
+  supportingAttachments?: Array<{
+    fileName: string
+    fileUrl?: string | null
+    xeroFileId?: string | null
+    mimeType?: string | null
+    sizeBytes?: number | null
+  }>
 }
 
 export type ReviewClaimData = {
@@ -497,6 +526,21 @@ function mapClaim(
     approvalChain: chainState?.chain,
     awaitingAdminFinalApproval,
     exceedsLimit: claim.exceedsLimit ?? false,
+    spendingWith: claim.spendingWith ?? undefined,
+    // `supportingAttachments` is only populated when the query
+    // included the relation. Older queries that didn't include it
+    // see `undefined` here on the Prisma type, which we project to
+    // an empty array further upstream when needed.
+    supportingAttachments: Array.isArray(claim.supportingAttachments)
+      ? claim.supportingAttachments.map((att) => ({
+          id: att.id,
+          fileName: att.fileName,
+          fileUrl: att.fileUrl ?? undefined,
+          xeroBacked: Boolean(att.xeroFileId),
+          mimeType: att.mimeType ?? undefined,
+          sizeBytes: att.sizeBytes ?? undefined,
+        }))
+      : undefined,
   }
 }
 
@@ -504,6 +548,11 @@ const claimInclude = {
   organization: true,
   chartOfAccount: true,
   payViaAccount: true,
+  // Include the supporting attachments relation so review surfaces
+  // can render the file list without an extra round-trip.
+  supportingAttachments: {
+    orderBy: { createdAt: "asc" } as const,
+  },
   employee: {
     include: {
       organization: true,
@@ -753,7 +802,9 @@ export const claimRepository = {
   } | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
-    const row = await prisma.claim.findFirst({
+
+    // Primary receipt path — claim.xeroFileId is unique per Xero file.
+    const claimRow = await prisma.claim.findFirst({
       where: { xeroFileId },
       select: {
         id: true,
@@ -766,14 +817,46 @@ export const claimRepository = {
         },
       },
     })
-    if (!row) return null
+    if (claimRow) {
+      return {
+        id: claimRow.id,
+        employeeId: claimRow.employeeId,
+        projectId: claimRow.projectId,
+        organizationId: claimRow.organizationId,
+        chartOfAccountId: claimRow.chartOfAccountId,
+        xeroConnectionId: claimRow.chartOfAccount?.xeroConnectionId ?? null,
+      }
+    }
+
+    // Supporting attachment path — the same proxy URL serves both
+    // primary receipts and the extra documents the user attached.
+    // Look up the parent claim via the supporting-attachment row.
+    const supportingRow = await prisma.claimSupportingAttachment.findFirst({
+      where: { xeroFileId },
+      select: {
+        claim: {
+          select: {
+            id: true,
+            employeeId: true,
+            projectId: true,
+            organizationId: true,
+            chartOfAccountId: true,
+            chartOfAccount: {
+              select: { xeroConnectionId: true },
+            },
+          },
+        },
+      },
+    })
+    if (!supportingRow?.claim) return null
     return {
-      id: row.id,
-      employeeId: row.employeeId,
-      projectId: row.projectId,
-      organizationId: row.organizationId,
-      chartOfAccountId: row.chartOfAccountId,
-      xeroConnectionId: row.chartOfAccount?.xeroConnectionId ?? null,
+      id: supportingRow.claim.id,
+      employeeId: supportingRow.claim.employeeId,
+      projectId: supportingRow.claim.projectId,
+      organizationId: supportingRow.claim.organizationId,
+      chartOfAccountId: supportingRow.claim.chartOfAccountId,
+      xeroConnectionId:
+        supportingRow.claim.chartOfAccount?.xeroConnectionId ?? null,
     }
   },
 
@@ -1588,11 +1671,29 @@ export const claimRepository = {
         payViaAccountId: data.payViaAccountId ?? null,
         exceedsLimit: data.exceedsLimit ?? false,
         xeroFileId: data.xeroFileId ?? null,
+        spendingWith: data.spendingWith ?? null,
         distance: data.distance,
         mileageOriginAddress: data.mileageOriginAddress,
         mileageDestinationAddress: data.mileageDestinationAddress,
         mileageRateUsed: data.mileageRateUsed,
         mileageUnitUsed: data.mileageUnitUsed,
+        // Nested-create the supporting attachments in the same
+        // transaction as the Claim. Prisma's create-with-related
+        // mode means we don't need to find the claim ID first.
+        ...(data.supportingAttachments &&
+        data.supportingAttachments.length > 0
+          ? {
+              supportingAttachments: {
+                create: data.supportingAttachments.map((att) => ({
+                  fileName: att.fileName,
+                  fileUrl: att.fileUrl ?? null,
+                  xeroFileId: att.xeroFileId ?? null,
+                  mimeType: att.mimeType ?? null,
+                  sizeBytes: att.sizeBytes ?? null,
+                })),
+              },
+            }
+          : {}),
       },
     })
     return true

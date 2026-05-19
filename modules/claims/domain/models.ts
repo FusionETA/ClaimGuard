@@ -202,6 +202,28 @@ export type ClaimRecord = {
   /// limit at submission. Used by the admin queue to flag the claim with
   /// an "Over limit" badge.
   exceedsLimit?: boolean
+  /// Optional free-text "who you spent with" — client / vendor /
+  /// internal team name. Surfaced on the review surfaces and in
+  /// receipts-tab UIs.
+  spendingWith?: string
+  /// Extra supporting files attached to the claim alongside the
+  /// primary receipt. Each entry has a downloadable URL (proxy URL
+  /// for Xero-Files-hosted bytes, /uploads/... for local).
+  supportingAttachments?: ClaimAttachmentSummary[]
+}
+
+/// Compact projection of `ClaimSupportingAttachment` rows used by
+/// the review surfaces. Bytes themselves stay on disk / in Xero
+/// Files; this struct only carries metadata + the URL the UI hits.
+export type ClaimAttachmentSummary = {
+  id: string
+  fileName: string
+  fileUrl?: string
+  /// When true the file is hosted on Xero Files (URL is the proxy
+  /// route). When false it's local on /uploads.
+  xeroBacked: boolean
+  mimeType?: string
+  sizeBytes?: number
 }
 
 export type CreateClaimInput = {

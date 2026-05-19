@@ -425,6 +425,12 @@ model Claim {
   /// Files (i.e. the claim's chart-of-account is connected to a Xero
   /// tenant). Null for receipts kept on local disk.
   xeroFileId                String?
+  /// Optional free-text "who you spent the money with" — typically a
+  /// client or vendor name (e.g. "ABC Client Sdn Bhd"). Surfaced on
+  /// the review screens for admins/supervisors and can be used as a
+  /// secondary search term. Nullable because legacy claims and
+  /// reasonable categories (own-use office supplies) don't need it.
+  spendingWith              String?
   chartOfAccount            ChartOfAccount?      @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
   employee                  User                 @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
   organization              Organization?        @relation(fields: [organizationId], references: [id])
@@ -432,6 +438,7 @@ model Claim {
   project                   XeroProject?         @relation("ClaimProject", fields: [projectId], references: [id])
   reviewer                  User?                @relation("AdminReviews", fields: [lastReviewerId], references: [id])
   approvalEntries           ClaimApprovalEntry[]
+  supportingAttachments     ClaimSupportingAttachment[]
   payrollRunAttachment      PayrollRunClaim?
   payslipLineItem           PayslipLineItem?
 
@@ -443,6 +450,38 @@ model Claim {
   @@index([xeroSyncStatus])
   @@index([lastReviewerId], map: "Claim_reviewerId_fkey")
   @@index([projectId])
+}
+
+/// Optional extra files attached to a claim alongside the primary
+/// OCR-scanned receipt. Used for supporting documents — quotations,
+/// invoices, approval emails, screenshots, secondary receipts. The
+/// primary receipt stays on `Claim.receiptUrl` + `Claim.xeroFileId`;
+/// only EXTRA files live here.
+///
+/// All supporting files travel to Xero alongside the main receipt
+/// when the claim's COA is Xero-linked — they're uploaded to Xero
+/// Files API and associated with the same Bill on claim approval.
+model ClaimSupportingAttachment {
+  id          String   @id @default(cuid())
+  claimId     String
+  /// Original filename the user chose. Display only — actual storage
+  /// is at `fileUrl` (or via Xero Files when `xeroFileId` is set).
+  fileName    String
+  /// Local file URL when stored on disk; null when only Xero Files
+  /// holds the bytes.
+  fileUrl     String?
+  /// Xero Files file id when the supporting doc was uploaded to Xero.
+  /// Null for files kept on local disk (e.g. legacy claims or claims
+  /// whose COA isn't Xero-linked).
+  xeroFileId  String?
+  mimeType    String?
+  /// File size in bytes. Used for the UI's per-file pill (e.g.
+  /// "234 KB"). Null when unknown.
+  sizeBytes   Int?
+  createdAt   DateTime @default(now())
+  claim       Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
 }
 
 /// Per-step approval / rejection history for a claim. Inserted by the

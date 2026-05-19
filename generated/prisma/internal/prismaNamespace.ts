@@ -397,6 +397,7 @@ export const ModelName = {
   EmployeeProfile: 'EmployeeProfile',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
+  ClaimSupportingAttachment: 'ClaimSupportingAttachment',
   ClaimApprovalEntry: 'ClaimApprovalEntry',
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
@@ -435,7 +436,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1294,6 +1295,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ClaimCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ClaimCountAggregateOutputType> | number
+        }
+      }
+    }
+    ClaimSupportingAttachment: {
+      payload: Prisma.$ClaimSupportingAttachmentPayload<ExtArgs>
+      fields: Prisma.ClaimSupportingAttachmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ClaimSupportingAttachmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimSupportingAttachmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ClaimSupportingAttachmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimSupportingAttachmentPayload>
+        }
+        findFirst: {
+          args: Prisma.ClaimSupportingAttachmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimSupportingAttachmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ClaimSupportingAttachmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimSupportingAttachmentPayload>
+        }
+        findMany: {
+          args: Prisma.ClaimSupportingAttachmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimSupportingAttachmentPayload>[]
+        }
+        create: {
+          args: Prisma.ClaimSupportingAttachmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimSupportingAttachmentPayload>
+        }
+        createMany: {
+          args: Prisma.ClaimSupportingAttachmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.ClaimSupportingAttachmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimSupportingAttachmentPayload>
+        }
+        update: {
+          args: Prisma.ClaimSupportingAttachmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimSupportingAttachmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.ClaimSupportingAttachmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ClaimSupportingAttachmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.ClaimSupportingAttachmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ClaimSupportingAttachmentPayload>
+        }
+        aggregate: {
+          args: Prisma.ClaimSupportingAttachmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateClaimSupportingAttachment>
+        }
+        groupBy: {
+          args: Prisma.ClaimSupportingAttachmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClaimSupportingAttachmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ClaimSupportingAttachmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ClaimSupportingAttachmentCountAggregateOutputType> | number
         }
       }
     }
@@ -3080,10 +3147,25 @@ export const ClaimScalarFieldEnum = {
   reviewerRole: 'reviewerRole',
   projectId: 'projectId',
   exceedsLimit: 'exceedsLimit',
-  xeroFileId: 'xeroFileId'
+  xeroFileId: 'xeroFileId',
+  spendingWith: 'spendingWith'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
+
+
+export const ClaimSupportingAttachmentScalarFieldEnum = {
+  id: 'id',
+  claimId: 'claimId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  xeroFileId: 'xeroFileId',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  createdAt: 'createdAt'
+} as const
+
+export type ClaimSupportingAttachmentScalarFieldEnum = (typeof ClaimSupportingAttachmentScalarFieldEnum)[keyof typeof ClaimSupportingAttachmentScalarFieldEnum]
 
 
 export const ClaimApprovalEntryScalarFieldEnum = {
@@ -3834,10 +3916,23 @@ export const ClaimOrderByRelevanceFieldEnum = {
   mileageDestinationAddress: 'mileageDestinationAddress',
   mileageOriginAddress: 'mileageOriginAddress',
   projectId: 'projectId',
-  xeroFileId: 'xeroFileId'
+  xeroFileId: 'xeroFileId',
+  spendingWith: 'spendingWith'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
+
+
+export const ClaimSupportingAttachmentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  claimId: 'claimId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  xeroFileId: 'xeroFileId',
+  mimeType: 'mimeType'
+} as const
+
+export type ClaimSupportingAttachmentOrderByRelevanceFieldEnum = (typeof ClaimSupportingAttachmentOrderByRelevanceFieldEnum)[keyof typeof ClaimSupportingAttachmentOrderByRelevanceFieldEnum]
 
 
 export const ClaimApprovalEntryOrderByRelevanceFieldEnum = {
@@ -4519,6 +4614,7 @@ export type GlobalOmitConfig = {
   employeeProfile?: Prisma.EmployeeProfileOmit
   employeeProjectAssignment?: Prisma.EmployeeProjectAssignmentOmit
   claim?: Prisma.ClaimOmit
+  claimSupportingAttachment?: Prisma.ClaimSupportingAttachmentOmit
   claimApprovalEntry?: Prisma.ClaimApprovalEntryOmit
   chartOfAccount?: Prisma.ChartOfAccountOmit
   xeroConnection?: Prisma.XeroConnectionOmit

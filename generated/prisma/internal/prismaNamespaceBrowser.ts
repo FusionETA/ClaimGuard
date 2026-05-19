@@ -64,6 +64,7 @@ export const ModelName = {
   EmployeeProfile: 'EmployeeProfile',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
   Claim: 'Claim',
+  ClaimSupportingAttachment: 'ClaimSupportingAttachment',
   ClaimApprovalEntry: 'ClaimApprovalEntry',
   ChartOfAccount: 'ChartOfAccount',
   XeroConnection: 'XeroConnection',
@@ -331,10 +332,25 @@ export const ClaimScalarFieldEnum = {
   reviewerRole: 'reviewerRole',
   projectId: 'projectId',
   exceedsLimit: 'exceedsLimit',
-  xeroFileId: 'xeroFileId'
+  xeroFileId: 'xeroFileId',
+  spendingWith: 'spendingWith'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
+
+
+export const ClaimSupportingAttachmentScalarFieldEnum = {
+  id: 'id',
+  claimId: 'claimId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  xeroFileId: 'xeroFileId',
+  mimeType: 'mimeType',
+  sizeBytes: 'sizeBytes',
+  createdAt: 'createdAt'
+} as const
+
+export type ClaimSupportingAttachmentScalarFieldEnum = (typeof ClaimSupportingAttachmentScalarFieldEnum)[keyof typeof ClaimSupportingAttachmentScalarFieldEnum]
 
 
 export const ClaimApprovalEntryScalarFieldEnum = {
@@ -1085,10 +1101,23 @@ export const ClaimOrderByRelevanceFieldEnum = {
   mileageDestinationAddress: 'mileageDestinationAddress',
   mileageOriginAddress: 'mileageOriginAddress',
   projectId: 'projectId',
-  xeroFileId: 'xeroFileId'
+  xeroFileId: 'xeroFileId',
+  spendingWith: 'spendingWith'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
+
+
+export const ClaimSupportingAttachmentOrderByRelevanceFieldEnum = {
+  id: 'id',
+  claimId: 'claimId',
+  fileName: 'fileName',
+  fileUrl: 'fileUrl',
+  xeroFileId: 'xeroFileId',
+  mimeType: 'mimeType'
+} as const
+
+export type ClaimSupportingAttachmentOrderByRelevanceFieldEnum = (typeof ClaimSupportingAttachmentOrderByRelevanceFieldEnum)[keyof typeof ClaimSupportingAttachmentOrderByRelevanceFieldEnum]
 
 
 export const ClaimApprovalEntryOrderByRelevanceFieldEnum = {

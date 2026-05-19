@@ -292,6 +292,56 @@ export function ClaimDetailSheet({
                   </p>
                 </div>
 
+                {claim.spendingWith ? (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                      Spending with
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-foreground">
+                      {claim.spendingWith}
+                    </p>
+                  </div>
+                ) : null}
+
+                {claim.supportingAttachments &&
+                claim.supportingAttachments.length > 0 ? (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                      Supporting documents ({claim.supportingAttachments.length})
+                    </p>
+                    <ul className="mt-1 space-y-1">
+                      {claim.supportingAttachments.map((att) => (
+                        <li key={att.id} className="text-sm">
+                          {att.fileUrl ? (
+                            <a
+                              href={att.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary underline underline-offset-2 hover:no-underline"
+                            >
+                              {att.fileName}
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground">
+                              {att.fileName} (no URL)
+                            </span>
+                          )}
+                          {att.sizeBytes ? (
+                            <span className="ml-2 text-[11px] text-muted-foreground">
+                              {Math.max(1, Math.round(att.sizeBytes / 1024))} KB
+                            </span>
+                          ) : null}
+                          {att.xeroBacked ? (
+                            <span className="ml-2 inline-flex rounded-sm border border-emerald-300/60 bg-emerald-50 px-1 py-0.5 text-[10px] font-medium text-emerald-700">
+                              Xero Files
+                            </span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
                 {claim.reviewNotes ? (
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">

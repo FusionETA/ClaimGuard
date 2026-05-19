@@ -8,7 +8,10 @@ import type { AuthenticatedSession } from "@/lib/auth/types"
 import { isKnownCurrency, SYSTEM_FALLBACK_CURRENCY } from "@/lib/currencies"
 import { computeMileageAmount, resolveMileageRate } from "@/lib/mileage"
 import { sendPushToUser } from "@/lib/web-push"
-import { storeReceiptForClaim } from "@/modules/claims/application/services/claim-receipts.service"
+import {
+  storeReceiptForClaim,
+  storeSupportingFileForClaim,
+} from "@/modules/claims/application/services/claim-receipts.service"
 import { claimMatchesStatusFilter } from "@/modules/claims/domain/models"
 import type {
   ClaimRecord,
@@ -49,6 +52,10 @@ const baseClaimSchema = z.object({
   /// the schema so older form callers that don't ship it still work; the
   /// service falls back to org.defaultCurrency, then to MYR.
   currency: z.string().trim().toUpperCase().optional(),
+  /// Optional free-text "who you spent the money with" (client, vendor,
+  /// internal team). Trimmed; empty string is treated as null. Capped
+  /// at 200 chars so admins reviewing don't see runaway text.
+  spendingWith: z.string().trim().max(200).optional(),
 })
 
 const expenseClaimSchema = baseClaimSchema.extend({
@@ -126,11 +133,20 @@ export type CreateClaimInput = {
   /// Files vs local disk) based on the chart-of-account's Xero
   /// connection. Empty / undefined means "no receipt for this claim".
   receiptFile?: File
+  /// Optional supporting documents beyond the primary OCR'd receipt.
+  /// Each file is uploaded to the same destination as the primary
+  /// receipt (Xero Files when the COA is Xero-linked, local disk
+  /// otherwise). Maximum 10 files per claim, 8 MB each. Empty array
+  /// or undefined means "no extras".
+  supportingFiles?: File[]
   paymentType?: "PERSONAL" | "COMPANY"
   payViaAccountId?: string
   /// Project the claim is filed against. Required when the employee has
   /// project assignments; null/undefined OK only when they don't.
   projectId?: string
+  /// Optional free-text "who you spent with" (client / vendor name).
+  /// Passed through to the DB; not validated against any list.
+  spendingWith?: string
   // Mileage-claim fields. Required when claimType === "MILEAGE", ignored otherwise.
   claimType?: "EXPENSE" | "MILEAGE"
   distance?: string | number
@@ -657,6 +673,51 @@ export async function createClaimForEmployee({
     }
   }
 
+  // Supporting documents — uploaded the same way as the primary
+  // receipt (Xero Files when possible, local disk otherwise), with a
+  // wider MIME allowlist (PDFs, Office docs, etc.). A single file's
+  // failure doesn't abort the submission — the claim still goes
+  // through with whatever succeeded. The first error message is
+  // surfaced in the action's warning toast.
+  const supportingAttachments: Array<{
+    fileName: string
+    fileUrl: string | null
+    xeroFileId: string | null
+    mimeType: string
+    sizeBytes: number
+  }> = []
+  let supportingStorageWarning: string | undefined
+  const candidateSupporting = Array.isArray(input.supportingFiles)
+    ? input.supportingFiles
+        .filter((f): f is File => f instanceof File && f.size > 0)
+        .slice(0, 10) // hard cap at 10 — prevents the form from sending hundreds
+    : []
+  for (const file of candidateSupporting) {
+    try {
+      const stored = await storeSupportingFileForClaim({
+        file,
+        xeroConnectionId: chartOfAccount.xeroConnectionId,
+      })
+      supportingAttachments.push({
+        fileName: stored.fileName,
+        fileUrl: stored.fileUrl,
+        xeroFileId: stored.xeroFileId,
+        mimeType: stored.mimeType,
+        sizeBytes: stored.sizeBytes,
+      })
+      if (stored.warning && !supportingStorageWarning) {
+        supportingStorageWarning = stored.warning
+      }
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : `Supporting file ${file.name} failed to upload.`
+      // Capture the first error as a warning but keep going.
+      if (!supportingStorageWarning) supportingStorageWarning = message
+    }
+  }
+
   // Resolve the currency for this claim with this precedence:
   //   1. Form-supplied value, if it's a known ISO code AND the org has
   //      it in its allowedCurrencies list (or hasn't set a list yet).
@@ -708,6 +769,9 @@ export async function createClaimForEmployee({
     mileageDestinationAddress,
     mileageRateUsed,
     mileageUnitUsed,
+    spendingWith: parsed.data.spendingWith?.trim() || null,
+    supportingAttachments:
+      supportingAttachments.length > 0 ? supportingAttachments : undefined,
   })
 
   if (!ok) {
@@ -735,9 +799,14 @@ export async function createClaimForEmployee({
     // Push notifications should never block a successful claim submission.
   }
 
-  // Combine the two possible warnings (over-limit and receipt-fallback)
-  // into one user-facing message. Both are non-fatal; the claim is saved.
-  const combinedWarning = [exceedsLimitMessage, receiptStorageWarning]
+  // Combine the possible warnings (over-limit, receipt-fallback,
+  // supporting-doc fallback) into one user-facing message. All are
+  // non-fatal; the claim is saved either way.
+  const combinedWarning = [
+    exceedsLimitMessage,
+    receiptStorageWarning,
+    supportingStorageWarning,
+  ]
     .filter(Boolean)
     .join(" ")
     .trim()

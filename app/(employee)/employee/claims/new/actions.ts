@@ -25,6 +25,15 @@ export async function submitClaimAction(
   formData: FormData
 ): Promise<ClaimFormState> {
   const receiptFile = formData.get("receiptFile")
+  // Supporting docs come in as multiple files under the `supportingFile`
+  // key. `getAll` returns FormDataEntryValue[] (FILE | STRING); we
+  // narrow to actual non-empty File instances here.
+  const supportingFiles = formData
+    .getAll("supportingFile")
+    .filter(
+      (entry): entry is File =>
+        entry instanceof File && entry.size > 0 && entry.name !== "",
+    )
 
   const rawPaymentType = String(formData.get("paymentType") ?? "PERSONAL")
   const paymentType: "PERSONAL" | "COMPANY" =
@@ -51,6 +60,7 @@ export async function submitClaimAction(
     mileageDestinationAddress: String(
       formData.get("mileageDestinationAddress") ?? ""
     ),
+    spendingWith: String(formData.get("spendingWith") ?? ""),
   }
 
   // Build the payload Zod will see — for mileage, omit `amount` so the
@@ -68,6 +78,7 @@ export async function submitClaimAction(
           paymentType: values.paymentType,
           payViaAccountId: values.payViaAccountId || undefined,
           projectId: values.projectId || undefined,
+          spendingWith: values.spendingWith || undefined,
           distance: values.distance,
           mileageOriginAddress: values.mileageOriginAddress,
           mileageDestinationAddress: values.mileageDestinationAddress,
@@ -84,6 +95,7 @@ export async function submitClaimAction(
           paymentType: values.paymentType,
           payViaAccountId: values.payViaAccountId || undefined,
           projectId: values.projectId || undefined,
+          spendingWith: values.spendingWith || undefined,
         }
 
   // Validate form fields.
@@ -152,9 +164,11 @@ export async function submitClaimAction(
             spentAt: parsed.data.spentAt,
             description: parsed.data.description,
             receiptFile: receiptFileToStore,
+            supportingFiles,
             paymentType: parsed.data.paymentType,
             payViaAccountId: parsed.data.payViaAccountId,
             projectId: parsed.data.projectId,
+            spendingWith: parsed.data.spendingWith,
             claimType: "MILEAGE",
             distance: parsed.data.distance,
             mileageOriginAddress: parsed.data.mileageOriginAddress,
@@ -167,9 +181,11 @@ export async function submitClaimAction(
             spentAt: parsed.data.spentAt,
             description: parsed.data.description,
             receiptFile: receiptFileToStore,
+            supportingFiles,
             paymentType: parsed.data.paymentType,
             payViaAccountId: parsed.data.payViaAccountId,
             projectId: parsed.data.projectId,
+            spendingWith: parsed.data.spendingWith,
             claimType: "EXPENSE",
           },
   })

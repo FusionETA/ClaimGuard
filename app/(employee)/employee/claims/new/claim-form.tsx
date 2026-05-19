@@ -176,6 +176,28 @@ export function ClaimForm({
   const [descriptionInput, setDescriptionInput] = useState(
     state?.values?.description || aiPrefill?.description || ""
   )
+  /// Optional "spending with" input — client / vendor / internal team
+  /// the money was spent on. Sticky after a failed submit via the
+  /// server-returned values.
+  const [spendingWithInput, setSpendingWithInput] = useState(
+    state?.values?.spendingWith ?? "",
+  )
+  /// Supporting documents the user picks. Controlled list since the
+  /// browser's native multi-file input is awkward when the user wants
+  /// to add files in two separate clicks. We keep our own list and
+  /// rebuild a hidden file input's FileList on submit via DataTransfer.
+  const [supportingFiles, setSupportingFiles] = useState<File[]>([])
+  const supportingInputRef = useRef<HTMLInputElement | null>(null)
+
+  // Keep the hidden file input's FileList in sync with our state so
+  // the form action sends every file under `supportingFile`.
+  useEffect(() => {
+    const input = supportingInputRef.current
+    if (!input) return
+    const dt = new DataTransfer()
+    for (const f of supportingFiles) dt.items.add(f)
+    input.files = dt.files
+  }, [supportingFiles])
 
   useEffect(() => {
     if (state?.values?.chartOfAccountId) {
@@ -193,6 +215,8 @@ export function ClaimForm({
       setDistance("")
       setAmountInput("")
       setDescriptionInput("")
+      setSpendingWithInput("")
+      setSupportingFiles([])
       setCurrency(defaultCurrency ?? allowedCurrencies[0] ?? "MYR")
       onSuccess?.()
     }
@@ -652,6 +676,27 @@ export function ClaimForm({
       )}
 
       <div className="space-y-2">
+        <Label htmlFor="spendingWith">
+          Spending with{" "}
+          <span className="text-xs font-normal text-muted-foreground">
+            — optional
+          </span>
+        </Label>
+        <Input
+          id="spendingWith"
+          name="spendingWith"
+          placeholder="e.g. ABC Client Sdn Bhd, TechMart Supplies, Internal team lunch"
+          value={spendingWithInput}
+          maxLength={200}
+          onChange={(event) => setSpendingWithInput(event.target.value)}
+        />
+        <p className="text-[11px] text-muted-foreground">
+          Who you spent this money with — a client, vendor, or internal
+          team. Leave blank if not applicable.
+        </p>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="description">Business context</Label>
         <Textarea
           id="description"
@@ -834,6 +879,90 @@ export function ClaimForm({
         }
       />
       <FieldError message={state.errors?.receiptUrl} />
+
+      {/* Supporting documents — extras beyond the OCR'd primary
+          receipt. Allowed types include PDFs / Office files so admins
+          can attach quotations, invoices, approval emails, etc. */}
+      <div className="space-y-2 pt-2">
+        <Label htmlFor="supportingFile">
+          Supporting documents{" "}
+          <span className="text-muted-foreground font-normal">
+            — optional, multiple files
+          </span>
+        </Label>
+        <label
+          htmlFor="supportingFile"
+          className="flex min-h-20 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-card/94 px-4 py-4 text-center shadow-ambient backdrop-blur-sm transition-colors hover:border-primary/40 hover:bg-card"
+        >
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Upload className="h-4 w-4" />
+            <span>Attach more files</span>
+          </div>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Quotations, invoices, emails. JPG, PNG, WEBP, HEIC, PDF, or
+            Office files up to 8 MB each. Max 10 files.
+          </p>
+        </label>
+        <input
+          ref={supportingInputRef}
+          id="supportingFile"
+          name="supportingFile"
+          type="file"
+          multiple
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain"
+          className="sr-only"
+          onChange={(event) => {
+            const picked = Array.from(event.target.files ?? [])
+            // Merge with existing files, dedupe by name+size,
+            // cap at 10. The picker can be tapped multiple times
+            // to add files in batches.
+            setSupportingFiles((prev) => {
+              const merged = [...prev]
+              for (const f of picked) {
+                const dup = merged.some(
+                  (m) => m.name === f.name && m.size === f.size,
+                )
+                if (!dup) merged.push(f)
+              }
+              return merged.slice(0, 10)
+            })
+            // Reset the input's own .files to "" so re-picking the
+            // same file works (browsers ignore the event otherwise).
+            event.target.value = ""
+          }}
+        />
+        {supportingFiles.length > 0 ? (
+          <ul className="space-y-1.5">
+            {supportingFiles.map((f, i) => (
+              <li
+                key={`${f.name}-${f.size}-${i}`}
+                className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-1.5 text-xs"
+              >
+                <span className="min-w-0 truncate">
+                  <span className="font-medium text-foreground">
+                    {f.name}
+                  </span>
+                  <span className="ml-2 text-muted-foreground">
+                    {Math.max(1, Math.round(f.size / 1024))} KB
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() =>
+                    setSupportingFiles((prev) =>
+                      prev.filter((_, idx) => idx !== i),
+                    )
+                  }
+                  aria-label={`Remove ${f.name}`}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
     </div>
   )
 
