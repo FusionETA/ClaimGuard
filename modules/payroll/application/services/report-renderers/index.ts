@@ -1,15 +1,18 @@
 import "server-only"
 
 import type { PayrollReportKind } from "@/modules/payroll/domain/reports"
+import { renderBulkPayslipsPdf } from "@/modules/payroll/application/services/report-renderers/bulk-payslips-pdf"
+import { renderDetailedCalculationsPdf } from "@/modules/payroll/application/services/report-renderers/detailed-calculations-pdf"
+import { renderEpfCsv } from "@/modules/payroll/application/services/report-renderers/epf-csv"
+import { renderPaymentSchedulePdf } from "@/modules/payroll/application/services/report-renderers/payment-schedule-pdf"
 import { renderPayrollSummaryPdf } from "@/modules/payroll/application/services/report-renderers/payroll-summary-pdf"
+import { renderPcbTxt } from "@/modules/payroll/application/services/report-renderers/pcb-txt"
+import { renderSocsoEisTxt } from "@/modules/payroll/application/services/report-renderers/socso-eis-txt"
 
 /**
  * Dispatcher for the 7 payroll report renderers. Each renderer is a
  * thin async function that accepts a `runId` and returns the raw file
  * bytes ready to be written to disk.
- *
- * Until the remaining renderers land, the unimplemented kinds throw a
- * clear "coming soon" error so the modal can surface it.
  */
 export async function renderPayrollReport(input: {
   runId: string
@@ -19,13 +22,16 @@ export async function renderPayrollReport(input: {
     case "PAYROLL_SUMMARY_PDF":
       return renderPayrollSummaryPdf({ runId: input.runId })
     case "PAYMENT_SCHEDULE_PDF":
+      return renderPaymentSchedulePdf({ runId: input.runId })
     case "DETAILED_CALCULATIONS_PDF":
+      return renderDetailedCalculationsPdf({ runId: input.runId })
     case "BULK_PAYSLIPS_PDF":
+      return renderBulkPayslipsPdf({ runId: input.runId })
     case "EPF_CSV":
+      return renderEpfCsv({ runId: input.runId })
     case "SOCSO_EIS_TXT":
+      return renderSocsoEisTxt({ runId: input.runId })
     case "PCB_TXT":
-      throw new Error(
-        `${input.kind} is not implemented yet. Phase A is still in progress.`,
-      )
+      return renderPcbTxt({ runId: input.runId })
   }
 }
