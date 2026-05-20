@@ -266,7 +266,7 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <Label htmlFor="startDate">Start date</Label>
             <Input
@@ -274,6 +274,7 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
+              className="w-full"
             />
           </div>
           <div>
@@ -283,6 +284,7 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
+              className="w-full"
             />
           </div>
         </div>
@@ -377,54 +379,44 @@ function ApplicationsCard({
           {applications.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-muted-foreground">No applications yet.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Dates</TableHead>
-                  <TableHead>Days</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Attachment</TableHead>
-                  <TableHead>Submitted</TableHead>
-                  <TableHead className="text-right"> </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Mobile: stacked cards (one per application). */}
+              <div className="space-y-3 p-4 md:hidden">
                 {applications.map((a) => {
                   const canEdit = a.status === "PENDING" && a.approvalsCount === 0
                   return (
-                    <TableRow key={a.id}>
-                      <TableCell className="font-medium">{a.leaveTypeName}</TableCell>
-                      <TableCell>
-                        {fmtDate(a.startDate)}
-                        {a.startDate !== a.endDate && <> → {fmtDate(a.endDate)}</>}
-                        {a.duration !== "FULL_DAY" && (
-                          <span className="ml-1 text-xs text-muted-foreground">
-                            ({a.duration === "MORNING" ? "AM" : "PM"})
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>{a.totalDays}</TableCell>
-                      <TableCell>
+                    <div key={a.id} className="rounded-2xl border border-border/60 bg-card p-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-foreground">{a.leaveTypeName}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {fmtDate(a.startDate)}
+                            {a.startDate !== a.endDate && <> → {fmtDate(a.endDate)}</>}
+                            {a.duration !== "FULL_DAY" && (
+                              <span className="ml-1">
+                                ({a.duration === "MORNING" ? "AM" : "PM"})
+                              </span>
+                            )}
+                          </p>
+                        </div>
                         <Badge variant={statusVariant(a.status)}>{a.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {a.attachmentUrl ? (
-                          <a
-                            href={a.attachmentUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-medium text-primary hover:underline"
-                          >
-                            {a.attachmentName ?? "View"}
-                          </a>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{fmtDate(a.createdAt)}</TableCell>
-                      <TableCell className="text-right">
-                        {canEdit && (
+                      </div>
+                      <div className="flex items-baseline justify-between text-xs text-muted-foreground">
+                        <span>{a.totalDays} day{a.totalDays === 1 ? "" : "s"}</span>
+                        <span>Submitted {fmtDate(a.createdAt)}</span>
+                      </div>
+                      {a.attachmentUrl && (
+                        <a
+                          href={a.attachmentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block truncate text-xs font-medium text-primary hover:underline"
+                        >
+                          📎 {a.attachmentName ?? "View attachment"}
+                        </a>
+                      )}
+                      {canEdit && (
+                        <div className="flex justify-end">
                           <Button
                             variant="outline"
                             size="sm"
@@ -432,13 +424,79 @@ function ApplicationsCard({
                           >
                             Edit
                           </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                        </div>
+                      )}
+                    </div>
                   )
                 })}
-              </TableBody>
-            </Table>
+              </div>
+
+              {/* Desktop / tablet: regular table. */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Dates</TableHead>
+                      <TableHead>Days</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Attachment</TableHead>
+                      <TableHead>Submitted</TableHead>
+                      <TableHead className="text-right"> </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {applications.map((a) => {
+                      const canEdit = a.status === "PENDING" && a.approvalsCount === 0
+                      return (
+                        <TableRow key={a.id}>
+                          <TableCell className="font-medium">{a.leaveTypeName}</TableCell>
+                          <TableCell>
+                            {fmtDate(a.startDate)}
+                            {a.startDate !== a.endDate && <> → {fmtDate(a.endDate)}</>}
+                            {a.duration !== "FULL_DAY" && (
+                              <span className="ml-1 text-xs text-muted-foreground">
+                                ({a.duration === "MORNING" ? "AM" : "PM"})
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>{a.totalDays}</TableCell>
+                          <TableCell>
+                            <Badge variant={statusVariant(a.status)}>{a.status}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {a.attachmentUrl ? (
+                              <a
+                                href={a.attachmentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-medium text-primary hover:underline"
+                              >
+                                {a.attachmentName ?? "View"}
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>{fmtDate(a.createdAt)}</TableCell>
+                          <TableCell className="text-right">
+                            {canEdit && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditing(a)}
+                              >
+                                Edit
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -516,7 +574,7 @@ function EditLeaveDialog({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <Label htmlFor="editStart">Start date</Label>
               <Input
@@ -524,6 +582,7 @@ function EditLeaveDialog({
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
+                className="w-full"
               />
             </div>
             <div>
@@ -533,6 +592,7 @@ function EditLeaveDialog({
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
+                className="w-full"
               />
             </div>
           </div>
