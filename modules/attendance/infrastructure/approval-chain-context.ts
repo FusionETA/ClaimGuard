@@ -66,6 +66,27 @@ export async function resolveApprovalContext(args: {
 }
 
 /**
+ * Returns true when the request should skip approval:
+ *   - the actor bypasses (ADMIN/SUPERVISOR/PM — see `isAutoApprovingActor`),
+ *   - OR the resolved approval chain for this (employee, module, project)
+ *     is empty (team has no layers above the employee, e.g. a 1-layer team).
+ */
+export async function shouldAutoApprove(args: {
+  employeeId: string
+  role: string | null | undefined
+  projectId: string | null
+  kind: ApprovalKind
+}): Promise<boolean> {
+  if (await isAutoApprovingActor(args)) return true
+  const chain = await resolveModuleChain(
+    args.employeeId,
+    kindToModule(args.kind),
+    args.projectId ?? undefined,
+  )
+  return chain.length === 0
+}
+
+/**
  * Returns true when the actor's clock-in/out/break/OT request should
  * skip approval entirely. Today: ADMINs and SUPERVISORs always bypass;
  * project managers (PM table or legacy XeroProject.projectManagerId) bypass

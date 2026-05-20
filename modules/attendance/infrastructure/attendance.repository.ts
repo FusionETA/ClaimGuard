@@ -32,7 +32,7 @@ import {
   formatLocalHm,
 } from "@/modules/attendance/domain/timezone"
 import {
-  isAutoApprovingActor,
+  shouldAutoApprove,
   resolveApprovalContext,
 } from "@/modules/attendance/infrastructure/approval-chain-context"
 import type { ChainHistoryEntry } from "@/modules/attendance/domain/models"
@@ -743,10 +743,11 @@ export const attendanceRepository = {
       },
     })
 
-    const autoApprove = await isAutoApprovingActor({
+    const autoApprove = await shouldAutoApprove({
       employeeId,
       role: employee?.role,
       projectId: projectId ?? null,
+      kind: "CLOCK_IN",
     })
     const timingNote =
       lateMin > 0
@@ -844,10 +845,11 @@ export const attendanceRepository = {
     const rawDurationMin = effectiveTimeIn ? diffMinutes(effectiveTimeIn, now) : null
     const durationMin =
       rawDurationMin === null ? null : Math.max(0, rawDurationMin - breakMin)
-    const autoApprove = await isAutoApprovingActor({
+    const autoApprove = await shouldAutoApprove({
       employeeId,
       role: employee?.role,
       projectId: existing?.projectId ?? null,
+      kind: "CLOCK_OUT",
     })
 
     const appendedNotes = notes
@@ -956,11 +958,17 @@ export const attendanceRepository = {
             profile?.policy?.otEnabled && profile.policy.otMethod === "TIME_BANK"
               ? "TIME_BANK"
               : "CASH"
+          const otAutoApprove = await shouldAutoApprove({
+            employeeId,
+            role: employee?.role,
+            projectId: existing?.projectId ?? null,
+            kind: "OT",
+          })
           await prisma.approvalRequest.create({
             data: {
               employeeId,
               kind: "OT",
-              status: autoApprove ? "APPROVED" : "PENDING",
+              status: otAutoApprove ? "APPROVED" : "PENDING",
               date: today,
               eventAt: now,
               title: `OT • ${formatHm(otMinutes)}`,
@@ -968,7 +976,7 @@ export const attendanceRepository = {
               project: existing?.project ?? null,
               otSubtype: null,
               otPayoutMethod: payout,
-              ...(autoApprove
+              ...(otAutoApprove
                 ? {
                     reviewerId: employeeId,
                     reviewedAt: now,
@@ -977,7 +985,7 @@ export const attendanceRepository = {
                 : {}),
             },
           })
-          if (autoApprove && payout === "TIME_BANK" && profile) {
+          if (otAutoApprove && payout === "TIME_BANK" && profile) {
             await prisma.employeeProfile.update({
               where: { id: profile.id },
               data: { otTimeBalanceMin: { increment: otMinutes } },
@@ -1040,10 +1048,11 @@ export const attendanceRepository = {
         : []),
     ])
 
-    const autoApprove = await isAutoApprovingActor({
+    const autoApprove = await shouldAutoApprove({
       employeeId,
       role: employee?.role,
       projectId: existing.projectId ?? null,
+      kind: "BREAK",
     })
     const approval = await prisma.approvalRequest.create({
       data: {
@@ -1125,10 +1134,11 @@ export const attendanceRepository = {
     ])
 
     const breakMin = Math.max(0, diffMinutes(openBreak.startedAt, now))
-    const autoApprove = await isAutoApprovingActor({
+    const autoApprove = await shouldAutoApprove({
       employeeId,
       role: employee?.role,
       projectId: existing.projectId ?? null,
+      kind: "BREAK",
     })
     const approval = await prisma.approvalRequest.create({
       data: {

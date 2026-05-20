@@ -1931,7 +1931,7 @@ export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.In
      * when the employee clocked in without granting location (Office
      * Workers, web clients without geolocation, or pre-migration rows).
      * `clockInDistanceMeters` is haversine distance to the project's
-     * geofence center (or org default) at the moment of clock-in.
+     * geofence center at the moment of clock-in.
      */
     clockInLat: number | null
     clockInLng: number | null
