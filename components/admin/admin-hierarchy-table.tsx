@@ -676,7 +676,7 @@ function AddHierarchyMemberDialog({
 
   const xeroConnectionId = xeroConnection?.id ?? ""
   const filteredProjects = xeroConnectionId
-    ? projects.filter((p) => p.xeroConnectionId === xeroConnectionId)
+    ? projects.filter((p) => !p.xeroConnectionId || p.xeroConnectionId === xeroConnectionId)
     : projects
   const projectsById = useMemo(
     () => new Map(filteredProjects.map((p) => [p.id, p])),
@@ -1209,7 +1209,7 @@ function HierarchyEditDialog({
   })
   const filteredProjects = useMemo(() => {
     return xeroConnectionId
-      ? projects.filter((p) => p.xeroConnectionId === xeroConnectionId)
+      ? projects.filter((p) => !p.xeroConnectionId || p.xeroConnectionId === xeroConnectionId)
       : projects
   }, [projects, xeroConnectionId])
 

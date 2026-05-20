@@ -2,9 +2,17 @@
 
 import { useMemo, useState, useTransition } from "react"
 
-import { cancelLeaveAction, submitLeaveAction } from "@/app/(employee)/employee/leave/actions"
+import { editLeaveAction, submitLeaveAction } from "@/app/(employee)/employee/leave/actions"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -14,6 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 
 type BalanceRow = {
@@ -34,6 +50,7 @@ type BalanceRow = {
 
 type ApplicationRow = {
   id: string
+  leaveTypeId: string
   leaveTypeCode: string
   leaveTypeName: string
   paid: boolean
@@ -42,8 +59,11 @@ type ApplicationRow = {
   duration: "FULL_DAY" | "MORNING" | "AFTERNOON"
   totalDays: number
   reason: string | null
+  attachmentUrl: string | null
+  attachmentName: string | null
   status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"
   currentStep: number
+  approvalsCount: number
   createdAt: string
   decidedAt: string | null
 }
@@ -84,7 +104,10 @@ export function EmployeeLeaveView(props: {
       {tab === "apply" && (
         <>
           <ApplyCard balances={props.balances} />
-          <ApplicationsCard applications={props.applications} />
+          <ApplicationsCard
+            applications={props.applications}
+            balances={props.balances}
+          />
         </>
       )}
       {tab === "balances" && <BalancesCard balances={props.balances} />}
@@ -183,6 +206,7 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
   const [endDate, setEndDate] = useState<string>("")
   const [duration, setDuration] = useState<"FULL_DAY" | "MORNING" | "AFTERNOON">("FULL_DAY")
   const [reason, setReason] = useState("")
+  const [attachment, setAttachment] = useState<File | null>(null)
   const [pending, startTransition] = useTransition()
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null)
 
@@ -203,6 +227,7 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
     fd.set("endDate", endDate)
     fd.set("duration", effectiveDuration)
     fd.set("reason", reason)
+    if (attachment) fd.set("attachment", attachment)
     startTransition(async () => {
       const res = await submitLeaveAction(fd)
       if (!res.ok) {
@@ -214,6 +239,7 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
         text: `Submitted (${res.totalDays} day${res.totalDays === 1 ? "" : "s"}). Status: ${res.status}.`,
       })
       setReason("")
+      setAttachment(null)
     })
   }
 
@@ -292,6 +318,24 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
           />
         </div>
 
+        <div>
+          <Label htmlFor="attachment">Attachment (optional)</Label>
+          <Input
+            id="attachment"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+            onChange={(e) => setAttachment(e.target.files?.[0] ?? null)}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Upload an MC slip or supporting document. JPG, PNG, WEBP, HEIC, or PDF · max 10 MB.
+            {attachment && (
+              <span className="ml-1 font-medium text-foreground">
+                Selected: {attachment.name}
+              </span>
+            )}
+          </p>
+        </div>
+
         {message && (
           <p className={message.kind === "ok" ? "text-sm text-emerald-600" : "text-sm text-destructive"}>
             {message.text}
@@ -308,80 +352,245 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
   )
 }
 
-function ApplicationsCard({ applications }: { applications: ApplicationRow[] }) {
-  const [pending, startTransition] = useTransition()
+function statusVariant(
+  status: string,
+): "pending" | "approved" | "rejected" | "outline" {
+  if (status === "APPROVED") return "approved"
+  if (status === "REJECTED") return "rejected"
+  if (status === "PENDING") return "pending"
+  return "outline"
+}
+
+function ApplicationsCard({
+  applications,
+  balances,
+}: {
+  applications: ApplicationRow[]
+  balances: BalanceRow[]
+}) {
+  const [editing, setEditing] = useState<ApplicationRow | null>(null)
   return (
-    <Card>
-      <CardHeader><CardTitle>My applications</CardTitle></CardHeader>
-      <CardContent>
-        {applications.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No applications yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-muted-foreground">
-                <tr>
-                  <th className="py-2">Type</th>
-                  <th>Dates</th>
-                  <th>Days</th>
-                  <th>Status</th>
-                  <th>Submitted</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {applications.map((a) => (
-                  <tr key={a.id}>
-                    <td className="py-2">{a.leaveTypeName}</td>
-                    <td>
-                      {fmtDate(a.startDate)}
-                      {a.startDate !== a.endDate && (
-                        <> → {fmtDate(a.endDate)}</>
-                      )}
-                      {a.duration !== "FULL_DAY" && (
-                        <span className="ml-1 text-xs text-muted-foreground">
-                          ({a.duration === "MORNING" ? "AM" : "PM"})
-                        </span>
-                      )}
-                    </td>
-                    <td>{a.totalDays}</td>
-                    <td>
-                      <span
-                        className={
-                          a.status === "APPROVED"
-                            ? "text-emerald-600"
-                            : a.status === "REJECTED"
-                              ? "text-destructive"
-                              : a.status === "CANCELLED"
-                                ? "text-muted-foreground"
-                                : ""
-                        }
-                      >
-                        {a.status}
-                      </span>
-                    </td>
-                    <td>{fmtDate(a.createdAt)}</td>
-                    <td className="text-right">
-                      {(a.status === "PENDING" || a.status === "APPROVED") && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={pending}
-                          onClick={() => startTransition(async () => {
-                            await cancelLeaveAction(a.id)
-                          })}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
+    <>
+      <Card>
+        <CardHeader><CardTitle>My applications</CardTitle></CardHeader>
+        <CardContent className="p-0">
+          {applications.length === 0 ? (
+            <p className="px-6 pb-6 text-sm text-muted-foreground">No applications yet.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Dates</TableHead>
+                  <TableHead>Days</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Attachment</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead className="text-right"> </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {applications.map((a) => {
+                  const canEdit = a.status === "PENDING" && a.approvalsCount === 0
+                  return (
+                    <TableRow key={a.id}>
+                      <TableCell className="font-medium">{a.leaveTypeName}</TableCell>
+                      <TableCell>
+                        {fmtDate(a.startDate)}
+                        {a.startDate !== a.endDate && <> → {fmtDate(a.endDate)}</>}
+                        {a.duration !== "FULL_DAY" && (
+                          <span className="ml-1 text-xs text-muted-foreground">
+                            ({a.duration === "MORNING" ? "AM" : "PM"})
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>{a.totalDays}</TableCell>
+                      <TableCell>
+                        <Badge variant={statusVariant(a.status)}>{a.status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {a.attachmentUrl ? (
+                          <a
+                            href={a.attachmentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-medium text-primary hover:underline"
+                          >
+                            {a.attachmentName ?? "View"}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{fmtDate(a.createdAt)}</TableCell>
+                      <TableCell className="text-right">
+                        {canEdit && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditing(a)}
+                          >
+                            Edit
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {editing && (
+        <EditLeaveDialog
+          application={editing}
+          balances={balances}
+          onClose={() => setEditing(null)}
+        />
+      )}
+    </>
+  )
+}
+
+function EditLeaveDialog({
+  application,
+  balances,
+  onClose,
+}: {
+  application: ApplicationRow
+  balances: BalanceRow[]
+  onClose: () => void
+}) {
+  const [leaveTypeId, setLeaveTypeId] = useState(application.leaveTypeId)
+  const [startDate, setStartDate] = useState(application.startDate.slice(0, 10))
+  const [endDate, setEndDate] = useState(application.endDate.slice(0, 10))
+  const [duration, setDuration] = useState<"FULL_DAY" | "MORNING" | "AFTERNOON">(application.duration)
+  const [reason, setReason] = useState(application.reason ?? "")
+  const [attachment, setAttachment] = useState<File | null>(null)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  const sameDay = startDate !== "" && startDate === endDate
+  const effectiveDuration: "FULL_DAY" | "MORNING" | "AFTERNOON" =
+    sameDay ? duration : "FULL_DAY"
+
+  function submit() {
+    setError(null)
+    const fd = new FormData()
+    fd.set("leaveTypeId", leaveTypeId)
+    fd.set("startDate", startDate)
+    fd.set("endDate", endDate)
+    fd.set("duration", effectiveDuration)
+    fd.set("reason", reason)
+    if (attachment) fd.set("attachment", attachment)
+    startTransition(async () => {
+      const res = await editLeaveAction(application.id, fd)
+      if (!res.ok) {
+        setError(res.error)
+        return
+      }
+      onClose()
+    })
+  }
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit leave application</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label>Leave type</Label>
+            <Select value={leaveTypeId} onValueChange={setLeaveTypeId}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {balances.map((b) => (
+                  <SelectItem key={b.leaveTypeId} value={b.leaveTypeId}>
+                    {b.leaveTypeName} · {b.paid ? `${b.availableDays} day(s) available` : "unpaid"}
+                  </SelectItem>
                 ))}
-              </tbody>
-            </table>
+              </SelectContent>
+            </Select>
           </div>
-        )}
-      </CardContent>
-    </Card>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="editStart">Start date</Label>
+              <Input
+                id="editStart"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="editEnd">End date</Label>
+              <Input
+                id="editEnd"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label>Duration</Label>
+            <Select
+              value={effectiveDuration}
+              onValueChange={(v) => setDuration(v as "FULL_DAY" | "MORNING" | "AFTERNOON")}
+              disabled={!sameDay}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="FULL_DAY">Full day</SelectItem>
+                <SelectItem value="MORNING">Morning (0.5)</SelectItem>
+                <SelectItem value="AFTERNOON">Afternoon (0.5)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="editReason">Reason (optional)</Label>
+            <Textarea
+              id="editReason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="editAttachment">Replace attachment (optional)</Label>
+            <Input
+              id="editAttachment"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
+              onChange={(e) => setAttachment(e.target.files?.[0] ?? null)}
+            />
+            {application.attachmentUrl && !attachment && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Current: {application.attachmentName ?? "attached file"}. Upload a new file to replace.
+              </p>
+            )}
+            {attachment && (
+              <p className="text-xs font-medium text-foreground mt-1">
+                New: {attachment.name}
+              </p>
+            )}
+          </div>
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={submit} disabled={pending}>
+            {pending ? "Saving…" : "Save changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

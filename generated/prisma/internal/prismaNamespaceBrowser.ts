@@ -1002,6 +1002,9 @@ export const LeaveApplicationScalarFieldEnum = {
   duration: 'duration',
   totalDays: 'totalDays',
   reason: 'reason',
+  attachmentUrl: 'attachmentUrl',
+  attachmentName: 'attachmentName',
+  xeroFileId: 'xeroFileId',
   status: 'status',
   currentStep: 'currentStep',
   approvals: 'approvals',
@@ -1620,7 +1623,10 @@ export const LeaveApplicationOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
   leaveTypeId: 'leaveTypeId',
-  reason: 'reason'
+  reason: 'reason',
+  attachmentUrl: 'attachmentUrl',
+  attachmentName: 'attachmentName',
+  xeroFileId: 'xeroFileId'
 } as const
 
 export type LeaveApplicationOrderByRelevanceFieldEnum = (typeof LeaveApplicationOrderByRelevanceFieldEnum)[keyof typeof LeaveApplicationOrderByRelevanceFieldEnum]

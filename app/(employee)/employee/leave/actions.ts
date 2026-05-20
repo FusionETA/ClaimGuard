@@ -5,10 +5,11 @@ import { revalidatePath } from "next/cache"
 import { getCurrentSession } from "@/lib/auth/session"
 import { getPrismaClient } from "@/lib/prisma"
 import {
-  cancelLeaveApplication,
   decideLeaveApplication,
+  editLeaveApplication,
   submitLeaveApplication,
 } from "@/modules/leave/application/services/leave-application.service"
+import { storeLeaveAttachment } from "@/modules/leave/infrastructure/leave-attachment-storage"
 import type { LeaveDuration } from "@/modules/leave/domain/models"
 
 async function profileIdForCurrentUser(): Promise<{
@@ -43,6 +44,25 @@ export async function submitLeaveAction(formData: FormData) {
     return { ok: false as const, error: "Invalid dates" }
   }
 
+  // Optional attachment — empty file means the employee didn't upload one.
+  let attachmentUrl: string | null = null
+  let attachmentName: string | null = null
+  let xeroFileId: string | null = null
+  const attachmentEntry = formData.get("attachment")
+  if (attachmentEntry instanceof File && attachmentEntry.size > 0) {
+    try {
+      const stored = await storeLeaveAttachment(attachmentEntry, ctx.profileId)
+      attachmentUrl = stored.attachmentUrl
+      attachmentName = stored.attachmentName
+      xeroFileId = stored.xeroFileId
+    } catch (err) {
+      return {
+        ok: false as const,
+        error: err instanceof Error ? err.message : "Attachment upload failed",
+      }
+    }
+  }
+
   const res = await submitLeaveApplication(
     {
       employeeProfileId: ctx.profileId,
@@ -51,6 +71,9 @@ export async function submitLeaveAction(formData: FormData) {
       endDate,
       duration,
       reason,
+      attachmentUrl,
+      attachmentName,
+      xeroFileId,
     },
     ctx.role,
   )
@@ -64,13 +87,56 @@ export async function submitLeaveAction(formData: FormData) {
   }
 }
 
-export async function cancelLeaveAction(applicationId: string) {
+export async function editLeaveAction(applicationId: string, formData: FormData) {
   const ctx = await profileIdForCurrentUser()
   if (!ctx) return { ok: false as const, error: "Not signed in" }
-  const res = await cancelLeaveApplication(applicationId, ctx.userId)
+
+  const startDate = new Date(String(formData.get("startDate") ?? ""))
+  const endDate = new Date(String(formData.get("endDate") ?? ""))
+  const duration = String(formData.get("duration") ?? "FULL_DAY") as LeaveDuration
+  const leaveTypeId = String(formData.get("leaveTypeId") ?? "")
+  const reason = String(formData.get("reason") ?? "").trim() || null
+
+  if (!leaveTypeId) return { ok: false as const, error: "Pick a leave type" }
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    return { ok: false as const, error: "Invalid dates" }
+  }
+
+  // Attachment handling on edit: replace only when a non-empty file is
+  // uploaded. Empty input → keep existing attachment unchanged.
+  let attachment:
+    | { attachmentUrl: string | null; attachmentName: string | null; xeroFileId: string | null }
+    | undefined = undefined
+  const attachmentEntry = formData.get("attachment")
+  if (attachmentEntry instanceof File && attachmentEntry.size > 0) {
+    try {
+      const stored = await storeLeaveAttachment(attachmentEntry, ctx.profileId)
+      attachment = {
+        attachmentUrl: stored.attachmentUrl,
+        attachmentName: stored.attachmentName,
+        xeroFileId: stored.xeroFileId,
+      }
+    } catch (err) {
+      return {
+        ok: false as const,
+        error: err instanceof Error ? err.message : "Attachment upload failed",
+      }
+    }
+  }
+
+  const res = await editLeaveApplication({
+    applicationId,
+    actorUserId: ctx.userId,
+    leaveTypeId,
+    startDate,
+    endDate,
+    duration,
+    reason,
+    attachment,
+  })
   if (!res.ok) return res
   revalidatePath("/employee/leave")
-  return { ok: true as const }
+  return { ok: true as const, totalDays: res.totalDays }
 }
 
 export async function decideLeaveAction(

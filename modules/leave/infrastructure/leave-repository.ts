@@ -260,6 +260,9 @@ export const leaveRepository = {
     duration: LeaveDuration
     totalDays: number
     reason: string | null
+    attachmentUrl: string | null
+    attachmentName: string | null
+    xeroFileId: string | null
     status: LeaveStatus
     currentStep: number
     decidedAt: Date | null
@@ -274,9 +277,24 @@ export const leaveRepository = {
         duration: input.duration,
         totalDays: input.totalDays,
         reason: input.reason,
+        attachmentUrl: input.attachmentUrl,
+        attachmentName: input.attachmentName,
+        xeroFileId: input.xeroFileId,
         status: input.status,
         currentStep: input.currentStep,
         decidedAt: input.decidedAt,
+      },
+    })
+  },
+
+  /// Used by the Xero file proxy route to look up a leave application
+  /// by its uploaded Xero file id (for permission checks).
+  async getApplicationByXeroFileId(xeroFileId: string) {
+    const prisma = requirePrisma()
+    return prisma.leaveApplication.findFirst({
+      where: { xeroFileId },
+      include: {
+        employee: { include: { user: true } },
       },
     })
   },
@@ -348,6 +366,8 @@ function toApplicationView(r: {
   duration: string
   totalDays: number
   reason: string | null
+  attachmentUrl: string | null
+  attachmentName: string | null
   status: string
   currentStep: number
   approvals: unknown
@@ -367,6 +387,8 @@ function toApplicationView(r: {
     duration: r.duration as LeaveDuration,
     totalDays: r.totalDays,
     reason: r.reason,
+    attachmentUrl: r.attachmentUrl,
+    attachmentName: r.attachmentName,
     status: r.status as LeaveStatus,
     currentStep: r.currentStep,
     approvals: Array.isArray(r.approvals) ? (r.approvals as LeaveApprovalEntry[]) : [],

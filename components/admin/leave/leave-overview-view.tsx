@@ -1,8 +1,24 @@
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import type { LeaveOverviewReport } from "@/modules/leave/application/services/leave-overview.service"
 
 function fmtDate(iso: string): string {
   return iso.slice(0, 10)
+}
+
+function statusBadgeVariant(status: string): "pending" | "approved" | "rejected" | "outline" {
+  if (status === "APPROVED") return "approved"
+  if (status === "REJECTED") return "rejected"
+  if (status === "PENDING") return "pending"
+  return "outline"
 }
 
 export function LeaveOverviewView({ report }: { report: LeaveOverviewReport }) {
@@ -26,38 +42,36 @@ export function LeaveOverviewView({ report }: { report: LeaveOverviewReport }) {
         <CardHeader>
           <CardTitle>On leave today</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {report.onLeaveToday.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No one is on leave today.</p>
+            <p className="px-6 pb-6 text-sm text-muted-foreground">No one is on leave today.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-muted-foreground">
-                  <tr>
-                    <th className="py-2">Employee</th>
-                    <th>Type</th>
-                    <th>Dates</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.onLeaveToday.map((a) => (
-                    <tr key={`${a.employeeId}-${a.startDate}`}>
-                      <td className="py-2">{a.employeeName}</td>
-                      <td>{a.leaveTypeName}</td>
-                      <td>
-                        {fmtDate(a.startDate)}
-                        {a.startDate !== a.endDate && <> → {fmtDate(a.endDate)}</>}
-                        {a.duration !== "FULL_DAY" && (
-                          <span className="ml-1 text-xs text-muted-foreground">
-                            ({a.duration === "MORNING" ? "AM" : "PM"})
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Dates</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {report.onLeaveToday.map((a) => (
+                  <TableRow key={`${a.employeeId}-${a.startDate}`}>
+                    <TableCell className="font-medium">{a.employeeName}</TableCell>
+                    <TableCell>{a.leaveTypeName}</TableCell>
+                    <TableCell>
+                      {fmtDate(a.startDate)}
+                      {a.startDate !== a.endDate && <> → {fmtDate(a.endDate)}</>}
+                      {a.duration !== "FULL_DAY" && (
+                        <span className="ml-1 text-xs text-muted-foreground">
+                          ({a.duration === "MORNING" ? "AM" : "PM"})
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
@@ -66,30 +80,33 @@ export function LeaveOverviewView({ report }: { report: LeaveOverviewReport }) {
         <CardHeader>
           <CardTitle>Days used by type ({report.year})</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {report.daysUsedByType.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No leave types configured yet.</p>
+            <p className="px-6 pb-6 text-sm text-muted-foreground">No leave types configured yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-muted-foreground">
-                  <tr>
-                    <th className="py-2">Code</th>
-                    <th>Name</th>
-                    <th>Days used (approved)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.daysUsedByType.map((row) => (
-                    <tr key={row.leaveTypeId}>
-                      <td className="py-2 font-mono">{row.code}</td>
-                      <td>{row.name}</td>
-                      <td>{row.daysUsed}{!row.paid && <span className="text-xs text-muted-foreground"> (unpaid)</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Days used (approved)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {report.daysUsedByType.map((row) => (
+                  <TableRow key={row.leaveTypeId}>
+                    <TableCell className="font-mono text-xs font-bold">{row.code}</TableCell>
+                    <TableCell>{row.name}</TableCell>
+                    <TableCell>
+                      {row.daysUsed}
+                      {!row.paid && (
+                        <span className="ml-2 text-xs text-muted-foreground">(unpaid)</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
@@ -98,41 +115,39 @@ export function LeaveOverviewView({ report }: { report: LeaveOverviewReport }) {
         <CardHeader>
           <CardTitle>Recent applications</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {report.recentApplications.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No applications yet.</p>
+            <p className="px-6 pb-6 text-sm text-muted-foreground">No applications yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-muted-foreground">
-                  <tr>
-                    <th className="py-2">Employee</th>
-                    <th>Type</th>
-                    <th>Dates</th>
-                    <th>Days</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.recentApplications.map((a) => (
-                    <tr key={a.id}>
-                      <td className="py-2">{a.employeeName}</td>
-                      <td className="font-mono">{a.leaveTypeCode}</td>
-                      <td>
-                        {fmtDate(a.startDate)}
-                        {a.startDate !== a.endDate && <> → {fmtDate(a.endDate)}</>}
-                      </td>
-                      <td>{a.totalDays}</td>
-                      <td>
-                        <span className={statusTone(a.status)}>{a.status}</span>
-                      </td>
-                      <td>{fmtDate(a.createdAt)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Dates</TableHead>
+                  <TableHead>Days</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Submitted</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {report.recentApplications.map((a) => (
+                  <TableRow key={a.id}>
+                    <TableCell className="font-medium">{a.employeeName}</TableCell>
+                    <TableCell className="font-mono text-xs">{a.leaveTypeCode}</TableCell>
+                    <TableCell>
+                      {fmtDate(a.startDate)}
+                      {a.startDate !== a.endDate && <> → {fmtDate(a.endDate)}</>}
+                    </TableCell>
+                    <TableCell>{a.totalDays}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusBadgeVariant(a.status)}>{a.status}</Badge>
+                    </TableCell>
+                    <TableCell>{fmtDate(a.createdAt)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
@@ -158,16 +173,11 @@ function StatCard({
           ? "text-destructive"
           : "text-muted-foreground"
   return (
-    <div className="rounded-2xl border p-4">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className={`text-3xl font-semibold ${toneClass}`}>{value}</div>
-    </div>
+    <Card className="p-4">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+        {label}
+      </div>
+      <div className={`text-3xl font-black ${toneClass}`}>{value}</div>
+    </Card>
   )
-}
-
-function statusTone(status: string): string {
-  if (status === "APPROVED") return "text-emerald-600"
-  if (status === "REJECTED") return "text-destructive"
-  if (status === "CANCELLED") return "text-muted-foreground"
-  return ""
 }

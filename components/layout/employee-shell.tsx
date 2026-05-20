@@ -133,6 +133,11 @@ const APPROVALS_HREF = "/employee/attendance/approvals"
 const ATTENDANCE_HREF = "/employee/attendance"
 const CLAIMS_HREF = "/employee/claims"
 const CLAIMS_QUEUE_HREF = "/employee/review"
+const LEAVE_HREF = "/employee/leave"
+// Cast through `string` so the comparison below doesn't get narrowed against
+// the cached next/types Route union (which may not yet include the new
+// leave approvals route after a fresh code generation).
+const LEAVE_APPROVALS_HREF = "/employee/leave/approvals" as string
 
 function NotificationDot() {
   return (
@@ -170,6 +175,7 @@ export function EmployeeShell({
   )
   const [pendingApprovals, setPendingApprovals] = useState(0)
   const [pendingClaimApprovals, setPendingClaimApprovals] = useState(0)
+  const [pendingLeaveApprovals, setPendingLeaveApprovals] = useState(0)
 
   const fetchContext = useCallback(
     (signal?: AbortSignal) => {
@@ -187,6 +193,7 @@ export function EmployeeShell({
             organizationName?: string | null
             pendingApprovals?: number
             pendingClaimApprovals?: number
+            pendingLeaveApprovals?: number
           }>
         })
         .then((data) => {
@@ -196,6 +203,7 @@ export function EmployeeShell({
 
           setPendingApprovals(data?.pendingApprovals ?? 0)
           setPendingClaimApprovals(data?.pendingClaimApprovals ?? 0)
+          setPendingLeaveApprovals(data?.pendingLeaveApprovals ?? 0)
         })
         .catch(() => null)
     },
@@ -299,6 +307,8 @@ export function EmployeeShell({
                     <NotificationDot />
                   ) : item.href === CLAIMS_HREF ? (
                     <NotificationCountBadge count={pendingClaimApprovals} />
+                  ) : item.href === LEAVE_HREF && pendingLeaveApprovals > 0 ? (
+                    <NotificationDot />
                   ) : null}
                 </Link>
 
@@ -324,6 +334,8 @@ export function EmployeeShell({
                               <NotificationDot />
                             ) : child.href === CLAIMS_QUEUE_HREF ? (
                               <NotificationCountBadge count={pendingClaimApprovals} />
+                            ) : child.href === LEAVE_APPROVALS_HREF && pendingLeaveApprovals > 0 ? (
+                              <NotificationDot />
                             ) : null}
                           </Link>
                         )

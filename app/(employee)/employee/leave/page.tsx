@@ -33,9 +33,21 @@ export default async function EmployeeLeavePage() {
         carriedExpiresAt: b.carriedExpiresAt ? b.carriedExpiresAt.toISOString() : null,
       }))}
       applications={applications.map((a) => ({
-        ...a,
+        id: a.id,
+        leaveTypeId: a.leaveTypeId,
+        leaveTypeCode: a.leaveTypeCode,
+        leaveTypeName: a.leaveTypeName,
+        paid: a.paid,
         startDate: a.startDate.toISOString(),
         endDate: a.endDate.toISOString(),
+        duration: a.duration,
+        totalDays: a.totalDays,
+        reason: a.reason,
+        attachmentUrl: a.attachmentUrl,
+        attachmentName: a.attachmentName,
+        status: a.status,
+        currentStep: a.currentStep,
+        approvalsCount: a.approvals.length,
         createdAt: a.createdAt.toISOString(),
         decidedAt: a.decidedAt ? a.decidedAt.toISOString() : null,
       }))}
