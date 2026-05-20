@@ -1550,30 +1550,29 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
-    if (data.xeroConnectionId) {
-      // Employee assigned to a Xero connection — return selectable accounts for that connection
-      const rows = await prisma.chartOfAccount.findMany({
-        where: {
-          xeroConnectionId: data.xeroConnectionId,
-          isSelectable: true,
-          isDisabled: false,
-        },
-        orderBy: [{ code: "asc" }, { name: "asc" }],
-      })
-      return rows.map((row) => mapChartAccount(row)!)
-    }
-
-    // No Xero connection — return custom accounts (xeroConnectionId IS null) that are selectable
+    // An organization has at most ONE active Xero connection at a time,
+    // and disconnecting cascade-deletes that connection's
+    // `ChartOfAccount` rows (schema: `onDelete: Cascade`). So at any
+    // moment the org holds exactly one connection's accounts (or only
+    // custom accounts when not connected) — never a mix of stale +
+    // live. That makes a plain org-level filter both correct and the
+    // simplest option: it returns the live connection's selectable
+    // accounts when connected, or the custom selectable accounts when
+    // not.
+    //
+    // The `xeroConnectionId` argument is retained for call-site
+    // compatibility but no longer needed for correctness — scoping by
+    // org gives the same result and avoids the "employee not assigned
+    // to the connection → sees nothing" bug.
+    void data.xeroConnectionId
     const rows = await prisma.chartOfAccount.findMany({
       where: {
         organizationId: data.organizationId,
-        xeroConnectionId: null,
         isSelectable: true,
         isDisabled: false,
       },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
-
     return rows.map((row) => mapChartAccount(row)!)
   },
 
@@ -1704,28 +1703,20 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
-    if (data.xeroConnectionId) {
-      const rows = await prisma.chartOfAccount.findMany({
-        where: {
-          xeroConnectionId: data.xeroConnectionId,
-          allowMileageClaim: true,
-          isDisabled: false,
-        },
-        orderBy: [{ code: "asc" }, { name: "asc" }],
-      })
-      return rows.map((row) => mapChartAccount(row)!)
-    }
-
+    // Org-level filter — same rationale as
+    // `getSelectableChartAccountsForEmployee`: one active Xero
+    // connection per org at a time + cascade-delete on disconnect means
+    // org scoping returns exactly the live connection's mileage
+    // accounts (or custom ones when not connected).
+    void data.xeroConnectionId
     const rows = await prisma.chartOfAccount.findMany({
       where: {
         organizationId: data.organizationId,
-        xeroConnectionId: null,
         allowMileageClaim: true,
         isDisabled: false,
       },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
-
     return rows.map((row) => mapChartAccount(row)!)
   },
 
@@ -1854,9 +1845,12 @@ export const organizationRepository = {
       throw new Error("Database is not configured.")
     }
 
-    const scopeWhere = data.xeroConnectionId
-      ? { organizationId: data.organizationId, xeroConnectionId: data.xeroConnectionId }
-      : { organizationId: data.organizationId, xeroConnectionId: null }
+    // Org-level scope (one active connection per org). Reset every
+    // account in the org then set the ticked ones — symmetric with the
+    // org-level employee display so admin + employee always agree. The
+    // `xeroConnectionId` argument is retained for call-site compat.
+    void data.xeroConnectionId
+    const scopeWhere = { organizationId: data.organizationId }
 
     await prisma.$transaction([
       prisma.chartOfAccount.updateMany({
@@ -1892,9 +1886,10 @@ export const organizationRepository = {
       throw new Error("Database is not configured.")
     }
 
-    const scopeWhere = data.xeroConnectionId
-      ? { organizationId: data.organizationId, xeroConnectionId: data.xeroConnectionId }
-      : { organizationId: data.organizationId, xeroConnectionId: null }
+    // Org-level scope (one active connection per org). See
+    // `setSelectableChartAccounts` for rationale.
+    void data.xeroConnectionId
+    const scopeWhere = { organizationId: data.organizationId }
 
     const ops: Array<ReturnType<typeof prisma.chartOfAccount.updateMany>> = [
       prisma.chartOfAccount.updateMany({
@@ -1986,28 +1981,6 @@ export const organizationRepository = {
   // Bank accounts
   // ---------------------------------------------------------------------------
 
-  async getBankAccountsForOrganization(data: {
-    organizationId: string
-    xeroConnectionId?: string
-  }): Promise<ChartOfAccountOption[]> {
-    const prisma = getPrismaClient()
-    if (!prisma) return []
-
-    const rows = await prisma.chartOfAccount.findMany({
-      where: {
-        organizationId: data.organizationId,
-        type: "BANK",
-        isDisabled: false,
-        ...(data.xeroConnectionId
-          ? { xeroConnectionId: data.xeroConnectionId }
-          : { xeroConnectionId: null }),
-      },
-      orderBy: [{ code: "asc" }, { name: "asc" }],
-    })
-
-    return rows.map((row) => mapChartAccount(row)!)
-  },
-
   async getSelectedBankAccountsForOrganization(data: {
     organizationId: string
     xeroConnectionId?: string
@@ -2015,15 +1988,18 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    // Org-level filter (one active Xero connection per org + cascade-
+    // delete on disconnect). Previously this fell back to
+    // `xeroConnectionId: null` for unassigned employees, which hid
+    // Xero-linked bank accounts the same way the selectable-accounts
+    // query did.
+    void data.xeroConnectionId
     const rows = await prisma.chartOfAccount.findMany({
       where: {
         organizationId: data.organizationId,
         type: "BANK",
         isBankAccount: true,
         isDisabled: false,
-        ...(data.xeroConnectionId
-          ? { xeroConnectionId: data.xeroConnectionId }
-          : { xeroConnectionId: null }),
       },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
@@ -2059,9 +2035,10 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
-    const scopeWhere = data.xeroConnectionId
-      ? { organizationId: data.organizationId, xeroConnectionId: data.xeroConnectionId, type: "BANK" }
-      : { organizationId: data.organizationId, xeroConnectionId: null, type: "BANK" }
+    // Org-level scope (one active connection per org). See
+    // `setSelectableChartAccounts` for rationale.
+    void data.xeroConnectionId
+    const scopeWhere = { organizationId: data.organizationId, type: "BANK" }
 
     await prisma.$transaction([
       prisma.chartOfAccount.updateMany({

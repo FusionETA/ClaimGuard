@@ -236,8 +236,13 @@ async function loadAdminSettingsPageData(input: {
 
   const [chartAccounts, projects, customAccounts, members, workingHours, timezone] =
     await Promise.all([
-      activeXeroConnectionId
-        ? organizationRepository.getChartAccountsForConnection(activeXeroConnectionId)
+      // Org-level chart-of-accounts (not connection-scoped). One active
+      // Xero connection per org + custom accounts disabled on connect
+      // means this returns exactly the live connection's accounts — but
+      // without depending on `activeXeroConnectionId` being set, which
+      // removes the "null connection → empty Accounts tab" risk.
+      input.organizationId
+        ? organizationRepository.getChartAccountsForOrganization(input.organizationId)
         : Promise.resolve([]),
       input.organizationId
         ? organizationRepository.getProjectsForOrganization(input.organizationId)
