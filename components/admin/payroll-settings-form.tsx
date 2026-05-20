@@ -1095,11 +1095,11 @@ function XeroMappingTab({
               }
             >
               {xeroAggregationModes.map((mode) => {
-                // Only "One line per employee" is live today. Project-
-                // level summing is built in the journal builder but not
-                // yet exposed — lock the picker to per-employee and flag
-                // the other option as upcoming so it can't be selected.
-                const upcoming = mode !== "PER_EMPLOYEE"
+                // Only "Sum by project" is live today. Per-employee
+                // aggregation is on the roadmap but not yet exposed —
+                // lock the picker to sum-by-project and flag the
+                // per-employee option as upcoming so it can't be selected.
+                const upcoming = mode !== "SUM_BY_PROJECT"
                 return (
                   <option key={mode} value={mode} disabled={upcoming}>
                     {XERO_AGGREGATION_MODE_LABELS[mode]}

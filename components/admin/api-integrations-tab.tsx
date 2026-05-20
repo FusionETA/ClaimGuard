@@ -486,7 +486,7 @@ function RevealedTokenDialog({
               <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">
                 Secret token for: {revealed.name}
               </p>
-              <pre className="mt-2 overflow-x-auto rounded-lg bg-white px-3 py-2 text-xs">
+              <pre className="nice-scrollbar mt-2 overflow-x-auto rounded-lg bg-white px-3 py-2 text-xs">
                 {revealed.token}
               </pre>
               <Button
@@ -502,7 +502,7 @@ function RevealedTokenDialog({
 
             <div className="rounded-xl border border-border/60 bg-surface-low px-4 py-3 text-sm">
               <p className="font-semibold">How to use it</p>
-              <pre className="mt-2 overflow-x-auto text-xs leading-relaxed">
+              <pre className="nice-scrollbar mt-2 overflow-x-auto text-xs leading-relaxed">
                 {`curl https://your-domain.com/api/v1/employees \\
   -H "Authorization: Bearer ${revealed.token}"`}
               </pre>

@@ -30,7 +30,7 @@ export function ClaimsSubTabs() {
   const pathname = usePathname() ?? ""
 
   return (
-    <nav className="-mx-6 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <nav className="-mx-6 overflow-x-auto px-6 nice-scrollbar">
       <div className="flex gap-2 pb-0.5">
         {TABS.map((tab) => {
           const active = tab.matches(pathname)

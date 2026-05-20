@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
 import {
@@ -560,7 +561,7 @@ function TeamEditor(props: EditorProps) {
               every layer approves. Empty columns skip approvals entirely
               (use with caution).
             </p>
-            <div className="overflow-x-auto rounded-lg border">
+            <ScrollArea className="overflow-x-auto rounded-lg border">
               {/*
                 Transposed view: each LAYER is a row and each MODULE is a
                 column. This matches the way the admin tends to reason
@@ -619,7 +620,7 @@ function TeamEditor(props: EditorProps) {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollArea>
             {/* Hidden inputs — one per module, comma-separated sorted
                 layer numbers. The form action reads these keys to
                 reconstruct the moduleConfig map. Rendering them outside
@@ -882,7 +883,7 @@ function ProjectManagersTable(props: {
           </div>
         ) : null}
 
-        <div className="overflow-x-auto rounded-md border">
+        <ScrollArea className="overflow-x-auto rounded-md border">
           <table className="min-w-full text-sm">
             <thead className="bg-muted/40">
               <tr>
@@ -946,7 +947,7 @@ function ProjectManagersTable(props: {
               )}
             </tbody>
           </table>
-        </div>
+        </ScrollArea>
 
         {/* Unassigned employees — added to the project but not on any
             team yet. Surfacing them here keeps these "stuck" rows
@@ -966,7 +967,7 @@ function ProjectManagersTable(props: {
             </p>
           </div>
           {unassignedEmployees.length > 0 ? (
-            <div className="overflow-x-auto rounded-md border">
+            <ScrollArea className="overflow-x-auto rounded-md border">
               <table className="min-w-full text-sm">
                 <thead className="bg-muted/40">
                   <tr>
@@ -1041,7 +1042,7 @@ function ProjectManagersTable(props: {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollArea>
           ) : null}
         </div>
       </CardContent>
@@ -1243,7 +1244,7 @@ function TeamMembersTable(props: {
           </div>
         ) : null}
 
-        <div className="overflow-x-auto rounded-md border">
+        <ScrollArea className="overflow-x-auto rounded-md border">
           <table className="min-w-full text-sm">
             <thead className="bg-muted/40">
               <tr>
@@ -1366,7 +1367,7 @@ function TeamMembersTable(props: {
               )}
             </tbody>
           </table>
-        </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   )

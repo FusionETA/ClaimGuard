@@ -120,6 +120,84 @@
     @apply bg-white/90 backdrop-blur-xl dark:bg-slate-900/70;
   }
 
+  /* Always-visible (when overflowing), themed scrollbar for scroll
+     containers — especially horizontally-scrolling tables, where
+     macOS/desktop overlay scrollbars stay hidden until you actually
+     scroll, making it unclear there's more content sideways. Applying
+     ANY `::-webkit-scrollbar` rules switches WebKit out of overlay
+     mode into legacy mode (= scrollbar renders the moment content
+     overflows, hides when it doesn't). The colors below are tuned to
+     be obvious on white backgrounds — previously the thumb was
+     `--border`, which is near-invisible. Track gets a faint tint so
+     the scroll lane reads as an interactive UI element instead of
+     blank space. `scrollbar-gutter: stable` reserves the scrollbar's
+     space so the layout doesn't reflow when overflow appears/goes away.
+     Apply `.nice-scrollbar` to any element with `overflow-x` /
+     `overflow-y: auto`.
+
+     Intentionally NOT using `scrollbar-gutter: stable` — it would
+     reserve a permanent gutter (showing the faint track tint) even
+     when the table doesn't overflow, which contradicts "show only on
+     overflow". Accepting the one-time content shift when overflow
+     toggles is the better tradeoff. */
+  .nice-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.45) hsl(var(--muted) / 0.4);
+  }
+  /* When a scroll container is known to be overflowing (set by the
+     `useOverflowing` hook on <Table>, or manually on any container),
+     force `overflow` to `scroll` on that axis so the scrollbar stays
+     visible instead of fading out after a moment. `overflow: auto` is
+     not enough on Chrome/macOS — even with custom `::-webkit-scrollbar`
+     styling, the browser still honors the system "fade scrollbars
+     when not scrolling" behavior, which makes users miss the cue that
+     there's more content to scroll to. */
+  .nice-scrollbar[data-overflowing-x="true"] {
+    overflow-x: scroll;
+  }
+  .nice-scrollbar[data-overflowing-y="true"] {
+    overflow-y: scroll;
+  }
+  .nice-scrollbar[data-custom-horizontal-scrollbar="true"] {
+    padding-bottom: 18px;
+    scrollbar-width: none;
+  }
+  .nice-scrollbar[data-custom-horizontal-scrollbar="true"] {
+    -ms-overflow-style: none;
+  }
+  .nice-scrollbar::-webkit-scrollbar {
+    height: 12px;
+    width: 12px;
+  }
+  .nice-scrollbar[data-custom-horizontal-scrollbar="true"]::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+  .nice-scrollbar::-webkit-scrollbar-track {
+    background-color: hsl(var(--muted) / 0.4);
+    border-radius: 9999px;
+  }
+  .nice-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.45);
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+    min-height: 40px;
+    min-width: 40px;
+  }
+  .nice-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.75);
+    background-clip: content-box;
+  }
+  .nice-scrollbar::-webkit-scrollbar-thumb:active {
+    background-color: hsl(var(--muted-foreground) / 0.9);
+    background-clip: content-box;
+  }
+  .nice-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
   .tonal-panel {
     @apply bg-surface-lowest shadow-panel;
   }

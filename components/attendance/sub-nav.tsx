@@ -54,7 +54,7 @@ export function AttendanceSubNav({ items }: Props) {
   }, [items])
 
   return (
-    <nav className="lg:hidden -mx-6 mb-4 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <nav className="lg:hidden -mx-6 mb-4 overflow-x-auto px-6 nice-scrollbar">
       <div className="flex gap-2">
         {items.map((item) => {
           const active = pathname === item.href

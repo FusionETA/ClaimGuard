@@ -1,14 +1,26 @@
+"use client"
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
-const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  ({ className, ...props }, ref) => (
-    <div className="relative w-full overflow-auto">
+const Table = React.forwardRef<
+  HTMLTableElement,
+  React.HTMLAttributes<HTMLTableElement> & {
+    /// Extra classes for the scroll wrapper div. Use this to bound the
+    /// height of a wide table (e.g. `max-h-[65vh]`) so its horizontal
+    /// scrollbar stays pinned at the bottom of the visible box instead
+    /// of at the bottom of a tall table that's scrolled off-screen.
+    wrapperClassName?: string
+  }
+>(({ className, wrapperClassName, ...props }, ref) => {
+  return (
+    <ScrollArea className={cn("relative w-full overflow-auto", wrapperClassName)}>
       <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
-    </div>
+    </ScrollArea>
   )
-)
+})
 Table.displayName = "Table"
 
 const TableHeader = React.forwardRef<

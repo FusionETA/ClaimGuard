@@ -7,6 +7,7 @@ import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/attendance/ui/input"
 import { Label } from "@/components/attendance/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   TableFilterBar,
   type TableFilterValue,
@@ -264,7 +265,7 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
     )
   }
   return (
-    <div className="max-h-[420px] overflow-auto rounded-md border border-border/40">
+    <ScrollArea className="max-h-[420px] overflow-auto rounded-md border border-border/40">
       <table className="w-full min-w-[720px] text-sm">
         <thead className="sticky top-0 z-10 bg-card">
           <tr className="border-b border-border/60 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -325,7 +326,7 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
           })}
         </tbody>
       </table>
-    </div>
+    </ScrollArea>
   )
 }
 

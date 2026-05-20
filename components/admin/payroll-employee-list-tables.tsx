@@ -310,8 +310,7 @@ function EmployeeTable({
   state: PayrollState
 }) {
   return (
-    <div className="overflow-x-auto">
-      <Table>
+    <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Employee</TableHead>
@@ -362,8 +361,7 @@ function EmployeeTable({
             ))
           )}
         </TableBody>
-      </Table>
-    </div>
+    </Table>
   )
 }
 
