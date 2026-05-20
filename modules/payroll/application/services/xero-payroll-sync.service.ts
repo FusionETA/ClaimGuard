@@ -18,7 +18,10 @@ import {
   type PayrollXeroAccountKey,
   type PayrollXeroMapping,
 } from "@/modules/payroll/domain/settings"
-import type { PayrollAdjustmentCategory } from "@/modules/payroll/domain/models"
+import {
+  PAYROLL_ADJUSTMENT_CATEGORY_META,
+  type PayrollAdjustmentCategory,
+} from "@/modules/payroll/domain/models"
 
 /**
  * Builds and posts a Xero Manual Journal that mirrors the payroll
@@ -183,8 +186,25 @@ export async function syncPayrollRunToXero(
     }
   }
 
-  // Pre-flight: required accounts must all be set.
-  const missing = REQUIRED_ACCOUNT_KEYS.filter((k) => !mapping.accounts[k])
+  // Pre-flight: required accounts must all be set. HRDF is an
+  // employer-only levy that not every org pays, so its two accounts
+  // (employer expense + accrual payable) are only required when at
+  // least one payslip in this run actually carries an HRDF charge.
+  const runHasHrdf = run.payslips.some((p) => toNumber(p.hrdf, 0) > 0)
+  // Deductions are credited to the unified `deduction` account unless
+  // the org runs per-category deduction mapping (in which case the
+  // per-category pre-flight below validates coverage instead).
+  const runHasDeductions = run.payslips.some((p) =>
+    p.lineItems.some(
+      (li) => li.kind === "DEDUCTION" && toNumber(li.amount, 0) > 0,
+    ),
+  )
+  const requiredKeys: PayrollXeroAccountKey[] = [...REQUIRED_ACCOUNT_KEYS]
+  if (runHasHrdf) requiredKeys.push("hrdfEmployer", "accrualHrdf")
+  if (runHasDeductions && mapping.deductionMode !== "PER_CATEGORY") {
+    requiredKeys.push("deduction")
+  }
+  const missing = requiredKeys.filter((k) => !mapping.accounts[k])
   if (missing.length > 0) {
     return {
       status: "error",
@@ -263,7 +283,7 @@ export async function syncPayrollRunToXero(
   ): string | null {
     return codeFor(key) ?? codeFor(fallback)
   }
-  const invalidMappedAccounts = REQUIRED_ACCOUNT_KEYS.filter((key) => !codeFor(key))
+  const invalidMappedAccounts = requiredKeys.filter((key) => !codeFor(key))
   if (invalidMappedAccounts.length > 0) {
     return {
       status: "error",
@@ -314,8 +334,20 @@ export async function syncPayrollRunToXero(
       if (amount <= 0) continue
       const cat = (li.category as PayrollAdjustmentCategory | null) ?? null
       const entry = { category: cat, amount, label: li.label }
-      if (li.kind === "ALLOWANCE") allowanceLines.push(entry)
-      else if (li.kind === "DEDUCTION") deductionLines.push(entry)
+      if (li.kind === "ALLOWANCE") {
+        // BIK / perquisite (non-cash) line items are debited under
+        // kind ALLOWANCE by the calc engine, but they NEVER hit gross
+        // or net pay — the employee receives no cash, and the real
+        // cost is booked elsewhere (rent, car lease, etc.). Including
+        // them here would put a debit on the journal with no matching
+        // credit and unbalance it. Skip them entirely.
+        const isNonCash = cat
+          ? PAYROLL_ADJUSTMENT_CATEGORY_META[cat]?.nonCash === true
+          : false
+        if (!isNonCash) allowanceLines.push(entry)
+      } else if (li.kind === "DEDUCTION") {
+        deductionLines.push(entry)
+      }
       // REIMBURSEMENT lines stay on the Bill side — ignored here.
     }
     return {
@@ -323,7 +355,11 @@ export async function syncPayrollRunToXero(
       employeeName: p.snapshotName,
       employeeId: p.snapshotEmployeeId,
       projectName: projectName ?? NO_PROJECT,
-      basicPay: toNumber(p.basicPay, 0),
+      // Use proratedPay (basicPay × proration), NOT basicPay — the
+      // payroll engine's gross is built on proratedPay, so an
+      // employee with unpaid leave / mid-month join would otherwise
+      // leave the journal off by (basicPay − proratedPay).
+      proratedPay: toNumber(p.proratedPay, 0),
       otPay: toNumber(p.otPay, 0),
       totalReimbursements: toNumber(p.totalReimbursements, 0),
       netPay: toNumber(p.netPay, 0),
@@ -387,10 +423,10 @@ export async function syncPayrollRunToXero(
   // come from line items, not the summed payslip column).
   if (mapping.aggregationMode === "PER_EMPLOYEE") {
     for (const r of rows) {
-      if (r.basicPay > 0) {
+      if (r.proratedPay > 0) {
         lines.push({
           accountCode: salaryCode,
-          amount: round2(r.basicPay),
+          amount: round2(r.proratedPay),
           description: `SALARY - ${r.employeeName}`,
           tracking: track(r.projectName),
         })
@@ -428,6 +464,25 @@ export async function syncPayrollRunToXero(
           tracking: track(r.projectName),
         })
       }
+      // Per-category deduction lines (CREDIT). Net pay was already
+      // reduced by these, so without a matching credit the journal
+      // can't balance (debits would exceed credits by the deduction
+      // total). Emit a negative line to the mapped deduction account.
+      for (const li of r.deductionLines) {
+        const code = deductionCodeForCategory(li.category)
+        if (!code) continue // collected into unmappedDeductionCategories
+        const catLabel = li.category
+          ? getPayrollAdjustmentLabel(li.category).toUpperCase()
+          : "DEDUCTION"
+        lines.push({
+          accountCode: code,
+          amount: -round2(li.amount),
+          description: `${catLabel} - ${r.employeeName}${
+            li.label ? ` (${li.label})` : ""
+          }`,
+          tracking: track(r.projectName),
+        })
+      }
     }
   } else {
     // ── Sum-by-project: bucket basicPay, OT, and each allowance
@@ -439,10 +494,14 @@ export async function syncPayrollRunToXero(
       string,
       Map<PayrollAdjustmentCategory | "null", number>
     >()
+    const deductionBuckets = new Map<
+      string,
+      Map<PayrollAdjustmentCategory | "null", number>
+    >()
     for (const r of rows) {
       salaryBuckets.set(
         r.projectName,
-        (salaryBuckets.get(r.projectName) ?? 0) + r.basicPay,
+        (salaryBuckets.get(r.projectName) ?? 0) + r.proratedPay,
       )
       otBuckets.set(
         r.projectName,
@@ -456,6 +515,14 @@ export async function syncPayrollRunToXero(
         byCat.set(k, (byCat.get(k) ?? 0) + li.amount)
       }
       allowanceBuckets.set(r.projectName, byCat)
+      const byDedCat =
+        deductionBuckets.get(r.projectName) ??
+        new Map<PayrollAdjustmentCategory | "null", number>()
+      for (const li of r.deductionLines) {
+        const k = li.category ?? "null"
+        byDedCat.set(k, (byDedCat.get(k) ?? 0) + li.amount)
+      }
+      deductionBuckets.set(r.projectName, byDedCat)
     }
     for (const [project, total] of salaryBuckets.entries()) {
       if (total > 0) {
@@ -491,6 +558,23 @@ export async function syncPayrollRunToXero(
         lines.push({
           accountCode: code,
           amount: round2(total),
+          description: `${catLabel} - ${project}`,
+          tracking: track(project),
+        })
+      }
+    }
+    // Deduction credits, bucketed the same way as allowances.
+    for (const [project, byCat] of deductionBuckets.entries()) {
+      for (const [k, total] of byCat.entries()) {
+        const cat = k === "null" ? null : (k as PayrollAdjustmentCategory)
+        const code = deductionCodeForCategory(cat)
+        if (!code) continue
+        const catLabel = cat
+          ? getPayrollAdjustmentLabel(cat).toUpperCase()
+          : "DEDUCTION"
+        lines.push({
+          accountCode: code,
+          amount: -round2(total),
           description: `${catLabel} - ${project}`,
           tracking: track(project),
         })
@@ -584,6 +668,10 @@ export async function syncPayrollRunToXero(
   const totalSocso = sum(rows, (r) => r.socsoEmployee + r.socsoEmployer)
   const totalEis = sum(rows, (r) => r.eisEmployee + r.eisEmployer)
   const totalPcb = sum(rows, (r) => r.pcb)
+  // HRDF is an employer-only levy. It's debited as an expense in the
+  // employer-contributions block above, so it needs a matching credit
+  // here (the payable owed to HRD Corp), or the journal won't balance.
+  const totalHrdf = sum(rows, (r) => r.hrdf)
   // Net excludes reimbursements: those amounts post as separate
   // Xero Bills on claim approval and would double-count if included
   // in the accrual-salary credit. The math: gross + reimbursements
@@ -620,6 +708,14 @@ export async function syncPayrollRunToXero(
       accountCode: codeFor("accrualPcb")!,
       amount: -round2(totalPcb),
       description: "ACCRUAL - PCB DEDUCTION (Employee only)",
+      tracking: track(ALL_PROJECTS),
+    })
+  }
+  if (totalHrdf > 0) {
+    lines.push({
+      accountCode: codeFor("accrualHrdf")!,
+      amount: -round2(totalHrdf),
+      description: "ACCRUAL - HRDF (HRD Corp levy payable)",
       tracking: track(ALL_PROJECTS),
     })
   }

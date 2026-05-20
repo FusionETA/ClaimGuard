@@ -146,9 +146,11 @@ export async function buildPayrollSyncPreview(
           snapshotName: true,
           snapshotEmployeeId: true,
           basicPay: true,
+          proratedPay: true,
           otPay: true,
           totalAllowances: true,
           totalReimbursements: true,
+          totalDeductions: true,
           netPay: true,
           epfEmployee: true,
           epfEmployer: true,
@@ -207,7 +209,21 @@ export async function buildPayrollSyncPreview(
   const mapping = settings?.xeroMapping ?? null
   const syncEnabled = Boolean(settings?.syncPayrollToXeroOnSubmit)
   const claimsSyncEnabled = Boolean(settings?.syncClaimsToXeroOnSubmit)
-  const missingAccountKeys = REQUIRED_KEYS.filter(
+  // HRDF accounts are only required when the run actually carries an
+  // HRDF charge; the unified `deduction` account only when the run has
+  // deductions and the org isn't using per-category deduction mapping.
+  const runHasHrdf = run.payslips.some((p) => toNumber(p.hrdf, 0) > 0)
+  const runHasDeductions = run.payslips.some((p) =>
+    p.lineItems.some(
+      (li) => li.kind === "DEDUCTION" && toNumber(li.amount, 0) > 0,
+    ),
+  )
+  const requiredKeys: PayrollXeroAccountKey[] = [...REQUIRED_KEYS]
+  if (runHasHrdf) requiredKeys.push("hrdfEmployer", "accrualHrdf")
+  if (runHasDeductions && mapping?.deductionMode !== "PER_CATEGORY") {
+    requiredKeys.push("deduction")
+  }
+  const missingAccountKeys = requiredKeys.filter(
     (k) => !(mapping?.accounts ?? {})[k],
   )
 
@@ -274,10 +290,13 @@ export async function buildPayrollSyncPreview(
     employeeId: p.snapshotEmployeeId,
     projectName:
       p.employeeProfile?.projectAssignments[0]?.project?.name ?? NO_PROJECT,
-    basicPay: toNumber(p.basicPay, 0),
+    // Salary debit is built on proratedPay (matches calc gross), not
+    // basicPay — see the note in xero-payroll-sync.service.ts.
+    proratedPay: toNumber(p.proratedPay, 0),
     otPay: toNumber(p.otPay, 0),
     totalAllowances: toNumber(p.totalAllowances, 0),
     totalReimbursements: toNumber(p.totalReimbursements, 0),
+    totalDeductions: toNumber(p.totalDeductions, 0),
     netPay: toNumber(p.netPay, 0),
     epfEmployee: toNumber(p.epfEmployee, 0),
     epfEmployer: toNumber(p.epfEmployer, 0),
@@ -308,8 +327,13 @@ export async function buildPayrollSyncPreview(
   // Debits — expense side (per the aggregation mode).
   if (aggregationMode === "PER_EMPLOYEE") {
     for (const r of rows) {
-      if (r.basicPay > 0)
-        pushLine("salary", r.basicPay, `SALARY - ${r.employeeName}`, r.projectName)
+      if (r.proratedPay > 0)
+        pushLine(
+          "salary",
+          r.proratedPay,
+          `SALARY - ${r.employeeName}`,
+          r.projectName,
+        )
       if (r.totalAllowances > 0)
         pushLine(
           "allowance",
@@ -339,7 +363,7 @@ export async function buildPayrollSyncPreview(
         allowance: 0,
         overtime: 0,
       }
-      b.salary += r.basicPay
+      b.salary += r.proratedPay
       b.allowance += r.totalAllowances
       b.overtime += r.otPay
       buckets.set(r.projectName, b)
@@ -404,6 +428,11 @@ export async function buildPayrollSyncPreview(
   const totalSocso = sum(rows, (r) => r.socsoEmployee + r.socsoEmployer)
   const totalEis = sum(rows, (r) => r.eisEmployee + r.eisEmployer)
   const totalPcb = sum(rows, (r) => r.pcb)
+  // HRDF employer levy was debited above — credit the payable so the
+  // journal balances. Deductions reduced net pay, so they also need a
+  // matching credit to their account.
+  const totalHrdf = sum(rows, (r) => r.hrdf)
+  const totalDeductions = sum(rows, (r) => r.totalDeductions)
   // Reimbursements post as separate Bills during payroll approval — they
   // must NOT appear in the accrual-salary credit or we'd double-
   // count the payable.
@@ -434,6 +463,20 @@ export async function buildPayrollSyncPreview(
       "accrualPcb",
       -totalPcb,
       "ACCRUAL - PCB DEDUCTION (Employee only)",
+      ALL_PROJECTS,
+    )
+  if (totalDeductions > 0)
+    pushLine(
+      "deduction",
+      -totalDeductions,
+      "DEDUCTIONS (Employee)",
+      ALL_PROJECTS,
+    )
+  if (totalHrdf > 0)
+    pushLine(
+      "accrualHrdf",
+      -totalHrdf,
+      "ACCRUAL - HRDF (HRD Corp levy payable)",
       ALL_PROJECTS,
     )
   if (totalNet > 0)

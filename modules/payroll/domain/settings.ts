@@ -121,8 +121,6 @@ export const PAYROLL_XERO_ACCOUNT_KEYS = [
   // ── Core expenses (debit) ──
   "salary",
   "allowance",
-  "directorSalary",
-  "directorFee",
   "epfEmployer",
   "socsoEmployer",
   "eisEmployer",
@@ -132,6 +130,7 @@ export const PAYROLL_XERO_ACCOUNT_KEYS = [
   "accrualSocso",
   "accrualEis",
   "accrualPcb",
+  "accrualHrdf",
   "accrualSalary",
   // ── Generic deduction account (used in UNIFIED deduction mode) ──
   "deduction",
@@ -151,11 +150,11 @@ export const PAYROLL_XERO_ACCOUNT_GROUPS: Array<{
     title: "Expense accounts",
     description:
       "Debit side of the manual journal. Charged to your P&L when payroll posts.",
+    // The unified allowance account is configured in the dedicated
+    // "Allowance accounts" card below (which sets `account.allowance`
+    // in unified mode), so it's intentionally not repeated here.
     keys: [
       "salary",
-      "allowance",
-      "directorSalary",
-      "directorFee",
       "epfEmployer",
       "socsoEmployer",
       "eisEmployer",
@@ -171,6 +170,7 @@ export const PAYROLL_XERO_ACCOUNT_GROUPS: Array<{
       "accrualSocso",
       "accrualEis",
       "accrualPcb",
+      "accrualHrdf",
       "accrualSalary",
     ],
   },
@@ -186,8 +186,6 @@ export const PAYROLL_XERO_ACCOUNT_LABELS: Record<
 > = {
   salary: "Salary",
   allowance: "Allowance (unified mode)",
-  directorSalary: "Director salary",
-  directorFee: "Director fee",
   epfEmployer: "EPF — employer contribution",
   socsoEmployer: "SOCSO — employer contribution",
   eisEmployer: "EIS — employer contribution",
@@ -196,6 +194,7 @@ export const PAYROLL_XERO_ACCOUNT_LABELS: Record<
   accrualSocso: "Accrual — SOCSO",
   accrualEis: "Accrual — EIS",
   accrualPcb: "Accrual — PCB (employee tax)",
+  accrualHrdf: "Accrual — HRDF (HRD Corp levy payable)",
   accrualSalary: "Accrual — net salary payable",
   deduction: "Deduction (unified mode)",
 }

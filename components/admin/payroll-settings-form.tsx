@@ -162,8 +162,6 @@ function isXeroMappingComplete(settings: PayrollSettingsData | null): boolean {
   if (!m.trackingCategoryId) return false
   const requiredKeys: PayrollXeroAccountKey[] = [
     "salary",
-    "directorSalary",
-    "directorFee",
     "epfEmployer",
     "socsoEmployer",
     "eisEmployer",
@@ -1096,11 +1094,19 @@ function XeroMappingTab({
                 setAggregationMode(e.target.value as XeroAggregationMode)
               }
             >
-              {xeroAggregationModes.map((mode) => (
-                <option key={mode} value={mode}>
-                  {XERO_AGGREGATION_MODE_LABELS[mode]}
-                </option>
-              ))}
+              {xeroAggregationModes.map((mode) => {
+                // Only "One line per employee" is live today. Project-
+                // level summing is built in the journal builder but not
+                // yet exposed — lock the picker to per-employee and flag
+                // the other option as upcoming so it can't be selected.
+                const upcoming = mode !== "PER_EMPLOYEE"
+                return (
+                  <option key={mode} value={mode} disabled={upcoming}>
+                    {XERO_AGGREGATION_MODE_LABELS[mode]}
+                    {upcoming ? " (upcoming feature)" : ""}
+                  </option>
+                )
+              })}
             </NativeSelect>
           </Field>
           <Field label="Tracking category (for project)">
