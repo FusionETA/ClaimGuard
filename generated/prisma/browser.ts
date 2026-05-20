@@ -353,3 +353,35 @@ export type Payslip = Prisma.PayslipModel
  * so claim FKs are queryable.
  */
 export type PayslipLineItem = Prisma.PayslipLineItemModel
+/**
+ * Model LeaveType
+ * Admin-configured leave type for an organization (e.g. ANNUAL, SICK,
+ * UNPAID, MATERNITY). `accrualMethod=PRO_RATED` is intended for the
+ * org's annual leave only — UI gates this. `carryForward` likewise
+ * only applies to annual leave.
+ */
+export type LeaveType = Prisma.LeaveTypeModel
+/**
+ * Model PolicyLeaveEntitlement
+ * Per-policy override of a LeaveType's defaultDays. Resolution order
+ * for an employee's entitlement default:
+ * 1. Per-employee LeaveEntitlement (if set)
+ * 2. PolicyLeaveEntitlement (if a row exists for the employee's policy)
+ * 3. LeaveType.defaultDays
+ */
+export type PolicyLeaveEntitlement = Prisma.PolicyLeaveEntitlementModel
+/**
+ * Model LeaveEntitlement
+ * One row per (employee, leaveType, year). Created on demand or by the
+ * year-rollover cron. For LUMP_SUM the full entitledDays is available
+ * immediately; for PRO_RATED only accruedDays is available.
+ */
+export type LeaveEntitlement = Prisma.LeaveEntitlementModel
+/**
+ * Model LeaveApplication
+ * Employee leave application. Approval chain mirrors the attendance
+ * pattern via `modules/organization/.../approval-chain.service.ts`
+ * with module = LEAVE. Auto-approves when no layers exist above the
+ * employee for the LEAVE module.
+ */
+export type LeaveApplication = Prisma.LeaveApplicationModel

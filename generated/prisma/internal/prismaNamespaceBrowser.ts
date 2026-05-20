@@ -89,7 +89,11 @@ export const ModelName = {
   PayrollRunClaim: 'PayrollRunClaim',
   PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
-  PayslipLineItem: 'PayslipLineItem'
+  PayslipLineItem: 'PayslipLineItem',
+  LeaveType: 'LeaveType',
+  PolicyLeaveEntitlement: 'PolicyLeaveEntitlement',
+  LeaveEntitlement: 'LeaveEntitlement',
+  LeaveApplication: 'LeaveApplication'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -940,6 +944,75 @@ export const PayslipLineItemScalarFieldEnum = {
 export type PayslipLineItemScalarFieldEnum = (typeof PayslipLineItemScalarFieldEnum)[keyof typeof PayslipLineItemScalarFieldEnum]
 
 
+export const LeaveTypeScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  code: 'code',
+  name: 'name',
+  paid: 'paid',
+  accrualMethod: 'accrualMethod',
+  defaultDays: 'defaultDays',
+  carryForward: 'carryForward',
+  carryExpiryMonth: 'carryExpiryMonth',
+  maxCarryForwardDays: 'maxCarryForwardDays',
+  archivedAt: 'archivedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LeaveTypeScalarFieldEnum = (typeof LeaveTypeScalarFieldEnum)[keyof typeof LeaveTypeScalarFieldEnum]
+
+
+export const PolicyLeaveEntitlementScalarFieldEnum = {
+  id: 'id',
+  policyId: 'policyId',
+  leaveTypeId: 'leaveTypeId',
+  defaultDays: 'defaultDays',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PolicyLeaveEntitlementScalarFieldEnum = (typeof PolicyLeaveEntitlementScalarFieldEnum)[keyof typeof PolicyLeaveEntitlementScalarFieldEnum]
+
+
+export const LeaveEntitlementScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  leaveTypeId: 'leaveTypeId',
+  year: 'year',
+  entitledDays: 'entitledDays',
+  carriedDays: 'carriedDays',
+  carriedExpiresAt: 'carriedExpiresAt',
+  carriedExpired: 'carriedExpired',
+  accruedDays: 'accruedDays',
+  usedDays: 'usedDays',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LeaveEntitlementScalarFieldEnum = (typeof LeaveEntitlementScalarFieldEnum)[keyof typeof LeaveEntitlementScalarFieldEnum]
+
+
+export const LeaveApplicationScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  leaveTypeId: 'leaveTypeId',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  duration: 'duration',
+  totalDays: 'totalDays',
+  reason: 'reason',
+  status: 'status',
+  currentStep: 'currentStep',
+  approvals: 'approvals',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  decidedAt: 'decidedAt'
+} as const
+
+export type LeaveApplicationScalarFieldEnum = (typeof LeaveApplicationScalarFieldEnum)[keyof typeof LeaveApplicationScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1513,4 +1586,42 @@ export const PayslipLineItemOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayslipLineItemOrderByRelevanceFieldEnum = (typeof PayslipLineItemOrderByRelevanceFieldEnum)[keyof typeof PayslipLineItemOrderByRelevanceFieldEnum]
+
+
+export const LeaveTypeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  code: 'code',
+  name: 'name'
+} as const
+
+export type LeaveTypeOrderByRelevanceFieldEnum = (typeof LeaveTypeOrderByRelevanceFieldEnum)[keyof typeof LeaveTypeOrderByRelevanceFieldEnum]
+
+
+export const PolicyLeaveEntitlementOrderByRelevanceFieldEnum = {
+  id: 'id',
+  policyId: 'policyId',
+  leaveTypeId: 'leaveTypeId'
+} as const
+
+export type PolicyLeaveEntitlementOrderByRelevanceFieldEnum = (typeof PolicyLeaveEntitlementOrderByRelevanceFieldEnum)[keyof typeof PolicyLeaveEntitlementOrderByRelevanceFieldEnum]
+
+
+export const LeaveEntitlementOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  leaveTypeId: 'leaveTypeId'
+} as const
+
+export type LeaveEntitlementOrderByRelevanceFieldEnum = (typeof LeaveEntitlementOrderByRelevanceFieldEnum)[keyof typeof LeaveEntitlementOrderByRelevanceFieldEnum]
+
+
+export const LeaveApplicationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  leaveTypeId: 'leaveTypeId',
+  reason: 'reason'
+} as const
+
+export type LeaveApplicationOrderByRelevanceFieldEnum = (typeof LeaveApplicationOrderByRelevanceFieldEnum)[keyof typeof LeaveApplicationOrderByRelevanceFieldEnum]
 

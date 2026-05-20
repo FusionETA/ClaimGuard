@@ -422,7 +422,11 @@ export const ModelName = {
   PayrollRunClaim: 'PayrollRunClaim',
   PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
-  PayslipLineItem: 'PayslipLineItem'
+  PayslipLineItem: 'PayslipLineItem',
+  LeaveType: 'LeaveType',
+  PolicyLeaveEntitlement: 'PolicyLeaveEntitlement',
+  LeaveEntitlement: 'LeaveEntitlement',
+  LeaveApplication: 'LeaveApplication'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -438,7 +442,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3016,6 +3020,270 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    LeaveType: {
+      payload: Prisma.$LeaveTypePayload<ExtArgs>
+      fields: Prisma.LeaveTypeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LeaveTypeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveTypePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LeaveTypeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveTypePayload>
+        }
+        findFirst: {
+          args: Prisma.LeaveTypeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveTypePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LeaveTypeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveTypePayload>
+        }
+        findMany: {
+          args: Prisma.LeaveTypeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveTypePayload>[]
+        }
+        create: {
+          args: Prisma.LeaveTypeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveTypePayload>
+        }
+        createMany: {
+          args: Prisma.LeaveTypeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.LeaveTypeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveTypePayload>
+        }
+        update: {
+          args: Prisma.LeaveTypeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveTypePayload>
+        }
+        deleteMany: {
+          args: Prisma.LeaveTypeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LeaveTypeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.LeaveTypeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveTypePayload>
+        }
+        aggregate: {
+          args: Prisma.LeaveTypeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLeaveType>
+        }
+        groupBy: {
+          args: Prisma.LeaveTypeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LeaveTypeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LeaveTypeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LeaveTypeCountAggregateOutputType> | number
+        }
+      }
+    }
+    PolicyLeaveEntitlement: {
+      payload: Prisma.$PolicyLeaveEntitlementPayload<ExtArgs>
+      fields: Prisma.PolicyLeaveEntitlementFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PolicyLeaveEntitlementFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PolicyLeaveEntitlementPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PolicyLeaveEntitlementFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PolicyLeaveEntitlementPayload>
+        }
+        findFirst: {
+          args: Prisma.PolicyLeaveEntitlementFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PolicyLeaveEntitlementPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PolicyLeaveEntitlementFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PolicyLeaveEntitlementPayload>
+        }
+        findMany: {
+          args: Prisma.PolicyLeaveEntitlementFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PolicyLeaveEntitlementPayload>[]
+        }
+        create: {
+          args: Prisma.PolicyLeaveEntitlementCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PolicyLeaveEntitlementPayload>
+        }
+        createMany: {
+          args: Prisma.PolicyLeaveEntitlementCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.PolicyLeaveEntitlementDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PolicyLeaveEntitlementPayload>
+        }
+        update: {
+          args: Prisma.PolicyLeaveEntitlementUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PolicyLeaveEntitlementPayload>
+        }
+        deleteMany: {
+          args: Prisma.PolicyLeaveEntitlementDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PolicyLeaveEntitlementUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.PolicyLeaveEntitlementUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PolicyLeaveEntitlementPayload>
+        }
+        aggregate: {
+          args: Prisma.PolicyLeaveEntitlementAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePolicyLeaveEntitlement>
+        }
+        groupBy: {
+          args: Prisma.PolicyLeaveEntitlementGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PolicyLeaveEntitlementGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PolicyLeaveEntitlementCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PolicyLeaveEntitlementCountAggregateOutputType> | number
+        }
+      }
+    }
+    LeaveEntitlement: {
+      payload: Prisma.$LeaveEntitlementPayload<ExtArgs>
+      fields: Prisma.LeaveEntitlementFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LeaveEntitlementFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveEntitlementPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LeaveEntitlementFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveEntitlementPayload>
+        }
+        findFirst: {
+          args: Prisma.LeaveEntitlementFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveEntitlementPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LeaveEntitlementFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveEntitlementPayload>
+        }
+        findMany: {
+          args: Prisma.LeaveEntitlementFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveEntitlementPayload>[]
+        }
+        create: {
+          args: Prisma.LeaveEntitlementCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveEntitlementPayload>
+        }
+        createMany: {
+          args: Prisma.LeaveEntitlementCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.LeaveEntitlementDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveEntitlementPayload>
+        }
+        update: {
+          args: Prisma.LeaveEntitlementUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveEntitlementPayload>
+        }
+        deleteMany: {
+          args: Prisma.LeaveEntitlementDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LeaveEntitlementUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.LeaveEntitlementUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveEntitlementPayload>
+        }
+        aggregate: {
+          args: Prisma.LeaveEntitlementAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLeaveEntitlement>
+        }
+        groupBy: {
+          args: Prisma.LeaveEntitlementGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LeaveEntitlementGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LeaveEntitlementCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LeaveEntitlementCountAggregateOutputType> | number
+        }
+      }
+    }
+    LeaveApplication: {
+      payload: Prisma.$LeaveApplicationPayload<ExtArgs>
+      fields: Prisma.LeaveApplicationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.LeaveApplicationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveApplicationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.LeaveApplicationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveApplicationPayload>
+        }
+        findFirst: {
+          args: Prisma.LeaveApplicationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveApplicationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.LeaveApplicationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveApplicationPayload>
+        }
+        findMany: {
+          args: Prisma.LeaveApplicationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveApplicationPayload>[]
+        }
+        create: {
+          args: Prisma.LeaveApplicationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveApplicationPayload>
+        }
+        createMany: {
+          args: Prisma.LeaveApplicationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.LeaveApplicationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveApplicationPayload>
+        }
+        update: {
+          args: Prisma.LeaveApplicationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveApplicationPayload>
+        }
+        deleteMany: {
+          args: Prisma.LeaveApplicationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.LeaveApplicationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.LeaveApplicationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$LeaveApplicationPayload>
+        }
+        aggregate: {
+          args: Prisma.LeaveApplicationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateLeaveApplication>
+        }
+        groupBy: {
+          args: Prisma.LeaveApplicationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LeaveApplicationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.LeaveApplicationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.LeaveApplicationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -3887,6 +4155,75 @@ export const PayslipLineItemScalarFieldEnum = {
 export type PayslipLineItemScalarFieldEnum = (typeof PayslipLineItemScalarFieldEnum)[keyof typeof PayslipLineItemScalarFieldEnum]
 
 
+export const LeaveTypeScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  code: 'code',
+  name: 'name',
+  paid: 'paid',
+  accrualMethod: 'accrualMethod',
+  defaultDays: 'defaultDays',
+  carryForward: 'carryForward',
+  carryExpiryMonth: 'carryExpiryMonth',
+  maxCarryForwardDays: 'maxCarryForwardDays',
+  archivedAt: 'archivedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LeaveTypeScalarFieldEnum = (typeof LeaveTypeScalarFieldEnum)[keyof typeof LeaveTypeScalarFieldEnum]
+
+
+export const PolicyLeaveEntitlementScalarFieldEnum = {
+  id: 'id',
+  policyId: 'policyId',
+  leaveTypeId: 'leaveTypeId',
+  defaultDays: 'defaultDays',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PolicyLeaveEntitlementScalarFieldEnum = (typeof PolicyLeaveEntitlementScalarFieldEnum)[keyof typeof PolicyLeaveEntitlementScalarFieldEnum]
+
+
+export const LeaveEntitlementScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  leaveTypeId: 'leaveTypeId',
+  year: 'year',
+  entitledDays: 'entitledDays',
+  carriedDays: 'carriedDays',
+  carriedExpiresAt: 'carriedExpiresAt',
+  carriedExpired: 'carriedExpired',
+  accruedDays: 'accruedDays',
+  usedDays: 'usedDays',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type LeaveEntitlementScalarFieldEnum = (typeof LeaveEntitlementScalarFieldEnum)[keyof typeof LeaveEntitlementScalarFieldEnum]
+
+
+export const LeaveApplicationScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  leaveTypeId: 'leaveTypeId',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  duration: 'duration',
+  totalDays: 'totalDays',
+  reason: 'reason',
+  status: 'status',
+  currentStep: 'currentStep',
+  approvals: 'approvals',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  decidedAt: 'decidedAt'
+} as const
+
+export type LeaveApplicationScalarFieldEnum = (typeof LeaveApplicationScalarFieldEnum)[keyof typeof LeaveApplicationScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -4462,6 +4799,44 @@ export const PayslipLineItemOrderByRelevanceFieldEnum = {
 export type PayslipLineItemOrderByRelevanceFieldEnum = (typeof PayslipLineItemOrderByRelevanceFieldEnum)[keyof typeof PayslipLineItemOrderByRelevanceFieldEnum]
 
 
+export const LeaveTypeOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  code: 'code',
+  name: 'name'
+} as const
+
+export type LeaveTypeOrderByRelevanceFieldEnum = (typeof LeaveTypeOrderByRelevanceFieldEnum)[keyof typeof LeaveTypeOrderByRelevanceFieldEnum]
+
+
+export const PolicyLeaveEntitlementOrderByRelevanceFieldEnum = {
+  id: 'id',
+  policyId: 'policyId',
+  leaveTypeId: 'leaveTypeId'
+} as const
+
+export type PolicyLeaveEntitlementOrderByRelevanceFieldEnum = (typeof PolicyLeaveEntitlementOrderByRelevanceFieldEnum)[keyof typeof PolicyLeaveEntitlementOrderByRelevanceFieldEnum]
+
+
+export const LeaveEntitlementOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  leaveTypeId: 'leaveTypeId'
+} as const
+
+export type LeaveEntitlementOrderByRelevanceFieldEnum = (typeof LeaveEntitlementOrderByRelevanceFieldEnum)[keyof typeof LeaveEntitlementOrderByRelevanceFieldEnum]
+
+
+export const LeaveApplicationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  leaveTypeId: 'leaveTypeId',
+  reason: 'reason'
+} as const
+
+export type LeaveApplicationOrderByRelevanceFieldEnum = (typeof LeaveApplicationOrderByRelevanceFieldEnum)[keyof typeof LeaveApplicationOrderByRelevanceFieldEnum]
+
+
 
 /**
  * Field references
@@ -4719,6 +5094,27 @@ export type EnumPayrollAnnualReportKindFieldRefInput<$PrismaModel> = FieldRefInp
 export type EnumPayslipLineKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayslipLineKind'>
     
 
+
+/**
+ * Reference to a field of type 'LeaveAccrualMethod'
+ */
+export type EnumLeaveAccrualMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeaveAccrualMethod'>
+    
+
+
+/**
+ * Reference to a field of type 'LeaveDuration'
+ */
+export type EnumLeaveDurationFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeaveDuration'>
+    
+
+
+/**
+ * Reference to a field of type 'LeaveStatus'
+ */
+export type EnumLeaveStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeaveStatus'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -4853,6 +5249,10 @@ export type GlobalOmitConfig = {
   payrollRunAdjustment?: Prisma.PayrollRunAdjustmentOmit
   payslip?: Prisma.PayslipOmit
   payslipLineItem?: Prisma.PayslipLineItemOmit
+  leaveType?: Prisma.LeaveTypeOmit
+  policyLeaveEntitlement?: Prisma.PolicyLeaveEntitlementOmit
+  leaveEntitlement?: Prisma.LeaveEntitlementOmit
+  leaveApplication?: Prisma.LeaveApplicationOmit
 }
 
 /* Types for Logging */

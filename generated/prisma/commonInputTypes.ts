@@ -942,6 +942,84 @@ export type EnumPayslipLineKindWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPayslipLineKindFilter<$PrismaModel>
 }
 
+export type EnumLeaveAccrualMethodFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveAccrualMethod[]
+  notIn?: $Enums.LeaveAccrualMethod[]
+  not?: Prisma.NestedEnumLeaveAccrualMethodFilter<$PrismaModel> | $Enums.LeaveAccrualMethod
+}
+
+export type FloatFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  in?: number[]
+  notIn?: number[]
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatFilter<$PrismaModel> | number
+}
+
+export type EnumLeaveAccrualMethodWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveAccrualMethod[]
+  notIn?: $Enums.LeaveAccrualMethod[]
+  not?: Prisma.NestedEnumLeaveAccrualMethodWithAggregatesFilter<$PrismaModel> | $Enums.LeaveAccrualMethod
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeaveAccrualMethodFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeaveAccrualMethodFilter<$PrismaModel>
+}
+
+export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  in?: number[]
+  notIn?: number[]
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type EnumLeaveDurationFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveDuration | Prisma.EnumLeaveDurationFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveDuration[]
+  notIn?: $Enums.LeaveDuration[]
+  not?: Prisma.NestedEnumLeaveDurationFilter<$PrismaModel> | $Enums.LeaveDuration
+}
+
+export type EnumLeaveStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveStatus | Prisma.EnumLeaveStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveStatus[]
+  notIn?: $Enums.LeaveStatus[]
+  not?: Prisma.NestedEnumLeaveStatusFilter<$PrismaModel> | $Enums.LeaveStatus
+}
+
+export type EnumLeaveDurationWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveDuration | Prisma.EnumLeaveDurationFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveDuration[]
+  notIn?: $Enums.LeaveDuration[]
+  not?: Prisma.NestedEnumLeaveDurationWithAggregatesFilter<$PrismaModel> | $Enums.LeaveDuration
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeaveDurationFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeaveDurationFilter<$PrismaModel>
+}
+
+export type EnumLeaveStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveStatus | Prisma.EnumLeaveStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveStatus[]
+  notIn?: $Enums.LeaveStatus[]
+  not?: Prisma.NestedEnumLeaveStatusWithAggregatesFilter<$PrismaModel> | $Enums.LeaveStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeaveStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeaveStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[]
@@ -1820,6 +1898,73 @@ export type NestedEnumPayslipLineKindWithAggregatesFilter<$PrismaModel = never> 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPayslipLineKindFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPayslipLineKindFilter<$PrismaModel>
+}
+
+export type NestedEnumLeaveAccrualMethodFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveAccrualMethod[]
+  notIn?: $Enums.LeaveAccrualMethod[]
+  not?: Prisma.NestedEnumLeaveAccrualMethodFilter<$PrismaModel> | $Enums.LeaveAccrualMethod
+}
+
+export type NestedEnumLeaveAccrualMethodWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveAccrualMethod[]
+  notIn?: $Enums.LeaveAccrualMethod[]
+  not?: Prisma.NestedEnumLeaveAccrualMethodWithAggregatesFilter<$PrismaModel> | $Enums.LeaveAccrualMethod
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeaveAccrualMethodFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeaveAccrualMethodFilter<$PrismaModel>
+}
+
+export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  in?: number[]
+  notIn?: number[]
+  lt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  lte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gt?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  gte?: number | Prisma.FloatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedFloatWithAggregatesFilter<$PrismaModel> | number
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _avg?: Prisma.NestedFloatFilter<$PrismaModel>
+  _sum?: Prisma.NestedFloatFilter<$PrismaModel>
+  _min?: Prisma.NestedFloatFilter<$PrismaModel>
+  _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type NestedEnumLeaveDurationFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveDuration | Prisma.EnumLeaveDurationFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveDuration[]
+  notIn?: $Enums.LeaveDuration[]
+  not?: Prisma.NestedEnumLeaveDurationFilter<$PrismaModel> | $Enums.LeaveDuration
+}
+
+export type NestedEnumLeaveStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveStatus | Prisma.EnumLeaveStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveStatus[]
+  notIn?: $Enums.LeaveStatus[]
+  not?: Prisma.NestedEnumLeaveStatusFilter<$PrismaModel> | $Enums.LeaveStatus
+}
+
+export type NestedEnumLeaveDurationWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveDuration | Prisma.EnumLeaveDurationFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveDuration[]
+  notIn?: $Enums.LeaveDuration[]
+  not?: Prisma.NestedEnumLeaveDurationWithAggregatesFilter<$PrismaModel> | $Enums.LeaveDuration
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeaveDurationFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeaveDurationFilter<$PrismaModel>
+}
+
+export type NestedEnumLeaveStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveStatus | Prisma.EnumLeaveStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LeaveStatus[]
+  notIn?: $Enums.LeaveStatus[]
+  not?: Prisma.NestedEnumLeaveStatusWithAggregatesFilter<$PrismaModel> | $Enums.LeaveStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeaveStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeaveStatusFilter<$PrismaModel>
 }
 
 
