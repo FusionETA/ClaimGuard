@@ -262,7 +262,11 @@ export type PayrollXeroMapping = {
  */
 export const DEFAULT_PAYROLL_XERO_MAPPING: PayrollXeroMapping = {
   v: 2,
-  aggregationMode: "PER_EMPLOYEE",
+  // Sum-by-project is the only live aggregation mode today (per-employee
+  // is flagged "upcoming" and disabled in the settings picker), so new
+  // mappings default to it — otherwise the picker would open showing the
+  // disabled per-employee option as the current value.
+  aggregationMode: "SUM_BY_PROJECT",
   trackingCategoryId: null,
   accounts: {},
   allowanceMode: "UNIFIED",

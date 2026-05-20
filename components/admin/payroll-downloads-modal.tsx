@@ -132,7 +132,7 @@ export function PayrollDownloadsModal(props: {
           Download files
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Download files — {props.periodLabel}</DialogTitle>
           <DialogDescription>
@@ -144,7 +144,7 @@ export function PayrollDownloadsModal(props: {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
+        <div className="nice-scrollbar -mr-2 max-h-[60vh] space-y-5 overflow-y-auto py-2 pr-2">
           {(["REPORTS", "STATUTORY", "PAYSLIPS", "BANK"] as const).map((group) => {
             const groupRows = grouped[group]
             if (groupRows.length === 0) return null

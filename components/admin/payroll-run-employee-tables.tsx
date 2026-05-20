@@ -288,8 +288,7 @@ function RunEmployeeTable({
   const colSpan = showAdjustmentCols ? 7 : 6
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
+    <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Employee</TableHead>
@@ -403,8 +402,7 @@ function RunEmployeeTable({
             })
           )}
         </TableBody>
-      </Table>
-    </div>
+    </Table>
   )
 }
 

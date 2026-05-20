@@ -5,6 +5,7 @@ import { Download } from "lucide-react"
 import { ClaimsReportFilters } from "@/components/admin/claims-report-filters"
 import { ClaimsReportPagination } from "@/components/admin/claims-report-pagination"
 import { Card, CardContent } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { getCurrentSession } from "@/lib/auth/session"
 import { cn, formatCurrency, formatShortDate } from "@/lib/utils"
 import { getClaimsReportPageData } from "@/modules/claims/application/services/claims-breakdown.service"
@@ -150,68 +151,70 @@ export default async function AdminClaimsReportsPage({
           rows match the current filter so admins don't see a bare
           card with just headers. */}
       <Card>
-        <CardContent className="overflow-x-auto p-0">
-          <table className="w-full text-sm">
-            <thead className="bg-surface-low text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3">Employee</th>
-                <th className="px-4 py-3">Project</th>
-                <th className="px-4 py-3">Claim</th>
-                <th className="px-4 py-3">Account</th>
-                <th className="px-4 py-3">Spent</th>
-                <th className="px-4 py-3 text-right">Amount</th>
-                <th className="px-4 py-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.rows.length === 0 ? (
+        <CardContent className="p-0">
+          <ScrollArea className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-surface-low text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
-                    No claims match the current filters.
-                  </td>
+                  <th className="px-4 py-3">Employee</th>
+                  <th className="px-4 py-3">Project</th>
+                  <th className="px-4 py-3">Claim</th>
+                  <th className="px-4 py-3">Account</th>
+                  <th className="px-4 py-3">Spent</th>
+                  <th className="px-4 py-3 text-right">Amount</th>
+                  <th className="px-4 py-3">Status</th>
                 </tr>
-              ) : (
-                data.rows.map((claim) => (
-                  <tr
-                    key={claim.id}
-                    className="border-t border-border/50 hover:bg-surface-low/60"
-                  >
-                    <td className="px-4 py-3">
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-foreground">
-                          {claim.employee?.name ?? "—"}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {claim.employee?.email ?? ""}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {claim.employee?.project ?? "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-foreground">{claim.title}</p>
-                      <p className="text-xs text-muted-foreground">{claim.claimNumber}</p>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {claim.chartOfAccount
-                        ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {formatShortDate(claim.spentAt)}
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold tabular-nums">
-                      {formatCurrency(claim.amount)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={claim.status} />
+              </thead>
+              <tbody>
+                {data.rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                      No claims match the current filters.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  data.rows.map((claim) => (
+                    <tr
+                      key={claim.id}
+                      className="border-t border-border/50 hover:bg-surface-low/60"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-foreground">
+                            {claim.employee?.name ?? "—"}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
+                            {claim.employee?.email ?? ""}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {claim.employee?.project ?? "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-medium text-foreground">{claim.title}</p>
+                        <p className="text-xs text-muted-foreground">{claim.claimNumber}</p>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {claim.chartOfAccount
+                          ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {formatShortDate(claim.spentAt)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold tabular-nums">
+                        {formatCurrency(claim.amount)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={claim.status} />
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </ScrollArea>
         </CardContent>
       </Card>
 

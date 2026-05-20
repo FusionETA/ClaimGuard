@@ -52,6 +52,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Select,
   SelectContent,
@@ -1262,7 +1263,7 @@ function CategoryMapStep({
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-lg border border-border/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ScrollArea className="overflow-x-auto rounded-lg border border-border/60">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
@@ -1333,7 +1334,7 @@ function CategoryMapStep({
             )}
           </tbody>
         </table>
-      </div>
+      </ScrollArea>
 
       <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
         <Button type="button" variant="ghost" onClick={onBack}>
@@ -1571,7 +1572,7 @@ function FieldSelect({
           className="sticky top-0 z-10 border-b border-border/60 bg-card/95 p-2 backdrop-blur-xl"
           onKeyDown={(event) => event.stopPropagation()}
         >
-          <div className="flex gap-1 overflow-x-auto rounded-lg bg-muted/40 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-1 overflow-x-auto rounded-lg bg-muted/40 p-1 nice-scrollbar">
             {FIELD_CATEGORIES.map((category) => {
               const active = category === activeCategory
               return (
@@ -1905,7 +1906,7 @@ function PreviewStep({
       </p>
 
       {preview.preview.length > 0 ? (
-        <div className="overflow-x-auto rounded-lg border border-border/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <ScrollArea className="overflow-x-auto rounded-lg border border-border/60">
           <table className="w-full text-xs">
             <thead className="uppercase tracking-wide text-muted-foreground">
               <tr>
@@ -1957,7 +1958,7 @@ function PreviewStep({
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollArea>
       ) : (
         <p className="text-xs text-muted-foreground">
           No rows would be imported with the current mapping. Go back

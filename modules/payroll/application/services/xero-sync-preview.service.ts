@@ -280,7 +280,7 @@ export async function buildPayrollSyncPreview(
   // ── Journal lines preview ──
   // Reuses the same shape/algorithm as syncPayrollRunToXero, but
   // uses the friendly category labels instead of Xero account codes.
-  const aggregationMode = mapping?.aggregationMode ?? "PER_EMPLOYEE"
+  const aggregationMode = mapping?.aggregationMode ?? "SUM_BY_PROJECT"
   const trackingEnabled = Boolean(mapping?.trackingCategoryId)
   const ALL_PROJECTS = "(All projects)"
   const NO_PROJECT = "(No project)"

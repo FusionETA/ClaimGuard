@@ -222,13 +222,21 @@ export function PayslipsListPanel({
           // via @react-pdf/renderer, so the on-screen table can be
           // as wide as it needs to be without worrying about print
           // fidelity.
+          // `grid-cols-[minmax(0,1fr)]` caps the track at the available
+          // width (min 0), so the 1500px-wide table can't push the card
+          // past the viewport — it's constrained and scrolls instead.
           <div className="grid grid-cols-[minmax(0,1fr)] overflow-hidden rounded-2xl border border-border/60">
-            <div className="overflow-x-auto">
-              <Table
-                className={cn(
-                  "min-w-[1500px] text-[11px] [&_td]:px-2 [&_td]:py-2 [&_td]:whitespace-nowrap [&_td]:align-top [&_th]:px-2 [&_th]:py-2 [&_th]:whitespace-nowrap",
-                )}
-              >
+            {/* Single bounded scroll box: the Table's own wrapper is the
+                only scroller. Capping its height (max-h) keeps the
+                horizontal scrollbar pinned at the bottom of the visible
+                box, so it's always on screen rather than at the bottom of
+                a tall table that's scrolled out of view. */}
+            <Table
+              wrapperClassName="nice-scrollbar max-h-[70vh]"
+              className={cn(
+                "min-w-[1500px] text-[11px] [&_td]:px-2 [&_td]:py-2 [&_td]:whitespace-nowrap [&_td]:align-top [&_th]:px-2 [&_th]:py-2 [&_th]:whitespace-nowrap",
+              )}
+            >
                 <TableHeader>
                   {/* ── Top header row: group labels with coloured
                        underlines, matching the PDF's "Employee
@@ -306,8 +314,7 @@ export function PayslipsListPanel({
                     />
                   ))}
                 </TableBody>
-              </Table>
-            </div>
+            </Table>
           </div>
         )}
 

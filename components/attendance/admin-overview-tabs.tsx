@@ -22,7 +22,7 @@ export function AdminOverviewTabs({
 
   return (
     <div className="space-y-6">
-      <nav className="-mx-6 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <nav className="-mx-6 overflow-x-auto px-6 nice-scrollbar">
         <div className="flex gap-2 pb-0.5">
           {TABS.map((tab) => {
             const isActive = active === tab.key

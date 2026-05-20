@@ -227,8 +227,7 @@ export function ClaimPayrollReadyList({
           </Card>
         ) : (
           <Card>
-            <div className="overflow-x-auto">
-              <Table>
+            <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Claim</TableHead>
@@ -249,8 +248,7 @@ export function ClaimPayrollReadyList({
                     />
                   ))}
                 </TableBody>
-              </Table>
-            </div>
+            </Table>
 
             <PaginationControls
               currentPage={page}

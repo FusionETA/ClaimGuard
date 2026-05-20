@@ -688,6 +688,49 @@ export function AdminSettingsPanel({
     setProjectPage(1)
   }, [projectSearch])
 
+  // Pagination for the selectable claim-accounts checkbox grid. Orgs
+  // synced from Xero can have hundreds of accounts; without paging the
+  // tab becomes one giant scroll. NOTE: this is a single <form> of
+  // checkboxes, so off-page rows are kept mounted (just `hidden`) rather
+  // than sliced out — otherwise their checked state would be dropped on
+  // save and accounts on other pages would silently get unselected.
+  const ACCOUNTS_PER_PAGE = 20
+  const [accountPage, setAccountPage] = useState(1)
+  useEffect(() => {
+    setAccountPage(1)
+  }, [accountSearch, accountTypeFilter])
+  const matchingAccounts = displayAccounts.filter((account) => {
+    const matchesType =
+      accountTypeFilter === "all" || account.type === accountTypeFilter
+    const matchesSearch =
+      accountSearchLower === "" ||
+      account.code.toLowerCase().includes(accountSearchLower) ||
+      account.name.toLowerCase().includes(accountSearchLower)
+    return matchesType && matchesSearch
+  })
+  const accountTotalPages = Math.max(
+    1,
+    Math.ceil(matchingAccounts.length / ACCOUNTS_PER_PAGE),
+  )
+  const accountClampedPage = Math.min(accountPage, accountTotalPages)
+  const accountPageStart = (accountClampedPage - 1) * ACCOUNTS_PER_PAGE
+  const accountPageIds = new Set(
+    matchingAccounts
+      .slice(accountPageStart, accountPageStart + ACCOUNTS_PER_PAGE)
+      .map((a) => a.id),
+  )
+
+  // Same paging pattern (kept-mounted, hidden off-page) for the Mileage
+  // and Bank checkbox grids. Page sets are computed inside their
+  // respective render IIFEs since they depend on locals there.
+  const MILEAGE_PER_PAGE = 20
+  const [mileagePage, setMileagePage] = useState(1)
+  useEffect(() => {
+    setMileagePage(1)
+  }, [mileageSearch, mileageTypeFilter, mileageOnlyEnabled])
+  const BANKS_PER_PAGE = 20
+  const [bankPage, setBankPage] = useState(1)
+
   const [organizationState, organizationAction, organizationPending] = useActionState(
     saveOrganizationSettingsAction,
     initialSettingsActionState
@@ -815,7 +858,7 @@ export function AdminSettingsPanel({
           when this nav is display:none on desktop it doesn't push the
           first content card down with an unwanted margin-top. */}
       {settingsTabs.length > 1 ? (
-        <nav className="-mx-6 overflow-x-auto px-6 lg:hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav className="-mx-6 overflow-x-auto px-6 lg:hidden nice-scrollbar">
           <div className="flex gap-2 pb-0.5">
             {settingsTabs.map(([value, label]) => (
               <Link
@@ -1064,7 +1107,7 @@ export function AdminSettingsPanel({
       {activeTab === "accounts" ? (
         <div className="space-y-6">
           {/* Sub-pill nav inside the merged Accounts tab. */}
-          <nav className="-mx-6 overflow-x-auto px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav className="-mx-6 overflow-x-auto px-6 nice-scrollbar">
             <div className="flex gap-2 pb-0.5">
               {accountsSubTabs.map(([value, label]) => (
                 <button
@@ -1253,17 +1296,17 @@ export function AdminSettingsPanel({
                     <input type="hidden" name="connectionId" value={activeXeroConnectionId ?? ""} />
                     <div className="grid gap-3 md:grid-cols-2">
                       {displayAccounts.map((account) => {
-                        const matchesType = accountTypeFilter === "all" || account.type === accountTypeFilter
-                        const matchesSearch =
-                          accountSearchLower === "" ||
-                          account.code.toLowerCase().includes(accountSearchLower) ||
-                          account.name.toLowerCase().includes(accountSearchLower)
+                        // Visible only when it matches the filter AND falls
+                        // on the current page. Off-page/filtered rows are
+                        // kept mounted (just `hidden`) so their checkbox
+                        // state survives paging and submits with the form.
+                        const onPage = accountPageIds.has(account.id)
                         return (
                           <label
                             key={account.id}
                             className={[
                               "flex items-start gap-3 rounded-[20px] border border-border/70 bg-surface-low p-4",
-                              !matchesType || !matchesSearch ? "hidden" : "",
+                              !onPage ? "hidden" : "",
                             ]
                               .join(" ")
                               .trim()}
@@ -1287,6 +1330,50 @@ export function AdminSettingsPanel({
                         )
                       })}
                     </div>
+
+                    {matchingAccounts.length > ACCOUNTS_PER_PAGE ? (
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                        <p className="text-[11px] text-muted-foreground">
+                          Showing {accountPageStart + 1}–
+                          {Math.min(
+                            accountPageStart + ACCOUNTS_PER_PAGE,
+                            matchingAccounts.length,
+                          )}{" "}
+                          of {matchingAccounts.length}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="h-8 rounded-lg text-xs"
+                            onClick={() =>
+                              setAccountPage((p) => Math.max(1, p - 1))
+                            }
+                            disabled={accountClampedPage <= 1}
+                          >
+                            Previous
+                          </Button>
+                          <p className="text-[11px] text-muted-foreground">
+                            Page {accountClampedPage} of {accountTotalPages}
+                          </p>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="h-8 rounded-lg text-xs"
+                            onClick={() =>
+                              setAccountPage((p) =>
+                                Math.min(accountTotalPages, p + 1),
+                              )
+                            }
+                            disabled={accountClampedPage >= accountTotalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null}
 
                     <Button type="submit" className="rounded-xl" disabled={accountsPending}>
                       Save selectable accounts
@@ -1352,14 +1439,22 @@ export function AdminSettingsPanel({
                           className="pl-9"
                         />
                       </div>
-                      <Button
-                        type="button"
-                        variant={limitOnlyConfigured ? "default" : "ghost"}
-                        className="rounded-full"
-                        onClick={() => setLimitOnlyConfigured((v) => !v)}
+                      <Select
+                        value={limitOnlyConfigured ? "configured" : "all"}
+                        onValueChange={(v) =>
+                          setLimitOnlyConfigured(v === "configured")
+                        }
                       >
-                        {limitOnlyConfigured ? "With limit only" : "All accounts"}
-                      </Button>
+                        <SelectTrigger className="w-[200px] shrink-0">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="configured">
+                            With limit only
+                          </SelectItem>
+                          <SelectItem value="all">All accounts</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     {limitTypes.length > 0 ? (
@@ -1593,7 +1688,19 @@ export function AdminSettingsPanel({
               )
             }
 
-            const visibleCount = displayAccounts.filter(isVisible).length
+            const matchingMileage = displayAccounts.filter(isVisible)
+            const visibleCount = matchingMileage.length
+            const mileageTotalPages = Math.max(
+              1,
+              Math.ceil(matchingMileage.length / MILEAGE_PER_PAGE),
+            )
+            const mileageClampedPage = Math.min(mileagePage, mileageTotalPages)
+            const mileagePageStart = (mileageClampedPage - 1) * MILEAGE_PER_PAGE
+            const mileagePageIds = new Set(
+              matchingMileage
+                .slice(mileagePageStart, mileagePageStart + MILEAGE_PER_PAGE)
+                .map((a) => a.id),
+            )
 
             return (
               <Card>
@@ -1631,14 +1738,20 @@ export function AdminSettingsPanel({
                               className="pl-9"
                             />
                           </div>
-                          <Button
-                            type="button"
-                            variant={mileageOnlyEnabled ? "default" : "ghost"}
-                            className="rounded-full"
-                            onClick={() => setMileageOnlyEnabled((v) => !v)}
+                          <Select
+                            value={mileageOnlyEnabled ? "enabled" : "all"}
+                            onValueChange={(v) =>
+                              setMileageOnlyEnabled(v === "enabled")
+                            }
                           >
-                            {mileageOnlyEnabled ? "Enabled only" : "All accounts"}
-                          </Button>
+                            <SelectTrigger className="w-[200px] shrink-0">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="enabled">Enabled only</SelectItem>
+                              <SelectItem value="all">All accounts</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
 
                         {mileageTypes.length > 0 ? (
@@ -1674,9 +1787,10 @@ export function AdminSettingsPanel({
                         </div>
                       ) : null}
 
-                      <div className="space-y-3">
+                      <div className="grid gap-3 md:grid-cols-2">
                         {displayAccounts.map((account) => {
-                          const visible = isVisible(account)
+                          const visible =
+                            isVisible(account) && mileagePageIds.has(account.id)
                           return (
                             <label
                               key={account.id}
@@ -1723,6 +1837,50 @@ export function AdminSettingsPanel({
                         })}
                       </div>
 
+                      {matchingMileage.length > MILEAGE_PER_PAGE ? (
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                          <p className="text-[11px] text-muted-foreground">
+                            Showing {mileagePageStart + 1}–
+                            {Math.min(
+                              mileagePageStart + MILEAGE_PER_PAGE,
+                              matchingMileage.length,
+                            )}{" "}
+                            of {matchingMileage.length}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-lg text-xs"
+                              onClick={() =>
+                                setMileagePage((p) => Math.max(1, p - 1))
+                              }
+                              disabled={mileageClampedPage <= 1}
+                            >
+                              Previous
+                            </Button>
+                            <p className="text-[11px] text-muted-foreground">
+                              Page {mileageClampedPage} of {mileageTotalPages}
+                            </p>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-8 rounded-lg text-xs"
+                              onClick={() =>
+                                setMileagePage((p) =>
+                                  Math.min(mileageTotalPages, p + 1),
+                                )
+                              }
+                              disabled={mileageClampedPage >= mileageTotalPages}
+                            >
+                              Next
+                            </Button>
+                          </div>
+                        </div>
+                      ) : null}
+
                       <Button
                         type="submit"
                         className="rounded-xl"
@@ -1750,6 +1908,54 @@ export function AdminSettingsPanel({
         const bankAccounts = isCustomMode
           ? customAccounts.filter((a) => a.type === "BANK")
           : chartAccounts.filter((a) => a.type === "BANK")
+        const bankTotalPages = Math.max(
+          1,
+          Math.ceil(bankAccounts.length / BANKS_PER_PAGE),
+        )
+        const bankClampedPage = Math.min(bankPage, bankTotalPages)
+        const bankPageStart = (bankClampedPage - 1) * BANKS_PER_PAGE
+        const bankPageIds = new Set(
+          bankAccounts
+            .slice(bankPageStart, bankPageStart + BANKS_PER_PAGE)
+            .map((a) => a.id),
+        )
+        const bankPager =
+          bankAccounts.length > BANKS_PER_PAGE ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <p className="text-[11px] text-muted-foreground">
+                Showing {bankPageStart + 1}–
+                {Math.min(bankPageStart + BANKS_PER_PAGE, bankAccounts.length)} of{" "}
+                {bankAccounts.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 rounded-lg text-xs"
+                  onClick={() => setBankPage((p) => Math.max(1, p - 1))}
+                  disabled={bankClampedPage <= 1}
+                >
+                  Previous
+                </Button>
+                <p className="text-[11px] text-muted-foreground">
+                  Page {bankClampedPage} of {bankTotalPages}
+                </p>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-8 rounded-lg text-xs"
+                  onClick={() =>
+                    setBankPage((p) => Math.min(bankTotalPages, p + 1))
+                  }
+                  disabled={bankClampedPage >= bankTotalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          ) : null
         return (
           <div className="space-y-6">
             <Card>
@@ -1774,8 +1980,11 @@ export function AdminSettingsPanel({
                         {bankAccounts.map((account) => (
                           <label
                             key={account.id}
-                            className="flex items-start gap-3 rounded-[20px] border border-border/70 bg-surface-low p-4 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5"
-                          >
+                            className={cn(
+                            "flex items-start gap-3 rounded-[20px] border border-border/70 bg-surface-low p-4 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5",
+                            !bankPageIds.has(account.id) && "hidden",
+                          )}
+                        >
                             <input
                               type="checkbox"
                               name="bankAccountIds"
@@ -1794,6 +2003,8 @@ export function AdminSettingsPanel({
                           </label>
                         ))}
                       </div>
+
+                      {bankPager}
 
                       {selectedBankState.status === "error" ? (
                         <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
@@ -1821,7 +2032,10 @@ export function AdminSettingsPanel({
                       {bankAccounts.map((account) => (
                         <label
                           key={account.id}
-                          className="flex items-start gap-3 rounded-[20px] border border-border/70 bg-surface-low p-4 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                          className={cn(
+                            "flex items-start gap-3 rounded-[20px] border border-border/70 bg-surface-low p-4 cursor-pointer has-[:checked]:border-primary has-[:checked]:bg-primary/5",
+                            !bankPageIds.has(account.id) && "hidden",
+                          )}
                         >
                           <input
                             type="checkbox"
@@ -1841,6 +2055,8 @@ export function AdminSettingsPanel({
                         </label>
                       ))}
                     </div>
+
+                    {bankPager}
 
                     {selectedBankState.status === "error" ? (
                       <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive">
