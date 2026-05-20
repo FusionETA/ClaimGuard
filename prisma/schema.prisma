@@ -85,6 +85,7 @@ model Organization {
   users                   User[]
   xeroConnections         XeroConnection[]
   projects                XeroProject[]
+  leaveTypes              LeaveType[]
 }
 
 /// Admin-defined classification for an employee. Replaces the previous
@@ -97,55 +98,56 @@ model Organization {
 /// Two policies are seeded per org during the migration so existing
 /// behavior is preserved at cutover.
 model EmployeePolicy {
-  id                         String            @id @default(cuid())
+  id                         String                   @id @default(cuid())
   organizationId             String
   name                       String
   description                String?
   /// Exactly one policy per org should be the default (used when creating
   /// a new employee through the admin UI / API without specifying one).
-  isDefault                  Boolean           @default(false)
+  isDefault                  Boolean                  @default(false)
   /// Soft-archive. Archived policies are hidden from new assignments but
   /// kept around so historical employee snapshots stay readable.
   archivedAt                 DateTime?
-  canAccessAttendance        Boolean           @default(true)
-  canAccessClaims            Boolean           @default(true)
-  canAccessLeave             Boolean           @default(true)
-  salaryType                 PayoutMethod      @default(HOURLY)
-  otMethod                   OtPayoutMethod    @default(CASH)
-  createdAt                  DateTime          @default(now())
-  updatedAt                  DateTime          @updatedAt
+  canAccessAttendance        Boolean                  @default(true)
+  canAccessClaims            Boolean                  @default(true)
+  canAccessLeave             Boolean                  @default(true)
+  salaryType                 PayoutMethod             @default(HOURLY)
+  otMethod                   OtPayoutMethod           @default(CASH)
+  createdAt                  DateTime                 @default(now())
+  updatedAt                  DateTime                 @updatedAt
   /// When false, employees on this policy cannot file OT at all — the
   /// OT method below is ignored and OT-related UI is hidden.
-  otEnabled                  Boolean           @default(true)
+  otEnabled                  Boolean                  @default(true)
   /// When true, employees on this policy must be inside the project
   /// geofence (radius set on Organization, lat/lng on Project) to clock
   /// in. When false, geofence checks are skipped for these employees.
-  requireGeofence            Boolean           @default(true)
+  requireGeofence            Boolean                  @default(true)
   /// When true, the clock-in flow gates on a selfie capture. Replaces
   /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
   /// selfie on for any policy regardless of pay type.
-  requireSelfie              Boolean           @default(false)
+  requireSelfie              Boolean                  @default(false)
   /// Daily working minutes after which extra time becomes OT-eligible.
   /// Stored as minutes for precision; the admin UI presents this as
   /// hours (minutes ÷ 60).
-  otDailyThresholdMinutes    Int               @default(480)
+  otDailyThresholdMinutes    Int                      @default(480)
   /// OT multipliers (× HRP) — applied only when otMethod === CASH.
   /// Ignored for TIME_BANK (banks 1:1) and when otEnabled = false.
   /// Values are kept in the row when OT mode is non-CASH so toggling
   /// back to CASH restores the admin's chosen rates.
-  otRateNormalDay            Decimal           @default(1.50) @db.Decimal(4, 2)
-  otRatePublicHoliday        Decimal           @default(3.00) @db.Decimal(4, 2)
-  otRatePublicHolidayInShift Decimal           @default(2.00) @db.Decimal(4, 2)
-  otRateRestDay              Decimal           @default(2.00) @db.Decimal(4, 2)
+  otRateNormalDay            Decimal                  @default(1.50) @db.Decimal(4, 2)
+  otRatePublicHoliday        Decimal                  @default(3.00) @db.Decimal(4, 2)
+  otRatePublicHolidayInShift Decimal                  @default(2.00) @db.Decimal(4, 2)
+  otRateRestDay              Decimal                  @default(2.00) @db.Decimal(4, 2)
   /// In-shift premiums (× ORP) for hours worked within the regular
   /// shift on rest days / public holidays.
-  otRateRestDayInShift       Decimal           @default(1.00) @db.Decimal(4, 2)
+  otRateRestDayInShift       Decimal                  @default(1.00) @db.Decimal(4, 2)
   /// Optional monthly-salary cap above which OT requires extra approval.
   /// Null means no cap. Mirrors the legacy org-wide
   /// `Organization.otSalaryThreshold` but is now opt-in per policy.
-  otSalaryThreshold          Decimal?          @db.Decimal(10, 2)
-  organization               Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  otSalaryThreshold          Decimal?                 @db.Decimal(10, 2)
+  organization               Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employees                  EmployeeProfile[]
+  leaveDefaults              PolicyLeaveEntitlement[]
 
   @@unique([organizationId, name])
   @@index([organizationId, isDefault])
@@ -352,6 +354,8 @@ model EmployeeProfile {
   payrollRunClaims      PayrollRunClaim[]
   payslips              Payslip[]
   salaryChanges         SalaryChange[]
+  leaveEntitlements     LeaveEntitlement[]
+  leaveApplications     LeaveApplication[]
 
   @@index([xeroConnectionId])
   @@index([policyId])
@@ -671,52 +675,52 @@ model ProjectManager {
 }
 
 model AttendanceRecord {
-  id               String                @id @default(cuid())
-  employeeId       String
-  date             DateTime
-  timeIn           DateTime?
-  timeOut          DateTime?
-  durationMin      Int?
-  lateByMin        Int?
-  location         String?
-  project          String?
-  status           AttendanceStatus      @default(MISSING)
+  id                     String                @id @default(cuid())
+  employeeId             String
+  date                   DateTime
+  timeIn                 DateTime?
+  timeOut                DateTime?
+  durationMin            Int?
+  lateByMin              Int?
+  location               String?
+  project                String?
+  status                 AttendanceStatus      @default(MISSING)
   /// System-captured context for the day — off-site warnings prepended
   /// during clock-in/out, etc. Not directly editable by the employee
   /// (those edits go to `remark` instead). Shown to supervisors in the
   /// team detail view.
-  notes            String?               @db.Text
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
-  projectId        String?
+  notes                  String?               @db.Text
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  projectId              String?
   /// When the file was uploaded to Xero. Independent from timeIn so
   /// re-clocks (re-upload) reset the retention window.
-  selfieUploadedAt DateTime?
+  selfieUploadedAt       DateTime?
   /// Xero Files API file ID for the clock-in selfie. Null when no
   /// selfie was captured (Office Workers, or upload failed). Cleared
   /// by the prune cron after the retention window.
-  xeroSelfieFileId String?
+  xeroSelfieFileId       String?
   /// Employee's free-form remark about their shift. Set via the clock-
   /// out summary popup or the dashboard remark card. Kept separate from
   /// `notes` so off-site context never bleeds into the employee's own
   /// commentary (and vice-versa).
-  remark           String?               @db.Text
+  remark                 String?               @db.Text
   /// Captured GPS coordinates and distance-from-site at clock-in. Null
   /// when the employee clocked in without granting location (Office
   /// Workers, web clients without geolocation, or pre-migration rows).
   /// `clockInDistanceMeters` is haversine distance to the project's
   /// geofence center at the moment of clock-in.
-  clockInLat            Float?
-  clockInLng            Float?
-  clockInDistanceMeters Float?
+  clockInLat             Float?
+  clockInLng             Float?
+  clockInDistanceMeters  Float?
   clockOutLat            Float?
   clockOutLng            Float?
   clockOutDistanceMeters Float?
-  editLogs         AttendanceEditLog[]
-  employee         User                  @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
-  projectRef       XeroProject?          @relation("AttendanceRecordProject", fields: [projectId], references: [id])
-  breaks           BreakSession[]
-  breakEditLogs    BreakSessionEditLog[]
+  editLogs               AttendanceEditLog[]
+  employee               User                  @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
+  projectRef             XeroProject?          @relation("AttendanceRecordProject", fields: [projectId], references: [id])
+  breaks                 BreakSession[]
+  breakEditLogs          BreakSessionEditLog[]
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
@@ -1696,4 +1700,132 @@ enum PayslipLineKind {
   ALLOWANCE
   DEDUCTION
   REIMBURSEMENT
+}
+
+enum LeaveAccrualMethod {
+  LUMP_SUM
+  PRO_RATED
+}
+
+enum LeaveDuration {
+  FULL_DAY
+  MORNING
+  AFTERNOON
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+/// Admin-configured leave type for an organization (e.g. ANNUAL, SICK,
+/// UNPAID, MATERNITY). `accrualMethod=PRO_RATED` is intended for the
+/// org's annual leave only — UI gates this. `carryForward` likewise
+/// only applies to annual leave.
+model LeaveType {
+  id                  String                   @id @default(cuid())
+  organizationId      String
+  code                String
+  name                String
+  /// When false, leave is unpaid: defaultDays is ignored and attendance
+  /// expected-hours is NOT reduced when an employee takes this leave.
+  paid                Boolean                  @default(true)
+  accrualMethod       LeaveAccrualMethod       @default(LUMP_SUM)
+  /// Fallback org-wide default entitlement when no PolicyLeaveEntitlement
+  /// row exists for the employee's policy.
+  defaultDays         Float                    @default(0)
+  carryForward        Boolean                  @default(false)
+  /// 1-12 — month in the new year after which carried days expire.
+  /// Required when carryForward = true.
+  carryExpiryMonth    Int?
+  /// Optional cap on carriedDays at rollover. Null = uncapped.
+  maxCarryForwardDays Float?
+  archivedAt          DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  organization        Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  entitlements        LeaveEntitlement[]
+  applications        LeaveApplication[]
+  policyDefaults      PolicyLeaveEntitlement[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+}
+
+/// Per-policy override of a LeaveType's defaultDays. Resolution order
+/// for an employee's entitlement default:
+///   1. Per-employee LeaveEntitlement (if set)
+///   2. PolicyLeaveEntitlement (if a row exists for the employee's policy)
+///   3. LeaveType.defaultDays
+model PolicyLeaveEntitlement {
+  id          String         @id @default(cuid())
+  policyId    String
+  leaveTypeId String
+  defaultDays Float          @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  policy      EmployeePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  leaveType   LeaveType      @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([policyId, leaveTypeId])
+  @@index([leaveTypeId])
+}
+
+/// One row per (employee, leaveType, year). Created on demand or by the
+/// year-rollover cron. For LUMP_SUM the full entitledDays is available
+/// immediately; for PRO_RATED only accruedDays is available.
+model LeaveEntitlement {
+  id               String          @id @default(cuid())
+  employeeId       String
+  leaveTypeId      String
+  year             Int
+  entitledDays     Float
+  carriedDays      Float           @default(0)
+  carriedExpiresAt DateTime?
+  carriedExpired   Boolean         @default(false)
+  /// PRO_RATED: monthly accumulated. LUMP_SUM: equals entitledDays.
+  accruedDays      Float           @default(0)
+  usedDays         Float           @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  employee         EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType        LeaveType       @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, leaveTypeId, year])
+  @@index([leaveTypeId])
+  @@index([year])
+}
+
+/// Employee leave application. Approval chain mirrors the attendance
+/// pattern via `modules/organization/.../approval-chain.service.ts`
+/// with module = LEAVE. Auto-approves when no layers exist above the
+/// employee for the LEAVE module.
+model LeaveApplication {
+  id          String          @id @default(cuid())
+  employeeId  String
+  leaveTypeId String
+  startDate   DateTime
+  endDate     DateTime
+  /// MORNING / AFTERNOON only valid when startDate == endDate.
+  duration    LeaveDuration   @default(FULL_DAY)
+  /// Computed at submit: 0.5 for half-day, otherwise count of working
+  /// days in [startDate, endDate] per org/team working-days rule.
+  totalDays   Float
+  reason      String?         @db.Text
+  status      LeaveStatus     @default(PENDING)
+  currentStep Int             @default(0)
+  /// JSON array of { step, approverId, decidedAt, decision, notes? }
+  approvals   Json?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  decidedAt   DateTime?
+  employee    EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType   LeaveType       @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([leaveTypeId])
+  @@index([status])
+  @@index([startDate, endDate])
 }

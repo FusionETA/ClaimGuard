@@ -269,3 +269,30 @@ export const PayslipLineKind = {
 } as const
 
 export type PayslipLineKind = (typeof PayslipLineKind)[keyof typeof PayslipLineKind]
+
+
+export const LeaveAccrualMethod = {
+  LUMP_SUM: 'LUMP_SUM',
+  PRO_RATED: 'PRO_RATED'
+} as const
+
+export type LeaveAccrualMethod = (typeof LeaveAccrualMethod)[keyof typeof LeaveAccrualMethod]
+
+
+export const LeaveDuration = {
+  FULL_DAY: 'FULL_DAY',
+  MORNING: 'MORNING',
+  AFTERNOON: 'AFTERNOON'
+} as const
+
+export type LeaveDuration = (typeof LeaveDuration)[keyof typeof LeaveDuration]
+
+
+export const LeaveStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type LeaveStatus = (typeof LeaveStatus)[keyof typeof LeaveStatus]

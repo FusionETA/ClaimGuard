@@ -36,6 +36,10 @@ import {
   resolveApprovalContext,
 } from "@/modules/attendance/infrastructure/approval-chain-context"
 import type { ChainHistoryEntry } from "@/modules/attendance/domain/models"
+import {
+  employeeProfileIdForUserId,
+  paidLeaveMinutes,
+} from "@/modules/leave/application/services/leave-balance.service"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1714,6 +1718,7 @@ export const attendanceRepository = {
         role: true,
         employeeProfile: {
           select: {
+            id: true,
             jobTitle: true,
             projectAssignments: {
               select: {
@@ -1767,7 +1772,7 @@ export const attendanceRepository = {
       monthDurations.map((d) => [d.employeeId, d._sum.durationMin ?? 0]),
     )
 
-    return users.map((u) => {
+    return Promise.all(users.map(async (u) => {
       const today = byUser.get(u.id)
       const primary = u.employeeProfile?.projectAssignments?.[0]?.project ?? null
       const projectName =
@@ -1779,12 +1784,16 @@ export const attendanceRepository = {
       const lunch = primary?.lunchBreakMinutes ?? DEFAULT_LUNCH_BREAK_MIN
       const workingDays = parseWorkingDays(primary?.workingDays ?? null)
       const standardDailyMin = standardDailyMinutesFrom(start, end, lunch)
-      const monthExpectedMin = expectedMinutesForRange({
+      const scheduledMin = expectedMinutesForRange({
         from: monthFrom,
         to: monthTo,
         workingDays,
         standardDailyMin,
       })
+      const leaveDeduction = u.employeeProfile?.id
+        ? await paidLeaveMinutes(u.employeeProfile.id, monthFrom, monthTo, standardDailyMin)
+        : 0
+      const monthExpectedMin = Math.max(0, scheduledMin - leaveDeduction)
       return {
         id: u.id,
         name: u.name,
@@ -1798,7 +1807,7 @@ export const attendanceRepository = {
         monthActualMin: actualByUser.get(u.id) ?? 0,
         monthExpectedMin,
       }
-    })
+    }))
   },
 
   async getDailyActivity(
@@ -2741,11 +2750,11 @@ export const attendanceRepository = {
 
     let totals: HoursBuckets = { ...EMPTY_BUCKETS }
     let totalsExpectedMin = 0
-    const rows = employees.map((e) => {
+    const rows = await Promise.all(employees.map(async (e) => {
       const buckets = perEmployee.get(e.id) ?? { ...EMPTY_BUCKETS }
       totals = addBuckets(totals, buckets)
       const sched = scheduleByEmployee.get(e.id)
-      const expectedMin = sched
+      const scheduledMin = sched
         ? expectedMinutesForRange({
             from,
             to,
@@ -2753,6 +2762,12 @@ export const attendanceRepository = {
             standardDailyMin: sched.standardDailyMin,
           })
         : 0
+      const profileId = await employeeProfileIdForUserId(e.id)
+      const leaveDeduction =
+        sched && profileId
+          ? await paidLeaveMinutes(profileId, from, to, sched.standardDailyMin)
+          : 0
+      const expectedMin = Math.max(0, scheduledMin - leaveDeduction)
       totalsExpectedMin += expectedMin
       return {
         employeeId: e.id,
@@ -2761,7 +2776,7 @@ export const attendanceRepository = {
         initials: buildInitials(e.name),
         buckets: { ...buckets, expectedMin },
       }
-    })
+    }))
 
     return {
       totals: { ...totals, expectedMin: totalsExpectedMin },
@@ -2772,8 +2787,9 @@ export const attendanceRepository = {
   /// Returns actual worked minutes and expected (minimum) minutes for an
   /// inclusive [from, to] date range. The schedule is resolved from the
   /// employee's first project assignment (falling back to org defaults).
-  /// Public holidays / approved leave are NOT deducted from the expected
-  /// total per product spec.
+  /// Approved PAID leave is subtracted from the expected total (full-day =
+  /// standardDailyMin, half-day = half); approved UNPAID leave and public
+  /// holidays are not.
   async getEmployeeRangeProgress(args: {
     employeeId: string
     from: Date
@@ -2819,12 +2835,18 @@ export const attendanceRepository = {
     const workingDays = parseWorkingDays(proj?.workingDays ?? null)
     const standardDailyMin = standardDailyMinutesFrom(start, end, lunch)
 
-    const expectedMin = expectedMinutesForRange({
+    const scheduledMin = expectedMinutesForRange({
       from,
       to,
       workingDays,
       standardDailyMin,
     })
+
+    const profileId = await employeeProfileIdForUserId(args.employeeId)
+    const leaveDeduction = profileId
+      ? await paidLeaveMinutes(profileId, from, to, standardDailyMin)
+      : 0
+    const expectedMin = Math.max(0, scheduledMin - leaveDeduction)
 
     const records = await prisma.attendanceRecord.findMany({
       where: {

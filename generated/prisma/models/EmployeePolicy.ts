@@ -394,6 +394,7 @@ export type EmployeePolicyWhereInput = {
   otSalaryThreshold?: Prisma.DecimalNullableFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   employees?: Prisma.EmployeeProfileListRelationFilter
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementListRelationFilter
 }
 
 export type EmployeePolicyOrderByWithRelationInput = {
@@ -422,6 +423,7 @@ export type EmployeePolicyOrderByWithRelationInput = {
   otSalaryThreshold?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   employees?: Prisma.EmployeeProfileOrderByRelationAggregateInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementOrderByRelationAggregateInput
   _relevance?: Prisma.EmployeePolicyOrderByRelevanceInput
 }
 
@@ -455,6 +457,7 @@ export type EmployeePolicyWhereUniqueInput = Prisma.AtLeast<{
   otSalaryThreshold?: Prisma.DecimalNullableFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   employees?: Prisma.EmployeeProfileListRelationFilter
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementListRelationFilter
 }, "id" | "organizationId_name">
 
 export type EmployeePolicyOrderByWithAggregationInput = {
@@ -542,6 +545,7 @@ export type EmployeePolicyCreateInput = {
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementCreateNestedManyWithoutPolicyInput
 }
 
 export type EmployeePolicyUncheckedCreateInput = {
@@ -569,6 +573,7 @@ export type EmployeePolicyUncheckedCreateInput = {
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type EmployeePolicyUpdateInput = {
@@ -596,6 +601,7 @@ export type EmployeePolicyUpdateInput = {
   otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementUpdateManyWithoutPolicyNestedInput
 }
 
 export type EmployeePolicyUncheckedUpdateInput = {
@@ -623,6 +629,7 @@ export type EmployeePolicyUncheckedUpdateInput = {
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type EmployeePolicyCreateManyInput = {
@@ -826,6 +833,11 @@ export type EmployeePolicyNullableScalarRelationFilter = {
   isNot?: Prisma.EmployeePolicyWhereInput | null
 }
 
+export type EmployeePolicyScalarRelationFilter = {
+  is?: Prisma.EmployeePolicyWhereInput
+  isNot?: Prisma.EmployeePolicyWhereInput
+}
+
 export type EmployeePolicyCreateNestedManyWithoutOrganizationInput = {
   create?: Prisma.XOR<Prisma.EmployeePolicyCreateWithoutOrganizationInput, Prisma.EmployeePolicyUncheckedCreateWithoutOrganizationInput> | Prisma.EmployeePolicyCreateWithoutOrganizationInput[] | Prisma.EmployeePolicyUncheckedCreateWithoutOrganizationInput[]
   connectOrCreate?: Prisma.EmployeePolicyCreateOrConnectWithoutOrganizationInput | Prisma.EmployeePolicyCreateOrConnectWithoutOrganizationInput[]
@@ -904,6 +916,20 @@ export type EmployeePolicyUpdateOneWithoutEmployeesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeePolicyUpdateToOneWithWhereWithoutEmployeesInput, Prisma.EmployeePolicyUpdateWithoutEmployeesInput>, Prisma.EmployeePolicyUncheckedUpdateWithoutEmployeesInput>
 }
 
+export type EmployeePolicyCreateNestedOneWithoutLeaveDefaultsInput = {
+  create?: Prisma.XOR<Prisma.EmployeePolicyCreateWithoutLeaveDefaultsInput, Prisma.EmployeePolicyUncheckedCreateWithoutLeaveDefaultsInput>
+  connectOrCreate?: Prisma.EmployeePolicyCreateOrConnectWithoutLeaveDefaultsInput
+  connect?: Prisma.EmployeePolicyWhereUniqueInput
+}
+
+export type EmployeePolicyUpdateOneRequiredWithoutLeaveDefaultsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeePolicyCreateWithoutLeaveDefaultsInput, Prisma.EmployeePolicyUncheckedCreateWithoutLeaveDefaultsInput>
+  connectOrCreate?: Prisma.EmployeePolicyCreateOrConnectWithoutLeaveDefaultsInput
+  upsert?: Prisma.EmployeePolicyUpsertWithoutLeaveDefaultsInput
+  connect?: Prisma.EmployeePolicyWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeePolicyUpdateToOneWithWhereWithoutLeaveDefaultsInput, Prisma.EmployeePolicyUpdateWithoutLeaveDefaultsInput>, Prisma.EmployeePolicyUncheckedUpdateWithoutLeaveDefaultsInput>
+}
+
 export type EmployeePolicyCreateWithoutOrganizationInput = {
   id?: string
   name: string
@@ -928,6 +954,7 @@ export type EmployeePolicyCreateWithoutOrganizationInput = {
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementCreateNestedManyWithoutPolicyInput
 }
 
 export type EmployeePolicyUncheckedCreateWithoutOrganizationInput = {
@@ -954,6 +981,7 @@ export type EmployeePolicyUncheckedCreateWithoutOrganizationInput = {
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type EmployeePolicyCreateOrConnectWithoutOrganizationInput = {
@@ -1035,6 +1063,7 @@ export type EmployeePolicyCreateWithoutEmployeesInput = {
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementCreateNestedManyWithoutPolicyInput
 }
 
 export type EmployeePolicyUncheckedCreateWithoutEmployeesInput = {
@@ -1061,6 +1090,7 @@ export type EmployeePolicyUncheckedCreateWithoutEmployeesInput = {
   otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedCreateNestedManyWithoutPolicyInput
 }
 
 export type EmployeePolicyCreateOrConnectWithoutEmployeesInput = {
@@ -1103,6 +1133,7 @@ export type EmployeePolicyUpdateWithoutEmployeesInput = {
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementUpdateManyWithoutPolicyNestedInput
 }
 
 export type EmployeePolicyUncheckedUpdateWithoutEmployeesInput = {
@@ -1129,6 +1160,131 @@ export type EmployeePolicyUncheckedUpdateWithoutEmployeesInput = {
   otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedUpdateManyWithoutPolicyNestedInput
+}
+
+export type EmployeePolicyCreateWithoutLeaveDefaultsInput = {
+  id?: string
+  name: string
+  description?: string | null
+  isDefault?: boolean
+  archivedAt?: Date | string | null
+  canAccessAttendance?: boolean
+  canAccessClaims?: boolean
+  canAccessLeave?: boolean
+  salaryType?: $Enums.PayoutMethod
+  otMethod?: $Enums.OtPayoutMethod
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  otEnabled?: boolean
+  requireGeofence?: boolean
+  requireSelfie?: boolean
+  otDailyThresholdMinutes?: number
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  organization: Prisma.OrganizationCreateNestedOneWithoutEmployeePoliciesInput
+  employees?: Prisma.EmployeeProfileCreateNestedManyWithoutPolicyInput
+}
+
+export type EmployeePolicyUncheckedCreateWithoutLeaveDefaultsInput = {
+  id?: string
+  organizationId: string
+  name: string
+  description?: string | null
+  isDefault?: boolean
+  archivedAt?: Date | string | null
+  canAccessAttendance?: boolean
+  canAccessClaims?: boolean
+  canAccessLeave?: boolean
+  salaryType?: $Enums.PayoutMethod
+  otMethod?: $Enums.OtPayoutMethod
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  otEnabled?: boolean
+  requireGeofence?: boolean
+  requireSelfie?: boolean
+  otDailyThresholdMinutes?: number
+  otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  employees?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutPolicyInput
+}
+
+export type EmployeePolicyCreateOrConnectWithoutLeaveDefaultsInput = {
+  where: Prisma.EmployeePolicyWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeePolicyCreateWithoutLeaveDefaultsInput, Prisma.EmployeePolicyUncheckedCreateWithoutLeaveDefaultsInput>
+}
+
+export type EmployeePolicyUpsertWithoutLeaveDefaultsInput = {
+  update: Prisma.XOR<Prisma.EmployeePolicyUpdateWithoutLeaveDefaultsInput, Prisma.EmployeePolicyUncheckedUpdateWithoutLeaveDefaultsInput>
+  create: Prisma.XOR<Prisma.EmployeePolicyCreateWithoutLeaveDefaultsInput, Prisma.EmployeePolicyUncheckedCreateWithoutLeaveDefaultsInput>
+  where?: Prisma.EmployeePolicyWhereInput
+}
+
+export type EmployeePolicyUpdateToOneWithWhereWithoutLeaveDefaultsInput = {
+  where?: Prisma.EmployeePolicyWhereInput
+  data: Prisma.XOR<Prisma.EmployeePolicyUpdateWithoutLeaveDefaultsInput, Prisma.EmployeePolicyUncheckedUpdateWithoutLeaveDefaultsInput>
+}
+
+export type EmployeePolicyUpdateWithoutLeaveDefaultsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canAccessAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeePoliciesNestedInput
+  employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
+}
+
+export type EmployeePolicyUncheckedUpdateWithoutLeaveDefaultsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  archivedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  canAccessAttendance?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canAccessClaims?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  canAccessLeave?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  salaryType?: Prisma.EnumPayoutMethodFieldUpdateOperationsInput | $Enums.PayoutMethod
+  otMethod?: Prisma.EnumOtPayoutMethodFieldUpdateOperationsInput | $Enums.OtPayoutMethod
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHoliday?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRatePublicHolidayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type EmployeePolicyCreateManyOrganizationInput = {
@@ -1180,6 +1336,7 @@ export type EmployeePolicyUpdateWithoutOrganizationInput = {
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employees?: Prisma.EmployeeProfileUpdateManyWithoutPolicyNestedInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementUpdateManyWithoutPolicyNestedInput
 }
 
 export type EmployeePolicyUncheckedUpdateWithoutOrganizationInput = {
@@ -1206,6 +1363,7 @@ export type EmployeePolicyUncheckedUpdateWithoutOrganizationInput = {
   otRateRestDayInShift?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otSalaryThreshold?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employees?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutPolicyNestedInput
+  leaveDefaults?: Prisma.PolicyLeaveEntitlementUncheckedUpdateManyWithoutPolicyNestedInput
 }
 
 export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1240,10 +1398,12 @@ export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationInput = {
 
 export type EmployeePolicyCountOutputType = {
   employees: number
+  leaveDefaults: number
 }
 
 export type EmployeePolicyCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employees?: boolean | EmployeePolicyCountOutputTypeCountEmployeesArgs
+  leaveDefaults?: boolean | EmployeePolicyCountOutputTypeCountLeaveDefaultsArgs
 }
 
 /**
@@ -1261,6 +1421,13 @@ export type EmployeePolicyCountOutputTypeDefaultArgs<ExtArgs extends runtime.Typ
  */
 export type EmployeePolicyCountOutputTypeCountEmployeesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.EmployeeProfileWhereInput
+}
+
+/**
+ * EmployeePolicyCountOutputType without action
+ */
+export type EmployeePolicyCountOutputTypeCountLeaveDefaultsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PolicyLeaveEntitlementWhereInput
 }
 
 
@@ -1290,6 +1457,7 @@ export type EmployeePolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   otSalaryThreshold?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
+  leaveDefaults?: boolean | Prisma.EmployeePolicy$leaveDefaultsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeePolicyCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employeePolicy"]>
 
@@ -1325,6 +1493,7 @@ export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.Internal
 export type EmployeePolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
+  leaveDefaults?: boolean | Prisma.EmployeePolicy$leaveDefaultsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeePolicyCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -1333,6 +1502,7 @@ export type $EmployeePolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
   objects: {
     organization: Prisma.$OrganizationPayload<ExtArgs>
     employees: Prisma.$EmployeeProfilePayload<ExtArgs>[]
+    leaveDefaults: Prisma.$PolicyLeaveEntitlementPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1742,6 +1912,7 @@ export interface Prisma__EmployeePolicyClient<T, Null = never, ExtArgs extends r
   readonly [Symbol.toStringTag]: "PrismaPromise"
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   employees<T extends Prisma.EmployeePolicy$employeesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeePolicy$employeesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  leaveDefaults<T extends Prisma.EmployeePolicy$leaveDefaultsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeePolicy$leaveDefaultsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PolicyLeaveEntitlementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2163,6 +2334,30 @@ export type EmployeePolicy$employeesArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.EmployeeProfileScalarFieldEnum | Prisma.EmployeeProfileScalarFieldEnum[]
+}
+
+/**
+ * EmployeePolicy.leaveDefaults
+ */
+export type EmployeePolicy$leaveDefaultsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PolicyLeaveEntitlement
+   */
+  select?: Prisma.PolicyLeaveEntitlementSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PolicyLeaveEntitlement
+   */
+  omit?: Prisma.PolicyLeaveEntitlementOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PolicyLeaveEntitlementInclude<ExtArgs> | null
+  where?: Prisma.PolicyLeaveEntitlementWhereInput
+  orderBy?: Prisma.PolicyLeaveEntitlementOrderByWithRelationInput | Prisma.PolicyLeaveEntitlementOrderByWithRelationInput[]
+  cursor?: Prisma.PolicyLeaveEntitlementWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PolicyLeaveEntitlementScalarFieldEnum | Prisma.PolicyLeaveEntitlementScalarFieldEnum[]
 }
 
 /**

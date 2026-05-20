@@ -59,6 +59,10 @@ const employeeNav: ReadonlyArray<EmployeeNavItem> = [
     href: "/employee/leave",
     label: "Leave",
     icon: CalendarDays,
+    children: [
+      { href: "/employee/leave", label: "My Leave" },
+      { href: "/employee/leave/approvals" as Route, label: "Approvals", supervisorOnly: true },
+    ],
   },
   {
     href: "/employee/payslips" as Route,
