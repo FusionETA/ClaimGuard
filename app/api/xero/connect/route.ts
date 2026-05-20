@@ -1,21 +1,23 @@
 import { NextResponse } from "next/server"
 
 import { getCurrentSession } from "@/lib/auth/session"
+import { getRequestOrigin } from "@/lib/request-origin"
 import { createXeroOauthState, getXeroAuthorizationUrl, getXeroRuntimeConfigStatus } from "@/lib/xero"
 
 const XERO_STATE_COOKIE = "claimguard_xero_oauth_state"
 
 export async function GET(request: Request) {
+  const origin = getRequestOrigin(request)
   const session = await getCurrentSession()
 
   if (!session || session.role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/login", request.url))
+    return NextResponse.redirect(new URL("/login", origin))
   }
 
   const runtime = getXeroRuntimeConfigStatus()
 
   if (!runtime.configured) {
-    return NextResponse.redirect(new URL("/admin/settings?xero=misconfigured", request.url))
+    return NextResponse.redirect(new URL("/admin/settings?xero=misconfigured", origin))
   }
 
   const state = createXeroOauthState()

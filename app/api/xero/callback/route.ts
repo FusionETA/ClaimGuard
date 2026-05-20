@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
+import { getRequestOrigin } from "@/lib/request-origin"
 import { exchangeXeroCodeForTokens, getXeroTenants } from "@/lib/xero"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
@@ -10,10 +11,11 @@ const XERO_STATE_COOKIE = "claimguard_xero_oauth_state"
 export const XERO_PENDING_COOKIE = "claimguard_xero_pending"
 
 export async function GET(request: NextRequest) {
+  const origin = getRequestOrigin(request)
   const session = await getCurrentSession()
 
   if (!session || session.role !== "ADMIN") {
-    return NextResponse.redirect(new URL("/login", request.url))
+    return NextResponse.redirect(new URL("/login", origin))
   }
 
   const { searchParams } = new URL(request.url)
@@ -31,7 +33,7 @@ export async function GET(request: NextRequest) {
     // displays the old timestamp and the "Update permissions" badge.
     revalidatePath("/admin/settings")
     revalidatePath("/admin", "layout")
-    const response = NextResponse.redirect(new URL(destination, request.url))
+    const response = NextResponse.redirect(new URL(destination, origin))
     response.cookies.set(XERO_STATE_COOKIE, "", {
       httpOnly: true,
       sameSite: "lax",
@@ -75,7 +77,7 @@ export async function GET(request: NextRequest) {
       revalidatePath("/admin/settings")
       revalidatePath("/admin", "layout")
       const response = NextResponse.redirect(
-        new URL("/admin/settings?xero=select-tenant", request.url)
+        new URL("/admin/settings?xero=select-tenant", origin)
       )
       response.cookies.set(XERO_STATE_COOKIE, "", {
         httpOnly: true,
