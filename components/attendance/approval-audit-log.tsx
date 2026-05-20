@@ -30,13 +30,13 @@ export type AuditChainEntry = {
 export type AuditLogRow = {
   id: string
   kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK" | "OT"
-  status: "APPROVED" | "REJECTED"
+  status: "APPROVED" | "REJECTED" | "PENDING"
   employeeId: string
   employeeName: string
   reviewerId: string | null
   reviewerName: string | null
   eventAt: string | null
-  reviewedAt: string
+  reviewedAt: string | null
   delayMinutes: number | null
   project: string | null
   title: string
@@ -56,6 +56,20 @@ type LoadAction = (
   projectId?: string | null,
 ) => Promise<AuditLogRow[]>
 
+import {
+  TableFilterBar,
+  type TableFilterValue,
+} from "@/components/attendance/table-filter-bar"
+
+type FilterBarProps = {
+  prefix: string
+  projects: { id: string; name: string }[]
+  teams: { id: string; name: string; projectName: string }[]
+  value: TableFilterValue
+}
+
+type AuditMode = "APPROVED" | "PENDING_REJECTED"
+
 type Props = {
   initialFrom: string
   initialTo: string
@@ -63,6 +77,8 @@ type Props = {
   loadAction: LoadAction
   /** When the parent's project filter changes, the panel re-fetches automatically. */
   projectId?: string | null
+  mode?: AuditMode
+  filterBar?: FilterBarProps
 }
 
 const KIND_LABEL: Record<AuditLogRow["kind"], string> = {
@@ -99,7 +115,16 @@ export function ApprovalAuditLog({
   initialRows,
   loadAction,
   projectId,
+  mode = "APPROVED",
+  filterBar,
 }: Props) {
+  const isPendingMode = mode === "PENDING_REJECTED"
+  const headingTitle = isPendingMode
+    ? "Pending / Rejected approvals"
+    : "Approved approvals"
+  const headingSubtitle = isPendingMode
+    ? "Pending and rejected clock-in / clock-out / break / OT requests."
+    : "Reviewed and approved clock-in / clock-out / break / OT requests. The Δ vs event column shows review delay."
   const [from, setFrom] = useState(initialFrom)
   const [to, setTo] = useState(initialTo)
   const [rows, setRows] = useState<AuditLogRow[]>(initialRows)
@@ -172,7 +197,7 @@ export function ApprovalAuditLog({
         }
         return true
       })
-      .sort((a, b) => b.reviewedAt.localeCompare(a.reviewedAt))
+      .sort((a, b) => (b.reviewedAt ?? "").localeCompare(a.reviewedAt ?? ""))
   }, [rows, search, kindFilter, statusFilter])
 
   return (
@@ -181,14 +206,9 @@ export function ApprovalAuditLog({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h3 className="font-headline text-lg font-semibold text-foreground">
-              Approval audit log
+              {headingTitle}
             </h3>
-            <p className="text-xs text-muted-foreground">
-              Reviewed clock-in / clock-out / break / OT requests. The
-              <span className="font-semibold"> Δ vs event</span> column shows
-              how long after the original event the supervisor reviewed it
-              (positive = delayed approval).
-            </p>
+            <p className="text-xs text-muted-foreground">{headingSubtitle}</p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
             <div>
@@ -220,6 +240,15 @@ export function ApprovalAuditLog({
             </Button>
           </div>
         </div>
+
+        {filterBar ? (
+          <TableFilterBar
+            prefix={filterBar.prefix}
+            projects={filterBar.projects}
+            teams={filterBar.teams}
+            value={filterBar.value}
+          />
+        ) : null}
 
         {error ? (
           <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
@@ -261,8 +290,14 @@ export function ApprovalAuditLog({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All statuses</SelectItem>
-              <SelectItem value="APPROVED">Approved</SelectItem>
-              <SelectItem value="REJECTED">Rejected</SelectItem>
+              {isPendingMode ? (
+                <>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="REJECTED">Rejected</SelectItem>
+                </>
+              ) : (
+                <SelectItem value="APPROVED">Approved</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -370,7 +405,11 @@ export function ApprovalAuditLog({
                       )}
                     </td>
                     <td className="py-2 pr-3 text-xs tabular-nums">
-                      {fmtDateTime(row.reviewedAt)}
+                      {row.reviewedAt ? (
+                        fmtDateTime(row.reviewedAt)
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </td>
                     <td className="py-2 pr-3 text-right text-xs tabular-nums">
                       {fmtDelay(row.delayMinutes)}
@@ -378,10 +417,18 @@ export function ApprovalAuditLog({
                     <td className="py-2 pr-3">
                       <Badge
                         variant={
-                          row.status === "APPROVED" ? "approved" : "rejected"
+                          row.status === "APPROVED"
+                            ? "approved"
+                            : row.status === "REJECTED"
+                              ? "rejected"
+                              : "pending"
                         }
                       >
-                        {row.status === "APPROVED" ? "Approved" : "Rejected"}
+                        {row.status === "APPROVED"
+                          ? "Approved"
+                          : row.status === "REJECTED"
+                            ? "Rejected"
+                            : "Pending"}
                       </Badge>
                     </td>
                   </tr>

@@ -56,11 +56,11 @@ export type PayrollSettingsMinAggregateOutputType = {
   leaveCarryForwardAllowed: boolean | null
   leaveCarryForwardLimitDays: number | null
   leaveCarryForwardExpiryMonths: number | null
-  syncClaimsToXeroOnSubmit: boolean | null
-  syncPayrollToXeroOnSubmit: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   autoApplySocsoEisRelief: boolean | null
+  syncClaimsToXeroOnSubmit: boolean | null
+  syncPayrollToXeroOnSubmit: boolean | null
   ecpPayorAccountNo: string | null
   ecpPayorBic: string | null
 }
@@ -78,11 +78,11 @@ export type PayrollSettingsMaxAggregateOutputType = {
   leaveCarryForwardAllowed: boolean | null
   leaveCarryForwardLimitDays: number | null
   leaveCarryForwardExpiryMonths: number | null
-  syncClaimsToXeroOnSubmit: boolean | null
-  syncPayrollToXeroOnSubmit: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
   autoApplySocsoEisRelief: boolean | null
+  syncClaimsToXeroOnSubmit: boolean | null
+  syncPayrollToXeroOnSubmit: boolean | null
   ecpPayorAccountNo: string | null
   ecpPayorBic: string | null
 }
@@ -100,12 +100,12 @@ export type PayrollSettingsCountAggregateOutputType = {
   leaveCarryForwardAllowed: number
   leaveCarryForwardLimitDays: number
   leaveCarryForwardExpiryMonths: number
-  syncClaimsToXeroOnSubmit: number
-  syncPayrollToXeroOnSubmit: number
-  xeroMapping: number
   createdAt: number
   updatedAt: number
   autoApplySocsoEisRelief: number
+  syncClaimsToXeroOnSubmit: number
+  syncPayrollToXeroOnSubmit: number
+  xeroMapping: number
   ecpPayorAccountNo: number
   ecpPayorBic: number
   _all: number
@@ -141,11 +141,11 @@ export type PayrollSettingsMinAggregateInputType = {
   leaveCarryForwardAllowed?: true
   leaveCarryForwardLimitDays?: true
   leaveCarryForwardExpiryMonths?: true
-  syncClaimsToXeroOnSubmit?: true
-  syncPayrollToXeroOnSubmit?: true
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
+  syncClaimsToXeroOnSubmit?: true
+  syncPayrollToXeroOnSubmit?: true
   ecpPayorAccountNo?: true
   ecpPayorBic?: true
 }
@@ -163,11 +163,11 @@ export type PayrollSettingsMaxAggregateInputType = {
   leaveCarryForwardAllowed?: true
   leaveCarryForwardLimitDays?: true
   leaveCarryForwardExpiryMonths?: true
-  syncClaimsToXeroOnSubmit?: true
-  syncPayrollToXeroOnSubmit?: true
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
+  syncClaimsToXeroOnSubmit?: true
+  syncPayrollToXeroOnSubmit?: true
   ecpPayorAccountNo?: true
   ecpPayorBic?: true
 }
@@ -185,12 +185,12 @@ export type PayrollSettingsCountAggregateInputType = {
   leaveCarryForwardAllowed?: true
   leaveCarryForwardLimitDays?: true
   leaveCarryForwardExpiryMonths?: true
-  syncClaimsToXeroOnSubmit?: true
-  syncPayrollToXeroOnSubmit?: true
-  xeroMapping?: true
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
+  syncClaimsToXeroOnSubmit?: true
+  syncPayrollToXeroOnSubmit?: true
+  xeroMapping?: true
   ecpPayorAccountNo?: true
   ecpPayorBic?: true
   _all?: true
@@ -295,12 +295,12 @@ export type PayrollSettingsGroupByOutputType = {
   leaveCarryForwardAllowed: boolean
   leaveCarryForwardLimitDays: number | null
   leaveCarryForwardExpiryMonths: number | null
-  syncClaimsToXeroOnSubmit: boolean
-  syncPayrollToXeroOnSubmit: boolean
-  xeroMapping: runtime.JsonValue | null
   createdAt: Date
   updatedAt: Date
   autoApplySocsoEisRelief: boolean
+  syncClaimsToXeroOnSubmit: boolean
+  syncPayrollToXeroOnSubmit: boolean
+  xeroMapping: runtime.JsonValue | null
   ecpPayorAccountNo: string | null
   ecpPayorBic: string | null
   _count: PayrollSettingsCountAggregateOutputType | null
@@ -341,12 +341,12 @@ export type PayrollSettingsWhereInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFilter<"PayrollSettings"> | boolean
   leaveCarryForwardLimitDays?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
   leaveCarryForwardExpiryMonths?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
-  syncClaimsToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
-  syncPayrollToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
-  xeroMapping?: Prisma.JsonNullableFilter<"PayrollSettings">
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  xeroMapping?: Prisma.JsonNullableFilter<"PayrollSettings">
   ecpPayorAccountNo?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   ecpPayorBic?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -365,12 +365,12 @@ export type PayrollSettingsOrderByWithRelationInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrderInput | Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrderInput | Prisma.SortOrder
-  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
-  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
-  xeroMapping?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
+  xeroMapping?: Prisma.SortOrderInput | Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrderInput | Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
@@ -393,12 +393,12 @@ export type PayrollSettingsWhereUniqueInput = Prisma.AtLeast<{
   leaveCarryForwardAllowed?: Prisma.BoolFilter<"PayrollSettings"> | boolean
   leaveCarryForwardLimitDays?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
   leaveCarryForwardExpiryMonths?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
-  syncClaimsToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
-  syncPayrollToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
-  xeroMapping?: Prisma.JsonNullableFilter<"PayrollSettings">
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFilter<"PayrollSettings"> | boolean
+  xeroMapping?: Prisma.JsonNullableFilter<"PayrollSettings">
   ecpPayorAccountNo?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   ecpPayorBic?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -417,12 +417,12 @@ export type PayrollSettingsOrderByWithAggregationInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrderInput | Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrderInput | Prisma.SortOrder
-  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
-  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
-  xeroMapping?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
+  xeroMapping?: Prisma.SortOrderInput | Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrderInput | Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PayrollSettingsCountOrderByAggregateInput
@@ -448,12 +448,12 @@ export type PayrollSettingsScalarWhereWithAggregatesInput = {
   leaveCarryForwardAllowed?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
   leaveCarryForwardLimitDays?: Prisma.IntNullableWithAggregatesFilter<"PayrollSettings"> | number | null
   leaveCarryForwardExpiryMonths?: Prisma.IntNullableWithAggregatesFilter<"PayrollSettings"> | number | null
-  syncClaimsToXeroOnSubmit?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
-  syncPayrollToXeroOnSubmit?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
-  xeroMapping?: Prisma.JsonNullableWithAggregatesFilter<"PayrollSettings">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
+  syncClaimsToXeroOnSubmit?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
+  xeroMapping?: Prisma.JsonNullableWithAggregatesFilter<"PayrollSettings">
   ecpPayorAccountNo?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
   ecpPayorBic?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
 }
@@ -470,12 +470,12 @@ export type PayrollSettingsCreateInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
-  syncClaimsToXeroOnSubmit?: boolean
-  syncPayrollToXeroOnSubmit?: boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutPayrollSettingsInput
@@ -494,12 +494,12 @@ export type PayrollSettingsUncheckedCreateInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
-  syncClaimsToXeroOnSubmit?: boolean
-  syncPayrollToXeroOnSubmit?: boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
 }
@@ -516,12 +516,12 @@ export type PayrollSettingsUpdateInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutPayrollSettingsNestedInput
@@ -540,12 +540,12 @@ export type PayrollSettingsUncheckedUpdateInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -563,12 +563,12 @@ export type PayrollSettingsCreateManyInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
-  syncClaimsToXeroOnSubmit?: boolean
-  syncPayrollToXeroOnSubmit?: boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
 }
@@ -585,12 +585,12 @@ export type PayrollSettingsUpdateManyMutationInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -608,12 +608,12 @@ export type PayrollSettingsUncheckedUpdateManyInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -642,12 +642,12 @@ export type PayrollSettingsCountOrderByAggregateInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrder
-  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
-  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
-  xeroMapping?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
+  xeroMapping?: Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrder
 }
@@ -673,11 +673,11 @@ export type PayrollSettingsMaxOrderByAggregateInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrder
-  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
-  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrder
 }
@@ -695,11 +695,11 @@ export type PayrollSettingsMinOrderByAggregateInput = {
   leaveCarryForwardAllowed?: Prisma.SortOrder
   leaveCarryForwardLimitDays?: Prisma.SortOrder
   leaveCarryForwardExpiryMonths?: Prisma.SortOrder
-  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
-  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
+  syncClaimsToXeroOnSubmit?: Prisma.SortOrder
+  syncPayrollToXeroOnSubmit?: Prisma.SortOrder
   ecpPayorAccountNo?: Prisma.SortOrder
   ecpPayorBic?: Prisma.SortOrder
 }
@@ -760,12 +760,12 @@ export type PayrollSettingsCreateWithoutOrganizationInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
-  syncClaimsToXeroOnSubmit?: boolean
-  syncPayrollToXeroOnSubmit?: boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
 }
@@ -782,12 +782,12 @@ export type PayrollSettingsUncheckedCreateWithoutOrganizationInput = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: number | null
   leaveCarryForwardExpiryMonths?: number | null
-  syncClaimsToXeroOnSubmit?: boolean
-  syncPayrollToXeroOnSubmit?: boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: string | null
   ecpPayorBic?: string | null
 }
@@ -820,12 +820,12 @@ export type PayrollSettingsUpdateWithoutOrganizationInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -842,12 +842,12 @@ export type PayrollSettingsUncheckedUpdateWithoutOrganizationInput = {
   leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncClaimsToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  syncPayrollToXeroOnSubmit?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  xeroMapping?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   ecpPayorAccountNo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ecpPayorBic?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -867,12 +867,12 @@ export type PayrollSettingsSelect<ExtArgs extends runtime.Types.Extensions.Inter
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: boolean
   leaveCarryForwardExpiryMonths?: boolean
-  syncClaimsToXeroOnSubmit?: boolean
-  syncPayrollToXeroOnSubmit?: boolean
-  xeroMapping?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   autoApplySocsoEisRelief?: boolean
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
+  xeroMapping?: boolean
   ecpPayorAccountNo?: boolean
   ecpPayorBic?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -893,17 +893,17 @@ export type PayrollSettingsSelectScalar = {
   leaveCarryForwardAllowed?: boolean
   leaveCarryForwardLimitDays?: boolean
   leaveCarryForwardExpiryMonths?: boolean
-  syncClaimsToXeroOnSubmit?: boolean
-  syncPayrollToXeroOnSubmit?: boolean
-  xeroMapping?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   autoApplySocsoEisRelief?: boolean
+  syncClaimsToXeroOnSubmit?: boolean
+  syncPayrollToXeroOnSubmit?: boolean
+  xeroMapping?: boolean
   ecpPayorAccountNo?: boolean
   ecpPayorBic?: boolean
 }
 
-export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "employerIdNumber" | "myCoOrSsmNumber" | "leaveCarryForwardAllowed" | "leaveCarryForwardLimitDays" | "leaveCarryForwardExpiryMonths" | "syncClaimsToXeroOnSubmit" | "syncPayrollToXeroOnSubmit" | "xeroMapping" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief" | "ecpPayorAccountNo" | "ecpPayorBic", ExtArgs["result"]["payrollSettings"]>
+export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "employerIdNumber" | "myCoOrSsmNumber" | "leaveCarryForwardAllowed" | "leaveCarryForwardLimitDays" | "leaveCarryForwardExpiryMonths" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief" | "syncClaimsToXeroOnSubmit" | "syncPayrollToXeroOnSubmit" | "xeroMapping" | "ecpPayorAccountNo" | "ecpPayorBic", ExtArgs["result"]["payrollSettings"]>
 export type PayrollSettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -926,6 +926,9 @@ export type $PayrollSettingsPayload<ExtArgs extends runtime.Types.Extensions.Int
     leaveCarryForwardAllowed: boolean
     leaveCarryForwardLimitDays: number | null
     leaveCarryForwardExpiryMonths: number | null
+    createdAt: Date
+    updatedAt: Date
+    autoApplySocsoEisRelief: boolean
     /**
      * When true, submitting a payroll run posts the reimbursable claims
      * attached to that run to Xero as "Awaiting Payment" bills. UI is
@@ -955,9 +958,6 @@ export type $PayrollSettingsPayload<ExtArgs extends runtime.Types.Extensions.Int
      * sync paths fall back to "skip" with a friendly UI prompt.
      */
     xeroMapping: runtime.JsonValue | null
-    createdAt: Date
-    updatedAt: Date
-    autoApplySocsoEisRelief: boolean
     /**
      * 10-digit Public Bank debiting account used as the payor on the
      * PB ECP Payroll upload file. Required for the
@@ -1354,12 +1354,12 @@ export interface PayrollSettingsFieldRefs {
   readonly leaveCarryForwardAllowed: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
   readonly leaveCarryForwardLimitDays: Prisma.FieldRef<"PayrollSettings", 'Int'>
   readonly leaveCarryForwardExpiryMonths: Prisma.FieldRef<"PayrollSettings", 'Int'>
-  readonly syncClaimsToXeroOnSubmit: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
-  readonly syncPayrollToXeroOnSubmit: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
-  readonly xeroMapping: Prisma.FieldRef<"PayrollSettings", 'Json'>
   readonly createdAt: Prisma.FieldRef<"PayrollSettings", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PayrollSettings", 'DateTime'>
   readonly autoApplySocsoEisRelief: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
+  readonly syncClaimsToXeroOnSubmit: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
+  readonly syncPayrollToXeroOnSubmit: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
+  readonly xeroMapping: Prisma.FieldRef<"PayrollSettings", 'Json'>
   readonly ecpPayorAccountNo: Prisma.FieldRef<"PayrollSettings", 'String'>
   readonly ecpPayorBic: Prisma.FieldRef<"PayrollSettings", 'String'>
 }

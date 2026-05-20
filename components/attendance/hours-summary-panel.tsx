@@ -2,11 +2,16 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react"
 
+import { Badge } from "@/components/attendance/ui/badge"
 import { Button } from "@/components/attendance/ui/button"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/attendance/ui/input"
 import { Label } from "@/components/attendance/ui/label"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  TableFilterBar,
+  type TableFilterValue,
+} from "@/components/attendance/table-filter-bar"
 import {
   EMPTY_BUCKETS,
   formatHm,
@@ -28,6 +33,13 @@ export type HoursSummaryData = {
 
 type LoadAction = (fromIso: string, toIso: string) => Promise<HoursSummaryData>
 
+type FilterBarProps = {
+  prefix: string
+  projects: { id: string; name: string }[]
+  teams: { id: string; name: string; projectName: string }[]
+  value: TableFilterValue
+}
+
 type Props = {
   title?: string
   initialFrom: string
@@ -35,6 +47,7 @@ type Props = {
   initialData: HoursSummaryData
   loadAction: LoadAction
   showEmployeeTable?: boolean
+  filterBar?: FilterBarProps
 }
 
 const BUCKET_META: Array<{
@@ -69,6 +82,7 @@ export function HoursSummaryPanel({
   initialData,
   loadAction,
   showEmployeeTable = false,
+  filterBar,
 }: Props) {
   const [from, setFrom] = useState(initialFrom)
   const [to, setTo] = useState(initialTo)
@@ -120,8 +134,9 @@ export function HoursSummaryPanel({
               {title}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Hours bucketed by Normal / OT / Rest day / Public holiday for the
-              selected range.
+              Normal hours are the worked total. OT, Rest day, and Public
+              holiday are tracked separately and do not count toward expected
+              working hours.
             </p>
           </div>
           <div className="flex flex-wrap items-end gap-2">
@@ -160,6 +175,15 @@ export function HoursSummaryPanel({
           </div>
         </div>
 
+        {filterBar ? (
+          <TableFilterBar
+            prefix={filterBar.prefix}
+            projects={filterBar.projects}
+            teams={filterBar.teams}
+            value={filterBar.value}
+          />
+        ) : null}
+
         {error ? (
           <p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
             {error}
@@ -176,9 +200,15 @@ export function HoursSummaryPanel({
   )
 }
 
-function BucketTotals({ totals }: { totals: HoursBuckets }) {
+function BucketTotals({
+  totals,
+}: {
+  totals: HoursBuckets & { expectedMin?: number }
+}) {
+  const expectedMin = totals.expectedMin ?? 0
+  const shortfall = expectedMin > 0 && totals.normalMin < expectedMin
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
       {BUCKET_META.map((meta) => (
         <div
           key={meta.key}
@@ -192,12 +222,34 @@ function BucketTotals({ totals }: { totals: HoursBuckets }) {
           </p>
         </div>
       ))}
-      <div className="rounded-lg border border-primary/40 bg-primary/5 p-3">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">
-          Total
+      <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Expected
         </p>
-        <p className="mt-1 text-lg font-bold text-primary">
-          {formatHm(totals.totalMin)}
+        <p className="mt-1 text-lg font-bold text-muted-foreground">
+          {formatHm(expectedMin)}
+        </p>
+      </div>
+      <div
+        className={`rounded-lg border p-3 ${
+          shortfall
+            ? "border-tertiary/40 bg-tertiary/5"
+            : "border-primary/40 bg-primary/5"
+        }`}
+      >
+        <p
+          className={`text-[10px] font-semibold uppercase tracking-wider ${
+            shortfall ? "text-tertiary" : "text-primary"
+          }`}
+        >
+          Worked (Normal)
+        </p>
+        <p
+          className={`mt-1 text-lg font-bold ${
+            shortfall ? "text-tertiary" : "text-primary"
+          }`}
+        >
+          {formatHm(totals.normalMin)}
         </p>
       </div>
     </div>
@@ -214,19 +266,23 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
   }
   return (
     <ScrollArea className="max-h-[420px] overflow-auto rounded-md border border-border/40">
-      <table className="w-full min-w-[640px] text-sm">
+      <table className="w-full min-w-[720px] text-sm">
         <thead className="sticky top-0 z-10 bg-card">
           <tr className="border-b border-border/60 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
             <th className="bg-card py-2 pl-3 pr-3 font-semibold">Employee</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">Normal</th>
+            <th className="bg-card py-2 pr-3 text-right font-semibold">Expected</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">OT</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">Rest day</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">PH</th>
-            <th className="bg-card py-2 pr-3 text-right font-semibold">Total</th>
+            <th className="bg-card py-2 pr-3 text-right font-semibold">Status</th>
           </tr>
         </thead>
         <tbody>
           {employees.map((row) => {
+            const expectedMin = row.buckets.expectedMin ?? 0
+            const shortfall =
+              expectedMin > 0 && row.buckets.normalMin < expectedMin
             const isZero = row.buckets.totalMin === 0
             return (
               <tr
@@ -244,6 +300,9 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
                 <td className="py-2 pr-3 text-right tabular-nums">
                   {formatHm(row.buckets.normalMin)}
                 </td>
+                <td className="py-2 pr-3 text-right tabular-nums text-muted-foreground">
+                  {expectedMin > 0 ? formatHm(expectedMin) : "—"}
+                </td>
                 <td className="py-2 pr-3 text-right tabular-nums">
                   {formatHm(row.buckets.otMin)}
                 </td>
@@ -253,8 +312,14 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
                 <td className="py-2 pr-3 text-right tabular-nums">
                   {formatHm(row.buckets.publicHolidayMin)}
                 </td>
-                <td className="py-2 pr-3 text-right font-semibold tabular-nums">
-                  {formatHm(row.buckets.totalMin)}
+                <td className="py-2 pr-3 text-right">
+                  {shortfall ? (
+                    <Badge variant="late">Shortfall</Badge>
+                  ) : expectedMin > 0 ? (
+                    <Badge variant="approved">On target</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
                 </td>
               </tr>
             )

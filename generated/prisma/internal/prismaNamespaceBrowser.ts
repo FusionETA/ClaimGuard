@@ -409,10 +409,10 @@ export const XeroConnectionScalarFieldEnum = {
   connectedByAdminId: 'connectedByAdminId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  reauthorizedAt: 'reauthorizedAt',
   lastReauthVersion: 'lastReauthVersion',
   xeroTrackingCategoryId: 'xeroTrackingCategoryId',
-  xeroTrackingCategoryName: 'xeroTrackingCategoryName'
+  xeroTrackingCategoryName: 'xeroTrackingCategoryName',
+  reauthorizedAt: 'reauthorizedAt'
 } as const
 
 export type XeroConnectionScalarFieldEnum = (typeof XeroConnectionScalarFieldEnum)[keyof typeof XeroConnectionScalarFieldEnum]
@@ -423,7 +423,6 @@ export const XeroProjectScalarFieldEnum = {
   organizationId: 'organizationId',
   xeroConnectionId: 'xeroConnectionId',
   xeroProjectId: 'xeroProjectId',
-  xeroTrackingOptionId: 'xeroTrackingOptionId',
   name: 'name',
   status: 'status',
   createdAt: 'createdAt',
@@ -437,7 +436,8 @@ export const XeroProjectScalarFieldEnum = {
   workingHoursStart: 'workingHoursStart',
   workingHoursEnd: 'workingHoursEnd',
   workingDays: 'workingDays',
-  lunchBreakMinutes: 'lunchBreakMinutes'
+  lunchBreakMinutes: 'lunchBreakMinutes',
+  xeroTrackingOptionId: 'xeroTrackingOptionId'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
@@ -481,7 +481,13 @@ export const AttendanceRecordScalarFieldEnum = {
   projectId: 'projectId',
   selfieUploadedAt: 'selfieUploadedAt',
   xeroSelfieFileId: 'xeroSelfieFileId',
-  remark: 'remark'
+  remark: 'remark',
+  clockInLat: 'clockInLat',
+  clockInLng: 'clockInLng',
+  clockInDistanceMeters: 'clockInDistanceMeters',
+  clockOutLat: 'clockOutLat',
+  clockOutLng: 'clockOutLng',
+  clockOutDistanceMeters: 'clockOutDistanceMeters'
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
@@ -712,12 +718,12 @@ export const PayrollSettingsScalarFieldEnum = {
   leaveCarryForwardAllowed: 'leaveCarryForwardAllowed',
   leaveCarryForwardLimitDays: 'leaveCarryForwardLimitDays',
   leaveCarryForwardExpiryMonths: 'leaveCarryForwardExpiryMonths',
-  syncClaimsToXeroOnSubmit: 'syncClaimsToXeroOnSubmit',
-  syncPayrollToXeroOnSubmit: 'syncPayrollToXeroOnSubmit',
-  xeroMapping: 'xeroMapping',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   autoApplySocsoEisRelief: 'autoApplySocsoEisRelief',
+  syncClaimsToXeroOnSubmit: 'syncClaimsToXeroOnSubmit',
+  syncPayrollToXeroOnSubmit: 'syncPayrollToXeroOnSubmit',
+  xeroMapping: 'xeroMapping',
   ecpPayorAccountNo: 'ecpPayorAccountNo',
   ecpPayorBic: 'ecpPayorBic'
 } as const
@@ -790,16 +796,16 @@ export const PayrollRunScalarFieldEnum = {
   totalCostToEmployer: 'totalCostToEmployer',
   submittedAt: 'submittedAt',
   submittedById: 'submittedById',
-  submittedForApprovalAt: 'submittedForApprovalAt',
-  submittedForApprovalById: 'submittedForApprovalById',
-  approvalRejectionReason: 'approvalRejectionReason',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   lastMutatedAt: 'lastMutatedAt',
-  xeroManualJournalId: 'xeroManualJournalId',
+  approvalRejectionReason: 'approvalRejectionReason',
+  submittedForApprovalAt: 'submittedForApprovalAt',
+  submittedForApprovalById: 'submittedForApprovalById',
   xeroJournalNumber: 'xeroJournalNumber',
-  xeroSyncStatus: 'xeroSyncStatus',
+  xeroManualJournalId: 'xeroManualJournalId',
   xeroSyncError: 'xeroSyncError',
+  xeroSyncStatus: 'xeroSyncStatus',
   xeroSyncedAt: 'xeroSyncedAt'
 } as const
 
@@ -893,7 +899,6 @@ export const PayslipScalarFieldEnum = {
   otPublicHours: 'otPublicHours',
   otPay: 'otPay',
   totalAllowances: 'totalAllowances',
-  totalBenefitsInKind: 'totalBenefitsInKind',
   totalReimbursements: 'totalReimbursements',
   totalDeductions: 'totalDeductions',
   epfEmployee: 'epfEmployee',
@@ -910,7 +915,8 @@ export const PayslipScalarFieldEnum = {
   netPay: 'netPay',
   totalCostToEmployer: 'totalCostToEmployer',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  totalBenefitsInKind: 'totalBenefitsInKind'
 } as const
 
 export type PayslipScalarFieldEnum = (typeof PayslipScalarFieldEnum)[keyof typeof PayslipScalarFieldEnum]
@@ -1204,14 +1210,14 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   organizationId: 'organizationId',
   xeroConnectionId: 'xeroConnectionId',
   xeroProjectId: 'xeroProjectId',
-  xeroTrackingOptionId: 'xeroTrackingOptionId',
   name: 'name',
   status: 'status',
   location: 'location',
   projectManagerId: 'projectManagerId',
   workingHoursStart: 'workingHoursStart',
   workingHoursEnd: 'workingHoursEnd',
-  workingDays: 'workingDays'
+  workingDays: 'workingDays',
+  xeroTrackingOptionId: 'xeroTrackingOptionId'
 } as const
 
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]
@@ -1429,10 +1435,10 @@ export const PayrollRunOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
   submittedById: 'submittedById',
-  submittedForApprovalById: 'submittedForApprovalById',
   approvalRejectionReason: 'approvalRejectionReason',
-  xeroManualJournalId: 'xeroManualJournalId',
+  submittedForApprovalById: 'submittedForApprovalById',
   xeroJournalNumber: 'xeroJournalNumber',
+  xeroManualJournalId: 'xeroManualJournalId',
   xeroSyncError: 'xeroSyncError'
 } as const
 

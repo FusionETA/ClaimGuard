@@ -254,8 +254,8 @@ export type EmployeeImportDraftWhereInput = {
   state?: Prisma.JsonFilter<"EmployeeImportDraft">
   createdAt?: Prisma.DateTimeFilter<"EmployeeImportDraft"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeImportDraft"> | Date | string
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type EmployeeImportDraftOrderByWithRelationInput = {
@@ -268,8 +268,8 @@ export type EmployeeImportDraftOrderByWithRelationInput = {
   state?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  user?: Prisma.UserOrderByWithRelationInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
+  user?: Prisma.UserOrderByWithRelationInput
   _relevance?: Prisma.EmployeeImportDraftOrderByRelevanceInput
 }
 
@@ -287,8 +287,8 @@ export type EmployeeImportDraftWhereUniqueInput = Prisma.AtLeast<{
   state?: Prisma.JsonFilter<"EmployeeImportDraft">
   createdAt?: Prisma.DateTimeFilter<"EmployeeImportDraft"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeImportDraft"> | Date | string
-  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
+  user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id" | "userId_organizationId">
 
 export type EmployeeImportDraftOrderByWithAggregationInput = {
@@ -331,8 +331,8 @@ export type EmployeeImportDraftCreateInput = {
   state: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
-  user: Prisma.UserCreateNestedOneWithoutEmployeeImportDraftsInput
   organization: Prisma.OrganizationCreateNestedOneWithoutEmployeeImportDraftsInput
+  user: Prisma.UserCreateNestedOneWithoutEmployeeImportDraftsInput
 }
 
 export type EmployeeImportDraftUncheckedCreateInput = {
@@ -355,8 +355,8 @@ export type EmployeeImportDraftUpdateInput = {
   state?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeImportDraftsNestedInput
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutEmployeeImportDraftsNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutEmployeeImportDraftsNestedInput
 }
 
 export type EmployeeImportDraftUncheckedUpdateInput = {
@@ -763,8 +763,8 @@ export type EmployeeImportDraftSelect<ExtArgs extends runtime.Types.Extensions.I
   state?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employeeImportDraft"]>
 
 
@@ -783,15 +783,15 @@ export type EmployeeImportDraftSelectScalar = {
 
 export type EmployeeImportDraftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "organizationId" | "fileName" | "step" | "rowCount" | "state" | "createdAt" | "updatedAt", ExtArgs["result"]["employeeImportDraft"]>
 export type EmployeeImportDraftInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
+  user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
 export type $EmployeeImportDraftPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EmployeeImportDraft"
   objects: {
-    user: Prisma.$UserPayload<ExtArgs>
     organization: Prisma.$OrganizationPayload<ExtArgs>
+    user: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1161,8 +1161,8 @@ readonly fields: EmployeeImportDraftFieldRefs;
  */
 export interface Prisma__EmployeeImportDraftClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
