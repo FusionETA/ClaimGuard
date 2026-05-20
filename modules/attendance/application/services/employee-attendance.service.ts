@@ -56,23 +56,23 @@ async function enforceGeofenceForActiveRecord(
   employeeId: string,
   coords: { lat: number; lng: number } | undefined,
   notes: string | undefined,
-): Promise<void> {
-  if (!(await policyEnforcesGeofence(employeeId))) return
-
+): Promise<{ distanceMeters: number | null }> {
   const projectId = await attendanceRepository.getTodayProjectId(employeeId)
-  if (!projectId) return
+  if (!projectId) return { distanceMeters: null }
 
-  const [project, orgId] = await Promise.all([
+  const [project, orgId, enforce] = await Promise.all([
     attendanceRepository.getProjectGeoById(projectId),
     attendanceRepository.getOrganizationIdForUser(employeeId),
+    policyEnforcesGeofence(employeeId),
   ])
-  if (!project) return
+  if (!project) return { distanceMeters: null }
 
   const radius = await resolveGeofenceRadius(orgId)
   const fence = checkGeofence(coords ?? null, project, radius)
-  if (!fence.withinRadius && !notes) {
+  if (enforce && !fence.withinRadius && !notes) {
     throw new Error(OFF_SITE_REMARK_REQUIRED)
   }
+  return { distanceMeters: fence.distanceMeters }
 }
 
 /// Decode a `data:image/jpeg;base64,…` URL and upload it to the org's
@@ -338,13 +338,11 @@ export const employeeAttendanceService = {
     ])
     if (!project) throw new Error("Selected project does not exist")
 
+    const radius = await resolveGeofenceRadius(orgId)
+    const fence = checkGeofence(coords ?? null, project, radius)
     const enforceFence = await policyEnforcesGeofence(employeeId)
-    if (enforceFence) {
-      const radius = await resolveGeofenceRadius(orgId)
-      const fence = checkGeofence(coords ?? null, project, radius)
-      if (!fence.withinRadius && !notes) {
-        throw new Error(OFF_SITE_REMARK_REQUIRED)
-      }
+    if (enforceFence && !fence.withinRadius && !notes) {
+      throw new Error(OFF_SITE_REMARK_REQUIRED)
     }
 
     const location = coords
@@ -356,6 +354,13 @@ export const employeeAttendanceService = {
       location,
       projectId,
       notes,
+      coords
+        ? {
+            lat: coords.lat,
+            lng: coords.lng,
+            distanceMeters: fence.distanceMeters,
+          }
+        : undefined,
     )
 
     // Hourly Worker selfie → Xero Files. Inline (Vercel can't fire-
@@ -382,11 +387,20 @@ export const employeeAttendanceService = {
     coords?: { lat: number; lng: number },
     notes?: string,
   ) {
-    await enforceGeofenceForActiveRecord(employeeId, coords, notes)
+    const { distanceMeters } = await enforceGeofenceForActiveRecord(
+      employeeId,
+      coords,
+      notes,
+    )
     const location = coords
       ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
       : undefined
-    return attendanceRepository.clockOut(employeeId, location, notes)
+    return attendanceRepository.clockOut(
+      employeeId,
+      location,
+      notes,
+      coords ? { lat: coords.lat, lng: coords.lng, distanceMeters } : undefined,
+    )
   },
 
   async startBreak(

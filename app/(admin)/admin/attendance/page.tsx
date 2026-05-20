@@ -13,6 +13,7 @@ import { AdminOverviewTabs } from "@/components/attendance/admin-overview-tabs"
 import { ApprovalAuditLog } from "@/components/attendance/approval-audit-log"
 import { DailyActivityTable } from "@/components/attendance/daily-activity-table"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
+import { OffSiteLogCard } from "@/components/attendance/off-site-log-card"
 import { SupervisorPerformanceCard } from "@/components/attendance/supervisor-performance-card"
 import {
   TableFilterBar,
@@ -30,6 +31,7 @@ import { loadSelfieStorageStatsAction } from "./actions"
 import {
   loadApprovalAuditLogForFiltersAction,
   loadOrgHoursSummaryForFiltersAction,
+  loadPendingRejectedAuditLogForFiltersAction,
 } from "./hours-summary-actions"
 import { SelfieStorageCard } from "./selfie-storage-card"
 
@@ -92,7 +94,9 @@ export default async function AdminAttendancePage({
   const rcFilter = readFilter(params, "rc")
   const hsFilter = readFilter(params, "hs")
   const auFilter = readFilter(params, "au")
+  const prFilter = readFilter(params, "pr")
   const supFilter = readFilter(params, "sup")
+  const osFilter = readFilter(params, "os")
 
   const initialFrom = startOfMonthIso()
   const initialTo = todayIso()
@@ -111,6 +115,8 @@ export default async function AdminAttendancePage({
     dailyActivity,
     supervisorPerformance,
     timezone,
+    initialPendingRejected,
+    offSiteRows,
   ] = await Promise.all([
     adminAttendanceService.getOrgOverview(orgId, null),
     adminAttendanceService.getAggregateStats(
@@ -146,6 +152,7 @@ export default async function AdminAttendancePage({
       auFilter.projectId,
       auFilter.teamId,
       auFilter.q,
+      ["APPROVED"],
     ),
     loadSelfieStorageStatsAction(),
     adminAttendanceService.getDailyActivity(
@@ -166,6 +173,21 @@ export default async function AdminAttendancePage({
         })
       : Promise.resolve([]),
     attendanceRepository.getOrgTimezone(orgId),
+    adminAttendanceService.getApprovalAuditLog(
+      orgId,
+      new Date(initialFrom),
+      new Date(initialTo),
+      prFilter.projectId,
+      prFilter.teamId,
+      prFilter.q,
+      ["PENDING", "REJECTED"],
+    ),
+    adminAttendanceService.getOffSiteClockIns(
+      orgId,
+      osFilter.projectId,
+      osFilter.teamId,
+      osFilter.q,
+    ),
   ])
 
   const presentRate =
@@ -182,6 +204,10 @@ export default async function AdminAttendancePage({
 
   const hoursAction = loadOrgHoursSummaryForFiltersAction.bind(null, hsFilter)
   const auditAction = loadApprovalAuditLogForFiltersAction.bind(null, auFilter)
+  const pendingRejectedAction = loadPendingRejectedAuditLogForFiltersAction.bind(
+    null,
+    prFilter,
+  )
 
   const todayContent = (
     <>
@@ -235,49 +261,37 @@ export default async function AdminAttendancePage({
         </CardContent>
       </Card>
 
-      <div className="space-y-2">
-        <TableFilterBar
-          prefix="da"
-          projects={projectOptions}
-          teams={teamOptions}
-          value={daFilter}
-        />
-        <DailyActivityTable rows={dailyActivity} timezone={timezone} />
-      </div>
+      <DailyActivityTable
+        rows={dailyActivity}
+        timezone={timezone}
+        filterBar={{
+          prefix: "da",
+          projects: projectOptions,
+          teams: teamOptions,
+          value: daFilter,
+        }}
+      />
 
-      <div className="space-y-2">
-        <TableFilterBar
-          prefix="rc"
-          projects={projectOptions}
-          teams={teamOptions}
-          value={rcFilter}
-        />
-        <div className="grid gap-4 lg:grid-cols-3">
-          <RollCallCard
-            title="Late today"
-            accent="tertiary"
-            icon={Clock}
-            people={rollCall.late}
-            emptyText="No one is late today."
-            showLateMeta
-          />
-          <RollCallCard
-            title="On leave today"
-            accent="muted"
-            icon={UmbrellaOff}
-            people={rollCall.onLeave}
-            emptyText="No approved leave today."
-          />
-          <RollCallCard
-            title="Not clocked in"
-            accent="destructive"
-            icon={UserMinus}
-            people={rollCall.notClockedIn}
-            emptyText="Everyone is accounted for."
-            subtitle="Haven't clocked in & not on leave"
-          />
-        </div>
-      </div>
+      <RollCallSection
+        rollCall={rollCall}
+        filterBar={{
+          prefix: "rc",
+          projects: projectOptions,
+          teams: teamOptions,
+          value: rcFilter,
+        }}
+      />
+
+      <OffSiteLogCard
+        rows={offSiteRows}
+        timezone={timezone}
+        filterBar={{
+          prefix: "os",
+          projects: projectOptions,
+          teams: teamOptions,
+          value: osFilter,
+        }}
+      />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
@@ -325,7 +339,7 @@ export default async function AdminAttendancePage({
     </>
   )
 
-  const trendsContent = (
+  const analyticsContent = (
     <>
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
@@ -367,52 +381,66 @@ export default async function AdminAttendancePage({
         </CardContent>
       </Card>
 
-      <div className="space-y-2">
-        <TableFilterBar
-          prefix="hs"
-          projects={projectOptions}
-          teams={teamOptions}
-          value={hsFilter}
-        />
-        <HoursSummaryPanel
-          title="Working hours summary"
-          initialFrom={initialFrom}
-          initialTo={initialTo}
-          initialData={initialHoursSummary}
-          loadAction={hoursAction}
-          showEmployeeTable
-        />
-      </div>
+      <HoursSummaryPanel
+        title="Working hours summary"
+        initialFrom={initialFrom}
+        initialTo={initialTo}
+        initialData={initialHoursSummary}
+        loadAction={hoursAction}
+        showEmployeeTable
+        filterBar={{
+          prefix: "hs",
+          projects: projectOptions,
+          teams: teamOptions,
+          value: hsFilter,
+        }}
+      />
+    </>
+  )
 
-      <div className="space-y-2">
-        <TableFilterBar
-          prefix="au"
-          projects={projectOptions}
-          teams={teamOptions}
-          value={auFilter}
-        />
-        <ApprovalAuditLog
-          initialFrom={initialFrom}
-          initialTo={initialTo}
-          initialRows={initialAudit}
-          loadAction={auditAction}
-          projectId={auFilter.projectId}
-        />
-      </div>
+  const performanceContent = (
+    <>
+      <ApprovalAuditLog
+        initialFrom={initialFrom}
+        initialTo={initialTo}
+        initialRows={initialAudit}
+        loadAction={auditAction}
+        projectId={auFilter.projectId}
+        mode="APPROVED"
+        filterBar={{
+          prefix: "au",
+          projects: projectOptions,
+          teams: teamOptions,
+          value: auFilter,
+        }}
+      />
+
+      <ApprovalAuditLog
+        initialFrom={initialFrom}
+        initialTo={initialTo}
+        initialRows={initialPendingRejected}
+        loadAction={pendingRejectedAction}
+        projectId={prFilter.projectId}
+        mode="PENDING_REJECTED"
+        filterBar={{
+          prefix: "pr",
+          projects: projectOptions,
+          teams: teamOptions,
+          value: prFilter,
+        }}
+      />
 
       {supervisorSettings.enabled ? (
-        <div className="space-y-2">
-          <TableFilterBar
-            prefix="sup"
-            projects={projectOptions}
-            teams={teamOptions}
-            value={supFilter}
-          />
-          <SupervisorPerformanceCard
-            rows={supervisorPerformance}
-            slaMinutes={supervisorSettings.slaMinutes}
-          />
-        </div>
+        <SupervisorPerformanceCard
+          rows={supervisorPerformance}
+          slaMinutes={supervisorSettings.slaMinutes}
+          filterBar={{
+            prefix: "sup",
+            projects: projectOptions,
+            teams: teamOptions,
+            value: supFilter,
+          }}
+        />
       ) : null}
 
       <SelfieStorageCard
@@ -425,10 +453,73 @@ export default async function AdminAttendancePage({
 
   return (
     <div className="space-y-6">
-      <AdminOverviewTabs today={todayContent} trends={trendsContent} />
+      <AdminOverviewTabs
+        today={todayContent}
+        analytics={analyticsContent}
+        performance={performanceContent}
+      />
     </div>
   )
 }
+
+function RollCallSection({
+  rollCall,
+  filterBar,
+}: {
+  rollCall: {
+    late: RollCallPerson[]
+    onLeave: RollCallPerson[]
+    notClockedIn: RollCallPerson[]
+  }
+  filterBar: {
+    prefix: string
+    projects: { id: string; name: string }[]
+    teams: { id: string; name: string; projectName: string }[]
+    value: TableFilterValue
+  }
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle>Roll call</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <TableFilterBar
+          prefix={filterBar.prefix}
+          projects={filterBar.projects}
+          teams={filterBar.teams}
+          value={filterBar.value}
+        />
+        <div className="grid gap-4 lg:grid-cols-3">
+          <RollCallCard
+            title="Late today"
+            accent="tertiary"
+            icon={Clock}
+            people={rollCall.late}
+            emptyText="No one is late today."
+            showLateMeta
+          />
+          <RollCallCard
+            title="On leave today"
+            accent="muted"
+            icon={UmbrellaOff}
+            people={rollCall.onLeave}
+            emptyText="No approved leave today."
+          />
+          <RollCallCard
+            title="Not clocked in"
+            accent="destructive"
+            icon={UserMinus}
+            people={rollCall.notClockedIn}
+            emptyText="Everyone is accounted for."
+            subtitle="Haven't clocked in & not on leave"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 
 const ACCENT_CLASSES: Record<"tertiary" | "muted" | "destructive", string> = {
   tertiary: "bg-tertiary/10 text-tertiary",

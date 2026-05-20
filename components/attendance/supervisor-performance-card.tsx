@@ -1,6 +1,17 @@
 import { AlertTriangle, ThumbsDown } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  TableFilterBar,
+  type TableFilterValue,
+} from "@/components/attendance/table-filter-bar"
+
+type FilterBarProps = {
+  prefix: string
+  projects: { id: string; name: string }[]
+  teams: { id: string; name: string; projectName: string }[]
+  value: TableFilterValue
+}
 
 export type SupervisorPerformanceRow = {
   reviewerId: string
@@ -24,9 +35,11 @@ function fmtDelay(min: number | null): string {
 export function SupervisorPerformanceCard({
   rows,
   slaMinutes,
+  filterBar,
 }: {
   rows: SupervisorPerformanceRow[]
   slaMinutes: number
+  filterBar?: FilterBarProps
 }) {
   const slow = rows
     .filter((r) => r.slowApprovalCount > 0)
@@ -49,7 +62,16 @@ export function SupervisorPerformanceCard({
           {rows.length} supervisor{rows.length === 1 ? "" : "s"}
         </span>
       </CardHeader>
-      <CardContent className="grid gap-4 lg:grid-cols-2">
+      <CardContent className="space-y-4">
+        {filterBar ? (
+          <TableFilterBar
+            prefix={filterBar.prefix}
+            projects={filterBar.projects}
+            teams={filterBar.teams}
+            value={filterBar.value}
+          />
+        ) : null}
+        <div className="grid gap-4 lg:grid-cols-2">
         <PerformanceList
           title="Slow approvals"
           subtitle={`> ${slaMinutes} min`}
@@ -82,6 +104,7 @@ export function SupervisorPerformanceCard({
             )
           }}
         />
+        </div>
       </CardContent>
     </Card>
   )

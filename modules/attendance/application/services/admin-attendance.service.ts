@@ -159,6 +159,20 @@ export const adminAttendanceService = {
     return attendanceRepository.getDailyActivity(orgId, projectId, teamId, q)
   },
 
+  async getOffSiteClockIns(
+    orgId: string | null,
+    projectId?: string | null,
+    teamId?: string | null,
+    q?: string | null,
+  ) {
+    return attendanceRepository.getOffSiteClockInsForToday(
+      orgId,
+      projectId,
+      teamId,
+      q,
+    )
+  },
+
   async overrideAttendanceTimes(
     adminId: string,
     args: {
@@ -203,6 +217,7 @@ export const adminAttendanceService = {
     projectId?: string | null,
     teamId?: string | null,
     q?: string | null,
+    statuses?: Array<"APPROVED" | "REJECTED" | "PENDING">,
   ) {
     return attendanceRepository.getApprovalAuditLog({
       orgId,
@@ -211,6 +226,7 @@ export const adminAttendanceService = {
       projectId,
       teamId,
       q,
+      statuses,
     })
   },
 }

@@ -42,7 +42,6 @@ export type PayslipAvgAggregateOutputType = {
   otPublicHours: runtime.Decimal | null
   otPay: runtime.Decimal | null
   totalAllowances: runtime.Decimal | null
-  totalBenefitsInKind: runtime.Decimal | null
   totalReimbursements: runtime.Decimal | null
   totalDeductions: runtime.Decimal | null
   epfEmployee: runtime.Decimal | null
@@ -58,6 +57,7 @@ export type PayslipAvgAggregateOutputType = {
   grossPay: runtime.Decimal | null
   netPay: runtime.Decimal | null
   totalCostToEmployer: runtime.Decimal | null
+  totalBenefitsInKind: runtime.Decimal | null
 }
 
 export type PayslipSumAggregateOutputType = {
@@ -74,7 +74,6 @@ export type PayslipSumAggregateOutputType = {
   otPublicHours: runtime.Decimal | null
   otPay: runtime.Decimal | null
   totalAllowances: runtime.Decimal | null
-  totalBenefitsInKind: runtime.Decimal | null
   totalReimbursements: runtime.Decimal | null
   totalDeductions: runtime.Decimal | null
   epfEmployee: runtime.Decimal | null
@@ -90,6 +89,7 @@ export type PayslipSumAggregateOutputType = {
   grossPay: runtime.Decimal | null
   netPay: runtime.Decimal | null
   totalCostToEmployer: runtime.Decimal | null
+  totalBenefitsInKind: runtime.Decimal | null
 }
 
 export type PayslipMinAggregateOutputType = {
@@ -116,7 +116,6 @@ export type PayslipMinAggregateOutputType = {
   otPublicHours: runtime.Decimal | null
   otPay: runtime.Decimal | null
   totalAllowances: runtime.Decimal | null
-  totalBenefitsInKind: runtime.Decimal | null
   totalReimbursements: runtime.Decimal | null
   totalDeductions: runtime.Decimal | null
   epfEmployee: runtime.Decimal | null
@@ -134,6 +133,7 @@ export type PayslipMinAggregateOutputType = {
   totalCostToEmployer: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
+  totalBenefitsInKind: runtime.Decimal | null
 }
 
 export type PayslipMaxAggregateOutputType = {
@@ -160,7 +160,6 @@ export type PayslipMaxAggregateOutputType = {
   otPublicHours: runtime.Decimal | null
   otPay: runtime.Decimal | null
   totalAllowances: runtime.Decimal | null
-  totalBenefitsInKind: runtime.Decimal | null
   totalReimbursements: runtime.Decimal | null
   totalDeductions: runtime.Decimal | null
   epfEmployee: runtime.Decimal | null
@@ -178,6 +177,7 @@ export type PayslipMaxAggregateOutputType = {
   totalCostToEmployer: runtime.Decimal | null
   createdAt: Date | null
   updatedAt: Date | null
+  totalBenefitsInKind: runtime.Decimal | null
 }
 
 export type PayslipCountAggregateOutputType = {
@@ -205,7 +205,6 @@ export type PayslipCountAggregateOutputType = {
   otPublicHours: number
   otPay: number
   totalAllowances: number
-  totalBenefitsInKind: number
   totalReimbursements: number
   totalDeductions: number
   epfEmployee: number
@@ -223,6 +222,7 @@ export type PayslipCountAggregateOutputType = {
   totalCostToEmployer: number
   createdAt: number
   updatedAt: number
+  totalBenefitsInKind: number
   _all: number
 }
 
@@ -241,7 +241,6 @@ export type PayslipAvgAggregateInputType = {
   otPublicHours?: true
   otPay?: true
   totalAllowances?: true
-  totalBenefitsInKind?: true
   totalReimbursements?: true
   totalDeductions?: true
   epfEmployee?: true
@@ -257,6 +256,7 @@ export type PayslipAvgAggregateInputType = {
   grossPay?: true
   netPay?: true
   totalCostToEmployer?: true
+  totalBenefitsInKind?: true
 }
 
 export type PayslipSumAggregateInputType = {
@@ -273,7 +273,6 @@ export type PayslipSumAggregateInputType = {
   otPublicHours?: true
   otPay?: true
   totalAllowances?: true
-  totalBenefitsInKind?: true
   totalReimbursements?: true
   totalDeductions?: true
   epfEmployee?: true
@@ -289,6 +288,7 @@ export type PayslipSumAggregateInputType = {
   grossPay?: true
   netPay?: true
   totalCostToEmployer?: true
+  totalBenefitsInKind?: true
 }
 
 export type PayslipMinAggregateInputType = {
@@ -315,7 +315,6 @@ export type PayslipMinAggregateInputType = {
   otPublicHours?: true
   otPay?: true
   totalAllowances?: true
-  totalBenefitsInKind?: true
   totalReimbursements?: true
   totalDeductions?: true
   epfEmployee?: true
@@ -333,6 +332,7 @@ export type PayslipMinAggregateInputType = {
   totalCostToEmployer?: true
   createdAt?: true
   updatedAt?: true
+  totalBenefitsInKind?: true
 }
 
 export type PayslipMaxAggregateInputType = {
@@ -359,7 +359,6 @@ export type PayslipMaxAggregateInputType = {
   otPublicHours?: true
   otPay?: true
   totalAllowances?: true
-  totalBenefitsInKind?: true
   totalReimbursements?: true
   totalDeductions?: true
   epfEmployee?: true
@@ -377,6 +376,7 @@ export type PayslipMaxAggregateInputType = {
   totalCostToEmployer?: true
   createdAt?: true
   updatedAt?: true
+  totalBenefitsInKind?: true
 }
 
 export type PayslipCountAggregateInputType = {
@@ -404,7 +404,6 @@ export type PayslipCountAggregateInputType = {
   otPublicHours?: true
   otPay?: true
   totalAllowances?: true
-  totalBenefitsInKind?: true
   totalReimbursements?: true
   totalDeductions?: true
   epfEmployee?: true
@@ -422,6 +421,7 @@ export type PayslipCountAggregateInputType = {
   totalCostToEmployer?: true
   createdAt?: true
   updatedAt?: true
+  totalBenefitsInKind?: true
   _all?: true
 }
 
@@ -536,7 +536,6 @@ export type PayslipGroupByOutputType = {
   otPublicHours: runtime.Decimal
   otPay: runtime.Decimal
   totalAllowances: runtime.Decimal
-  totalBenefitsInKind: runtime.Decimal
   totalReimbursements: runtime.Decimal
   totalDeductions: runtime.Decimal
   epfEmployee: runtime.Decimal
@@ -554,6 +553,7 @@ export type PayslipGroupByOutputType = {
   totalCostToEmployer: runtime.Decimal
   createdAt: Date
   updatedAt: Date
+  totalBenefitsInKind: runtime.Decimal
   _count: PayslipCountAggregateOutputType | null
   _avg: PayslipAvgAggregateOutputType | null
   _sum: PayslipSumAggregateOutputType | null
@@ -604,7 +604,6 @@ export type PayslipWhereInput = {
   otPublicHours?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -622,6 +621,7 @@ export type PayslipWhereInput = {
   totalCostToEmployer?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   payrollProfile?: Prisma.XOR<Prisma.PayrollProfileNullableScalarRelationFilter, Prisma.PayrollProfileWhereInput> | null
   payrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
@@ -653,7 +653,6 @@ export type PayslipOrderByWithRelationInput = {
   otPublicHours?: Prisma.SortOrder
   otPay?: Prisma.SortOrder
   totalAllowances?: Prisma.SortOrder
-  totalBenefitsInKind?: Prisma.SortOrder
   totalReimbursements?: Prisma.SortOrder
   totalDeductions?: Prisma.SortOrder
   epfEmployee?: Prisma.SortOrder
@@ -671,6 +670,7 @@ export type PayslipOrderByWithRelationInput = {
   totalCostToEmployer?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  totalBenefitsInKind?: Prisma.SortOrder
   employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
   payrollProfile?: Prisma.PayrollProfileOrderByWithRelationInput
   payrollRun?: Prisma.PayrollRunOrderByWithRelationInput
@@ -707,7 +707,6 @@ export type PayslipWhereUniqueInput = Prisma.AtLeast<{
   otPublicHours?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -725,6 +724,7 @@ export type PayslipWhereUniqueInput = Prisma.AtLeast<{
   totalCostToEmployer?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   payrollProfile?: Prisma.XOR<Prisma.PayrollProfileNullableScalarRelationFilter, Prisma.PayrollProfileWhereInput> | null
   payrollRun?: Prisma.XOR<Prisma.PayrollRunScalarRelationFilter, Prisma.PayrollRunWhereInput>
@@ -756,7 +756,6 @@ export type PayslipOrderByWithAggregationInput = {
   otPublicHours?: Prisma.SortOrder
   otPay?: Prisma.SortOrder
   totalAllowances?: Prisma.SortOrder
-  totalBenefitsInKind?: Prisma.SortOrder
   totalReimbursements?: Prisma.SortOrder
   totalDeductions?: Prisma.SortOrder
   epfEmployee?: Prisma.SortOrder
@@ -774,6 +773,7 @@ export type PayslipOrderByWithAggregationInput = {
   totalCostToEmployer?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  totalBenefitsInKind?: Prisma.SortOrder
   _count?: Prisma.PayslipCountOrderByAggregateInput
   _avg?: Prisma.PayslipAvgOrderByAggregateInput
   _max?: Prisma.PayslipMaxOrderByAggregateInput
@@ -809,7 +809,6 @@ export type PayslipScalarWhereWithAggregatesInput = {
   otPublicHours?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -827,6 +826,7 @@ export type PayslipScalarWhereWithAggregatesInput = {
   totalCostToEmployer?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Payslip"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Payslip"> | Date | string
+  totalBenefitsInKind?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipCreateInput = {
@@ -851,7 +851,6 @@ export type PayslipCreateInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -869,6 +868,7 @@ export type PayslipCreateInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipsInput
   payrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipsInput
   payrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipsInput
@@ -900,7 +900,6 @@ export type PayslipUncheckedCreateInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -918,6 +917,7 @@ export type PayslipUncheckedCreateInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   lineItems?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
 }
 
@@ -943,7 +943,6 @@ export type PayslipUpdateInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -961,6 +960,7 @@ export type PayslipUpdateInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipsNestedInput
   payrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipsNestedInput
   payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipsNestedInput
@@ -992,7 +992,6 @@ export type PayslipUncheckedUpdateInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1010,6 +1009,7 @@ export type PayslipUncheckedUpdateInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   lineItems?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
@@ -1038,7 +1038,6 @@ export type PayslipCreateManyInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1056,6 +1055,7 @@ export type PayslipCreateManyInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipUpdateManyMutationInput = {
@@ -1080,7 +1080,6 @@ export type PayslipUpdateManyMutationInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1098,6 +1097,7 @@ export type PayslipUpdateManyMutationInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipUncheckedUpdateManyInput = {
@@ -1125,7 +1125,6 @@ export type PayslipUncheckedUpdateManyInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1143,6 +1142,7 @@ export type PayslipUncheckedUpdateManyInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipListRelationFilter = {
@@ -1191,7 +1191,6 @@ export type PayslipCountOrderByAggregateInput = {
   otPublicHours?: Prisma.SortOrder
   otPay?: Prisma.SortOrder
   totalAllowances?: Prisma.SortOrder
-  totalBenefitsInKind?: Prisma.SortOrder
   totalReimbursements?: Prisma.SortOrder
   totalDeductions?: Prisma.SortOrder
   epfEmployee?: Prisma.SortOrder
@@ -1209,6 +1208,7 @@ export type PayslipCountOrderByAggregateInput = {
   totalCostToEmployer?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  totalBenefitsInKind?: Prisma.SortOrder
 }
 
 export type PayslipAvgOrderByAggregateInput = {
@@ -1225,7 +1225,6 @@ export type PayslipAvgOrderByAggregateInput = {
   otPublicHours?: Prisma.SortOrder
   otPay?: Prisma.SortOrder
   totalAllowances?: Prisma.SortOrder
-  totalBenefitsInKind?: Prisma.SortOrder
   totalReimbursements?: Prisma.SortOrder
   totalDeductions?: Prisma.SortOrder
   epfEmployee?: Prisma.SortOrder
@@ -1241,6 +1240,7 @@ export type PayslipAvgOrderByAggregateInput = {
   grossPay?: Prisma.SortOrder
   netPay?: Prisma.SortOrder
   totalCostToEmployer?: Prisma.SortOrder
+  totalBenefitsInKind?: Prisma.SortOrder
 }
 
 export type PayslipMaxOrderByAggregateInput = {
@@ -1267,7 +1267,6 @@ export type PayslipMaxOrderByAggregateInput = {
   otPublicHours?: Prisma.SortOrder
   otPay?: Prisma.SortOrder
   totalAllowances?: Prisma.SortOrder
-  totalBenefitsInKind?: Prisma.SortOrder
   totalReimbursements?: Prisma.SortOrder
   totalDeductions?: Prisma.SortOrder
   epfEmployee?: Prisma.SortOrder
@@ -1285,6 +1284,7 @@ export type PayslipMaxOrderByAggregateInput = {
   totalCostToEmployer?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  totalBenefitsInKind?: Prisma.SortOrder
 }
 
 export type PayslipMinOrderByAggregateInput = {
@@ -1311,7 +1311,6 @@ export type PayslipMinOrderByAggregateInput = {
   otPublicHours?: Prisma.SortOrder
   otPay?: Prisma.SortOrder
   totalAllowances?: Prisma.SortOrder
-  totalBenefitsInKind?: Prisma.SortOrder
   totalReimbursements?: Prisma.SortOrder
   totalDeductions?: Prisma.SortOrder
   epfEmployee?: Prisma.SortOrder
@@ -1329,6 +1328,7 @@ export type PayslipMinOrderByAggregateInput = {
   totalCostToEmployer?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  totalBenefitsInKind?: Prisma.SortOrder
 }
 
 export type PayslipSumOrderByAggregateInput = {
@@ -1345,7 +1345,6 @@ export type PayslipSumOrderByAggregateInput = {
   otPublicHours?: Prisma.SortOrder
   otPay?: Prisma.SortOrder
   totalAllowances?: Prisma.SortOrder
-  totalBenefitsInKind?: Prisma.SortOrder
   totalReimbursements?: Prisma.SortOrder
   totalDeductions?: Prisma.SortOrder
   epfEmployee?: Prisma.SortOrder
@@ -1361,6 +1360,7 @@ export type PayslipSumOrderByAggregateInput = {
   grossPay?: Prisma.SortOrder
   netPay?: Prisma.SortOrder
   totalCostToEmployer?: Prisma.SortOrder
+  totalBenefitsInKind?: Prisma.SortOrder
 }
 
 export type PayslipScalarRelationFilter = {
@@ -1530,7 +1530,6 @@ export type PayslipCreateWithoutEmployeeProfileInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1548,6 +1547,7 @@ export type PayslipCreateWithoutEmployeeProfileInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   payrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipsInput
   payrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipsInput
   lineItems?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
@@ -1577,7 +1577,6 @@ export type PayslipUncheckedCreateWithoutEmployeeProfileInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1595,6 +1594,7 @@ export type PayslipUncheckedCreateWithoutEmployeeProfileInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   lineItems?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
 }
 
@@ -1652,7 +1652,6 @@ export type PayslipScalarWhereInput = {
   otPublicHours?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1670,6 +1669,7 @@ export type PayslipScalarWhereInput = {
   totalCostToEmployer?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Payslip"> | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipCreateWithoutPayrollProfileInput = {
@@ -1694,7 +1694,6 @@ export type PayslipCreateWithoutPayrollProfileInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1712,6 +1711,7 @@ export type PayslipCreateWithoutPayrollProfileInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipsInput
   payrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipsInput
   lineItems?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
@@ -1741,7 +1741,6 @@ export type PayslipUncheckedCreateWithoutPayrollProfileInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1759,6 +1758,7 @@ export type PayslipUncheckedCreateWithoutPayrollProfileInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   lineItems?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
 }
 
@@ -1810,7 +1810,6 @@ export type PayslipCreateWithoutPayrollRunInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1828,6 +1827,7 @@ export type PayslipCreateWithoutPayrollRunInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipsInput
   payrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipsInput
   lineItems?: Prisma.PayslipLineItemCreateNestedManyWithoutPayslipInput
@@ -1857,7 +1857,6 @@ export type PayslipUncheckedCreateWithoutPayrollRunInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1875,6 +1874,7 @@ export type PayslipUncheckedCreateWithoutPayrollRunInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   lineItems?: Prisma.PayslipLineItemUncheckedCreateNestedManyWithoutPayslipInput
 }
 
@@ -1926,7 +1926,6 @@ export type PayslipCreateWithoutLineItemsInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1944,6 +1943,7 @@ export type PayslipCreateWithoutLineItemsInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayslipsInput
   payrollProfile?: Prisma.PayrollProfileCreateNestedOneWithoutPayslipsInput
   payrollRun: Prisma.PayrollRunCreateNestedOneWithoutPayslipsInput
@@ -1974,7 +1974,6 @@ export type PayslipUncheckedCreateWithoutLineItemsInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1992,6 +1991,7 @@ export type PayslipUncheckedCreateWithoutLineItemsInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipCreateOrConnectWithoutLineItemsInput = {
@@ -2032,7 +2032,6 @@ export type PayslipUpdateWithoutLineItemsInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2050,6 +2049,7 @@ export type PayslipUpdateWithoutLineItemsInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipsNestedInput
   payrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipsNestedInput
   payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipsNestedInput
@@ -2080,7 +2080,6 @@ export type PayslipUncheckedUpdateWithoutLineItemsInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2098,6 +2097,7 @@ export type PayslipUncheckedUpdateWithoutLineItemsInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipCreateManyEmployeeProfileInput = {
@@ -2124,7 +2124,6 @@ export type PayslipCreateManyEmployeeProfileInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2142,6 +2141,7 @@ export type PayslipCreateManyEmployeeProfileInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipUpdateWithoutEmployeeProfileInput = {
@@ -2166,7 +2166,6 @@ export type PayslipUpdateWithoutEmployeeProfileInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2184,6 +2183,7 @@ export type PayslipUpdateWithoutEmployeeProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   payrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipsNestedInput
   payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipsNestedInput
   lineItems?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
@@ -2213,7 +2213,6 @@ export type PayslipUncheckedUpdateWithoutEmployeeProfileInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2231,6 +2230,7 @@ export type PayslipUncheckedUpdateWithoutEmployeeProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   lineItems?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
@@ -2258,7 +2258,6 @@ export type PayslipUncheckedUpdateManyWithoutEmployeeProfileInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2276,6 +2275,7 @@ export type PayslipUncheckedUpdateManyWithoutEmployeeProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipCreateManyPayrollProfileInput = {
@@ -2302,7 +2302,6 @@ export type PayslipCreateManyPayrollProfileInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2320,6 +2319,7 @@ export type PayslipCreateManyPayrollProfileInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipUpdateWithoutPayrollProfileInput = {
@@ -2344,7 +2344,6 @@ export type PayslipUpdateWithoutPayrollProfileInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2362,6 +2361,7 @@ export type PayslipUpdateWithoutPayrollProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipsNestedInput
   payrollRun?: Prisma.PayrollRunUpdateOneRequiredWithoutPayslipsNestedInput
   lineItems?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
@@ -2391,7 +2391,6 @@ export type PayslipUncheckedUpdateWithoutPayrollProfileInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2409,6 +2408,7 @@ export type PayslipUncheckedUpdateWithoutPayrollProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   lineItems?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
@@ -2436,7 +2436,6 @@ export type PayslipUncheckedUpdateManyWithoutPayrollProfileInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2454,6 +2453,7 @@ export type PayslipUncheckedUpdateManyWithoutPayrollProfileInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipCreateManyPayrollRunInput = {
@@ -2480,7 +2480,6 @@ export type PayslipCreateManyPayrollRunInput = {
   otPublicHours?: runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2498,6 +2497,7 @@ export type PayslipCreateManyPayrollRunInput = {
   totalCostToEmployer: runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Date | string
   updatedAt?: Date | string
+  totalBenefitsInKind?: runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 export type PayslipUpdateWithoutPayrollRunInput = {
@@ -2522,7 +2522,6 @@ export type PayslipUpdateWithoutPayrollRunInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2540,6 +2539,7 @@ export type PayslipUpdateWithoutPayrollRunInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayslipsNestedInput
   payrollProfile?: Prisma.PayrollProfileUpdateOneWithoutPayslipsNestedInput
   lineItems?: Prisma.PayslipLineItemUpdateManyWithoutPayslipNestedInput
@@ -2569,7 +2569,6 @@ export type PayslipUncheckedUpdateWithoutPayrollRunInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2587,6 +2586,7 @@ export type PayslipUncheckedUpdateWithoutPayrollRunInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   lineItems?: Prisma.PayslipLineItemUncheckedUpdateManyWithoutPayslipNestedInput
 }
 
@@ -2614,7 +2614,6 @@ export type PayslipUncheckedUpdateManyWithoutPayrollRunInput = {
   otPublicHours?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   otPay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalAllowances?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalReimbursements?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   totalDeductions?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   epfEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2632,6 +2631,7 @@ export type PayslipUncheckedUpdateManyWithoutPayrollRunInput = {
   totalCostToEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  totalBenefitsInKind?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
 }
 
 
@@ -2690,7 +2690,6 @@ export type PayslipSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   otPublicHours?: boolean
   otPay?: boolean
   totalAllowances?: boolean
-  totalBenefitsInKind?: boolean
   totalReimbursements?: boolean
   totalDeductions?: boolean
   epfEmployee?: boolean
@@ -2708,6 +2707,7 @@ export type PayslipSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   totalCostToEmployer?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  totalBenefitsInKind?: boolean
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payrollProfile?: boolean | Prisma.Payslip$payrollProfileArgs<ExtArgs>
   payrollRun?: boolean | Prisma.PayrollRunDefaultArgs<ExtArgs>
@@ -2742,7 +2742,6 @@ export type PayslipSelectScalar = {
   otPublicHours?: boolean
   otPay?: boolean
   totalAllowances?: boolean
-  totalBenefitsInKind?: boolean
   totalReimbursements?: boolean
   totalDeductions?: boolean
   epfEmployee?: boolean
@@ -2760,9 +2759,10 @@ export type PayslipSelectScalar = {
   totalCostToEmployer?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  totalBenefitsInKind?: boolean
 }
 
-export type PayslipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payrollRunId" | "employeeProfileId" | "payrollProfileId" | "snapshotName" | "snapshotEmployeeId" | "snapshotPosition" | "snapshotSalaryType" | "snapshotMonthlySalary" | "snapshotHourlyRate" | "snapshotNationality" | "snapshotIsResident" | "snapshotEpfRates" | "basicPay" | "proratedPay" | "workedHours" | "proratedFactor" | "proratedDays" | "totalWorkingDays" | "otNormalHours" | "otRestHours" | "otPublicHours" | "otPay" | "totalAllowances" | "totalBenefitsInKind" | "totalReimbursements" | "totalDeductions" | "epfEmployee" | "epfEmployer" | "socsoEmployee" | "socsoEmployer" | "eisEmployee" | "eisEmployer" | "pcb" | "hrdf" | "zakat" | "hrdfWage" | "grossPay" | "netPay" | "totalCostToEmployer" | "createdAt" | "updatedAt", ExtArgs["result"]["payslip"]>
+export type PayslipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payrollRunId" | "employeeProfileId" | "payrollProfileId" | "snapshotName" | "snapshotEmployeeId" | "snapshotPosition" | "snapshotSalaryType" | "snapshotMonthlySalary" | "snapshotHourlyRate" | "snapshotNationality" | "snapshotIsResident" | "snapshotEpfRates" | "basicPay" | "proratedPay" | "workedHours" | "proratedFactor" | "proratedDays" | "totalWorkingDays" | "otNormalHours" | "otRestHours" | "otPublicHours" | "otPay" | "totalAllowances" | "totalReimbursements" | "totalDeductions" | "epfEmployee" | "epfEmployer" | "socsoEmployee" | "socsoEmployer" | "eisEmployee" | "eisEmployer" | "pcb" | "hrdf" | "zakat" | "hrdfWage" | "grossPay" | "netPay" | "totalCostToEmployer" | "createdAt" | "updatedAt" | "totalBenefitsInKind", ExtArgs["result"]["payslip"]>
 export type PayslipInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payrollProfile?: boolean | Prisma.Payslip$payrollProfileArgs<ExtArgs>
@@ -2813,14 +2813,6 @@ export type $PayslipPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     otPay: runtime.Decimal
     totalAllowances: runtime.Decimal
     /**
-     * Sum of non-cash BIK / perquisite line items. NOT included in
-     * `grossPay` or `netPay` (employee never receives this in cash),
-     * but DOES feed the PCB taxable base for line items that have
-     * `subjectToPcb: true`. Surfaced separately on the payslip and
-     * in Form EA disclosures.
-     */
-    totalBenefitsInKind: runtime.Decimal
-    /**
      * Sum of REIMBURSEMENT line items (from AltomateHR claims).
      */
     totalReimbursements: runtime.Decimal
@@ -2843,6 +2835,14 @@ export type $PayslipPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     totalCostToEmployer: runtime.Decimal
     createdAt: Date
     updatedAt: Date
+    /**
+     * Sum of non-cash BIK / perquisite line items. NOT included in
+     * `grossPay` or `netPay` (employee never receives this in cash),
+     * but DOES feed the PCB taxable base for line items that have
+     * `subjectToPcb: true`. Surfaced separately on the payslip and
+     * in Form EA disclosures.
+     */
+    totalBenefitsInKind: runtime.Decimal
   }, ExtArgs["result"]["payslip"]>
   composites: {}
 }
@@ -3240,7 +3240,6 @@ export interface PayslipFieldRefs {
   readonly otPublicHours: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly otPay: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly totalAllowances: Prisma.FieldRef<"Payslip", 'Decimal'>
-  readonly totalBenefitsInKind: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly totalReimbursements: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly totalDeductions: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly epfEmployee: Prisma.FieldRef<"Payslip", 'Decimal'>
@@ -3258,6 +3257,7 @@ export interface PayslipFieldRefs {
   readonly totalCostToEmployer: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly createdAt: Prisma.FieldRef<"Payslip", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Payslip", 'DateTime'>
+  readonly totalBenefitsInKind: Prisma.FieldRef<"Payslip", 'Decimal'>
 }
     
 

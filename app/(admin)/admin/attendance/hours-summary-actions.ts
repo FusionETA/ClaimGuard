@@ -66,6 +66,22 @@ export async function loadApprovalAuditLogForFiltersAction(
     filters.projectId,
     filters.teamId,
     filters.q,
+    ["APPROVED"],
+  )
+}
+
+export async function loadPendingRejectedAuditLogForFiltersAction(
+  filters: { projectId: string | null; teamId: string | null; q: string | null },
+  fromIso: string,
+  toIso: string,
+) {
+  return loadApprovalAuditLogAction(
+    fromIso,
+    toIso,
+    filters.projectId,
+    filters.teamId,
+    filters.q,
+    ["PENDING", "REJECTED"],
   )
 }
 
@@ -85,6 +101,7 @@ export async function loadApprovalAuditLogAction(
   projectId?: string | null,
   teamId?: string | null,
   q?: string | null,
+  statuses?: Array<"APPROVED" | "REJECTED" | "PENDING">,
 ) {
   const session = await requirePortalSession("ADMIN")
   const { from, to } = parseRange(fromIso, toIso)
@@ -97,5 +114,6 @@ export async function loadApprovalAuditLogAction(
     projectId ?? null,
     teamId ?? null,
     q ?? null,
+    statuses,
   )
 }

@@ -684,6 +684,7 @@ export const attendanceRepository = {
     location?: string,
     projectId?: string,
     notes?: string,
+    geo?: { lat: number; lng: number; distanceMeters: number | null },
   ): Promise<{ recordId: string; approvalId: string }> {
     const prisma = getClient()
     const now = new Date()
@@ -714,6 +715,13 @@ export const attendanceRepository = {
         projectId: projectId ?? null,
         location: location ?? null,
         ...(notes ? { notes: `CLOCK_IN: ${notes}` } : {}),
+        ...(geo
+          ? {
+              clockInLat: geo.lat,
+              clockInLng: geo.lng,
+              clockInDistanceMeters: geo.distanceMeters,
+            }
+          : {}),
       },
       create: {
         employeeId,
@@ -725,6 +733,13 @@ export const attendanceRepository = {
         projectId: projectId ?? null,
         location: location ?? null,
         notes: notes ? `CLOCK_IN: ${notes}` : null,
+        ...(geo
+          ? {
+              clockInLat: geo.lat,
+              clockInLng: geo.lng,
+              clockInDistanceMeters: geo.distanceMeters,
+            }
+          : {}),
       },
     })
 
@@ -771,6 +786,7 @@ export const attendanceRepository = {
     employeeId: string,
     location?: string,
     notes?: string,
+    geo?: { lat: number; lng: number; distanceMeters: number | null },
   ): Promise<{ recordId: string; approvalId: string }> {
     const prisma = getClient()
     const now = new Date()
@@ -845,6 +861,13 @@ export const attendanceRepository = {
         status: "CLOCKED_OUT",
         location: location ?? existing?.location ?? null,
         ...(appendedNotes !== undefined ? { notes: appendedNotes } : {}),
+        ...(geo
+          ? {
+              clockOutLat: geo.lat,
+              clockOutLng: geo.lng,
+              clockOutDistanceMeters: geo.distanceMeters,
+            }
+          : {}),
       },
       create: {
         employeeId,
@@ -853,6 +876,13 @@ export const attendanceRepository = {
         status: "CLOCKED_OUT",
         location: location ?? null,
         notes: notes ? `CLOCK_OUT: ${notes}` : null,
+        ...(geo
+          ? {
+              clockOutLat: geo.lat,
+              clockOutLng: geo.lng,
+              clockOutDistanceMeters: geo.distanceMeters,
+            }
+          : {}),
       },
     })
 
@@ -1775,6 +1805,15 @@ export const attendanceRepository = {
       timeIn: string | null
       timeOut: string | null
       status: AttendanceStatus | null
+      derivedStatus:
+        | "WORKING"
+        | "ON_BREAK"
+        | "CLOCKED_OUT"
+        | "NOT_CLOCKED_IN"
+        | "ON_LEAVE"
+        | null
+      clockInDistanceMeters: number | null
+      offSite: boolean
     }>
   > {
     if (!orgId) return []
@@ -1816,15 +1855,65 @@ export const attendanceRepository = {
         employeeId: { in: users.map((u) => u.id) },
         ...(projectId ? { projectId } : {}),
       },
-      select: { employeeId: true, status: true, timeIn: true, timeOut: true },
+      select: {
+        id: true,
+        employeeId: true,
+        status: true,
+        timeIn: true,
+        timeOut: true,
+        clockInDistanceMeters: true,
+      },
     })
     const byUser = new Map(records.map((r) => [r.employeeId, r]))
+
+    // Active break overlay: any open BreakSession for today's records.
+    const recordIds = records.map((r) => r.id)
+    const activeBreakRecordIds = new Set<string>()
+    if (recordIds.length > 0) {
+      const breaks = await prisma.breakSession.findMany({
+        where: {
+          attendanceRecordId: { in: recordIds },
+          endedAt: null,
+        },
+        select: { attendanceRecordId: true },
+      })
+      for (const b of breaks) activeBreakRecordIds.add(b.attendanceRecordId)
+    }
+
+    const radius = await this.getGeofenceRadiusForOrganization(orgId)
+    const radiusM = radius ?? 200
+
     return users.map((u) => {
       const rec = byUser.get(u.id)
       const projectName =
         u.employeeProfile?.projectAssignments
           ?.map((a) => a.project.name)
           .join(", ") || null
+
+      const status = (rec?.status as AttendanceStatus | undefined) ?? null
+      let derivedStatus:
+        | "WORKING"
+        | "ON_BREAK"
+        | "CLOCKED_OUT"
+        | "NOT_CLOCKED_IN"
+        | "ON_LEAVE"
+        | null = null
+      if (status === "ON_LEAVE") {
+        derivedStatus = "ON_LEAVE"
+      } else if (status === "CLOCKED_OUT") {
+        derivedStatus = "CLOCKED_OUT"
+      } else if (rec && rec.timeIn && !rec.timeOut) {
+        derivedStatus = rec.id && activeBreakRecordIds.has(rec.id)
+          ? "ON_BREAK"
+          : "WORKING"
+      } else if (!rec || !rec.timeIn) {
+        derivedStatus = "NOT_CLOCKED_IN"
+      }
+
+      const clockInDistanceMeters = rec?.clockInDistanceMeters ?? null
+      const offSite =
+        clockInDistanceMeters != null && clockInDistanceMeters > radiusM
+
       return {
         id: u.id,
         name: u.name,
@@ -1832,9 +1921,78 @@ export const attendanceRepository = {
         project: projectName,
         timeIn: rec?.timeIn?.toISOString() ?? null,
         timeOut: rec?.timeOut?.toISOString() ?? null,
-        status: (rec?.status as AttendanceStatus | undefined) ?? null,
+        status,
+        derivedStatus,
+        clockInDistanceMeters,
+        offSite,
       }
     })
+  },
+
+  async getOffSiteClockInsForToday(
+    orgId: string | null,
+    projectId?: string | null,
+    teamId?: string | null,
+    q?: string | null,
+  ): Promise<
+    Array<{
+      id: string
+      employeeId: string
+      employeeName: string
+      project: string | null
+      timeIn: string | null
+      clockInLat: number | null
+      clockInLng: number | null
+      clockInDistanceMeters: number
+      notes: string | null
+    }>
+  > {
+    if (!orgId) return []
+    const prisma = getClient()
+    const today = startOfDay(new Date())
+
+    const employeeIds = await this.resolveScopedEmployeeIds(orgId, {
+      projectId,
+      teamId,
+      q,
+    })
+    if (employeeIds && employeeIds.length === 0) return []
+
+    const radius = (await this.getGeofenceRadiusForOrganization(orgId)) ?? 200
+
+    const records = await prisma.attendanceRecord.findMany({
+      where: {
+        date: today,
+        clockInDistanceMeters: { gt: radius },
+        ...(projectId ? { projectId } : {}),
+        ...(employeeIds ? { employeeId: { in: employeeIds } } : {}),
+        employee: { organizationId: orgId },
+      },
+      orderBy: { clockInDistanceMeters: "desc" },
+      select: {
+        id: true,
+        employeeId: true,
+        project: true,
+        timeIn: true,
+        clockInLat: true,
+        clockInLng: true,
+        clockInDistanceMeters: true,
+        notes: true,
+        employee: { select: { name: true } },
+      },
+    })
+
+    return records.map((r) => ({
+      id: r.id,
+      employeeId: r.employeeId,
+      employeeName: r.employee?.name ?? r.employeeId,
+      project: r.project,
+      timeIn: r.timeIn?.toISOString() ?? null,
+      clockInLat: r.clockInLat,
+      clockInLng: r.clockInLng,
+      clockInDistanceMeters: r.clockInDistanceMeters ?? 0,
+      notes: r.notes,
+    }))
   },
 
   async getEmployeeMonthSummary(
@@ -2890,17 +3048,18 @@ export const attendanceRepository = {
     projectId?: string | null
     teamId?: string | null
     q?: string | null
+    statuses?: Array<"APPROVED" | "REJECTED" | "PENDING">
   }): Promise<
     Array<{
       id: string
       kind: ApprovalKind
-      status: "APPROVED" | "REJECTED"
+      status: "APPROVED" | "REJECTED" | "PENDING"
       employeeId: string
       employeeName: string
       reviewerId: string | null
       reviewerName: string | null
       eventAt: string | null
-      reviewedAt: string
+      reviewedAt: string | null
       delayMinutes: number | null
       project: string | null
       title: string
@@ -2913,10 +3072,21 @@ export const attendanceRepository = {
     const prisma = getClient()
     const from = startOfDay(args.from)
     const to = endOfDay(args.to)
+    const statuses = args.statuses ?? ["APPROVED", "REJECTED"]
+    const includesPending = statuses.includes("PENDING")
 
     const where: Record<string, unknown> = {
-      status: { in: ["APPROVED", "REJECTED"] },
-      reviewedAt: { gte: from, lte: to },
+      status: { in: statuses },
+    }
+    if (includesPending) {
+      // For PENDING rows reviewedAt is null; filter by submittedAt instead
+      // and accept either condition for mixed queries.
+      where.OR = [
+        { reviewedAt: { gte: from, lte: to } },
+        { status: "PENDING", submittedAt: { gte: from, lte: to } },
+      ]
+    } else {
+      where.reviewedAt = { gte: from, lte: to }
     }
     if (args.orgId) {
       where.employee = { organizationId: args.orgId }
@@ -2933,7 +3103,9 @@ export const attendanceRepository = {
 
     const rows = await prisma.approvalRequest.findMany({
       where,
-      orderBy: { reviewedAt: "desc" },
+      orderBy: includesPending
+        ? [{ reviewedAt: "desc" }, { submittedAt: "desc" }]
+        : { reviewedAt: "desc" },
       take: 500,
       include: {
         employee: { select: { name: true } },
@@ -3030,7 +3202,7 @@ export const attendanceRepository = {
     }
 
     return rows.map((r) => {
-      const reviewedAt = r.reviewedAt!
+      const reviewedAt = r.reviewedAt
       const delayMinutes =
         r.eventAt && reviewedAt
           ? Math.round((reviewedAt.getTime() - r.eventAt.getTime()) / 60000)
@@ -3045,13 +3217,13 @@ export const attendanceRepository = {
       return {
         id: r.id,
         kind: r.kind as ApprovalKind,
-        status: r.status as "APPROVED" | "REJECTED",
+        status: r.status as "APPROVED" | "REJECTED" | "PENDING",
         employeeId: r.employeeId,
         employeeName: r.employee?.name ?? r.employeeId,
         reviewerId: r.reviewerId,
         reviewerName: r.reviewer?.name ?? null,
         eventAt: r.eventAt?.toISOString() ?? null,
-        reviewedAt: reviewedAt.toISOString(),
+        reviewedAt: reviewedAt ? reviewedAt.toISOString() : null,
         delayMinutes,
         project: r.project,
         title: r.title,

@@ -8,53 +8,53 @@ datasource db {
 }
 
 model User {
-  id                     String               @id @default(cuid())
-  email                  String               @unique
-  name                   String
-  role                   UserRole
-  organizationId         String?
-  passwordHash           String
-  avatarUrl              String?
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
-  adminOrganizations     AdminOrganization[]  @relation("AdminOrganizations")
-  approvalChainApprovals ApprovalChainStep[]  @relation("ApproverChain")
-  approvalChainSteps     ApprovalChainStep[]  @relation("EmployeeChain")
-  approvals              ApprovalRequest[]    @relation("EmployeeApprovals")
-  approvalReviews        ApprovalRequest[]    @relation("ReviewerApprovals")
-  attendanceEdits        AttendanceEditLog[]  @relation("AttendanceEditLogActor")
-  breakSessionEdits      BreakSessionEditLog[] @relation("BreakSessionEditLogActor")
-  attendance             AttendanceRecord[]   @relation("EmployeeAttendance")
-  claims                 Claim[]              @relation("EmployeeClaims")
-  reviews                Claim[]              @relation("AdminReviews")
-  claimApprovalEntries   ClaimApprovalEntry[] @relation("UserApprovalEntries")
-  employeeProfile        EmployeeProfile?     @relation("EmployeeProfileUser")
-  employeeImportDrafts   EmployeeImportDraft[]
-  submittedPayrollRuns   PayrollRun[]         @relation("PayrollRunSubmittedBy")
-  submittedForApprovalPayrollRuns PayrollRun[] @relation("PayrollRunSubmittedForApprovalBy")
-  projectManagerOf       ProjectManager[]     @relation("ProjectManagerOf")
-  pushSubscriptions      PushSubscription[]
-  salaryChangesAuthored  SalaryChange[]       @relation("salaryChangeAuthor")
-  organization           Organization?        @relation(fields: [organizationId], references: [id])
-  xeroConnections        XeroConnection[]     @relation("XeroConnectedBy")
-  managedProjects        XeroProject[]        @relation("ProjectManager")
+  id                              String                @id @default(cuid())
+  email                           String                @unique
+  name                            String
+  role                            UserRole
+  organizationId                  String?
+  passwordHash                    String
+  avatarUrl                       String?
+  createdAt                       DateTime              @default(now())
+  updatedAt                       DateTime              @updatedAt
+  adminOrganizations              AdminOrganization[]   @relation("AdminOrganizations")
+  approvalChainApprovals          ApprovalChainStep[]   @relation("ApproverChain")
+  approvalChainSteps              ApprovalChainStep[]   @relation("EmployeeChain")
+  approvals                       ApprovalRequest[]     @relation("EmployeeApprovals")
+  approvalReviews                 ApprovalRequest[]     @relation("ReviewerApprovals")
+  attendanceEdits                 AttendanceEditLog[]   @relation("AttendanceEditLogActor")
+  attendance                      AttendanceRecord[]    @relation("EmployeeAttendance")
+  breakSessionEdits               BreakSessionEditLog[] @relation("BreakSessionEditLogActor")
+  claims                          Claim[]               @relation("EmployeeClaims")
+  reviews                         Claim[]               @relation("AdminReviews")
+  claimApprovalEntries            ClaimApprovalEntry[]  @relation("UserApprovalEntries")
+  employeeImportDrafts            EmployeeImportDraft[]
+  employeeProfile                 EmployeeProfile?      @relation("EmployeeProfileUser")
+  submittedPayrollRuns            PayrollRun[]          @relation("PayrollRunSubmittedBy")
+  submittedForApprovalPayrollRuns PayrollRun[]          @relation("PayrollRunSubmittedForApprovalBy")
+  projectManagerOf                ProjectManager[]      @relation("ProjectManagerOf")
+  pushSubscriptions               PushSubscription[]
+  salaryChangesAuthored           SalaryChange[]        @relation("salaryChangeAuthor")
+  organization                    Organization?         @relation(fields: [organizationId], references: [id])
+  xeroConnections                 XeroConnection[]      @relation("XeroConnectedBy")
+  managedProjects                 XeroProject[]         @relation("ProjectManager")
 
   @@index([organizationId])
 }
 
 model Organization {
-  id                      String              @id @default(cuid())
-  name                    String              @unique
-  claimCutoffDay          Int                 @default(25)
-  createdAt               DateTime            @default(now())
-  updatedAt               DateTime            @updatedAt
-  workingHoursEnd         String              @default("18:00")
-  workingHoursStart       String              @default("09:00")
-  geofenceRadiusMeters    Int                 @default(200)
-  defaultMileageRate      Decimal?            @db.Decimal(10, 4)
-  mileageUnit             MileageUnit         @default(KM)
-  otEnabled               Boolean             @default(true)
-  timezone                String              @default("Asia/Kuala_Lumpur")
+  id                      String                @id @default(cuid())
+  name                    String                @unique
+  claimCutoffDay          Int                   @default(25)
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  workingHoursEnd         String                @default("18:00")
+  workingHoursStart       String                @default("09:00")
+  geofenceRadiusMeters    Int                   @default(200)
+  defaultMileageRate      Decimal?              @db.Decimal(10, 4)
+  mileageUnit             MileageUnit           @default(KM)
+  otEnabled               Boolean               @default(true)
+  timezone                String                @default("Asia/Kuala_Lumpur")
   /// JSON array of ISO 4217 currency codes the admin has enabled for
   /// expense claims (e.g. ["MYR","USD","SGD"]). Empty/null falls back to
   /// just defaultCurrency. The employee claim form picker shows only
@@ -68,19 +68,19 @@ model Organization {
   /// When true, the admin attendance Trends tab renders the supervisor
   /// performance card listing supervisors with slow approvals (any
   /// decision exceeding `supervisorSlaMinutes`) and any rejections.
-  supervisorReportEnabled Boolean             @default(true)
+  supervisorReportEnabled Boolean               @default(true)
   /// SLA threshold (in minutes) used to flag a supervisor approval as
   /// "slow" in the supervisor performance card. Defaults to 60.
-  supervisorSlaMinutes    Int                 @default(60)
+  supervisorSlaMinutes    Int                   @default(60)
   adminMembers            AdminOrganization[]
   apiIntegrations         ApiIntegration[]
   chartAccounts           ChartOfAccount[]
   claims                  Claim[]
   employeeImportDrafts    EmployeeImportDraft[]
   employeePolicies        EmployeePolicy[]
+  payrollAnnualReports    PayrollAnnualReport[]
   payrollCompanyInfo      PayrollCompanyInfo?
   payrollRuns             PayrollRun[]
-  payrollAnnualReports    PayrollAnnualReport[]
   payrollSettings         PayrollSettings?
   users                   User[]
   xeroConnections         XeroConnection[]
@@ -319,12 +319,13 @@ model EmployeeImportDraft {
   state          Json
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, organizationId])
   @@index([userId])
   @@index([updatedAt])
+  @@index([organizationId], map: "EmployeeImportDraft_organizationId_fkey")
 }
 
 model EmployeeProfile {
@@ -372,44 +373,44 @@ model EmployeeProjectAssignment {
 }
 
 model Claim {
-  id                        String               @id @default(cuid())
-  claimNumber               String               @unique
+  id                        String                      @id @default(cuid())
+  claimNumber               String                      @unique
   title                     String
-  description               String               @db.Text
+  description               String                      @db.Text
   category                  ClaimCategory
   organizationId            String?
   chartOfAccountId          String?
-  amount                    Decimal              @db.Decimal(12, 2)
-  currency                  String               @default("USD")
+  amount                    Decimal                     @db.Decimal(12, 2)
+  currency                  String                      @default("USD")
   spentAt                   DateTime
-  submittedAt               DateTime             @default(now())
+  submittedAt               DateTime                    @default(now())
   claimRunMonth             DateTime?
   /// Latest review timestamp. The column gets overwritten on each
   /// supervisor decision and finally on admin review — it's a "last
   /// seen by reviewer" snapshot, not a per-step audit. The full
   /// per-step history lives in `ClaimApprovalEntry`.
-  lastReviewedAt            DateTime?            @map("reviewedAt")
-  status                    ClaimStatus          @default(PENDING)
+  lastReviewedAt            DateTime?                   @map("reviewedAt")
+  status                    ClaimStatus                 @default(PENDING)
   receiptUrl                String?
-  reviewNotes               String?              @db.Text
+  reviewNotes               String?                     @db.Text
   employeeId                String
   /// Latest reviewer's user id (overwritten on each step). For per-step
   /// "who acted at step N" use `ClaimApprovalEntry`.
-  lastReviewerId            String?              @map("reviewerId")
-  xeroBillId                String?              @unique
+  lastReviewerId            String?                     @map("reviewerId")
+  xeroBillId                String?                     @unique
   xeroBillRef               String?
-  xeroSyncStatus            XeroSyncStatus       @default(NOT_SYNCED)
-  xeroSyncError             String?              @db.Text
+  xeroSyncStatus            XeroSyncStatus              @default(NOT_SYNCED)
+  xeroSyncError             String?                     @db.Text
   xeroSyncedAt              DateTime?
-  createdAt                 DateTime             @default(now())
-  updatedAt                 DateTime             @updatedAt
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
   payViaAccountId           String?
-  paymentType               PaymentType          @default(PERSONAL)
-  claimType                 ClaimType            @default(EXPENSE)
-  distance                  Decimal?             @db.Decimal(10, 2)
+  paymentType               PaymentType                 @default(PERSONAL)
+  claimType                 ClaimType                   @default(EXPENSE)
+  distance                  Decimal?                    @db.Decimal(10, 2)
   mileageDestinationAddress String?
   mileageOriginAddress      String?
-  mileageRateUsed           Decimal?             @db.Decimal(10, 4)
+  mileageRateUsed           Decimal?                    @db.Decimal(10, 4)
   mileageUnitUsed           MileageUnit?
   reviewerRole              UserRole?
   /// Project this claim is filed against. Drives approval routing — when
@@ -421,7 +422,7 @@ model Claim {
   /// True when the claim's amount blew past the chart-of-account spend
   /// limit at submission time. The claim is still saved (employees can
   /// submit over-limit), but admins see a visual flag in their queue.
-  exceedsLimit              Boolean              @default(false)
+  exceedsLimit              Boolean                     @default(false)
   /// Xero Files API file id. Set when the receipt was uploaded to Xero
   /// Files (i.e. the claim's chart-of-account is connected to a Xero
   /// tenant). Null for receipts kept on local disk.
@@ -432,12 +433,12 @@ model Claim {
   /// secondary search term. Nullable because legacy claims and
   /// reasonable categories (own-use office supplies) don't need it.
   spendingWith              String?
-  chartOfAccount            ChartOfAccount?      @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
-  employee                  User                 @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
-  organization              Organization?        @relation(fields: [organizationId], references: [id])
-  payViaAccount             ChartOfAccount?      @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
-  project                   XeroProject?         @relation("ClaimProject", fields: [projectId], references: [id])
-  reviewer                  User?                @relation("AdminReviews", fields: [lastReviewerId], references: [id])
+  chartOfAccount            ChartOfAccount?             @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
+  employee                  User                        @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
+  organization              Organization?               @relation(fields: [organizationId], references: [id])
+  payViaAccount             ChartOfAccount?             @relation("ClaimPayViaAccount", fields: [payViaAccountId], references: [id])
+  project                   XeroProject?                @relation("ClaimProject", fields: [projectId], references: [id])
+  reviewer                  User?                       @relation("AdminReviews", fields: [lastReviewerId], references: [id])
   approvalEntries           ClaimApprovalEntry[]
   supportingAttachments     ClaimSupportingAttachment[]
   payrollRunAttachment      PayrollRunClaim?
@@ -463,24 +464,24 @@ model Claim {
 /// when the claim's COA is Xero-linked — they're uploaded to Xero
 /// Files API and associated with the same Bill on claim approval.
 model ClaimSupportingAttachment {
-  id          String   @id @default(cuid())
-  claimId     String
+  id         String   @id @default(cuid())
+  claimId    String
   /// Original filename the user chose. Display only — actual storage
   /// is at `fileUrl` (or via Xero Files when `xeroFileId` is set).
-  fileName    String
+  fileName   String
   /// Local file URL when stored on disk; null when only Xero Files
   /// holds the bytes.
-  fileUrl     String?
+  fileUrl    String?
   /// Xero Files file id when the supporting doc was uploaded to Xero.
   /// Null for files kept on local disk (e.g. legacy claims or claims
   /// whose COA isn't Xero-linked).
-  xeroFileId  String?
-  mimeType    String?
+  xeroFileId String?
+  mimeType   String?
   /// File size in bytes. Used for the UI's per-file pill (e.g.
   /// "234 KB"). Null when unknown.
-  sizeBytes   Int?
-  createdAt   DateTime @default(now())
-  claim       Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  sizeBytes  Int?
+  createdAt  DateTime @default(now())
+  claim      Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
 
   @@index([claimId])
 }
@@ -547,33 +548,26 @@ model ChartOfAccount {
 }
 
 model XeroConnection {
-  id                   String            @id @default(cuid())
-  provider             String            @default("xero")
-  organizationId       String
-  tenantId             String            @unique
-  tenantName           String
-  tenantType           String?
-  accessToken          String            @db.Text
-  refreshToken         String            @db.Text
-  scope                String            @db.Text
-  tokenType            String
-  accessTokenExpiresAt DateTime
-  connectedByAdminId   String?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  /// Wall-clock timestamp of the most recent successful OAuth flow against
-  /// this connection. Distinct from `updatedAt` because silent token
-  /// refreshes also bump `updatedAt`, which would make this read as "last
-  /// connected at" when really only a background refresh happened. Null on
-  /// rows that pre-date this column — UI falls back to `createdAt` in that
-  /// case.
-  reauthorizedAt       DateTime?
+  id                       String            @id @default(cuid())
+  provider                 String            @default("xero")
+  organizationId           String
+  tenantId                 String            @unique
+  tenantName               String
+  tenantType               String?
+  accessToken              String            @db.Text
+  refreshToken             String            @db.Text
+  scope                    String            @db.Text
+  tokenType                String
+  accessTokenExpiresAt     DateTime
+  connectedByAdminId       String?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
   /// Records the most recent value of XERO_REAUTH_VERSION env var that the
   /// admin completed an OAuth flow against. When the env var is bumped (e.g.
   /// scopes expanded), connections whose lastReauthVersion no longer matches
   /// trigger the "Update permissions" button in the admin UI. Null = never
   /// re-auth'd (or env var was unset at the time of original connect).
-  lastReauthVersion    String?
+  lastReauthVersion        String?
   /// Which Xero Tracking Category drives the "Projects" list on our side.
   /// Picked by the admin from the org's active tracking categories. Null
   /// when the admin hasn't picked one yet — projects sync stays no-op
@@ -581,11 +575,18 @@ model XeroConnection {
   /// don't have to round-trip Xero on every settings page load.
   xeroTrackingCategoryId   String?
   xeroTrackingCategoryName String?
-  chartAccounts        ChartOfAccount[]
-  employeeProfiles     EmployeeProfile[]
-  connectedByAdmin     User?             @relation("XeroConnectedBy", fields: [connectedByAdminId], references: [id])
-  organization         Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  xeroProjects         XeroProject[]
+  /// Wall-clock timestamp of the most recent successful OAuth flow against
+  /// this connection. Distinct from `updatedAt` because silent token
+  /// refreshes also bump `updatedAt`, which would make this read as "last
+  /// connected at" when really only a background refresh happened. Null on
+  /// rows that pre-date this column — UI falls back to `createdAt` in that
+  /// case.
+  reauthorizedAt           DateTime?
+  chartAccounts            ChartOfAccount[]
+  employeeProfiles         EmployeeProfile[]
+  connectedByAdmin         User?             @relation("XeroConnectedBy", fields: [connectedByAdminId], references: [id])
+  organization             Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  xeroProjects             XeroProject[]
 
   @@unique([organizationId, tenantId])
   @@index([organizationId])
@@ -594,45 +595,45 @@ model XeroConnection {
 }
 
 model XeroProject {
-  id                String                      @id @default(cuid())
-  organizationId    String
-  xeroConnectionId  String?
+  id                   String                      @id @default(cuid())
+  organizationId       String
+  xeroConnectionId     String?
   /// Legacy: populated for rows synced from the old `/Projects` API
   /// before we switched to tracking categories. Kept for back-compat
   /// so existing claims/attendance FKs keep working. New rows from
   /// the tracking-category sync use `xeroTrackingOptionId` instead.
-  xeroProjectId     String?
+  xeroProjectId        String?
+  name                 String
+  status               String?
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
+  isManual             Boolean                     @default(false)
+  location             String?
+  projectManagerId     String?
+  isDisabled           Boolean                     @default(false)
+  latitude             Float?
+  longitude            Float?
+  workingHoursStart    String?
+  workingHoursEnd      String?
+  workingDays          String?
+  /// Daily lunch break minutes deducted from the (end-start) span when
+  /// computing expected daily working minutes. Defaults to 60.
+  lunchBreakMinutes    Int                         @default(60)
   /// Populated for rows synced from a Xero Tracking Category option.
   /// Coexists with `xeroProjectId` on the same model so legacy rows
   /// and new tracking-option rows live side-by-side. See
   /// `XeroConnection.xeroTrackingCategoryId` for which category this
   /// option belongs to.
   xeroTrackingOptionId String?
-  name              String
-  status            String?
-  createdAt         DateTime                    @default(now())
-  updatedAt         DateTime                    @updatedAt
-  isManual          Boolean                     @default(false)
-  location          String?
-  projectManagerId  String?
-  isDisabled        Boolean                     @default(false)
-  latitude          Float?
-  longitude         Float?
-  workingHoursStart String?
-  workingHoursEnd   String?
-  workingDays       String?
-  /// Daily lunch break minutes deducted from the (end-start) span when
-  /// computing expected daily working minutes. Defaults to 60.
-  lunchBreakMinutes Int                         @default(60)
-  attendanceRecords AttendanceRecord[]          @relation("AttendanceRecordProject")
-  claims            Claim[]                     @relation("ClaimProject")
-  assignedEmployees EmployeeProjectAssignment[]
-  holidays          ProjectHoliday[]
-  projectManagers   ProjectManager[]            @relation("ProjectManagers")
-  teams             Team[]
-  organization      Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  projectManager    User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
-  xeroConnection    XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
+  attendanceRecords    AttendanceRecord[]          @relation("AttendanceRecordProject")
+  claims               Claim[]                     @relation("ClaimProject")
+  assignedEmployees    EmployeeProjectAssignment[]
+  holidays             ProjectHoliday[]
+  projectManagers      ProjectManager[]            @relation("ProjectManagers")
+  teams                Team[]
+  organization         Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectManager       User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  xeroConnection       XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
 
   @@unique([xeroConnectionId, xeroProjectId])
   @@unique([xeroConnectionId, xeroTrackingOptionId])
@@ -670,7 +671,7 @@ model ProjectManager {
 }
 
 model AttendanceRecord {
-  id               String              @id @default(cuid())
+  id               String                @id @default(cuid())
   employeeId       String
   date             DateTime
   timeIn           DateTime?
@@ -679,14 +680,14 @@ model AttendanceRecord {
   lateByMin        Int?
   location         String?
   project          String?
-  status           AttendanceStatus    @default(MISSING)
+  status           AttendanceStatus      @default(MISSING)
   /// System-captured context for the day — off-site warnings prepended
   /// during clock-in/out, etc. Not directly editable by the employee
   /// (those edits go to `remark` instead). Shown to supervisors in the
   /// team detail view.
-  notes            String?             @db.Text
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
+  notes            String?               @db.Text
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
   projectId        String?
   /// When the file was uploaded to Xero. Independent from timeIn so
   /// re-clocks (re-upload) reset the retention window.
@@ -699,12 +700,23 @@ model AttendanceRecord {
   /// out summary popup or the dashboard remark card. Kept separate from
   /// `notes` so off-site context never bleeds into the employee's own
   /// commentary (and vice-versa).
-  remark           String?             @db.Text
+  remark           String?               @db.Text
+  /// Captured GPS coordinates and distance-from-site at clock-in. Null
+  /// when the employee clocked in without granting location (Office
+  /// Workers, web clients without geolocation, or pre-migration rows).
+  /// `clockInDistanceMeters` is haversine distance to the project's
+  /// geofence center (or org default) at the moment of clock-in.
+  clockInLat            Float?
+  clockInLng            Float?
+  clockInDistanceMeters Float?
+  clockOutLat            Float?
+  clockOutLng            Float?
+  clockOutDistanceMeters Float?
   editLogs         AttendanceEditLog[]
-  breakEditLogs    BreakSessionEditLog[]
-  employee         User                @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
-  projectRef       XeroProject?        @relation("AttendanceRecordProject", fields: [projectId], references: [id])
+  employee         User                  @relation("EmployeeAttendance", fields: [employeeId], references: [id], onDelete: Cascade)
+  projectRef       XeroProject?          @relation("AttendanceRecordProject", fields: [projectId], references: [id])
   breaks           BreakSession[]
+  breakEditLogs    BreakSessionEditLog[]
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
@@ -746,12 +758,12 @@ model AttendanceEditLog {
 }
 
 model BreakSession {
-  id                 String           @id @default(cuid())
+  id                 String                @id @default(cuid())
   attendanceRecordId String
   startedAt          DateTime
   endedAt            DateTime?
-  createdAt          DateTime         @default(now())
-  attendanceRecord   AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  createdAt          DateTime              @default(now())
+  attendanceRecord   AttendanceRecord      @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
   editLogs           BreakSessionEditLog[]
 
   @@index([attendanceRecordId])
@@ -782,7 +794,7 @@ model BreakSessionEditLog {
   source             String
   createdAt          DateTime         @default(now())
   attendanceRecord   AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
-  breakSession       BreakSession?    @relation(fields: [breakSessionId], references: [id], onDelete: SetNull)
+  breakSession       BreakSession?    @relation(fields: [breakSessionId], references: [id])
   editor             User             @relation("BreakSessionEditLogActor", fields: [editedById], references: [id])
 
   @@index([attendanceRecordId, createdAt])
@@ -1072,6 +1084,9 @@ model PayrollSettings {
   leaveCarryForwardAllowed      Boolean         @default(false)
   leaveCarryForwardLimitDays    Int?
   leaveCarryForwardExpiryMonths Int?
+  createdAt                     DateTime        @default(now())
+  updatedAt                     DateTime        @updatedAt
+  autoApplySocsoEisRelief       Boolean         @default(true)
   /// When true, submitting a payroll run posts the reimbursable claims
   /// attached to that run to Xero as "Awaiting Payment" bills. UI is
   /// gated behind an active Xero connection — see settings page.
@@ -1081,23 +1096,20 @@ model PayrollSettings {
   syncPayrollToXeroOnSubmit     Boolean         @default(false)
   /// Xero sync mapping config — JSON blob shaped like
   /// `PayrollXeroMapping` (see `modules/payroll/domain/settings.ts`):
-  ///   - `aggregationMode`: "PER_EMPLOYEE" | "SUM_BY_PROJECT" — only
-  ///     affects expense-side debit lines on the manual journal;
-  ///     accruals are always summed.
-  ///   - `trackingCategoryId`: Xero tracking category to use for the
-  ///     "project" dimension on every line (bills + journals).
-  ///   - `accounts`: map of payroll-category → Xero account ID
-  ///     (salary, allowance, directorSalary, directorFee,
-  ///     epfEmployer, socsoEmployer, eisEmployer, hrdfEmployer,
-  ///     accrualEpf, accrualSocso, accrualEis, accrualPcb,
-  ///     accrualSalary, bonus, commission, overtime).
+  /// - `aggregationMode`: "PER_EMPLOYEE" | "SUM_BY_PROJECT" — only
+  /// affects expense-side debit lines on the manual journal;
+  /// accruals are always summed.
+  /// - `trackingCategoryId`: Xero tracking category to use for the
+  /// "project" dimension on every line (bills + journals).
+  /// - `accounts`: map of payroll-category → Xero account ID
+  /// (salary, allowance, directorSalary, directorFee,
+  /// epfEmployer, socsoEmployer, eisEmployer, hrdfEmployer,
+  /// accrualEpf, accrualSocso, accrualEis, accrualPcb,
+  /// accrualSalary, bonus, commission, overtime).
   ///
   /// `null` means the admin hasn't configured Xero sync yet — the
   /// sync paths fall back to "skip" with a friendly UI prompt.
   xeroMapping                   Json?
-  createdAt                     DateTime        @default(now())
-  updatedAt                     DateTime        @updatedAt
-  autoApplySocsoEisRelief       Boolean         @default(true)
   /// 10-digit Public Bank debiting account used as the payor on the
   /// PB ECP Payroll upload file. Required for the
   /// `BANK_PB_ECP_XLSX` report. Null when not configured — the modal
@@ -1159,50 +1171,41 @@ model PayrollCompanyInfo {
 /// admin reviews payslips, then submits → SUBMITTED. Submission is
 /// revertible until the next month's run is submitted.
 model PayrollRun {
-  id                      String                 @id @default(cuid())
-  organizationId          String
-  periodYear              Int
+  id                       String                 @id @default(cuid())
+  organizationId           String
+  periodYear               Int
   /// 1..12
-  periodMonth             Int
-  status                  PayrollRunStatus       @default(DRAFT)
-  totalGross              Decimal?               @db.Decimal(14, 2)
-  totalNet                Decimal?               @db.Decimal(14, 2)
-  totalEmployeeEpf        Decimal?               @db.Decimal(14, 2)
-  totalEmployerEpf        Decimal?               @db.Decimal(14, 2)
-  totalEmployeeSocso      Decimal?               @db.Decimal(14, 2)
-  totalEmployerSocso      Decimal?               @db.Decimal(14, 2)
-  totalEmployeeEis        Decimal?               @db.Decimal(14, 2)
-  totalEmployerEis        Decimal?               @db.Decimal(14, 2)
+  periodMonth              Int
+  status                   PayrollRunStatus       @default(DRAFT)
+  totalGross               Decimal?               @db.Decimal(14, 2)
+  totalNet                 Decimal?               @db.Decimal(14, 2)
+  totalEmployeeEpf         Decimal?               @db.Decimal(14, 2)
+  totalEmployerEpf         Decimal?               @db.Decimal(14, 2)
+  totalEmployeeSocso       Decimal?               @db.Decimal(14, 2)
+  totalEmployerSocso       Decimal?               @db.Decimal(14, 2)
+  totalEmployeeEis         Decimal?               @db.Decimal(14, 2)
+  totalEmployerEis         Decimal?               @db.Decimal(14, 2)
   /// Sum of `Payslip.pcb` across the run. Computed by the PCB
   /// engine (`modules/payroll/domain/pcb.ts`) using LHDN's
   /// normal-remuneration + additional-remuneration formulas, with
   /// zakat offset applied. 0 for employees without an
   /// `incomeTaxNumber` on file (opt-in signal).
-  totalPcb                Decimal?               @default(0.00) @db.Decimal(14, 2)
+  totalPcb                 Decimal?               @default(0.00) @db.Decimal(14, 2)
   /// HRDF (HRD Corp levy) totalled across the run. Computed by
   /// `calcPayslip` when the org has `hrdfEnabled` and the employee is
   /// a Malaysian citizen.
-  totalHrdf               Decimal?               @default(0.00) @db.Decimal(14, 2)
-  totalZakat              Decimal?               @default(0.00) @db.Decimal(14, 2)
-  employeeCount           Int?
+  totalHrdf                Decimal?               @default(0.00) @db.Decimal(14, 2)
+  totalZakat               Decimal?               @default(0.00) @db.Decimal(14, 2)
+  employeeCount            Int?
   /// Only Malaysians count for HRDF eligibility.
-  employeesSubjectToHrdf  Int?                   @default(0)
-  totalWagesSubjectToHrdf Decimal?               @default(0.00) @db.Decimal(14, 2)
+  employeesSubjectToHrdf   Int?                   @default(0)
+  totalWagesSubjectToHrdf  Decimal?               @default(0.00) @db.Decimal(14, 2)
   /// Gross + employer EPF + employer SOCSO + employer EIS + HRDF.
-  totalCostToEmployer     Decimal?               @db.Decimal(14, 2)
-  submittedAt             DateTime?
-  submittedById           String?
-  /// When the run entered PENDING_APPROVAL (admin clicked
-  /// "Submit for approval"). Distinct from `submittedAt`, which is
-  /// when the FINAL approver pushed the run live.
-  submittedForApprovalAt  DateTime?
-  submittedForApprovalById String?
-  /// Optional free-text reason captured when the approver sends a
-  /// pending run back to DRAFT. Stays on the run as an audit trail;
-  /// gets shown to the original submitter when they re-open the run.
-  approvalRejectionReason String?
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
+  totalCostToEmployer      Decimal?               @db.Decimal(14, 2)
+  submittedAt              DateTime?
+  submittedById            String?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
   /// Explicit "last content mutation" timestamp — set whenever an
   /// adjustment is saved/cleared OR a claim is attached/detached,
   /// and CLEARED when payroll is generated.
@@ -1213,37 +1216,42 @@ model PayrollRun {
   /// last generation" (or the run has never been mutated since
   /// migration). Status-only changes (submit / revert) don't touch
   /// this; only content mutations do.
-  lastMutatedAt           DateTime?
-  /// Xero Manual Journal ID returned by the create-journal API
-  /// after the admin approves this run. `null` until the sync runs.
-  xeroManualJournalId     String?                @unique
+  lastMutatedAt            DateTime?
+  /// Optional free-text reason captured when the approver sends a
+  /// pending run back to DRAFT. Stays on the run as an audit trail;
+  /// gets shown to the original submitter when they re-open the run.
+  approvalRejectionReason  String?
+  /// When the run entered PENDING_APPROVAL (admin clicked
+  /// "Submit for approval"). Distinct from `submittedAt`, which is
+  /// when the FINAL approver pushed the run live.
+  submittedForApprovalAt   DateTime?
+  submittedForApprovalById String?
   /// Human-readable journal number / narration (echoed back from
   /// Xero). Surfaced on the run page so admins can find the entry
   /// in Xero quickly.
-  xeroJournalNumber       String?
-  /// Per-run sync status. NOT_SYNCED is the default; transitions to
-  /// SYNCED on success or FAILED if Xero returned an error.
-  xeroSyncStatus          XeroSyncStatus         @default(NOT_SYNCED)
+  xeroJournalNumber        String?
+  /// Xero Manual Journal ID returned by the create-journal API
+  /// after the admin approves this run. `null` until the sync runs.
+  xeroManualJournalId      String?                @unique
   /// Captured error message when xeroSyncStatus = FAILED. Cleared
   /// on a retry that succeeds.
-  xeroSyncError           String?                @db.Text
-  xeroSyncedAt            DateTime?
-  organization            Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  submittedBy             User?                  @relation("PayrollRunSubmittedBy", fields: [submittedById], references: [id])
-  submittedForApprovalBy  User?                  @relation("PayrollRunSubmittedForApprovalBy", fields: [submittedForApprovalById], references: [id])
-  adjustments             PayrollRunAdjustment[]
-  claimAttachments        PayrollRunClaim[]
-  payslips                Payslip[]
-  /// Generated downloadable reports (payroll summary PDF, EPF CSV, PCB
-  /// TXT, etc.). Built on first access from the "Download files" modal
-  /// on the run detail page, then cached. Cascade-deleted with the run;
-  /// also explicitly cleared on revert-to-draft so the next re-submit
-  /// produces fresh files.
-  reports                 PayrollRunReport[]
+  xeroSyncError            String?                @db.Text
+  /// Per-run sync status. NOT_SYNCED is the default; transitions to
+  /// SYNCED on success or FAILED if Xero returned an error.
+  xeroSyncStatus           XeroSyncStatus         @default(NOT_SYNCED)
+  xeroSyncedAt             DateTime?
+  organization             Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submittedBy              User?                  @relation("PayrollRunSubmittedBy", fields: [submittedById], references: [id])
+  submittedForApprovalBy   User?                  @relation("PayrollRunSubmittedForApprovalBy", fields: [submittedForApprovalById], references: [id])
+  adjustments              PayrollRunAdjustment[]
+  claimAttachments         PayrollRunClaim[]
+  reports                  PayrollRunReport[]
+  payslips                 Payslip[]
 
   @@unique([organizationId, periodYear, periodMonth])
   @@index([organizationId, status])
   @@index([submittedById], map: "PayrollRun_submittedById_fkey")
+  @@index([submittedForApprovalById], map: "PayrollRun_submittedForApprovalById_fkey")
 }
 
 /// One row per generated downloadable file for a payroll run (payroll
@@ -1252,34 +1260,34 @@ model PayrollRun {
 /// clicks serve instantly without re-rendering.
 ///
 /// Lifecycle:
-///   - Created on first download click after a run is SUBMITTED.
-///   - Cascade-deleted when the run is deleted.
-///   - Explicitly deleted (+ file removed from disk) when the run is
-///     reverted to draft, so the next re-submit produces fresh files
-///     matching the (potentially changed) numbers.
+/// - Created on first download click after a run is SUBMITTED.
+/// - Cascade-deleted when the run is deleted.
+/// - Explicitly deleted (+ file removed from disk) when the run is
+/// reverted to draft, so the next re-submit produces fresh files
+/// matching the (potentially changed) numbers.
 ///
 /// The actual file bytes live under
-///   `public/uploads/payroll-reports/{runId}/{kind}.{ext}`
+/// `public/uploads/payroll-reports/{runId}/{kind}.{ext}`
 /// and are reachable via `fileUrl`. We keep a `contentHash` for
 /// optional change detection if we later add a "regenerate if changed"
 /// flow.
 model PayrollRunReport {
-  id            String            @id @default(cuid())
-  payrollRunId  String
-  kind          PayrollReportKind
+  id           String            @id @default(cuid())
+  payrollRunId String
+  kind         PayrollReportKind
   /// Final filename the user sees on download
   /// (e.g. `Payroll_Summary_January_2026.pdf`). Derived from the run's
   /// period + the report kind at generation time.
-  fileName      String
+  fileName     String
   /// `/uploads/payroll-reports/{runId}/{kind}.{ext}` — relative to
   /// `public/`, served directly by Next.js' static file handler.
-  fileUrl       String
-  mimeType      String
-  sizeBytes     Int
+  fileUrl      String
+  mimeType     String
+  sizeBytes    Int
   /// SHA-256 of the file bytes, hex-encoded.
-  contentHash   String
-  generatedAt   DateTime          @default(now())
-  payrollRun    PayrollRun        @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  contentHash  String
+  generatedAt  DateTime          @default(now())
+  payrollRun   PayrollRun        @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
 
   @@unique([payrollRunId, kind])
   @@index([payrollRunId])
@@ -1308,37 +1316,6 @@ model PayrollAnnualReport {
 
   @@unique([organizationId, year, kind])
   @@index([organizationId, year])
-}
-
-/// Which annual file a `PayrollAnnualReport` row represents.
-///   FORM_EA_BULK_PDF       — One Form EA per employee, concatenated.
-///   FORM_E_CP8D_PDF        — Employer's annual return cover + CP8D.
-///   CP8D_EMPLOYER_TXT      — `M{employerNo}_{year}.TXT`, employer row.
-///   CP8D_EMPLOYEE_TXT      — `P{employerNo}_{year}.TXT`, one row per emp.
-enum PayrollAnnualReportKind {
-  FORM_EA_BULK_PDF
-  FORM_E_CP8D_PDF
-  CP8D_EMPLOYER_TXT
-  CP8D_EMPLOYEE_TXT
-}
-
-/// Which downloadable file a `PayrollRunReport` row represents. The
-/// modal on the run detail page renders one row per kind, grouped
-/// into Reports / Statutory uploads / Payslips / Bank disbursement
-/// sections.
-enum PayrollReportKind {
-  PAYROLL_SUMMARY_PDF
-  PAYMENT_SCHEDULE_PDF
-  DETAILED_CALCULATIONS_PDF
-  BULK_PAYSLIPS_PDF
-  EPF_CSV
-  SOCSO_EIS_TXT
-  PCB_TXT
-  /// Public Bank ECP Payroll Excel — bulk salary disbursement file.
-  /// Uploaded to PB enterprise > Bulk Payroll. Filename follows
-  /// `{10-digit account}PR{DDMMYY}{NN}.xlsx`. Required configuration:
-  /// `PayrollSettings.ecpPayorAccountNo`.
-  BANK_PB_ECP_XLSX
 }
 
 /// Join row attaching an approved (SYNCED + PERSONAL paymentType)
@@ -1443,12 +1420,6 @@ model Payslip {
   otPublicHours         Decimal           @default(0.00) @db.Decimal(8, 2)
   otPay                 Decimal           @default(0.00) @db.Decimal(12, 2)
   totalAllowances       Decimal           @default(0.00) @db.Decimal(12, 2)
-  /// Sum of non-cash BIK / perquisite line items. NOT included in
-  /// `grossPay` or `netPay` (employee never receives this in cash),
-  /// but DOES feed the PCB taxable base for line items that have
-  /// `subjectToPcb: true`. Surfaced separately on the payslip and
-  /// in Form EA disclosures.
-  totalBenefitsInKind   Decimal           @default(0.00) @db.Decimal(12, 2)
   /// Sum of REIMBURSEMENT line items (from AltomateHR claims).
   totalReimbursements   Decimal           @default(0.00) @db.Decimal(12, 2)
   totalDeductions       Decimal           @default(0.00) @db.Decimal(12, 2)
@@ -1468,6 +1439,12 @@ model Payslip {
   totalCostToEmployer   Decimal           @db.Decimal(12, 2)
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
+  /// Sum of non-cash BIK / perquisite line items. NOT included in
+  /// `grossPay` or `netPay` (employee never receives this in cash),
+  /// but DOES feed the PCB taxable base for line items that have
+  /// `subjectToPcb: true`. Surfaced separately on the payslip and
+  /// in Form EA disclosures.
+  totalBenefitsInKind   Decimal           @default(0.00) @db.Decimal(12, 2)
   employeeProfile       EmployeeProfile   @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
   payrollProfile        PayrollProfile?   @relation(fields: [payrollProfileId], references: [id])
   payrollRun            PayrollRun        @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
@@ -1510,6 +1487,37 @@ model PayslipLineItem {
   payslip        Payslip         @relation(fields: [payslipId], references: [id], onDelete: Cascade)
 
   @@index([payslipId])
+}
+
+/// Which annual file a `PayrollAnnualReport` row represents.
+/// FORM_EA_BULK_PDF       — One Form EA per employee, concatenated.
+/// FORM_E_CP8D_PDF        — Employer's annual return cover + CP8D.
+/// CP8D_EMPLOYER_TXT      — `M{employerNo}_{year}.TXT`, employer row.
+/// CP8D_EMPLOYEE_TXT      — `P{employerNo}_{year}.TXT`, one row per emp.
+enum PayrollAnnualReportKind {
+  FORM_EA_BULK_PDF
+  FORM_E_CP8D_PDF
+  CP8D_EMPLOYER_TXT
+  CP8D_EMPLOYEE_TXT
+}
+
+/// Which downloadable file a `PayrollRunReport` row represents. The
+/// modal on the run detail page renders one row per kind, grouped
+/// into Reports / Statutory uploads / Payslips / Bank disbursement
+/// sections.
+enum PayrollReportKind {
+  PAYROLL_SUMMARY_PDF
+  PAYMENT_SCHEDULE_PDF
+  DETAILED_CALCULATIONS_PDF
+  BULK_PAYSLIPS_PDF
+  EPF_CSV
+  SOCSO_EIS_TXT
+  PCB_TXT
+  /// Public Bank ECP Payroll Excel — bulk salary disbursement file.
+  /// Uploaded to PB enterprise > Bulk Payroll. Filename follows
+  /// `{10-digit account}PR{DDMMYY}{NN}.xlsx`. Required configuration:
+  /// `PayrollSettings.ecpPayorAccountNo`.
+  BANK_PB_ECP_XLSX
 }
 
 enum ClaimApprovalDecision {

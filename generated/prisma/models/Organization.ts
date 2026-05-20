@@ -318,9 +318,9 @@ export type OrganizationWhereInput = {
   claims?: Prisma.ClaimListRelationFilter
   employeeImportDrafts?: Prisma.EmployeeImportDraftListRelationFilter
   employeePolicies?: Prisma.EmployeePolicyListRelationFilter
+  payrollAnnualReports?: Prisma.PayrollAnnualReportListRelationFilter
   payrollCompanyInfo?: Prisma.XOR<Prisma.PayrollCompanyInfoNullableScalarRelationFilter, Prisma.PayrollCompanyInfoWhereInput> | null
   payrollRuns?: Prisma.PayrollRunListRelationFilter
-  payrollAnnualReports?: Prisma.PayrollAnnualReportListRelationFilter
   payrollSettings?: Prisma.XOR<Prisma.PayrollSettingsNullableScalarRelationFilter, Prisma.PayrollSettingsWhereInput> | null
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
@@ -350,9 +350,9 @@ export type OrganizationOrderByWithRelationInput = {
   claims?: Prisma.ClaimOrderByRelationAggregateInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftOrderByRelationAggregateInput
   employeePolicies?: Prisma.EmployeePolicyOrderByRelationAggregateInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportOrderByRelationAggregateInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoOrderByWithRelationInput
   payrollRuns?: Prisma.PayrollRunOrderByRelationAggregateInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportOrderByRelationAggregateInput
   payrollSettings?: Prisma.PayrollSettingsOrderByWithRelationInput
   users?: Prisma.UserOrderByRelationAggregateInput
   xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
@@ -386,9 +386,9 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   claims?: Prisma.ClaimListRelationFilter
   employeeImportDrafts?: Prisma.EmployeeImportDraftListRelationFilter
   employeePolicies?: Prisma.EmployeePolicyListRelationFilter
+  payrollAnnualReports?: Prisma.PayrollAnnualReportListRelationFilter
   payrollCompanyInfo?: Prisma.XOR<Prisma.PayrollCompanyInfoNullableScalarRelationFilter, Prisma.PayrollCompanyInfoWhereInput> | null
   payrollRuns?: Prisma.PayrollRunListRelationFilter
-  payrollAnnualReports?: Prisma.PayrollAnnualReportListRelationFilter
   payrollSettings?: Prisma.XOR<Prisma.PayrollSettingsNullableScalarRelationFilter, Prisma.PayrollSettingsWhereInput> | null
   users?: Prisma.UserListRelationFilter
   xeroConnections?: Prisma.XeroConnectionListRelationFilter
@@ -464,9 +464,9 @@ export type OrganizationCreateInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -496,9 +496,9 @@ export type OrganizationUncheckedCreateInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -528,9 +528,9 @@ export type OrganizationUpdateInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -560,9 +560,9 @@ export type OrganizationUncheckedUpdateInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -944,9 +944,9 @@ export type OrganizationCreateWithoutUsersInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
@@ -975,9 +975,9 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1022,9 +1022,9 @@ export type OrganizationUpdateWithoutUsersInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
@@ -1053,9 +1053,9 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1083,9 +1083,9 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -1114,9 +1114,9 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1161,9 +1161,9 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -1192,9 +1192,9 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1223,9 +1223,9 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -1254,9 +1254,9 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1301,9 +1301,9 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -1332,9 +1332,9 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1363,9 +1363,9 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -1394,9 +1394,9 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1441,9 +1441,9 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -1472,9 +1472,9 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1503,9 +1503,9 @@ export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -1534,9 +1534,9 @@ export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1581,9 +1581,9 @@ export type OrganizationUpdateWithoutEmployeeImportDraftsInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -1612,9 +1612,9 @@ export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1643,9 +1643,9 @@ export type OrganizationCreateWithoutClaimsInput = {
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -1674,9 +1674,9 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1721,9 +1721,9 @@ export type OrganizationUpdateWithoutClaimsInput = {
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -1752,9 +1752,9 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1783,9 +1783,9 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -1814,9 +1814,9 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1861,9 +1861,9 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -1892,9 +1892,9 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1924,9 +1924,9 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
@@ -1955,9 +1955,9 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2002,9 +2002,9 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
@@ -2033,9 +2033,9 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2064,9 +2064,9 @@ export type OrganizationCreateWithoutProjectsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -2095,9 +2095,9 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2142,9 +2142,9 @@ export type OrganizationUpdateWithoutProjectsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -2173,9 +2173,9 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2204,9 +2204,9 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
@@ -2235,9 +2235,9 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2282,9 +2282,9 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
@@ -2313,9 +2313,9 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2344,8 +2344,8 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -2375,8 +2375,8 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2422,8 +2422,8 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -2453,8 +2453,8 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2484,8 +2484,8 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
@@ -2515,8 +2515,8 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
   xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2562,8 +2562,8 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
@@ -2593,8 +2593,8 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
-  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
+  payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
   xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2753,8 +2753,8 @@ export type OrganizationCountOutputType = {
   claims: number
   employeeImportDrafts: number
   employeePolicies: number
-  payrollRuns: number
   payrollAnnualReports: number
+  payrollRuns: number
   users: number
   xeroConnections: number
   projects: number
@@ -2767,8 +2767,8 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   claims?: boolean | OrganizationCountOutputTypeCountClaimsArgs
   employeeImportDrafts?: boolean | OrganizationCountOutputTypeCountEmployeeImportDraftsArgs
   employeePolicies?: boolean | OrganizationCountOutputTypeCountEmployeePoliciesArgs
-  payrollRuns?: boolean | OrganizationCountOutputTypeCountPayrollRunsArgs
   payrollAnnualReports?: boolean | OrganizationCountOutputTypeCountPayrollAnnualReportsArgs
+  payrollRuns?: boolean | OrganizationCountOutputTypeCountPayrollRunsArgs
   users?: boolean | OrganizationCountOutputTypeCountUsersArgs
   xeroConnections?: boolean | OrganizationCountOutputTypeCountXeroConnectionsArgs
   projects?: boolean | OrganizationCountOutputTypeCountProjectsArgs
@@ -2829,15 +2829,15 @@ export type OrganizationCountOutputTypeCountEmployeePoliciesArgs<ExtArgs extends
 /**
  * OrganizationCountOutputType without action
  */
-export type OrganizationCountOutputTypeCountPayrollRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.PayrollRunWhereInput
+export type OrganizationCountOutputTypeCountPayrollAnnualReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PayrollAnnualReportWhereInput
 }
 
 /**
  * OrganizationCountOutputType without action
  */
-export type OrganizationCountOutputTypeCountPayrollAnnualReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.PayrollAnnualReportWhereInput
+export type OrganizationCountOutputTypeCountPayrollRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PayrollRunWhereInput
 }
 
 /**
@@ -2885,9 +2885,9 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   employeeImportDrafts?: boolean | Prisma.Organization$employeeImportDraftsArgs<ExtArgs>
   employeePolicies?: boolean | Prisma.Organization$employeePoliciesArgs<ExtArgs>
+  payrollAnnualReports?: boolean | Prisma.Organization$payrollAnnualReportsArgs<ExtArgs>
   payrollCompanyInfo?: boolean | Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>
   payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
-  payrollAnnualReports?: boolean | Prisma.Organization$payrollAnnualReportsArgs<ExtArgs>
   payrollSettings?: boolean | Prisma.Organization$payrollSettingsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
@@ -2924,9 +2924,9 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   employeeImportDrafts?: boolean | Prisma.Organization$employeeImportDraftsArgs<ExtArgs>
   employeePolicies?: boolean | Prisma.Organization$employeePoliciesArgs<ExtArgs>
+  payrollAnnualReports?: boolean | Prisma.Organization$payrollAnnualReportsArgs<ExtArgs>
   payrollCompanyInfo?: boolean | Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>
   payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
-  payrollAnnualReports?: boolean | Prisma.Organization$payrollAnnualReportsArgs<ExtArgs>
   payrollSettings?: boolean | Prisma.Organization$payrollSettingsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
   xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
@@ -2943,9 +2943,9 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     claims: Prisma.$ClaimPayload<ExtArgs>[]
     employeeImportDrafts: Prisma.$EmployeeImportDraftPayload<ExtArgs>[]
     employeePolicies: Prisma.$EmployeePolicyPayload<ExtArgs>[]
+    payrollAnnualReports: Prisma.$PayrollAnnualReportPayload<ExtArgs>[]
     payrollCompanyInfo: Prisma.$PayrollCompanyInfoPayload<ExtArgs> | null
     payrollRuns: Prisma.$PayrollRunPayload<ExtArgs>[]
-    payrollAnnualReports: Prisma.$PayrollAnnualReportPayload<ExtArgs>[]
     payrollSettings: Prisma.$PayrollSettingsPayload<ExtArgs> | null
     users: Prisma.$UserPayload<ExtArgs>[]
     xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
@@ -3335,9 +3335,9 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   claims<T extends Prisma.Organization$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employeeImportDrafts<T extends Prisma.Organization$employeeImportDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$employeeImportDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeImportDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employeePolicies<T extends Prisma.Organization$employeePoliciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$employeePoliciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeePolicyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  payrollAnnualReports<T extends Prisma.Organization$payrollAnnualReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollAnnualReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollAnnualReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payrollCompanyInfo<T extends Prisma.Organization$payrollCompanyInfoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>>): Prisma.Prisma__PayrollCompanyInfoClient<runtime.Types.Result.GetResult<Prisma.$PayrollCompanyInfoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   payrollRuns<T extends Prisma.Organization$payrollRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  payrollAnnualReports<T extends Prisma.Organization$payrollAnnualReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollAnnualReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollAnnualReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payrollSettings<T extends Prisma.Organization$payrollSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollSettingsArgs<ExtArgs>>): Prisma.Prisma__PayrollSettingsClient<runtime.Types.Result.GetResult<Prisma.$PayrollSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   users<T extends Prisma.Organization$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   xeroConnections<T extends Prisma.Organization$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3879,6 +3879,30 @@ export type Organization$employeePoliciesArgs<ExtArgs extends runtime.Types.Exte
 }
 
 /**
+ * Organization.payrollAnnualReports
+ */
+export type Organization$payrollAnnualReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PayrollAnnualReport
+   */
+  select?: Prisma.PayrollAnnualReportSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PayrollAnnualReport
+   */
+  omit?: Prisma.PayrollAnnualReportOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PayrollAnnualReportInclude<ExtArgs> | null
+  where?: Prisma.PayrollAnnualReportWhereInput
+  orderBy?: Prisma.PayrollAnnualReportOrderByWithRelationInput | Prisma.PayrollAnnualReportOrderByWithRelationInput[]
+  cursor?: Prisma.PayrollAnnualReportWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PayrollAnnualReportScalarFieldEnum | Prisma.PayrollAnnualReportScalarFieldEnum[]
+}
+
+/**
  * Organization.payrollCompanyInfo
  */
 export type Organization$payrollCompanyInfoArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3919,30 +3943,6 @@ export type Organization$payrollRunsArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.PayrollRunScalarFieldEnum | Prisma.PayrollRunScalarFieldEnum[]
-}
-
-/**
- * Organization.payrollAnnualReports
- */
-export type Organization$payrollAnnualReportsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the PayrollAnnualReport
-   */
-  select?: Prisma.PayrollAnnualReportSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the PayrollAnnualReport
-   */
-  omit?: Prisma.PayrollAnnualReportOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.PayrollAnnualReportInclude<ExtArgs> | null
-  where?: Prisma.PayrollAnnualReportWhereInput
-  orderBy?: Prisma.PayrollAnnualReportOrderByWithRelationInput | Prisma.PayrollAnnualReportOrderByWithRelationInput[]
-  cursor?: Prisma.PayrollAnnualReportWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.PayrollAnnualReportScalarFieldEnum | Prisma.PayrollAnnualReportScalarFieldEnum[]
 }
 
 /**
