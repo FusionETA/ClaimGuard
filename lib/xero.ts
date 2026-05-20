@@ -880,6 +880,21 @@ export async function getOrCreateAttendanceSelfieFolder(args: {
   })
 }
 
+const XERO_LEAVE_ATTACHMENTS_FOLDER_NAME = "Leave Attachments"
+
+/// Look up — or create — the "Leave Attachments" folder in the given
+/// Xero tenant. Used to file MC slips and supporting documents
+/// uploaded with leave applications.
+export async function getOrCreateLeaveAttachmentsFolder(args: {
+  accessToken: string
+  tenantId: string
+}): Promise<string | undefined> {
+  return getOrCreateXeroFolder({
+    ...args,
+    folderName: XERO_LEAVE_ATTACHMENTS_FOLDER_NAME,
+  })
+}
+
 /**
  * Delete a file from Xero Files. Throws on non-2xx so the caller (e.g.
  * the retention cron) can log per-file failures and keep going.

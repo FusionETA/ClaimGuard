@@ -1,6 +1,7 @@
 import Link from "next/link"
+import type { Route } from "next"
 import { redirect } from "next/navigation"
-import { ArrowRight, ClipboardCheck, CircleDollarSign, Clock3, FileCheck2, Wallet } from "lucide-react"
+import { ArrowRight, CalendarDays, ClipboardCheck, CircleDollarSign, Clock3, FileCheck2, Wallet } from "lucide-react"
 
 import { MetricCard } from "@/components/claims/metric-card"
 import { SpendLimitsCard } from "@/components/claims/spend-limits-card"
@@ -12,6 +13,7 @@ import { getPrismaClient } from "@/lib/prisma"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 import { countPendingClaimsForSupervisor } from "@/modules/claims/application/services/claim-workflow.service"
+import { countPendingApprovalsForReviewer as countPendingLeaveApprovalsForReviewer } from "@/modules/leave/application/services/leave-application.service"
 import type { ClockEventLite } from "@/modules/attendance/domain/models"
 import {
   DEFAULT_MODULE_ACCESS,
@@ -68,6 +70,7 @@ export default async function EmployeeDashboardPage() {
     projects,
     pendingApprovals,
     pendingClaimApprovals,
+    pendingLeaveApprovals,
     claimSubmissionData,
     profile,
     payslipPageData,
@@ -83,6 +86,9 @@ export default async function EmployeeDashboardPage() {
       : Promise.resolve(0),
     isSupervisor && moduleAccess.claims
       ? countPendingClaimsForSupervisor(session.email)
+      : Promise.resolve(0),
+    isSupervisor && moduleAccess.leave
+      ? countPendingLeaveApprovalsForReviewer(session.userId)
       : Promise.resolve(0),
     moduleAccess.claims
       ? getEmployeeClaimSubmissionData()
@@ -112,6 +118,11 @@ export default async function EmployeeDashboardPage() {
   const showSupervisorAttendanceCard =
     isSupervisor && moduleAccess.attendance
   const showSupervisorClaimsCard = isSupervisor && moduleAccess.claims
+  const showSupervisorLeaveCard = isSupervisor && moduleAccess.leave
+  const supervisorCardCount =
+    Number(showSupervisorAttendanceCard) +
+    Number(showSupervisorClaimsCard) +
+    Number(showSupervisorLeaveCard)
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -152,12 +163,14 @@ export default async function EmployeeDashboardPage() {
         </section>
       ) : null}
 
-      {showSupervisorAttendanceCard || showSupervisorClaimsCard ? (
+      {supervisorCardCount > 0 ? (
         <div
           className={
-            showSupervisorAttendanceCard && showSupervisorClaimsCard
-              ? "grid gap-3 sm:grid-cols-2"
-              : "grid gap-3"
+            supervisorCardCount === 1
+              ? "grid gap-3"
+              : supervisorCardCount === 2
+                ? "grid gap-3 sm:grid-cols-2"
+                : "grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
           }
         >
           {showSupervisorAttendanceCard ? (
@@ -207,6 +220,33 @@ export default async function EmployeeDashboardPage() {
                     {pendingClaimApprovals === 0
                       ? "All caught up"
                       : `${pendingClaimApprovals} waiting for your review`}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </Card>
+            </Link>
+          ) : null}
+
+          {showSupervisorLeaveCard ? (
+            <Link
+              href={"/employee/leave/approvals" as Route}
+              className="attendance-module !bg-transparent block"
+            >
+              <Card className="flex items-center gap-3 p-4">
+                <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <CalendarDays className="h-5 w-5" />
+                  {pendingLeaveApprovals > 0 ? (
+                    <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                      {pendingLeaveApprovals > 99 ? "99+" : pendingLeaveApprovals}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-foreground">Leave approvals</p>
+                  <p className="text-xs text-muted-foreground">
+                    {pendingLeaveApprovals === 0
+                      ? "All caught up"
+                      : `${pendingLeaveApprovals} waiting for your review`}
                   </p>
                 </div>
                 <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />

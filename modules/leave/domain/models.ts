@@ -66,6 +66,8 @@ export type LeaveApplicationView = {
   duration: LeaveDuration
   totalDays: number
   reason: string | null
+  attachmentUrl: string | null
+  attachmentName: string | null
   status: LeaveStatus
   currentStep: number
   approvals: LeaveApprovalEntry[]

@@ -12,6 +12,7 @@ import {
   unarchiveLeaveTypeAction,
   updateLeaveTypeAction,
 } from "@/app/(admin)/admin/leave/settings/actions"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -30,6 +31,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 type LeaveTypeRow = {
   id: string
@@ -177,72 +186,76 @@ function LeaveTypesCard(props: {
       <CardHeader>
         <CardTitle>Leave types</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {props.leaveTypes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="px-6 pb-6 text-sm text-muted-foreground">
             No leave types yet. Create one to get started.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-muted-foreground">
-                <tr>
-                  <th className="py-2">Code</th>
-                  <th>Name</th>
-                  <th>Paid</th>
-                  <th>Accrual</th>
-                  <th>Default</th>
-                  <th>Carry FWD</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {props.leaveTypes.map((t) => {
-                  const isProtected = t.code.toUpperCase() === "UNPAID"
-                  return (
-                    <tr key={t.id} className={t.archivedAt ? "opacity-60" : ""}>
-                      <td className="py-2 font-mono">{t.code}</td>
-                      <td>{t.name}</td>
-                      <td>{t.paid ? "Paid" : "Unpaid"}</td>
-                      <td>{t.accrualMethod === "PRO_RATED" ? "Pro-rated" : "Lump sum"}</td>
-                      <td>{t.paid ? t.defaultDays : "—"}</td>
-                      <td>{t.carryForward ? "Yes" : "No"}</td>
-                      <td className="text-right">
-                        {isProtected ? (
-                          <span className="text-xs text-muted-foreground">System default</span>
-                        ) : (
-                          <>
-                            <Button variant="outline" size="sm" onClick={() => props.onEdit(t)}>
-                              Edit
-                            </Button>{" "}
-                            {t.archivedAt ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={pending}
-                                onClick={() => startTransition(() => unarchiveLeaveTypeAction(t.id))}
-                              >
-                                Restore
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={pending}
-                                onClick={() => startTransition(() => archiveLeaveTypeAction(t.id))}
-                              >
-                                Archive
-                              </Button>
-                            )}
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Code</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Paid</TableHead>
+                <TableHead>Accrual</TableHead>
+                <TableHead>Default</TableHead>
+                <TableHead>Carry FWD</TableHead>
+                <TableHead className="text-right"> </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {props.leaveTypes.map((t) => {
+                const isProtected = t.code.toUpperCase() === "UNPAID"
+                return (
+                  <TableRow key={t.id} className={t.archivedAt ? "opacity-60" : ""}>
+                    <TableCell className="font-mono text-xs font-bold">{t.code}</TableCell>
+                    <TableCell>{t.name}</TableCell>
+                    <TableCell>
+                      <Badge variant={t.paid ? "paid" : "outline"}>
+                        {t.paid ? "Paid" : "Unpaid"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {t.accrualMethod === "PRO_RATED" ? "Pro-rated" : "Lump sum"}
+                    </TableCell>
+                    <TableCell>{t.paid ? t.defaultDays : "—"}</TableCell>
+                    <TableCell>{t.carryForward ? "Yes" : "No"}</TableCell>
+                    <TableCell className="text-right">
+                      {isProtected ? (
+                        <span className="text-xs text-muted-foreground">System default</span>
+                      ) : (
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="sm" onClick={() => props.onEdit(t)}>
+                            Edit
+                          </Button>
+                          {t.archivedAt ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={pending}
+                              onClick={() => startTransition(() => unarchiveLeaveTypeAction(t.id))}
+                            >
+                              Restore
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled={pending}
+                              onClick={() => startTransition(() => archiveLeaveTypeAction(t.id))}
+                            >
+                              Archive
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>
@@ -528,42 +541,45 @@ function PolicyDefaultsCard(props: {
           Override the leave-type default per employee policy. Leave blank to fall back to the leave type's default.
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {props.policies.length === 0 || props.leaveTypes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
+          <p className="px-6 pb-6 text-sm text-muted-foreground">
             Add at least one policy and leave type to configure defaults.
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-muted-foreground">
-                <tr>
-                  <th className="py-2">Policy</th>
-                  {props.leaveTypes.map((t) => (
-                    <th key={t.id}>{t.code}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {props.policies.map((p) => (
-                  <tr key={p.id}>
-                    <td className="py-2">{p.name}{p.isDefault ? " (default)" : ""}</td>
-                    {props.leaveTypes.map((t) => (
-                      <td key={t.id}>
-                        <PolicyDefaultCell
-                          policyId={p.id}
-                          leaveTypeId={t.id}
-                          paid={t.paid}
-                          value={lookup.get(`${p.id}:${t.id}`) ?? null}
-                          fallback={t.defaultDays}
-                        />
-                      </td>
-                    ))}
-                  </tr>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Policy</TableHead>
+                {props.leaveTypes.map((t) => (
+                  <TableHead key={t.id} className="font-mono">{t.code}</TableHead>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {props.policies.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">
+                    {p.name}
+                    {p.isDefault && (
+                      <span className="ml-2 text-xs text-muted-foreground">(default)</span>
+                    )}
+                  </TableCell>
+                  {props.leaveTypes.map((t) => (
+                    <TableCell key={t.id}>
+                      <PolicyDefaultCell
+                        policyId={p.id}
+                        leaveTypeId={t.id}
+                        paid={t.paid}
+                        value={lookup.get(`${p.id}:${t.id}`) ?? null}
+                        fallback={t.defaultDays}
+                      />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </CardContent>
     </Card>
@@ -722,28 +738,26 @@ function EmployeeEntitlementsTab(props: {
               Pick an employee from the list on the left.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-left text-muted-foreground">
-                  <tr>
-                    <th className="py-2">Leave type</th>
-                    <th>Entitled days</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {props.leaveTypes.map((t) => (
-                    <EmployeeEntitlementRow
-                      key={t.id}
-                      employeeId={selected.id}
-                      leaveType={t}
-                      year={props.year}
-                      current={lookup.get(`${selected.id}:${t.id}`) ?? null}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Leave type</TableHead>
+                  <TableHead>Entitled days</TableHead>
+                  <TableHead className="text-right"> </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {props.leaveTypes.map((t) => (
+                  <EmployeeEntitlementRow
+                    key={t.id}
+                    employeeId={selected.id}
+                    leaveType={t}
+                    year={props.year}
+                    current={lookup.get(`${selected.id}:${t.id}`) ?? null}
+                  />
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
@@ -771,17 +785,23 @@ function EmployeeEntitlementRow(props: {
 
   if (!props.leaveType.paid) {
     return (
-      <tr>
-        <td className="py-2">{props.leaveType.code} — {props.leaveType.name}</td>
-        <td className="text-muted-foreground">— (unpaid)</td>
-        <td></td>
-      </tr>
+      <TableRow>
+        <TableCell>
+          <span className="font-mono text-xs font-bold mr-2">{props.leaveType.code}</span>
+          {props.leaveType.name}
+        </TableCell>
+        <TableCell className="text-muted-foreground">— (unpaid)</TableCell>
+        <TableCell></TableCell>
+      </TableRow>
     )
   }
   return (
-    <tr>
-      <td className="py-2">{props.leaveType.code} — {props.leaveType.name}</td>
-      <td>
+    <TableRow>
+      <TableCell>
+        <span className="font-mono text-xs font-bold mr-2">{props.leaveType.code}</span>
+        {props.leaveType.name}
+      </TableCell>
+      <TableCell>
         <Input
           type="number"
           step="0.5"
@@ -804,8 +824,8 @@ function EmployeeEntitlementRow(props: {
           }}
           disabled={pending}
         />
-      </td>
-      <td>
+      </TableCell>
+      <TableCell className="text-right">
         <Button
           variant="outline"
           size="sm"
@@ -823,7 +843,7 @@ function EmployeeEntitlementRow(props: {
         >
           Reset to default
         </Button>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   )
 }

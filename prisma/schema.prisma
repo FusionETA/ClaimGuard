@@ -1803,26 +1803,36 @@ model LeaveEntitlement {
 /// with module = LEAVE. Auto-approves when no layers exist above the
 /// employee for the LEAVE module.
 model LeaveApplication {
-  id          String          @id @default(cuid())
-  employeeId  String
-  leaveTypeId String
-  startDate   DateTime
-  endDate     DateTime
+  id             String          @id @default(cuid())
+  employeeId     String
+  leaveTypeId    String
+  startDate      DateTime
+  endDate        DateTime
   /// MORNING / AFTERNOON only valid when startDate == endDate.
-  duration    LeaveDuration   @default(FULL_DAY)
+  duration       LeaveDuration   @default(FULL_DAY)
   /// Computed at submit: 0.5 for half-day, otherwise count of working
   /// days in [startDate, endDate] per org/team working-days rule.
-  totalDays   Float
-  reason      String?         @db.Text
-  status      LeaveStatus     @default(PENDING)
-  currentStep Int             @default(0)
+  totalDays      Float
+  reason         String?         @db.Text
+  /// URL the UI consumes to display the attachment. Either the Xero
+  /// Files proxy route (/api/leave/files/{xeroFileId}/content) when the
+  /// org has a usable Xero connection, or a local /uploads/... path as
+  /// fallback. Null when the employee didn't upload anything.
+  attachmentUrl  String?
+  /// Original filename, surfaced in the UI for clarity ("mc-2026-05-20.pdf").
+  attachmentName String?
+  /// Xero Files API id when the attachment lives in Xero. Null for local
+  /// fallback uploads. Used by the proxy route to look up & authorise.
+  xeroFileId     String?
+  status         LeaveStatus     @default(PENDING)
+  currentStep    Int             @default(0)
   /// JSON array of { step, approverId, decidedAt, decision, notes? }
-  approvals   Json?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  decidedAt   DateTime?
-  employee    EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  leaveType   LeaveType       @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  approvals      Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  decidedAt      DateTime?
+  employee       EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType      LeaveType       @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
 
   @@index([employeeId])
   @@index([leaveTypeId])

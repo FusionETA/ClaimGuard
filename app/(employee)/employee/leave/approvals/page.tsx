@@ -30,6 +30,8 @@ export default async function EmployeeLeaveApprovalsPage() {
           duration: a.duration,
           totalDays: a.totalDays,
           reason: a.reason,
+          attachmentUrl: a.attachmentUrl,
+          attachmentName: a.attachmentName,
           currentStep: a.currentStep,
           createdAt: a.createdAt.toISOString(),
         }))}

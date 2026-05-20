@@ -27,6 +27,9 @@ export type SubmitLeaveInput = {
   endDate: Date
   duration: LeaveDuration
   reason: string | null
+  attachmentUrl?: string | null
+  attachmentName?: string | null
+  xeroFileId?: string | null
 }
 
 export type SubmitLeaveResult =
@@ -122,6 +125,9 @@ export async function submitLeaveApplication(
     duration: input.duration,
     totalDays,
     reason: input.reason,
+    attachmentUrl: input.attachmentUrl ?? null,
+    attachmentName: input.attachmentName ?? null,
+    xeroFileId: input.xeroFileId ?? null,
     status,
     currentStep,
     decidedAt,
@@ -132,6 +138,115 @@ export async function submitLeaveApplication(
   }
 
   return { ok: true, applicationId: app.id, status, totalDays }
+}
+
+export type EditLeaveInput = {
+  applicationId: string
+  /// The user (User.id, not EmployeeProfile.id) submitting the edit.
+  /// Must match the application owner — enforced server-side.
+  actorUserId: string
+  leaveTypeId: string
+  startDate: Date
+  endDate: Date
+  duration: LeaveDuration
+  reason: string | null
+  /// When undefined: keep the existing attachment unchanged.
+  /// When provided (even as nulls): replace with this new attachment
+  /// (or clear it, when all three are null).
+  attachment?: {
+    attachmentUrl: string | null
+    attachmentName: string | null
+    xeroFileId: string | null
+  }
+}
+
+/// Edit a PENDING leave application. Allowed only when:
+///   - the actor owns the application
+///   - status is PENDING and no approver has acted yet (approvals array
+///     is empty / no entries). Once any reviewer approves or rejects a
+///     step, the application is locked from further edits.
+///
+/// Recomputes totalDays and re-runs balance/half-day validation. Does
+/// NOT mutate the approval chain — the application stays at step 1 with
+/// status PENDING after a successful edit.
+export async function editLeaveApplication(
+  input: EditLeaveInput,
+): Promise<{ ok: true; totalDays: number } | { ok: false; error: string }> {
+  const prisma = getPrismaClient()
+  if (!prisma) return { ok: false, error: "Database not configured" }
+
+  const app = await leaveRepository.getApplication(input.applicationId)
+  if (!app) return { ok: false, error: "Application not found" }
+  if (app.employee.user.id !== input.actorUserId) {
+    return { ok: false, error: "You can only edit your own leave" }
+  }
+  if (app.status !== "PENDING") {
+    return { ok: false, error: "Only pending leave can be edited" }
+  }
+  const approvals = Array.isArray(app.approvals)
+    ? (app.approvals as unknown as LeaveApprovalEntry[])
+    : []
+  if (approvals.length > 0) {
+    return { ok: false, error: "Cannot edit — an approver has already reviewed this leave" }
+  }
+
+  if (input.endDate < input.startDate) {
+    return { ok: false, error: "End date is before start date" }
+  }
+  if (
+    (input.duration === "MORNING" || input.duration === "AFTERNOON") &&
+    !sameDay(input.startDate, input.endDate)
+  ) {
+    return { ok: false, error: "Half-day leave must start and end on the same day" }
+  }
+
+  const workingDays = await workingDaysForEmployee(app.employeeId)
+  const totalDays = computeTotalDays(input.startDate, input.endDate, input.duration, workingDays)
+  if (totalDays <= 0) {
+    return { ok: false, error: "Selected dates contain no working days" }
+  }
+
+  const year = input.startDate.getUTCFullYear()
+  const newType = await prisma.leaveType.findUnique({
+    where: { id: input.leaveTypeId },
+  })
+  if (!newType) return { ok: false, error: "Leave type not found" }
+  if (newType.archivedAt) return { ok: false, error: "Leave type is archived" }
+
+  // Balance check uses the *new* leave type. The old application hasn't
+  // touched any balance yet (it's still PENDING — no usedDays increment).
+  if (newType.paid) {
+    const balances = await listEmployeeBalances(app.employeeId, year)
+    const balance = balances.find((b) => b.leaveTypeId === input.leaveTypeId)
+    if (!balance) return { ok: false, error: "No entitlement row for this leave type" }
+    if (totalDays > balance.availableDays + 0.0001) {
+      return {
+        ok: false,
+        error: `Insufficient balance: requesting ${totalDays} but only ${balance.availableDays} available`,
+      }
+    }
+  }
+
+  await prisma.leaveApplication.update({
+    where: { id: input.applicationId },
+    data: {
+      leaveTypeId: input.leaveTypeId,
+      startDate: input.startDate,
+      endDate: input.endDate,
+      duration: input.duration,
+      totalDays,
+      reason: input.reason,
+      ...(input.attachment
+        ? {
+            attachmentUrl: input.attachment.attachmentUrl,
+            attachmentName: input.attachment.attachmentName,
+            xeroFileId: input.attachment.xeroFileId,
+          }
+        : {}),
+    },
+  })
+
+  return { ok: true, totalDays }
 }
 
 export async function decideLeaveApplication(args: {
@@ -247,6 +362,17 @@ export async function listMyApplications(employeeProfileId: string): Promise<Lea
   return leaveRepository.listApplicationsForEmployee(employeeProfileId)
 }
 
+/// Lightweight count of pending leave applications where the given user is
+/// the current approver. Used by the nav badge and supervisor dashboard
+/// card. Implementation reuses the heavier list — leave applications are
+/// low-volume so the chain-resolution cost is acceptable.
+export async function countPendingApprovalsForReviewer(
+  reviewerUserId: string,
+): Promise<number> {
+  const list = await listPendingApprovalsForReviewer(reviewerUserId)
+  return list.length
+}
+
 /// Pending leave applications where the given user is on the current step
 /// of the resolved approval chain. Used by the supervisor/admin
 /// approvals queue.
@@ -303,6 +429,8 @@ export async function listPendingApprovalsForReviewer(
         duration: app.duration as LeaveDuration,
         totalDays: app.totalDays,
         reason: app.reason,
+        attachmentUrl: app.attachmentUrl,
+        attachmentName: app.attachmentName,
         status: "PENDING",
         currentStep: ctx.currentStep ?? 1,
         approvals: Array.isArray(app.approvals)
