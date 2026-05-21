@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
+import { Plus } from "lucide-react"
 
 import { editLeaveAction, submitLeaveAction } from "@/app/(employee)/employee/leave/actions"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -32,7 +34,7 @@ import {
 } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
 
-type BalanceRow = {
+export type BalanceRow = {
   id: string
   leaveTypeId: string
   leaveTypeCode: string
@@ -75,68 +77,59 @@ function fmtDate(iso: string): string {
   return iso.slice(0, 10) // YYYY-MM-DD
 }
 
-type Tab = "apply" | "balances"
-
 export function EmployeeLeaveView(props: {
   year: number
   balances: BalanceRow[]
   applications: ApplicationRow[]
 }) {
-  const [tab, setTab] = useState<Tab>("apply")
+  const [applyOpen, setApplyOpen] = useState(false)
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">Leave</h1>
-        <p className="text-sm text-muted-foreground">
-          Apply for leave or check your balances for {props.year}.
-        </p>
+    <>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-xl font-semibold">Leave</h1>
+          <p className="text-sm text-muted-foreground">
+            Your balances and applications for {props.year}.
+          </p>
+        </div>
+
+        <ApplicationsCard
+          applications={props.applications}
+          balances={props.balances}
+        />
+        <BalancesCard balances={props.balances} />
       </div>
 
-      <div className="flex gap-2 border-b">
-        <TabButton active={tab === "apply"} onClick={() => setTab("apply")}>
-          Apply &amp; history
-        </TabButton>
-        <TabButton active={tab === "balances"} onClick={() => setTab("balances")}>
-          Balances
-        </TabButton>
-      </div>
+      <button
+        type="button"
+        aria-label="Apply for leave"
+        onClick={() => setApplyOpen(true)}
+        className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-panel transition-transform hover:scale-105 active:scale-95 lg:bottom-8 lg:right-8"
+      >
+        <Plus className="h-6 w-6" />
+      </button>
 
-      {tab === "apply" && (
-        <>
-          <ApplyCard balances={props.balances} />
-          <ApplicationsCard
-            applications={props.applications}
-            balances={props.balances}
-          />
-        </>
-      )}
-      {tab === "balances" && <BalancesCard balances={props.balances} />}
-    </div>
-  )
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        "px-4 py-2 text-sm font-medium border-b-2 transition-colors " +
-        (active
-          ? "border-primary text-foreground"
-          : "border-transparent text-muted-foreground hover:text-foreground")
-      }
-    >
-      {children}
-    </button>
+      <Dialog open={applyOpen} onOpenChange={setApplyOpen}>
+        <DialogContent
+          className="flex max-h-[90vh] w-[min(92vw,640px)] flex-col overflow-hidden px-6 pb-6 pt-6 sm:max-w-[640px]"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="shrink-0 pr-8">
+            <DialogTitle>Apply for leave</DialogTitle>
+            <DialogDescription>
+              Pick a leave type and dates. Attach an MC slip if relevant.
+            </DialogDescription>
+          </DialogHeader>
+          <div
+            className="flex-1 overflow-y-auto pr-1"
+            style={{ scrollbarGutter: "stable both-edges" }}
+          >
+            <ApplyForm balances={props.balances} onSuccess={() => setApplyOpen(false)} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 
@@ -166,8 +159,12 @@ function BalancesCard({ balances }: { balances: BalanceRow[] }) {
                   <div className="text-xs text-muted-foreground font-mono">{b.leaveTypeCode}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-semibold">{b.availableDays}</div>
-                  <div className="text-xs text-muted-foreground">days available</div>
+                  <div className="text-2xl font-semibold">
+                    {b.paid ? b.availableDays : b.usedDays}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {b.paid ? "days available" : "days used"}
+                  </div>
                 </div>
               </div>
               {b.paid ? (
@@ -190,7 +187,9 @@ function BalancesCard({ balances }: { balances: BalanceRow[] }) {
                   )}
                 </div>
               ) : (
-                <div className="mt-3 text-xs text-muted-foreground">Unpaid leave</div>
+                <div className="mt-3 text-xs text-muted-foreground">
+                  Unpaid leave · no balance limit
+                </div>
               )}
             </div>
           ))}
@@ -200,7 +199,13 @@ function BalancesCard({ balances }: { balances: BalanceRow[] }) {
   )
 }
 
-function ApplyCard({ balances }: { balances: BalanceRow[] }) {
+export function ApplyForm({
+  balances,
+  onSuccess,
+}: {
+  balances: BalanceRow[]
+  onSuccess?: () => void
+}) {
   const [leaveTypeId, setLeaveTypeId] = useState<string>(balances[0]?.leaveTypeId ?? "")
   const [startDate, setStartDate] = useState<string>("")
   const [endDate, setEndDate] = useState<string>("")
@@ -234,19 +239,14 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
         setMessage({ kind: "err", text: res.error })
         return
       }
-      setMessage({
-        kind: "ok",
-        text: `Submitted (${res.totalDays} day${res.totalDays === 1 ? "" : "s"}). Status: ${res.status}.`,
-      })
       setReason("")
       setAttachment(null)
+      onSuccess?.()
     })
   }
 
   return (
-    <Card>
-      <CardHeader><CardTitle>Apply for leave</CardTitle></CardHeader>
-      <CardContent className="space-y-3">
+    <div className="space-y-3 pt-2">
         <div>
           <Label>Leave type</Label>
           <Select value={leaveTypeId} onValueChange={setLeaveTypeId}>
@@ -254,14 +254,18 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
             <SelectContent>
               {balances.map((b) => (
                 <SelectItem key={b.leaveTypeId} value={b.leaveTypeId}>
-                  {b.leaveTypeName} · {b.paid ? `${b.availableDays} day(s) available` : "unpaid"}
+                  {b.leaveTypeName} · {b.paid
+                    ? `${b.availableDays} day(s) available`
+                    : `unpaid · ${b.usedDays} day(s) used`}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {selected && selected.paid && (
+          {selected && (
             <p className="text-xs text-muted-foreground mt-1">
-              Available balance: {selected.availableDays} day{selected.availableDays === 1 ? "" : "s"}
+              {selected.paid
+                ? `Available balance: ${selected.availableDays} day${selected.availableDays === 1 ? "" : "s"}`
+                : `Unpaid leave · ${selected.usedDays} day${selected.usedDays === 1 ? "" : "s"} used so far`}
             </p>
           )}
         </div>
@@ -344,13 +348,15 @@ function ApplyCard({ balances }: { balances: BalanceRow[] }) {
           </p>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {onSuccess && (
+            <Button variant="outline" onClick={() => onSuccess()}>Cancel</Button>
+          )}
           <Button onClick={submit} disabled={pending || !leaveTypeId || !startDate || !endDate}>
             {pending ? "Submitting…" : "Submit"}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   )
 }
 
@@ -567,7 +573,9 @@ function EditLeaveDialog({
               <SelectContent>
                 {balances.map((b) => (
                   <SelectItem key={b.leaveTypeId} value={b.leaveTypeId}>
-                    {b.leaveTypeName} · {b.paid ? `${b.availableDays} day(s) available` : "unpaid"}
+                    {b.leaveTypeName} · {b.paid
+                      ? `${b.availableDays} day(s) available`
+                      : `unpaid · ${b.usedDays} day(s) used`}
                   </SelectItem>
                 ))}
               </SelectContent>

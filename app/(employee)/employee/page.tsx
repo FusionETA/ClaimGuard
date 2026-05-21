@@ -14,6 +14,8 @@ import { employeeAttendanceService } from "@/modules/attendance/application/serv
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 import { countPendingClaimsForSupervisor } from "@/modules/claims/application/services/claim-workflow.service"
 import { countPendingApprovalsForReviewer as countPendingLeaveApprovalsForReviewer } from "@/modules/leave/application/services/leave-application.service"
+import { listEmployeeBalances } from "@/modules/leave/application/services/leave-entitlements.service"
+import { LeaveQuickAction } from "@/components/employee/leave/leave-quick-action"
 import type { ClockEventLite } from "@/modules/attendance/domain/models"
 import {
   DEFAULT_MODULE_ACCESS,
@@ -71,6 +73,7 @@ export default async function EmployeeDashboardPage() {
     pendingApprovals,
     pendingClaimApprovals,
     pendingLeaveApprovals,
+    leaveBalances,
     claimSubmissionData,
     profile,
     payslipPageData,
@@ -90,6 +93,13 @@ export default async function EmployeeDashboardPage() {
     isSupervisor && moduleAccess.leave
       ? countPendingLeaveApprovalsForReviewer(session.userId)
       : Promise.resolve(0),
+    moduleAccess.leave && prisma
+      ? prisma.employeeProfile
+          .findUnique({ where: { userId: session.userId }, select: { id: true } })
+          .then((p) =>
+            p ? listEmployeeBalances(p.id, new Date().getUTCFullYear()) : [],
+          )
+      : Promise.resolve([]),
     moduleAccess.claims
       ? getEmployeeClaimSubmissionData()
       : Promise.resolve(null),
@@ -254,6 +264,17 @@ export default async function EmployeeDashboardPage() {
             </Link>
           ) : null}
         </div>
+      ) : null}
+
+      {moduleAccess.leave && leaveBalances.length > 0 ? (
+        <LeaveQuickAction
+          balances={leaveBalances.map((b) => ({
+            ...b,
+            carriedExpiresAt: b.carriedExpiresAt
+              ? b.carriedExpiresAt.toISOString()
+              : null,
+          }))}
+        />
       ) : null}
 
       <Link
