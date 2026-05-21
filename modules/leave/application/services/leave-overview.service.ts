@@ -58,6 +58,106 @@ export async function getOnLeaveTodayForOrg(
   }))
 }
 
+export type LeaveAuditEntry = {
+  id: string
+  employeeId: string
+  employeeName: string
+  leaveTypeId: string
+  leaveTypeCode: string
+  leaveTypeName: string
+  startDate: string
+  endDate: string
+  duration: "FULL_DAY" | "MORNING" | "AFTERNOON"
+  totalDays: number
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED"
+  createdAt: string
+  decidedAt: string | null
+}
+
+export type LeaveAuditFilters = {
+  /// Inclusive YYYY-MM-DD strings; when omitted the date filter is skipped.
+  from?: string
+  to?: string
+  status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "ALL"
+  leaveTypeId?: string | "ALL"
+  /// Case-insensitive substring match against employee name / email.
+  q?: string
+  /// Soft cap on rows returned. Default 50.
+  limit?: number
+}
+
+/// Filterable audit log of leave applications for a single org. Used by
+/// the admin overview page to replace the simpler "Recent applications"
+/// card.
+export async function listLeaveAuditLog(
+  orgId: string,
+  filters: LeaveAuditFilters = {},
+): Promise<LeaveAuditEntry[]> {
+  const prisma = getPrismaClient()
+  if (!prisma) return []
+
+  const where: Record<string, unknown> = {
+    employee: { user: { organizationId: orgId } },
+  }
+  if (filters.status && filters.status !== "ALL") {
+    where.status = filters.status
+  }
+  if (filters.leaveTypeId && filters.leaveTypeId !== "ALL") {
+    where.leaveTypeId = filters.leaveTypeId
+  }
+  if (filters.from || filters.to) {
+    // Filter applications whose [startDate, endDate] overlaps the window.
+    const fromD = filters.from ? new Date(`${filters.from}T00:00:00Z`) : null
+    const toD = filters.to ? new Date(`${filters.to}T23:59:59Z`) : null
+    if (fromD && toD) {
+      where.startDate = { lte: toD }
+      where.endDate = { gte: fromD }
+    } else if (fromD) {
+      where.endDate = { gte: fromD }
+    } else if (toD) {
+      where.startDate = { lte: toD }
+    }
+  }
+  if (filters.q && filters.q.trim()) {
+    const needle = filters.q.trim()
+    where.employee = {
+      user: {
+        organizationId: orgId,
+        OR: [
+          { name: { contains: needle } },
+          { email: { contains: needle } },
+        ],
+      },
+    }
+  }
+
+  const rows = await prisma.leaveApplication.findMany({
+    where,
+    include: {
+      leaveType: { select: { code: true, name: true } },
+      employee: { include: { user: { select: { name: true } } } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: Math.min(Math.max(1, filters.limit ?? 50), 200),
+  })
+
+  return rows.map((r) => ({
+    id: r.id,
+    employeeId: r.employeeId,
+    employeeName: r.employee.user.name,
+    leaveTypeId: r.leaveTypeId,
+    leaveTypeCode: r.leaveType.code,
+    leaveTypeName: r.leaveType.name,
+    startDate: r.startDate.toISOString(),
+    endDate: r.endDate.toISOString(),
+    duration: r.duration as "FULL_DAY" | "MORNING" | "AFTERNOON",
+    totalDays: r.totalDays,
+    status: r.status as "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED",
+    createdAt: r.createdAt.toISOString(),
+    decidedAt: r.decidedAt ? r.decidedAt.toISOString() : null,
+  }))
+}
+
 export type LeaveOverviewReport = {
   year: number
   totals: {
