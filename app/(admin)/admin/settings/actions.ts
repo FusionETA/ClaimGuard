@@ -26,7 +26,7 @@ import {
   type CsvImportResult,
 } from "@/modules/organization/application/services/csv-import.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
-import { getPrismaClient } from "@/lib/prisma"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 
 const XERO_PENDING_COOKIE = "claimguard_xero_pending"
 // Cookie that persists the admin's currently-selected Xero connection id
@@ -1213,14 +1213,12 @@ async function assertProjectInActiveOrg(projectId: string) {
   if (!organizationId) {
     return { ok: false as const, message: "No organization found." }
   }
-  const prisma = getPrismaClient()
-  if (!prisma) return { ok: false as const, message: "Database is not configured." }
-  const project = await prisma.xeroProject.findFirst({
-    where: { id: projectId, organizationId },
-    select: { id: true },
-  })
-  if (!project) return { ok: false as const, message: "Project not found." }
-  return { ok: true as const, session, organizationId, prisma }
+  const belongs = await organizationRepository.projectBelongsToOrg(
+    projectId,
+    organizationId,
+  )
+  if (!belongs) return { ok: false as const, message: "Project not found." }
+  return { ok: true as const, session, organizationId }
 }
 
 export async function saveOrgWorkingHoursAction(
@@ -1233,8 +1231,6 @@ export async function saveOrgWorkingHoursAction(
   }
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) return { ok: false, message: "No organization found." }
-  const prisma = getPrismaClient()
-  if (!prisma) return { ok: false, message: "Database is not configured." }
 
   if (!TIME_RE.test(start) || !TIME_RE.test(end)) {
     return { ok: false, message: "Times must be HH:MM (24h)." }
@@ -1244,10 +1240,7 @@ export async function saveOrgWorkingHoursAction(
   }
 
   try {
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: { workingHoursStart: start, workingHoursEnd: end },
-    })
+    await attendanceRepository.setWorkingHours(organizationId, start, end)
   } catch (error) {
     return {
       ok: false,
@@ -1268,8 +1261,6 @@ export async function saveOrgTimezoneAction(
   }
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) return { ok: false, message: "No organization found." }
-  const prisma = getPrismaClient()
-  if (!prisma) return { ok: false, message: "Database is not configured." }
 
   const { isValidTimezone } = await import(
     "@/modules/attendance/domain/timezone"
@@ -1279,10 +1270,7 @@ export async function saveOrgTimezoneAction(
   }
 
   try {
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: { timezone },
-    })
+    await attendanceRepository.setTimezone(organizationId, timezone)
   } catch (error) {
     return {
       ok: false,
@@ -1303,14 +1291,9 @@ export async function toggleOrgOtAction(
   }
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) return { ok: false, message: "No organization found." }
-  const prisma = getPrismaClient()
-  if (!prisma) return { ok: false, message: "Database is not configured." }
 
   try {
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: { otEnabled: enabled },
-    })
+    await organizationRepository.setOrganizationOtEnabled(organizationId, enabled)
   } catch (error) {
     return {
       ok: false,
@@ -1335,17 +1318,13 @@ export async function saveSupervisorReportSettingsAction(
   if (!Number.isFinite(slaMinutes) || slaMinutes < 1 || slaMinutes > 24 * 60) {
     return { ok: false, message: "SLA minutes must be between 1 and 1440." }
   }
-  const prisma = getPrismaClient()
-  if (!prisma) return { ok: false, message: "Database is not configured." }
 
   try {
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: {
-        supervisorReportEnabled: enabled,
-        supervisorSlaMinutes: Math.round(slaMinutes),
-      },
-    })
+    await organizationRepository.setSupervisorReportSettings(
+      organizationId,
+      enabled,
+      Math.round(slaMinutes),
+    )
   } catch (error) {
     return {
       ok: false,
@@ -1370,14 +1349,12 @@ export async function saveGeofenceRadiusAction(
   if (!Number.isFinite(meters) || meters < 10 || meters > 10000) {
     return { ok: false, message: "Radius must be between 10 and 10000 metres." }
   }
-  const prisma = getPrismaClient()
-  if (!prisma) return { ok: false, message: "Database is not configured." }
 
   try {
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: { geofenceRadiusMeters: Math.round(meters) },
-    })
+    await organizationRepository.setGeofenceRadius(
+      organizationId,
+      Math.round(meters),
+    )
   } catch (error) {
     return {
       ok: false,
@@ -1437,14 +1414,11 @@ export async function saveProjectCalendarAction(
   }
 
   try {
-    await ctx.prisma.xeroProject.update({
-      where: { id: projectId },
-      data: {
-        workingHoursStart: workingHoursStart || null,
-        workingHoursEnd: workingHoursEnd || null,
-        workingDays: workingDays || null,
-        ...(lunchToPersist !== undefined ? { lunchBreakMinutes: lunchToPersist } : {}),
-      },
+    await organizationRepository.updateProjectCalendar(projectId, {
+      workingHoursStart: workingHoursStart || null,
+      workingHoursEnd: workingHoursEnd || null,
+      workingDays: workingDays || null,
+      lunchBreakMinutes: lunchToPersist,
     })
   } catch (error) {
     return {
@@ -1474,10 +1448,10 @@ export async function addProjectHolidayAction(
   }
 
   try {
-    await ctx.prisma.projectHoliday.upsert({
-      where: { projectId_date: { projectId, date: new Date(date) } },
-      create: { projectId, date: new Date(date), name: trimmed },
-      update: { name: trimmed },
+    await organizationRepository.upsertProjectHoliday({
+      projectId,
+      date: new Date(date),
+      name: trimmed,
     })
   } catch (error) {
     return {
@@ -1629,10 +1603,10 @@ export async function importProjectHolidaysAction(
   let imported = 0
   for (const [date, name] of dedupedByDate) {
     try {
-      await ctx.prisma.projectHoliday.upsert({
-        where: { projectId_date: { projectId, date: new Date(date) } },
-        create: { projectId, date: new Date(date), name },
-        update: { name },
+      await organizationRepository.upsertProjectHoliday({
+        projectId,
+        date: new Date(date),
+        name,
       })
       imported += 1
     } catch {
@@ -1658,19 +1632,13 @@ export async function deleteProjectHolidayAction(
   }
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) return { ok: false, message: "No organization found." }
-  const prisma = getPrismaClient()
-  if (!prisma) return { ok: false, message: "Database is not configured." }
-
-  const holiday = await prisma.projectHoliday.findUnique({
-    where: { id: holidayId },
-    select: { project: { select: { organizationId: true } } },
-  })
-  if (!holiday || holiday.project.organizationId !== organizationId) {
-    return { ok: false, message: "Holiday not found." }
-  }
 
   try {
-    await prisma.projectHoliday.delete({ where: { id: holidayId } })
+    const removed = await organizationRepository.deleteProjectHolidayInOrg(
+      holidayId,
+      organizationId,
+    )
+    if (!removed) return { ok: false, message: "Holiday not found." }
   } catch (error) {
     return {
       ok: false,

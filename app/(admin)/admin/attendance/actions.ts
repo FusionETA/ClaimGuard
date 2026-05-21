@@ -5,9 +5,10 @@ import { z } from "zod"
 
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { bustAttendanceCaches } from "@/lib/cache-invalidation"
-import { getPrismaClient } from "@/lib/prisma"
 import { deleteXeroFile } from "@/lib/xero"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
 
 const timeSchema = z
@@ -79,38 +80,11 @@ export async function loadSelfieStorageStatsAction(): Promise<SelfieStorageStats
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) return { total: 0, oldest: null, newest: null }
 
-  const prisma = getPrismaClient()
-  if (!prisma) return { total: 0, oldest: null, newest: null }
-
-  const [total, oldest, newest] = await Promise.all([
-    prisma.attendanceRecord.count({
-      where: {
-        xeroSelfieFileId: { not: null },
-        employee: { organizationId },
-      },
-    }),
-    prisma.attendanceRecord.findFirst({
-      where: {
-        xeroSelfieFileId: { not: null },
-        employee: { organizationId },
-      },
-      orderBy: { selfieUploadedAt: "asc" },
-      select: { selfieUploadedAt: true },
-    }),
-    prisma.attendanceRecord.findFirst({
-      where: {
-        xeroSelfieFileId: { not: null },
-        employee: { organizationId },
-      },
-      orderBy: { selfieUploadedAt: "desc" },
-      select: { selfieUploadedAt: true },
-    }),
-  ])
-
+  const stats = await attendanceRepository.getSelfieStorageStats(organizationId)
   return {
-    total,
-    oldest: oldest?.selfieUploadedAt?.toISOString() ?? null,
-    newest: newest?.selfieUploadedAt?.toISOString() ?? null,
+    total: stats.total,
+    oldest: stats.oldest?.toISOString() ?? null,
+    newest: stats.newest?.toISOString() ?? null,
   }
 }
 
@@ -156,60 +130,34 @@ export async function deleteSelfiesInRangeAction(
     return { error: "Start date must be on or before end date." }
   }
 
-  const prisma = getPrismaClient()
-  if (!prisma) return { error: "Database is not configured." }
-
   const fromDate = new Date(`${parsed.data.from}T00:00:00.000Z`)
   const toDate = new Date(`${parsed.data.to}T23:59:59.999Z`)
 
-  const stale = await prisma.attendanceRecord.findMany({
-    where: {
-      xeroSelfieFileId: { not: null },
-      selfieUploadedAt: { gte: fromDate, lte: toDate },
-      employee: { organizationId },
-    },
-    select: {
-      id: true,
-      xeroSelfieFileId: true,
-      employee: {
-        select: {
-          organizationId: true,
-        },
-      },
-    },
-    take: 500,
+  const stale = await attendanceRepository.listStaleSelfies({
+    organizationId,
+    from: fromDate,
+    to: toDate,
   })
 
   let deleted = 0
   let failed = 0
 
   for (const record of stale) {
-    const fileId = record.xeroSelfieFileId
-    if (!fileId) continue
     try {
-      let connectionId: string | null = null
-      if (record.employee.organizationId) {
-        const conn = await prisma.xeroConnection.findFirst({
-          where: { organizationId: record.employee.organizationId },
-          orderBy: { createdAt: "asc" },
-          select: { id: true },
-        })
-        connectionId = conn?.id ?? null
-      }
+      const connectionId = record.employeeOrgId
+        ? await organizationRepository.getActiveXeroConnectionId(record.employeeOrgId)
+        : null
       if (connectionId) {
         const token = await getUsableXeroAccessToken(connectionId)
         if (token) {
           await deleteXeroFile({
             accessToken: token.accessToken,
             tenantId: token.tenantId,
-            fileId,
+            fileId: record.xeroSelfieFileId,
           })
         }
       }
-      await prisma.attendanceRecord.update({
-        where: { id: record.id },
-        data: { xeroSelfieFileId: null, selfieUploadedAt: null },
-      })
+      await attendanceRepository.clearSelfie(record.id)
       deleted++
     } catch (err) {
       console.error(

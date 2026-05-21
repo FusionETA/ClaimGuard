@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import { getCurrentSession } from "@/lib/auth/session"
+import { rateLimit } from "@/lib/rate-limit"
 import { getVapidPublicKey } from "@/lib/web-push"
 import { pushSubscriptionRepository } from "@/modules/notifications/infrastructure/push-subscription.repository"
 
@@ -14,6 +15,19 @@ export async function POST(req: NextRequest) {
   const session = await getCurrentSession()
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const rl = await rateLimit({
+    scope: "push:subscribe",
+    id: session.userId,
+    max: 30,
+    windowSec: 60,
+  })
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many requests." },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
+    )
   }
 
   let body: { endpoint?: string; keys?: { p256dh?: string; auth?: string } }

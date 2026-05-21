@@ -590,6 +590,69 @@ export const organizationRepository = {
     })
   },
 
+  /**
+   * Pre-check the unique `Organization.name` so callers can return a
+   * tailored 409 instead of a generic 500 from the unique-violation
+   * during create. Race-safe enough for our purposes — the create()
+   * remains the source of truth.
+   */
+  async findOrganizationByName(
+    name: string,
+  ): Promise<{ id: string } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.organization.findUnique({
+      where: { name },
+      select: { id: true },
+    })
+    return row ?? null
+  },
+
+  /**
+   * Atomically provision a new tenant: create the Organization and an
+   * `ApiIntegration` token tied to the issuing master key. Either both
+   * rows commit or neither does — keeps the partner integration from
+   * landing in a state where an org exists without a way to call its
+   * APIs.
+   */
+  async createOrganizationWithApiIntegration(input: {
+    organizationName: string
+    integration: {
+      name: string
+      tokenHash: string
+      tokenPrefix: string
+      scopes: readonly string[]
+      issuedByMasterKeyId: string
+    }
+  }): Promise<{
+    org: { id: string; name: string }
+    integration: { id: string }
+  }> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    return prisma.$transaction(async (tx) => {
+      const org = await tx.organization.create({
+        data: { name: input.organizationName },
+        select: { id: true, name: true },
+      })
+
+      const integration = await tx.apiIntegration.create({
+        data: {
+          organizationId: org.id,
+          name: input.integration.name,
+          tokenHash: input.integration.tokenHash,
+          tokenPrefix: input.integration.tokenPrefix,
+          scopes: [...input.integration.scopes],
+          issuedByMasterKeyId: input.integration.issuedByMasterKeyId,
+        },
+        select: { id: true },
+      })
+
+      return { org, integration }
+    })
+  },
+
   async updateOrganizationClaimCutoff(data: {
     organizationId: string
     claimCutoffDay: number
@@ -603,6 +666,150 @@ export const organizationRepository = {
       where: { id: data.organizationId },
       data: { claimCutoffDay: data.claimCutoffDay },
     })
+  },
+
+  /**
+   * Toggle the org's "overtime enabled" master switch. Per-employee
+   * policy may further opt individual employees out (`policy.otEnabled`).
+   */
+  async setOrganizationOtEnabled(
+    organizationId: string,
+    enabled: boolean,
+  ): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { otEnabled: enabled },
+    })
+  },
+
+  /**
+   * Persist the org's supervisor-performance reporting settings.
+   * `slaMinutes` is the SLA window the admin dashboard uses to flag
+   * "slow approvers". Values are assumed pre-validated.
+   */
+  async setSupervisorReportSettings(
+    organizationId: string,
+    enabled: boolean,
+    slaMinutes: number,
+  ): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: {
+        supervisorReportEnabled: enabled,
+        supervisorSlaMinutes: slaMinutes,
+      },
+    })
+  },
+
+  /**
+   * Set the org-wide geofence radius (meters). Caller validates the
+   * 10–10000 range; this method just writes.
+   */
+  async setGeofenceRadius(
+    organizationId: string,
+    meters: number,
+  ): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { geofenceRadiusMeters: meters },
+    })
+  },
+
+  /**
+   * Confirm a project belongs to a given organisation. Returns `true`
+   * when the row exists with the matching `organizationId`. Used by
+   * admin actions to scope-check the target project before mutating it.
+   */
+  async projectBelongsToOrg(
+    projectId: string,
+    organizationId: string,
+  ): Promise<boolean> {
+    const prisma = getPrismaClient()
+    if (!prisma) return false
+    const row = await prisma.xeroProject.findFirst({
+      where: { id: projectId, organizationId },
+      select: { id: true },
+    })
+    return row !== null
+  },
+
+  /**
+   * Update a project's calendar config (working hours, working days,
+   * lunch break). Caller pre-validates the formats; this method just
+   * writes. `lunchBreakMinutes: undefined` leaves the existing value
+   * untouched (versus null which would clear it).
+   */
+  async updateProjectCalendar(
+    projectId: string,
+    values: {
+      workingHoursStart: string | null
+      workingHoursEnd: string | null
+      workingDays: string | null
+      lunchBreakMinutes?: number
+    },
+  ): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.xeroProject.update({
+      where: { id: projectId },
+      data: {
+        workingHoursStart: values.workingHoursStart,
+        workingHoursEnd: values.workingHoursEnd,
+        workingDays: values.workingDays,
+        ...(values.lunchBreakMinutes !== undefined
+          ? { lunchBreakMinutes: values.lunchBreakMinutes }
+          : {}),
+      },
+    })
+  },
+
+  /**
+   * Upsert a single project holiday by `(projectId, date)`. Used for
+   * both manual adds and bulk imports — the import loops over this so
+   * a single failed row doesn't poison the rest.
+   */
+  async upsertProjectHoliday(input: {
+    projectId: string
+    date: Date
+    name: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.projectHoliday.upsert({
+      where: {
+        projectId_date: { projectId: input.projectId, date: input.date },
+      },
+      create: input,
+      update: { name: input.name },
+    })
+  },
+
+  /**
+   * Delete a single project holiday, but only if it belongs to the
+   * given org (defence-in-depth against id-guessing). Returns `false`
+   * when the holiday doesn't exist or is in a different org — the
+   * action surfaces this as "Holiday not found" without leaking which
+   * of those two it was.
+   */
+  async deleteProjectHolidayInOrg(
+    holidayId: string,
+    organizationId: string,
+  ): Promise<boolean> {
+    const prisma = getPrismaClient()
+    if (!prisma) return false
+    const row = await prisma.projectHoliday.findUnique({
+      where: { id: holidayId },
+      select: { project: { select: { organizationId: true } } },
+    })
+    if (!row || row.project.organizationId !== organizationId) return false
+    await prisma.projectHoliday.delete({ where: { id: holidayId } })
+    return true
   },
 
   /**

@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import {
   archiveLeaveType,
   createLeaveType,
@@ -57,13 +56,8 @@ export async function createLeaveTypeAction(formData: FormData) {
 }
 
 async function leaveTypeIsProtected(orgId: string, id: string): Promise<boolean> {
-  const prisma = getPrismaClient()
-  if (!prisma) return false
-  const t = await prisma.leaveType.findFirst({
-    where: { id, organizationId: orgId },
-    select: { code: true },
-  })
-  return t ? isProtectedLeaveType(t.code) : false
+  const code = await leaveRepository.getLeaveTypeCodeForOrg(orgId, id)
+  return code ? isProtectedLeaveType(code) : false
 }
 
 export async function updateLeaveTypeAction(id: string, formData: FormData) {
@@ -122,17 +116,10 @@ export async function setEmployeeEntitlementAction(input: {
   year: number
   entitledDays: number
 }) {
-  await requireAdminOrg()
-  // Scope-check employee belongs to admin's org.
-  const prisma = getPrismaClient()
-  if (!prisma) return
-  const session = await getCurrentSession()
-  const orgId = resolveActiveOrgId(session ?? undefined)
-  const profile = await prisma.employeeProfile.findUnique({
-    where: { id: input.employeeId },
-    include: { user: { select: { organizationId: true } } },
-  })
-  if (!profile || profile.user.organizationId !== orgId) return
+  const adminOrgId = await requireAdminOrg()
+  // Scope-check the target employee belongs to the admin's active org.
+  const employeeOrgId = await leaveRepository.getEmployeeOrgId(input.employeeId)
+  if (!employeeOrgId || employeeOrgId !== adminOrgId) return
 
   await setEmployeeEntitlement(
     input.employeeId,

@@ -19,6 +19,49 @@ export type ApiIntegrationListItem = {
 }
 
 export const apiIntegrationRepository = {
+  /**
+   * Distinct organisations that a master key has provisioned, sorted
+   * newest-first. A master key can rotate tokens against the same org —
+   * we dedupe so the partner sees one row per customer, not per token.
+   */
+  async listOrganizationsForMasterKey(
+    masterKeyId: string,
+  ): Promise<Array<{ id: string; name: string; createdAt: string }>> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    type IntegrationWithOrg = {
+      organizationId: string
+      createdAt: Date
+      organization: { id: string; name: string; createdAt: Date }
+    }
+
+    const rows = (await prisma.apiIntegration.findMany({
+      where: { issuedByMasterKeyId: masterKeyId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        organizationId: true,
+        createdAt: true,
+        organization: {
+          select: { id: true, name: true, createdAt: true },
+        },
+      },
+    })) as IntegrationWithOrg[]
+
+    const seen = new Set<string>()
+    const orgs: Array<{ id: string; name: string; createdAt: string }> = []
+    for (const row of rows) {
+      if (seen.has(row.organizationId)) continue
+      seen.add(row.organizationId)
+      orgs.push({
+        id: row.organization.id,
+        name: row.organization.name,
+        createdAt: row.organization.createdAt.toISOString(),
+      })
+    }
+    return orgs
+  },
+
   async listForOrganization(
     organizationId: string,
   ): Promise<ApiIntegrationListItem[]> {

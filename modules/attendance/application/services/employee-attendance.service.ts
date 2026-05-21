@@ -205,6 +205,31 @@ async function resolveProgressRanges(employeeId: string): Promise<{
 }
 
 export const employeeAttendanceService = {
+  /**
+   * Profile extras for the attendance dashboard: OT payout method, the
+   * current time-bank balance, and whether the policy requires a selfie
+   * on clock-in. Returns `null` when the user has no employee profile
+   * (e.g. an admin testing the employee surface).
+   *
+   * Pages should call this instead of opening a Prisma client to look
+   * up the employee profile themselves.
+   */
+  async getProfileExtras(userId: string): Promise<{
+    otPayoutMethod: "CASH" | "TIME_BANK"
+    otTimeBalanceMin: number
+    requiresSelfieOnClockIn: boolean
+  } | null> {
+    const extras = await attendanceRepository.getEmployeeOtExtras(userId)
+    if (!extras) return null
+    const otPayoutMethod =
+      extras.otEnabled && extras.otMethod === "TIME_BANK" ? "TIME_BANK" : "CASH"
+    return {
+      otPayoutMethod,
+      otTimeBalanceMin: extras.otTimeBalanceMin,
+      requiresSelfieOnClockIn: extras.requireSelfie,
+    }
+  },
+
   async getEmployeeDashboard(employeeId: string): Promise<EmployeeAttendanceDashboard> {
     // Today-scoped — include the day in the key so a midnight rollover
     // doesn't surface yesterday's "today" within the 60s TTL window.

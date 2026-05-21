@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { getPrismaClient } from "@/lib/prisma"
 import { getRedis, key } from "@/lib/redis"
 import { sendPushToUser } from "@/lib/web-push"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
@@ -55,11 +54,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 })
   }
 
-  const prisma = getPrismaClient()
-  if (!prisma) {
-    return NextResponse.json({ ok: false, error: "database not configured" })
-  }
-
   // -------- query pending approvals (direct DB; cron needs accuracy) ------
   let pending: ApprovalRequestView[]
   try {
@@ -86,15 +80,8 @@ export async function POST(request: NextRequest) {
   // → user.organizationId. Reviewers and employees are in the same org
   // (approval chains are within-org).
   const employeeIds = Array.from(new Set(pending.map((p) => p.employeeId)))
-  const employees = await prisma.user.findMany({
-    where: { id: { in: employeeIds } },
-    select: { id: true, organizationId: true },
-  })
-  const employeeOrgMap = new Map(
-    employees
-      .filter((e) => e.organizationId)
-      .map((e) => [e.id, e.organizationId as string]),
-  )
+  const employeeOrgMap =
+    await attendanceRepository.getOrganizationIdsForUsers(employeeIds)
 
   // Group approvals by org.
   const approvalsByOrg = new Map<string, ApprovalRequestView[]>()

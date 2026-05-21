@@ -2,12 +2,12 @@ import { redirect } from "next/navigation"
 
 import { LeaveOverviewView } from "@/components/admin/leave/leave-overview-view"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import { ensureDefaultLeaveTypesForOrg } from "@/modules/leave/application/services/leave-defaults.service"
 import {
   getLeaveOverviewForOrg,
   listLeaveAuditLog,
 } from "@/modules/leave/application/services/leave-overview.service"
+import { listLeaveTypes } from "@/modules/leave/application/services/leave-types.service"
 
 function startOfMonthIso(): string {
   const d = new Date()
@@ -31,18 +31,19 @@ export default async function AdminLeavePage() {
   const auditFrom = startOfMonthIso()
   const auditTo = todayIso()
 
-  const prisma = getPrismaClient()
-  const [report, auditRows, leaveTypes] = await Promise.all([
+  const [report, auditRows, allLeaveTypes] = await Promise.all([
     getLeaveOverviewForOrg(orgId),
     listLeaveAuditLog(orgId, { from: auditFrom, to: auditTo, limit: 50 }),
-    prisma
-      ? prisma.leaveType.findMany({
-          where: { organizationId: orgId, archivedAt: null },
-          select: { id: true, code: true, name: true },
-          orderBy: { code: "asc" },
-        })
-      : Promise.resolve([]),
+    listLeaveTypes(orgId, false),
   ])
+
+  // Trim down to what the view consumes — keeps the prop shape stable
+  // and avoids dragging archivedAt / defaultDays through the wire.
+  const leaveTypes = allLeaveTypes.map((t) => ({
+    id: t.id,
+    code: t.code,
+    name: t.name,
+  }))
 
   return (
     <LeaveOverviewView

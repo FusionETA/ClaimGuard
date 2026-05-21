@@ -1,7 +1,6 @@
 import { HoursProgress } from "@/components/attendance/hours-progress"
 import { HoursSummaryPanel } from "@/components/attendance/hours-summary-panel"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { formatHm } from "@/modules/attendance/domain/hours-summary"
@@ -10,32 +9,6 @@ import { policyRepository } from "@/modules/policy/infrastructure/policy.reposit
 
 import { EmployeeAttendanceDashboardView } from "./dashboard-view"
 import { loadMyHoursSummaryAction } from "./hours-summary-actions"
-
-async function loadEmployeeProfileExtras(userId: string): Promise<{
-  otPayoutMethod: "CASH" | "TIME_BANK"
-  otTimeBalanceMin: number
-  requiresSelfieOnClockIn: boolean
-} | null> {
-  const prisma = getPrismaClient()
-  if (!prisma) return null
-  const profile = await prisma.employeeProfile.findUnique({
-    where: { userId },
-    select: {
-      otTimeBalanceMin: true,
-      policy: { select: { otEnabled: true, otMethod: true, requireSelfie: true } },
-    },
-  })
-  if (!profile) return null
-  const otPayoutMethod =
-    profile.policy?.otEnabled && profile.policy.otMethod === "TIME_BANK"
-      ? "TIME_BANK"
-      : "CASH"
-  return {
-    otPayoutMethod,
-    otTimeBalanceMin: profile.otTimeBalanceMin,
-    requiresSelfieOnClockIn: profile.policy?.requireSelfie ?? false,
-  }
-}
 
 function startOfMonthIso(): string {
   const d = new Date()
@@ -63,7 +36,7 @@ export default async function EmployeeAttendancePage() {
       new Date(initialFrom),
       new Date(initialTo),
     ),
-    loadEmployeeProfileExtras(session.userId),
+    employeeAttendanceService.getProfileExtras(session.userId),
     policyRepository.findForUserId(session.userId),
     employeeAttendanceService.getProgress(session.userId),
     attendanceRepository.getOrgTimezone(orgId),

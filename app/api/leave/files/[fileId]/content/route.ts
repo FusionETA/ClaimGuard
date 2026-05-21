@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import { getXeroFileContent } from "@/lib/xero"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
 
 export const dynamic = "force-dynamic"
@@ -35,14 +35,6 @@ export async function GET(
     return NextResponse.json({ error: "Missing fileId" }, { status: 400 })
   }
 
-  const prisma = getPrismaClient()
-  if (!prisma) {
-    return NextResponse.json(
-      { error: "Database is not configured." },
-      { status: 500 },
-    )
-  }
-
   const app = await leaveRepository.getApplicationByXeroFileId(fileId)
   if (!app) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
@@ -67,15 +59,9 @@ export async function GET(
   }
 
   // Resolve the org's single Xero connection.
-  let connectionId: string | null = null
-  if (employeeOrgId) {
-    const conn = await prisma.xeroConnection.findFirst({
-      where: { organizationId: employeeOrgId },
-      orderBy: { createdAt: "asc" },
-      select: { id: true },
-    })
-    connectionId = conn?.id ?? null
-  }
+  const connectionId = employeeOrgId
+    ? await organizationRepository.getActiveXeroConnectionId(employeeOrgId)
+    : null
   if (!connectionId) {
     return NextResponse.json(
       { error: "No Xero connection available." },

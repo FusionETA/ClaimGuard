@@ -46,6 +46,115 @@ function toLeaveType(row: {
 
 export const leaveRepository = {
   // -------------------------------------------------------------------------
+  // Employee lookup
+  // -------------------------------------------------------------------------
+  /**
+   * Resolve an employee's `EmployeeProfile.id` from their `User.id`.
+   * Returns `null` if the user has no profile yet. Pages and routes
+   * should call this through a service rather than reaching for
+   * Prisma themselves.
+   */
+  async findEmployeeProfileIdByUserId(userId: string): Promise<string | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.employeeProfile.findUnique({
+      where: { userId },
+      select: { id: true },
+    })
+    return row?.id ?? null
+  },
+
+  /**
+   * Lightweight employee list used by the leave settings page — just
+   * profile id, policy id, name, email. Filtered to a single org.
+   */
+  async listEmployeesForLeaveSettings(
+    orgId: string,
+  ): Promise<
+    Array<{ id: string; policyId: string | null; name: string; email: string }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const rows = await prisma.employeeProfile.findMany({
+      where: { user: { organizationId: orgId } },
+      orderBy: { user: { name: "asc" } },
+      select: {
+        id: true,
+        policyId: true,
+        user: { select: { name: true, email: true } },
+      },
+    })
+    return rows.map((row) => ({
+      id: row.id,
+      policyId: row.policyId,
+      name: row.user.name,
+      email: row.user.email,
+    }))
+  },
+
+  /**
+   * Fetch a leave type's `code` scoped to an org. Returns null if the
+   * type doesn't exist or belongs to a different org. Used by admin
+   * actions to detect the protected built-in types.
+   */
+  async getLeaveTypeCodeForOrg(
+    orgId: string,
+    leaveTypeId: string,
+  ): Promise<string | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.leaveType.findFirst({
+      where: { id: leaveTypeId, organizationId: orgId },
+      select: { code: true },
+    })
+    return row?.code ?? null
+  },
+
+  /**
+   * Return the org id an EmployeeProfile belongs to (via its user).
+   * Returns null when the profile doesn't exist. Used by admin actions
+   * to scope-check that a target employee is in the admin's active org
+   * before mutating their entitlement.
+   */
+  async getEmployeeOrgId(profileId: string): Promise<string | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.employeeProfile.findUnique({
+      where: { id: profileId },
+      select: { user: { select: { organizationId: true } } },
+    })
+    return row?.user.organizationId ?? null
+  },
+
+  /**
+   * Per-employee leave-entitlement rows for an org × year, in the slim
+   * shape the leave-settings page needs (employeeId, leaveTypeId,
+   * entitledDays). The settings page uses this to show admin overrides
+   * next to the policy defaults.
+   */
+  async listEmployeeEntitlementsForOrg(
+    orgId: string,
+    year: number,
+  ): Promise<
+    Array<{ employeeId: string; leaveTypeId: string; entitledDays: number }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const rows = await prisma.leaveEntitlement.findMany({
+      where: {
+        year,
+        employee: { user: { organizationId: orgId } },
+      },
+      select: {
+        employeeId: true,
+        leaveTypeId: true,
+        entitledDays: true,
+      },
+    })
+    return rows
+  },
+
+  // -------------------------------------------------------------------------
   // Leave Types
   // -------------------------------------------------------------------------
   async listTypes(orgId: string, opts: { includeArchived?: boolean } = {}): Promise<LeaveTypeView[]> {

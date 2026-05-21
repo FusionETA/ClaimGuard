@@ -16,7 +16,6 @@ import {
   type TableFilterValue,
 } from "@/components/attendance/table-filter-bar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { getPrismaClient } from "@/lib/prisma"
 import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
@@ -65,12 +64,7 @@ async function getOrgSupervisorSettings(
   orgId: string | null,
 ): Promise<{ enabled: boolean; slaMinutes: number }> {
   if (!orgId) return { enabled: true, slaMinutes: 60 }
-  const prisma = getPrismaClient()
-  if (!prisma) return { enabled: true, slaMinutes: 60 }
-  const org = await prisma.organization.findUnique({
-    where: { id: orgId },
-    select: { supervisorReportEnabled: true, supervisorSlaMinutes: true },
-  })
+  const org = await organizationRepository.getOrganizationById(orgId)
   return {
     enabled: org?.supervisorReportEnabled ?? true,
     slaMinutes: org?.supervisorSlaMinutes ?? 60,

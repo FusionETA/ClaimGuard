@@ -9,12 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/attendanc
 import { getEmployeeDashboard, getEmployeeClaimSubmissionData } from "@/modules/claims/application/services/employee-portal.service"
 import { formatCurrency } from "@/lib/utils"
 import { requirePortalSession } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 import { countPendingClaimsForSupervisor } from "@/modules/claims/application/services/claim-workflow.service"
 import { countPendingApprovalsForReviewer as countPendingLeaveApprovalsForReviewer } from "@/modules/leave/application/services/leave-application.service"
-import { listEmployeeBalances } from "@/modules/leave/application/services/leave-entitlements.service"
+import { listEmployeeBalancesForUser } from "@/modules/leave/application/services/leave-entitlements.service"
 import { LeaveQuickAction } from "@/components/employee/leave/leave-quick-action"
 import type { ClockEventLite } from "@/modules/attendance/domain/models"
 import {
@@ -66,7 +65,6 @@ export default async function EmployeeDashboardPage() {
   if (moduleAccess.claims && !claimsData) redirect("/login")
 
   const isSupervisor = session.role === "SUPERVISOR"
-  const prisma = getPrismaClient()
   const [
     attendanceDashboard,
     projects,
@@ -75,7 +73,6 @@ export default async function EmployeeDashboardPage() {
     pendingLeaveApprovals,
     leaveBalances,
     claimSubmissionData,
-    profile,
     payslipPageData,
   ] = await Promise.all([
     moduleAccess.attendance
@@ -93,31 +90,21 @@ export default async function EmployeeDashboardPage() {
     isSupervisor && moduleAccess.leave
       ? countPendingLeaveApprovalsForReviewer(session.userId)
       : Promise.resolve(0),
-    moduleAccess.leave && prisma
-      ? prisma.employeeProfile
-          .findUnique({ where: { userId: session.userId }, select: { id: true } })
-          .then((p) =>
-            p ? listEmployeeBalances(p.id, new Date().getUTCFullYear()) : [],
-          )
+    moduleAccess.leave
+      ? listEmployeeBalancesForUser(session.userId, new Date().getUTCFullYear())
       : Promise.resolve([]),
     moduleAccess.claims
       ? getEmployeeClaimSubmissionData()
-      : Promise.resolve(null),
-    prisma
-      ? prisma.employeeProfile.findUnique({
-          where: { userId: session.userId },
-          select: {
-            policy: { select: { requireSelfie: true, requireGeofence: true } },
-          },
-        })
       : Promise.resolve(null),
     // Latest submitted payslips. The repo already sorts newest-first;
     // we only render the first row on the dashboard.
     getEmployeePayslipsPageData(),
   ])
   const latestPayslip = payslipPageData?.payslips[0] ?? null
-  const requiresSelfieOnClockIn = profile?.policy?.requireSelfie ?? false
-  const enforceGeofence = profile?.policy?.requireGeofence ?? true
+  // Selfie + geofence requirements come from the already-loaded policy
+  // (line 55) — no need to re-query the employee profile.
+  const requiresSelfieOnClockIn = policy?.requireSelfie ?? false
+  const enforceGeofence = policy?.requireGeofence ?? true
   const clockState = attendanceDashboard
     ? deriveClockState(attendanceDashboard.todayEvents)
     : "OUT"

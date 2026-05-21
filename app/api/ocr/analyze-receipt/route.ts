@@ -6,6 +6,7 @@ import { analyzeReceipt } from "@/lib/ai"
 import type { CandidateAccount } from "@/lib/ai"
 import { getCurrentSession } from "@/lib/auth/session"
 import { isKnownCurrency } from "@/lib/currencies"
+import { rateLimit } from "@/lib/rate-limit"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -51,6 +52,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "No organization context for this session." },
       { status: 400 },
+    )
+  }
+
+  // OCR calls a paid AI provider — cap each user to 20 receipts/minute
+  // so a runaway client (or a bored employee) can't burn the org's quota.
+  const rl = await rateLimit({
+    scope: "ocr",
+    id: session.userId,
+    max: 20,
+    windowSec: 60,
+  })
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many requests. Try again shortly." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSec) },
+      },
     )
   }
 

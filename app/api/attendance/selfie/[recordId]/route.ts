@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import { getXeroFileContent } from "@/lib/xero"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
 
 export const dynamic = "force-dynamic"
@@ -25,27 +25,8 @@ export async function GET(
   }
   const { recordId } = await context.params
 
-  const prisma = getPrismaClient()
-  if (!prisma) {
-    return NextResponse.json(
-      { error: "Database is not configured." },
-      { status: 500 },
-    )
-  }
-
-  const record = await prisma.attendanceRecord.findUnique({
-    where: { id: recordId },
-    select: {
-      employeeId: true,
-      xeroSelfieFileId: true,
-      employee: {
-        select: {
-          organizationId: true,
-        },
-      },
-    },
-  })
-  if (!record || !record.xeroSelfieFileId) {
+  const record = await attendanceRepository.getSelfieAccessRecord(recordId)
+  if (!record) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
@@ -54,8 +35,8 @@ export async function GET(
   const activeOrgId = resolveActiveOrgId(session)
   const isSameOrgAdmin =
     session.role === "ADMIN" &&
-    !!record.employee.organizationId &&
-    record.employee.organizationId === activeOrgId
+    !!record.employeeOrgId &&
+    record.employeeOrgId === activeOrgId
   let isApproverInChain = false
   if (!isOwner && !isSameOrgAdmin && session.role === "SUPERVISOR") {
     const memberIds = await attendanceRepository.getTeamMemberIds(session.userId)
@@ -66,15 +47,9 @@ export async function GET(
   }
 
   // Resolve the org's single Xero connection.
-  let connectionId: string | null = null
-  if (record.employee.organizationId) {
-    const conn = await prisma.xeroConnection.findFirst({
-      where: { organizationId: record.employee.organizationId },
-      orderBy: { createdAt: "asc" },
-      select: { id: true },
-    })
-    connectionId = conn?.id ?? null
-  }
+  const connectionId = record.employeeOrgId
+    ? await organizationRepository.getActiveXeroConnectionId(record.employeeOrgId)
+    : null
   if (!connectionId) {
     return NextResponse.json(
       { error: "No Xero connection available." },

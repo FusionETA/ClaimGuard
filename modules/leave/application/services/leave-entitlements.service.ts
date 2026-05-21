@@ -84,6 +84,19 @@ function isUniqueConstraintError(err: unknown): boolean {
   return code === "P2002"
 }
 
+/// Same as `listEmployeeBalances` but accepts a `User.id` and handles
+/// the userId → employeeProfileId lookup internally. Pages and routes
+/// should call this version so they don't have to touch Prisma directly
+/// just to map the session userId.
+export async function listEmployeeBalancesForUser(
+  userId: string,
+  year: number,
+): Promise<LeaveEntitlementView[]> {
+  const profileId = await leaveRepository.findEmployeeProfileIdByUserId(userId)
+  if (!profileId) return []
+  return listEmployeeBalances(profileId, year)
+}
+
 /// List a single employee's balances for the current year, including
 /// computed `availableDays` per entitlement.
 export async function listEmployeeBalances(

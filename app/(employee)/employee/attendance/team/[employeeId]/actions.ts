@@ -10,7 +10,6 @@ import {
   resolveActiveOrgId,
 } from "@/lib/auth/session"
 import { bustAttendanceCaches } from "@/lib/cache-invalidation"
-import { getPrismaClient } from "@/lib/prisma"
 import { adminAttendanceService } from "@/modules/attendance/application/services/admin-attendance.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
@@ -102,15 +101,11 @@ export async function overrideAttendanceAction(
         { attendanceRecordId: recordId, employeeId, timeIn, timeOut, reason },
       )
     } else {
-      const prisma = getPrismaClient()
-      if (!prisma) return { error: "Database is not configured." }
-      const employee = await prisma.user.findUnique({
-        where: { id: employeeId },
-        select: { organizationId: true },
-      })
+      const employeeOrgId =
+        await attendanceRepository.getOrganizationIdForUser(employeeId)
       await adminAttendanceService.overrideAttendanceTimes(session.userId, {
         attendanceRecordId: recordId,
-        employeeOrgId: employee?.organizationId ?? null,
+        employeeOrgId,
         adminOrgId: resolveActiveOrgId(session) ?? null,
         timeIn,
         timeOut,
@@ -233,14 +228,11 @@ export async function editSessionAction(
 
   // Admin scoping: ensure the target employee is in the admin's active org.
   if (session.role === "ADMIN") {
-    const prisma = getPrismaClient()
-    if (!prisma) return { error: "Database is not configured." }
-    const employee = await prisma.user.findUnique({
-      where: { id: input.employeeId },
-      select: { organizationId: true },
-    })
+    const employeeOrg = await attendanceRepository.getOrganizationIdForUser(
+      input.employeeId,
+    )
     const adminOrg = resolveActiveOrgId(session) ?? null
-    if (adminOrg && employee?.organizationId && employee.organizationId !== adminOrg) {
+    if (adminOrg && employeeOrg && employeeOrg !== adminOrg) {
       return { error: "Employee is not in your organisation." }
     }
   }

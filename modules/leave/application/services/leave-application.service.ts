@@ -382,6 +382,18 @@ export async function listMyApplications(employeeProfileId: string): Promise<Lea
   return leaveRepository.listApplicationsForEmployee(employeeProfileId)
 }
 
+/// Same as `listMyApplications` but accepts a `User.id` and handles the
+/// userId → employeeProfileId lookup internally. Pages and actions
+/// should prefer this version so they don't have to touch Prisma to
+/// resolve the profile id from a session.
+export async function listMyApplicationsForUser(
+  userId: string,
+): Promise<LeaveApplicationView[]> {
+  const profileId = await leaveRepository.findEmployeeProfileIdByUserId(userId)
+  if (!profileId) return []
+  return leaveRepository.listApplicationsForEmployee(profileId)
+}
+
 /// Lightweight count of pending leave applications where the given user is
 /// the current approver. Used by the nav badge and supervisor dashboard
 /// card. Implementation reuses the heavier list — leave applications are

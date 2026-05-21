@@ -1,0 +1,24 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "@/lib/prisma",
+            "message": "Pages, API routes, and server actions must not import @/lib/prisma directly. Add a repository method under modules/<m>/infrastructure/ and call it through a service. See app/CLAUDE.md."
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["modules/**/infrastructure/**/*.ts", "prisma/**/*.ts"],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ]
+}

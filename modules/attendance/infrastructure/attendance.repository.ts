@@ -415,6 +415,191 @@ export const attendanceRepository = {
     return user?.organizationId ?? null
   },
 
+  /**
+   * Batch variant of `getOrganizationIdForUser` — looks up the
+   * organisation for many users in a single query. Returns a map of
+   * `userId → organizationId`. Users with no org (or missing rows) are
+   * omitted from the map rather than mapped to null, so callers can
+   * iterate `.get(userId)` and treat undefined as "no org / skip".
+   */
+  async getOrganizationIdsForUsers(
+    userIds: string[],
+  ): Promise<Map<string, string>> {
+    if (userIds.length === 0) return new Map()
+    const prisma = getClient()
+    const rows = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, organizationId: true },
+    })
+    const map = new Map<string, string>()
+    for (const row of rows) {
+      if (row.organizationId) map.set(row.id, row.organizationId)
+    }
+    return map
+  },
+
+  /**
+   * Org-scoped storage summary for the admin attendance "Selfie storage"
+   * card: total selfies on disk in Xero, oldest, newest. Returns zeroes
+   * when nothing has been uploaded yet.
+   */
+  async getSelfieStorageStats(organizationId: string): Promise<{
+    total: number
+    oldest: Date | null
+    newest: Date | null
+  }> {
+    const prisma = getClient()
+    const [total, oldest, newest] = await Promise.all([
+      prisma.attendanceRecord.count({
+        where: {
+          xeroSelfieFileId: { not: null },
+          employee: { organizationId },
+        },
+      }),
+      prisma.attendanceRecord.findFirst({
+        where: {
+          xeroSelfieFileId: { not: null },
+          employee: { organizationId },
+        },
+        orderBy: { selfieUploadedAt: "asc" },
+        select: { selfieUploadedAt: true },
+      }),
+      prisma.attendanceRecord.findFirst({
+        where: {
+          xeroSelfieFileId: { not: null },
+          employee: { organizationId },
+        },
+        orderBy: { selfieUploadedAt: "desc" },
+        select: { selfieUploadedAt: true },
+      }),
+    ])
+    return {
+      total,
+      oldest: oldest?.selfieUploadedAt ?? null,
+      newest: newest?.selfieUploadedAt ?? null,
+    }
+  },
+
+  /**
+   * List attendance records inside [from, to] (inclusive) that have a
+   * selfie file id, scoped to the given org. Used by the bulk-delete
+   * action to enumerate what it has to clean up before hitting Xero
+   * for each row. Capped to `limit` (default 500) to keep one batch
+   * predictable.
+   */
+  async listStaleSelfies(input: {
+    organizationId: string
+    from: Date
+    to: Date
+    limit?: number
+  }): Promise<
+    Array<{
+      id: string
+      xeroSelfieFileId: string
+      employeeOrgId: string | null
+    }>
+  > {
+    const prisma = getClient()
+    const rows = await prisma.attendanceRecord.findMany({
+      where: {
+        xeroSelfieFileId: { not: null },
+        selfieUploadedAt: { gte: input.from, lte: input.to },
+        employee: { organizationId: input.organizationId },
+      },
+      select: {
+        id: true,
+        xeroSelfieFileId: true,
+        employee: { select: { organizationId: true } },
+      },
+      take: input.limit ?? 500,
+    })
+    return rows
+      .filter((row): row is typeof row & { xeroSelfieFileId: string } =>
+        row.xeroSelfieFileId !== null,
+      )
+      .map((row) => ({
+        id: row.id,
+        xeroSelfieFileId: row.xeroSelfieFileId,
+        employeeOrgId: row.employee.organizationId ?? null,
+      }))
+  },
+
+  /**
+   * Clear the selfie columns on an AttendanceRecord. Called by the
+   * bulk-delete action after the Xero DELETE succeeds (or is skipped).
+   */
+  async clearSelfie(recordId: string): Promise<void> {
+    const prisma = getClient()
+    await prisma.attendanceRecord.update({
+      where: { id: recordId },
+      data: { xeroSelfieFileId: null, selfieUploadedAt: null },
+    })
+  },
+
+  /**
+   * Minimum data needed by the selfie-proxy route to authorise + locate
+   * a clock-in selfie:
+   *   - `employeeId` for owner / supervisor-in-chain checks
+   *   - `employeeOrgId` for admin-in-same-org check + Xero connection
+   *     lookup
+   *   - `xeroSelfieFileId` to fetch the actual binary
+   * Returns `null` if the record doesn't exist or has no selfie
+   * attached.
+   */
+  async getSelfieAccessRecord(recordId: string): Promise<{
+    employeeId: string
+    employeeOrgId: string | null
+    xeroSelfieFileId: string
+  } | null> {
+    const prisma = getClient()
+    const row = await prisma.attendanceRecord.findUnique({
+      where: { id: recordId },
+      select: {
+        employeeId: true,
+        xeroSelfieFileId: true,
+        employee: { select: { organizationId: true } },
+      },
+    })
+    if (!row || !row.xeroSelfieFileId) return null
+    return {
+      employeeId: row.employeeId,
+      employeeOrgId: row.employee.organizationId ?? null,
+      xeroSelfieFileId: row.xeroSelfieFileId,
+    }
+  },
+
+  /**
+   * OT-time-bank and policy hints needed by the employee attendance
+   * dashboard. Returns `null` if the user has no profile (e.g. an admin
+   * with no employee record). Pages call this through
+   * `employeeAttendanceService.getProfileExtras` rather than touching
+   * Prisma directly.
+   */
+  async getEmployeeOtExtras(userId: string): Promise<{
+    otTimeBalanceMin: number
+    otEnabled: boolean
+    otMethod: "CASH" | "TIME_BANK"
+    requireSelfie: boolean
+  } | null> {
+    const prisma = getClient()
+    const profile = await prisma.employeeProfile.findUnique({
+      where: { userId },
+      select: {
+        otTimeBalanceMin: true,
+        policy: {
+          select: { otEnabled: true, otMethod: true, requireSelfie: true },
+        },
+      },
+    })
+    if (!profile) return null
+    return {
+      otTimeBalanceMin: profile.otTimeBalanceMin,
+      otEnabled: profile.policy?.otEnabled ?? false,
+      otMethod: (profile.policy?.otMethod ?? "CASH") as "CASH" | "TIME_BANK",
+      requireSelfie: profile.policy?.requireSelfie ?? false,
+    }
+  },
+
   async getGeofenceRadiusForOrganization(orgId: string | null): Promise<number | null> {
     if (!orgId) return null
     const prisma = getClient()

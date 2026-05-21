@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache"
 
 import { getCurrentSession } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import {
   decideLeaveApplication,
   editLeaveApplication,
   submitLeaveApplication,
 } from "@/modules/leave/application/services/leave-application.service"
 import { storeLeaveAttachment } from "@/modules/leave/infrastructure/leave-attachment-storage"
+import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
 import type { LeaveDuration } from "@/modules/leave/domain/models"
 
 async function profileIdForCurrentUser(): Promise<{
@@ -19,14 +19,11 @@ async function profileIdForCurrentUser(): Promise<{
 } | null> {
   const session = await getCurrentSession()
   if (!session) return null
-  const prisma = getPrismaClient()
-  if (!prisma) return null
-  const profile = await prisma.employeeProfile.findUnique({
-    where: { userId: session.userId },
-    select: { id: true },
-  })
-  if (!profile) return null
-  return { profileId: profile.id, userId: session.userId, role: session.role }
+  const profileId = await leaveRepository.findEmployeeProfileIdByUserId(
+    session.userId,
+  )
+  if (!profileId) return null
+  return { profileId, userId: session.userId, role: session.role }
 }
 
 export async function submitLeaveAction(formData: FormData) {

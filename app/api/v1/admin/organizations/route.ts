@@ -4,7 +4,8 @@ import { z } from "zod"
 import { generateApiToken } from "@/lib/api-auth"
 import { API_SCOPE_CATALOG } from "@/lib/api-scopes"
 import { handleMasterApiRequest } from "@/lib/master-api-auth"
-import { getPrismaClient } from "@/lib/prisma"
+import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
  * POST /api/v1/admin/organizations
@@ -68,23 +69,9 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
     )
   }
 
-  const prisma = getPrismaClient()
-  if (!prisma) {
-    return NextResponse.json(
-      { error: { status: 503, message: "Database is not configured." } },
-      { status: 503 },
-    )
-  }
-
   const name = parsed.data.name.trim()
 
-  // Pre-check the unique name so we can give a 409 instead of a generic
-  // 500 from the unique-violation. Race-safe enough for our purposes —
-  // the create() below is still the source of truth.
-  const existing = await prisma.organization.findUnique({
-    where: { name },
-    select: { id: true },
-  })
+  const existing = await organizationRepository.findOrganizationByName(name)
   if (existing) {
     return NextResponse.json(
       {
@@ -102,30 +89,15 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
     parsed.data.tokenLabel?.trim() ||
     `${ctx.masterKey.partnerName} (auto-issued)`
 
-  // Wrap the org + integration create in a single transaction so a
-  // partial state (org without a token) cannot exist. Either both rows
-  // commit or neither does.
-  const result = await prisma.$transaction(async (tx) => {
-    const org = await tx.organization.create({
-      data: { name },
-      select: { id: true, name: true },
-    })
-
-    const integration = await tx.apiIntegration.create({
-      data: {
-        organizationId: org.id,
-        name: tokenLabel,
-        tokenHash: token.hash,
-        tokenPrefix: token.prefix,
-        // Spread to detach from the readonly tuple type so Prisma
-        // accepts a mutable string[] for the Json column.
-        scopes: [...API_SCOPE_CATALOG],
-        issuedByMasterKeyId: ctx.masterKey.id,
-      },
-      select: { id: true },
-    })
-
-    return { org, integration }
+  const result = await organizationRepository.createOrganizationWithApiIntegration({
+    organizationName: name,
+    integration: {
+      name: tokenLabel,
+      tokenHash: token.hash,
+      tokenPrefix: token.prefix,
+      scopes: API_SCOPE_CATALOG,
+      issuedByMasterKeyId: ctx.masterKey.id,
+    },
   })
 
   const response = NextResponse.json(
@@ -162,43 +134,8 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
  * those are write-only (returned only at create time, then opaque).
  */
 export const GET = handleMasterApiRequest(async (_request, ctx) => {
-  const prisma = getPrismaClient()
-  if (!prisma) {
-    return NextResponse.json({ data: [] })
-  }
-
-  // Find organizations that have at least one ApiIntegration issued by
-  // this master key. We dedupe by org id (a partner may have rotated
-  // tokens, leaving multiple integrations against the same org).
-  type IntegrationWithOrg = {
-    organizationId: string
-    createdAt: Date
-    organization: { id: string; name: string; createdAt: Date }
-  }
-
-  const integrations = (await prisma.apiIntegration.findMany({
-    where: { issuedByMasterKeyId: ctx.masterKey.id },
-    orderBy: { createdAt: "desc" },
-    select: {
-      organizationId: true,
-      createdAt: true,
-      organization: {
-        select: { id: true, name: true, createdAt: true },
-      },
-    },
-  })) as IntegrationWithOrg[]
-
-  const seen = new Set<string>()
-  const orgs: Array<{ id: string; name: string; createdAt: string }> = []
-  for (const row of integrations) {
-    if (seen.has(row.organizationId)) continue
-    seen.add(row.organizationId)
-    orgs.push({
-      id: row.organization.id,
-      name: row.organization.name,
-      createdAt: row.organization.createdAt.toISOString(),
-    })
-  }
-
+  const orgs = await apiIntegrationRepository.listOrganizationsForMasterKey(
+    ctx.masterKey.id,
+  )
   return NextResponse.json({ data: orgs, total: orgs.length })
 })
