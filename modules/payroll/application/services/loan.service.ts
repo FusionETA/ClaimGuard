@@ -52,6 +52,30 @@ async function requireAdminOrg(): Promise<{ orgId: string } | null> {
 }
 
 /**
+ * Flag every DRAFT payroll run whose period overlaps a loan window as
+ * "mutated", so its already-generated payslips are treated as stale.
+ * The submit guard then forces a re-run before the draft can be
+ * submitted (otherwise it would post the OLD loan installment).
+ */
+async function markAffectedDraftsMutated(
+  orgId: string,
+  window: { startYear: number; startMonth: number; installmentCount: number },
+): Promise<void> {
+  const runs = await payrollRunRepository.listForOrganization(orgId)
+  await Promise.all(
+    runs
+      .filter((r) => r.status === "DRAFT")
+      .filter((r) => {
+        const idx =
+          (r.periodYear - window.startYear) * 12 +
+          (r.periodMonth - window.startMonth)
+        return idx >= 0 && idx < window.installmentCount
+      })
+      .map((r) => payrollRunRepository.markMutated(r.id)),
+  )
+}
+
+/**
  * Loans list (with derived repayment progress + per-installment
  * breakdown) and the employee picker options for the create form.
  * Returns null when the caller isn't an admin with an active org.
@@ -170,6 +194,11 @@ export async function createEmployeeLoan(input: {
     notes: input.notes,
   })
 
+  await markAffectedDraftsMutated(ctx.orgId, {
+    startYear: loan.startYear,
+    startMonth: loan.startMonth,
+    installmentCount: loan.installmentCount,
+  })
   await bustPayrollCaches({ organizationId: ctx.orgId })
   return loan
 }
@@ -241,6 +270,14 @@ export async function editEmployeeLoan(input: {
       startMonth: full.startMonth,
       notes: input.notes,
     })
+    // Flag drafts in both the old and the new window (start month may
+    // have changed) so stale payslips get re-run before submission.
+    await markAffectedDraftsMutated(ctx.orgId, loan)
+    await markAffectedDraftsMutated(ctx.orgId, {
+      startYear: full.startYear,
+      startMonth: full.startMonth,
+      installmentCount: terms.installmentCount,
+    })
     await bustPayrollCaches({ organizationId: ctx.orgId })
     return
   }
@@ -279,16 +316,34 @@ export async function editEmployeeLoan(input: {
     startMonth: loan.startMonth,
     notes: input.notes,
   })
+  await markAffectedDraftsMutated(ctx.orgId, {
+    startYear: loan.startYear,
+    startMonth: loan.startMonth,
+    installmentCount: next.length,
+  })
   await bustPayrollCaches({ organizationId: ctx.orgId })
 }
 
 export async function cancelEmployeeLoan(loanId: string): Promise<void> {
   const ctx = await requireAdminOrg()
   if (!ctx) throw new Error("Session expired. Please log in again.")
+  // Capture the window before cancelling so we can flag drafts that
+  // were relying on this loan's installment.
+  const loan = await employeeLoanRepository.getByIdForOrg({
+    id: loanId,
+    organizationId: ctx.orgId,
+  })
   await employeeLoanRepository.setStatus({
     id: loanId,
     organizationId: ctx.orgId,
     status: "CANCELLED",
   })
+  if (loan) {
+    await markAffectedDraftsMutated(ctx.orgId, {
+      startYear: loan.startYear,
+      startMonth: loan.startMonth,
+      installmentCount: loan.installmentCount,
+    })
+  }
   await bustPayrollCaches({ organizationId: ctx.orgId })
 }

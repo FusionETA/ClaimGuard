@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation"
-import { SlidersHorizontal } from "lucide-react"
 
 import { PayrollSettingsForm } from "@/components/admin/payroll-settings-form"
 import { getPayrollSettingsPageData } from "@/modules/payroll/application/services/payroll-settings.service"
@@ -19,8 +18,7 @@ export default async function AdminPayrollSettingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3">
         <div className="space-y-0.5">
-          <h1 className="flex items-center gap-2 text-xl font-semibold text-foreground">
-            <SlidersHorizontal className="h-5 w-5 text-primary" />
+          <h1 className="text-xl font-semibold text-foreground">
             Payroll Settings
           </h1>
           <p className="text-xs text-muted-foreground">

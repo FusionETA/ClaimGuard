@@ -243,7 +243,7 @@ export function PayslipsListPanel({
                        contributions" / "Employer contributions"
                        banded headings. */}
                   <TableRow className="border-b-0 hover:bg-transparent">
-                    <TableHead className="bg-background" colSpan={1}></TableHead>
+                    <TableHead className="sticky left-0 z-20 bg-background" colSpan={1}></TableHead>
                     <TableHead
                       colSpan={4}
                       className="text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70"
@@ -272,7 +272,9 @@ export function PayslipsListPanel({
                   {/* ── Column heading + total row. The total under
                        each money column matches the PDF style. */}
                   <TableRow>
-                    <TableHead>Employee</TableHead>
+                    <TableHead className="sticky left-0 z-20 bg-background border-r border-border/60">
+                      Employee
+                    </TableHead>
                     <TableHead className="text-right" title="Worked hours (hourly employees)">
                       Hrs
                     </TableHead>
@@ -518,7 +520,7 @@ function PayslipRow({
 
   return (
     <TableRow>
-      <TableCell>
+      <TableCell className="sticky left-0 z-10 bg-background border-r border-border/60">
         <div className="flex flex-col gap-1">
           <div className="flex flex-col">
             <span className="text-[12px] font-semibold text-foreground">

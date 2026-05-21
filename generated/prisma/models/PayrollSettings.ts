@@ -31,16 +31,12 @@ export type PayrollSettingsAvgAggregateOutputType = {
   defaultEpfEmployeeRate: runtime.Decimal | null
   defaultEpfEmployerRate: runtime.Decimal | null
   hrdfRate: runtime.Decimal | null
-  leaveCarryForwardLimitDays: number | null
-  leaveCarryForwardExpiryMonths: number | null
 }
 
 export type PayrollSettingsSumAggregateOutputType = {
   defaultEpfEmployeeRate: runtime.Decimal | null
   defaultEpfEmployerRate: runtime.Decimal | null
   hrdfRate: runtime.Decimal | null
-  leaveCarryForwardLimitDays: number | null
-  leaveCarryForwardExpiryMonths: number | null
 }
 
 export type PayrollSettingsMinAggregateOutputType = {
@@ -53,9 +49,6 @@ export type PayrollSettingsMinAggregateOutputType = {
   hrdfRate: runtime.Decimal | null
   employerIdNumber: string | null
   myCoOrSsmNumber: string | null
-  leaveCarryForwardAllowed: boolean | null
-  leaveCarryForwardLimitDays: number | null
-  leaveCarryForwardExpiryMonths: number | null
   createdAt: Date | null
   updatedAt: Date | null
   autoApplySocsoEisRelief: boolean | null
@@ -75,9 +68,6 @@ export type PayrollSettingsMaxAggregateOutputType = {
   hrdfRate: runtime.Decimal | null
   employerIdNumber: string | null
   myCoOrSsmNumber: string | null
-  leaveCarryForwardAllowed: boolean | null
-  leaveCarryForwardLimitDays: number | null
-  leaveCarryForwardExpiryMonths: number | null
   createdAt: Date | null
   updatedAt: Date | null
   autoApplySocsoEisRelief: boolean | null
@@ -97,9 +87,6 @@ export type PayrollSettingsCountAggregateOutputType = {
   hrdfRate: number
   employerIdNumber: number
   myCoOrSsmNumber: number
-  leaveCarryForwardAllowed: number
-  leaveCarryForwardLimitDays: number
-  leaveCarryForwardExpiryMonths: number
   createdAt: number
   updatedAt: number
   autoApplySocsoEisRelief: number
@@ -116,16 +103,12 @@ export type PayrollSettingsAvgAggregateInputType = {
   defaultEpfEmployeeRate?: true
   defaultEpfEmployerRate?: true
   hrdfRate?: true
-  leaveCarryForwardLimitDays?: true
-  leaveCarryForwardExpiryMonths?: true
 }
 
 export type PayrollSettingsSumAggregateInputType = {
   defaultEpfEmployeeRate?: true
   defaultEpfEmployerRate?: true
   hrdfRate?: true
-  leaveCarryForwardLimitDays?: true
-  leaveCarryForwardExpiryMonths?: true
 }
 
 export type PayrollSettingsMinAggregateInputType = {
@@ -138,9 +121,6 @@ export type PayrollSettingsMinAggregateInputType = {
   hrdfRate?: true
   employerIdNumber?: true
   myCoOrSsmNumber?: true
-  leaveCarryForwardAllowed?: true
-  leaveCarryForwardLimitDays?: true
-  leaveCarryForwardExpiryMonths?: true
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
@@ -160,9 +140,6 @@ export type PayrollSettingsMaxAggregateInputType = {
   hrdfRate?: true
   employerIdNumber?: true
   myCoOrSsmNumber?: true
-  leaveCarryForwardAllowed?: true
-  leaveCarryForwardLimitDays?: true
-  leaveCarryForwardExpiryMonths?: true
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
@@ -182,9 +159,6 @@ export type PayrollSettingsCountAggregateInputType = {
   hrdfRate?: true
   employerIdNumber?: true
   myCoOrSsmNumber?: true
-  leaveCarryForwardAllowed?: true
-  leaveCarryForwardLimitDays?: true
-  leaveCarryForwardExpiryMonths?: true
   createdAt?: true
   updatedAt?: true
   autoApplySocsoEisRelief?: true
@@ -292,9 +266,6 @@ export type PayrollSettingsGroupByOutputType = {
   hrdfRate: runtime.Decimal | null
   employerIdNumber: string | null
   myCoOrSsmNumber: string | null
-  leaveCarryForwardAllowed: boolean
-  leaveCarryForwardLimitDays: number | null
-  leaveCarryForwardExpiryMonths: number | null
   createdAt: Date
   updatedAt: Date
   autoApplySocsoEisRelief: boolean
@@ -338,9 +309,6 @@ export type PayrollSettingsWhereInput = {
   hrdfRate?: Prisma.DecimalNullableFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   myCoOrSsmNumber?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
-  leaveCarryForwardAllowed?: Prisma.BoolFilter<"PayrollSettings"> | boolean
-  leaveCarryForwardLimitDays?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
-  leaveCarryForwardExpiryMonths?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFilter<"PayrollSettings"> | boolean
@@ -362,9 +330,6 @@ export type PayrollSettingsOrderByWithRelationInput = {
   hrdfRate?: Prisma.SortOrderInput | Prisma.SortOrder
   employerIdNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   myCoOrSsmNumber?: Prisma.SortOrderInput | Prisma.SortOrder
-  leaveCarryForwardAllowed?: Prisma.SortOrder
-  leaveCarryForwardLimitDays?: Prisma.SortOrderInput | Prisma.SortOrder
-  leaveCarryForwardExpiryMonths?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -390,9 +355,6 @@ export type PayrollSettingsWhereUniqueInput = Prisma.AtLeast<{
   hrdfRate?: Prisma.DecimalNullableFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
   myCoOrSsmNumber?: Prisma.StringNullableFilter<"PayrollSettings"> | string | null
-  leaveCarryForwardAllowed?: Prisma.BoolFilter<"PayrollSettings"> | boolean
-  leaveCarryForwardLimitDays?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
-  leaveCarryForwardExpiryMonths?: Prisma.IntNullableFilter<"PayrollSettings"> | number | null
   createdAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFilter<"PayrollSettings"> | boolean
@@ -414,9 +376,6 @@ export type PayrollSettingsOrderByWithAggregationInput = {
   hrdfRate?: Prisma.SortOrderInput | Prisma.SortOrder
   employerIdNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   myCoOrSsmNumber?: Prisma.SortOrderInput | Prisma.SortOrder
-  leaveCarryForwardAllowed?: Prisma.SortOrder
-  leaveCarryForwardLimitDays?: Prisma.SortOrderInput | Prisma.SortOrder
-  leaveCarryForwardExpiryMonths?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -445,9 +404,6 @@ export type PayrollSettingsScalarWhereWithAggregatesInput = {
   hrdfRate?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollSettings"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
   myCoOrSsmNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollSettings"> | string | null
-  leaveCarryForwardAllowed?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
-  leaveCarryForwardLimitDays?: Prisma.IntNullableWithAggregatesFilter<"PayrollSettings"> | number | null
-  leaveCarryForwardExpiryMonths?: Prisma.IntNullableWithAggregatesFilter<"PayrollSettings"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollSettings"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PayrollSettings"> | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolWithAggregatesFilter<"PayrollSettings"> | boolean
@@ -467,9 +423,6 @@ export type PayrollSettingsCreateInput = {
   hrdfRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: string | null
   myCoOrSsmNumber?: string | null
-  leaveCarryForwardAllowed?: boolean
-  leaveCarryForwardLimitDays?: number | null
-  leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -491,9 +444,6 @@ export type PayrollSettingsUncheckedCreateInput = {
   hrdfRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: string | null
   myCoOrSsmNumber?: string | null
-  leaveCarryForwardAllowed?: boolean
-  leaveCarryForwardLimitDays?: number | null
-  leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -513,9 +463,6 @@ export type PayrollSettingsUpdateInput = {
   hrdfRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   myCoOrSsmNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -537,9 +484,6 @@ export type PayrollSettingsUncheckedUpdateInput = {
   hrdfRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   myCoOrSsmNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -560,9 +504,6 @@ export type PayrollSettingsCreateManyInput = {
   hrdfRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: string | null
   myCoOrSsmNumber?: string | null
-  leaveCarryForwardAllowed?: boolean
-  leaveCarryForwardLimitDays?: number | null
-  leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -582,9 +523,6 @@ export type PayrollSettingsUpdateManyMutationInput = {
   hrdfRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   myCoOrSsmNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -605,9 +543,6 @@ export type PayrollSettingsUncheckedUpdateManyInput = {
   hrdfRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   myCoOrSsmNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -639,9 +574,6 @@ export type PayrollSettingsCountOrderByAggregateInput = {
   hrdfRate?: Prisma.SortOrder
   employerIdNumber?: Prisma.SortOrder
   myCoOrSsmNumber?: Prisma.SortOrder
-  leaveCarryForwardAllowed?: Prisma.SortOrder
-  leaveCarryForwardLimitDays?: Prisma.SortOrder
-  leaveCarryForwardExpiryMonths?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -656,8 +588,6 @@ export type PayrollSettingsAvgOrderByAggregateInput = {
   defaultEpfEmployeeRate?: Prisma.SortOrder
   defaultEpfEmployerRate?: Prisma.SortOrder
   hrdfRate?: Prisma.SortOrder
-  leaveCarryForwardLimitDays?: Prisma.SortOrder
-  leaveCarryForwardExpiryMonths?: Prisma.SortOrder
 }
 
 export type PayrollSettingsMaxOrderByAggregateInput = {
@@ -670,9 +600,6 @@ export type PayrollSettingsMaxOrderByAggregateInput = {
   hrdfRate?: Prisma.SortOrder
   employerIdNumber?: Prisma.SortOrder
   myCoOrSsmNumber?: Prisma.SortOrder
-  leaveCarryForwardAllowed?: Prisma.SortOrder
-  leaveCarryForwardLimitDays?: Prisma.SortOrder
-  leaveCarryForwardExpiryMonths?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -692,9 +619,6 @@ export type PayrollSettingsMinOrderByAggregateInput = {
   hrdfRate?: Prisma.SortOrder
   employerIdNumber?: Prisma.SortOrder
   myCoOrSsmNumber?: Prisma.SortOrder
-  leaveCarryForwardAllowed?: Prisma.SortOrder
-  leaveCarryForwardLimitDays?: Prisma.SortOrder
-  leaveCarryForwardExpiryMonths?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   autoApplySocsoEisRelief?: Prisma.SortOrder
@@ -708,8 +632,6 @@ export type PayrollSettingsSumOrderByAggregateInput = {
   defaultEpfEmployeeRate?: Prisma.SortOrder
   defaultEpfEmployerRate?: Prisma.SortOrder
   hrdfRate?: Prisma.SortOrder
-  leaveCarryForwardLimitDays?: Prisma.SortOrder
-  leaveCarryForwardExpiryMonths?: Prisma.SortOrder
 }
 
 export type PayrollSettingsCreateNestedOneWithoutOrganizationInput = {
@@ -757,9 +679,6 @@ export type PayrollSettingsCreateWithoutOrganizationInput = {
   hrdfRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: string | null
   myCoOrSsmNumber?: string | null
-  leaveCarryForwardAllowed?: boolean
-  leaveCarryForwardLimitDays?: number | null
-  leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -779,9 +698,6 @@ export type PayrollSettingsUncheckedCreateWithoutOrganizationInput = {
   hrdfRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: string | null
   myCoOrSsmNumber?: string | null
-  leaveCarryForwardAllowed?: boolean
-  leaveCarryForwardLimitDays?: number | null
-  leaveCarryForwardExpiryMonths?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   autoApplySocsoEisRelief?: boolean
@@ -817,9 +733,6 @@ export type PayrollSettingsUpdateWithoutOrganizationInput = {
   hrdfRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   myCoOrSsmNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -839,9 +752,6 @@ export type PayrollSettingsUncheckedUpdateWithoutOrganizationInput = {
   hrdfRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employerIdNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   myCoOrSsmNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  leaveCarryForwardAllowed?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  leaveCarryForwardLimitDays?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  leaveCarryForwardExpiryMonths?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   autoApplySocsoEisRelief?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -864,9 +774,6 @@ export type PayrollSettingsSelect<ExtArgs extends runtime.Types.Extensions.Inter
   hrdfRate?: boolean
   employerIdNumber?: boolean
   myCoOrSsmNumber?: boolean
-  leaveCarryForwardAllowed?: boolean
-  leaveCarryForwardLimitDays?: boolean
-  leaveCarryForwardExpiryMonths?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   autoApplySocsoEisRelief?: boolean
@@ -890,9 +797,6 @@ export type PayrollSettingsSelectScalar = {
   hrdfRate?: boolean
   employerIdNumber?: boolean
   myCoOrSsmNumber?: boolean
-  leaveCarryForwardAllowed?: boolean
-  leaveCarryForwardLimitDays?: boolean
-  leaveCarryForwardExpiryMonths?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   autoApplySocsoEisRelief?: boolean
@@ -903,7 +807,7 @@ export type PayrollSettingsSelectScalar = {
   ecpPayorBic?: boolean
 }
 
-export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "employerIdNumber" | "myCoOrSsmNumber" | "leaveCarryForwardAllowed" | "leaveCarryForwardLimitDays" | "leaveCarryForwardExpiryMonths" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief" | "syncClaimsToXeroOnSubmit" | "syncPayrollToXeroOnSubmit" | "xeroMapping" | "ecpPayorAccountNo" | "ecpPayorBic", ExtArgs["result"]["payrollSettings"]>
+export type PayrollSettingsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "workingDaysRule" | "defaultEpfEmployeeRate" | "defaultEpfEmployerRate" | "hrdfEnabled" | "hrdfRate" | "employerIdNumber" | "myCoOrSsmNumber" | "createdAt" | "updatedAt" | "autoApplySocsoEisRelief" | "syncClaimsToXeroOnSubmit" | "syncPayrollToXeroOnSubmit" | "xeroMapping" | "ecpPayorAccountNo" | "ecpPayorBic", ExtArgs["result"]["payrollSettings"]>
 export type PayrollSettingsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -923,9 +827,6 @@ export type $PayrollSettingsPayload<ExtArgs extends runtime.Types.Extensions.Int
     hrdfRate: runtime.Decimal | null
     employerIdNumber: string | null
     myCoOrSsmNumber: string | null
-    leaveCarryForwardAllowed: boolean
-    leaveCarryForwardLimitDays: number | null
-    leaveCarryForwardExpiryMonths: number | null
     createdAt: Date
     updatedAt: Date
     autoApplySocsoEisRelief: boolean
@@ -1351,9 +1252,6 @@ export interface PayrollSettingsFieldRefs {
   readonly hrdfRate: Prisma.FieldRef<"PayrollSettings", 'Decimal'>
   readonly employerIdNumber: Prisma.FieldRef<"PayrollSettings", 'String'>
   readonly myCoOrSsmNumber: Prisma.FieldRef<"PayrollSettings", 'String'>
-  readonly leaveCarryForwardAllowed: Prisma.FieldRef<"PayrollSettings", 'Boolean'>
-  readonly leaveCarryForwardLimitDays: Prisma.FieldRef<"PayrollSettings", 'Int'>
-  readonly leaveCarryForwardExpiryMonths: Prisma.FieldRef<"PayrollSettings", 'Int'>
   readonly createdAt: Prisma.FieldRef<"PayrollSettings", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PayrollSettings", 'DateTime'>
   readonly autoApplySocsoEisRelief: Prisma.FieldRef<"PayrollSettings", 'Boolean'>

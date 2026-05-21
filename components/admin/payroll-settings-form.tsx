@@ -423,43 +423,6 @@ function GeneralTab(props: {
         </Card>
       ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Leave carry-forward (coming soon)
-          </CardTitle>
-          <CardDescription>
-            Placeholders for the upcoming leave integration. Not yet
-            enforced.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <Toggle
-            name="leaveCarryForwardAllowed"
-            question="Carry-forward allowed?"
-            defaultChecked={s?.leaveCarryForwardAllowed ?? false}
-          />
-          <Field label="Limit (days)">
-            <Input
-              name="leaveCarryForwardLimitDays"
-              type="number"
-              min="0"
-              max="365"
-              defaultValue={s?.leaveCarryForwardLimitDays ?? ""}
-            />
-          </Field>
-          <Field label="Expiry (months)">
-            <Input
-              name="leaveCarryForwardExpiryMonths"
-              type="number"
-              min="0"
-              max="36"
-              defaultValue={s?.leaveCarryForwardExpiryMonths ?? ""}
-            />
-          </Field>
-        </CardContent>
-      </Card>
-
       <div className="flex justify-end">
         <Button type="submit" disabled={pending}>
           {pending ? "Saving…" : "Save General"}

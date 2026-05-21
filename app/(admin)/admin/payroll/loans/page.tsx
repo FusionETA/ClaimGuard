@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation"
-import { HandCoins } from "lucide-react"
 
 import { LoansManager } from "@/components/admin/loans-manager"
 import { getLoansPageData } from "@/modules/payroll/application/services/loan.service"
@@ -19,8 +18,7 @@ export default async function AdminPayrollLoansPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
-          <HandCoins className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-semibold text-foreground">
           Loans &amp; advances
         </h1>
         <p className="text-sm text-muted-foreground">

@@ -961,6 +961,16 @@ export function isPayrollProfileComplete(p: PayrollProfileData): boolean {
  * relevant type.
  */
 export function isExcludedFromPayroll(p: PayrollProfileData): boolean {
+  // Zero base pay no longer means "skip payroll" on its own — an
+  // allowance-only employee (salary 0 but with a recurring earning
+  // allowance) still gets paid, so they belong on the run. Only treat
+  // them as excluded when there's genuinely nothing to pay: zero base
+  // pay AND no positive earning allowance on the profile.
+  const hasEarningAllowance = (p.fixedAllowances ?? []).some((a) => {
+    const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[a.category]
+    return meta?.kind === "ALLOWANCE" && a.amount > 0
+  })
+  if (hasEarningAllowance) return false
   if (p.salaryType === "MONTHLY") return p.monthlySalary === 0
   if (p.salaryType === "HOURLY") return p.hourlyRate === 0
   return false

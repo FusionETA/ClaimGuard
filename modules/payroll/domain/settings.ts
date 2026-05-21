@@ -55,10 +55,6 @@ export type PayrollSettingsData = {
   employerIdNumber: string | null
   myCoOrSsmNumber: string | null
 
-  // Leave carry-forward — placeholders for the upcoming leave module.
-  leaveCarryForwardAllowed: boolean
-  leaveCarryForwardLimitDays: number | null
-  leaveCarryForwardExpiryMonths: number | null
 
   // Xero sync — opt-in toggles that fire when the admin submits a
   // payroll run. UI is hidden when the org has no Xero connection.

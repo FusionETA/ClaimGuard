@@ -41,9 +41,6 @@ const settingsSchema = z.object({
   autoApplySocsoEisRelief: booleanString(),
   employerIdNumber: nullableString(),
   myCoOrSsmNumber: nullableString(),
-  leaveCarryForwardAllowed: booleanString(),
-  leaveCarryForwardLimitDays: nullableInt(),
-  leaveCarryForwardExpiryMonths: nullableInt(),
   syncClaimsToXeroOnSubmit: booleanString(),
   syncPayrollToXeroOnSubmit: booleanString(),
   // Public Bank ECP — 10-digit debiting account number. Empty / null
@@ -73,9 +70,6 @@ export async function savePayrollSettingsAction(
     autoApplySocsoEisRelief: formData.get("autoApplySocsoEisRelief"),
     employerIdNumber: formData.get("employerIdNumber"),
     myCoOrSsmNumber: formData.get("myCoOrSsmNumber"),
-    leaveCarryForwardAllowed: formData.get("leaveCarryForwardAllowed"),
-    leaveCarryForwardLimitDays: formData.get("leaveCarryForwardLimitDays"),
-    leaveCarryForwardExpiryMonths: formData.get("leaveCarryForwardExpiryMonths"),
     syncClaimsToXeroOnSubmit: formData.get("syncClaimsToXeroOnSubmit"),
     syncPayrollToXeroOnSubmit: formData.get("syncPayrollToXeroOnSubmit"),
     ecpPayorAccountNo: formData.get("ecpPayorAccountNo"),
@@ -232,18 +226,6 @@ function nullableNumber() {
       const t = v.trim()
       if (t.length === 0) return null
       const n = Number(t)
-      return Number.isFinite(n) ? n : null
-    })
-}
-function nullableInt() {
-  return z
-    .union([z.string(), z.number(), z.null(), z.instanceof(File)])
-    .transform((v) => {
-      if (v == null || v instanceof File) return null
-      if (typeof v === "number") return Number.isFinite(v) ? Math.trunc(v) : null
-      const t = v.trim()
-      if (t.length === 0) return null
-      const n = parseInt(t, 10)
       return Number.isFinite(n) ? n : null
     })
 }

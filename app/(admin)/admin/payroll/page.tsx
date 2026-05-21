@@ -2,7 +2,6 @@ import Link from "next/link"
 import type { Route } from "next"
 import { redirect } from "next/navigation"
 import {
-  Banknote,
   ClipboardList,
   Clock,
   FileSpreadsheet,
@@ -43,8 +42,7 @@ export default async function AdminPayrollPage() {
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
-          <Banknote className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-semibold text-foreground">
           Payroll
         </h1>
         <p className="text-sm text-muted-foreground">

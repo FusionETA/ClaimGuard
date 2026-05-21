@@ -223,6 +223,40 @@ export async function submitPayrollRunForApproval(input: {
     )
   }
 
+  const payslips = await payslipRepository.listForRun(run.id)
+
+  // Guard 1 — stale draft. Inputs changed (e.g. a loan was created /
+  // edited / cancelled) after the last Generate, so the payslips no
+  // longer reflect reality. `lastMutatedAt` is bumped on every such
+  // change and cleared on Generate; if it's newer than the most-recent
+  // payslip, force a re-run before submission.
+  if (run.lastMutatedAt != null && payslips.length > 0) {
+    const latestGeneration = payslips
+      .map((p) => p.createdAt)
+      .reduce((acc, v) => (v > acc ? v : acc), payslips[0]!.createdAt)
+    if (run.lastMutatedAt > latestGeneration) {
+      throw new Error(
+        "Payroll inputs changed since this draft was generated (e.g. a loan was updated). Re-run payroll before submitting.",
+      )
+    }
+  }
+
+  // Guard 2 — no employee may have zero or negative net pay (e.g. a
+  // loan installment / deductions larger than their take-home). Block
+  // and name the affected employees.
+  const nonPositive = payslips.filter((p) => p.netPay <= 0)
+  if (nonPositive.length > 0) {
+    const names = nonPositive
+      .slice(0, 5)
+      .map((p) => p.snapshotName)
+      .join(", ")
+    const more =
+      nonPositive.length > 5 ? ` and ${nonPositive.length - 5} more` : ""
+    throw new Error(
+      `Cannot submit — net pay is zero or negative for: ${names}${more}. Reduce their deductions or loan installment, then re-run payroll.`,
+    )
+  }
+
   await payrollRunRepository.submitForApproval({
     id: run.id,
     organizationId: orgId,

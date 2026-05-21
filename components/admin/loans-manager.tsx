@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useId, useMemo, useState } from "react"
-import { HandCoins, Pencil, Plus, X } from "lucide-react"
+import { HandCoins, Pencil, Plus, Search, X } from "lucide-react"
 
 import {
   cancelLoanAction,
@@ -345,6 +345,21 @@ function CreateLoanCard(props: { employees: LoanEmployeeOption[] }) {
 }
 
 function LoanList(props: { loans: EmployeeLoanWithProgress[] }) {
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState<
+    "ALL" | "ACTIVE" | "COMPLETED" | "CANCELLED"
+  >("ALL")
+  const q = search.trim().toLowerCase()
+  const filtered = props.loans.filter((loan) => {
+    const matchesStatus =
+      statusFilter === "ALL" || loan.derivedStatus === statusFilter
+    const matchesSearch =
+      q === "" ||
+      (loan.employeeName ?? "").toLowerCase().includes(q) ||
+      (loan.employeeCode ?? "").toLowerCase().includes(q)
+    return matchesStatus && matchesSearch
+  })
+
   if (props.loans.length === 0) {
     return (
       <Card>
@@ -370,7 +385,30 @@ function LoanList(props: { loans: EmployeeLoanWithProgress[] }) {
           Repayment progress is derived from submitted payroll runs.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[200px] flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by employee name or ID…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <NativeSelect
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value as typeof statusFilter)
+            }
+            className="w-[180px] shrink-0"
+          >
+            <option value="ALL">All statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+          </NativeSelect>
+        </div>
         {/* `grid-cols-[minmax(0,1fr)]` caps the track at the card width
             so the wide table scrolls inside its own box instead of
             pushing the whole page wider than the window. */}
@@ -389,7 +427,17 @@ function LoanList(props: { loans: EmployeeLoanWithProgress[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {props.loans.map((loan) => (
+            {filtered.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={8}
+                  className="py-8 text-center text-sm text-muted-foreground"
+                >
+                  No loans match your search.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((loan) => (
               <TableRow key={loan.id}>
                 <TableCell>
                   <span className="font-medium text-foreground">
@@ -436,7 +484,8 @@ function LoanList(props: { loans: EmployeeLoanWithProgress[] }) {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
         </Table>
         </div>

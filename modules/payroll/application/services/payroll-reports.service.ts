@@ -1,7 +1,7 @@
 import "server-only"
 
 import { createHash } from "node:crypto"
-import { mkdir, writeFile } from "node:fs/promises"
+import { access, mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -152,12 +152,30 @@ export async function generatePayrollReport(input: {
         kind: input.kind,
       })
   if (cached) {
-    return {
-      fileName: cached.fileName,
-      fileUrl: cached.fileUrl,
-      mimeType: cached.mimeType,
-      sizeBytes: cached.sizeBytes,
-      alreadyCached: true,
+    // The DB row claims the file exists, but the bytes live on disk
+    // under public/uploads — and that can be wiped by a deploy or a
+    // public/ cleanup while the row survives. If we trust the row
+    // blindly we hand back a URL that 404s ("File wasn't available on
+    // site") with no way to recover, since every retry re-returns the
+    // same dead row. So verify the physical file is still there; only
+    // short-circuit when it is. Otherwise fall through and re-render.
+    const onDiskPath = path.join(
+      process.cwd(),
+      "public",
+      cached.fileUrl.replace(/^\/+/, ""),
+    )
+    const fileExists = await access(onDiskPath).then(
+      () => true,
+      () => false,
+    )
+    if (fileExists) {
+      return {
+        fileName: cached.fileName,
+        fileUrl: cached.fileUrl,
+        mimeType: cached.mimeType,
+        sizeBytes: cached.sizeBytes,
+        alreadyCached: true,
+      }
     }
   }
 

@@ -1086,9 +1086,6 @@ model PayrollSettings {
   hrdfRate                      Decimal?        @db.Decimal(5, 2)
   employerIdNumber              String?
   myCoOrSsmNumber               String?
-  leaveCarryForwardAllowed      Boolean         @default(false)
-  leaveCarryForwardLimitDays    Int?
-  leaveCarryForwardExpiryMonths Int?
   createdAt                     DateTime        @default(now())
   updatedAt                     DateTime        @updatedAt
   autoApplySocsoEisRelief       Boolean         @default(true)

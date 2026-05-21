@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation"
-import { FileSpreadsheet } from "lucide-react"
 
 import { PayrollAnnualDownloadsCard } from "@/components/admin/payroll-annual-downloads-card"
 import { getPayrollAnnualReportsPageData } from "@/modules/payroll/application/services/payroll-annual-reports.service"
@@ -30,8 +29,7 @@ export default async function AdminAnnualPayrollFormsPage({
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
-          <FileSpreadsheet className="h-6 w-6 text-primary" />
+        <h1 className="text-2xl font-semibold text-foreground">
           Annual Tax Forms
         </h1>
         <p className="text-sm text-muted-foreground">

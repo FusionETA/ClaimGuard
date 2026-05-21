@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation"
-import { CalendarPlus } from "lucide-react"
 
 import { ClaimPayrollReadyList } from "@/components/admin/claim-payroll-ready-list"
 import { Card, CardContent } from "@/components/ui/card"
@@ -52,10 +51,7 @@ export default async function AdminClaimsPayrollReadyPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 rounded-xl bg-primary/10 p-2 text-primary">
-          <CalendarPlus className="h-5 w-5" />
-        </span>
+      <div>
         <div>
           <h1 className="text-xl font-semibold">Ready for payroll</h1>
           <p className="text-sm text-muted-foreground">

@@ -66,9 +66,6 @@ function mapPayrollSettings(row: any): PayrollSettingsData {
     autoApplySocsoEisRelief: row.autoApplySocsoEisRelief ?? true,
     employerIdNumber: row.employerIdNumber ?? null,
     myCoOrSsmNumber: row.myCoOrSsmNumber ?? null,
-    leaveCarryForwardAllowed: row.leaveCarryForwardAllowed,
-    leaveCarryForwardLimitDays: row.leaveCarryForwardLimitDays ?? null,
-    leaveCarryForwardExpiryMonths: row.leaveCarryForwardExpiryMonths ?? null,
     // ?? false guards legacy rows minted before these columns existed;
     // prisma db push backfills with the schema default, but defensive
     // anyway.
@@ -180,9 +177,6 @@ function toUpsertData(
   copy("autoApplySocsoEisRelief")
   copy("employerIdNumber")
   copy("myCoOrSsmNumber")
-  copy("leaveCarryForwardAllowed")
-  copy("leaveCarryForwardLimitDays")
-  copy("leaveCarryForwardExpiryMonths")
   copy("syncClaimsToXeroOnSubmit")
   copy("syncPayrollToXeroOnSubmit")
   copy("ecpPayorAccountNo")

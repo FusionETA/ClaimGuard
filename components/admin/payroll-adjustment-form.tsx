@@ -390,7 +390,6 @@ export function PayrollAdjustmentForm(props: {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <HandCoins className="h-4 w-4 text-primary" />
               Loan repayments
             </CardTitle>
             <CardDescription>
