@@ -17,8 +17,13 @@ jobs:
       # them to exist, not to point anywhere real.
       DATABASE_URL: "mysql://user:pass@localhost:3306/test"
       AUTH_SECRET: "ci-only-not-a-real-secret-do-not-use-anywhere-else"
-      VAPID_PUBLIC_KEY: "ci-placeholder"
-      VAPID_PRIVATE_KEY: "ci-placeholder"
+      # `web-push` validates VAPID key shape eagerly when `setVapidDetails`
+      # is called. These are throwaway CI-only keys generated once with
+      # `npx web-push generate-vapid-keys` — they aren't tied to any
+      # real push subscription and only exist so the build's page-data
+      # collection can import notification code without crashing.
+      VAPID_PUBLIC_KEY: "BLwJGo5X8P9NHTluwbsp7fXGJA7AuCQ3Y9rEqui2sCO7MFwetCa0T28U9Mg9uYiid2sBQpts7r5sR2gXz_JYeUg"
+      VAPID_PRIVATE_KEY: "XzWU641VJdGqbUHs4CfRblJC-x0K_Yy-KETYv0bM7G0"
       VAPID_SUBJECT: "mailto:ci@example.com"
       XERO_CLIENT_ID: "ci-placeholder"
       XERO_CLIENT_SECRET: "ci-placeholder"

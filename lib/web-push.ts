@@ -8,13 +8,26 @@ import { getPrismaClient } from "@/lib/prisma"
 // VAPID configuration — keys are generated once with:
 //   npx web-push generate-vapid-keys
 // and stored in .env as VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT
+//
+// Lazy init: `web-push` eagerly validates the VAPID key format inside
+// `setVapidDetails`, and the build pipeline imports this module during
+// page-data collection with CI placeholder env vars that aren't valid
+// 65-byte keys. Configuring on first actual send (rather than at module
+// load) keeps the build green and only fails when a real push is
+// attempted with bad keys — which is the right time to surface it.
 // ---------------------------------------------------------------------------
 
-webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT ?? "mailto:admin@altomatehr.app",
-    process.env.VAPID_PUBLIC_KEY ?? "",
-    process.env.VAPID_PRIVATE_KEY ?? ""
-)
+let vapidConfigured = false
+
+function ensureVapidConfigured(): void {
+    if (vapidConfigured) return
+    webpush.setVapidDetails(
+        process.env.VAPID_SUBJECT ?? "mailto:admin@altomatehr.app",
+        process.env.VAPID_PUBLIC_KEY ?? "",
+        process.env.VAPID_PRIVATE_KEY ?? ""
+    )
+    vapidConfigured = true
+}
 
 export function getVapidPublicKey(): string {
     return process.env.VAPID_PUBLIC_KEY ?? ""
@@ -51,6 +64,17 @@ export async function sendPushToUser(
     }
 
     if (subscriptions.length === 0) return
+
+    // Configure VAPID lazily — only when there's actually a push to send.
+    // If env vars are missing or malformed this throws here, which is fine:
+    // the catch around `sendNotification` swallows it and the business flow
+    // continues.
+    try {
+        ensureVapidConfigured()
+    } catch (err) {
+        console.warn("[web-push] VAPID setup failed:", (err as Error).message)
+        return
+    }
 
     const json = JSON.stringify(payload)
 
