@@ -2,6 +2,62 @@ import "server-only"
 
 import { getPrismaClient } from "@/lib/prisma"
 
+export type OnLeaveTodayEntry = {
+  employeeId: string
+  employeeName: string
+  leaveTypeCode: string
+  leaveTypeName: string
+  duration: "FULL_DAY" | "MORNING" | "AFTERNOON"
+  startDate: string
+  endDate: string
+}
+
+/// Light-weight "who is on leave today" for the admin dashboard. Returns
+/// null when the org has no configured leave types (proxy for "leave
+/// module not in use yet") so callers can hide the card.
+export async function getOnLeaveTodayForOrg(
+  orgId: string,
+): Promise<OnLeaveTodayEntry[] | null> {
+  const prisma = getPrismaClient()
+  if (!prisma) return null
+  const hasLeaveTypes = await prisma.leaveType.count({
+    where: { organizationId: orgId, archivedAt: null },
+  })
+  if (hasLeaveTypes === 0) return null
+
+  const today = new Date()
+  const todayStart = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()),
+  )
+  const todayEnd = new Date(
+    Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 23, 59, 59),
+  )
+
+  const apps = await prisma.leaveApplication.findMany({
+    where: {
+      status: "APPROVED",
+      startDate: { lte: todayEnd },
+      endDate: { gte: todayStart },
+      employee: { user: { organizationId: orgId } },
+    },
+    include: {
+      leaveType: { select: { code: true, name: true } },
+      employee: { include: { user: { select: { name: true } } } },
+    },
+    orderBy: { employee: { user: { name: "asc" } } },
+  })
+
+  return apps.map((a) => ({
+    employeeId: a.employeeId,
+    employeeName: a.employee.user.name,
+    leaveTypeCode: a.leaveType.code,
+    leaveTypeName: a.leaveType.name,
+    duration: a.duration as "FULL_DAY" | "MORNING" | "AFTERNOON",
+    startDate: a.startDate.toISOString(),
+    endDate: a.endDate.toISOString(),
+  }))
+}
+
 export type LeaveOverviewReport = {
   year: number
   totals: {

@@ -101,14 +101,16 @@ export function LeaveSettingsView(props: {
         )}
       </div>
 
-      <div className="flex gap-2 border-b">
-        <TabButton active={tab === "types"} onClick={() => setTab("types")}>
-          Leave types &amp; policies
-        </TabButton>
-        <TabButton active={tab === "employees"} onClick={() => setTab("employees")}>
-          Employee entitlements
-        </TabButton>
-      </div>
+      <nav className="-mx-6 overflow-x-auto px-6 nice-scrollbar">
+        <div className="flex gap-2 pb-0.5">
+          <PillTab active={tab === "types"} onClick={() => setTab("types")}>
+            Leave types &amp; policies
+          </PillTab>
+          <PillTab active={tab === "employees"} onClick={() => setTab("employees")}>
+            Employee entitlements
+          </PillTab>
+        </div>
+      </nav>
 
       {tab === "types" && (
         <>
@@ -147,7 +149,7 @@ export function LeaveSettingsView(props: {
   )
 }
 
-function TabButton({
+function PillTab({
   active,
   onClick,
   children,
@@ -161,10 +163,10 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={
-        "px-4 py-2 text-sm font-medium border-b-2 transition-colors " +
+        "shrink-0 rounded-full border px-4 py-1.5 text-xs font-semibold transition-colors " +
         (active
-          ? "border-primary text-foreground"
-          : "border-transparent text-muted-foreground hover:text-foreground")
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border/60 bg-card text-muted-foreground hover:text-foreground")
       }
     >
       {children}
