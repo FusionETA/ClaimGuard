@@ -185,6 +185,25 @@ export async function getXeroMappingOptions(): Promise<{
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
+  // 5-min TTL; busted by bustPayrollCaches on settings/mapping saves +
+  // Xero sync. Also spares a token refresh + live Xero tracking-category
+  // call on every Settings → Xero visit. Tradeoff: a transient Xero
+  // timeout can cache an empty category list until the TTL/next bust.
+  return getOrSetCache(
+    key("org", orgId, "payroll", "page", "xero-mapping-options"),
+    300,
+    () => loadXeroMappingOptions(orgId),
+  )
+}
+
+async function loadXeroMappingOptions(orgId: string): Promise<{
+  accounts: Array<{ id: string; code: string; name: string; type?: string }>
+  trackingCategories: Array<{
+    id: string
+    name: string
+    options: Array<{ id: string; name: string }>
+  }>
+} | null> {
   const connections = await organizationRepository.getXeroConnections(orgId)
   const connection = connections[0]
   if (!connection) return null

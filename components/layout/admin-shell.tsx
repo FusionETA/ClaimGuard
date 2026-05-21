@@ -97,13 +97,12 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     icon: Banknote,
     children: [
       { href: "/admin/payroll" as Route, label: "Overview" },
-      { href: "/admin/payroll/employees" as Route, label: "Employees" },
       { href: "/admin/payroll/runs" as Route, label: "Payroll Runs" },
-      { href: "/admin/payroll/loans" as Route, label: "Loans" },
       {
         href: "/admin/payroll/annual-forms" as Route,
         label: "Annual Tax Forms",
       },
+      { href: "/admin/payroll/loans" as Route, label: "Loans" },
       { href: "/admin/payroll/settings" as Route, label: "Settings" },
     ],
   },
@@ -125,11 +124,11 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     // the standard admin-nav pattern; without this the parent would
     // always land on /admin/hierarchy (Employees) regardless of order.
     href: "/admin/company-structure" as Route,
-    label: "Hierarchy",
+    label: "Company/Employee",
     icon: Network,
     children: [
       { href: "/admin/company-structure" as Route, label: "Company Structure" },
-      { href: "/admin/hierarchy" as Route, label: "Employees" },
+      { href: "/admin/hierarchy" as Route, label: "Manage Employee" },
     ],
   },
   {
@@ -160,7 +159,7 @@ function getTitle(pathname: string) {
   }
 
   if (pathname.startsWith("/admin/hierarchy")) {
-    return "Employees"
+    return "Manage Employee"
   }
 
   if (pathname.startsWith("/admin/company-structure")) {

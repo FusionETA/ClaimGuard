@@ -1,6 +1,8 @@
 import "server-only"
 
+import { getOrSetCache } from "@/lib/cache"
 import { getPrismaClient } from "@/lib/prisma"
+import { key } from "@/lib/redis"
 
 export type OnLeaveTodayEntry = {
   employeeId: string
@@ -16,6 +18,19 @@ export type OnLeaveTodayEntry = {
 /// null when the org has no configured leave types (proxy for "leave
 /// module not in use yet") so callers can hide the card.
 export async function getOnLeaveTodayForOrg(
+  orgId: string,
+): Promise<OnLeaveTodayEntry[] | null> {
+  // 10-min TTL; busted by `bustLeaveCaches` on leave mutations. The
+  // "today" window shifts at midnight — the short TTL bounds that
+  // staleness to at most one window.
+  return getOrSetCache(
+    key("org", orgId, "leave", "on-leave-today"),
+    600,
+    () => loadOnLeaveTodayForOrg(orgId),
+  )
+}
+
+async function loadOnLeaveTodayForOrg(
   orgId: string,
 ): Promise<OnLeaveTodayEntry[] | null> {
   const prisma = getPrismaClient()

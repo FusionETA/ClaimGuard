@@ -1,7 +1,9 @@
 import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getOrSetCache } from "@/lib/cache"
 import { bustPayrollCaches } from "@/lib/cache-invalidation"
+import { key } from "@/lib/redis"
 import {
   buildScheduleFromTerms,
   loanInstallmentBreakdown,
@@ -84,10 +86,21 @@ export async function getLoansPageData(): Promise<LoansPageData | null> {
   const ctx = await requireAdminOrg()
   if (!ctx) return null
 
+  // 10-min TTL; busted by `bustPayrollCaches` (org payroll:* namespace)
+  // on every loan create/edit/cancel and on run submissions (which
+  // change repayment progress).
+  return getOrSetCache(
+    key("org", ctx.orgId, "payroll", "page", "loans"),
+    600,
+    () => loadLoansPageData(ctx.orgId),
+  )
+}
+
+async function loadLoansPageData(orgId: string): Promise<LoansPageData> {
   const [loans, submittedPeriods, employees] = await Promise.all([
-    employeeLoanRepository.listForOrganization(ctx.orgId),
-    payrollRunRepository.listSubmittedPeriods(ctx.orgId),
-    payrollProfileRepository.listReadyForPayroll(ctx.orgId),
+    employeeLoanRepository.listForOrganization(orgId),
+    payrollRunRepository.listSubmittedPeriods(orgId),
+    payrollProfileRepository.listReadyForPayroll(orgId),
   ])
 
   const withProgress: EmployeeLoanWithProgress[] = loans.map((loan) => {

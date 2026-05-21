@@ -1,7 +1,10 @@
 import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getOrSetCache } from "@/lib/cache"
+import { bustOrgConfigCaches, bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getPrismaClient } from "@/lib/prisma"
+import { key } from "@/lib/redis"
 import type {
   PayrollEmployeeRow,
   PayrollProfileData,
@@ -10,6 +13,8 @@ import type { SalaryChangeData } from "@/modules/payroll/domain/salary-change"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-change.repository"
+import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
+import type { EmployeePolicy } from "@/modules/policy/domain/models"
 
 /**
  * Page-data + action services for the admin payroll module.
@@ -26,31 +31,55 @@ import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-
  */
 
 /**
- * Page-data for the "Payroll → Employees" list page.
+ * Page-data for the unified "Company/Employee → Manage Employee" list
+ * (route /admin/hierarchy). Same employee rows as the payroll list,
+ * plus the active employee policies needed by the inline "Add
+ * employee" dialog (which creates a bare member; projects / teams /
+ * approval-chain are then filled in via the detail editor's Company
+ * tab).
  */
-export async function getPayrollEmployeesPageData(): Promise<{
+export async function getManageEmployeesPageData(): Promise<{
   organizationName: string
   employees: PayrollEmployeeRow[]
+  policies: EmployeePolicy[]
 } | null> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
+  // 10-min TTL under the org "config" namespace. Busted by
+  // `bustOrgConfigCaches` on hierarchy/member edits AND — because the
+  // list shows payroll-readiness — by the payroll-profile save/archive
+  // actions (which now also call bustOrgConfigCaches).
+  return getOrSetCache(
+    key("org", orgId, "config", "page", "manage-employees"),
+    600,
+    () => loadManageEmployeesPageData(orgId),
+  )
+}
+
+async function loadManageEmployeesPageData(orgId: string): Promise<{
+  organizationName: string
+  employees: PayrollEmployeeRow[]
+  policies: EmployeePolicy[]
+} | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
 
-  const [org, employees] = await Promise.all([
+  const [org, employees, policies] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
       select: { name: true },
     }),
     payrollProfileRepository.listForOrganization(orgId),
+    policyRepository.listForOrganization(orgId),
   ])
 
   return {
     organizationName: org?.name ?? "",
     employees,
+    policies,
   }
 }
 
@@ -153,10 +182,18 @@ export async function upsertPayrollProfile(input: {
     throw new Error("Employee not found in this organisation.")
   }
 
-  return payrollProfileRepository.upsert({
+  const result = await payrollProfileRepository.upsert({
     employeeProfileId: user.employeeProfile.id,
     patch: input.patch,
   })
+
+  // Readiness (isComplete) shown on the Manage Employee list lives under
+  // the org config namespace; eligible-employee counts live under
+  // payroll. Bust both so neither shows stale state after an edit.
+  await bustOrgConfigCaches({ organizationId: orgId })
+  await bustPayrollCaches({ organizationId: orgId })
+
+  return result
 }
 
 /**
@@ -186,6 +223,8 @@ export async function archivePayrollProfile(input: {
   }
 
   await payrollProfileRepository.archive(user.employeeProfile.id, input.reason)
+  await bustOrgConfigCaches({ organizationId: orgId })
+  await bustPayrollCaches({ organizationId: orgId })
 }
 
 export async function unarchivePayrollProfile(input: {
@@ -210,4 +249,6 @@ export async function unarchivePayrollProfile(input: {
   }
 
   await payrollProfileRepository.unarchive(user.employeeProfile.id)
+  await bustOrgConfigCaches({ organizationId: orgId })
+  await bustPayrollCaches({ organizationId: orgId })
 }

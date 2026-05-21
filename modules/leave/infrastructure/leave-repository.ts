@@ -336,6 +336,21 @@ export const leaveRepository = {
     return rows.map(toApplicationView)
   },
 
+  /**
+   * Count leave applications in the org still awaiting a decision
+   * (status PENDING). Drives the admin overview "Leave" quick-action
+   * badge. Scoped via employee → user → organization.
+   */
+  async countPendingForOrganization(organizationId: string): Promise<number> {
+    const prisma = requirePrisma()
+    return prisma.leaveApplication.count({
+      where: {
+        status: "PENDING",
+        employee: { user: { organizationId } },
+      },
+    })
+  },
+
   async listApprovedPaidApplicationsInRange(
     employeeId: string,
     from: Date,

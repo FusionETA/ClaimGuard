@@ -3558,7 +3558,6 @@ export const EmployeeProfileScalarFieldEnum = {
   employeeId: 'employeeId',
   jobTitle: 'jobTitle',
   preferredCurrency: 'preferredCurrency',
-  xeroConnectionId: 'xeroConnectionId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   otTimeBalanceMin: 'otTimeBalanceMin',
@@ -3654,7 +3653,6 @@ export type ClaimApprovalEntryScalarFieldEnum = (typeof ClaimApprovalEntryScalar
 export const ChartOfAccountScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
-  xeroConnectionId: 'xeroConnectionId',
   xeroAccountId: 'xeroAccountId',
   code: 'code',
   name: 'name',
@@ -3666,6 +3664,7 @@ export const ChartOfAccountScalarFieldEnum = {
   updatedAt: 'updatedAt',
   isBankAccount: 'isBankAccount',
   isDisabled: 'isDisabled',
+  archivedByXeroConnect: 'archivedByXeroConnect',
   allowMileageClaim: 'allowMileageClaim',
   limitAmount: 'limitAmount',
   limitPeriod: 'limitPeriod',
@@ -3703,7 +3702,6 @@ export type XeroConnectionScalarFieldEnum = (typeof XeroConnectionScalarFieldEnu
 export const XeroProjectScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
-  xeroConnectionId: 'xeroConnectionId',
   xeroProjectId: 'xeroProjectId',
   name: 'name',
   status: 'status',
@@ -3713,6 +3711,7 @@ export const XeroProjectScalarFieldEnum = {
   location: 'location',
   projectManagerId: 'projectManagerId',
   isDisabled: 'isDisabled',
+  archivedByXeroConnect: 'archivedByXeroConnect',
   latitude: 'latitude',
   longitude: 'longitude',
   workingHoursStart: 'workingHoursStart',
@@ -4021,6 +4020,7 @@ export const PayrollCompanyInfoScalarFieldEnum = {
   employerCategory: 'employerCategory',
   employerStatus: 'employerStatus',
   cp8dFurnishType: 'cp8dFurnishType',
+  perkesoEmployerCode: 'perkesoEmployerCode',
   addressLine1: 'addressLine1',
   addressLine2: 'addressLine2',
   postcode: 'postcode',
@@ -4478,7 +4478,6 @@ export const EmployeeProfileOrderByRelevanceFieldEnum = {
   employeeId: 'employeeId',
   jobTitle: 'jobTitle',
   preferredCurrency: 'preferredCurrency',
-  xeroConnectionId: 'xeroConnectionId',
   policyId: 'policyId'
 } as const
 
@@ -4545,7 +4544,6 @@ export type ClaimApprovalEntryOrderByRelevanceFieldEnum = (typeof ClaimApprovalE
 export const ChartOfAccountOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
-  xeroConnectionId: 'xeroConnectionId',
   xeroAccountId: 'xeroAccountId',
   code: 'code',
   name: 'name',
@@ -4579,7 +4577,6 @@ export type XeroConnectionOrderByRelevanceFieldEnum = (typeof XeroConnectionOrde
 export const XeroProjectOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
-  xeroConnectionId: 'xeroConnectionId',
   xeroProjectId: 'xeroProjectId',
   name: 'name',
   status: 'status',
@@ -4774,6 +4771,7 @@ export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
   employerCategory: 'employerCategory',
   employerStatus: 'employerStatus',
   cp8dFurnishType: 'cp8dFurnishType',
+  perkesoEmployerCode: 'perkesoEmployerCode',
   addressLine1: 'addressLine1',
   addressLine2: 'addressLine2',
   postcode: 'postcode',

@@ -116,13 +116,10 @@ async function resolveXeroConnectionId(employeeProfileId: string): Promise<strin
   const profile = await prisma.employeeProfile.findUnique({
     where: { id: employeeProfileId },
     select: {
-      xeroConnectionId: true,
       user: { select: { organizationId: true } },
     },
   })
-  if (!profile) return null
-  if (profile.xeroConnectionId) return profile.xeroConnectionId
-  if (!profile.user.organizationId) return null
+  if (!profile?.user.organizationId) return null
   const conn = await prisma.xeroConnection.findFirst({
     where: { organizationId: profile.user.organizationId },
     orderBy: { createdAt: "asc" },

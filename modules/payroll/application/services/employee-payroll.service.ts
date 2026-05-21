@@ -1,7 +1,9 @@
 import "server-only"
 
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getOrSetCache } from "@/lib/cache"
 import { getPrismaClient } from "@/lib/prisma"
+import { key } from "@/lib/redis"
 import type {
   PayrollRunData,
   PayslipData,
@@ -37,8 +39,18 @@ export async function getEmployeePayslipsPageData(): Promise<{
   const employeeProfileId = await resolveEmployeeProfileId(session.userId)
   if (!employeeProfileId) return null
 
-  const payslips = await payslipRepository.listForEmployee(employeeProfileId)
-  return { payslips }
+  const orgId = resolveActiveOrgId(session)
+  // Payslips only exist for SUBMITTED runs (immutable). Cache under the
+  // org payroll namespace so run submit/approve/revert busts them.
+  const load = async () => ({
+    payslips: await payslipRepository.listForEmployee(employeeProfileId),
+  })
+  if (!orgId) return load()
+  return getOrSetCache(
+    key("org", orgId, "payroll", "employee", session.userId, "payslips"),
+    600,
+    load,
+  )
 }
 
 export async function getEmployeePayslipDetailPageData(input: {
@@ -56,8 +68,25 @@ export async function getEmployeePayslipDetailPageData(input: {
   const employeeProfileId = await resolveEmployeeProfileId(session.userId)
   if (!employeeProfileId) return null
 
+  const orgId = resolveActiveOrgId(session)
+  const load = () => loadPayslipDetail(employeeProfileId, input.payslipId)
+  if (!orgId) return load()
+  return getOrSetCache(
+    key("org", orgId, "payroll", "employee", session.userId, "payslip", input.payslipId),
+    600,
+    load,
+  )
+}
+
+async function loadPayslipDetail(
+  employeeProfileId: string,
+  payslipId: string,
+): Promise<{
+  payslip: PayslipData
+  run: Pick<PayrollRunData, "id" | "periodYear" | "periodMonth" | "status">
+} | null> {
   const payslip = await payslipRepository.getByIdForEmployee({
-    payslipId: input.payslipId,
+    payslipId,
     employeeProfileId,
   })
   if (!payslip) return null

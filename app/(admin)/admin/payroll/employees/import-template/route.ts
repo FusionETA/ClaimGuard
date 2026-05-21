@@ -68,17 +68,15 @@ const COLUMNS: Column[] = [
   { key: "emergencyContactName", required: false, description: "Emergency contact full name" },
   { key: "emergencyContactPhone", required: false, description: "Emergency contact phone number" },
   { key: "emergencyContactRelation", required: false, description: "Parent / Spouse / Sibling / etc." },
-  // ── Spouse & Dependents ──
-  // childN.* columns can be added as needed — copy the four pattern columns
-  // below and bump the index (child2.age, child3.age, …) for each kid.
+  // ── Spouse ──
+  // Dependent-child columns (child1..child10) live at the END of the
+  // template — see CHILD_COLUMNS below. They're optional and most
+  // employees only fill the first few, so they're parked last to keep
+  // the everyday columns up front.
   { key: "spouseWorking", required: false, description: "TRUE/FALSE — spouse is employed" },
   { key: "spouseDisabled", required: false, description: "TRUE/FALSE — spouse is OKU / disabled" },
   { key: "spousePcbNumber", required: false, description: "Spouse's LHDN PCB number" },
   { key: "spouseIdNumber", required: false, description: "Spouse's NRIC / passport number" },
-  { key: "child1.age", required: false, description: "Dependent child 1 — age in years" },
-  { key: "child1.abilityStatus", required: false, description: "Dependent child 1 — NORMAL | DISABLED" },
-  { key: "child1.currentlyStudying", required: false, description: "Dependent child 1 — PRESCHOOL | PRIMARY | SECONDARY | HIGHER_ED | NONE" },
-  { key: "child1.pcbDeduction", required: false, description: "Dependent child 1 — FULL | HALF | NONE" },
   // ── Statutory & Payroll ──
   { key: "salaryType", required: true, description: "MONTHLY or HOURLY" },
   { key: "monthlySalary", required: false, description: "MYR — required if salaryType=MONTHLY" },
@@ -113,11 +111,33 @@ const COLUMNS: Column[] = [
   { key: "teamLayer", required: true, description: "Hierarchy layer (1 = bottom). Must be ≤ team.layerCount" },
 ]
 
+/**
+ * Dependent-child columns (child1..child10), parked at the very end of
+ * the template. All optional — fill only as many as the employee has
+ * (blank `ageN` rows are ignored on import). The importer reads
+ * `childN.*` dynamically, so this count can be raised here alone.
+ */
+const MAX_TEMPLATE_CHILDREN = 10
+
+const CHILD_COLUMNS: Column[] = Array.from(
+  { length: MAX_TEMPLATE_CHILDREN },
+  (_, i) => i + 1,
+).flatMap((n) => [
+  { key: `child${n}.age`, required: false, description: `Dependent child ${n} — age in years (leave blank if no child ${n})` },
+  { key: `child${n}.abilityStatus`, required: false, description: `Dependent child ${n} — NORMAL | DISABLED` },
+  { key: `child${n}.currentlyStudying`, required: false, description: `Dependent child ${n} — PRESCHOOL | PRIMARY | SECONDARY | HIGHER_ED | NONE` },
+  { key: `child${n}.pcbDeduction`, required: false, description: `Dependent child ${n} — FULL | HALF | NONE` },
+])
+
+/// Final template column order: everyday columns first, dependent-child
+/// columns last.
+const ALL_COLUMNS: Column[] = [...COLUMNS, ...CHILD_COLUMNS]
+
 function buildTemplateCsv(): string {
-  const headerCells = COLUMNS.map((c) =>
+  const headerCells = ALL_COLUMNS.map((c) =>
     csvField((c.required ? "*" : "") + c.key),
   )
-  const commentCells = COLUMNS.map((c) => csvField(c.description))
+  const commentCells = ALL_COLUMNS.map((c) => csvField(c.description))
 
   const lines: string[] = []
   // Two-row template: header + description. No example rows — admins

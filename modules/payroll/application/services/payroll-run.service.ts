@@ -6,7 +6,7 @@ import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getPrismaClient } from "@/lib/prisma"
 import { key } from "@/lib/redis"
 import { calcPayslip } from "@/modules/payroll/domain/calc"
-import { periodLabel } from "@/modules/payroll/domain/runs"
+import { PAYROLL_RUN_STATUS_LABELS, periodLabel } from "@/modules/payroll/domain/runs"
 import type {
   FixedAllowance,
   PayrollEmployeeRow,
@@ -254,6 +254,28 @@ export async function submitPayrollRunForApproval(input: {
       nonPositive.length > 5 ? ` and ${nonPositive.length - 5} more` : ""
     throw new Error(
       `Cannot submit — net pay is zero or negative for: ${names}${more}. Reduce their deductions or loan installment, then re-run payroll.`,
+    )
+  }
+
+  // Guard 3 — chronological order. A month can't be submitted while
+  // the immediately-preceding month's run is still sitting unsubmitted
+  // (DRAFT / PENDING_APPROVAL). This stops admins skipping ahead and
+  // leaving an earlier month un-finalised. We only block when a prior
+  // run actually EXISTS but isn't SUBMITTED yet — if there's simply no
+  // run for the previous month (e.g. the org's first run, or a month
+  // genuinely skipped), submission is allowed.
+  const prevPeriod =
+    run.periodMonth > 1
+      ? { year: run.periodYear, month: run.periodMonth - 1 }
+      : { year: run.periodYear - 1, month: 12 }
+  const previousRun = await payrollRunRepository.findByPeriod({
+    organizationId: orgId,
+    periodYear: prevPeriod.year,
+    periodMonth: prevPeriod.month,
+  })
+  if (previousRun && previousRun.status !== "SUBMITTED") {
+    throw new Error(
+      `Submit ${periodLabel(prevPeriod.year, prevPeriod.month)} first — payroll runs must be submitted in order, and that month's run is still ${PAYROLL_RUN_STATUS_LABELS[previousRun.status].toLowerCase()}.`,
     )
   }
 

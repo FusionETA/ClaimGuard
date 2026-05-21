@@ -83,7 +83,7 @@ model Organization {
   payrollRuns             PayrollRun[]
   payrollSettings         PayrollSettings?
   users                   User[]
-  xeroConnections         XeroConnection[]
+  xeroConnection          XeroConnection?
   projects                XeroProject[]
   leaveTypes              LeaveType[]
 }
@@ -336,7 +336,6 @@ model EmployeeProfile {
   employeeId            String
   jobTitle              String
   preferredCurrency     String                      @default("USD")
-  xeroConnectionId      String?
   createdAt             DateTime                    @default(now())
   updatedAt             DateTime                    @updatedAt
   /// Cumulative banked OT minutes for TIME_BANK Office Workers.
@@ -346,7 +345,6 @@ model EmployeeProfile {
   policyId              String?
   policy                EmployeePolicy?             @relation(fields: [policyId], references: [id])
   user                  User                        @relation("EmployeeProfileUser", fields: [userId], references: [id], onDelete: Cascade)
-  xeroConnection        XeroConnection?             @relation(fields: [xeroConnectionId], references: [id])
   projectAssignments    EmployeeProjectAssignment[]
   teamMemberships       EmployeeTeamMembership[]
   payrollProfile        PayrollProfile?
@@ -358,7 +356,6 @@ model EmployeeProfile {
   leaveApplications     LeaveApplication[]
   loans                 EmployeeLoan[]
 
-  @@index([xeroConnectionId])
   @@index([policyId])
   @@index([employeeId])
 }
@@ -524,7 +521,6 @@ model ClaimApprovalEntry {
 model ChartOfAccount {
   id                String          @id @default(cuid())
   organizationId    String
-  xeroConnectionId  String?
   xeroAccountId     String?
   code              String
   name              String
@@ -536,26 +532,31 @@ model ChartOfAccount {
   updatedAt         DateTime        @updatedAt
   isBankAccount     Boolean         @default(false)
   isDisabled        Boolean         @default(false)
+  // True while the org is connected to Xero: a pre-existing CUSTOM
+  // account is hidden from selectable lists/pickers for the duration of
+  // the connection, then restored (set back to false) on disconnect.
+  archivedByXeroConnect Boolean     @default(false)
   allowMileageClaim Boolean         @default(false)
   limitAmount       Decimal?        @db.Decimal(12, 2)
   limitPeriod       LimitPeriod?
   limitScope        LimitScope?
   mileageRate       Decimal?        @db.Decimal(10, 4)
   organization      Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  xeroConnection    XeroConnection? @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
   claims            Claim[]         @relation("ClaimAccount")
   paidClaims        Claim[]         @relation("ClaimPayViaAccount")
 
-  @@unique([xeroConnectionId, xeroAccountId])
+  @@unique([organizationId, xeroAccountId])
   @@unique([organizationId, code])
-  @@index([organizationId, xeroConnectionId, isSelectable])
+  @@index([organizationId, isSelectable])
   @@index([organizationId, isBankAccount])
 }
 
 model XeroConnection {
   id                       String            @id @default(cuid())
   provider                 String            @default("xero")
-  organizationId           String
+  // One Xero connection per organization (1:1). Synced accounts +
+  // projects scope by organizationId, not a per-row connection FK.
+  organizationId           String            @unique
   tenantId                 String            @unique
   tenantName               String
   tenantType               String?
@@ -587,14 +588,9 @@ model XeroConnection {
   /// rows that pre-date this column — UI falls back to `createdAt` in that
   /// case.
   reauthorizedAt           DateTime?
-  chartAccounts            ChartOfAccount[]
-  employeeProfiles         EmployeeProfile[]
   connectedByAdmin         User?             @relation("XeroConnectedBy", fields: [connectedByAdminId], references: [id])
   organization             Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  xeroProjects             XeroProject[]
 
-  @@unique([organizationId, tenantId])
-  @@index([organizationId])
   @@index([provider])
   @@index([connectedByAdminId])
 }
@@ -602,7 +598,6 @@ model XeroConnection {
 model XeroProject {
   id                   String                      @id @default(cuid())
   organizationId       String
-  xeroConnectionId     String?
   /// Legacy: populated for rows synced from the old `/Projects` API
   /// before we switched to tracking categories. Kept for back-compat
   /// so existing claims/attendance FKs keep working. New rows from
@@ -616,6 +611,10 @@ model XeroProject {
   location             String?
   projectManagerId     String?
   isDisabled           Boolean                     @default(false)
+  // True while the org is connected to Xero: a pre-existing MANUAL
+  // project is hidden from selectable lists/pickers for the duration of
+  // the connection, then restored on disconnect.
+  archivedByXeroConnect Boolean                    @default(false)
   latitude             Float?
   longitude            Float?
   workingHoursStart    String?
@@ -638,12 +637,10 @@ model XeroProject {
   teams                Team[]
   organization         Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   projectManager       User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
-  xeroConnection       XeroConnection?             @relation(fields: [xeroConnectionId], references: [id], onDelete: Cascade)
 
-  @@unique([xeroConnectionId, xeroProjectId])
-  @@unique([xeroConnectionId, xeroTrackingOptionId])
-  @@index([xeroConnectionId, name])
-  @@index([organizationId], map: "XeroProject_organizationId_fkey")
+  @@unique([organizationId, xeroProjectId])
+  @@unique([organizationId, xeroTrackingOptionId])
+  @@index([organizationId, name])
   @@index([projectManagerId])
 }
 
@@ -1140,6 +1137,10 @@ model PayrollCompanyInfo {
   employerCategory         String?
   employerStatus           String?
   cp8dFurnishType          String?
+  // PERKESO/SOCSO employer code (positions 1-12 of the combined
+  // SOCSO+EIS contribution TXT). Distinct from the LHDN referenceNo —
+  // assigned by PERKESO, not income-tax. Don't reuse referenceNo here.
+  perkesoEmployerCode      String?
   addressLine1             String?
   addressLine2             String?
   postcode                 String?

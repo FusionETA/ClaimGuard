@@ -287,6 +287,10 @@ export type PayrollCompanyInfoData = {
   employerStatus: string | null
   cp8dFurnishType: string | null
 
+  // PERKESO/SOCSO employer code — feeds the SOCSO+EIS TXT employer
+  // code column. Separate from the LHDN referenceNo above.
+  perkesoEmployerCode: string | null
+
   // Correspondence
   addressLine1: string | null
   addressLine2: string | null

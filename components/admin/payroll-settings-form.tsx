@@ -493,6 +493,13 @@ function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
               defaultValue={c?.referenceNo ?? ""}
             />
           </Field>
+          <Field label="PERKESO Employer Code">
+            <Input
+              name="perkesoEmployerCode"
+              defaultValue={c?.perkesoEmployerCode ?? ""}
+              placeholder="SOCSO/EIS employer code"
+            />
+          </Field>
           <Field label="Employer category">
             <NativeSelect
               name="employerCategory"

@@ -5,8 +5,10 @@ import { access, mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getOrSetCache } from "@/lib/cache"
 import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getPrismaClient } from "@/lib/prisma"
+import { key } from "@/lib/redis"
 import {
   buildReportFileName,
   PAYROLL_REPORT_META,
@@ -50,19 +52,40 @@ export async function getPayrollReportsModalData(input: {
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
+  // 10-min TTL; busted by `bustPayrollCaches` on run mutations and on
+  // every file generation (generatePayrollReport), so the per-row
+  // "generated" stamps stay current. Keyed by runId.
+  return getOrSetCache(
+    key("org", orgId, "payroll", "page", "reports-modal", input.runId),
+    600,
+    () => loadReportsModalData(orgId, input.runId),
+  )
+}
+
+async function loadReportsModalData(
+  orgId: string,
+  runId: string,
+): Promise<{
+  runId: string
+  organizationName: string
+  periodLabel: string
+  status: string
+  rows: PayrollReportRow[]
+  canGenerate: boolean
+} | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
 
   const [run, org, stored] = await Promise.all([
     payrollRunRepository.getByIdForOrg({
-      id: input.runId,
+      id: runId,
       organizationId: orgId,
     }),
     prisma.organization.findUnique({
       where: { id: orgId },
       select: { name: true },
     }),
-    payrollRunReportRepository.listForRun(input.runId),
+    payrollRunReportRepository.listForRun(runId),
   ])
 
   if (!run) return null

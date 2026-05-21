@@ -6,6 +6,9 @@ import { ChevronLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PayrollEmployeeDetail } from "@/components/admin/payroll-employee-detail"
+import type { EmployeeCompanyData } from "@/components/admin/employee-company-form"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getAdminHierarchyPageData } from "@/modules/claims/application/services/admin-page-data.service"
 import { getPayrollEmployeeDetailPageData } from "@/modules/payroll/application/services/payroll-profile.service"
 import { isPayrollProfileComplete } from "@/modules/payroll/domain/models"
 
@@ -27,7 +30,27 @@ export default async function AdminPayrollEmployeeDetailPage({
   const data = await getPayrollEmployeeDetailPageData({ userId: id })
   if (!data) {
     // Either not signed in as admin, no org, or employee not in this org.
-    redirect("/admin/payroll/employees")
+    redirect("/admin/hierarchy")
+  }
+
+  // Org-hierarchy context for the "Company" tab. Resolve the matching
+  // member (OrganizationMember.id === User.id) plus the option lists the
+  // editor needs. Null when it can't be resolved — the tab is hidden.
+  const session = await getCurrentSession()
+  const organizationId = session ? resolveActiveOrgId(session) : undefined
+  const hierarchy = await getAdminHierarchyPageData({ organizationId })
+  let company: EmployeeCompanyData | null = null
+  const member = hierarchy?.members.find((m) => m.id === data.userId)
+  if (hierarchy && member) {
+    const xeroConnection = hierarchy.xeroConnections[0]
+    company = {
+      member,
+      projects: hierarchy.projects,
+      xeroConnection,
+      teams: hierarchy.teams,
+      allMembers: hierarchy.members,
+      policies: hierarchy.policies,
+    }
   }
 
   // Optional ?from=<absolute internal path> lets the linking page tell
@@ -41,7 +64,7 @@ export default async function AdminPayrollEmployeeDetailPage({
     fromRaw && /^\/admin\/[A-Za-z0-9_\-/?=&%.]*$/.test(fromRaw)
       ? fromRaw
       : null
-  const backHref = (safeFrom ?? "/admin/payroll/employees") as Route
+  const backHref = (safeFrom ?? "/admin/hierarchy") as Route
   const backLabel = safeFrom?.includes("/payroll/runs/")
     ? "Back to payroll run"
     : "Back"
@@ -102,6 +125,7 @@ export default async function AdminPayrollEmployeeDetailPage({
         profile={data.profile}
         defaultEpfEmployerRate={data.defaultEpfEmployerRate}
         salaryHistory={data.salaryHistory}
+        company={company}
       />
     </div>
   )

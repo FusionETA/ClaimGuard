@@ -45,10 +45,7 @@ export async function getAdminDashboard(): Promise<AdminDashboardData | null> {
     async () => {
       const [admin, allClaims] = await Promise.all([
         claimRepository.getAdminProfile(session.email),
-        claimRepository.getClaimsForOrganization(
-          orgId,
-          session.activeXeroConnectionId,
-        ),
+        claimRepository.getClaimsForOrganization(orgId),
       ])
       if (!admin) return null
       return {
@@ -74,10 +71,6 @@ export async function getAdminClaimsQueue(): Promise<ClaimRecord[] | null> {
       session.activeXeroConnectionId ?? "_all",
     ),
     60,
-    () =>
-      claimRepository.getClaimsForOrganization(
-        orgId,
-        session.activeXeroConnectionId,
-      ),
+    () => claimRepository.getClaimsForOrganization(orgId),
   )
 }

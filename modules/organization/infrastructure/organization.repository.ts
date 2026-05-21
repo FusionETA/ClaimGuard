@@ -632,18 +632,21 @@ export const organizationRepository = {
 
   async getOrganizationMembers(
     organizationId: string,
-    xeroConnectionId?: string
   ): Promise<OrganizationMember[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
+
+    // The org connects to at most one Xero tenant — resolve it once and
+    // attach to every member (the per-row link was removed).
+    const orgConnection = await prisma.xeroConnection.findFirst({
+      where: { organizationId },
+      select: { id: true, tenantName: true },
+    })
 
     const rows = await prisma.user.findMany({
       where: {
         organizationId,
         role: { in: ["EMPLOYEE", "SUPERVISOR"] },
-        ...(xeroConnectionId
-          ? { employeeProfile: { xeroConnectionId } }
-          : {}),
       },
       include: {
         organization: true,
@@ -660,7 +663,6 @@ export const organizationRepository = {
               },
               orderBy: { createdAt: "asc" },
             },
-            xeroConnection: { select: { id: true, tenantName: true } },
             policy: { select: { id: true, name: true, salaryType: true, otEnabled: true, otMethod: true } },
             teamMemberships: {
               include: {
@@ -756,8 +758,8 @@ export const organizationRepository = {
             ? "TIME_BANK"
             : "CASH",
         otTimeBalanceMin: user.employeeProfile?.otTimeBalanceMin ?? 0,
-        xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
-        xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
+        xeroConnectionId: orgConnection?.id ?? undefined,
+        xeroConnectionName: orgConnection?.tenantName ?? undefined,
         policyId: user.employeeProfile?.policy?.id ?? undefined,
         policyName: user.employeeProfile?.policy?.name ?? undefined,
         teams,
@@ -771,7 +773,6 @@ export const organizationRepository = {
     organizationId: string
     projectIds: string[]
     jobTitle: string
-    xeroConnectionId?: string
     /// Employee policy assignment. Required: the policy's salaryType
     /// and otMethod drive compensation/OT behavior.
     policyId: string
@@ -802,30 +803,12 @@ export const organizationRepository = {
       throw new Error("You can only manage members inside your own organization.")
     }
 
-    if (data.xeroConnectionId) {
-      const xeroConnection = await prisma.xeroConnection.findUnique({
-        where: { id: data.xeroConnectionId },
-        select: { organizationId: true },
-      })
-
-      if (!xeroConnection || xeroConnection.organizationId !== data.organizationId) {
-        throw new Error("Xero connection must belong to this organization.")
-      }
-    }
-
     const assignedProjects = data.projectIds.length
       ? await prisma.xeroProject.findMany({
           where: {
             id: { in: data.projectIds },
             organizationId: data.organizationId,
-            ...(data.xeroConnectionId
-              ? {
-                  OR: [
-                    { xeroConnectionId: data.xeroConnectionId },
-                    { xeroConnectionId: null },
-                  ],
-                }
-              : {}),
+            archivedByXeroConnect: false,
           },
           select: { id: true, name: true },
         })
@@ -954,7 +937,6 @@ export const organizationRepository = {
         where: { userId: data.userId },
         data: {
           jobTitle: data.jobTitle,
-          xeroConnectionId: data.xeroConnectionId || null,
           policyId: data.policyId,
         },
       })
@@ -1023,7 +1005,6 @@ export const organizationRepository = {
     organizationId: string
     projectIds: string[]
     jobTitle: string
-    xeroConnectionId?: string
     /// Employee policy assignment. Required: the policy's salaryType
     /// and otMethod drive compensation/OT behavior.
     policyId: string
@@ -1064,30 +1045,12 @@ export const organizationRepository = {
       throw new Error("That employee ID is already assigned to another user.")
     }
 
-    if (data.xeroConnectionId) {
-      const xeroConnection = await prisma.xeroConnection.findUnique({
-        where: { id: data.xeroConnectionId },
-        select: { organizationId: true },
-      })
-
-      if (!xeroConnection || xeroConnection.organizationId !== data.organizationId) {
-        throw new Error("Xero connection must belong to this organization.")
-      }
-    }
-
     const assignedProjects = data.projectIds.length
       ? await prisma.xeroProject.findMany({
           where: {
             id: { in: data.projectIds },
             organizationId: data.organizationId,
-            ...(data.xeroConnectionId
-              ? {
-                  OR: [
-                    { xeroConnectionId: data.xeroConnectionId },
-                    { xeroConnectionId: null },
-                  ],
-                }
-              : {}),
+            archivedByXeroConnect: false,
           },
           select: { id: true, name: true },
         })
@@ -1212,7 +1175,6 @@ export const organizationRepository = {
             employeeId: data.employeeId,
             jobTitle: data.jobTitle,
             preferredCurrency: "USD",
-            xeroConnectionId: data.xeroConnectionId || null,
             policyId: data.policyId,
             projectAssignments: {
               create: data.projectIds.map((projectId) => ({
@@ -1352,6 +1314,25 @@ export const organizationRepository = {
     }))
   },
 
+  /**
+   * The org's single active Xero connection id (or null). An
+   * organization connects to at most one Xero tenant, so synced data
+   * and file access resolve the connection from the org rather than
+   * carrying a per-row `xeroConnectionId`.
+   */
+  async getActiveXeroConnectionId(
+    organizationId: string,
+  ): Promise<string | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.xeroConnection.findFirst({
+      where: { organizationId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    })
+    return row?.id ?? null
+  },
+
   async getXeroConnectionById(connectionId: string): Promise<XeroConnectionRecord | null> {
     const prisma = getPrismaClient()
     if (!prisma) return null
@@ -1437,12 +1418,20 @@ export const organizationRepository = {
     const reauthVersion = getXeroReauthVersion()
     const now = new Date()
 
+    // Detect a fresh connect vs a reauth ("Update permissions") on an
+    // existing connection — we only archive pre-existing custom rows on
+    // the FIRST connect, so custom accounts/projects created during the
+    // connected period (or a reauth) stay visible.
+    const existingConnection = await prisma.xeroConnection.findUnique({
+      where: { organizationId: data.organizationId },
+      select: { id: true },
+    })
+
     await prisma.xeroConnection.upsert({
+      // One connection per org (organizationId is unique). Reconnecting —
+      // even to a different tenant — updates the single row in place.
       where: {
-        organizationId_tenantId: {
-          organizationId: data.organizationId,
-          tenantId: data.tenantId,
-        },
+        organizationId: data.organizationId,
       },
       create: {
         provider: "xero",
@@ -1460,6 +1449,7 @@ export const organizationRepository = {
         lastReauthVersion: reauthVersion,
       },
       update: {
+        tenantId: data.tenantId,
         tenantName: data.tenantName,
         tenantType: data.tenantType,
         accessToken: data.accessToken,
@@ -1472,6 +1462,20 @@ export const organizationRepository = {
         lastReauthVersion: reauthVersion,
       },
     })
+
+    // First connect → archive pre-existing custom accounts + manual
+    // projects so they drop out of selectable lists/pickers while Xero
+    // is the source of truth. Restored on disconnect (deleteXeroConnection).
+    if (!existingConnection) {
+      await prisma.chartOfAccount.updateMany({
+        where: { organizationId: data.organizationId, isCustom: true },
+        data: { archivedByXeroConnect: true },
+      })
+      await prisma.xeroProject.updateMany({
+        where: { organizationId: data.organizationId, isManual: true },
+        data: { archivedByXeroConnect: true },
+      })
+    }
   },
 
   /**
@@ -1517,11 +1521,35 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return false
 
-    const result = await prisma.xeroConnection.deleteMany({
-      where: {
-        id: data.connectionId,
-        organizationId: data.organizationId,
-      },
+    // Synced accounts + projects used to be removed via the
+    // `onDelete: Cascade` FK on their (now-dropped) `xeroConnectionId`
+    // column. With the FK gone, clean them up explicitly here — but only
+    // the Xero-synced rows: custom accounts (`isCustom`) and manual
+    // projects (`isManual`) are admin-authored and must survive a
+    // disconnect.
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.chartOfAccount.deleteMany({
+        where: { organizationId: data.organizationId, isCustom: false },
+      })
+      await tx.xeroProject.deleteMany({
+        where: { organizationId: data.organizationId, isManual: false },
+      })
+      // Restore the custom accounts + manual projects that were hidden
+      // while Xero was connected, so they reappear in the UI now.
+      await tx.chartOfAccount.updateMany({
+        where: { organizationId: data.organizationId, archivedByXeroConnect: true },
+        data: { archivedByXeroConnect: false },
+      })
+      await tx.xeroProject.updateMany({
+        where: { organizationId: data.organizationId, archivedByXeroConnect: true },
+        data: { archivedByXeroConnect: false },
+      })
+      return tx.xeroConnection.deleteMany({
+        where: {
+          id: data.connectionId,
+          organizationId: data.organizationId,
+        },
+      })
     })
 
     return result.count > 0
@@ -1531,12 +1559,20 @@ export const organizationRepository = {
   // Chart of Accounts
   // ---------------------------------------------------------------------------
 
-  async getChartAccountsForConnection(xeroConnectionId: string): Promise<ChartOfAccountOption[]> {
+  async getChartAccountsForConnection(connectionId: string): Promise<ChartOfAccountOption[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    // Accounts are org-scoped (one Xero connection per org). Resolve the
+    // org from the connection, then list its accounts.
+    const conn = await prisma.xeroConnection.findUnique({
+      where: { id: connectionId },
+      select: { organizationId: true },
+    })
+    if (!conn) return []
+
     const rows = await prisma.chartOfAccount.findMany({
-      where: { xeroConnectionId, isDisabled: false },
+      where: { organizationId: conn.organizationId, isDisabled: false, archivedByXeroConnect: false },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
 
@@ -1570,6 +1606,7 @@ export const organizationRepository = {
         organizationId: data.organizationId,
         isSelectable: true,
         isDisabled: false,
+        archivedByXeroConnect: false,
       },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
@@ -1587,6 +1624,7 @@ export const organizationRepository = {
         organizationId,
         isSelectable: true,
         isDisabled: false,
+        archivedByXeroConnect: false,
       },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
@@ -1599,7 +1637,7 @@ export const organizationRepository = {
     if (!prisma) return []
 
     const rows = await prisma.chartOfAccount.findMany({
-      where: { organizationId, isDisabled: false },
+      where: { organizationId, isDisabled: false, archivedByXeroConnect: false },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
 
@@ -1659,7 +1697,7 @@ export const organizationRepository = {
     if (!prisma) return []
 
     const rows = await prisma.chartOfAccount.findMany({
-      where: { organizationId, xeroConnectionId: null, isDisabled: false },
+      where: { organizationId, isDisabled: false, archivedByXeroConnect: false },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
 
@@ -1689,6 +1727,7 @@ export const organizationRepository = {
         id: data.chartOfAccountId,
         organizationId: data.organizationId,
         isDisabled: false,
+        archivedByXeroConnect: false,
         ...claimTypeWhere,
       },
     })
@@ -1714,6 +1753,7 @@ export const organizationRepository = {
         organizationId: data.organizationId,
         allowMileageClaim: true,
         isDisabled: false,
+        archivedByXeroConnect: false,
       },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
@@ -1735,7 +1775,6 @@ export const organizationRepository = {
     const row = await prisma.chartOfAccount.create({
       data: {
         organizationId: data.organizationId,
-        xeroConnectionId: null,
         xeroAccountId: null,
         code: data.code,
         name: data.name,
@@ -1808,14 +1847,13 @@ export const organizationRepository = {
       data.accounts.map((account) =>
         prisma.chartOfAccount.upsert({
           where: {
-            xeroConnectionId_xeroAccountId: {
-              xeroConnectionId: data.xeroConnectionId,
+            organizationId_xeroAccountId: {
+              organizationId: data.organizationId,
               xeroAccountId: account.xeroAccountId,
             },
           },
           create: {
             organizationId: data.organizationId,
-            xeroConnectionId: data.xeroConnectionId,
             xeroAccountId: account.xeroAccountId,
             code: account.code,
             name: account.name,
@@ -2000,6 +2038,7 @@ export const organizationRepository = {
         type: "BANK",
         isBankAccount: true,
         isDisabled: false,
+        archivedByXeroConnect: false,
       },
       orderBy: [{ code: "asc" }, { name: "asc" }],
     })
@@ -2077,12 +2116,20 @@ export const organizationRepository = {
   // Projects
   // ---------------------------------------------------------------------------
 
-  async getProjectsForConnection(xeroConnectionId: string): Promise<OrganizationProjectOption[]> {
+  async getProjectsForConnection(connectionId: string): Promise<OrganizationProjectOption[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    // Projects are org-scoped (one Xero connection per org). Resolve the
+    // org from the connection, then list its projects.
+    const conn = await prisma.xeroConnection.findUnique({
+      where: { id: connectionId },
+      select: { organizationId: true },
+    })
+    if (!conn) return []
+
     const rows = await prisma.xeroProject.findMany({
-      where: { xeroConnectionId, isDisabled: false },
+      where: { organizationId: conn.organizationId, isDisabled: false, archivedByXeroConnect: false },
       include: {
         projectManager: { select: { id: true, name: true } },
         projectManagers: {
@@ -2097,7 +2144,6 @@ export const organizationRepository = {
       xeroProjectId: row.xeroProjectId ?? undefined,
       name: row.name,
       status: row.status ?? undefined,
-      xeroConnectionId: row.xeroConnectionId ?? undefined,
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
       projectManagers: row.projectManagers.map((pm) => ({
@@ -2148,7 +2194,7 @@ export const organizationRepository = {
     if (!prisma) return []
 
     const rows = await prisma.xeroProject.findMany({
-      where: { organizationId, isDisabled: false },
+      where: { organizationId, isDisabled: false, archivedByXeroConnect: false },
       include: {
         projectManager: { select: { id: true, name: true } },
         projectManagers: {
@@ -2164,7 +2210,6 @@ export const organizationRepository = {
       xeroProjectId: row.xeroProjectId ?? undefined,
       name: row.name,
       status: row.status ?? undefined,
-      xeroConnectionId: row.xeroConnectionId ?? undefined,
       projectManagerId: row.projectManagerId ?? undefined,
       projectManagerName: row.projectManager?.name ?? undefined,
       projectManagers: row.projectManagers.map((pm) => ({
@@ -2533,14 +2578,13 @@ export const organizationRepository = {
       data.options.map((opt) =>
         prisma.xeroProject.upsert({
           where: {
-            xeroConnectionId_xeroTrackingOptionId: {
-              xeroConnectionId: data.xeroConnectionId,
+            organizationId_xeroTrackingOptionId: {
+              organizationId: data.organizationId,
               xeroTrackingOptionId: opt.xeroTrackingOptionId,
             },
           },
           create: {
             organizationId: data.organizationId,
-            xeroConnectionId: data.xeroConnectionId,
             xeroTrackingOptionId: opt.xeroTrackingOptionId,
             name: opt.name,
             status: opt.status,
@@ -2596,14 +2640,13 @@ export const organizationRepository = {
       data.projects.map((project) =>
         prisma.xeroProject.upsert({
           where: {
-            xeroConnectionId_xeroProjectId: {
-              xeroConnectionId: data.xeroConnectionId,
+            organizationId_xeroProjectId: {
+              organizationId: data.organizationId,
               xeroProjectId: project.xeroProjectId,
             },
           },
           create: {
             organizationId: data.organizationId,
-            xeroConnectionId: data.xeroConnectionId,
             xeroProjectId: project.xeroProjectId,
             name: project.name,
             status: project.status,

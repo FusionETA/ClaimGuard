@@ -119,3 +119,23 @@ export async function bustPayrollCaches(args: {
     key("org", args.organizationId, "payroll", "*"),
   ])
 }
+
+/**
+ * Invalidate leave caches for an organisation. Covers the leave reads
+ * cached under `org:{orgId}:leave:*` (on-leave-today, leave-types) and
+ * the executive overview (its attendance-health card folds in on-leave
+ * counts). Called from every leave mutation: apply / approve / reject /
+ * cancel a leave application, and leave-type create / edit / archive.
+ *
+ * Patterns busted:
+ *   - org:{orgId}:leave:*
+ *   - org:{orgId}:exec-overview:*
+ */
+export async function bustLeaveCaches(args: {
+  organizationId: string
+}): Promise<void> {
+  await deleteCacheMany([
+    key("org", args.organizationId, "leave", "*"),
+    key("org", args.organizationId, "exec-overview", "*"),
+  ])
+}

@@ -1,10 +1,18 @@
 import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getOrSetCache } from "@/lib/cache"
+import { key } from "@/lib/redis"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { getPrismaClient } from "@/lib/prisma"
 import type { ClaimRecord } from "@/modules/claims/domain/models"
+
+/// Reports breakdowns are cached under the org "claims" namespace
+/// (`org:{orgId}:claims:report:*`), so the existing `bustClaimCaches`
+/// (called on every claim submit/review/approve/reject) sweeps them.
+/// 5-minute TTL is the backstop.
+const REPORT_TTL_SECONDS = 300
 
 /**
  * "By project" breakdown for the admin claims tab. Drills down through:
@@ -96,13 +104,18 @@ export async function getProjectsBreakdown(monthKey?: string | null) {
 
   const { monthKey: resolvedKey, monthStart, monthEnd } = resolveMonthBounds(monthKey)
 
-  const projects = await claimRepository.getProjectsClaimBreakdown({
-    organizationId,
-    monthStart,
-    monthEnd,
-  })
-
-  return { monthKey: resolvedKey, projects }
+  return getOrSetCache(
+    key("org", organizationId, "claims", "report", "projects", resolvedKey),
+    REPORT_TTL_SECONDS,
+    async () => ({
+      monthKey: resolvedKey,
+      projects: await claimRepository.getProjectsClaimBreakdown({
+        organizationId,
+        monthStart,
+        monthEnd,
+      }),
+    }),
+  )
 }
 
 export async function getTeamsBreakdown(input: {
@@ -116,14 +129,19 @@ export async function getTeamsBreakdown(input: {
     input.monthKey,
   )
 
-  const teams = await claimRepository.getTeamsClaimBreakdown({
-    organizationId,
-    projectId: input.projectId,
-    monthStart,
-    monthEnd,
-  })
-
-  return { monthKey: resolvedKey, teams }
+  return getOrSetCache(
+    key("org", organizationId, "claims", "report", "teams", input.projectId, resolvedKey),
+    REPORT_TTL_SECONDS,
+    async () => ({
+      monthKey: resolvedKey,
+      teams: await claimRepository.getTeamsClaimBreakdown({
+        organizationId,
+        projectId: input.projectId,
+        monthStart,
+        monthEnd,
+      }),
+    }),
+  )
 }
 
 export async function getMembersBreakdown(input: {
@@ -138,15 +156,20 @@ export async function getMembersBreakdown(input: {
     input.monthKey,
   )
 
-  const members = await claimRepository.getMembersClaimBreakdown({
-    organizationId,
-    projectId: input.projectId,
-    teamId: input.teamId,
-    monthStart,
-    monthEnd,
-  })
-
-  return { monthKey: resolvedKey, members }
+  return getOrSetCache(
+    key("org", organizationId, "claims", "report", "members", input.projectId, input.teamId, resolvedKey),
+    REPORT_TTL_SECONDS,
+    async () => ({
+      monthKey: resolvedKey,
+      members: await claimRepository.getMembersClaimBreakdown({
+        organizationId,
+        projectId: input.projectId,
+        teamId: input.teamId,
+        monthStart,
+        monthEnd,
+      }),
+    }),
+  )
 }
 
 export async function getMemberClaimsBreakdown(input: {
@@ -161,15 +184,20 @@ export async function getMemberClaimsBreakdown(input: {
     input.monthKey,
   )
 
-  const claims = await claimRepository.getMemberClaimsForBreakdown({
-    organizationId,
-    projectId: input.projectId,
-    employeeId: input.employeeId,
-    monthStart,
-    monthEnd,
-  })
-
-  return { monthKey: resolvedKey, claims }
+  return getOrSetCache(
+    key("org", organizationId, "claims", "report", "member-claims", input.projectId, input.employeeId, resolvedKey),
+    REPORT_TTL_SECONDS,
+    async () => ({
+      monthKey: resolvedKey,
+      claims: await claimRepository.getMemberClaimsForBreakdown({
+        organizationId,
+        projectId: input.projectId,
+        employeeId: input.employeeId,
+        monthStart,
+        monthEnd,
+      }),
+    }),
+  )
 }
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -302,6 +330,35 @@ export async function getClaimsReportPageData(input: {
 
   const pageSize = Math.max(1, Math.min(input.pageSize ?? DEFAULT_PAGE_SIZE, 200))
   const page = Math.max(1, input.page ?? 1)
+
+  // Stable cache signature across the filter selection + pagination so
+  // each distinct view caches independently. Arrays are sorted so order
+  // doesn't fragment the key. Busted by bustClaimCaches on any claim
+  // mutation; 5-min TTL backstop.
+  const f = input.filters
+  const sig = [
+    f.from ?? "",
+    f.to ?? "",
+    (f.projects ?? []).slice().sort().join(","),
+    (f.teams ?? []).slice().sort().join(","),
+    (f.members ?? []).slice().sort().join(","),
+    page,
+    pageSize,
+  ].join("|")
+
+  return getOrSetCache(
+    key("org", organizationId, "claims", "report", "page", sig),
+    REPORT_TTL_SECONDS,
+    () => loadClaimsReportPage(organizationId, input, page, pageSize),
+  )
+}
+
+async function loadClaimsReportPage(
+  organizationId: string,
+  input: { filters: ClaimsReportFilters; page?: number; pageSize?: number },
+  page: number,
+  pageSize: number,
+): Promise<ClaimsReportPage> {
   const { dateFrom, dateTo, resolvedFrom, resolvedTo } = resolveDateRange(
     input.filters,
   )

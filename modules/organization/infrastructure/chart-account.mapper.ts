@@ -25,7 +25,6 @@ export type ChartAccountRow = {
   isBankAccount: boolean
   isCustom: boolean
   isDisabled: boolean
-  xeroConnectionId?: string | null
   limitAmount?: unknown
   limitPeriod?: string | null
   limitScope?: string | null
@@ -48,7 +47,6 @@ export function mapChartAccount(
     isBankAccount: account.isBankAccount,
     isCustom: account.isCustom,
     isDisabled: account.isDisabled,
-    xeroConnectionId: account.xeroConnectionId ?? undefined,
     limitAmount: toNumber(account.limitAmount),
     limitPeriod: (account.limitPeriod as LimitPeriod | null | undefined) ?? undefined,
     limitScope: (account.limitScope as LimitScope | null | undefined) ?? undefined,

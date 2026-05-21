@@ -174,7 +174,6 @@ export async function deleteSelfiesInRangeAction(
       employee: {
         select: {
           organizationId: true,
-          employeeProfile: { select: { xeroConnectionId: true } },
         },
       },
     },
@@ -188,9 +187,8 @@ export async function deleteSelfiesInRangeAction(
     const fileId = record.xeroSelfieFileId
     if (!fileId) continue
     try {
-      let connectionId =
-        record.employee.employeeProfile?.xeroConnectionId ?? null
-      if (!connectionId && record.employee.organizationId) {
+      let connectionId: string | null = null
+      if (record.employee.organizationId) {
         const conn = await prisma.xeroConnection.findFirst({
           where: { organizationId: record.employee.organizationId },
           orderBy: { createdAt: "asc" },

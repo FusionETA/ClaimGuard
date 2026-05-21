@@ -73,15 +73,11 @@ export function PayrollEmployeeListTables({
             No employees yet
           </CardTitle>
           <CardDescription>
-            Add employees in the Hierarchy section first. They&apos;ll
-            appear here once they exist as users in this organisation.
+            Use the &ldquo;Add employee&rdquo; button above to create your
+            first employee. You can fill in their projects, payroll, and
+            statutory details from the profile tabs afterwards.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline">
-            <Link href="/admin/hierarchy">Open Hierarchy</Link>
-          </Button>
-        </CardContent>
       </Card>
     )
   }

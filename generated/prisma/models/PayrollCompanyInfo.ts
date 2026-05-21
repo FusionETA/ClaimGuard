@@ -38,6 +38,7 @@ export type PayrollCompanyInfoMinAggregateOutputType = {
   employerCategory: string | null
   employerStatus: string | null
   cp8dFurnishType: string | null
+  perkesoEmployerCode: string | null
   addressLine1: string | null
   addressLine2: string | null
   postcode: string | null
@@ -77,6 +78,7 @@ export type PayrollCompanyInfoMaxAggregateOutputType = {
   employerCategory: string | null
   employerStatus: string | null
   cp8dFurnishType: string | null
+  perkesoEmployerCode: string | null
   addressLine1: string | null
   addressLine2: string | null
   postcode: string | null
@@ -116,6 +118,7 @@ export type PayrollCompanyInfoCountAggregateOutputType = {
   employerCategory: number
   employerStatus: number
   cp8dFurnishType: number
+  perkesoEmployerCode: number
   addressLine1: number
   addressLine2: number
   postcode: number
@@ -157,6 +160,7 @@ export type PayrollCompanyInfoMinAggregateInputType = {
   employerCategory?: true
   employerStatus?: true
   cp8dFurnishType?: true
+  perkesoEmployerCode?: true
   addressLine1?: true
   addressLine2?: true
   postcode?: true
@@ -196,6 +200,7 @@ export type PayrollCompanyInfoMaxAggregateInputType = {
   employerCategory?: true
   employerStatus?: true
   cp8dFurnishType?: true
+  perkesoEmployerCode?: true
   addressLine1?: true
   addressLine2?: true
   postcode?: true
@@ -235,6 +240,7 @@ export type PayrollCompanyInfoCountAggregateInputType = {
   employerCategory?: true
   employerStatus?: true
   cp8dFurnishType?: true
+  perkesoEmployerCode?: true
   addressLine1?: true
   addressLine2?: true
   postcode?: true
@@ -347,6 +353,7 @@ export type PayrollCompanyInfoGroupByOutputType = {
   employerCategory: string | null
   employerStatus: string | null
   cp8dFurnishType: string | null
+  perkesoEmployerCode: string | null
   addressLine1: string | null
   addressLine2: string | null
   postcode: string | null
@@ -407,6 +414,7 @@ export type PayrollCompanyInfoWhereInput = {
   employerCategory?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   employerStatus?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   cp8dFurnishType?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  perkesoEmployerCode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   addressLine1?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   addressLine2?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   postcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
@@ -447,6 +455,7 @@ export type PayrollCompanyInfoOrderByWithRelationInput = {
   employerCategory?: Prisma.SortOrderInput | Prisma.SortOrder
   employerStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   cp8dFurnishType?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkesoEmployerCode?: Prisma.SortOrderInput | Prisma.SortOrder
   addressLine1?: Prisma.SortOrderInput | Prisma.SortOrder
   addressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
   postcode?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -491,6 +500,7 @@ export type PayrollCompanyInfoWhereUniqueInput = Prisma.AtLeast<{
   employerCategory?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   employerStatus?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   cp8dFurnishType?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
+  perkesoEmployerCode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   addressLine1?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   addressLine2?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
   postcode?: Prisma.StringNullableFilter<"PayrollCompanyInfo"> | string | null
@@ -531,6 +541,7 @@ export type PayrollCompanyInfoOrderByWithAggregationInput = {
   employerCategory?: Prisma.SortOrderInput | Prisma.SortOrder
   employerStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   cp8dFurnishType?: Prisma.SortOrderInput | Prisma.SortOrder
+  perkesoEmployerCode?: Prisma.SortOrderInput | Prisma.SortOrder
   addressLine1?: Prisma.SortOrderInput | Prisma.SortOrder
   addressLine2?: Prisma.SortOrderInput | Prisma.SortOrder
   postcode?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -576,6 +587,7 @@ export type PayrollCompanyInfoScalarWhereWithAggregatesInput = {
   employerCategory?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   employerStatus?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   cp8dFurnishType?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
+  perkesoEmployerCode?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   addressLine1?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   addressLine2?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
   postcode?: Prisma.StringNullableWithAggregatesFilter<"PayrollCompanyInfo"> | string | null
@@ -614,6 +626,7 @@ export type PayrollCompanyInfoCreateInput = {
   employerCategory?: string | null
   employerStatus?: string | null
   cp8dFurnishType?: string | null
+  perkesoEmployerCode?: string | null
   addressLine1?: string | null
   addressLine2?: string | null
   postcode?: string | null
@@ -654,6 +667,7 @@ export type PayrollCompanyInfoUncheckedCreateInput = {
   employerCategory?: string | null
   employerStatus?: string | null
   cp8dFurnishType?: string | null
+  perkesoEmployerCode?: string | null
   addressLine1?: string | null
   addressLine2?: string | null
   postcode?: string | null
@@ -692,6 +706,7 @@ export type PayrollCompanyInfoUpdateInput = {
   employerCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cp8dFurnishType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -732,6 +747,7 @@ export type PayrollCompanyInfoUncheckedUpdateInput = {
   employerCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cp8dFurnishType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -771,6 +787,7 @@ export type PayrollCompanyInfoCreateManyInput = {
   employerCategory?: string | null
   employerStatus?: string | null
   cp8dFurnishType?: string | null
+  perkesoEmployerCode?: string | null
   addressLine1?: string | null
   addressLine2?: string | null
   postcode?: string | null
@@ -809,6 +826,7 @@ export type PayrollCompanyInfoUpdateManyMutationInput = {
   employerCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cp8dFurnishType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -848,6 +866,7 @@ export type PayrollCompanyInfoUncheckedUpdateManyInput = {
   employerCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cp8dFurnishType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -898,6 +917,7 @@ export type PayrollCompanyInfoCountOrderByAggregateInput = {
   employerCategory?: Prisma.SortOrder
   employerStatus?: Prisma.SortOrder
   cp8dFurnishType?: Prisma.SortOrder
+  perkesoEmployerCode?: Prisma.SortOrder
   addressLine1?: Prisma.SortOrder
   addressLine2?: Prisma.SortOrder
   postcode?: Prisma.SortOrder
@@ -937,6 +957,7 @@ export type PayrollCompanyInfoMaxOrderByAggregateInput = {
   employerCategory?: Prisma.SortOrder
   employerStatus?: Prisma.SortOrder
   cp8dFurnishType?: Prisma.SortOrder
+  perkesoEmployerCode?: Prisma.SortOrder
   addressLine1?: Prisma.SortOrder
   addressLine2?: Prisma.SortOrder
   postcode?: Prisma.SortOrder
@@ -976,6 +997,7 @@ export type PayrollCompanyInfoMinOrderByAggregateInput = {
   employerCategory?: Prisma.SortOrder
   employerStatus?: Prisma.SortOrder
   cp8dFurnishType?: Prisma.SortOrder
+  perkesoEmployerCode?: Prisma.SortOrder
   addressLine1?: Prisma.SortOrder
   addressLine2?: Prisma.SortOrder
   postcode?: Prisma.SortOrder
@@ -1046,6 +1068,7 @@ export type PayrollCompanyInfoCreateWithoutOrganizationInput = {
   employerCategory?: string | null
   employerStatus?: string | null
   cp8dFurnishType?: string | null
+  perkesoEmployerCode?: string | null
   addressLine1?: string | null
   addressLine2?: string | null
   postcode?: string | null
@@ -1084,6 +1107,7 @@ export type PayrollCompanyInfoUncheckedCreateWithoutOrganizationInput = {
   employerCategory?: string | null
   employerStatus?: string | null
   cp8dFurnishType?: string | null
+  perkesoEmployerCode?: string | null
   addressLine1?: string | null
   addressLine2?: string | null
   postcode?: string | null
@@ -1138,6 +1162,7 @@ export type PayrollCompanyInfoUpdateWithoutOrganizationInput = {
   employerCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cp8dFurnishType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1176,6 +1201,7 @@ export type PayrollCompanyInfoUncheckedUpdateWithoutOrganizationInput = {
   employerCategory?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cp8dFurnishType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  perkesoEmployerCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine1?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   postcode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1217,6 +1243,7 @@ export type PayrollCompanyInfoSelect<ExtArgs extends runtime.Types.Extensions.In
   employerCategory?: boolean
   employerStatus?: boolean
   cp8dFurnishType?: boolean
+  perkesoEmployerCode?: boolean
   addressLine1?: boolean
   addressLine2?: boolean
   postcode?: boolean
@@ -1259,6 +1286,7 @@ export type PayrollCompanyInfoSelectScalar = {
   employerCategory?: boolean
   employerStatus?: boolean
   cp8dFurnishType?: boolean
+  perkesoEmployerCode?: boolean
   addressLine1?: boolean
   addressLine2?: boolean
   postcode?: boolean
@@ -1287,7 +1315,7 @@ export type PayrollCompanyInfoSelectScalar = {
   taxAgentFirmState?: boolean
 }
 
-export type PayrollCompanyInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employerName" | "employerTin" | "registrationNo" | "referenceType" | "referenceNo" | "employerCategory" | "employerStatus" | "cp8dFurnishType" | "addressLine1" | "addressLine2" | "postcode" | "city" | "state" | "country" | "phone" | "handphone" | "email" | "taxAgentName" | "taxAgentTin" | "taxAgentLicenceNo" | "taxAgentPhone" | "taxAgentEmail" | "declarantName" | "declarantIdType" | "declarantIdNumber" | "declarantPosition" | "createdAt" | "updatedAt" | "taxAgentFirmAddressLine1" | "taxAgentFirmAddressLine2" | "taxAgentFirmCity" | "taxAgentFirmName" | "taxAgentFirmPostcode" | "taxAgentFirmState", ExtArgs["result"]["payrollCompanyInfo"]>
+export type PayrollCompanyInfoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employerName" | "employerTin" | "registrationNo" | "referenceType" | "referenceNo" | "employerCategory" | "employerStatus" | "cp8dFurnishType" | "perkesoEmployerCode" | "addressLine1" | "addressLine2" | "postcode" | "city" | "state" | "country" | "phone" | "handphone" | "email" | "taxAgentName" | "taxAgentTin" | "taxAgentLicenceNo" | "taxAgentPhone" | "taxAgentEmail" | "declarantName" | "declarantIdType" | "declarantIdNumber" | "declarantPosition" | "createdAt" | "updatedAt" | "taxAgentFirmAddressLine1" | "taxAgentFirmAddressLine2" | "taxAgentFirmCity" | "taxAgentFirmName" | "taxAgentFirmPostcode" | "taxAgentFirmState", ExtArgs["result"]["payrollCompanyInfo"]>
 export type PayrollCompanyInfoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
@@ -1308,6 +1336,7 @@ export type $PayrollCompanyInfoPayload<ExtArgs extends runtime.Types.Extensions.
     employerCategory: string | null
     employerStatus: string | null
     cp8dFurnishType: string | null
+    perkesoEmployerCode: string | null
     addressLine1: string | null
     addressLine2: string | null
     postcode: string | null
@@ -1714,6 +1743,7 @@ export interface PayrollCompanyInfoFieldRefs {
   readonly employerCategory: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly employerStatus: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly cp8dFurnishType: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
+  readonly perkesoEmployerCode: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly addressLine1: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly addressLine2: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>
   readonly postcode: Prisma.FieldRef<"PayrollCompanyInfo", 'String'>

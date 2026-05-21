@@ -48,8 +48,6 @@ type PrismaUser = {
       salaryType: string
     } | null
     preferredCurrency: string
-    xeroConnectionId?: string | null
-    xeroConnection?: { tenantName: string } | null
   } | null
   approvalChainSteps?: Array<{
     step: number
@@ -67,7 +65,6 @@ type PrismaChartAccount = {
   isBankAccount: boolean
   isCustom: boolean
   isDisabled: boolean
-  xeroConnectionId: string | null
   limitAmount?: unknown
   limitPeriod?: string | null
   limitScope?: string | null
@@ -458,8 +455,11 @@ function mapUser(user: PrismaUser): PortalUser {
           ? "MONTHLY_BASED"
           : "HOURLY",
     preferredCurrency: user.employeeProfile?.preferredCurrency ?? "USD",
-    xeroConnectionId: user.employeeProfile?.xeroConnectionId ?? undefined,
-    xeroConnectionName: user.employeeProfile?.xeroConnection?.tenantName ?? undefined,
+    // Xero org is fixed per organization, not per employee — the
+    // selectable-account lookups now scope by org, so the portal user no
+    // longer needs to carry a connection id.
+    xeroConnectionId: undefined,
+    xeroConnectionName: undefined,
   }
 }
 
@@ -569,7 +569,6 @@ const claimInclude = {
             },
             orderBy: { createdAt: "asc" },
           },
-          xeroConnection: { select: { tenantName: true } },
           policy: { select: { salaryType: true } },
         },
       },
@@ -613,7 +612,6 @@ export const claimRepository = {
               },
               orderBy: { createdAt: "asc" },
             },
-            xeroConnection: { select: { tenantName: true } },
             policy: { select: { salaryType: true } },
           },
         },
@@ -812,51 +810,49 @@ export const claimRepository = {
         projectId: true,
         organizationId: true,
         chartOfAccountId: true,
-        chartOfAccount: {
-          select: { xeroConnectionId: true },
-        },
       },
     })
-    if (claimRow) {
-      return {
-        id: claimRow.id,
-        employeeId: claimRow.employeeId,
-        projectId: claimRow.projectId,
-        organizationId: claimRow.organizationId,
-        chartOfAccountId: claimRow.chartOfAccountId,
-        xeroConnectionId: claimRow.chartOfAccount?.xeroConnectionId ?? null,
-      }
-    }
 
     // Supporting attachment path — the same proxy URL serves both
     // primary receipts and the extra documents the user attached.
     // Look up the parent claim via the supporting-attachment row.
-    const supportingRow = await prisma.claimSupportingAttachment.findFirst({
-      where: { xeroFileId },
-      select: {
-        claim: {
+    const base =
+      claimRow ??
+      (
+        await prisma.claimSupportingAttachment.findFirst({
+          where: { xeroFileId },
           select: {
-            id: true,
-            employeeId: true,
-            projectId: true,
-            organizationId: true,
-            chartOfAccountId: true,
-            chartOfAccount: {
-              select: { xeroConnectionId: true },
+            claim: {
+              select: {
+                id: true,
+                employeeId: true,
+                projectId: true,
+                organizationId: true,
+                chartOfAccountId: true,
+              },
             },
           },
-        },
-      },
-    })
-    if (!supportingRow?.claim) return null
+        })
+      )?.claim ??
+      null
+    if (!base) return null
+
+    // The org connects to at most one Xero tenant — resolve the
+    // connection from the org rather than a per-row column.
+    const connection = base.organizationId
+      ? await prisma.xeroConnection.findFirst({
+          where: { organizationId: base.organizationId },
+          select: { id: true },
+        })
+      : null
+
     return {
-      id: supportingRow.claim.id,
-      employeeId: supportingRow.claim.employeeId,
-      projectId: supportingRow.claim.projectId,
-      organizationId: supportingRow.claim.organizationId,
-      chartOfAccountId: supportingRow.claim.chartOfAccountId,
-      xeroConnectionId:
-        supportingRow.claim.chartOfAccount?.xeroConnectionId ?? null,
+      id: base.id,
+      employeeId: base.employeeId,
+      projectId: base.projectId,
+      organizationId: base.organizationId,
+      chartOfAccountId: base.chartOfAccountId,
+      xeroConnectionId: connection?.id ?? null,
     }
   },
 
@@ -870,6 +866,18 @@ export const claimRepository = {
       select: { employeeId: true, title: true },
     })
     return claim ?? null
+  },
+
+  /**
+   * Count claims in the org awaiting review (PENDING + freshly-SUBMITTED).
+   * Used by the admin overview "Review claims" quick action badge.
+   */
+  async countPendingForOrganization(organizationId: string): Promise<number> {
+    const prisma = getPrismaClient()
+    if (!prisma) return 0
+    return prisma.claim.count({
+      where: { organizationId, status: { in: ["PENDING", "SUBMITTED"] } },
+    })
   },
 
   async countPendingForSupervisor(email: string): Promise<number> {
@@ -961,7 +969,6 @@ export const claimRepository = {
 
   async getClaimsForOrganization(
     organizationId: string,
-    xeroConnectionId?: string
   ): Promise<ClaimRecord[]> {
     const prisma = getPrismaClient()
     if (!prisma) return []
@@ -969,9 +976,6 @@ export const claimRepository = {
     const rows = await prisma.claim.findMany({
       where: {
         organizationId,
-        ...(xeroConnectionId
-          ? { employee: { employeeProfile: { xeroConnectionId } } }
-          : {}),
       },
       include: claimInclude,
       orderBy: { submittedAt: "desc" },
@@ -2063,7 +2067,6 @@ export const claimRepository = {
             code: true,
             name: true,
             xeroAccountId: true,
-            xeroConnectionId: true,
           },
         },
         project: {
@@ -2080,6 +2083,15 @@ export const claimRepository = {
 
     if (!claim) return null
 
+    // The bill posts to the org's single Xero connection — resolve it
+    // from the org rather than a per-account column.
+    const connection = claim.organizationId
+      ? await prisma.xeroConnection.findFirst({
+          where: { organizationId: claim.organizationId },
+          select: { id: true },
+        })
+      : null
+
     return {
       id: claim.id,
       claimNumber: claim.claimNumber,
@@ -2091,7 +2103,9 @@ export const claimRepository = {
       xeroBillId: claim.xeroBillId,
       xeroFileId: claim.xeroFileId,
       organizationId: claim.organizationId,
-      chartOfAccount: claim.chartOfAccount,
+      chartOfAccount: claim.chartOfAccount
+        ? { ...claim.chartOfAccount, xeroConnectionId: connection?.id ?? null }
+        : null,
       project: claim.project,
       employee: claim.employee,
     }

@@ -140,7 +140,6 @@ export async function updateHierarchyAction(
       organizationId,
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
-      xeroConnectionId,
       policyId: parsed.data.policyId,
       projectAssignments,
     })
@@ -242,7 +241,6 @@ export async function createHierarchyMemberAction(
       organizationId,
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
-      xeroConnectionId,
       policyId: parsed.data.policyId,
       projectAssignments,
     })

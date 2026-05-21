@@ -51,8 +51,17 @@ export async function renderSocsoEisTxt(input: {
   })
   if (!payload) throw new Error("Payroll run not found.")
 
-  const employerCode = payload.companyInfo?.referenceNo ?? ""
+  // PERKESO Employer Code (positions 1-12) comes from its OWN field,
+  // NOT the LHDN referenceNo — they're different identifiers and
+  // PERKESO ASSIST rejects an LHDN reference here ("Invalid employer
+  // code format"). MyCoID maps to the SSM registration number.
+  const employerCode = payload.companyInfo?.perkesoEmployerCode ?? ""
   const myCoId = payload.companyInfo?.registrationNo ?? ""
+  if (employerCode.trim().length === 0) {
+    throw new Error(
+      "PERKESO Employer Code is missing. Set it in Payroll Settings → Company Info before generating the SOCSO + EIS file.",
+    )
+  }
 
   const mm = String(payload.run.periodMonth).padStart(2, "0")
   const yyyy = String(payload.run.periodYear)

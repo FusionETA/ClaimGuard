@@ -159,10 +159,6 @@ export const PATCH = handleApiRequest<RouteParams>(
           parsed.data.projectIds ??
           existing.projects.map((p) => p.id),
         jobTitle: parsed.data.jobTitle ?? existing.jobTitle,
-        // Preserve whatever xeroConnectionId is on the row today — the
-        // external API can't set or change it, but the field still
-        // exists on the underlying repo input. Pass through unchanged.
-        xeroConnectionId: existing.xeroConnectionId,
         policyId: parsed.data.policyId ?? existing.policyId ?? "",
         projectAssignments: parsed.data.projectAssignments,
       })

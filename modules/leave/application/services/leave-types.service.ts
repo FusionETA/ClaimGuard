@@ -1,5 +1,8 @@
 import "server-only"
 
+import { getOrSetCache } from "@/lib/cache"
+import { bustLeaveCaches } from "@/lib/cache-invalidation"
+import { key } from "@/lib/redis"
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
 import {
   isAnnualCode,
@@ -63,6 +66,7 @@ export async function createLeaveType(
       code: input.code.trim().toUpperCase(),
       name: input.name.trim(),
     })
+    await bustLeaveCaches({ organizationId: orgId })
     return { ok: true, value: view }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
@@ -89,6 +93,7 @@ export async function updateLeaveType(
     carryExpiryMonth: input.carryForward ? input.carryExpiryMonth : null,
     maxCarryForwardDays: input.maxCarryForwardDays,
   })
+  await bustLeaveCaches({ organizationId: orgId })
   return { ok: true, value: view }
 }
 
@@ -97,6 +102,7 @@ export async function archiveLeaveType(
   id: string,
 ): Promise<Result<LeaveTypeView>> {
   const view = await leaveRepository.updateType(orgId, id, { archivedAt: new Date() })
+  await bustLeaveCaches({ organizationId: orgId })
   return { ok: true, value: view }
 }
 
@@ -105,9 +111,17 @@ export async function unarchiveLeaveType(
   id: string,
 ): Promise<Result<LeaveTypeView>> {
   const view = await leaveRepository.updateType(orgId, id, { archivedAt: null })
+  await bustLeaveCaches({ organizationId: orgId })
   return { ok: true, value: view }
 }
 
 export async function listLeaveTypes(orgId: string, includeArchived = false) {
-  return leaveRepository.listTypes(orgId, { includeArchived })
+  // Org config, rarely changes. 10-min TTL; busted by `bustLeaveCaches`
+  // on leave-type create/edit/archive. Active vs all-inclusive lists are
+  // cached under separate keys.
+  return getOrSetCache(
+    key("org", orgId, "leave", "types", includeArchived ? "all" : "active"),
+    600,
+    () => leaveRepository.listTypes(orgId, { includeArchived }),
+  )
 }

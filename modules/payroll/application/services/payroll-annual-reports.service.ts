@@ -5,7 +5,10 @@ import { mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { getOrSetCache } from "@/lib/cache"
+import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getPrismaClient } from "@/lib/prisma"
+import { key } from "@/lib/redis"
 import {
   buildAnnualReportFileName,
   PAYROLL_ANNUAL_REPORT_META,
@@ -58,6 +61,27 @@ export async function getPayrollAnnualReportsPageData(input: {
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
+  // 10-min TTL; busted by `bustPayrollCaches` on run submissions AND on
+  // annual-report generation (see generatePayrollAnnualReport). Keyed
+  // by the selected year so each year's modal caches independently.
+  return getOrSetCache(
+    key("org", orgId, "payroll", "page", "annual-reports", String(input.year ?? "default")),
+    600,
+    () => loadAnnualReportsPageData(orgId, input.year),
+  )
+}
+
+async function loadAnnualReportsPageData(
+  orgId: string,
+  year: number | null,
+): Promise<{
+  organizationName: string
+  availableYears: number[]
+  selectedYear: number
+  rows: PayrollAnnualReportRow[]
+  canGenerate: boolean
+  employerNoConfigured: boolean
+} | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
 
@@ -77,7 +101,7 @@ export async function getPayrollAnnualReportsPageData(input: {
 
   const availableYears = submittedRunsByYear.map((r) => r.periodYear)
   const fallbackYear = availableYears[0] ?? new Date().getFullYear()
-  const selectedYear = input.year ?? fallbackYear
+  const selectedYear = year ?? fallbackYear
 
   const stored = await payrollAnnualReportRepository.listForYear({
     organizationId: orgId,
@@ -192,6 +216,10 @@ export async function generatePayrollAnnualReport(input: {
     sizeBytes: bytes.byteLength,
     contentHash,
   })
+
+  // The annual-forms modal caches each row's "generated" state — bust
+  // so the new file shows as available on the next page load.
+  await bustPayrollCaches({ organizationId: orgId })
 
   return {
     fileName,

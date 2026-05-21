@@ -646,6 +646,13 @@ export async function createClaimForEmployee({
   // raw input rather than parsed.data because the Zod schema doesn't
   // model File — passing it through would double the schema's complexity
   // for no validation benefit.)
+  // Receipt files upload to the org's single Xero Files area when the
+  // org is Xero-connected (resolved from the org, not a per-account
+  // column), else they store locally.
+  const orgXeroConnectionId =
+    await organizationRepository.getActiveXeroConnectionId(
+      session.organizationId,
+    )
   let storedReceiptUrl = parsed.data.receiptUrl?.trim() || undefined
   let storedXeroFileId: string | null = null
   let receiptStorageWarning: string | undefined
@@ -655,7 +662,7 @@ export async function createClaimForEmployee({
     try {
       const stored = await storeReceiptForClaim({
         receiptFile,
-        xeroConnectionId: chartOfAccount.xeroConnectionId,
+        xeroConnectionId: orgXeroConnectionId,
       })
       storedReceiptUrl = stored.receiptUrl
       storedXeroFileId = stored.xeroFileId
@@ -696,7 +703,7 @@ export async function createClaimForEmployee({
     try {
       const stored = await storeSupportingFileForClaim({
         file,
-        xeroConnectionId: chartOfAccount.xeroConnectionId,
+        xeroConnectionId: orgXeroConnectionId,
       })
       supportingAttachments.push({
         fileName: stored.fileName,

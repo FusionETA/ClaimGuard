@@ -1,5 +1,6 @@
 import "server-only"
 
+import { bustLeaveCaches } from "@/lib/cache-invalidation"
 import { getPrismaClient } from "@/lib/prisma"
 import { parseWorkingDays } from "@/modules/attendance/domain/hours-summary"
 import { computeTotalDays } from "@/modules/leave/domain/accrual"
@@ -35,6 +36,20 @@ export type SubmitLeaveInput = {
 export type SubmitLeaveResult =
   | { ok: true; applicationId: string; status: "PENDING" | "APPROVED"; totalDays: number }
   | { ok: false; error: string }
+
+/// Resolve the employee's org and bust its leave caches (on-leave-today
+/// etc.). Leave applications are scoped by EmployeeProfile, so we hop
+/// profile → user → organization. No-op when the org can't be resolved.
+async function bustLeaveForProfile(employeeProfileId: string): Promise<void> {
+  const prisma = getPrismaClient()
+  if (!prisma) return
+  const row = await prisma.employeeProfile.findUnique({
+    where: { id: employeeProfileId },
+    select: { user: { select: { organizationId: true } } },
+  })
+  const orgId = row?.user.organizationId
+  if (orgId) await bustLeaveCaches({ organizationId: orgId })
+}
 
 async function workingDaysForEmployee(employeeProfileId: string): Promise<Set<number>> {
   const prisma = getPrismaClient()
@@ -137,6 +152,7 @@ export async function submitLeaveApplication(
     await leaveRepository.addUsedDays(entitlement.id, totalDays)
   }
 
+  await bustLeaveForProfile(input.employeeProfileId)
   return { ok: true, applicationId: app.id, status, totalDays }
 }
 
@@ -246,6 +262,7 @@ export async function editLeaveApplication(
     },
   })
 
+  await bustLeaveForProfile(app.employeeId)
   return { ok: true, totalDays }
 }
 
@@ -299,6 +316,7 @@ export async function decideLeaveApplication(args: {
       approvals,
       new Date(),
     )
+    await bustLeaveForProfile(app.employeeId)
     return { ok: true, status: "REJECTED" }
   }
 
@@ -323,6 +341,7 @@ export async function decideLeaveApplication(args: {
     )
     await leaveRepository.addUsedDays(ent.id, app.totalDays)
   }
+  await bustLeaveForProfile(app.employeeId)
   return { ok: true, status: newStatus }
 }
 
@@ -355,6 +374,7 @@ export async function cancelLeaveApplication(
     approvals,
     new Date(),
   )
+  await bustLeaveForProfile(app.employeeId)
   return { ok: true }
 }
 

@@ -17,6 +17,10 @@ import {
   NativeSelect,
   Toggle,
 } from "@/components/admin/payroll-form-controls"
+import {
+  EmployeeCompanyForm,
+  type EmployeeCompanyData,
+} from "@/components/admin/employee-company-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -81,7 +85,7 @@ import {
   type PayrollProfileData,
 } from "@/modules/payroll/domain/models"
 
-type Tab = "personal" | "employment" | "statutory"
+type Tab = "personal" | "employment" | "statutory" | "company"
 
 const PERSONAL_COMPLETION_FIELDS: Array<keyof PayrollProfileData> = [
   "gender",
@@ -107,6 +111,9 @@ export function PayrollEmployeeDetail(props: {
   profile: PayrollProfileData | null
   defaultEpfEmployerRate: number
   salaryHistory: SalaryChangeData[]
+  /// Org-hierarchy editing context. Null only when the member couldn't
+  /// be resolved (defensive) — in that case the Company tab is hidden.
+  company: EmployeeCompanyData | null
 }) {
   const [tab, setTab] = useState<Tab>("personal")
   const personalComplete = isPersonalTabComplete(props.profile)
@@ -137,6 +144,15 @@ export function PayrollEmployeeDetail(props: {
         >
           Statutory
         </TabPill>
+        {props.company ? (
+          <TabPill
+            active={tab === "company"}
+            complete={(props.company.member.projects?.length ?? 0) > 0}
+            onClick={() => setTab("company")}
+          >
+            Company
+          </TabPill>
+        ) : null}
       </nav>
 
       {tab === "personal" && (
@@ -156,6 +172,9 @@ export function PayrollEmployeeDetail(props: {
           defaultEpfEmployerRate={props.defaultEpfEmployerRate}
         />
       )}
+      {tab === "company" && props.company ? (
+        <EmployeeCompanyForm {...props.company} />
+      ) : null}
 
       <ArchiveCard userId={props.userId} profile={props.profile} />
     </div>

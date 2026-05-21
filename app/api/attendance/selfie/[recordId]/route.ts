@@ -41,7 +41,6 @@ export async function GET(
       employee: {
         select: {
           organizationId: true,
-          employeeProfile: { select: { xeroConnectionId: true } },
         },
       },
     },
@@ -66,10 +65,9 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  // Resolve a Xero connection (profile preferred, else org's first).
-  let connectionId =
-    record.employee.employeeProfile?.xeroConnectionId ?? null
-  if (!connectionId && record.employee.organizationId) {
+  // Resolve the org's single Xero connection.
+  let connectionId: string | null = null
+  if (record.employee.organizationId) {
     const conn = await prisma.xeroConnection.findFirst({
       where: { organizationId: record.employee.organizationId },
       orderBy: { createdAt: "asc" },

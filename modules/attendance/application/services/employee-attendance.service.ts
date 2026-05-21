@@ -96,7 +96,6 @@ async function uploadSelfieToXero({
   const profile = await prisma.employeeProfile.findUnique({
     where: { userId: employeeId },
     select: {
-      xeroConnectionId: true,
       employeeId: true,
       policy: { select: { requireSelfie: true } },
     },
@@ -105,21 +104,19 @@ async function uploadSelfieToXero({
   const selfieRequired = profile.policy?.requireSelfie ?? false
   if (!selfieRequired) return
 
-  // Resolve a Xero connection: profile preference, else org's first.
-  let connectionId: string | null = profile.xeroConnectionId ?? null
-  if (!connectionId) {
-    const user = await prisma.user.findUnique({
-      where: { id: employeeId },
-      select: { organizationId: true },
+  // Resolve the org's single Xero connection.
+  let connectionId: string | null = null
+  const user = await prisma.user.findUnique({
+    where: { id: employeeId },
+    select: { organizationId: true },
+  })
+  if (user?.organizationId) {
+    const conn = await prisma.xeroConnection.findFirst({
+      where: { organizationId: user.organizationId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
     })
-    if (user?.organizationId) {
-      const conn = await prisma.xeroConnection.findFirst({
-        where: { organizationId: user.organizationId },
-        orderBy: { createdAt: "asc" },
-        select: { id: true },
-      })
-      connectionId = conn?.id ?? null
-    }
+    connectionId = conn?.id ?? null
   }
   if (!connectionId) return
 

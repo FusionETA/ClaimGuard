@@ -286,11 +286,8 @@ export type XeroConnectionWhereInput = {
   xeroTrackingCategoryId?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   xeroTrackingCategoryName?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   reauthorizedAt?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountListRelationFilter
-  employeeProfiles?: Prisma.EmployeeProfileListRelationFilter
   connectedByAdmin?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
-  xeroProjects?: Prisma.XeroProjectListRelationFilter
 }
 
 export type XeroConnectionOrderByWithRelationInput = {
@@ -312,23 +309,19 @@ export type XeroConnectionOrderByWithRelationInput = {
   xeroTrackingCategoryId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroTrackingCategoryName?: Prisma.SortOrderInput | Prisma.SortOrder
   reauthorizedAt?: Prisma.SortOrderInput | Prisma.SortOrder
-  chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
-  employeeProfiles?: Prisma.EmployeeProfileOrderByRelationAggregateInput
   connectedByAdmin?: Prisma.UserOrderByWithRelationInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
-  xeroProjects?: Prisma.XeroProjectOrderByRelationAggregateInput
   _relevance?: Prisma.XeroConnectionOrderByRelevanceInput
 }
 
 export type XeroConnectionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  organizationId?: string
   tenantId?: string
-  organizationId_tenantId?: Prisma.XeroConnectionOrganizationIdTenantIdCompoundUniqueInput
   AND?: Prisma.XeroConnectionWhereInput | Prisma.XeroConnectionWhereInput[]
   OR?: Prisma.XeroConnectionWhereInput[]
   NOT?: Prisma.XeroConnectionWhereInput | Prisma.XeroConnectionWhereInput[]
   provider?: Prisma.StringFilter<"XeroConnection"> | string
-  organizationId?: Prisma.StringFilter<"XeroConnection"> | string
   tenantName?: Prisma.StringFilter<"XeroConnection"> | string
   tenantType?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   accessToken?: Prisma.StringFilter<"XeroConnection"> | string
@@ -343,12 +336,9 @@ export type XeroConnectionWhereUniqueInput = Prisma.AtLeast<{
   xeroTrackingCategoryId?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   xeroTrackingCategoryName?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   reauthorizedAt?: Prisma.DateTimeNullableFilter<"XeroConnection"> | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountListRelationFilter
-  employeeProfiles?: Prisma.EmployeeProfileListRelationFilter
   connectedByAdmin?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
-  xeroProjects?: Prisma.XeroProjectListRelationFilter
-}, "id" | "tenantId" | "organizationId_tenantId">
+}, "id" | "organizationId" | "tenantId">
 
 export type XeroConnectionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -415,11 +405,8 @@ export type XeroConnectionCreateInput = {
   xeroTrackingCategoryId?: string | null
   xeroTrackingCategoryName?: string | null
   reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
-  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutXeroConnectionInput
   connectedByAdmin?: Prisma.UserCreateNestedOneWithoutXeroConnectionsInput
-  organization: Prisma.OrganizationCreateNestedOneWithoutXeroConnectionsInput
-  xeroProjects?: Prisma.XeroProjectCreateNestedManyWithoutXeroConnectionInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutXeroConnectionInput
 }
 
 export type XeroConnectionUncheckedCreateInput = {
@@ -441,9 +428,6 @@ export type XeroConnectionUncheckedCreateInput = {
   xeroTrackingCategoryId?: string | null
   xeroTrackingCategoryName?: string | null
   reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutXeroConnectionInput
-  xeroProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutXeroConnectionInput
 }
 
 export type XeroConnectionUpdateInput = {
@@ -463,11 +447,8 @@ export type XeroConnectionUpdateInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
-  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutXeroConnectionNestedInput
   connectedByAdmin?: Prisma.UserUpdateOneWithoutXeroConnectionsNestedInput
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutXeroConnectionsNestedInput
-  xeroProjects?: Prisma.XeroProjectUpdateManyWithoutXeroConnectionNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutXeroConnectionNestedInput
 }
 
 export type XeroConnectionUncheckedUpdateInput = {
@@ -489,9 +470,6 @@ export type XeroConnectionUncheckedUpdateInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionNestedInput
-  xeroProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutXeroConnectionNestedInput
 }
 
 export type XeroConnectionCreateManyInput = {
@@ -574,11 +552,6 @@ export type XeroConnectionOrderByRelevanceInput = {
   fields: Prisma.XeroConnectionOrderByRelevanceFieldEnum | Prisma.XeroConnectionOrderByRelevanceFieldEnum[]
   sort: Prisma.SortOrder
   search: string
-}
-
-export type XeroConnectionOrganizationIdTenantIdCompoundUniqueInput = {
-  organizationId: string
-  tenantId: string
 }
 
 export type XeroConnectionCountOrderByAggregateInput = {
@@ -686,94 +659,36 @@ export type XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput 
   deleteMany?: Prisma.XeroConnectionScalarWhereInput | Prisma.XeroConnectionScalarWhereInput[]
 }
 
-export type XeroConnectionCreateNestedManyWithoutOrganizationInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput> | Prisma.XeroConnectionCreateWithoutOrganizationInput[] | Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput | Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput[]
-  createMany?: Prisma.XeroConnectionCreateManyOrganizationInputEnvelope
-  connect?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-}
-
-export type XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput> | Prisma.XeroConnectionCreateWithoutOrganizationInput[] | Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput | Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput[]
-  createMany?: Prisma.XeroConnectionCreateManyOrganizationInputEnvelope
-  connect?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-}
-
-export type XeroConnectionUpdateManyWithoutOrganizationNestedInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput> | Prisma.XeroConnectionCreateWithoutOrganizationInput[] | Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput | Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput[]
-  upsert?: Prisma.XeroConnectionUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.XeroConnectionUpsertWithWhereUniqueWithoutOrganizationInput[]
-  createMany?: Prisma.XeroConnectionCreateManyOrganizationInputEnvelope
-  set?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-  disconnect?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-  delete?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-  connect?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-  update?: Prisma.XeroConnectionUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.XeroConnectionUpdateWithWhereUniqueWithoutOrganizationInput[]
-  updateMany?: Prisma.XeroConnectionUpdateManyWithWhereWithoutOrganizationInput | Prisma.XeroConnectionUpdateManyWithWhereWithoutOrganizationInput[]
-  deleteMany?: Prisma.XeroConnectionScalarWhereInput | Prisma.XeroConnectionScalarWhereInput[]
-}
-
-export type XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput> | Prisma.XeroConnectionCreateWithoutOrganizationInput[] | Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput[]
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput | Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput[]
-  upsert?: Prisma.XeroConnectionUpsertWithWhereUniqueWithoutOrganizationInput | Prisma.XeroConnectionUpsertWithWhereUniqueWithoutOrganizationInput[]
-  createMany?: Prisma.XeroConnectionCreateManyOrganizationInputEnvelope
-  set?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-  disconnect?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-  delete?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-  connect?: Prisma.XeroConnectionWhereUniqueInput | Prisma.XeroConnectionWhereUniqueInput[]
-  update?: Prisma.XeroConnectionUpdateWithWhereUniqueWithoutOrganizationInput | Prisma.XeroConnectionUpdateWithWhereUniqueWithoutOrganizationInput[]
-  updateMany?: Prisma.XeroConnectionUpdateManyWithWhereWithoutOrganizationInput | Prisma.XeroConnectionUpdateManyWithWhereWithoutOrganizationInput[]
-  deleteMany?: Prisma.XeroConnectionScalarWhereInput | Prisma.XeroConnectionScalarWhereInput[]
-}
-
-export type XeroConnectionCreateNestedOneWithoutEmployeeProfilesInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutEmployeeProfilesInput, Prisma.XeroConnectionUncheckedCreateWithoutEmployeeProfilesInput>
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutEmployeeProfilesInput
+export type XeroConnectionCreateNestedOneWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput>
+  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput
   connect?: Prisma.XeroConnectionWhereUniqueInput
 }
 
-export type XeroConnectionUpdateOneWithoutEmployeeProfilesNestedInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutEmployeeProfilesInput, Prisma.XeroConnectionUncheckedCreateWithoutEmployeeProfilesInput>
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutEmployeeProfilesInput
-  upsert?: Prisma.XeroConnectionUpsertWithoutEmployeeProfilesInput
+export type XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput = {
+  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput>
+  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput
+  connect?: Prisma.XeroConnectionWhereUniqueInput
+}
+
+export type XeroConnectionUpdateOneWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput>
+  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput
+  upsert?: Prisma.XeroConnectionUpsertWithoutOrganizationInput
   disconnect?: Prisma.XeroConnectionWhereInput | boolean
   delete?: Prisma.XeroConnectionWhereInput | boolean
   connect?: Prisma.XeroConnectionWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.XeroConnectionUpdateToOneWithWhereWithoutEmployeeProfilesInput, Prisma.XeroConnectionUpdateWithoutEmployeeProfilesInput>, Prisma.XeroConnectionUncheckedUpdateWithoutEmployeeProfilesInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.XeroConnectionUpdateToOneWithWhereWithoutOrganizationInput, Prisma.XeroConnectionUpdateWithoutOrganizationInput>, Prisma.XeroConnectionUncheckedUpdateWithoutOrganizationInput>
 }
 
-export type XeroConnectionCreateNestedOneWithoutChartAccountsInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutChartAccountsInput, Prisma.XeroConnectionUncheckedCreateWithoutChartAccountsInput>
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutChartAccountsInput
-  connect?: Prisma.XeroConnectionWhereUniqueInput
-}
-
-export type XeroConnectionUpdateOneWithoutChartAccountsNestedInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutChartAccountsInput, Prisma.XeroConnectionUncheckedCreateWithoutChartAccountsInput>
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutChartAccountsInput
-  upsert?: Prisma.XeroConnectionUpsertWithoutChartAccountsInput
+export type XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput = {
+  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput>
+  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutOrganizationInput
+  upsert?: Prisma.XeroConnectionUpsertWithoutOrganizationInput
   disconnect?: Prisma.XeroConnectionWhereInput | boolean
   delete?: Prisma.XeroConnectionWhereInput | boolean
   connect?: Prisma.XeroConnectionWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.XeroConnectionUpdateToOneWithWhereWithoutChartAccountsInput, Prisma.XeroConnectionUpdateWithoutChartAccountsInput>, Prisma.XeroConnectionUncheckedUpdateWithoutChartAccountsInput>
-}
-
-export type XeroConnectionCreateNestedOneWithoutXeroProjectsInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutXeroProjectsInput, Prisma.XeroConnectionUncheckedCreateWithoutXeroProjectsInput>
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutXeroProjectsInput
-  connect?: Prisma.XeroConnectionWhereUniqueInput
-}
-
-export type XeroConnectionUpdateOneWithoutXeroProjectsNestedInput = {
-  create?: Prisma.XOR<Prisma.XeroConnectionCreateWithoutXeroProjectsInput, Prisma.XeroConnectionUncheckedCreateWithoutXeroProjectsInput>
-  connectOrCreate?: Prisma.XeroConnectionCreateOrConnectWithoutXeroProjectsInput
-  upsert?: Prisma.XeroConnectionUpsertWithoutXeroProjectsInput
-  disconnect?: Prisma.XeroConnectionWhereInput | boolean
-  delete?: Prisma.XeroConnectionWhereInput | boolean
-  connect?: Prisma.XeroConnectionWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.XeroConnectionUpdateToOneWithWhereWithoutXeroProjectsInput, Prisma.XeroConnectionUpdateWithoutXeroProjectsInput>, Prisma.XeroConnectionUncheckedUpdateWithoutXeroProjectsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.XeroConnectionUpdateToOneWithWhereWithoutOrganizationInput, Prisma.XeroConnectionUpdateWithoutOrganizationInput>, Prisma.XeroConnectionUncheckedUpdateWithoutOrganizationInput>
 }
 
 export type XeroConnectionCreateWithoutConnectedByAdminInput = {
@@ -793,10 +708,7 @@ export type XeroConnectionCreateWithoutConnectedByAdminInput = {
   xeroTrackingCategoryId?: string | null
   xeroTrackingCategoryName?: string | null
   reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
-  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutXeroConnectionInput
-  organization: Prisma.OrganizationCreateNestedOneWithoutXeroConnectionsInput
-  xeroProjects?: Prisma.XeroProjectCreateNestedManyWithoutXeroConnectionInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutXeroConnectionInput
 }
 
 export type XeroConnectionUncheckedCreateWithoutConnectedByAdminInput = {
@@ -817,9 +729,6 @@ export type XeroConnectionUncheckedCreateWithoutConnectedByAdminInput = {
   xeroTrackingCategoryId?: string | null
   xeroTrackingCategoryName?: string | null
   reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutXeroConnectionInput
-  xeroProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutXeroConnectionInput
 }
 
 export type XeroConnectionCreateOrConnectWithoutConnectedByAdminInput = {
@@ -889,10 +798,7 @@ export type XeroConnectionCreateWithoutOrganizationInput = {
   xeroTrackingCategoryId?: string | null
   xeroTrackingCategoryName?: string | null
   reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
-  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutXeroConnectionInput
   connectedByAdmin?: Prisma.UserCreateNestedOneWithoutXeroConnectionsInput
-  xeroProjects?: Prisma.XeroProjectCreateNestedManyWithoutXeroConnectionInput
 }
 
 export type XeroConnectionUncheckedCreateWithoutOrganizationInput = {
@@ -913,9 +819,6 @@ export type XeroConnectionUncheckedCreateWithoutOrganizationInput = {
   xeroTrackingCategoryId?: string | null
   xeroTrackingCategoryName?: string | null
   reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutXeroConnectionInput
-  xeroProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutXeroConnectionInput
 }
 
 export type XeroConnectionCreateOrConnectWithoutOrganizationInput = {
@@ -923,90 +826,18 @@ export type XeroConnectionCreateOrConnectWithoutOrganizationInput = {
   create: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput>
 }
 
-export type XeroConnectionCreateManyOrganizationInputEnvelope = {
-  data: Prisma.XeroConnectionCreateManyOrganizationInput | Prisma.XeroConnectionCreateManyOrganizationInput[]
-  skipDuplicates?: boolean
-}
-
-export type XeroConnectionUpsertWithWhereUniqueWithoutOrganizationInput = {
-  where: Prisma.XeroConnectionWhereUniqueInput
+export type XeroConnectionUpsertWithoutOrganizationInput = {
   update: Prisma.XOR<Prisma.XeroConnectionUpdateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedUpdateWithoutOrganizationInput>
   create: Prisma.XOR<Prisma.XeroConnectionCreateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedCreateWithoutOrganizationInput>
+  where?: Prisma.XeroConnectionWhereInput
 }
 
-export type XeroConnectionUpdateWithWhereUniqueWithoutOrganizationInput = {
-  where: Prisma.XeroConnectionWhereUniqueInput
+export type XeroConnectionUpdateToOneWithWhereWithoutOrganizationInput = {
+  where?: Prisma.XeroConnectionWhereInput
   data: Prisma.XOR<Prisma.XeroConnectionUpdateWithoutOrganizationInput, Prisma.XeroConnectionUncheckedUpdateWithoutOrganizationInput>
 }
 
-export type XeroConnectionUpdateManyWithWhereWithoutOrganizationInput = {
-  where: Prisma.XeroConnectionScalarWhereInput
-  data: Prisma.XOR<Prisma.XeroConnectionUpdateManyMutationInput, Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationInput>
-}
-
-export type XeroConnectionCreateWithoutEmployeeProfilesInput = {
-  id?: string
-  provider?: string
-  tenantId: string
-  tenantName: string
-  tenantType?: string | null
-  accessToken: string
-  refreshToken: string
-  scope: string
-  tokenType: string
-  accessTokenExpiresAt: Date | string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  lastReauthVersion?: string | null
-  xeroTrackingCategoryId?: string | null
-  xeroTrackingCategoryName?: string | null
-  reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
-  connectedByAdmin?: Prisma.UserCreateNestedOneWithoutXeroConnectionsInput
-  organization: Prisma.OrganizationCreateNestedOneWithoutXeroConnectionsInput
-  xeroProjects?: Prisma.XeroProjectCreateNestedManyWithoutXeroConnectionInput
-}
-
-export type XeroConnectionUncheckedCreateWithoutEmployeeProfilesInput = {
-  id?: string
-  provider?: string
-  organizationId: string
-  tenantId: string
-  tenantName: string
-  tenantType?: string | null
-  accessToken: string
-  refreshToken: string
-  scope: string
-  tokenType: string
-  accessTokenExpiresAt: Date | string
-  connectedByAdminId?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  lastReauthVersion?: string | null
-  xeroTrackingCategoryId?: string | null
-  xeroTrackingCategoryName?: string | null
-  reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
-  xeroProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutXeroConnectionInput
-}
-
-export type XeroConnectionCreateOrConnectWithoutEmployeeProfilesInput = {
-  where: Prisma.XeroConnectionWhereUniqueInput
-  create: Prisma.XOR<Prisma.XeroConnectionCreateWithoutEmployeeProfilesInput, Prisma.XeroConnectionUncheckedCreateWithoutEmployeeProfilesInput>
-}
-
-export type XeroConnectionUpsertWithoutEmployeeProfilesInput = {
-  update: Prisma.XOR<Prisma.XeroConnectionUpdateWithoutEmployeeProfilesInput, Prisma.XeroConnectionUncheckedUpdateWithoutEmployeeProfilesInput>
-  create: Prisma.XOR<Prisma.XeroConnectionCreateWithoutEmployeeProfilesInput, Prisma.XeroConnectionUncheckedCreateWithoutEmployeeProfilesInput>
-  where?: Prisma.XeroConnectionWhereInput
-}
-
-export type XeroConnectionUpdateToOneWithWhereWithoutEmployeeProfilesInput = {
-  where?: Prisma.XeroConnectionWhereInput
-  data: Prisma.XOR<Prisma.XeroConnectionUpdateWithoutEmployeeProfilesInput, Prisma.XeroConnectionUncheckedUpdateWithoutEmployeeProfilesInput>
-}
-
-export type XeroConnectionUpdateWithoutEmployeeProfilesInput = {
+export type XeroConnectionUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1023,16 +854,12 @@ export type XeroConnectionUpdateWithoutEmployeeProfilesInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
   connectedByAdmin?: Prisma.UserUpdateOneWithoutXeroConnectionsNestedInput
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutXeroConnectionsNestedInput
-  xeroProjects?: Prisma.XeroProjectUpdateManyWithoutXeroConnectionNestedInput
 }
 
-export type XeroConnectionUncheckedUpdateWithoutEmployeeProfilesInput = {
+export type XeroConnectionUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1048,224 +875,6 @@ export type XeroConnectionUncheckedUpdateWithoutEmployeeProfilesInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
-  xeroProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutXeroConnectionNestedInput
-}
-
-export type XeroConnectionCreateWithoutChartAccountsInput = {
-  id?: string
-  provider?: string
-  tenantId: string
-  tenantName: string
-  tenantType?: string | null
-  accessToken: string
-  refreshToken: string
-  scope: string
-  tokenType: string
-  accessTokenExpiresAt: Date | string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  lastReauthVersion?: string | null
-  xeroTrackingCategoryId?: string | null
-  xeroTrackingCategoryName?: string | null
-  reauthorizedAt?: Date | string | null
-  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutXeroConnectionInput
-  connectedByAdmin?: Prisma.UserCreateNestedOneWithoutXeroConnectionsInput
-  organization: Prisma.OrganizationCreateNestedOneWithoutXeroConnectionsInput
-  xeroProjects?: Prisma.XeroProjectCreateNestedManyWithoutXeroConnectionInput
-}
-
-export type XeroConnectionUncheckedCreateWithoutChartAccountsInput = {
-  id?: string
-  provider?: string
-  organizationId: string
-  tenantId: string
-  tenantName: string
-  tenantType?: string | null
-  accessToken: string
-  refreshToken: string
-  scope: string
-  tokenType: string
-  accessTokenExpiresAt: Date | string
-  connectedByAdminId?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  lastReauthVersion?: string | null
-  xeroTrackingCategoryId?: string | null
-  xeroTrackingCategoryName?: string | null
-  reauthorizedAt?: Date | string | null
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutXeroConnectionInput
-  xeroProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutXeroConnectionInput
-}
-
-export type XeroConnectionCreateOrConnectWithoutChartAccountsInput = {
-  where: Prisma.XeroConnectionWhereUniqueInput
-  create: Prisma.XOR<Prisma.XeroConnectionCreateWithoutChartAccountsInput, Prisma.XeroConnectionUncheckedCreateWithoutChartAccountsInput>
-}
-
-export type XeroConnectionUpsertWithoutChartAccountsInput = {
-  update: Prisma.XOR<Prisma.XeroConnectionUpdateWithoutChartAccountsInput, Prisma.XeroConnectionUncheckedUpdateWithoutChartAccountsInput>
-  create: Prisma.XOR<Prisma.XeroConnectionCreateWithoutChartAccountsInput, Prisma.XeroConnectionUncheckedCreateWithoutChartAccountsInput>
-  where?: Prisma.XeroConnectionWhereInput
-}
-
-export type XeroConnectionUpdateToOneWithWhereWithoutChartAccountsInput = {
-  where?: Prisma.XeroConnectionWhereInput
-  data: Prisma.XOR<Prisma.XeroConnectionUpdateWithoutChartAccountsInput, Prisma.XeroConnectionUncheckedUpdateWithoutChartAccountsInput>
-}
-
-export type XeroConnectionUpdateWithoutChartAccountsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantName?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  accessToken?: Prisma.StringFieldUpdateOperationsInput | string
-  refreshToken?: Prisma.StringFieldUpdateOperationsInput | string
-  scope?: Prisma.StringFieldUpdateOperationsInput | string
-  tokenType?: Prisma.StringFieldUpdateOperationsInput | string
-  accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutXeroConnectionNestedInput
-  connectedByAdmin?: Prisma.UserUpdateOneWithoutXeroConnectionsNestedInput
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutXeroConnectionsNestedInput
-  xeroProjects?: Prisma.XeroProjectUpdateManyWithoutXeroConnectionNestedInput
-}
-
-export type XeroConnectionUncheckedUpdateWithoutChartAccountsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantName?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  accessToken?: Prisma.StringFieldUpdateOperationsInput | string
-  refreshToken?: Prisma.StringFieldUpdateOperationsInput | string
-  scope?: Prisma.StringFieldUpdateOperationsInput | string
-  tokenType?: Prisma.StringFieldUpdateOperationsInput | string
-  accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionNestedInput
-  xeroProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutXeroConnectionNestedInput
-}
-
-export type XeroConnectionCreateWithoutXeroProjectsInput = {
-  id?: string
-  provider?: string
-  tenantId: string
-  tenantName: string
-  tenantType?: string | null
-  accessToken: string
-  refreshToken: string
-  scope: string
-  tokenType: string
-  accessTokenExpiresAt: Date | string
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  lastReauthVersion?: string | null
-  xeroTrackingCategoryId?: string | null
-  xeroTrackingCategoryName?: string | null
-  reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutXeroConnectionInput
-  employeeProfiles?: Prisma.EmployeeProfileCreateNestedManyWithoutXeroConnectionInput
-  connectedByAdmin?: Prisma.UserCreateNestedOneWithoutXeroConnectionsInput
-  organization: Prisma.OrganizationCreateNestedOneWithoutXeroConnectionsInput
-}
-
-export type XeroConnectionUncheckedCreateWithoutXeroProjectsInput = {
-  id?: string
-  provider?: string
-  organizationId: string
-  tenantId: string
-  tenantName: string
-  tenantType?: string | null
-  accessToken: string
-  refreshToken: string
-  scope: string
-  tokenType: string
-  accessTokenExpiresAt: Date | string
-  connectedByAdminId?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  lastReauthVersion?: string | null
-  xeroTrackingCategoryId?: string | null
-  xeroTrackingCategoryName?: string | null
-  reauthorizedAt?: Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutXeroConnectionInput
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedCreateNestedManyWithoutXeroConnectionInput
-}
-
-export type XeroConnectionCreateOrConnectWithoutXeroProjectsInput = {
-  where: Prisma.XeroConnectionWhereUniqueInput
-  create: Prisma.XOR<Prisma.XeroConnectionCreateWithoutXeroProjectsInput, Prisma.XeroConnectionUncheckedCreateWithoutXeroProjectsInput>
-}
-
-export type XeroConnectionUpsertWithoutXeroProjectsInput = {
-  update: Prisma.XOR<Prisma.XeroConnectionUpdateWithoutXeroProjectsInput, Prisma.XeroConnectionUncheckedUpdateWithoutXeroProjectsInput>
-  create: Prisma.XOR<Prisma.XeroConnectionCreateWithoutXeroProjectsInput, Prisma.XeroConnectionUncheckedCreateWithoutXeroProjectsInput>
-  where?: Prisma.XeroConnectionWhereInput
-}
-
-export type XeroConnectionUpdateToOneWithWhereWithoutXeroProjectsInput = {
-  where?: Prisma.XeroConnectionWhereInput
-  data: Prisma.XOR<Prisma.XeroConnectionUpdateWithoutXeroProjectsInput, Prisma.XeroConnectionUncheckedUpdateWithoutXeroProjectsInput>
-}
-
-export type XeroConnectionUpdateWithoutXeroProjectsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantName?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  accessToken?: Prisma.StringFieldUpdateOperationsInput | string
-  refreshToken?: Prisma.StringFieldUpdateOperationsInput | string
-  scope?: Prisma.StringFieldUpdateOperationsInput | string
-  tokenType?: Prisma.StringFieldUpdateOperationsInput | string
-  accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
-  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutXeroConnectionNestedInput
-  connectedByAdmin?: Prisma.UserUpdateOneWithoutXeroConnectionsNestedInput
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutXeroConnectionsNestedInput
-}
-
-export type XeroConnectionUncheckedUpdateWithoutXeroProjectsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantName?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  accessToken?: Prisma.StringFieldUpdateOperationsInput | string
-  refreshToken?: Prisma.StringFieldUpdateOperationsInput | string
-  scope?: Prisma.StringFieldUpdateOperationsInput | string
-  tokenType?: Prisma.StringFieldUpdateOperationsInput | string
-  accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionNestedInput
 }
 
 export type XeroConnectionCreateManyConnectedByAdminInput = {
@@ -1305,10 +914,7 @@ export type XeroConnectionUpdateWithoutConnectedByAdminInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
-  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutXeroConnectionNestedInput
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutXeroConnectionsNestedInput
-  xeroProjects?: Prisma.XeroProjectUpdateManyWithoutXeroConnectionNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutXeroConnectionNestedInput
 }
 
 export type XeroConnectionUncheckedUpdateWithoutConnectedByAdminInput = {
@@ -1329,9 +935,6 @@ export type XeroConnectionUncheckedUpdateWithoutConnectedByAdminInput = {
   xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionNestedInput
-  xeroProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutXeroConnectionNestedInput
 }
 
 export type XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminInput = {
@@ -1354,139 +957,6 @@ export type XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminInput = {
   reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
-export type XeroConnectionCreateManyOrganizationInput = {
-  id?: string
-  provider?: string
-  tenantId: string
-  tenantName: string
-  tenantType?: string | null
-  accessToken: string
-  refreshToken: string
-  scope: string
-  tokenType: string
-  accessTokenExpiresAt: Date | string
-  connectedByAdminId?: string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  lastReauthVersion?: string | null
-  xeroTrackingCategoryId?: string | null
-  xeroTrackingCategoryName?: string | null
-  reauthorizedAt?: Date | string | null
-}
-
-export type XeroConnectionUpdateWithoutOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantName?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  accessToken?: Prisma.StringFieldUpdateOperationsInput | string
-  refreshToken?: Prisma.StringFieldUpdateOperationsInput | string
-  scope?: Prisma.StringFieldUpdateOperationsInput | string
-  tokenType?: Prisma.StringFieldUpdateOperationsInput | string
-  accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutXeroConnectionNestedInput
-  employeeProfiles?: Prisma.EmployeeProfileUpdateManyWithoutXeroConnectionNestedInput
-  connectedByAdmin?: Prisma.UserUpdateOneWithoutXeroConnectionsNestedInput
-  xeroProjects?: Prisma.XeroProjectUpdateManyWithoutXeroConnectionNestedInput
-}
-
-export type XeroConnectionUncheckedUpdateWithoutOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantName?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  accessToken?: Prisma.StringFieldUpdateOperationsInput | string
-  refreshToken?: Prisma.StringFieldUpdateOperationsInput | string
-  scope?: Prisma.StringFieldUpdateOperationsInput | string
-  tokenType?: Prisma.StringFieldUpdateOperationsInput | string
-  accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutXeroConnectionNestedInput
-  employeeProfiles?: Prisma.EmployeeProfileUncheckedUpdateManyWithoutXeroConnectionNestedInput
-  xeroProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutXeroConnectionNestedInput
-}
-
-export type XeroConnectionUncheckedUpdateManyWithoutOrganizationInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantId?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantName?: Prisma.StringFieldUpdateOperationsInput | string
-  tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  accessToken?: Prisma.StringFieldUpdateOperationsInput | string
-  refreshToken?: Prisma.StringFieldUpdateOperationsInput | string
-  scope?: Prisma.StringFieldUpdateOperationsInput | string
-  tokenType?: Prisma.StringFieldUpdateOperationsInput | string
-  accessTokenExpiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  connectedByAdminId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  lastReauthVersion?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroTrackingCategoryName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  reauthorizedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-}
-
-
-/**
- * Count Type XeroConnectionCountOutputType
- */
-
-export type XeroConnectionCountOutputType = {
-  chartAccounts: number
-  employeeProfiles: number
-  xeroProjects: number
-}
-
-export type XeroConnectionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  chartAccounts?: boolean | XeroConnectionCountOutputTypeCountChartAccountsArgs
-  employeeProfiles?: boolean | XeroConnectionCountOutputTypeCountEmployeeProfilesArgs
-  xeroProjects?: boolean | XeroConnectionCountOutputTypeCountXeroProjectsArgs
-}
-
-/**
- * XeroConnectionCountOutputType without action
- */
-export type XeroConnectionCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the XeroConnectionCountOutputType
-   */
-  select?: Prisma.XeroConnectionCountOutputTypeSelect<ExtArgs> | null
-}
-
-/**
- * XeroConnectionCountOutputType without action
- */
-export type XeroConnectionCountOutputTypeCountChartAccountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.ChartOfAccountWhereInput
-}
-
-/**
- * XeroConnectionCountOutputType without action
- */
-export type XeroConnectionCountOutputTypeCountEmployeeProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.EmployeeProfileWhereInput
-}
-
-/**
- * XeroConnectionCountOutputType without action
- */
-export type XeroConnectionCountOutputTypeCountXeroProjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.XeroProjectWhereInput
-}
 
 
 export type XeroConnectionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1508,12 +978,8 @@ export type XeroConnectionSelect<ExtArgs extends runtime.Types.Extensions.Intern
   xeroTrackingCategoryId?: boolean
   xeroTrackingCategoryName?: boolean
   reauthorizedAt?: boolean
-  chartAccounts?: boolean | Prisma.XeroConnection$chartAccountsArgs<ExtArgs>
-  employeeProfiles?: boolean | Prisma.XeroConnection$employeeProfilesArgs<ExtArgs>
   connectedByAdmin?: boolean | Prisma.XeroConnection$connectedByAdminArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  xeroProjects?: boolean | Prisma.XeroConnection$xeroProjectsArgs<ExtArgs>
-  _count?: boolean | Prisma.XeroConnectionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["xeroConnection"]>
 
 
@@ -1541,22 +1007,15 @@ export type XeroConnectionSelectScalar = {
 
 export type XeroConnectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "provider" | "organizationId" | "tenantId" | "tenantName" | "tenantType" | "accessToken" | "refreshToken" | "scope" | "tokenType" | "accessTokenExpiresAt" | "connectedByAdminId" | "createdAt" | "updatedAt" | "lastReauthVersion" | "xeroTrackingCategoryId" | "xeroTrackingCategoryName" | "reauthorizedAt", ExtArgs["result"]["xeroConnection"]>
 export type XeroConnectionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  chartAccounts?: boolean | Prisma.XeroConnection$chartAccountsArgs<ExtArgs>
-  employeeProfiles?: boolean | Prisma.XeroConnection$employeeProfilesArgs<ExtArgs>
   connectedByAdmin?: boolean | Prisma.XeroConnection$connectedByAdminArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
-  xeroProjects?: boolean | Prisma.XeroConnection$xeroProjectsArgs<ExtArgs>
-  _count?: boolean | Prisma.XeroConnectionCountOutputTypeDefaultArgs<ExtArgs>
 }
 
 export type $XeroConnectionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "XeroConnection"
   objects: {
-    chartAccounts: Prisma.$ChartOfAccountPayload<ExtArgs>[]
-    employeeProfiles: Prisma.$EmployeeProfilePayload<ExtArgs>[]
     connectedByAdmin: Prisma.$UserPayload<ExtArgs> | null
     organization: Prisma.$OrganizationPayload<ExtArgs>
-    xeroProjects: Prisma.$XeroProjectPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1939,11 +1398,8 @@ readonly fields: XeroConnectionFieldRefs;
  */
 export interface Prisma__XeroConnectionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  chartAccounts<T extends Prisma.XeroConnection$chartAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroConnection$chartAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  employeeProfiles<T extends Prisma.XeroConnection$employeeProfilesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroConnection$employeeProfilesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProfilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   connectedByAdmin<T extends Prisma.XeroConnection$connectedByAdminArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroConnection$connectedByAdminArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  xeroProjects<T extends Prisma.XeroConnection$xeroProjectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.XeroConnection$xeroProjectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2339,54 +1795,6 @@ export type XeroConnectionDeleteManyArgs<ExtArgs extends runtime.Types.Extension
 }
 
 /**
- * XeroConnection.chartAccounts
- */
-export type XeroConnection$chartAccountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the ChartOfAccount
-   */
-  select?: Prisma.ChartOfAccountSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the ChartOfAccount
-   */
-  omit?: Prisma.ChartOfAccountOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.ChartOfAccountInclude<ExtArgs> | null
-  where?: Prisma.ChartOfAccountWhereInput
-  orderBy?: Prisma.ChartOfAccountOrderByWithRelationInput | Prisma.ChartOfAccountOrderByWithRelationInput[]
-  cursor?: Prisma.ChartOfAccountWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.ChartOfAccountScalarFieldEnum | Prisma.ChartOfAccountScalarFieldEnum[]
-}
-
-/**
- * XeroConnection.employeeProfiles
- */
-export type XeroConnection$employeeProfilesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the EmployeeProfile
-   */
-  select?: Prisma.EmployeeProfileSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the EmployeeProfile
-   */
-  omit?: Prisma.EmployeeProfileOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.EmployeeProfileInclude<ExtArgs> | null
-  where?: Prisma.EmployeeProfileWhereInput
-  orderBy?: Prisma.EmployeeProfileOrderByWithRelationInput | Prisma.EmployeeProfileOrderByWithRelationInput[]
-  cursor?: Prisma.EmployeeProfileWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.EmployeeProfileScalarFieldEnum | Prisma.EmployeeProfileScalarFieldEnum[]
-}
-
-/**
  * XeroConnection.connectedByAdmin
  */
 export type XeroConnection$connectedByAdminArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2403,30 +1811,6 @@ export type XeroConnection$connectedByAdminArgs<ExtArgs extends runtime.Types.Ex
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
-}
-
-/**
- * XeroConnection.xeroProjects
- */
-export type XeroConnection$xeroProjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the XeroProject
-   */
-  select?: Prisma.XeroProjectSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the XeroProject
-   */
-  omit?: Prisma.XeroProjectOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.XeroProjectInclude<ExtArgs> | null
-  where?: Prisma.XeroProjectWhereInput
-  orderBy?: Prisma.XeroProjectOrderByWithRelationInput | Prisma.XeroProjectOrderByWithRelationInput[]
-  cursor?: Prisma.XeroProjectWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.XeroProjectScalarFieldEnum | Prisma.XeroProjectScalarFieldEnum[]
 }
 
 /**

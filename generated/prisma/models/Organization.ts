@@ -323,7 +323,7 @@ export type OrganizationWhereInput = {
   payrollRuns?: Prisma.PayrollRunListRelationFilter
   payrollSettings?: Prisma.XOR<Prisma.PayrollSettingsNullableScalarRelationFilter, Prisma.PayrollSettingsWhereInput> | null
   users?: Prisma.UserListRelationFilter
-  xeroConnections?: Prisma.XeroConnectionListRelationFilter
+  xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   projects?: Prisma.XeroProjectListRelationFilter
   leaveTypes?: Prisma.LeaveTypeListRelationFilter
 }
@@ -356,7 +356,7 @@ export type OrganizationOrderByWithRelationInput = {
   payrollRuns?: Prisma.PayrollRunOrderByRelationAggregateInput
   payrollSettings?: Prisma.PayrollSettingsOrderByWithRelationInput
   users?: Prisma.UserOrderByRelationAggregateInput
-  xeroConnections?: Prisma.XeroConnectionOrderByRelationAggregateInput
+  xeroConnection?: Prisma.XeroConnectionOrderByWithRelationInput
   projects?: Prisma.XeroProjectOrderByRelationAggregateInput
   leaveTypes?: Prisma.LeaveTypeOrderByRelationAggregateInput
   _relevance?: Prisma.OrganizationOrderByRelevanceInput
@@ -393,7 +393,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   payrollRuns?: Prisma.PayrollRunListRelationFilter
   payrollSettings?: Prisma.XOR<Prisma.PayrollSettingsNullableScalarRelationFilter, Prisma.PayrollSettingsWhereInput> | null
   users?: Prisma.UserListRelationFilter
-  xeroConnections?: Prisma.XeroConnectionListRelationFilter
+  xeroConnection?: Prisma.XOR<Prisma.XeroConnectionNullableScalarRelationFilter, Prisma.XeroConnectionWhereInput> | null
   projects?: Prisma.XeroProjectListRelationFilter
   leaveTypes?: Prisma.LeaveTypeListRelationFilter
 }, "id" | "name">
@@ -472,7 +472,7 @@ export type OrganizationCreateInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -505,7 +505,7 @@ export type OrganizationUncheckedCreateInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -538,7 +538,7 @@ export type OrganizationUpdateInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -571,7 +571,7 @@ export type OrganizationUncheckedUpdateInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -844,18 +844,18 @@ export type OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutChartAccountsInput, Prisma.OrganizationUpdateWithoutChartAccountsInput>, Prisma.OrganizationUncheckedUpdateWithoutChartAccountsInput>
 }
 
-export type OrganizationCreateNestedOneWithoutXeroConnectionsInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutXeroConnectionsInput, Prisma.OrganizationUncheckedCreateWithoutXeroConnectionsInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutXeroConnectionsInput
+export type OrganizationCreateNestedOneWithoutXeroConnectionInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutXeroConnectionInput, Prisma.OrganizationUncheckedCreateWithoutXeroConnectionInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutXeroConnectionInput
   connect?: Prisma.OrganizationWhereUniqueInput
 }
 
-export type OrganizationUpdateOneRequiredWithoutXeroConnectionsNestedInput = {
-  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutXeroConnectionsInput, Prisma.OrganizationUncheckedCreateWithoutXeroConnectionsInput>
-  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutXeroConnectionsInput
-  upsert?: Prisma.OrganizationUpsertWithoutXeroConnectionsInput
+export type OrganizationUpdateOneRequiredWithoutXeroConnectionNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutXeroConnectionInput, Prisma.OrganizationUncheckedCreateWithoutXeroConnectionInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutXeroConnectionInput
+  upsert?: Prisma.OrganizationUpsertWithoutXeroConnectionInput
   connect?: Prisma.OrganizationWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutXeroConnectionsInput, Prisma.OrganizationUpdateWithoutXeroConnectionsInput>, Prisma.OrganizationUncheckedUpdateWithoutXeroConnectionsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutXeroConnectionInput, Prisma.OrganizationUpdateWithoutXeroConnectionInput>, Prisma.OrganizationUncheckedUpdateWithoutXeroConnectionInput>
 }
 
 export type OrganizationCreateNestedOneWithoutProjectsInput = {
@@ -969,7 +969,7 @@ export type OrganizationCreateWithoutUsersInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -1001,7 +1001,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1049,7 +1049,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -1081,7 +1081,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1113,7 +1113,7 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -1145,7 +1145,7 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1193,7 +1193,7 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -1225,7 +1225,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1257,7 +1257,7 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -1289,7 +1289,7 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1337,7 +1337,7 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -1369,7 +1369,7 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1401,7 +1401,7 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -1433,7 +1433,7 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1481,7 +1481,7 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -1513,7 +1513,7 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1545,7 +1545,7 @@ export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -1577,7 +1577,7 @@ export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1625,7 +1625,7 @@ export type OrganizationUpdateWithoutEmployeeImportDraftsInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -1657,7 +1657,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1689,7 +1689,7 @@ export type OrganizationCreateWithoutClaimsInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -1721,7 +1721,7 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1769,7 +1769,7 @@ export type OrganizationUpdateWithoutClaimsInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -1801,7 +1801,7 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1833,7 +1833,7 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -1865,7 +1865,7 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1913,7 +1913,7 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -1945,12 +1945,12 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
-export type OrganizationCreateWithoutXeroConnectionsInput = {
+export type OrganizationCreateWithoutXeroConnectionInput = {
   id?: string
   name: string
   claimCutoffDay?: number
@@ -1982,7 +1982,7 @@ export type OrganizationCreateWithoutXeroConnectionsInput = {
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
 
-export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
+export type OrganizationUncheckedCreateWithoutXeroConnectionInput = {
   id?: string
   name: string
   claimCutoffDay?: number
@@ -2014,23 +2014,23 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionsInput = {
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
-export type OrganizationCreateOrConnectWithoutXeroConnectionsInput = {
+export type OrganizationCreateOrConnectWithoutXeroConnectionInput = {
   where: Prisma.OrganizationWhereUniqueInput
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutXeroConnectionsInput, Prisma.OrganizationUncheckedCreateWithoutXeroConnectionsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutXeroConnectionInput, Prisma.OrganizationUncheckedCreateWithoutXeroConnectionInput>
 }
 
-export type OrganizationUpsertWithoutXeroConnectionsInput = {
-  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutXeroConnectionsInput, Prisma.OrganizationUncheckedUpdateWithoutXeroConnectionsInput>
-  create: Prisma.XOR<Prisma.OrganizationCreateWithoutXeroConnectionsInput, Prisma.OrganizationUncheckedCreateWithoutXeroConnectionsInput>
+export type OrganizationUpsertWithoutXeroConnectionInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutXeroConnectionInput, Prisma.OrganizationUncheckedUpdateWithoutXeroConnectionInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutXeroConnectionInput, Prisma.OrganizationUncheckedCreateWithoutXeroConnectionInput>
   where?: Prisma.OrganizationWhereInput
 }
 
-export type OrganizationUpdateToOneWithWhereWithoutXeroConnectionsInput = {
+export type OrganizationUpdateToOneWithWhereWithoutXeroConnectionInput = {
   where?: Prisma.OrganizationWhereInput
-  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutXeroConnectionsInput, Prisma.OrganizationUncheckedUpdateWithoutXeroConnectionsInput>
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutXeroConnectionInput, Prisma.OrganizationUncheckedUpdateWithoutXeroConnectionInput>
 }
 
-export type OrganizationUpdateWithoutXeroConnectionsInput = {
+export type OrganizationUpdateWithoutXeroConnectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2062,7 +2062,7 @@ export type OrganizationUpdateWithoutXeroConnectionsInput = {
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
 
-export type OrganizationUncheckedUpdateWithoutXeroConnectionsInput = {
+export type OrganizationUncheckedUpdateWithoutXeroConnectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   claimCutoffDay?: Prisma.IntFieldUpdateOperationsInput | number
@@ -2122,7 +2122,7 @@ export type OrganizationCreateWithoutProjectsInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
 
@@ -2154,7 +2154,7 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -2202,7 +2202,7 @@ export type OrganizationUpdateWithoutProjectsInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -2234,7 +2234,7 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -2265,7 +2265,7 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -2297,7 +2297,7 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2345,7 +2345,7 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -2377,7 +2377,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2409,7 +2409,7 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -2441,7 +2441,7 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2489,7 +2489,7 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -2521,7 +2521,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2553,7 +2553,7 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -2585,7 +2585,7 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2633,7 +2633,7 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -2665,7 +2665,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2697,7 +2697,7 @@ export type OrganizationCreateWithoutPayrollAnnualReportsInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
 }
@@ -2729,7 +2729,7 @@ export type OrganizationUncheckedCreateWithoutPayrollAnnualReportsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2777,7 +2777,7 @@ export type OrganizationUpdateWithoutPayrollAnnualReportsInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
 }
@@ -2809,7 +2809,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollAnnualReportsInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2842,7 +2842,7 @@ export type OrganizationCreateWithoutLeaveTypesInput = {
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectCreateNestedManyWithoutOrganizationInput
 }
 
@@ -2874,7 +2874,7 @@ export type OrganizationUncheckedCreateWithoutLeaveTypesInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
   users?: Prisma.UserUncheckedCreateNestedManyWithoutOrganizationInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedCreateNestedOneWithoutOrganizationInput
   projects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -2922,7 +2922,7 @@ export type OrganizationUpdateWithoutLeaveTypesInput = {
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -2954,7 +2954,7 @@ export type OrganizationUncheckedUpdateWithoutLeaveTypesInput = {
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
   users?: Prisma.UserUncheckedUpdateManyWithoutOrganizationNestedInput
-  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  xeroConnection?: Prisma.XeroConnectionUncheckedUpdateOneWithoutOrganizationNestedInput
   projects?: Prisma.XeroProjectUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -2973,7 +2973,6 @@ export type OrganizationCountOutputType = {
   payrollAnnualReports: number
   payrollRuns: number
   users: number
-  xeroConnections: number
   projects: number
   leaveTypes: number
 }
@@ -2988,7 +2987,6 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   payrollAnnualReports?: boolean | OrganizationCountOutputTypeCountPayrollAnnualReportsArgs
   payrollRuns?: boolean | OrganizationCountOutputTypeCountPayrollRunsArgs
   users?: boolean | OrganizationCountOutputTypeCountUsersArgs
-  xeroConnections?: boolean | OrganizationCountOutputTypeCountXeroConnectionsArgs
   projects?: boolean | OrganizationCountOutputTypeCountProjectsArgs
   leaveTypes?: boolean | OrganizationCountOutputTypeCountLeaveTypesArgs
 }
@@ -3069,13 +3067,6 @@ export type OrganizationCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Ty
 /**
  * OrganizationCountOutputType without action
  */
-export type OrganizationCountOutputTypeCountXeroConnectionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.XeroConnectionWhereInput
-}
-
-/**
- * OrganizationCountOutputType without action
- */
 export type OrganizationCountOutputTypeCountProjectsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.XeroProjectWhereInput
 }
@@ -3116,7 +3107,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
   payrollSettings?: boolean | Prisma.Organization$payrollSettingsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
-  xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
+  xeroConnection?: boolean | Prisma.Organization$xeroConnectionArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
   leaveTypes?: boolean | Prisma.Organization$leaveTypesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
@@ -3156,7 +3147,7 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
   payrollSettings?: boolean | Prisma.Organization$payrollSettingsArgs<ExtArgs>
   users?: boolean | Prisma.Organization$usersArgs<ExtArgs>
-  xeroConnections?: boolean | Prisma.Organization$xeroConnectionsArgs<ExtArgs>
+  xeroConnection?: boolean | Prisma.Organization$xeroConnectionArgs<ExtArgs>
   projects?: boolean | Prisma.Organization$projectsArgs<ExtArgs>
   leaveTypes?: boolean | Prisma.Organization$leaveTypesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
@@ -3176,7 +3167,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     payrollRuns: Prisma.$PayrollRunPayload<ExtArgs>[]
     payrollSettings: Prisma.$PayrollSettingsPayload<ExtArgs> | null
     users: Prisma.$UserPayload<ExtArgs>[]
-    xeroConnections: Prisma.$XeroConnectionPayload<ExtArgs>[]
+    xeroConnection: Prisma.$XeroConnectionPayload<ExtArgs> | null
     projects: Prisma.$XeroProjectPayload<ExtArgs>[]
     leaveTypes: Prisma.$LeaveTypePayload<ExtArgs>[]
   }
@@ -3569,7 +3560,7 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   payrollRuns<T extends Prisma.Organization$payrollRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payrollSettings<T extends Prisma.Organization$payrollSettingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollSettingsArgs<ExtArgs>>): Prisma.Prisma__PayrollSettingsClient<runtime.Types.Result.GetResult<Prisma.$PayrollSettingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   users<T extends Prisma.Organization$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  xeroConnections<T extends Prisma.Organization$xeroConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  xeroConnection<T extends Prisma.Organization$xeroConnectionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$xeroConnectionArgs<ExtArgs>>): Prisma.Prisma__XeroConnectionClient<runtime.Types.Result.GetResult<Prisma.$XeroConnectionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   projects<T extends Prisma.Organization$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leaveTypes<T extends Prisma.Organization$leaveTypesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$leaveTypesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveTypePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -4219,9 +4210,9 @@ export type Organization$usersArgs<ExtArgs extends runtime.Types.Extensions.Inte
 }
 
 /**
- * Organization.xeroConnections
+ * Organization.xeroConnection
  */
-export type Organization$xeroConnectionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Organization$xeroConnectionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the XeroConnection
    */
@@ -4235,11 +4226,6 @@ export type Organization$xeroConnectionsArgs<ExtArgs extends runtime.Types.Exten
    */
   include?: Prisma.XeroConnectionInclude<ExtArgs> | null
   where?: Prisma.XeroConnectionWhereInput
-  orderBy?: Prisma.XeroConnectionOrderByWithRelationInput | Prisma.XeroConnectionOrderByWithRelationInput[]
-  cursor?: Prisma.XeroConnectionWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.XeroConnectionScalarFieldEnum | Prisma.XeroConnectionScalarFieldEnum[]
 }
 
 /**
