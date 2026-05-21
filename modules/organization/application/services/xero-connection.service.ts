@@ -391,10 +391,24 @@ export async function disconnectXeroConnection(data: {
     return { ok: false, message: "Xero connection not found." }
   }
 
-  // Best-effort: revoke on Xero's side so the token is invalidated
+  // Best-effort: revoke on Xero's side so the token is invalidated AND
+  // the entry disappears from the user's Xero "Connected apps" list.
+  //
+  // The DELETE endpoint expects Xero's connection ID, NOT the tenant ID
+  // — these are different GUIDs. Older rows predate the
+  // `xeroConnectionId` column and need a runtime GET /connections
+  // lookup to resolve it; new rows have it stored at connect time.
+  // When the lookup fails (revoked token, network), we still proceed
+  // with the local delete so the UI doesn't get stuck.
   try {
-    const { deleteXeroConnection: revokeOnXero } = await import("@/lib/xero")
-    await revokeOnXero(connection.accessToken, connection.tenantId)
+    const { deleteXeroConnection: revokeOnXero, findXeroConnectionIdForTenant } =
+      await import("@/lib/xero")
+    const xeroConnId =
+      connection.xeroConnectionId ??
+      (await findXeroConnectionIdForTenant(connection.accessToken, connection.tenantId))
+    if (xeroConnId) {
+      await revokeOnXero(connection.accessToken, xeroConnId)
+    }
   } catch {
     // Non-fatal — continue to delete locally even if Xero revocation fails
   }

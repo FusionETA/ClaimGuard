@@ -598,6 +598,7 @@ export async function selectXeroTenantAction(
   await organizationRepository.upsertXeroConnection({
     organizationId,
     tenantId: tenant.tenantId,
+    xeroConnectionId: tenant.connectionId,
     tenantName: tenant.tenantName,
     tenantType: tenant.tenantType,
     accessToken: pending.accessToken,

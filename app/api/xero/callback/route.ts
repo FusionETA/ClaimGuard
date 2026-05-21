@@ -142,6 +142,7 @@ export async function GET(request: NextRequest) {
     await organizationRepository.upsertXeroConnection({
       organizationId,
       tenantId: tenant.tenantId,
+      xeroConnectionId: tenant.connectionId,
       tenantName: tenant.tenantName,
       tenantType: tenant.tenantType,
       accessToken: tokenSet.accessToken,

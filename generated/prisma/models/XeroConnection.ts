@@ -29,6 +29,7 @@ export type XeroConnectionMinAggregateOutputType = {
   provider: string | null
   organizationId: string | null
   tenantId: string | null
+  xeroConnectionId: string | null
   tenantName: string | null
   tenantType: string | null
   accessToken: string | null
@@ -50,6 +51,7 @@ export type XeroConnectionMaxAggregateOutputType = {
   provider: string | null
   organizationId: string | null
   tenantId: string | null
+  xeroConnectionId: string | null
   tenantName: string | null
   tenantType: string | null
   accessToken: string | null
@@ -71,6 +73,7 @@ export type XeroConnectionCountAggregateOutputType = {
   provider: number
   organizationId: number
   tenantId: number
+  xeroConnectionId: number
   tenantName: number
   tenantType: number
   accessToken: number
@@ -94,6 +97,7 @@ export type XeroConnectionMinAggregateInputType = {
   provider?: true
   organizationId?: true
   tenantId?: true
+  xeroConnectionId?: true
   tenantName?: true
   tenantType?: true
   accessToken?: true
@@ -115,6 +119,7 @@ export type XeroConnectionMaxAggregateInputType = {
   provider?: true
   organizationId?: true
   tenantId?: true
+  xeroConnectionId?: true
   tenantName?: true
   tenantType?: true
   accessToken?: true
@@ -136,6 +141,7 @@ export type XeroConnectionCountAggregateInputType = {
   provider?: true
   organizationId?: true
   tenantId?: true
+  xeroConnectionId?: true
   tenantName?: true
   tenantType?: true
   accessToken?: true
@@ -230,6 +236,7 @@ export type XeroConnectionGroupByOutputType = {
   provider: string
   organizationId: string
   tenantId: string
+  xeroConnectionId: string | null
   tenantName: string
   tenantType: string | null
   accessToken: string
@@ -272,6 +279,7 @@ export type XeroConnectionWhereInput = {
   provider?: Prisma.StringFilter<"XeroConnection"> | string
   organizationId?: Prisma.StringFilter<"XeroConnection"> | string
   tenantId?: Prisma.StringFilter<"XeroConnection"> | string
+  xeroConnectionId?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   tenantName?: Prisma.StringFilter<"XeroConnection"> | string
   tenantType?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   accessToken?: Prisma.StringFilter<"XeroConnection"> | string
@@ -295,6 +303,7 @@ export type XeroConnectionOrderByWithRelationInput = {
   provider?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  xeroConnectionId?: Prisma.SortOrderInput | Prisma.SortOrder
   tenantName?: Prisma.SortOrder
   tenantType?: Prisma.SortOrderInput | Prisma.SortOrder
   accessToken?: Prisma.SortOrder
@@ -322,6 +331,7 @@ export type XeroConnectionWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.XeroConnectionWhereInput[]
   NOT?: Prisma.XeroConnectionWhereInput | Prisma.XeroConnectionWhereInput[]
   provider?: Prisma.StringFilter<"XeroConnection"> | string
+  xeroConnectionId?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   tenantName?: Prisma.StringFilter<"XeroConnection"> | string
   tenantType?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   accessToken?: Prisma.StringFilter<"XeroConnection"> | string
@@ -345,6 +355,7 @@ export type XeroConnectionOrderByWithAggregationInput = {
   provider?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  xeroConnectionId?: Prisma.SortOrderInput | Prisma.SortOrder
   tenantName?: Prisma.SortOrder
   tenantType?: Prisma.SortOrderInput | Prisma.SortOrder
   accessToken?: Prisma.SortOrder
@@ -372,6 +383,7 @@ export type XeroConnectionScalarWhereWithAggregatesInput = {
   provider?: Prisma.StringWithAggregatesFilter<"XeroConnection"> | string
   organizationId?: Prisma.StringWithAggregatesFilter<"XeroConnection"> | string
   tenantId?: Prisma.StringWithAggregatesFilter<"XeroConnection"> | string
+  xeroConnectionId?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
   tenantName?: Prisma.StringWithAggregatesFilter<"XeroConnection"> | string
   tenantType?: Prisma.StringNullableWithAggregatesFilter<"XeroConnection"> | string | null
   accessToken?: Prisma.StringWithAggregatesFilter<"XeroConnection"> | string
@@ -392,6 +404,7 @@ export type XeroConnectionCreateInput = {
   id?: string
   provider?: string
   tenantId: string
+  xeroConnectionId?: string | null
   tenantName: string
   tenantType?: string | null
   accessToken: string
@@ -414,6 +427,7 @@ export type XeroConnectionUncheckedCreateInput = {
   provider?: string
   organizationId: string
   tenantId: string
+  xeroConnectionId?: string | null
   tenantName: string
   tenantType?: string | null
   accessToken: string
@@ -434,6 +448,7 @@ export type XeroConnectionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accessToken?: Prisma.StringFieldUpdateOperationsInput | string
@@ -456,6 +471,7 @@ export type XeroConnectionUncheckedUpdateInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accessToken?: Prisma.StringFieldUpdateOperationsInput | string
@@ -477,6 +493,7 @@ export type XeroConnectionCreateManyInput = {
   provider?: string
   organizationId: string
   tenantId: string
+  xeroConnectionId?: string | null
   tenantName: string
   tenantType?: string | null
   accessToken: string
@@ -497,6 +514,7 @@ export type XeroConnectionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accessToken?: Prisma.StringFieldUpdateOperationsInput | string
@@ -517,6 +535,7 @@ export type XeroConnectionUncheckedUpdateManyInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accessToken?: Prisma.StringFieldUpdateOperationsInput | string
@@ -559,6 +578,7 @@ export type XeroConnectionCountOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  xeroConnectionId?: Prisma.SortOrder
   tenantName?: Prisma.SortOrder
   tenantType?: Prisma.SortOrder
   accessToken?: Prisma.SortOrder
@@ -580,6 +600,7 @@ export type XeroConnectionMaxOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  xeroConnectionId?: Prisma.SortOrder
   tenantName?: Prisma.SortOrder
   tenantType?: Prisma.SortOrder
   accessToken?: Prisma.SortOrder
@@ -601,6 +622,7 @@ export type XeroConnectionMinOrderByAggregateInput = {
   provider?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   tenantId?: Prisma.SortOrder
+  xeroConnectionId?: Prisma.SortOrder
   tenantName?: Prisma.SortOrder
   tenantType?: Prisma.SortOrder
   accessToken?: Prisma.SortOrder
@@ -695,6 +717,7 @@ export type XeroConnectionCreateWithoutConnectedByAdminInput = {
   id?: string
   provider?: string
   tenantId: string
+  xeroConnectionId?: string | null
   tenantName: string
   tenantType?: string | null
   accessToken: string
@@ -716,6 +739,7 @@ export type XeroConnectionUncheckedCreateWithoutConnectedByAdminInput = {
   provider?: string
   organizationId: string
   tenantId: string
+  xeroConnectionId?: string | null
   tenantName: string
   tenantType?: string | null
   accessToken: string
@@ -765,6 +789,7 @@ export type XeroConnectionScalarWhereInput = {
   provider?: Prisma.StringFilter<"XeroConnection"> | string
   organizationId?: Prisma.StringFilter<"XeroConnection"> | string
   tenantId?: Prisma.StringFilter<"XeroConnection"> | string
+  xeroConnectionId?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   tenantName?: Prisma.StringFilter<"XeroConnection"> | string
   tenantType?: Prisma.StringNullableFilter<"XeroConnection"> | string | null
   accessToken?: Prisma.StringFilter<"XeroConnection"> | string
@@ -785,6 +810,7 @@ export type XeroConnectionCreateWithoutOrganizationInput = {
   id?: string
   provider?: string
   tenantId: string
+  xeroConnectionId?: string | null
   tenantName: string
   tenantType?: string | null
   accessToken: string
@@ -805,6 +831,7 @@ export type XeroConnectionUncheckedCreateWithoutOrganizationInput = {
   id?: string
   provider?: string
   tenantId: string
+  xeroConnectionId?: string | null
   tenantName: string
   tenantType?: string | null
   accessToken: string
@@ -841,6 +868,7 @@ export type XeroConnectionUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accessToken?: Prisma.StringFieldUpdateOperationsInput | string
@@ -861,6 +889,7 @@ export type XeroConnectionUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accessToken?: Prisma.StringFieldUpdateOperationsInput | string
@@ -882,6 +911,7 @@ export type XeroConnectionCreateManyConnectedByAdminInput = {
   provider?: string
   organizationId: string
   tenantId: string
+  xeroConnectionId?: string | null
   tenantName: string
   tenantType?: string | null
   accessToken: string
@@ -901,6 +931,7 @@ export type XeroConnectionUpdateWithoutConnectedByAdminInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accessToken?: Prisma.StringFieldUpdateOperationsInput | string
@@ -922,6 +953,7 @@ export type XeroConnectionUncheckedUpdateWithoutConnectedByAdminInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accessToken?: Prisma.StringFieldUpdateOperationsInput | string
@@ -942,6 +974,7 @@ export type XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminInput = {
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   tenantId?: Prisma.StringFieldUpdateOperationsInput | string
+  xeroConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tenantName?: Prisma.StringFieldUpdateOperationsInput | string
   tenantType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   accessToken?: Prisma.StringFieldUpdateOperationsInput | string
@@ -964,6 +997,7 @@ export type XeroConnectionSelect<ExtArgs extends runtime.Types.Extensions.Intern
   provider?: boolean
   organizationId?: boolean
   tenantId?: boolean
+  xeroConnectionId?: boolean
   tenantName?: boolean
   tenantType?: boolean
   accessToken?: boolean
@@ -989,6 +1023,7 @@ export type XeroConnectionSelectScalar = {
   provider?: boolean
   organizationId?: boolean
   tenantId?: boolean
+  xeroConnectionId?: boolean
   tenantName?: boolean
   tenantType?: boolean
   accessToken?: boolean
@@ -1005,7 +1040,7 @@ export type XeroConnectionSelectScalar = {
   reauthorizedAt?: boolean
 }
 
-export type XeroConnectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "provider" | "organizationId" | "tenantId" | "tenantName" | "tenantType" | "accessToken" | "refreshToken" | "scope" | "tokenType" | "accessTokenExpiresAt" | "connectedByAdminId" | "createdAt" | "updatedAt" | "lastReauthVersion" | "xeroTrackingCategoryId" | "xeroTrackingCategoryName" | "reauthorizedAt", ExtArgs["result"]["xeroConnection"]>
+export type XeroConnectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "provider" | "organizationId" | "tenantId" | "xeroConnectionId" | "tenantName" | "tenantType" | "accessToken" | "refreshToken" | "scope" | "tokenType" | "accessTokenExpiresAt" | "connectedByAdminId" | "createdAt" | "updatedAt" | "lastReauthVersion" | "xeroTrackingCategoryId" | "xeroTrackingCategoryName" | "reauthorizedAt", ExtArgs["result"]["xeroConnection"]>
 export type XeroConnectionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   connectedByAdmin?: boolean | Prisma.XeroConnection$connectedByAdminArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -1022,6 +1057,17 @@ export type $XeroConnectionPayload<ExtArgs extends runtime.Types.Extensions.Inte
     provider: string
     organizationId: string
     tenantId: string
+    /**
+     * Xero's own "connection ID" — returned by GET /connections, required
+     * by DELETE /connections/{id} to actually revoke the OAuth grant on
+     * Xero's side. `tenantId` is the org's ID in Xero and is NOT
+     * interchangeable with this — passing tenantId to the delete endpoint
+     * silently 404s and leaves the app stuck in the user's "Connected
+     * apps" list. Nullable for legacy rows created before this column
+     * existed; those rows fall back to a runtime GET /connections lookup
+     * the first time disconnect runs.
+     */
+    xeroConnectionId: string | null
     tenantName: string
     tenantType: string | null
     accessToken: string
@@ -1433,6 +1479,7 @@ export interface XeroConnectionFieldRefs {
   readonly provider: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly organizationId: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly tenantId: Prisma.FieldRef<"XeroConnection", 'String'>
+  readonly xeroConnectionId: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly tenantName: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly tenantType: Prisma.FieldRef<"XeroConnection", 'String'>
   readonly accessToken: Prisma.FieldRef<"XeroConnection", 'String'>

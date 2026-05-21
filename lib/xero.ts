@@ -338,6 +338,31 @@ export async function getXeroTenants(accessToken: string): Promise<XeroTenant[]>
   }))
 }
 
+/**
+ * Resolve a Xero connection ID from a tenant ID by calling GET /connections.
+ * Used by the disconnect flow when the local row was created before the
+ * `xeroConnectionId` column was added — `tenantId` is NOT a valid input to
+ * `DELETE /connections/{id}` (Xero looks that up by connection ID, not
+ * tenant ID, and silently 404s on mismatch).
+ *
+ * Returns `null` if Xero doesn't know about the tenant any more (token
+ * already revoked, tenant disconnected from the app on Xero's side, etc.) —
+ * callers should treat that as "already gone" and proceed with local cleanup.
+ */
+export async function findXeroConnectionIdForTenant(
+  accessToken: string,
+  tenantId: string,
+): Promise<string | null> {
+  try {
+    const tenants = await getXeroTenants(accessToken)
+    const match = tenants.find((t) => t.tenantId === tenantId)
+    return match?.connectionId ?? null
+  } catch {
+    // Token expired / Xero unreachable — disconnect should still clean up locally.
+    return null
+  }
+}
+
 export async function deleteXeroConnection(accessToken: string, connectionId: string): Promise<void> {
   const response = await fetch(`${XERO_CONNECTIONS_URL}/${connectionId}`, {
     method: "DELETE",

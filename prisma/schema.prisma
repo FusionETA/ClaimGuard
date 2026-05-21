@@ -558,6 +558,15 @@ model XeroConnection {
   // projects scope by organizationId, not a per-row connection FK.
   organizationId           String            @unique
   tenantId                 String            @unique
+  /// Xero's own "connection ID" — returned by GET /connections, required
+  /// by DELETE /connections/{id} to actually revoke the OAuth grant on
+  /// Xero's side. `tenantId` is the org's ID in Xero and is NOT
+  /// interchangeable with this — passing tenantId to the delete endpoint
+  /// silently 404s and leaves the app stuck in the user's "Connected
+  /// apps" list. Nullable for legacy rows created before this column
+  /// existed; those rows fall back to a runtime GET /connections lookup
+  /// the first time disconnect runs.
+  xeroConnectionId         String?
   tenantName               String
   tenantType               String?
   accessToken              String            @db.Text

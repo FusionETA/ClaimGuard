@@ -46,6 +46,9 @@ export type XeroConnectionRecord = {
   id: string
   organizationId: string
   tenantId: string
+  /// Xero's own connection ID (see schema comment on `XeroConnection.xeroConnectionId`).
+  /// Nullable for rows created before the column was added.
+  xeroConnectionId: string | null
   tenantName: string
   tenantType: string | null
   accessToken: string
@@ -1603,6 +1606,9 @@ export const organizationRepository = {
   async upsertXeroConnection(data: {
     organizationId: string
     tenantId: string
+    /// Xero's connection ID (the `id` field returned by GET /connections).
+    /// Required for the disconnect flow to actually revoke on Xero's side.
+    xeroConnectionId: string
     tenantName: string
     tenantType?: string
     accessToken: string
@@ -1659,6 +1665,7 @@ export const organizationRepository = {
         provider: "xero",
         organizationId: data.organizationId,
         tenantId: data.tenantId,
+        xeroConnectionId: data.xeroConnectionId,
         tenantName: data.tenantName,
         tenantType: data.tenantType,
         accessToken: data.accessToken,
@@ -1672,6 +1679,7 @@ export const organizationRepository = {
       },
       update: {
         tenantId: data.tenantId,
+        xeroConnectionId: data.xeroConnectionId,
         tenantName: data.tenantName,
         tenantType: data.tenantType,
         accessToken: data.accessToken,
