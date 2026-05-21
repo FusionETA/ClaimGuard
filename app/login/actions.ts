@@ -1,5 +1,6 @@
 "use server"
 
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 import { z } from "zod"
 
@@ -14,7 +15,20 @@ import {
   getCurrentSession,
   getHomePathForRole,
 } from "@/lib/auth/session"
+import { rateLimit } from "@/lib/rate-limit"
 import { pushSubscriptionRepository } from "@/modules/notifications/infrastructure/push-subscription.repository"
+
+/**
+ * Best-effort client IP for rate-limiting. Reads the standard reverse-proxy
+ * headers cPanel / Vercel / Cloudflare set; falls back to a literal sentinel
+ * so the limiter still buckets requests instead of failing open per call.
+ */
+async function getClientIpForRateLimit(): Promise<string> {
+  const h = await headers()
+  const xff = h.get("x-forwarded-for")
+  if (xff) return xff.split(",")[0].trim()
+  return h.get("x-real-ip") ?? h.get("cf-connecting-ip") ?? "unknown"
+}
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address."),
@@ -28,6 +42,26 @@ export async function loginAction(
   const values = {
     email: String(formData.get("email") ?? "").trim(),
     password: String(formData.get("password") ?? ""),
+  }
+
+  // Throttle credential checks per source IP. 5 attempts/minute is generous
+  // for a human, prohibitively slow for credential stuffing. Fires BEFORE
+  // schema validation so a brute-forcer can't trivially burn through
+  // malformed-email submissions to discover valid accounts.
+  const ip = await getClientIpForRateLimit()
+  const rl = await rateLimit({
+    scope: "login",
+    id: ip,
+    max: 5,
+    windowSec: 60,
+  })
+  if (!rl.ok) {
+    return {
+      status: "error",
+      message: `Too many login attempts. Try again in ${rl.retryAfterSec}s.`,
+      values: { email: values.email },
+      errors: {},
+    }
   }
 
   const parsed = loginSchema.safeParse(values)

@@ -25,6 +25,30 @@ type Level = "debug" | "info" | "warn" | "error"
 
 type LogFields = Record<string, unknown>
 
+/**
+ * Forward `error`-level events to Sentry as captured exceptions. We
+ * import lazily so the Sentry SDK doesn't get pulled into the bundle
+ * of every file that imports `log` — only files that actually call
+ * `log.error` pay for it. Failing-to-load is non-fatal: the JSON line
+ * still hits stdout.
+ */
+async function forwardToSentry(event: string, fields?: LogFields) {
+  try {
+    const Sentry = await import("@sentry/nextjs")
+    const err = fields?.err
+    if (err instanceof Error) {
+      Sentry.captureException(err, { tags: { event }, extra: fields })
+    } else {
+      Sentry.captureMessage(event, {
+        level: "error",
+        extra: fields,
+      })
+    }
+  } catch {
+    /* Sentry isn't installed or failed to load — stdout has the JSON line */
+  }
+}
+
 function emit(level: Level, event: string, fields?: LogFields) {
   try {
     const payload: Record<string, unknown> = {
@@ -49,6 +73,11 @@ function emit(level: Level, event: string, fields?: LogFields) {
       console.error(line)
     } else {
       console.log(line)
+    }
+
+    // Mirror error events to Sentry (no-op when SENTRY_DSN is unset).
+    if (level === "error") {
+      void forwardToSentry(event, fields)
     }
   } catch {
     // Last-ditch fallback — never let logging break the request.

@@ -1,3 +1,4 @@
+import { withSentryConfig } from "@sentry/nextjs"
 import type { NextConfig } from "next"
 
 const isDev = process.env.NODE_ENV === "development"
@@ -45,4 +46,33 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+/**
+ * Wrap with Sentry. The plugin tunnels client-side traffic through
+ * `/monitoring` (ad-blocker safe), uploads source maps to Sentry at
+ * build time (so production stack traces are readable), and stays
+ * silent when `SENTRY_AUTH_TOKEN` / `SENTRY_DSN` aren't set — meaning
+ * local dev and CI builds continue to work without a Sentry account
+ * configured.
+ */
+export default withSentryConfig(nextConfig, {
+  // Org + project — only used for source-map upload at build time. Safe
+  // to commit; the secret is `SENTRY_AUTH_TOKEN` (env-only).
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Suppress build-time output from the Sentry plugin when there's
+  // nothing to upload (no auth token configured).
+  silent: !process.env.SENTRY_AUTH_TOKEN,
+
+  // Source-map upload runs only when both DSN and auth token are set.
+  // Otherwise the plugin no-ops cleanly.
+  widenClientFileUpload: true,
+
+  // Route browser → Sentry traffic through your own domain so it
+  // survives ad-blockers. Optional but recommended.
+  tunnelRoute: "/monitoring",
+
+  // Strip console.* calls from the production bundle by default; the
+  // browser SDK already breadcrumbs them for Sentry.
+  disableLogger: true,
+})
