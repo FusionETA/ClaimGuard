@@ -1,14 +1,10 @@
 import {
-  Building2,
-  ClipboardCheck,
   Clock,
   UmbrellaOff,
   UserMinus,
-  Users,
   type LucideIcon,
 } from "lucide-react"
 
-import { MetricCard } from "@/components/claims/metric-card"
 import { AdminOverviewTabs } from "@/components/attendance/admin-overview-tabs"
 import { ApprovalAuditLog } from "@/components/attendance/approval-audit-log"
 import { DailyActivityTable } from "@/components/attendance/daily-activity-table"
@@ -190,11 +186,6 @@ export default async function AdminAttendancePage({
     ),
   ])
 
-  const presentRate =
-    overview.headcount > 0
-      ? Math.round((overview.presentToday / overview.headcount) * 100)
-      : 0
-
   const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }))
   const teamOptions = teams.map((t) => ({
     id: t.id,
@@ -211,56 +202,6 @@ export default async function AdminAttendancePage({
 
   const todayContent = (
     <>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          title="Headcount"
-          value={String(overview.headcount)}
-          icon={Users}
-          detail="All staff"
-          compact
-        />
-        <MetricCard
-          title="Present today"
-          value={String(overview.presentToday)}
-          icon={Users}
-          detail={`${presentRate}% present`}
-          compact
-        />
-        <MetricCard
-          title="Late today"
-          value={String(overview.lateToday)}
-          icon={Clock}
-          detail="Past start time"
-          compact
-        />
-        <MetricCard
-          title="On leave"
-          value={String(overview.onLeaveToday)}
-          icon={UmbrellaOff}
-          detail="Today"
-          compact
-        />
-      </div>
-
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
-              <ClipboardCheck className="h-[18px] w-[18px]" />
-            </div>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Awaiting review
-            </span>
-          </div>
-          <p className="mt-4 text-xs font-medium text-muted-foreground">
-            Pending approvals (all teams)
-          </p>
-          <p className="mt-1 font-black tracking-tight text-[2rem]">
-            {String(overview.pendingApprovals).padStart(2, "0")}
-          </p>
-        </CardContent>
-      </Card>
-
       <DailyActivityTable
         rows={dailyActivity}
         timezone={timezone}
@@ -293,49 +234,6 @@ export default async function AdminAttendancePage({
         }}
       />
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
-          <CardTitle>By project</CardTitle>
-          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Today
-          </span>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {overview.byProject.length === 0 ? (
-            <p className="rounded-2xl bg-surface-low px-4 py-6 text-center text-sm text-muted-foreground">
-              No projects yet.
-            </p>
-          ) : (
-            overview.byProject.map((p) => {
-              const rate =
-                p.headcount > 0
-                  ? Math.round((p.presentToday / p.headcount) * 100)
-                  : 0
-              return (
-                <div
-                  key={p.project}
-                  className="flex items-center gap-3 rounded-2xl border border-border/60 bg-surface-low px-4 py-3"
-                >
-                  <div className="rounded-xl bg-primary/10 p-2 text-primary">
-                    <Building2 className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {p.project}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {p.presentToday}/{p.headcount} present · {p.lateToday} late
-                    </p>
-                  </div>
-                  <span className="text-sm font-bold text-foreground">
-                    {rate}%
-                  </span>
-                </div>
-              )
-            })
-          )}
-        </CardContent>
-      </Card>
     </>
   )
 
@@ -388,6 +286,7 @@ export default async function AdminAttendancePage({
         initialData={initialHoursSummary}
         loadAction={hoursAction}
         showEmployeeTable
+        showTotals={false}
         filterBar={{
           prefix: "hs",
           projects: projectOptions,

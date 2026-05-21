@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -8,20 +7,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { LeaveOverviewReport } from "@/modules/leave/application/services/leave-overview.service"
+import { LeaveAuditLog } from "@/components/admin/leave/leave-audit-log"
+import type {
+  LeaveAuditEntry,
+  LeaveOverviewReport,
+} from "@/modules/leave/application/services/leave-overview.service"
 
 function fmtDate(iso: string): string {
   return iso.slice(0, 10)
 }
 
-function statusBadgeVariant(status: string): "pending" | "approved" | "rejected" | "outline" {
-  if (status === "APPROVED") return "approved"
-  if (status === "REJECTED") return "rejected"
-  if (status === "PENDING") return "pending"
-  return "outline"
-}
-
-export function LeaveOverviewView({ report }: { report: LeaveOverviewReport }) {
+export function LeaveOverviewView({
+  report,
+  auditRows,
+  leaveTypes,
+  auditFrom,
+  auditTo,
+}: {
+  report: LeaveOverviewReport
+  auditRows: LeaveAuditEntry[]
+  leaveTypes: Array<{ id: string; code: string; name: string }>
+  auditFrom: string
+  auditTo: string
+}) {
   return (
     <div className="space-y-6">
       <div>
@@ -76,81 +84,12 @@ export function LeaveOverviewView({ report }: { report: LeaveOverviewReport }) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Days used by type ({report.year})</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {report.daysUsedByType.length === 0 ? (
-            <p className="px-6 pb-6 text-sm text-muted-foreground">No leave types configured yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Days used (approved)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {report.daysUsedByType.map((row) => (
-                  <TableRow key={row.leaveTypeId}>
-                    <TableCell className="font-mono text-xs font-bold">{row.code}</TableCell>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>
-                      {row.daysUsed}
-                      {!row.paid && (
-                        <span className="ml-2 text-xs text-muted-foreground">(unpaid)</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent applications</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {report.recentApplications.length === 0 ? (
-            <p className="px-6 pb-6 text-sm text-muted-foreground">No applications yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Dates</TableHead>
-                  <TableHead>Days</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Submitted</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {report.recentApplications.map((a) => (
-                  <TableRow key={a.id}>
-                    <TableCell className="font-medium">{a.employeeName}</TableCell>
-                    <TableCell className="font-mono text-xs">{a.leaveTypeCode}</TableCell>
-                    <TableCell>
-                      {fmtDate(a.startDate)}
-                      {a.startDate !== a.endDate && <> → {fmtDate(a.endDate)}</>}
-                    </TableCell>
-                    <TableCell>{a.totalDays}</TableCell>
-                    <TableCell>
-                      <Badge variant={statusBadgeVariant(a.status)}>{a.status}</Badge>
-                    </TableCell>
-                    <TableCell>{fmtDate(a.createdAt)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      <LeaveAuditLog
+        initialRows={auditRows}
+        leaveTypes={leaveTypes}
+        initialFrom={auditFrom}
+        initialTo={auditTo}
+      />
     </div>
   )
 }

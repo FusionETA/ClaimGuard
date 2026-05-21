@@ -47,6 +47,9 @@ type Props = {
   initialData: HoursSummaryData
   loadAction: LoadAction
   showEmployeeTable?: boolean
+  /// When false, hide the 6-column bucket totals grid at the top of the
+  /// panel. The per-employee table below still renders.
+  showTotals?: boolean
   filterBar?: FilterBarProps
 }
 
@@ -82,6 +85,7 @@ export function HoursSummaryPanel({
   initialData,
   loadAction,
   showEmployeeTable = false,
+  showTotals = true,
   filterBar,
 }: Props) {
   const [from, setFrom] = useState(initialFrom)
@@ -190,7 +194,7 @@ export function HoursSummaryPanel({
           </p>
         ) : null}
 
-        <BucketTotals totals={data.totals} />
+        {showTotals ? <BucketTotals totals={data.totals} /> : null}
 
         {showEmployeeTable ? (
           <EmployeeTable employees={sortedEmployees} />
