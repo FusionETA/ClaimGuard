@@ -942,6 +942,40 @@ export type EnumPayslipLineKindWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumPayslipLineKindFilter<$PrismaModel>
 }
 
+export type EnumLoanRepaymentModeFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanRepaymentMode | Prisma.EnumLoanRepaymentModeFieldRefInput<$PrismaModel>
+  in?: $Enums.LoanRepaymentMode[]
+  notIn?: $Enums.LoanRepaymentMode[]
+  not?: Prisma.NestedEnumLoanRepaymentModeFilter<$PrismaModel> | $Enums.LoanRepaymentMode
+}
+
+export type EnumLoanStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanStatus | Prisma.EnumLoanStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LoanStatus[]
+  notIn?: $Enums.LoanStatus[]
+  not?: Prisma.NestedEnumLoanStatusFilter<$PrismaModel> | $Enums.LoanStatus
+}
+
+export type EnumLoanRepaymentModeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanRepaymentMode | Prisma.EnumLoanRepaymentModeFieldRefInput<$PrismaModel>
+  in?: $Enums.LoanRepaymentMode[]
+  notIn?: $Enums.LoanRepaymentMode[]
+  not?: Prisma.NestedEnumLoanRepaymentModeWithAggregatesFilter<$PrismaModel> | $Enums.LoanRepaymentMode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLoanRepaymentModeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLoanRepaymentModeFilter<$PrismaModel>
+}
+
+export type EnumLoanStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanStatus | Prisma.EnumLoanStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LoanStatus[]
+  notIn?: $Enums.LoanStatus[]
+  not?: Prisma.NestedEnumLoanStatusWithAggregatesFilter<$PrismaModel> | $Enums.LoanStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLoanStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLoanStatusFilter<$PrismaModel>
+}
+
 export type EnumLeaveAccrualMethodFilter<$PrismaModel = never> = {
   equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel>
   in?: $Enums.LeaveAccrualMethod[]
@@ -1898,6 +1932,40 @@ export type NestedEnumPayslipLineKindWithAggregatesFilter<$PrismaModel = never> 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumPayslipLineKindFilter<$PrismaModel>
   _max?: Prisma.NestedEnumPayslipLineKindFilter<$PrismaModel>
+}
+
+export type NestedEnumLoanRepaymentModeFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanRepaymentMode | Prisma.EnumLoanRepaymentModeFieldRefInput<$PrismaModel>
+  in?: $Enums.LoanRepaymentMode[]
+  notIn?: $Enums.LoanRepaymentMode[]
+  not?: Prisma.NestedEnumLoanRepaymentModeFilter<$PrismaModel> | $Enums.LoanRepaymentMode
+}
+
+export type NestedEnumLoanStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanStatus | Prisma.EnumLoanStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LoanStatus[]
+  notIn?: $Enums.LoanStatus[]
+  not?: Prisma.NestedEnumLoanStatusFilter<$PrismaModel> | $Enums.LoanStatus
+}
+
+export type NestedEnumLoanRepaymentModeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanRepaymentMode | Prisma.EnumLoanRepaymentModeFieldRefInput<$PrismaModel>
+  in?: $Enums.LoanRepaymentMode[]
+  notIn?: $Enums.LoanRepaymentMode[]
+  not?: Prisma.NestedEnumLoanRepaymentModeWithAggregatesFilter<$PrismaModel> | $Enums.LoanRepaymentMode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLoanRepaymentModeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLoanRepaymentModeFilter<$PrismaModel>
+}
+
+export type NestedEnumLoanStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LoanStatus | Prisma.EnumLoanStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.LoanStatus[]
+  notIn?: $Enums.LoanStatus[]
+  not?: Prisma.NestedEnumLoanStatusWithAggregatesFilter<$PrismaModel> | $Enums.LoanStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLoanStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLoanStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumLeaveAccrualMethodFilter<$PrismaModel = never> = {

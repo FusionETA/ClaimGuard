@@ -38,6 +38,23 @@ export const payrollRunRepository = {
   },
 
   /**
+   * Every SUBMITTED run's period for an org. Used to derive loan
+   * repayment progress (which installments have actually been paid out
+   * on a finalised run).
+   */
+  async listSubmittedPeriods(
+    organizationId: string,
+  ): Promise<Array<{ year: number; month: number }>> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const rows = await prisma.payrollRun.findMany({
+      where: { organizationId, status: "SUBMITTED" },
+      select: { periodYear: true, periodMonth: true },
+    })
+    return rows.map((r) => ({ year: r.periodYear, month: r.periodMonth }))
+  },
+
+  /**
    * Lookup by (org, year, month). Returns null when no run exists for
    * that period. Used by the "new draft" action to short-circuit
    * before hitting the unique-constraint error.

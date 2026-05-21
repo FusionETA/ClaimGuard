@@ -9,6 +9,23 @@
 * 🟢 You can import this file directly.
 */
 
+export const LoanRepaymentMode = {
+  FIXED: 'FIXED',
+  CUSTOM: 'CUSTOM'
+} as const
+
+export type LoanRepaymentMode = (typeof LoanRepaymentMode)[keyof typeof LoanRepaymentMode]
+
+
+export const LoanStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type LoanStatus = (typeof LoanStatus)[keyof typeof LoanStatus]
+
+
 export const PayrollAnnualReportKind = {
   FORM_EA_BULK_PDF: 'FORM_EA_BULK_PDF',
   FORM_E_CP8D_PDF: 'FORM_E_CP8D_PDF',

@@ -90,6 +90,7 @@ export const ModelName = {
   PayrollRunAdjustment: 'PayrollRunAdjustment',
   Payslip: 'Payslip',
   PayslipLineItem: 'PayslipLineItem',
+  EmployeeLoan: 'EmployeeLoan',
   LeaveType: 'LeaveType',
   PolicyLeaveEntitlement: 'PolicyLeaveEntitlement',
   LeaveEntitlement: 'LeaveEntitlement',
@@ -944,6 +945,26 @@ export const PayslipLineItemScalarFieldEnum = {
 export type PayslipLineItemScalarFieldEnum = (typeof PayslipLineItemScalarFieldEnum)[keyof typeof PayslipLineItemScalarFieldEnum]
 
 
+export const EmployeeLoanScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  employeeProfileId: 'employeeProfileId',
+  principalAmount: 'principalAmount',
+  mode: 'mode',
+  installmentAmount: 'installmentAmount',
+  startYear: 'startYear',
+  startMonth: 'startMonth',
+  installmentCount: 'installmentCount',
+  schedule: 'schedule',
+  status: 'status',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeLoanScalarFieldEnum = (typeof EmployeeLoanScalarFieldEnum)[keyof typeof EmployeeLoanScalarFieldEnum]
+
+
 export const LeaveTypeScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -1589,6 +1610,16 @@ export const PayslipLineItemOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayslipLineItemOrderByRelevanceFieldEnum = (typeof PayslipLineItemOrderByRelevanceFieldEnum)[keyof typeof PayslipLineItemOrderByRelevanceFieldEnum]
+
+
+export const EmployeeLoanOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  employeeProfileId: 'employeeProfileId',
+  notes: 'notes'
+} as const
+
+export type EmployeeLoanOrderByRelevanceFieldEnum = (typeof EmployeeLoanOrderByRelevanceFieldEnum)[keyof typeof EmployeeLoanOrderByRelevanceFieldEnum]
 
 
 export const LeaveTypeOrderByRelevanceFieldEnum = {

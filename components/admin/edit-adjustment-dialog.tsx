@@ -76,6 +76,7 @@ export function EditAdjustmentDialog({
   const [data, setData] = useState<{
     adjustment: PayrollRunAdjustmentData | null
     fixedAllowances: FixedAllowance[]
+    loans: Array<{ id: string; label: string; amount: number }>
   } | null>(null)
   const [loading, startLoading] = useTransition()
   /// Pending state lifted from the form so the dialog-footer's Save
@@ -164,6 +165,7 @@ export function EditAdjustmentDialog({
               employeeProfileId={employeeProfileId}
               adjustment={data.adjustment}
               fixedAllowances={data.fixedAllowances}
+              loans={data.loans}
               readOnly={readOnly}
               saveFormId={saveFormId}
               hideActions

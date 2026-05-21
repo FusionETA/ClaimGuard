@@ -354,6 +354,18 @@ export type Payslip = Prisma.PayslipModel
  */
 export type PayslipLineItem = Prisma.PayslipLineItemModel
 /**
+ * Model EmployeeLoan
+ * A staff loan / cash advance the company gives an employee, repaid
+ * via automatic monthly DEDUCTION line items on each payroll run
+ * within the repayment window. Only admins create these. The monthly
+ * installment lands on the payslip under category `deduct_advance`
+ * (so it flows through the statutory-aware calc and the Xero deduction
+ * credit). Repayment progress (paid / remaining) is derived from the
+ * SUBMITTED runs whose period falls inside the window — see
+ * `modules/payroll/domain/loans.ts`.
+ */
+export type EmployeeLoan = Prisma.EmployeeLoanModel
+/**
  * Model LeaveType
  * Admin-configured leave type for an organization (e.g. ANNUAL, SICK,
  * UNPAID, MATERNITY). `accrualMethod=PRO_RATED` is intended for the

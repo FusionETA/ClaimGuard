@@ -8,6 +8,7 @@ import type { BaseFormState } from "@/lib/form-state"
 import {
   clearPayrollAdjustment,
   getPayrollAdjustmentPageData,
+  previewEmployeeNetForRun,
   savePayrollAdjustment,
 } from "@/modules/payroll/application/services/payroll-run.service"
 import {
@@ -141,6 +142,41 @@ export async function savePayrollAdjustmentAction(
     }
   }
 
+  // Guard: refuse to save when the proposed deductions would push this
+  // employee's net pay to zero or below. We recompute the one
+  // employee's payslip with the in-progress adjustment (same calc the
+  // run uses, incl. any active loan installment) and block on net <= 0.
+  // `null` means we couldn't compute (auth/run/employee) — skip the
+  // guard rather than block a legitimate save.
+  try {
+    const preview = await previewEmployeeNetForRun({
+      runId: parsed.data.runId,
+      employeeProfileId: parsed.data.employeeProfileId,
+      patch: {
+        otNormalHours: parsed.data.otNormalHours,
+        otRestHours: parsed.data.otRestHours,
+        otPublicHours: parsed.data.otPublicHours,
+        manualLineItems,
+        fixedAllowanceOverrides,
+      },
+    })
+    if (preview && preview.netPay <= 0) {
+      const fmt = (n: number) =>
+        `RM ${n.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      return {
+        status: "error",
+        message: `These deductions would leave a net pay of ${fmt(
+          preview.netPay,
+        )} (gross ${fmt(
+          preview.grossPay,
+        )}). Net pay can't be zero or negative — reduce the deductions before saving.`,
+      }
+    }
+  } catch {
+    // Preview is best-effort; if it throws, fall through and let the
+    // save proceed (the run-generation balance checks still apply).
+  }
+
   try {
     await savePayrollAdjustment({
       runId: parsed.data.runId,
@@ -214,11 +250,13 @@ export async function fetchAdjustmentForDialogAction(input: {
 }): Promise<{
   adjustment: PayrollRunAdjustmentData | null
   fixedAllowances: FixedAllowance[]
+  loans: Array<{ id: string; label: string; amount: number }>
 } | null> {
   const data = await getPayrollAdjustmentPageData(input)
   if (!data) return null
   return {
     adjustment: data.adjustment,
     fixedAllowances: data.fixedAllowances,
+    loans: data.loans,
   }
 }

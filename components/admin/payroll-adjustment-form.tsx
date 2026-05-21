@@ -1,7 +1,9 @@
 "use client"
 
 import { useActionState, useEffect, useId, useMemo, useRef, useState } from "react"
-import { Plus, RotateCcw, Trash2 } from "lucide-react"
+import Link from "next/link"
+import type { Route } from "next"
+import { ExternalLink, HandCoins, Plus, RotateCcw, Trash2 } from "lucide-react"
 
 import {
   clearPayrollAdjustmentAction,
@@ -49,6 +51,9 @@ export function PayrollAdjustmentForm(props: {
   employeeProfileId: string
   adjustment: PayrollRunAdjustmentData | null
   fixedAllowances: FixedAllowance[]
+  /// Active loan installments auto-deducted for this run's period.
+  /// Shown read-only — editing happens on the Loans page.
+  loans?: Array<{ id: string; label: string; amount: number }>
   readOnly: boolean
   /// Optional — fires once after a save action lands "success".
   /// Used by the modal-dialog wrapper to close itself.
@@ -175,6 +180,18 @@ export function PayrollAdjustmentForm(props: {
         value={props.employeeProfileId}
         hidden
       />
+
+      {/* Validation banner — highlighted in red when a save is blocked
+          (e.g. deductions would push net pay to zero or below). The
+          dialog stays open on error so the admin can fix the amounts. */}
+      {state.status === "error" && state.message ? (
+        <div
+          role="alert"
+          className="rounded-xl border-2 border-destructive/60 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive"
+        >
+          {state.message}
+        </div>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -368,6 +385,45 @@ export function PayrollAdjustmentForm(props: {
           </CardContent>
         </Card>
       )}
+
+      {props.loans && props.loans.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <HandCoins className="h-4 w-4 text-primary" />
+              Loan repayments
+            </CardTitle>
+            <CardDescription>
+              Auto-deducted this month from an active loan. To change the
+              amount or schedule, manage it on the Loans page — it can&apos;t
+              be edited here.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {props.loans.map((loan) => (
+              <div
+                key={loan.id}
+                className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm"
+              >
+                <span className="text-foreground">{loan.label}</span>
+                <span className="font-medium text-destructive">
+                  − RM
+                  {loan.amount.toLocaleString("en-MY", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            ))}
+            <Link
+              href={"/admin/payroll/loans" as Route}
+              className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Manage loans
+            </Link>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">

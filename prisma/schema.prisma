@@ -356,6 +356,7 @@ model EmployeeProfile {
   salaryChanges         SalaryChange[]
   leaveEntitlements     LeaveEntitlement[]
   leaveApplications     LeaveApplication[]
+  loans                 EmployeeLoan[]
 
   @@index([xeroConnectionId])
   @@index([policyId])
@@ -1491,6 +1492,65 @@ model PayslipLineItem {
   payslip        Payslip         @relation(fields: [payslipId], references: [id], onDelete: Cascade)
 
   @@index([payslipId])
+}
+
+/// A staff loan / cash advance the company gives an employee, repaid
+/// via automatic monthly DEDUCTION line items on each payroll run
+/// within the repayment window. Only admins create these. The monthly
+/// installment lands on the payslip under category `deduct_advance`
+/// (so it flows through the statutory-aware calc and the Xero deduction
+/// credit). Repayment progress (paid / remaining) is derived from the
+/// SUBMITTED runs whose period falls inside the window — see
+/// `modules/payroll/domain/loans.ts`.
+model EmployeeLoan {
+  id                String           @id @default(cuid())
+  organizationId    String
+  employeeProfileId String
+  /// Total advanced to the employee.
+  principalAmount   Decimal          @db.Decimal(12, 2)
+  /// FIXED  → installment = principal / installmentCount (system split).
+  /// CUSTOM → installment = `installmentAmount` each month; count is
+  ///          derived (ceil(principal / amount)), last one is the
+  ///          remainder.
+  mode              LoanRepaymentMode
+  /// The per-month deduction. For FIXED this is principal/count
+  /// (snapshotted at create time); for CUSTOM it's the admin-entered
+  /// amount.
+  installmentAmount Decimal          @db.Decimal(12, 2)
+  /// First repayment period (1..12 + year). Repayment runs for
+  /// `installmentCount` consecutive months starting here.
+  startYear         Int
+  /// 1..12
+  startMonth        Int
+  installmentCount  Int
+  /// Per-installment amounts as a JSON number[] (length =
+  /// installmentCount). Source of truth for each month's deduction —
+  /// lets Custom-mode loans carry uneven installments and lets the
+  /// admin edit not-yet-paid installments while keeping the total equal
+  /// to `principalAmount`. Legacy rows without it fall back to the
+  /// computed equal-installment schedule.
+  schedule          Json?
+  status            LoanStatus       @default(ACTIVE)
+  notes             String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  employeeProfile   EmployeeProfile  @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([employeeProfileId])
+}
+
+enum LoanRepaymentMode {
+  /// System splits the principal into equal installments.
+  FIXED
+  /// Admin sets a fixed RM amount per month.
+  CUSTOM
+}
+
+enum LoanStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }
 
 /// Which annual file a `PayrollAnnualReport` row represents.

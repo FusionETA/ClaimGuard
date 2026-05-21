@@ -20,6 +20,11 @@ import type {
   PayslipData,
   PayslipRow,
 } from "@/modules/payroll/domain/runs"
+import { employeeLoanRepository } from "@/modules/payroll/infrastructure/employee-loan.repository"
+import {
+  formatLoanPeriodLabel,
+  loanInstallmentForPeriod,
+} from "@/modules/payroll/domain/loans"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { payrollRunAdjustmentRepository } from "@/modules/payroll/infrastructure/payroll-run-adjustment.repository"
@@ -455,6 +460,170 @@ export async function deletePayrollRunDraft(input: {
  * each call recomputes from scratch, so payroll settings or profile
  * changes show up on the next "Generate" press.
  */
+/**
+ * Recompute a SINGLE employee's net pay for a draft run using a
+ * proposed (not-yet-saved) adjustment. Powers the deduction modal's
+ * "net pay can't go below zero" guard — the same `calcPayslip` engine
+ * the real generation uses, so statutory recompute on allowance/OT/
+ * deduction changes is exact. Also folds in the employee's active loan
+ * installment for the period, so the guard reflects what will actually
+ * be deducted.
+ *
+ * Returns null when the caller isn't authorised or the run/employee
+ * can't be resolved (the modal then skips client-side blocking and
+ * relies on the save succeeding).
+ */
+export async function previewEmployeeNetForRun(input: {
+  runId: string
+  employeeProfileId: string
+  patch: {
+    otNormalHours: number
+    otRestHours: number
+    otPublicHours: number
+    manualLineItems: { kind: string; category: string; label: string; amount: number }[]
+    fixedAllowanceOverrides: Record<
+      string,
+      { amount: number | null; skip: boolean }
+    >
+  }
+}): Promise<{ netPay: number; grossPay: number } | null> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") return null
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return null
+
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  if (!run) return null
+
+  const [settings, employees, policies, attachments, activeLoans, orgHours] =
+    await Promise.all([
+      payrollSettingsRepository.getByOrgId(orgId),
+      payrollProfileRepository.listReadyForPayroll(orgId),
+      policyRepository.listForOrganization(orgId),
+      payrollRunClaimRepository.listForCalc(run.id),
+      employeeLoanRepository.listActiveForOrganization(orgId),
+      (async () => {
+        const prisma = getPrismaClient()
+        if (!prisma) return { workingHoursStart: "09:00", workingHoursEnd: "18:00" }
+        const org = await prisma.organization.findUnique({
+          where: { id: orgId },
+          select: { workingHoursStart: true, workingHoursEnd: true },
+        })
+        return {
+          workingHoursStart: org?.workingHoursStart ?? "09:00",
+          workingHoursEnd: org?.workingHoursEnd ?? "18:00",
+        }
+      })(),
+    ])
+
+  const e = employees.find((x) => x.employeeProfileId === input.employeeProfileId)
+  if (!e) return null
+
+  // Apply the proposed fixed-allowance overrides.
+  const overrides = input.patch.fixedAllowanceOverrides ?? {}
+  const overriddenFixed: typeof e.profile.fixedAllowances = []
+  e.profile.fixedAllowances.forEach((a, i) => {
+    const override = overrides[String(i)]
+    if (!override) {
+      overriddenFixed.push(a)
+      return
+    }
+    if (override.skip) return
+    if (override.amount != null) {
+      overriddenFixed.push({ ...a, amount: override.amount })
+      return
+    }
+    overriddenFixed.push(a)
+  })
+
+  const oneOffLines = (input.patch.manualLineItems ?? []).map((li) => ({
+    category: li.category as (typeof overriddenFixed)[number]["category"],
+    name: li.label,
+    amount: li.amount,
+  }))
+
+  // Fold in the active loan installment(s) for this period so the guard
+  // reflects the loan deduction the run will actually apply.
+  for (const loan of activeLoans.filter(
+    (l) => l.employeeProfileId === e.employeeProfileId,
+  )) {
+    const installment = loanInstallmentForPeriod(
+      loan,
+      run.periodYear,
+      run.periodMonth,
+    )
+    if (installment > 0) {
+      oneOffLines.push({
+        category: "deduct_advance" as (typeof overriddenFixed)[number]["category"],
+        name: "Loan repayment",
+        amount: installment,
+      })
+    }
+  }
+
+  const ytdRaw = await payslipRepository.getYtdForEmployee({
+    employeeProfileId: e.employeeProfileId,
+    year: run.periodYear,
+    excludeRunId: run.id,
+  })
+  const joinedThisYear =
+    e.profile.joinDate &&
+    new Date(e.profile.joinDate).getUTCFullYear() === run.periodYear
+  const isPrevForSameYear =
+    joinedThisYear && (e.profile.prevEmploymentYear ?? null) === run.periodYear
+  const ytd = {
+    ytdTaxable:
+      ytdRaw.ytdTaxable + (isPrevForSameYear ? e.profile.prevRemuneration ?? 0 : 0),
+    ytdEpf: ytdRaw.ytdEpf + (isPrevForSameYear ? e.profile.prevEpf ?? 0 : 0),
+    ytdPcb: ytdRaw.ytdPcb + (isPrevForSameYear ? e.profile.prevPcb ?? 0 : 0),
+    ytdZakat: ytdRaw.ytdZakat + (isPrevForSameYear ? e.profile.prevZakat ?? 0 : 0),
+    ytdSocsoEis: ytdRaw.ytdSocsoEis,
+    ytdAllowanceByCategory: ytdRaw.ytdAllowanceByCategory,
+  }
+
+  const policy = e.policyId ? policies.find((p) => p.id === e.policyId) ?? null : null
+  const cashOt = policy !== null && policy.otEnabled && policy.otMethod === "CASH"
+  const calcSettings = {
+    workingDaysRule: settings?.workingDaysRule ?? "TWENTY_SIX",
+    defaultEpfEmployeeRate: settings?.defaultEpfEmployeeRate ?? 11,
+    defaultEpfEmployerRate: settings?.defaultEpfEmployerRate ?? 13,
+    hrdfEnabled: settings?.hrdfEnabled ?? false,
+    hrdfRate: settings?.hrdfRate ?? null,
+    autoApplySocsoEisRelief: settings?.autoApplySocsoEisRelief ?? true,
+    otRateNormal: cashOt ? policy!.otRateNormalDay : 0,
+    otRateRest: cashOt ? policy!.otRateRestDay : 0,
+    otRatePublicHoliday: cashOt ? policy!.otRatePublicHoliday : 0,
+  } as const
+
+  const reimbursements = attachments
+    .filter((a) => a.employeeProfileId === e.employeeProfileId)
+    .map((a) => ({ id: a.claimId, label: a.label, amount: a.amount }))
+
+  const result = calcPayslip({
+    profile: { ...e.profile, fixedAllowances: [...overriddenFixed, ...oneOffLines] },
+    settings: calcSettings,
+    periodYear: run.periodYear,
+    periodMonth: run.periodMonth,
+    dailyHours: deriveDailyHours({ project: e.primaryProject, org: orgHours }),
+    otNormalHours: input.patch.otNormalHours,
+    otRestHours: input.patch.otRestHours,
+    otPublicHours: input.patch.otPublicHours,
+    reimbursements,
+    manualDeductions: [],
+    ytdTaxable: ytd.ytdTaxable,
+    ytdEpf: ytd.ytdEpf,
+    ytdPcb: ytd.ytdPcb,
+    ytdZakat: ytd.ytdZakat,
+    ytdSocsoEis: ytd.ytdSocsoEis,
+    ytdAllowanceByCategory: ytd.ytdAllowanceByCategory,
+  })
+
+  return { netPay: result.netPay, grossPay: result.grossPay }
+}
+
 export async function generatePayrollPayslips(input: {
   runId: string
 }): Promise<{ count: number }> {
@@ -474,7 +643,7 @@ export async function generatePayrollPayslips(input: {
     throw new Error("Only draft runs can be run again.")
   }
 
-  const [settings, employees, attachments, adjustments, policies, orgHours] =
+  const [settings, employees, attachments, adjustments, policies, orgHours, activeLoans] =
     await Promise.all([
       payrollSettingsRepository.getByOrgId(orgId),
       payrollProfileRepository.listReadyForPayroll(orgId),
@@ -493,7 +662,19 @@ export async function generatePayrollPayslips(input: {
           workingHoursEnd: org?.workingHoursEnd ?? "18:00",
         }
       })(),
+      employeeLoanRepository.listActiveForOrganization(orgId),
     ])
+
+  // Active loans grouped by employee — each contributes a
+  // `deduct_advance` (Advance Deduction) installment for this run's
+  // period (0 when outside the repayment window, so finished loans
+  // drop off).
+  const loansByEmp = new Map<string, typeof activeLoans>()
+  for (const loan of activeLoans) {
+    const list = loansByEmp.get(loan.employeeProfileId) ?? []
+    list.push(loan)
+    loansByEmp.set(loan.employeeProfileId, list)
+  }
   const policyById = new Map(policies.map((p) => [p.id, p]))
 
   if (employees.length === 0) {
@@ -634,6 +815,29 @@ export async function generatePayrollPayslips(input: {
       name: li.label,
       amount: li.amount,
     }))
+
+    // Auto-applied loan installments for this period. A loan repayment
+    // is recorded under the existing "Advance Deduction" category
+    // (`deduct_advance`), added as a one-off line so it flows through
+    // the same category-aware calc + Xero deduction credit.
+    for (const loan of loansByEmp.get(e.employeeProfileId) ?? []) {
+      const installment = loanInstallmentForPeriod(
+        loan,
+        run.periodYear,
+        run.periodMonth,
+      )
+      if (installment > 0) {
+        oneOffLines.push({
+          category: "deduct_advance" as (typeof overriddenFixed)[number]["category"],
+          name: `Loan repayment (${formatLoanPeriodLabel(
+            loan.startYear,
+            loan.startMonth,
+          )} start)`,
+          amount: installment,
+        })
+      }
+    }
+
     const profileWithAdjAllowances = {
       ...e.profile,
       fixedAllowances: [...overriddenFixed, ...oneOffLines],
@@ -1009,6 +1213,9 @@ export async function getPayrollAdjustmentPageData(input: {
   /// so admins can override them per-run (Phase 18).
   fixedAllowances: FixedAllowance[]
   adjustment: PayrollRunAdjustmentData | null
+  /// Active loan installments that auto-deduct for THIS run's period.
+  /// Shown read-only in the modal (editing happens on the Loans page).
+  loans: Array<{ id: string; label: string; amount: number }>
 } | null> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") return null
@@ -1047,7 +1254,7 @@ export async function getPayrollAdjustmentPageData(input: {
   })
   if (!profileRow) return null
 
-  const [org, adjustment, payrollProfile] = await Promise.all([
+  const [org, adjustment, payrollProfile, activeLoans] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
       select: { name: true },
@@ -1059,7 +1266,22 @@ export async function getPayrollAdjustmentPageData(input: {
     // Pulled via the repo so the JSON column is already parsed +
     // typed. Used by the form to render the per-run overrides card.
     payrollProfileRepository.getByEmployeeProfileId(input.employeeProfileId),
+    employeeLoanRepository.listActiveForOrganization(orgId),
   ])
+
+  // Loan installments that fall on this run's period for this employee.
+  // Surfaced read-only in the modal with a link to the Loans page.
+  const loans = activeLoans
+    .filter((l) => l.employeeProfileId === input.employeeProfileId)
+    .map((l) => ({
+      id: l.id,
+      label: `Loan repayment (${formatLoanPeriodLabel(
+        l.startYear,
+        l.startMonth,
+      )} start)`,
+      amount: loanInstallmentForPeriod(l, run.periodYear, run.periodMonth),
+    }))
+    .filter((l) => l.amount > 0)
 
   return {
     organizationName: org?.name ?? "",
@@ -1083,6 +1305,7 @@ export async function getPayrollAdjustmentPageData(input: {
     },
     fixedAllowances: payrollProfile?.fixedAllowances ?? [],
     adjustment,
+    loans,
   }
 }
 
