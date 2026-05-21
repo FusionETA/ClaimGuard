@@ -37,7 +37,6 @@ export const salaryChangeRepository = {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (prisma as any).salaryChange.create({
       data: {
         employeeProfileId: input.employeeProfileId,
@@ -66,7 +65,6 @@ export const salaryChangeRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = await (prisma as any).salaryChange.findMany({
       where: { employeeProfileId },
       include: {

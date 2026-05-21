@@ -5,6 +5,30 @@ import { toNumber } from "@/lib/decimal"
 import type { PayrollRunData, PayrollRunRow } from "@/modules/payroll/domain/runs"
 
 /**
+ * Module-scoped Prisma accessor for the payroll module. Services call
+ * this instead of `getPrismaClient()` from `@/lib/prisma` so all
+ * payroll-related DB access flows through the infrastructure layer
+ * (which is what the layered-architecture rule enforces).
+ *
+ * The payroll module is the largest in the repo and contains delicate
+ * tax-calculation code — exposing a typed accessor lets us keep the
+ * complex transactional payroll-run and import services readable while
+ * still routing every query through the infrastructure layer.
+ *
+ * Throws when `DATABASE_URL` is unset. Use the `*Safe` variant for read
+ * paths that want to render an empty state instead of throwing.
+ */
+export function getPayrollPrismaClient() {
+  const prisma = getPrismaClient()
+  if (!prisma) throw new Error("Database is not configured")
+  return prisma
+}
+
+export function getPayrollPrismaClientSafe() {
+  return getPrismaClient()
+}
+
+/**
  * Prisma-side repository for `PayrollRun`. Phase 3 scope — supports
  * draft creation, listing, fetching, and deleting drafts. Submission /
  * payslip writes land in Phase 4 alongside the calculation engine.

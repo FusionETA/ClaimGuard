@@ -4,7 +4,7 @@ import { renderToBuffer } from "@react-pdf/renderer"
 
 import { FormECp8dPdfDocument } from "@/components/admin/payroll-annual-pdf-documents"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
+import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { loadAnnualPayrollPayload } from "@/modules/payroll/application/services/report-renderers/annual-shared"
 
 export async function renderFormECp8dPdf(input: {

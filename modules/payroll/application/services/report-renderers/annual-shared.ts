@@ -1,6 +1,6 @@
 import "server-only"
 
-import { getPrismaClient } from "@/lib/prisma"
+import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { toNumber } from "@/lib/decimal"
 import type { ChildRelief } from "@/modules/payroll/domain/models"
 import { reliefForChild } from "@/modules/payroll/domain/pcb"

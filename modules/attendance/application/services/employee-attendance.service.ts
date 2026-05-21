@@ -2,13 +2,16 @@ import "server-only"
 
 import { getOrSetCache } from "@/lib/cache"
 import { DEFAULT_GEOFENCE_RADIUS_METERS, checkGeofence } from "@/lib/geo"
-import { getPrismaClient } from "@/lib/prisma"
 import { key } from "@/lib/redis"
 import {
   getOrCreateAttendanceSelfieFolder,
   uploadFileToXero,
 } from "@/lib/xero"
-import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import {
+  attendanceRepository,
+  getAttendancePrismaClient,
+  getAttendancePrismaClientSafe,
+} from "@/modules/attendance/infrastructure/attendance.repository"
 import type {
   ApprovalRequestView,
   AttendanceProjectView,
@@ -37,7 +40,7 @@ async function resolveGeofenceRadius(orgId: string | null): Promise<number> {
 /// policy is assigned. Used to short-circuit server-side validation for
 /// employees on a "no geofence" policy.
 async function policyEnforcesGeofence(employeeId: string): Promise<boolean> {
-  const prisma = getPrismaClient()
+  const prisma = getAttendancePrismaClientSafe()
   if (!prisma) return true
   const row = await prisma.employeeProfile.findUnique({
     where: { userId: employeeId },
@@ -90,7 +93,7 @@ async function uploadSelfieToXero({
   attendanceRecordId: string
   dataUrl: string
 }): Promise<void> {
-  const prisma = getPrismaClient()
+  const prisma = getAttendancePrismaClientSafe()
   if (!prisma) return
 
   const profile = await prisma.employeeProfile.findUnique({
@@ -165,7 +168,7 @@ async function resolveProgressRanges(employeeId: string): Promise<{
   weekRange: { from: Date; to: Date }
   monthRange: { from: Date; to: Date }
 }> {
-  const prisma = getPrismaClient()
+  const prisma = getAttendancePrismaClientSafe()
   let timezone = "Asia/Kuala_Lumpur"
   if (prisma) {
     const user = await prisma.user.findUnique({

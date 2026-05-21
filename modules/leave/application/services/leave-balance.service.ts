@@ -1,6 +1,5 @@
 import "server-only"
 
-import { getPrismaClient } from "@/lib/prisma"
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
 
 /// Approved paid-leave minutes for an employee inside [from, to].
@@ -44,13 +43,7 @@ export async function paidLeaveMinutes(
 }
 
 export async function employeeProfileIdForUserId(userId: string): Promise<string | null> {
-  const prisma = getPrismaClient()
-  if (!prisma) return null
-  const profile = await prisma.employeeProfile.findUnique({
-    where: { userId },
-    select: { id: true },
-  })
-  return profile?.id ?? null
+  return leaveRepository.findEmployeeProfileIdByUserId(userId)
 }
 
 function utcMidnight(d: Date): Date {

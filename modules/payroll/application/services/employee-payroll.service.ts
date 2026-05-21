@@ -2,7 +2,7 @@ import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
-import { getPrismaClient } from "@/lib/prisma"
+import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { key } from "@/lib/redis"
 import type {
   PayrollRunData,

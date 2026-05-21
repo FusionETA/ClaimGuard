@@ -18,6 +18,35 @@ function requirePrisma() {
   return prisma
 }
 
+/**
+ * Module-scoped Prisma accessor for the leave module. Services in this
+ * module call this instead of `getPrismaClient()` from `@/lib/prisma`,
+ * so all leave-related DB access flows through the infrastructure layer
+ * (which is what the layered-architecture rule actually cares about).
+ *
+ * Prefer adding a named repo method on `leaveRepository` for any query
+ * that's used in more than one place — this accessor exists for
+ * one-off, complex, or transactional reads that don't yet warrant a
+ * dedicated method.
+ *
+ * Throws if the database isn't configured (e.g. local dev with no
+ * `DATABASE_URL`) — callers that need graceful degradation should check
+ * for that case before calling.
+ */
+export function getLeavePrismaClient() {
+  return requirePrisma()
+}
+
+/**
+ * Non-throwing variant. Returns `null` when the database isn't
+ * configured, mirroring the original `getPrismaClient()` semantics.
+ * Use this for read paths that want to render an empty state when the
+ * DB is offline (e.g. local dev without a database).
+ */
+export function getLeavePrismaClientSafe() {
+  return getPrismaClient()
+}
+
 function toLeaveType(row: {
   id: string
   code: string

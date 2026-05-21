@@ -1,9 +1,12 @@
 import "server-only"
 
-import { getPrismaClient } from "@/lib/prisma"
 import { availableDaysFor } from "@/modules/leave/domain/accrual"
 import type { LeaveEntitlementView } from "@/modules/leave/domain/models"
-import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
+import {
+  getLeavePrismaClient,
+  getLeavePrismaClientSafe,
+  leaveRepository,
+} from "@/modules/leave/infrastructure/leave-repository"
 
 /// Resolve the default entitlement days for an employee × leave type.
 /// Resolution order:
@@ -15,7 +18,7 @@ export async function resolveDefaultEntitledDays(
   employeeId: string,
   leaveTypeId: string,
 ): Promise<number> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return 0
   const [type, employee] = await Promise.all([
     prisma.leaveType.findUnique({ where: { id: leaveTypeId } }),
@@ -50,8 +53,7 @@ export async function ensureEntitlement(
 ) {
   const existing = await leaveRepository.getEntitlement(employeeId, leaveTypeId, year)
   if (existing) return existing
-  const prisma = getPrismaClient()
-  if (!prisma) throw new Error("Prisma not configured")
+  const prisma = getLeavePrismaClient()
   const type = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } })
   if (!type) throw new Error("Leave type not found")
   const entitledDays = await resolveDefaultEntitledDays(employeeId, leaveTypeId)
@@ -103,7 +105,7 @@ export async function listEmployeeBalances(
   employeeId: string,
   year: number,
 ): Promise<LeaveEntitlementView[]> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return []
 
   // Ensure rows exist for every non-archived leave type before reading.
@@ -141,8 +143,7 @@ export async function setEmployeeEntitlement(
 ) {
   if (entitledDays < 0) throw new Error("Entitled days cannot be negative")
   const existing = await ensureEntitlement(employeeId, leaveTypeId, year)
-  const prisma = getPrismaClient()
-  if (!prisma) throw new Error("Prisma not configured")
+  const prisma = getLeavePrismaClient()
   const type = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } })
   if (!type) throw new Error("Leave type not found")
 

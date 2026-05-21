@@ -3,6 +3,21 @@ import "server-only"
 import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
 import { buildInitials } from "@/lib/utils"
+
+/**
+ * Module-scoped Prisma accessor for the claims module. Services call
+ * this instead of `getPrismaClient()` from `@/lib/prisma` so all
+ * claims-related DB access flows through the infrastructure layer.
+ */
+export function getClaimsPrismaClient() {
+  const prisma = getPrismaClient()
+  if (!prisma) throw new Error("Database is not configured")
+  return prisma
+}
+
+export function getClaimsPrismaClientSafe() {
+  return getPrismaClient()
+}
 import type { Prisma } from "@/generated/prisma/client"
 import { mapChartAccount } from "@/modules/organization/infrastructure/chart-account.mapper"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"

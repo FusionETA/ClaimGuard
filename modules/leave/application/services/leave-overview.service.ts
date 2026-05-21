@@ -1,7 +1,7 @@
 import "server-only"
 
 import { getOrSetCache } from "@/lib/cache"
-import { getPrismaClient } from "@/lib/prisma"
+import { getLeavePrismaClientSafe } from "@/modules/leave/infrastructure/leave-repository"
 import { key } from "@/lib/redis"
 
 export type OnLeaveTodayEntry = {
@@ -33,7 +33,7 @@ export async function getOnLeaveTodayForOrg(
 async function loadOnLeaveTodayForOrg(
   orgId: string,
 ): Promise<OnLeaveTodayEntry[] | null> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return null
   const hasLeaveTypes = await prisma.leaveType.count({
     where: { organizationId: orgId, archivedAt: null },
@@ -108,7 +108,7 @@ export async function listLeaveAuditLog(
   orgId: string,
   filters: LeaveAuditFilters = {},
 ): Promise<LeaveAuditEntry[]> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return []
 
   const where: Record<string, unknown> = {
@@ -211,7 +211,7 @@ export type LeaveOverviewReport = {
 }
 
 export async function getLeaveOverviewForOrg(orgId: string): Promise<LeaveOverviewReport> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   const year = new Date().getUTCFullYear()
   if (!prisma) {
     return {

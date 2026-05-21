@@ -3,9 +3,11 @@ import "server-only"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
 import { key } from "@/lib/redis"
-import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
+import {
+  claimRepository,
+  getClaimsPrismaClientSafe,
+} from "@/modules/claims/infrastructure/claim.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
-import { getPrismaClient } from "@/lib/prisma"
 import type { ClaimRecord } from "@/modules/claims/domain/models"
 
 /// Reports breakdowns are cached under the org "claims" namespace
@@ -368,7 +370,7 @@ async function loadClaimsReportPage(
   // downstream dropdowns LIVE as the admin picks a parent, without
   // waiting for an Apply round-trip. The claim list itself is still
   // scoped server-side from the URL params.
-  const prisma = getPrismaClient()
+  const prisma = getClaimsPrismaClientSafe()
   const [allProjects, allTeams, allMemberRows, claimsPage] = await Promise.all([
     organizationRepository.getProjectsForOrganization(organizationId),
     organizationRepository.listTeams(organizationId),

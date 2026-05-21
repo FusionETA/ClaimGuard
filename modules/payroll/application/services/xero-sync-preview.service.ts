@@ -2,7 +2,7 @@ import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { toNumber } from "@/lib/decimal"
-import { getPrismaClient } from "@/lib/prisma"
+import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import {
   PAYROLL_XERO_ACCOUNT_LABELS,

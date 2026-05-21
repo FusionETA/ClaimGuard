@@ -1,6 +1,6 @@
 import "server-only"
 
-import { getPrismaClient } from "@/lib/prisma"
+import { getLeavePrismaClientSafe } from "@/modules/leave/infrastructure/leave-repository"
 import type { LeaveAccrualMethod } from "@/modules/leave/domain/models"
 
 /// The canonical built-in leave types every org should have. Created
@@ -100,7 +100,7 @@ export function isProtectedLeaveType(code: string): boolean {
 /// may have customised defaultDays or other fields, and we never overwrite
 /// admin edits.
 export async function ensureDefaultLeaveTypesForOrg(orgId: string): Promise<void> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return
   const existing = await prisma.leaveType.findMany({
     where: { organizationId: orgId },

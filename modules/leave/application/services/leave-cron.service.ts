@@ -1,6 +1,6 @@
 import "server-only"
 
-import { getPrismaClient } from "@/lib/prisma"
+import { getLeavePrismaClient } from "@/modules/leave/infrastructure/leave-repository"
 import {
   carryForwardAmount,
   nextAccruedDays,
@@ -20,8 +20,7 @@ export async function runYearRollover(targetYear: number): Promise<{
   updated: number
   skipped: number
 }> {
-  const prisma = getPrismaClient()
-  if (!prisma) throw new Error("Database not configured")
+  const prisma = getLeavePrismaClient()
 
   const types = await prisma.leaveType.findMany({
     where: { archivedAt: null },
@@ -120,8 +119,7 @@ export async function runMonthlyAccrual(now: Date = new Date()): Promise<{
   accruedCount: number
   expiredCount: number
 }> {
-  const prisma = getPrismaClient()
-  if (!prisma) throw new Error("Database not configured")
+  const prisma = getLeavePrismaClient()
 
   // Pick the year in Asia/Kuala_Lumpur, not UTC — so a midnight-MYT firing
   // on Jan 1 accrues into the new year (UTC clock still shows Dec 31 at

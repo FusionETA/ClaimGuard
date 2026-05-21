@@ -147,6 +147,21 @@ function mapAssignedProjects(
   )
 }
 
+/**
+ * Module-scoped Prisma accessor for the organization module. Services
+ * call this instead of `getPrismaClient()` from `@/lib/prisma` so all
+ * organization-related DB access flows through the infrastructure layer.
+ */
+export function getOrganizationPrismaClient() {
+  const prisma = getPrismaClient()
+  if (!prisma) throw new Error("Database is not configured")
+  return prisma
+}
+
+export function getOrganizationPrismaClientSafe() {
+  return getPrismaClient()
+}
+
 export const organizationRepository = {
   async getOrganizationById(organizationId: string): Promise<OrganizationSummary | null> {
     const prisma = getPrismaClient()

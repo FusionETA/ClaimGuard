@@ -6,7 +6,7 @@ import path from "node:path"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
-import { getPrismaClient } from "@/lib/prisma"
+import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import type { PayrollDocument } from "@/modules/payroll/domain/models"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 

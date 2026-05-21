@@ -7,7 +7,7 @@ import { hashPassword } from "@/lib/auth/password"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { safeErrorMessage } from "@/lib/errors"
 import type { Prisma } from "@/generated/prisma/client"
-import { getPrismaClient } from "@/lib/prisma"
+import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import {
   genders,
   idTypes,

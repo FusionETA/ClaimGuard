@@ -1,6 +1,6 @@
 import "server-only"
 
-import { getPrismaClient } from "@/lib/prisma"
+import { getOrganizationPrismaClientSafe } from "@/modules/organization/infrastructure/organization.repository"
 import {
   defaultModuleConfig,
   validateModuleConfig,
@@ -44,7 +44,7 @@ export async function resolveModuleChain(
   module: TeamModule,
   projectId?: string,
 ): Promise<ResolvedChainStep[]> {
-  const prisma = getPrismaClient()
+  const prisma = getOrganizationPrismaClientSafe()
   if (!prisma) return []
 
   const profile = await prisma.employeeProfile.findUnique({

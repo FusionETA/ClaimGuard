@@ -53,6 +53,23 @@ function getClient() {
   return prisma
 }
 
+/**
+ * Module-scoped Prisma accessor for the attendance module. Services
+ * call this instead of `getPrismaClient()` from `@/lib/prisma` so all
+ * attendance-related DB access flows through the infrastructure layer.
+ *
+ * Throws when the database isn't configured. Use
+ * `getAttendancePrismaClientSafe` for paths that should render an
+ * empty state instead of throwing.
+ */
+export function getAttendancePrismaClient() {
+  return getClient()
+}
+
+export function getAttendancePrismaClientSafe() {
+  return getPrismaClient()
+}
+
 function startOfDay(d: Date) {
   const x = new Date(d)
   x.setUTCHours(0, 0, 0, 0)

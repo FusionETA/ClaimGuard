@@ -1,7 +1,6 @@
 import "server-only"
 
 import { bustLeaveCaches } from "@/lib/cache-invalidation"
-import { getPrismaClient } from "@/lib/prisma"
 import { parseWorkingDays } from "@/modules/attendance/domain/hours-summary"
 import { computeTotalDays } from "@/modules/leave/domain/accrual"
 import type {
@@ -9,7 +8,11 @@ import type {
   LeaveApprovalEntry,
   LeaveDuration,
 } from "@/modules/leave/domain/models"
-import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
+import {
+  getLeavePrismaClient,
+  getLeavePrismaClientSafe,
+  leaveRepository,
+} from "@/modules/leave/infrastructure/leave-repository"
 import {
   resolveLeaveApprovalContext,
   shouldAutoApproveLeave,
@@ -41,7 +44,7 @@ export type SubmitLeaveResult =
 /// etc.). Leave applications are scoped by EmployeeProfile, so we hop
 /// profile → user → organization. No-op when the org can't be resolved.
 async function bustLeaveForProfile(employeeProfileId: string): Promise<void> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return
   const row = await prisma.employeeProfile.findUnique({
     where: { id: employeeProfileId },
@@ -52,7 +55,7 @@ async function bustLeaveForProfile(employeeProfileId: string): Promise<void> {
 }
 
 async function workingDaysForEmployee(employeeProfileId: string): Promise<Set<number>> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return parseWorkingDays(null)
   // Prefer the employee's primary team/project working-days CSV; fall back
   // to a sensible default. Keep it simple — leave is org-wide so we don't
@@ -101,7 +104,7 @@ export async function submitLeaveApplication(
   )
 
   // Balance check (skip for unpaid: still track usage but allow negative).
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return { ok: false, error: "Database not configured" }
   const leaveType = await prisma.leaveType.findUnique({
     where: { id: input.leaveTypeId },
@@ -188,7 +191,7 @@ export type EditLeaveInput = {
 export async function editLeaveApplication(
   input: EditLeaveInput,
 ): Promise<{ ok: true; totalDays: number } | { ok: false; error: string }> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return { ok: false, error: "Database not configured" }
 
   const app = await leaveRepository.getApplication(input.applicationId)
@@ -272,7 +275,7 @@ export async function decideLeaveApplication(args: {
   decision: "APPROVED" | "REJECTED"
   notes?: string
 }): Promise<{ ok: true; status: "PENDING" | "APPROVED" | "REJECTED" } | { ok: false; error: string }> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return { ok: false, error: "Database not configured" }
 
   const app = await leaveRepository.getApplication(args.applicationId)
@@ -411,7 +414,7 @@ export async function countPendingApprovalsForReviewer(
 export async function listPendingApprovalsForReviewer(
   reviewerUserId: string,
 ): Promise<LeaveApplicationView[]> {
-  const prisma = getPrismaClient()
+  const prisma = getLeavePrismaClientSafe()
   if (!prisma) return []
 
   // Get the reviewer's organization to scope the query.
@@ -485,8 +488,7 @@ function sameDay(a: Date, b: Date): boolean {
 }
 
 async function userIdFromProfile(profileId: string): Promise<string> {
-  const prisma = getPrismaClient()
-  if (!prisma) throw new Error("Database not configured")
+  const prisma = getLeavePrismaClient()
   const profile = await prisma.employeeProfile.findUnique({
     where: { id: profileId },
     select: { userId: true },
