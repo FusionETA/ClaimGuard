@@ -253,6 +253,14 @@ export const SalaryType = {
 export type SalaryType = (typeof SalaryType)[keyof typeof SalaryType]
 
 
+export const ZakatMethod = {
+  SALARY_DEDUCTION: 'SALARY_DEDUCTION',
+  SELF_PAID_TP1: 'SELF_PAID_TP1'
+} as const
+
+export type ZakatMethod = (typeof ZakatMethod)[keyof typeof ZakatMethod]
+
+
 export const PaymentMethod = {
   BANK_TRANSFER: 'BANK_TRANSFER',
   CASH: 'CASH',

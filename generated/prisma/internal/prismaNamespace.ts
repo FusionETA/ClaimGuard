@@ -3964,7 +3964,9 @@ export const PayrollProfileScalarFieldEnum = {
   payrollDocuments: 'payrollDocuments',
   prevAllowableDeductions: 'prevAllowableDeductions',
   prevPcb: 'prevPcb',
-  prevZakat: 'prevZakat'
+  prevZakat: 'prevZakat',
+  zakatMethod: 'zakatMethod',
+  zakatTp1Amount: 'zakatTp1Amount'
 } as const
 
 export type PayrollProfileScalarFieldEnum = (typeof PayrollProfileScalarFieldEnum)[keyof typeof PayrollProfileScalarFieldEnum]
@@ -5154,6 +5156,13 @@ export type EnumPaymentMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'SalaryType'
  */
 export type EnumSalaryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SalaryType'>
+    
+
+
+/**
+ * Reference to a field of type 'ZakatMethod'
+ */
+export type EnumZakatMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ZakatMethod'>
     
 
 

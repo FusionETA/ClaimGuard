@@ -59,6 +59,8 @@ function makeProfile(overrides: Partial<CalcPayslipInput["profile"]> = {}): Calc
     incomeTaxNumber: "OG12345678",
     epfNumber: "EPF12345",
     socsoNumber: "SOC12345",
+    zakatMethod: "SALARY_DEDUCTION",
+    zakatTp1Amount: null,
     ...overrides,
   }
 }
@@ -253,6 +255,82 @@ describe("calcPayslip — zakat offset", () => {
     })
 
     expect(result.pcb).toBeGreaterThanOrEqual(0)
+  })
+})
+
+// ─── Zakat paid outside payroll (TP1, profile method) ───────────────────
+//
+// Self-paid zakat declared via Borang TP1 is configured on the PROFILE
+// (zakatMethod = SELF_PAID_TP1 + zakatTp1Amount), NOT as a monthly
+// deduction line. It must reduce PCB exactly like salary-deduction
+// zakat, but must NOT be subtracted from take-home — the employee
+// already paid it directly to the zakat centre. So it leaves MORE in
+// the paycheck than the PZB (salary-deduction) variant, because the PCB
+// withheld is lower and nothing is deducted.
+describe("calcPayslip — zakat paid outside payroll (TP1, profile method)", () => {
+  const baseline = calcPayslip({
+    profile: makeProfile({ monthlySalary: 10000 }),
+    settings: baseSettings,
+    periodYear: 2026,
+    periodMonth: 1,
+  })
+
+  const pzb = calcPayslip({
+    profile: makeProfile({
+      monthlySalary: 10000,
+      fixedAllowances: [
+        {
+          category: "deduct_zakat" satisfies PayrollAdjustmentCategory,
+          name: "Zakat (PZB)",
+          amount: 100,
+        },
+      ],
+    }),
+    settings: baseSettings,
+    periodYear: 2026,
+    periodMonth: 1,
+  })
+
+  const tp1 = calcPayslip({
+    profile: makeProfile({
+      monthlySalary: 10000,
+      zakatMethod: "SELF_PAID_TP1",
+      zakatTp1Amount: 100,
+    }),
+    settings: baseSettings,
+    periodYear: 2026,
+    periodMonth: 1,
+  })
+
+  it("offsets PCB by the zakat amount, same as the PZB variant", () => {
+    expect(baseline.pcb).toBeGreaterThan(100) // sanity
+    expect(tp1.pcb).toBeCloseTo(baseline.pcb - 100, 2)
+    expect(tp1.pcb).toBeCloseTo(pzb.pcb, 2)
+    expect(tp1.zakat).toBeCloseTo(100, 2)
+  })
+
+  it("does NOT reduce take-home (employee already paid externally)", () => {
+    // PZB is net-neutral: the 100 deduction is offset by 100 less PCB,
+    // so net == baseline.
+    expect(pzb.netPay).toBeCloseTo(baseline.netPay, 2)
+    // TP1 deducts nothing but still lowers PCB by 100, so the employee
+    // keeps 100 more in this paycheck than baseline / PZB.
+    expect(tp1.netPay).toBeCloseTo(baseline.netPay + 100, 2)
+    expect(tp1.netPay).toBeCloseTo(pzb.netPay + 100, 2)
+  })
+
+  it("never pushes PCB negative — offset capped at PCB", () => {
+    const lowEarner = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3000, // PCB ~0 at this level
+        zakatMethod: "SELF_PAID_TP1",
+        zakatTp1Amount: 200,
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+    })
+    expect(lowEarner.pcb).toBeGreaterThanOrEqual(0)
   })
 })
 

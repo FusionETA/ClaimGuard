@@ -351,6 +351,9 @@ function mapPayrollProfile(row: any): PayrollProfileData {
       row.prevAllowableDeductions === null
         ? null
         : toNumber(row.prevAllowableDeductions, 0),
+    zakatMethod: row.zakatMethod,
+    zakatTp1Amount:
+      row.zakatTp1Amount === null ? null : toNumber(row.zakatTp1Amount, 0),
 
     contributeToEpf: row.contributeToEpf,
     epfMemberBefore1998: row.epfMemberBefore1998,
@@ -457,6 +460,8 @@ function toPrismaUpsertData(
   copy("prevPcb")
   copy("prevZakat")
   copy("prevAllowableDeductions")
+  copy("zakatMethod")
+  copy("zakatTp1Amount")
 
   copy("contributeToEpf")
   copy("epfMemberBefore1998")

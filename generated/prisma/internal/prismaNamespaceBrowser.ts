@@ -687,7 +687,9 @@ export const PayrollProfileScalarFieldEnum = {
   payrollDocuments: 'payrollDocuments',
   prevAllowableDeductions: 'prevAllowableDeductions',
   prevPcb: 'prevPcb',
-  prevZakat: 'prevZakat'
+  prevZakat: 'prevZakat',
+  zakatMethod: 'zakatMethod',
+  zakatTp1Amount: 'zakatTp1Amount'
 } as const
 
 export type PayrollProfileScalarFieldEnum = (typeof PayrollProfileScalarFieldEnum)[keyof typeof PayrollProfileScalarFieldEnum]

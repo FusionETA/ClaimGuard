@@ -453,6 +453,8 @@ export type CalcPayslipInput = {
     | "incomeTaxNumber"
     | "epfNumber"
     | "socsoNumber"
+    | "zakatMethod"
+    | "zakatTp1Amount"
   >
   /// Org-level operational settings.
   settings: {
@@ -739,7 +741,14 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     }
 
     if (meta.kind === "DEDUCTION") {
-      totalRecurringDeductions += amt
+      // `cashNeutral` rows (zakat paid outside payroll, declared via
+      // TP1) lower PCB but are NOT subtracted from take-home — the
+      // employee already paid the amount directly to the zakat centre.
+      // So skip `totalRecurringDeductions` for them; the `offsetsPcb`
+      // branch below still reduces the month's PCB.
+      if (!meta.cashNeutral) {
+        totalRecurringDeductions += amt
+      }
       if (meta.reducesBase) {
         if (meta.subjectToEpf) epfAdjustmentBase -= amt
         if (meta.subjectToSocso) socsoAdjustmentBase -= amt
@@ -818,6 +827,20 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   pcbAdditionalRemuneration = round2(pcbAdditionalRemuneration)
   pcbAdditionalRemunerationEpf = round2(pcbAdditionalRemunerationEpf)
   hrdfAdjustmentBase = round2(hrdfAdjustmentBase)
+
+  // Self-paid zakat (Borang TP1 §D1(a)): the employee paid zakat
+  // directly to the zakat centre and declared a monthly figure on their
+  // profile's Zakat card. It offsets this month's PCB exactly like a
+  // PZB salary deduction, but is NOT subtracted from take-home (the cash
+  // already left the employee's own pocket). We add it to the same
+  // PCB-offset bucket as `deduct_zakat` line items WITHOUT touching
+  // `totalRecurringDeductions`. Not prorated — it's a declared paid
+  // amount, not a salary-derived figure.
+  if (profile.zakatMethod === "SELF_PAID_TP1") {
+    const tp1 = profile.zakatTp1Amount ?? 0
+    if (tp1 > 0) thisMonthZakat += tp1
+  }
+
   thisMonthZakat = round2(thisMonthZakat)
 
   // 5. Reimbursements (Phase 5 — approved claims). Not wage-like, so
