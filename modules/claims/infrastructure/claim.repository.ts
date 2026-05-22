@@ -404,11 +404,25 @@ export type ClaimForXeroSync = {
   amount: number
   currency: string
   spentAt: Date
+  /// PERSONAL → posts as an awaiting-payment bill; COMPANY → posts as a
+  /// Spend Money bank transaction (money already left the company bank).
+  paymentType: PaymentType
   xeroBillId: string | null
+  /// Set once a COMPANY claim has been posted as a Spend Money txn —
+  /// mirrors xeroBillId for idempotency on that path.
+  xeroSpendMoneyId: string | null
+  /// For COMPANY claims: the bank account the money was paid from. The
+  /// employee/admin picked this at submission (`payViaAccountId`). Null
+  /// for PERSONAL claims. `code` is the Xero account code used as the
+  /// BankAccount on the Spend Money transaction.
+  payViaBankAccount: {
+    code: string
+    name: string
+    xeroConnectionId: string | null
+  } | null
   /// Set when the receipt was uploaded to Xero Files at submission time.
-  /// When the bill is created we'll call
-  /// associateFileWithInvoice({ fileId: xeroFileId, invoiceId: bill.invoiceId })
-  /// so the receipt shows up in the bill's Files panel in Xero.
+  /// When the bill/spend-money is created we associate the file so the
+  /// receipt shows up in the object's Files panel in Xero.
   xeroFileId: string | null
   organizationId: string | null
   chartOfAccount?: {
@@ -2074,9 +2088,12 @@ export const claimRepository = {
         amount: true,
         currency: true,
         spentAt: true,
+        paymentType: true,
         xeroBillId: true,
+        xeroSpendMoneyId: true,
         xeroFileId: true,
         organizationId: true,
+        payViaAccountId: true,
         chartOfAccount: {
           select: {
             code: true,
@@ -2098,6 +2115,15 @@ export const claimRepository = {
 
     if (!claim) return null
 
+    // For COMPANY claims, resolve the picked bank account's Xero code —
+    // it's the "paid from" account on the Spend Money transaction.
+    const payViaBankAccount = claim.payViaAccountId
+      ? await prisma.chartOfAccount.findUnique({
+          where: { id: claim.payViaAccountId },
+          select: { code: true, name: true, xeroConnectionId: true },
+        })
+      : null
+
     // The bill posts to the org's single Xero connection — resolve it
     // from the org rather than a per-account column.
     const connection = claim.organizationId
@@ -2115,7 +2141,16 @@ export const claimRepository = {
       amount: Number(claim.amount),
       currency: claim.currency,
       spentAt: claim.spentAt,
+      paymentType: claim.paymentType as PaymentType,
       xeroBillId: claim.xeroBillId,
+      xeroSpendMoneyId: claim.xeroSpendMoneyId,
+      payViaBankAccount: payViaBankAccount
+        ? {
+            code: payViaBankAccount.code,
+            name: payViaBankAccount.name,
+            xeroConnectionId: payViaBankAccount.xeroConnectionId,
+          }
+        : null,
       xeroFileId: claim.xeroFileId,
       organizationId: claim.organizationId,
       chartOfAccount: claim.chartOfAccount
@@ -2141,6 +2176,28 @@ export const claimRepository = {
       data: {
         xeroBillId: data.xeroBillId,
         xeroBillRef: data.xeroBillRef ?? null,
+        xeroSyncStatus: "SYNCED",
+        xeroSyncError: null,
+        xeroSyncedAt: new Date(),
+      },
+    })
+  },
+
+  async markClaimSpendMoneySynced(data: {
+    claimId: string
+    xeroSpendMoneyId: string
+    xeroSpendMoneyRef?: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      throw new Error("Database is not configured.")
+    }
+
+    await prisma.claim.update({
+      where: { id: data.claimId },
+      data: {
+        xeroSpendMoneyId: data.xeroSpendMoneyId,
+        xeroSpendMoneyRef: data.xeroSpendMoneyRef ?? null,
         xeroSyncStatus: "SYNCED",
         xeroSyncError: null,
         xeroSyncedAt: new Date(),

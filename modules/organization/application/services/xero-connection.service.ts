@@ -444,10 +444,32 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
     }
   }
 
-  if (claim.xeroBillId) {
+  const isCompanyMoney = claim.paymentType === "COMPANY"
+
+  // Idempotency: skip if this claim has already been posted on its path.
+  if (!isCompanyMoney && claim.xeroBillId) {
     return {
       status: "skipped",
       message: "Xero bill already exists for this claim.",
+    }
+  }
+  if (isCompanyMoney && claim.xeroSpendMoneyId) {
+    return {
+      status: "skipped",
+      message: "Xero spend-money transaction already exists for this claim.",
+    }
+  }
+
+  // COMPANY-money claims post as a Spend Money bank transaction and need
+  // the "paid from" bank account the claimant selected at submission.
+  if (isCompanyMoney) {
+    const bankCode = claim.payViaBankAccount?.code ?? null
+    if (!bankCode) {
+      return {
+        status: "error",
+        message:
+          "Company-money claim has no Xero-linked bank account to pay from. Re-check the claim's 'pay via' account.",
+      }
     }
   }
 
@@ -510,14 +532,74 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
     }
   }
 
+  // Project tracking dimension, shared by both paths.
+  const tracking =
+    trackingCategoryName &&
+    claim.project?.name &&
+    trackingOptions?.has(claim.project.name)
+      ? [{ name: trackingCategoryName, option: claim.project.name }]
+      : undefined
+
   try {
+    const fmt = (d: Date) => d.toISOString().slice(0, 10)
+    const today = new Date()
+
+    // ── COMPANY money → Spend Money bank transaction ────────────────
+    if (isCompanyMoney) {
+      const { createXeroSpendMoney, associateFileWithObject } = await import(
+        "@/lib/xero"
+      )
+      const txn = await createXeroSpendMoney({
+        accessToken: connection.accessToken,
+        tenantId: connection.tenantId,
+        idempotencyKey: `claim-spend-${claim.id}`,
+        payload: {
+          contactName: claim.employee.name,
+          contactEmail: claim.employee.email,
+          date: fmt(today),
+          currency: claim.currency,
+          amount: claim.amount,
+          description: `${claim.claimNumber} — ${claim.title}`,
+          reference: claim.claimNumber,
+          accountCode: xeroAccountCode,
+          // Guaranteed present — checked above for COMPANY claims.
+          bankAccountCode: claim.payViaBankAccount!.code,
+          tracking,
+        },
+      })
+
+      await claimRepository.markClaimSpendMoneySynced({
+        claimId: claim.id,
+        xeroSpendMoneyId: txn.bankTransactionId,
+        xeroSpendMoneyRef: txn.reference,
+      })
+
+      if (claim.xeroFileId) {
+        try {
+          await associateFileWithObject({
+            accessToken: connection.accessToken,
+            tenantId: connection.tenantId,
+            fileId: claim.xeroFileId,
+            objectId: txn.bankTransactionId,
+            objectGroup: "BankTransaction",
+          })
+        } catch (err) {
+          console.warn("[xero-sync] receipt attach failed:", err)
+        }
+      }
+
+      return {
+        status: "synced",
+        message: `Spend Money ${txn.reference ?? txn.bankTransactionId} created in Xero.`,
+      }
+    }
+
+    // ── PERSONAL money → awaiting-payment bill (unchanged) ──────────
     const { createXeroBill, associateFileWithInvoice } = await import(
       "@/lib/xero"
     )
-    const today = new Date()
     const dueDate = new Date(today)
     dueDate.setDate(dueDate.getDate() + 30) // 30-day default term
-    const fmt = (d: Date) => d.toISOString().slice(0, 10)
 
     const bill = await createXeroBill({
       accessToken: connection.accessToken,
@@ -534,12 +616,7 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
         description: `${claim.claimNumber} — ${claim.title}`,
         reference: claim.claimNumber,
         accountCode: xeroAccountCode,
-        tracking:
-          trackingCategoryName &&
-          claim.project?.name &&
-          trackingOptions?.has(claim.project.name)
-            ? [{ name: trackingCategoryName, option: claim.project.name }]
-            : undefined,
+        tracking,
       },
     })
 
@@ -572,7 +649,7 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
   } catch (err) {
     return {
       status: "error",
-      message: safeErrorMessage(err, "Xero bill creation failed."),
+      message: safeErrorMessage(err, "Xero sync failed."),
     }
   }
 }
