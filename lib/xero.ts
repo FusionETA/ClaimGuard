@@ -6,6 +6,8 @@ const XERO_AUTHORIZE_URL = "https://login.xero.com/identity/connect/authorize"
 const XERO_TOKEN_URL = "https://identity.xero.com/connect/token"
 const XERO_CONNECTIONS_URL = "https://api.xero.com/connections"
 const XERO_INVOICES_URL = "https://api.xero.com/api.xro/2.0/Invoices"
+const XERO_BANK_TRANSACTIONS_URL =
+  "https://api.xero.com/api.xro/2.0/BankTransactions"
 const XERO_MANUAL_JOURNALS_URL =
   "https://api.xero.com/api.xro/2.0/ManualJournals"
 const XERO_ACCOUNTS_URL = "https://api.xero.com/api.xro/2.0/Accounts"
@@ -56,6 +58,29 @@ export type XeroBillPayload = {
    * this for the project dimension; pass `{ name: "<Tracking
    * Category Name>", option: "<Tracking Option Name>" }`.
    */
+  tracking?: Array<{ name: string; option: string }>
+}
+
+/**
+ * Payload for a "Spend Money" bank transaction — used for COMPANY-money
+ * claims where the money has ALREADY left the company bank/card (so it's
+ * a completed spend, not an awaiting-payment bill). Differs from
+ * `XeroBillPayload` in that it carries the source `bankAccountCode`
+ * (where the money came from) and has no due date (it's not a payable).
+ */
+export type XeroSpendMoneyPayload = {
+  contactName: string
+  contactEmail?: string
+  date: string
+  currency: string
+  amount: number
+  description: string
+  reference: string
+  /** Xero account CODE of the EXPENSE account the spend is categorised to. */
+  accountCode: string
+  /** Xero account CODE of the BANK account the money was paid from. */
+  bankAccountCode: string
+  /** Optional project tracking, same semantics as the bill payload. */
   tracking?: Array<{ name: string; option: string }>
 }
 
@@ -679,6 +704,98 @@ export async function createXeroBill({
   }
 }
 
+/**
+ * Create a "Spend Money" bank transaction in Xero (Type: SPEND). Used
+ * for COMPANY-money claims — the money already left the chosen bank
+ * account, so this records the completed spend (DR expense account,
+ * CR bank account) rather than an awaiting-payment bill.
+ *
+ * Idempotent via the caller-supplied `Idempotency-Key`. Returns the
+ * created transaction's ID + number so the caller can persist them and
+ * never double-post.
+ */
+export async function createXeroSpendMoney({
+  accessToken,
+  tenantId,
+  payload,
+  idempotencyKey,
+}: {
+  accessToken: string
+  tenantId: string
+  payload: XeroSpendMoneyPayload
+  idempotencyKey: string
+}): Promise<{ bankTransactionId: string; reference?: string }> {
+  const lineItem: Record<string, unknown> = {
+    Description: payload.description,
+    Quantity: 1,
+    UnitAmount: payload.amount,
+    AccountCode: payload.accountCode,
+  }
+  if (payload.tracking && payload.tracking.length > 0) {
+    lineItem.Tracking = payload.tracking.slice(0, 2).map((t) => ({
+      Name: t.name,
+      Option: t.option,
+    }))
+  }
+
+  const response = await fetch(XERO_BANK_TRANSACTIONS_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "xero-tenant-id": tenantId,
+      "Idempotency-Key": idempotencyKey,
+    },
+    body: JSON.stringify({
+      BankTransactions: [
+        {
+          Type: "SPEND",
+          Status: "AUTHORISED",
+          Contact: {
+            Name: payload.contactName,
+            EmailAddress: payload.contactEmail,
+          },
+          Date: payload.date,
+          CurrencyCode: payload.currency,
+          Reference: payload.reference,
+          // The bank/card the money came out of.
+          BankAccount: { Code: payload.bankAccountCode },
+          LineAmountTypes: "Exclusive",
+          LineItems: [lineItem],
+        },
+      ],
+    }),
+    cache: "no-store",
+  })
+
+  if (!response.ok) {
+    const errorBody = await parseXeroResponse(response)
+    throw new Error(
+      `Xero spend-money creation failed with ${response.status}: ${JSON.stringify(errorBody)}`
+    )
+  }
+
+  const json = (await response.json()) as {
+    BankTransactions?: Array<{
+      BankTransactionID?: string
+      Reference?: string
+    }>
+  }
+
+  const txn = json.BankTransactions?.[0]
+  if (!txn?.BankTransactionID) {
+    throw new Error(
+      "Xero spend-money creation succeeded but no BankTransactionID was returned."
+    )
+  }
+
+  return {
+    bankTransactionId: txn.BankTransactionID,
+    reference: txn.Reference,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Xero Manual Journals
 // ---------------------------------------------------------------------------
@@ -1059,16 +1176,25 @@ export async function getXeroFileContent({
  * Accounts Payable terms). Soft-fails on 4xx so a partial sync doesn't
  * block claim approval.
  */
-export async function associateFileWithInvoice({
+/**
+ * Associate an uploaded Xero file with a Xero object so it shows in that
+ * object's Files panel. `objectGroup` selects the target type:
+ *   - "Invoice"          → bills + sales invoices (ACCPAY/ACCREC)
+ *   - "BankTransaction"  → Spend Money / Receive Money transactions
+ * Defaults to "Invoice" to preserve the original bill-attach behaviour.
+ */
+export async function associateFileWithObject({
   accessToken,
   tenantId,
   fileId,
-  invoiceId,
+  objectId,
+  objectGroup = "Invoice",
 }: {
   accessToken: string
   tenantId: string
   fileId: string
-  invoiceId: string
+  objectId: string
+  objectGroup?: "Invoice" | "BankTransaction"
 }): Promise<void> {
   const response = await fetch(
     `${XERO_FILES_BASE_URL}/Files/${fileId}/Associations`,
@@ -1081,10 +1207,8 @@ export async function associateFileWithInvoice({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ObjectId: invoiceId,
-        // Xero treats supplier bills as ACCPAY invoices, so the group
-        // here is still "Invoice".
-        ObjectGroup: "Invoice",
+        ObjectId: objectId,
+        ObjectGroup: objectGroup,
       }),
     },
   )
@@ -1092,6 +1216,30 @@ export async function associateFileWithInvoice({
     const text = await response.text().catch(() => "")
     throw new Error(`Xero file association failed: ${response.status} ${text}`)
   }
+}
+
+/**
+ * Back-compat shim — existing callers attach receipts to bills. New code
+ * should call `associateFileWithObject` directly with the right group.
+ */
+export async function associateFileWithInvoice({
+  accessToken,
+  tenantId,
+  fileId,
+  invoiceId,
+}: {
+  accessToken: string
+  tenantId: string
+  fileId: string
+  invoiceId: string
+}): Promise<void> {
+  return associateFileWithObject({
+    accessToken,
+    tenantId,
+    fileId,
+    objectId: invoiceId,
+    objectGroup: "Invoice",
+  })
 }
 
 /// Strip path separators and dangerous characters from a filename so it

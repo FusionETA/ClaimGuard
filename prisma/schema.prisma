@@ -401,6 +401,13 @@ model Claim {
   lastReviewerId            String?                     @map("reviewerId")
   xeroBillId                String?                     @unique
   xeroBillRef               String?
+  /// For COMPANY-money claims synced to Xero as a "Spend Money" bank
+  /// transaction (money already left the company bank/card), as opposed
+  /// to PERSONAL claims which post as an awaiting-payment bill
+  /// (`xeroBillId`). Set once on sync so the post is idempotent. Unique
+  /// to prevent a double-post creating two transactions for one claim.
+  xeroSpendMoneyId          String?                     @unique
+  xeroSpendMoneyRef         String?
   xeroSyncStatus            XeroSyncStatus              @default(NOT_SYNCED)
   xeroSyncError             String?                     @db.Text
   xeroSyncedAt              DateTime?

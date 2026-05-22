@@ -59,6 +59,8 @@ export type ClaimMinAggregateOutputType = {
   lastReviewerId: string | null
   xeroBillId: string | null
   xeroBillRef: string | null
+  xeroSpendMoneyId: string | null
+  xeroSpendMoneyRef: string | null
   xeroSyncStatus: $Enums.XeroSyncStatus | null
   xeroSyncError: string | null
   xeroSyncedAt: Date | null
@@ -100,6 +102,8 @@ export type ClaimMaxAggregateOutputType = {
   lastReviewerId: string | null
   xeroBillId: string | null
   xeroBillRef: string | null
+  xeroSpendMoneyId: string | null
+  xeroSpendMoneyRef: string | null
   xeroSyncStatus: $Enums.XeroSyncStatus | null
   xeroSyncError: string | null
   xeroSyncedAt: Date | null
@@ -141,6 +145,8 @@ export type ClaimCountAggregateOutputType = {
   lastReviewerId: number
   xeroBillId: number
   xeroBillRef: number
+  xeroSpendMoneyId: number
+  xeroSpendMoneyRef: number
   xeroSyncStatus: number
   xeroSyncError: number
   xeroSyncedAt: number
@@ -196,6 +202,8 @@ export type ClaimMinAggregateInputType = {
   lastReviewerId?: true
   xeroBillId?: true
   xeroBillRef?: true
+  xeroSpendMoneyId?: true
+  xeroSpendMoneyRef?: true
   xeroSyncStatus?: true
   xeroSyncError?: true
   xeroSyncedAt?: true
@@ -237,6 +245,8 @@ export type ClaimMaxAggregateInputType = {
   lastReviewerId?: true
   xeroBillId?: true
   xeroBillRef?: true
+  xeroSpendMoneyId?: true
+  xeroSpendMoneyRef?: true
   xeroSyncStatus?: true
   xeroSyncError?: true
   xeroSyncedAt?: true
@@ -278,6 +288,8 @@ export type ClaimCountAggregateInputType = {
   lastReviewerId?: true
   xeroBillId?: true
   xeroBillRef?: true
+  xeroSpendMoneyId?: true
+  xeroSpendMoneyRef?: true
   xeroSyncStatus?: true
   xeroSyncError?: true
   xeroSyncedAt?: true
@@ -406,6 +418,8 @@ export type ClaimGroupByOutputType = {
   lastReviewerId: string | null
   xeroBillId: string | null
   xeroBillRef: string | null
+  xeroSpendMoneyId: string | null
+  xeroSpendMoneyRef: string | null
   xeroSyncStatus: $Enums.XeroSyncStatus
   xeroSyncError: string | null
   xeroSyncedAt: Date | null
@@ -470,6 +484,8 @@ export type ClaimWhereInput = {
   lastReviewerId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroBillId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroBillRef?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSpendMoneyId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSpendMoneyRef?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"Claim"> | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
@@ -521,6 +537,8 @@ export type ClaimOrderByWithRelationInput = {
   lastReviewerId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroBillId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroBillRef?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSpendMoneyId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSpendMoneyRef?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -556,6 +574,7 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   claimNumber?: string
   xeroBillId?: string
+  xeroSpendMoneyId?: string
   AND?: Prisma.ClaimWhereInput | Prisma.ClaimWhereInput[]
   OR?: Prisma.ClaimWhereInput[]
   NOT?: Prisma.ClaimWhereInput | Prisma.ClaimWhereInput[]
@@ -576,6 +595,7 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   employeeId?: Prisma.StringFilter<"Claim"> | string
   lastReviewerId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroBillRef?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSpendMoneyRef?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"Claim"> | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
@@ -604,7 +624,7 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   supportingAttachments?: Prisma.ClaimSupportingAttachmentListRelationFilter
   payrollRunAttachment?: Prisma.XOR<Prisma.PayrollRunClaimNullableScalarRelationFilter, Prisma.PayrollRunClaimWhereInput> | null
   payslipLineItem?: Prisma.XOR<Prisma.PayslipLineItemNullableScalarRelationFilter, Prisma.PayslipLineItemWhereInput> | null
-}, "id" | "claimNumber" | "xeroBillId">
+}, "id" | "claimNumber" | "xeroBillId" | "xeroSpendMoneyId">
 
 export type ClaimOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -627,6 +647,8 @@ export type ClaimOrderByWithAggregationInput = {
   lastReviewerId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroBillId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroBillRef?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSpendMoneyId?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroSpendMoneyRef?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -676,6 +698,8 @@ export type ClaimScalarWhereWithAggregatesInput = {
   lastReviewerId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   xeroBillId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   xeroBillRef?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  xeroSpendMoneyId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  xeroSpendMoneyRef?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusWithAggregatesFilter<"Claim"> | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   xeroSyncedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Claim"> | Date | string | null
@@ -713,6 +737,8 @@ export type ClaimCreateInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -762,6 +788,8 @@ export type ClaimUncheckedCreateInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -803,6 +831,8 @@ export type ClaimUpdateInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -852,6 +882,8 @@ export type ClaimUncheckedUpdateInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -897,6 +929,8 @@ export type ClaimCreateManyInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -934,6 +968,8 @@ export type ClaimUpdateManyMutationInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -973,6 +1009,8 @@ export type ClaimUncheckedUpdateManyInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1030,6 +1068,8 @@ export type ClaimCountOrderByAggregateInput = {
   lastReviewerId?: Prisma.SortOrder
   xeroBillId?: Prisma.SortOrder
   xeroBillRef?: Prisma.SortOrder
+  xeroSpendMoneyId?: Prisma.SortOrder
+  xeroSpendMoneyRef?: Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrder
@@ -1077,6 +1117,8 @@ export type ClaimMaxOrderByAggregateInput = {
   lastReviewerId?: Prisma.SortOrder
   xeroBillId?: Prisma.SortOrder
   xeroBillRef?: Prisma.SortOrder
+  xeroSpendMoneyId?: Prisma.SortOrder
+  xeroSpendMoneyRef?: Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrder
@@ -1118,6 +1160,8 @@ export type ClaimMinOrderByAggregateInput = {
   lastReviewerId?: Prisma.SortOrder
   xeroBillId?: Prisma.SortOrder
   xeroBillRef?: Prisma.SortOrder
+  xeroSpendMoneyId?: Prisma.SortOrder
+  xeroSpendMoneyRef?: Prisma.SortOrder
   xeroSyncStatus?: Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrder
   xeroSyncedAt?: Prisma.SortOrder
@@ -1509,6 +1553,8 @@ export type ClaimCreateWithoutEmployeeInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -1556,6 +1602,8 @@ export type ClaimUncheckedCreateWithoutEmployeeInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -1607,6 +1655,8 @@ export type ClaimCreateWithoutReviewerInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -1654,6 +1704,8 @@ export type ClaimUncheckedCreateWithoutReviewerInput = {
   employeeId: string
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -1728,6 +1780,8 @@ export type ClaimScalarWhereInput = {
   lastReviewerId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroBillId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroBillRef?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSpendMoneyId?: Prisma.StringNullableFilter<"Claim"> | string | null
+  xeroSpendMoneyRef?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"Claim"> | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSyncedAt?: Prisma.DateTimeNullableFilter<"Claim"> | Date | string | null
@@ -1781,6 +1835,8 @@ export type ClaimCreateWithoutOrganizationInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -1828,6 +1884,8 @@ export type ClaimUncheckedCreateWithoutOrganizationInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -1895,6 +1953,8 @@ export type ClaimCreateWithoutSupportingAttachmentsInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -1943,6 +2003,8 @@ export type ClaimUncheckedCreateWithoutSupportingAttachmentsInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -1999,6 +2061,8 @@ export type ClaimUpdateWithoutSupportingAttachmentsInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2047,6 +2111,8 @@ export type ClaimUncheckedUpdateWithoutSupportingAttachmentsInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2087,6 +2153,8 @@ export type ClaimCreateWithoutApprovalEntriesInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2135,6 +2203,8 @@ export type ClaimUncheckedCreateWithoutApprovalEntriesInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2191,6 +2261,8 @@ export type ClaimUpdateWithoutApprovalEntriesInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2239,6 +2311,8 @@ export type ClaimUncheckedUpdateWithoutApprovalEntriesInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2279,6 +2353,8 @@ export type ClaimCreateWithoutChartOfAccountInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2326,6 +2402,8 @@ export type ClaimUncheckedCreateWithoutChartOfAccountInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2377,6 +2455,8 @@ export type ClaimCreateWithoutPayViaAccountInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2425,6 +2505,8 @@ export type ClaimUncheckedCreateWithoutPayViaAccountInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2507,6 +2589,8 @@ export type ClaimCreateWithoutProjectInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2555,6 +2639,8 @@ export type ClaimUncheckedCreateWithoutProjectInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2621,6 +2707,8 @@ export type ClaimCreateWithoutPayrollRunAttachmentInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2669,6 +2757,8 @@ export type ClaimUncheckedCreateWithoutPayrollRunAttachmentInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2725,6 +2815,8 @@ export type ClaimUpdateWithoutPayrollRunAttachmentInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2773,6 +2865,8 @@ export type ClaimUncheckedUpdateWithoutPayrollRunAttachmentInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2813,6 +2907,8 @@ export type ClaimCreateWithoutPayslipLineItemInput = {
   reviewNotes?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2861,6 +2957,8 @@ export type ClaimUncheckedCreateWithoutPayslipLineItemInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -2917,6 +3015,8 @@ export type ClaimUpdateWithoutPayslipLineItemInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -2965,6 +3065,8 @@ export type ClaimUncheckedUpdateWithoutPayslipLineItemInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3008,6 +3110,8 @@ export type ClaimCreateManyEmployeeInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -3048,6 +3152,8 @@ export type ClaimCreateManyReviewerInput = {
   employeeId: string
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -3085,6 +3191,8 @@ export type ClaimUpdateWithoutEmployeeInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3132,6 +3240,8 @@ export type ClaimUncheckedUpdateWithoutEmployeeInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3176,6 +3286,8 @@ export type ClaimUncheckedUpdateManyWithoutEmployeeInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3213,6 +3325,8 @@ export type ClaimUpdateWithoutReviewerInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3260,6 +3374,8 @@ export type ClaimUncheckedUpdateWithoutReviewerInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3304,6 +3420,8 @@ export type ClaimUncheckedUpdateManyWithoutReviewerInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3344,6 +3462,8 @@ export type ClaimCreateManyOrganizationInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -3381,6 +3501,8 @@ export type ClaimUpdateWithoutOrganizationInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3428,6 +3550,8 @@ export type ClaimUncheckedUpdateWithoutOrganizationInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3472,6 +3596,8 @@ export type ClaimUncheckedUpdateManyWithoutOrganizationInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3512,6 +3638,8 @@ export type ClaimCreateManyChartOfAccountInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -3553,6 +3681,8 @@ export type ClaimCreateManyPayViaAccountInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -3589,6 +3719,8 @@ export type ClaimUpdateWithoutChartOfAccountInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3636,6 +3768,8 @@ export type ClaimUncheckedUpdateWithoutChartOfAccountInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3680,6 +3814,8 @@ export type ClaimUncheckedUpdateManyWithoutChartOfAccountInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3717,6 +3853,8 @@ export type ClaimUpdateWithoutPayViaAccountInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3765,6 +3903,8 @@ export type ClaimUncheckedUpdateWithoutPayViaAccountInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3809,6 +3949,8 @@ export type ClaimUncheckedUpdateManyWithoutPayViaAccountInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3849,6 +3991,8 @@ export type ClaimCreateManyProjectInput = {
   lastReviewerId?: string | null
   xeroBillId?: string | null
   xeroBillRef?: string | null
+  xeroSpendMoneyId?: string | null
+  xeroSpendMoneyRef?: string | null
   xeroSyncStatus?: $Enums.XeroSyncStatus
   xeroSyncError?: string | null
   xeroSyncedAt?: Date | string | null
@@ -3885,6 +4029,8 @@ export type ClaimUpdateWithoutProjectInput = {
   reviewNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3933,6 +4079,8 @@ export type ClaimUncheckedUpdateWithoutProjectInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -3977,6 +4125,8 @@ export type ClaimUncheckedUpdateManyWithoutProjectInput = {
   lastReviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroBillRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFieldUpdateOperationsInput | $Enums.XeroSyncStatus
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -4057,6 +4207,8 @@ export type ClaimSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   lastReviewerId?: boolean
   xeroBillId?: boolean
   xeroBillRef?: boolean
+  xeroSpendMoneyId?: boolean
+  xeroSpendMoneyRef?: boolean
   xeroSyncStatus?: boolean
   xeroSyncError?: boolean
   xeroSyncedAt?: boolean
@@ -4111,6 +4263,8 @@ export type ClaimSelectScalar = {
   lastReviewerId?: boolean
   xeroBillId?: boolean
   xeroBillRef?: boolean
+  xeroSpendMoneyId?: boolean
+  xeroSpendMoneyRef?: boolean
   xeroSyncStatus?: boolean
   xeroSyncError?: boolean
   xeroSyncedAt?: boolean
@@ -4131,7 +4285,7 @@ export type ClaimSelectScalar = {
   spendingWith?: boolean
 }
 
-export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "organizationId" | "chartOfAccountId" | "amount" | "currency" | "spentAt" | "submittedAt" | "claimRunMonth" | "lastReviewedAt" | "status" | "receiptUrl" | "reviewNotes" | "employeeId" | "lastReviewerId" | "xeroBillId" | "xeroBillRef" | "xeroSyncStatus" | "xeroSyncError" | "xeroSyncedAt" | "createdAt" | "updatedAt" | "payViaAccountId" | "paymentType" | "claimType" | "distance" | "mileageDestinationAddress" | "mileageOriginAddress" | "mileageRateUsed" | "mileageUnitUsed" | "reviewerRole" | "projectId" | "exceedsLimit" | "xeroFileId" | "spendingWith", ExtArgs["result"]["claim"]>
+export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "organizationId" | "chartOfAccountId" | "amount" | "currency" | "spentAt" | "submittedAt" | "claimRunMonth" | "lastReviewedAt" | "status" | "receiptUrl" | "reviewNotes" | "employeeId" | "lastReviewerId" | "xeroBillId" | "xeroBillRef" | "xeroSpendMoneyId" | "xeroSpendMoneyRef" | "xeroSyncStatus" | "xeroSyncError" | "xeroSyncedAt" | "createdAt" | "updatedAt" | "payViaAccountId" | "paymentType" | "claimType" | "distance" | "mileageDestinationAddress" | "mileageOriginAddress" | "mileageRateUsed" | "mileageUnitUsed" | "reviewerRole" | "projectId" | "exceedsLimit" | "xeroFileId" | "spendingWith", ExtArgs["result"]["claim"]>
 export type ClaimInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chartOfAccount?: boolean | Prisma.Claim$chartOfAccountArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -4191,6 +4345,15 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     lastReviewerId: string | null
     xeroBillId: string | null
     xeroBillRef: string | null
+    /**
+     * For COMPANY-money claims synced to Xero as a "Spend Money" bank
+     * transaction (money already left the company bank/card), as opposed
+     * to PERSONAL claims which post as an awaiting-payment bill
+     * (`xeroBillId`). Set once on sync so the post is idempotent. Unique
+     * to prevent a double-post creating two transactions for one claim.
+     */
+    xeroSpendMoneyId: string | null
+    xeroSpendMoneyRef: string | null
     xeroSyncStatus: $Enums.XeroSyncStatus
     xeroSyncError: string | null
     xeroSyncedAt: Date | null
@@ -4632,6 +4795,8 @@ export interface ClaimFieldRefs {
   readonly lastReviewerId: Prisma.FieldRef<"Claim", 'String'>
   readonly xeroBillId: Prisma.FieldRef<"Claim", 'String'>
   readonly xeroBillRef: Prisma.FieldRef<"Claim", 'String'>
+  readonly xeroSpendMoneyId: Prisma.FieldRef<"Claim", 'String'>
+  readonly xeroSpendMoneyRef: Prisma.FieldRef<"Claim", 'String'>
   readonly xeroSyncStatus: Prisma.FieldRef<"Claim", 'XeroSyncStatus'>
   readonly xeroSyncError: Prisma.FieldRef<"Claim", 'String'>
   readonly xeroSyncedAt: Prisma.FieldRef<"Claim", 'DateTime'>
