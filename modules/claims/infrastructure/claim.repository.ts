@@ -1082,11 +1082,16 @@ export const claimRepository = {
       where: {
         organizationId,
         status: "REVIEWED",
-        paymentType: "PERSONAL",
-        // Hide claims already on a payroll run — they appear under
-        // that run's Reimbursements card and only re-surface here if
-        // the admin detaches them.
+        // Both PERSONAL and COMPANY claims surface here. The "Ready to
+        // Pay" tab splits them: PERSONAL → payroll or bill, COMPANY →
+        // Spend Money.
+        // Hide claims already on a payroll run — they appear under that
+        // run's Reimbursements card and only re-surface if detached.
         payrollRunAttachment: { is: null },
+        // Hide claims already posted to Xero (bill for PERSONAL,
+        // Spend Money for COMPANY) — they're done.
+        xeroBillId: null,
+        xeroSpendMoneyId: null,
       },
       include: claimInclude,
       orderBy: { lastReviewedAt: "asc" },

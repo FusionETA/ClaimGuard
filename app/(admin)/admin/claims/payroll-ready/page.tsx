@@ -4,6 +4,7 @@ import { ClaimPayrollReadyList } from "@/components/admin/claim-payroll-ready-li
 import { Card, CardContent } from "@/components/ui/card"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 
 /**
@@ -39,31 +40,40 @@ export default async function AdminClaimsPayrollReadyPage() {
     )
   }
 
-  const [claims, allRuns] = await Promise.all([
+  const [claims, allRuns, xeroConnectionId] = await Promise.all([
     claimRepository.getClaimsAwaitingSync(organizationId),
     payrollRunRepository.listForOrganization(organizationId),
+    organizationRepository.getActiveXeroConnectionId(organizationId),
   ])
 
   // Only DRAFT runs can have claims attached — submitted runs are
-  // locked. We surface the list (newest-first) so the picker in
-  // each row can let the admin choose which run to attach to.
+  // locked. We surface the list (newest-first) so the picker can let
+  // the admin choose which run to attach to.
   const draftRuns = allRuns.filter((r) => r.status === "DRAFT")
+
+  // When the org isn't connected to Xero, the bill / spend-money bulk
+  // actions are hidden — the only available action is "add to payroll".
+  const xeroConnected = Boolean(xeroConnectionId)
 
   return (
     <div className="space-y-6">
       <div>
-        <div>
-          <h1 className="text-xl font-semibold">Ready for payroll</h1>
-          <p className="text-sm text-muted-foreground">
-            Reviewed personal-paid claims awaiting attachment to a
-            payroll run. Pick a draft run from the dropdown on each
-            row to include the claim as a reimbursement on the next
-            payslip.
-          </p>
-        </div>
+        <h1 className="text-xl font-semibold">Ready to Pay</h1>
+        <p className="text-sm text-muted-foreground">
+          Reviewed claims awaiting payment. Personal-money claims can be
+          added to a payroll run (paid via payroll) or
+          {xeroConnected ? " synced to Xero as a bill" : " — connect Xero to also bill them"}.
+          {xeroConnected
+            ? " Company-money claims post to Xero as Spend Money."
+            : ""}
+        </p>
       </div>
 
-      <ClaimPayrollReadyList claims={claims} draftRuns={draftRuns} />
+      <ClaimPayrollReadyList
+        claims={claims}
+        draftRuns={draftRuns}
+        xeroConnected={xeroConnected}
+      />
     </div>
   )
 }

@@ -1,19 +1,21 @@
 "use client"
 
-import { useEffect, useMemo, useState, useTransition } from "react"
-import { CalendarPlus, CircleCheck, Loader2, Search } from "lucide-react"
+import Link from "next/link"
+import { useMemo, useState, useTransition } from "react"
+import { CalendarPlus, CircleCheck, Loader2, Search, Upload } from "lucide-react"
 
-import { attachClaimToPayrollRunAction } from "@/app/(admin)/admin/payroll/runs/actions"
+import {
+  bulkAttachClaimsToRunAction,
+  bulkSyncClaimsToXeroAction,
+} from "@/app/(admin)/admin/claims/payroll-ready/actions"
 import {
   ClaimDetailSheet,
   ClaimTypeBadge,
   OverLimitBadge,
-  PaymentTypeBadge,
 } from "@/components/admin/claim-row-helpers"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { PaginationControls } from "@/components/ui/pagination-controls"
 import {
   Select,
   SelectContent,
@@ -30,87 +32,54 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useToast } from "@/components/ui/toaster"
-import { formatCurrency, formatShortDate } from "@/lib/utils"
-import type { ClaimRecord, ClaimType } from "@/modules/claims/domain/models"
+import { cn, formatCurrency, formatShortDate } from "@/lib/utils"
+import type { ClaimRecord } from "@/modules/claims/domain/models"
 import type { PayrollRunRow } from "@/modules/payroll/domain/runs"
 
-const PAGE_SIZE = 10
-
 /**
- * Admin "Ready for payroll" page. Lists REVIEWED + PERSONAL-paid
- * claims that haven't been attached to a payroll run yet. From each
- * row, the admin picks a draft run and clicks "Add" — the claim
- * disappears from this list and shows up under that run's
- * Reimbursements card.
+ * Admin "Ready to Pay" page. Lists REVIEWED claims that haven't been
+ * paid out yet, split by payment type:
  *
- * Replaces the previous "Ready to sync" view, which used to push
- * claims to Xero directly. Xero sync has moved to a post-submit,
- * module-gated step.
+ *   - PERSONAL (employee out of pocket) → bulk "Add to payroll run"
+ *     (paid via payroll, posts as a manual-journal reimbursement) OR
+ *     bulk "Sync to Xero" (awaiting-payment bill). The Xero option is
+ *     hidden when the org isn't connected to Xero.
+ *   - COMPANY (paid from a company bank/card) → bulk "Create Spend
+ *     Money" (Xero bank transaction). Requires a Xero connection.
  */
 export function ClaimPayrollReadyList({
   claims,
   draftRuns,
+  xeroConnected,
 }: {
   claims: ClaimRecord[]
   draftRuns: PayrollRunRow[]
+  xeroConnected: boolean
 }) {
-  const [typeFilter, setTypeFilter] = useState<ClaimType | "ALL">("ALL")
   const [searchTerm, setSearchTerm] = useState("")
-  const [page, setPage] = useState(1)
   const [detailClaim, setDetailClaim] = useState<ClaimRecord | null>(null)
 
-  const filteredClaims = useMemo(() => {
-    const normalizedQuery = searchTerm.trim().toLowerCase()
-    return claims.filter((claim) => {
-      const matchesType =
-        typeFilter === "ALL" || claim.claimType === typeFilter
-      const matchesQuery =
-        normalizedQuery.length === 0
-          ? true
-          : [
-              claim.claimNumber,
-              claim.title,
-              claim.employee.name,
-              claim.employee.jobTitle,
-            ]
-              .filter(Boolean)
-              .join(" ")
-              .toLowerCase()
-              .includes(normalizedQuery)
-      return matchesType && matchesQuery
-    })
-  }, [claims, searchTerm, typeFilter])
+  const filtered = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase()
+    if (!q) return claims
+    return claims.filter((claim) =>
+      [claim.claimNumber, claim.title, claim.employee.name, claim.employee.jobTitle]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    )
+  }, [claims, searchTerm])
 
-  // Reset paging when the filter set changes; otherwise the admin
-  // can land on an empty page after typing a query.
-  useEffect(() => {
-    setPage(1)
-  }, [searchTerm, typeFilter])
+  const personalClaims = useMemo(
+    () => filtered.filter((c) => c.paymentType === "PERSONAL"),
+    [filtered],
+  )
+  const companyClaims = useMemo(
+    () => filtered.filter((c) => c.paymentType === "COMPANY"),
+    [filtered],
+  )
 
-  const totalPages = Math.max(1, Math.ceil(filteredClaims.length / PAGE_SIZE))
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages)
-  }, [page, totalPages])
-
-  const paginatedClaims = useMemo(() => {
-    const startIndex = (page - 1) * PAGE_SIZE
-    return filteredClaims.slice(startIndex, startIndex + PAGE_SIZE)
-  }, [filteredClaims, page])
-
-  const hasActiveFilters =
-    typeFilter !== "ALL" || searchTerm.trim().length > 0
-
-  const typeFilterOptions: Array<{
-    value: ClaimType | "ALL"
-    label: string
-  }> = [
-    { value: "ALL", label: "All types" },
-    { value: "EXPENSE", label: "Expense" },
-    { value: "MILEAGE", label: "Mileage" },
-  ]
-
-  // ── Empty state — no claims at all
   if (claims.length === 0) {
     return (
       <Card>
@@ -118,18 +87,13 @@ export function ClaimPayrollReadyList({
           <CircleCheck className="h-8 w-8 text-emerald-500" />
           <p className="font-semibold">All caught up</p>
           <p className="text-sm text-muted-foreground">
-            No reviewed claims are waiting for payroll. Approved
-            claims will appear here once an admin reviews them.
+            No reviewed claims are waiting to be paid. Approved claims
+            appear here once an admin reviews them.
           </p>
         </CardContent>
       </Card>
     )
   }
-
-  // ── Empty state — no draft runs to attach to (still show the list
-  //    so the admin can see what's waiting + understand why action is
-  //    blocked)
-  const noDraftRuns = draftRuns.length === 0
 
   return (
     <>
@@ -139,258 +103,297 @@ export function ClaimPayrollReadyList({
         onClose={() => setDetailClaim(null)}
       />
 
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-6">
         <Card>
-          <CardContent className="space-y-4 px-5 pb-5 pt-3 sm:space-y-5 sm:p-6">
+          <CardContent className="px-5 pb-5 pt-3 sm:p-6">
             <div className="relative">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by claim or employee"
                 className="pl-10"
               />
             </div>
-
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
-              <Select
-                value={typeFilter}
-                onValueChange={(value) =>
-                  setTypeFilter(value as ClaimType | "ALL")
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {typeFilterOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <p>
-                Showing{" "}
-                <span className="font-semibold text-foreground">
-                  {filteredClaims.length}
-                </span>{" "}
-                of{" "}
-                <span className="font-semibold text-foreground">
-                  {claims.length}
-                </span>{" "}
-                claims
-              </p>
-              {hasActiveFilters && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="w-fit rounded-full"
-                  onClick={() => {
-                    setTypeFilter("ALL")
-                    setSearchTerm("")
-                  }}
-                >
-                  Clear filters
-                </Button>
-              )}
-            </div>
           </CardContent>
         </Card>
 
-        {/* Heads-up when there are no draft payroll runs — admin
-            won't be able to attach until they start a new run. */}
-        {noDraftRuns ? (
-          <Card className="border-amber-300/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/20">
-            <CardContent className="p-4 text-sm text-amber-900 dark:text-amber-200">
-              No draft payroll run yet. Create a new run from{" "}
-              <a
-                href="/admin/payroll/runs"
-                className="underline-offset-2 hover:underline"
-              >
-                Payroll → Runs
-              </a>{" "}
-              before attaching claims.
-            </CardContent>
-          </Card>
-        ) : null}
+        <ClaimGroup
+          title="Personal-money claims"
+          subtitle="Paid back to the employee — add to a payroll run, or bill in Xero."
+          claims={personalClaims}
+          mode="PERSONAL"
+          draftRuns={draftRuns}
+          xeroConnected={xeroConnected}
+          onOpenDetail={setDetailClaim}
+        />
 
-        {filteredClaims.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center text-sm text-muted-foreground">
-              No claims match your search.
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Claim</TableHead>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedClaims.map((claim) => (
-                    <ClaimRow
-                      key={claim.id}
-                      claim={claim}
-                      draftRuns={draftRuns}
-                      onOpen={() => setDetailClaim(claim)}
-                    />
-                  ))}
-                </TableBody>
-            </Table>
-
-            <PaginationControls
-              currentPage={page}
-              pageSize={PAGE_SIZE}
-              totalItems={filteredClaims.length}
-              itemLabel="claims"
-              onPageChange={setPage}
-            />
-          </Card>
-        )}
+        <ClaimGroup
+          title="Company-money claims"
+          subtitle="Already paid from a company account — record as Spend Money in Xero."
+          claims={companyClaims}
+          mode="COMPANY"
+          draftRuns={draftRuns}
+          xeroConnected={xeroConnected}
+          onOpenDetail={setDetailClaim}
+        />
       </div>
     </>
   )
 }
 
-/**
- * One row of the table. Renders the claim summary + a small
- * inline form: pick a draft run, click "Add". On success the page
- * revalidates and this row disappears from the list (it now lives
- * under the chosen run's Reimbursements card).
- */
-function ClaimRow({
-  claim,
+function ClaimGroup({
+  title,
+  subtitle,
+  claims,
+  mode,
   draftRuns,
-  onOpen,
+  xeroConnected,
+  onOpenDetail,
 }: {
-  claim: ClaimRecord
+  title: string
+  subtitle: string
+  claims: ClaimRecord[]
+  mode: "PERSONAL" | "COMPANY"
   draftRuns: PayrollRunRow[]
-  onOpen: () => void
+  xeroConnected: boolean
+  onOpenDetail: (claim: ClaimRecord) => void
 }) {
   const { toast } = useToast()
   const [pending, startTransition] = useTransition()
-  // Default the picker to the most-recent draft run (the list is
-  // already sorted newest-first by year/month from the repository).
-  const [selectedRunId, setSelectedRunId] = useState<string>(
-    draftRuns[0]?.id ?? "",
-  )
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [selectedRunId, setSelectedRunId] = useState<string>(draftRuns[0]?.id ?? "")
 
-  function handleAttach() {
+  const allSelected = claims.length > 0 && selectedIds.size === claims.length
+  const selectedCount = selectedIds.size
+
+  function toggleAll() {
+    setSelectedIds(allSelected ? new Set() : new Set(claims.map((c) => c.id)))
+  }
+  function toggleOne(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function runBulk(
+    fn: () => Promise<{ ok: boolean; message: string }>,
+  ) {
+    startTransition(async () => {
+      const result = await fn()
+      toast({ title: result.message, variant: result.ok ? "success" : "error" })
+      if (result.ok) setSelectedIds(new Set())
+    })
+  }
+
+  function handleAddToRun() {
     if (!selectedRunId) {
       toast({ title: "Pick a draft payroll run first.", variant: "error" })
       return
     }
-    const fd = new FormData()
-    fd.set("runId", selectedRunId)
-    fd.set("claimId", claim.id)
-    startTransition(async () => {
-      const result = await attachClaimToPayrollRunAction(
-        { status: "idle", message: "" },
-        fd,
-      )
-      if (result.status === "success") {
-        toast({
-          title: `Added "${claim.title}" to ${runLabel(
-            draftRuns.find((r) => r.id === selectedRunId)!,
-          )}.`,
-          variant: "success",
-        })
-      } else if (result.status === "error") {
-        toast({
-          title: result.message,
-          variant: "error",
-        })
-      }
-    })
+    runBulk(() =>
+      bulkAttachClaimsToRunAction(selectedRunId, Array.from(selectedIds)),
+    )
+  }
+  function handleSyncToXero() {
+    runBulk(() => bulkSyncClaimsToXeroAction(Array.from(selectedIds)))
+  }
+
+  if (claims.length === 0) {
+    return (
+      <div>
+        <SectionHeading title={title} subtitle={subtitle} />
+        <Card>
+          <CardContent className="p-6 text-sm text-muted-foreground">
+            No {mode === "PERSONAL" ? "personal" : "company"}-money claims waiting.
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
-    <TableRow
-      className="cursor-pointer"
-      onClick={(e) => {
-        // Don't open the detail sheet when the click came from the
-        // run picker or the Add button inside this row.
-        const target = e.target as HTMLElement
-        if (target.closest("[data-row-action]")) return
-        onOpen()
-      }}
-    >
-      <TableCell className="font-medium">
-        <div className="flex flex-col">
-          <span>{claim.title}</span>
-          <span className="text-[10px] text-muted-foreground">
-            {claim.claimNumber}
-          </span>
+    <div className="space-y-3">
+      <SectionHeading title={title} subtitle={subtitle} />
+
+      {/* Bulk action bar */}
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2">
+        <span className="text-sm text-muted-foreground">
+          {selectedCount > 0
+            ? `${selectedCount} selected`
+            : "Select claims to act on them"}
+        </span>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {mode === "PERSONAL" ? (
+            <>
+              <Select
+                value={selectedRunId}
+                onValueChange={setSelectedRunId}
+                disabled={draftRuns.length === 0}
+              >
+                <SelectTrigger className="h-8 w-[170px] text-xs">
+                  <SelectValue placeholder="Pick a draft run" />
+                </SelectTrigger>
+                <SelectContent>
+                  {draftRuns.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {runLabel(r)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                size="sm"
+                disabled={pending || selectedCount === 0 || draftRuns.length === 0}
+                onClick={handleAddToRun}
+                className="gap-1.5"
+              >
+                {pending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <CalendarPlus className="h-3.5 w-3.5" />
+                )}
+                Add to payroll
+              </Button>
+              {xeroConnected ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={pending || selectedCount === 0}
+                  onClick={handleSyncToXero}
+                  className="gap-1.5"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  Sync to Xero (bill)
+                </Button>
+              ) : null}
+            </>
+          ) : xeroConnected ? (
+            <Button
+              type="button"
+              size="sm"
+              disabled={pending || selectedCount === 0}
+              onClick={handleSyncToXero}
+              className="gap-1.5"
+            >
+              {pending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Upload className="h-3.5 w-3.5" />
+              )}
+              Create Spend Money
+            </Button>
+          ) : (
+            <span className="text-xs text-muted-foreground">
+              Connect Xero to record these as Spend Money.
+            </span>
+          )}
         </div>
-      </TableCell>
-      <TableCell>
-        <div className="flex flex-col">
-          <span>{claim.employee.name}</span>
-          <span className="text-[10px] text-muted-foreground">
-            {claim.employee.jobTitle}
-          </span>
-        </div>
-      </TableCell>
-      <TableCell className="text-muted-foreground">
-        {claim.spentAt ? formatShortDate(claim.spentAt) : "—"}
-      </TableCell>
-      <TableCell>
-        <div className="flex flex-wrap gap-1">
-          <ClaimTypeBadge claimType={claim.claimType} />
-          <PaymentTypeBadge claim={claim} />
-          {claim.exceedsLimit ? <OverLimitBadge /> : null}
-        </div>
-      </TableCell>
-      <TableCell className="text-right font-mono">
-        {formatCurrency(claim.amount)}
-      </TableCell>
-      <TableCell className="text-right">
-        <div
-          data-row-action
-          className="flex items-center justify-end gap-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Select value={selectedRunId} onValueChange={setSelectedRunId}>
-            <SelectTrigger className="h-8 w-[180px] text-xs">
-              <SelectValue placeholder="Pick a draft run" />
-            </SelectTrigger>
-            <SelectContent>
-              {draftRuns.map((r) => (
-                <SelectItem key={r.id} value={r.id}>
-                  {runLabel(r)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            type="button"
-            size="sm"
-            disabled={pending || draftRuns.length === 0 || !selectedRunId}
-            onClick={handleAttach}
-            className="gap-1.5"
-          >
-            {pending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <CalendarPlus className="h-3.5 w-3.5" />
-            )}
-            Add
-          </Button>
-        </div>
-      </TableCell>
-    </TableRow>
+      </div>
+
+      {draftRuns.length === 0 && mode === "PERSONAL" ? (
+        <Card className="border-amber-300/60 bg-amber-50/40 dark:border-amber-700/40 dark:bg-amber-950/20">
+          <CardContent className="p-3 text-xs text-amber-900 dark:text-amber-200">
+            No draft payroll run yet. Create one from{" "}
+            <Link href="/admin/payroll/runs" className="underline-offset-2 hover:underline">
+              Payroll → Runs
+            </Link>{" "}
+            to add claims to payroll.
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10">
+                <input
+                  type="checkbox"
+                  aria-label="Select all"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  className="h-4 w-4 cursor-pointer rounded border-input"
+                />
+              </TableHead>
+              <TableHead>Claim</TableHead>
+              <TableHead>Employee</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead className="text-right">Amount</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {claims.map((claim) => {
+              const selected = selectedIds.has(claim.id)
+              return (
+                <TableRow
+                  key={claim.id}
+                  className={cn("cursor-pointer", selected && "bg-muted/50")}
+                  onClick={(e) => {
+                    const target = e.target as HTMLElement
+                    if (target.closest("[data-row-action]")) return
+                    onOpenDetail(claim)
+                  }}
+                >
+                  <TableCell data-row-action onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      aria-label={`Select ${claim.title}`}
+                      checked={selected}
+                      onChange={() => toggleOne(claim.id)}
+                      className="h-4 w-4 cursor-pointer rounded border-input"
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex flex-col">
+                      <span>{claim.title}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {claim.claimNumber}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span>{claim.employee.name}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {claim.employee.jobTitle}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {claim.spentAt ? formatShortDate(claim.spentAt) : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      <ClaimTypeBadge claimType={claim.claimType} />
+                      {claim.exceedsLimit ? <OverLimitBadge /> : null}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {formatCurrency(claim.amount)}
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
+  )
+}
+
+function SectionHeading({ title, subtitle }: { title: string; subtitle: string }) {
+  return (
+    <div>
+      <h2 className="text-sm font-semibold">{title}</h2>
+      <p className="text-xs text-muted-foreground">{subtitle}</p>
+    </div>
   )
 }
 
