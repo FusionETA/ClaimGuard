@@ -2183,6 +2183,30 @@ export const claimRepository = {
     })
   },
 
+  /**
+   * Map claim IDs → their expense account's Xero code. Used by the
+   * payroll manual-journal builder to debit the right expense account
+   * for each reimbursement line. Claims whose expense account has no
+   * Xero code (custom/non-Xero account) are omitted from the map — the
+   * caller treats a missing entry as "can't journal this one".
+   */
+  async getExpenseAccountCodesForClaims(
+    claimIds: string[],
+  ): Promise<Map<string, string>> {
+    if (claimIds.length === 0) return new Map()
+    const prisma = getPrismaClient()
+    if (!prisma) return new Map()
+    const rows = await prisma.claim.findMany({
+      where: { id: { in: claimIds } },
+      select: { id: true, chartOfAccount: { select: { code: true } } },
+    })
+    const map = new Map<string, string>()
+    for (const row of rows) {
+      if (row.chartOfAccount?.code) map.set(row.id, row.chartOfAccount.code)
+    }
+    return map
+  },
+
   async markClaimSpendMoneySynced(data: {
     claimId: string
     xeroSpendMoneyId: string

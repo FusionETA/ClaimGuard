@@ -355,52 +355,15 @@ export async function approvePayrollRun(input: {
   const settings = await payrollSettingsRepository.getByOrgId(orgId)
   const result: Awaited<ReturnType<typeof approvePayrollRun>> = {}
 
-  if (settings?.syncClaimsToXeroOnSubmit) {
-    const attachedClaims = await payrollRunClaimRepository.listForRun(run.id)
-    if (attachedClaims.length === 0) {
-      result.claimXeroSync = {
-        status: "skipped",
-        message: "No attached claims to sync.",
-      }
-    } else {
-      try {
-        const { syncApprovedClaimToXero } = await import(
-          "@/modules/organization/application/services/xero-connection.service"
-        )
-        const outcomes = await Promise.all(
-          attachedClaims.map((claim) => syncApprovedClaimToXero(claim.claimId)),
-        )
-        const created = outcomes.filter((outcome) => outcome.status === "synced").length
-        const skipped = outcomes.filter((outcome) => outcome.status === "skipped").length
-        const errors = outcomes.filter((outcome) => outcome.status === "error")
-        if (errors.length > 0) {
-          result.claimXeroSync = {
-            status: "error",
-            created,
-            skipped,
-            failed: errors.length,
-            message: errors.map((error) => error.message).join("; "),
-          }
-        } else {
-          result.claimXeroSync = {
-            status: "synced",
-            created,
-            skipped,
-            message: `${created} claim bill${created === 1 ? "" : "s"} created in Xero.`,
-          }
-        }
-      } catch (err) {
-        console.error("[payroll-run] claim bill Xero sync threw:", err)
-        result.claimXeroSync = {
-          status: "error",
-          created: 0,
-          skipped: 0,
-          failed: attachedClaims.length,
-          message: "Claim bill sync failed unexpectedly.",
-        }
-      }
-    }
-  }
+  // NOTE: Claims attached to this run are NO LONGER posted as separate
+  // Xero bills here. They're reimbursements paid out *through* payroll,
+  // so they ride along in the payroll manual journal below (as
+  // REIMBURSEMENT debit lines + a reimbursement-inclusive net-payable
+  // credit). Posting them as bills too would double-count the payable.
+  //
+  // Claims that should hit Xero as a standalone awaiting-payment bill
+  // (personal) or Spend Money (company) are synced directly from the
+  // "Ready to Pay" tab instead, not via payroll attachment.
 
   if (settings?.syncPayrollToXeroOnSubmit) {
     try {

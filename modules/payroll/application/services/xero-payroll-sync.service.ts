@@ -10,6 +10,7 @@ import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll
 import { createXeroManualJournal, getXeroTrackingCategories } from "@/lib/xero"
 import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import {
   PAYROLL_XERO_ALLOWANCE_CATEGORIES,
@@ -137,14 +138,15 @@ export async function syncPayrollRunToXero(
           // deduction mapping under the v2 schema. Each row tags
           // itself with a kind (ALLOWANCE / DEDUCTION / REIMBURSEMENT)
           // and an optional `category` (PayrollAdjustmentCategory).
-          // Reimbursements are skipped here — they post as Bills on
-          // claim approval, not in this journal.
+          // `claimId` links REIMBURSEMENT lines back to their claim so
+          // the journal can debit the claim's expense account.
           lineItems: {
             select: {
               kind: true,
               category: true,
               amount: true,
               label: true,
+              claimId: true,
             },
           },
           employeeProfile: {
@@ -329,11 +331,25 @@ export async function syncPayrollRunToXero(
       amount: number
       label: string
     }> = []
+    // Reimbursements (approved claims attached to this run). Each posts
+    // as a DEBIT to the claim's own expense account; the matching CREDIT
+    // rides on the (now reimbursement-inclusive) ACCRUAL SALARY line.
+    const reimbursementLines: Array<{
+      claimId: string
+      amount: number
+      label: string
+    }> = []
     for (const li of p.lineItems) {
       const amount = toNumber(li.amount, 0)
       if (amount <= 0) continue
       const cat = (li.category as PayrollAdjustmentCategory | null) ?? null
       const entry = { category: cat, amount, label: li.label }
+      if (li.kind === "REIMBURSEMENT") {
+        if (li.claimId) {
+          reimbursementLines.push({ claimId: li.claimId, amount, label: li.label })
+        }
+        continue
+      }
       if (li.kind === "ALLOWANCE") {
         // BIK / perquisite (non-cash) line items are debited under
         // kind ALLOWANCE by the calc engine, but they NEVER hit gross
@@ -348,13 +364,13 @@ export async function syncPayrollRunToXero(
       } else if (li.kind === "DEDUCTION") {
         deductionLines.push(entry)
       }
-      // REIMBURSEMENT lines stay on the Bill side — ignored here.
     }
     return {
       id: p.id,
       employeeName: p.snapshotName,
       employeeId: p.snapshotEmployeeId,
       projectName: projectName ?? NO_PROJECT,
+      reimbursementLines,
       // Use proratedPay (basicPay × proration), NOT basicPay — the
       // payroll engine's gross is built on proratedPay, so an
       // employee with unpaid leave / mid-month join would otherwise
@@ -663,6 +679,73 @@ export async function syncPayrollRunToXero(
     }
   }
 
+  // ── Reimbursement debits (approved claims included in this payroll) ──
+  // Each reimbursement debits the claim's own expense account; the
+  // matching credit is folded into the ACCRUAL SALARY line below (which
+  // now includes reimbursements). Grouped by (expense code, project) so
+  // the journal stays compact. Claims whose expense account has no Xero
+  // code are skipped — they can't be journalled, so they'd leave the
+  // run's net payable unbalanced; surfaced as a pre-flight error.
+  const allReimbursementClaimIds = rows.flatMap((r) =>
+    r.reimbursementLines.map((l) => l.claimId),
+  )
+  const reimbursementExpenseCodes =
+    allReimbursementClaimIds.length > 0
+      ? await claimRepository.getExpenseAccountCodesForClaims(
+          allReimbursementClaimIds,
+        )
+      : new Map<string, string>()
+
+  const unmappedReimbursementClaims: string[] = []
+  // Bucket by (expense account code, project) → summed amount.
+  const reimbursementBuckets = new Map<
+    string,
+    { code: string; project: string; amount: number }
+  >()
+  for (const r of rows) {
+    for (const rl of r.reimbursementLines) {
+      const code = reimbursementExpenseCodes.get(rl.claimId)
+      if (!code) {
+        unmappedReimbursementClaims.push(rl.label || rl.claimId)
+        continue
+      }
+      const bucketKey = `${code}::${r.projectName}`
+      const existing = reimbursementBuckets.get(bucketKey)
+      if (existing) {
+        existing.amount = round2(existing.amount + rl.amount)
+      } else {
+        reimbursementBuckets.set(bucketKey, {
+          code,
+          project: r.projectName,
+          amount: round2(rl.amount),
+        })
+      }
+    }
+  }
+
+  // If any attached claim can't resolve a Xero expense code, refuse to
+  // post — otherwise the net-payable credit (which includes the
+  // reimbursement) would have no matching debit and the journal would
+  // not balance.
+  if (unmappedReimbursementClaims.length > 0) {
+    return {
+      status: "error",
+      message:
+        "These reimbursement claims have no Xero-linked expense account, so they can't be posted to the manual journal: " +
+        unmappedReimbursementClaims.join(", ") +
+        ". Fix the claim's expense account or sync it to Xero as a bill instead.",
+    }
+  }
+
+  for (const bucket of reimbursementBuckets.values()) {
+    lines.push({
+      accountCode: bucket.code,
+      amount: round2(bucket.amount),
+      description: `REIMBURSEMENT - ${bucket.project}`,
+      tracking: track(bucket.project),
+    })
+  }
+
   // ── Accrual lines (credit, always summed) ──
   const totalEpf = sum(rows, (r) => r.epfEmployee + r.epfEmployer)
   const totalSocso = sum(rows, (r) => r.socsoEmployee + r.socsoEmployer)
@@ -672,12 +755,11 @@ export async function syncPayrollRunToXero(
   // employer-contributions block above, so it needs a matching credit
   // here (the payable owed to HRD Corp), or the journal won't balance.
   const totalHrdf = sum(rows, (r) => r.hrdf)
-  // Net excludes reimbursements: those amounts post as separate
-  // Xero Bills on claim approval and would double-count if included
-  // in the accrual-salary credit. The math: gross + reimbursements
-  // − deductions = netPay (current schema), so we subtract
-  // reimbursements back out to land on "salary net only".
-  const totalNet = sum(rows, (r) => r.netPay - r.totalReimbursements)
+  // Net INCLUDES reimbursements: attached claims are paid out as part of
+  // payroll (not as separate bills), so the net payable the company owes
+  // employees covers salary + reimbursement. The matching debits are the
+  // REIMBURSEMENT expense lines emitted above, so the journal balances.
+  const totalNet = sum(rows, (r) => r.netPay)
 
   if (totalEpf > 0) {
     lines.push({
