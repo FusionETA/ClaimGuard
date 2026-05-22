@@ -907,6 +907,9 @@ export type PayrollEmployeeRow = {
   name: string
   email: string
   jobTitle: string
+  /// Compensation basis — drives whether the run shows HRS as a % or as
+  /// absolute hours. Defaults to MONTHLY when no profile exists yet.
+  salaryType: SalaryType
   /// True if a PayrollProfile row exists for this employee at all.
   hasProfile: boolean
   /// True only when every required statutory + compensation field is filled

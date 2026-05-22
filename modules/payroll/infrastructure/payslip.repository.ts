@@ -42,6 +42,7 @@ export type CreatePayslipInput = {
   basicPay: number
   proratedPay: number
   workedHours: number | null
+  expectedHours: number | null
   proratedFactor: number
   proratedDays: number | null
   totalWorkingDays: number | null
@@ -119,6 +120,7 @@ export const payslipRepository = {
             basicPay: p.basicPay,
             proratedPay: p.proratedPay,
             workedHours: p.workedHours,
+            expectedHours: p.expectedHours,
             proratedFactor: p.proratedFactor,
             proratedDays: p.proratedDays,
             totalWorkingDays: p.totalWorkingDays,
@@ -496,6 +498,8 @@ function mapPayslip(row: any, lineItems: PayslipLineItemData[]): PayslipData {
     basicPay: toNumber(row.basicPay, 0),
     proratedPay: toNumber(row.proratedPay, 0),
     workedHours: row.workedHours == null ? null : toNumber(row.workedHours, 0),
+    expectedHours:
+      row.expectedHours == null ? null : toNumber(row.expectedHours, 0),
     proratedFactor: toNumber(row.proratedFactor, 1),
     proratedDays: row.proratedDays ?? null,
     totalWorkingDays: row.totalWorkingDays ?? null,

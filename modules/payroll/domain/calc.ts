@@ -1189,6 +1189,47 @@ function epfSnapshotRates(input: {
 }
 
 /**
+ * Convert attendance/leave minutes into the worked/expected hours shown
+ * on the run table and payslip. DISPLAY ONLY — these figures do NOT feed
+ * the pay calculation (`calcPayslip` prorates by working days, not by
+ * attendance). MONTHLY: worked = attended, expected = scheduled − paid
+ * leave. HOURLY: worked = attended + paid leave, expected unused.
+ */
+export function autoHoursFromMinutes(input: {
+  salaryType: SalaryType
+  workedMin: number
+  scheduledMin: number
+  paidLeaveMin: number
+}): { workedHours: number | null; expectedHours: number | null } {
+  if (input.salaryType === "MONTHLY") {
+    return {
+      workedHours: input.workedMin / 60,
+      expectedHours: Math.max(0, input.scheduledMin - input.paidLeaveMin) / 60,
+    }
+  }
+  return {
+    workedHours: (input.workedMin + input.paidLeaveMin) / 60,
+    expectedHours: null,
+  }
+}
+
+/**
+ * HRS percentage for MONTHLY staff: `workedHours / expectedHours` capped
+ * at 100 and rounded to 2dp. Null when there's no hours basis (expected
+ * missing/0 or worked unknown). Shared by the calc result and the run
+ * table so both display the same figure.
+ */
+export function attendancePercentOf(
+  workedHours: number | null | undefined,
+  expectedHours: number | null | undefined,
+): number | null {
+  if (workedHours == null || expectedHours == null || expectedHours <= 0) {
+    return null
+  }
+  return round2(Math.min(1, workedHours / expectedHours) * 100)
+}
+
+/**
  * Compute the employee's age at the last day of the payroll period.
  * Returns 0 when `dateOfBirth` isn't set (caller treats as "under 60",
  * so under-60 rates apply by default — matches conservative behaviour).

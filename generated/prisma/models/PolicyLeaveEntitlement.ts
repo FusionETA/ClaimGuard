@@ -228,8 +228,8 @@ export type PolicyLeaveEntitlementWhereInput = {
   defaultDays?: Prisma.FloatFilter<"PolicyLeaveEntitlement"> | number
   createdAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
-  policy?: Prisma.XOR<Prisma.EmployeePolicyScalarRelationFilter, Prisma.EmployeePolicyWhereInput>
   leaveType?: Prisma.XOR<Prisma.LeaveTypeScalarRelationFilter, Prisma.LeaveTypeWhereInput>
+  policy?: Prisma.XOR<Prisma.EmployeePolicyScalarRelationFilter, Prisma.EmployeePolicyWhereInput>
 }
 
 export type PolicyLeaveEntitlementOrderByWithRelationInput = {
@@ -239,8 +239,8 @@ export type PolicyLeaveEntitlementOrderByWithRelationInput = {
   defaultDays?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  policy?: Prisma.EmployeePolicyOrderByWithRelationInput
   leaveType?: Prisma.LeaveTypeOrderByWithRelationInput
+  policy?: Prisma.EmployeePolicyOrderByWithRelationInput
   _relevance?: Prisma.PolicyLeaveEntitlementOrderByRelevanceInput
 }
 
@@ -255,8 +255,8 @@ export type PolicyLeaveEntitlementWhereUniqueInput = Prisma.AtLeast<{
   defaultDays?: Prisma.FloatFilter<"PolicyLeaveEntitlement"> | number
   createdAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
-  policy?: Prisma.XOR<Prisma.EmployeePolicyScalarRelationFilter, Prisma.EmployeePolicyWhereInput>
   leaveType?: Prisma.XOR<Prisma.LeaveTypeScalarRelationFilter, Prisma.LeaveTypeWhereInput>
+  policy?: Prisma.XOR<Prisma.EmployeePolicyScalarRelationFilter, Prisma.EmployeePolicyWhereInput>
 }, "id" | "policyId_leaveTypeId">
 
 export type PolicyLeaveEntitlementOrderByWithAggregationInput = {
@@ -290,8 +290,8 @@ export type PolicyLeaveEntitlementCreateInput = {
   defaultDays?: number
   createdAt?: Date | string
   updatedAt?: Date | string
-  policy: Prisma.EmployeePolicyCreateNestedOneWithoutLeaveDefaultsInput
   leaveType: Prisma.LeaveTypeCreateNestedOneWithoutPolicyDefaultsInput
+  policy: Prisma.EmployeePolicyCreateNestedOneWithoutLeaveDefaultsInput
 }
 
 export type PolicyLeaveEntitlementUncheckedCreateInput = {
@@ -308,8 +308,8 @@ export type PolicyLeaveEntitlementUpdateInput = {
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  policy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutLeaveDefaultsNestedInput
   leaveType?: Prisma.LeaveTypeUpdateOneRequiredWithoutPolicyDefaultsNestedInput
+  policy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutLeaveDefaultsNestedInput
 }
 
 export type PolicyLeaveEntitlementUncheckedUpdateInput = {
@@ -655,8 +655,8 @@ export type PolicyLeaveEntitlementSelect<ExtArgs extends runtime.Types.Extension
   defaultDays?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  policy?: boolean | Prisma.EmployeePolicyDefaultArgs<ExtArgs>
   leaveType?: boolean | Prisma.LeaveTypeDefaultArgs<ExtArgs>
+  policy?: boolean | Prisma.EmployeePolicyDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["policyLeaveEntitlement"]>
 
 
@@ -672,15 +672,15 @@ export type PolicyLeaveEntitlementSelectScalar = {
 
 export type PolicyLeaveEntitlementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "policyId" | "leaveTypeId" | "defaultDays" | "createdAt" | "updatedAt", ExtArgs["result"]["policyLeaveEntitlement"]>
 export type PolicyLeaveEntitlementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  policy?: boolean | Prisma.EmployeePolicyDefaultArgs<ExtArgs>
   leaveType?: boolean | Prisma.LeaveTypeDefaultArgs<ExtArgs>
+  policy?: boolean | Prisma.EmployeePolicyDefaultArgs<ExtArgs>
 }
 
 export type $PolicyLeaveEntitlementPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "PolicyLeaveEntitlement"
   objects: {
-    policy: Prisma.$EmployeePolicyPayload<ExtArgs>
     leaveType: Prisma.$LeaveTypePayload<ExtArgs>
+    policy: Prisma.$EmployeePolicyPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1029,8 +1029,8 @@ readonly fields: PolicyLeaveEntitlementFieldRefs;
  */
 export interface Prisma__PolicyLeaveEntitlementClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  policy<T extends Prisma.EmployeePolicyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeePolicyDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeePolicyClient<runtime.Types.Result.GetResult<Prisma.$EmployeePolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   leaveType<T extends Prisma.LeaveTypeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.LeaveTypeDefaultArgs<ExtArgs>>): Prisma.Prisma__LeaveTypeClient<runtime.Types.Result.GetResult<Prisma.$LeaveTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  policy<T extends Prisma.EmployeePolicyDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeePolicyDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeePolicyClient<runtime.Types.Result.GetResult<Prisma.$EmployeePolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

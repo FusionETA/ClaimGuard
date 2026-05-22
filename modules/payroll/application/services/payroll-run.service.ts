@@ -5,11 +5,16 @@ import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { key } from "@/lib/redis"
-import { calcPayslip } from "@/modules/payroll/domain/calc"
+import {
+  attendancePercentOf,
+  autoHoursFromMinutes,
+  calcPayslip,
+} from "@/modules/payroll/domain/calc"
 import { PAYROLL_RUN_STATUS_LABELS, periodLabel } from "@/modules/payroll/domain/runs"
 import type {
   FixedAllowance,
   PayrollEmployeeRow,
+  SalaryType,
 } from "@/modules/payroll/domain/models"
 import type {
   AttachableClaimRow,
@@ -37,6 +42,7 @@ import {
   type CreatePayslipInput,
 } from "@/modules/payroll/infrastructure/payslip.repository"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { deriveDailyHours } from "@/modules/payroll/domain/calc"
 
 /**
@@ -495,6 +501,8 @@ export async function previewEmployeeNetForRun(input: {
     otNormalHours: number
     otRestHours: number
     otPublicHours: number
+    workedHours?: number | null
+    expectedHours?: number | null
     manualLineItems: { kind: string; category: string; label: string; amount: number }[]
     fixedAllowanceOverrides: Record<
       string,
@@ -793,6 +801,20 @@ export async function generatePayrollPayslips(input: {
   )
   const ytdByEmp = new Map(ytdEntries.map((y) => [y.empId, y]))
 
+  // Worked / scheduled / paid-leave minutes per employee, used to default
+  // the regular working-hours figures (the HRS column). MONTHLY staff get
+  // a leave-adjusted percentage; HOURLY staff get absolute paid hours.
+  const hoursByEmp = await attendanceRepository.getPayrollHoursForProfiles({
+    organizationId: orgId,
+    periodYear: run.periodYear,
+    periodMonth: run.periodMonth,
+    employees: employees.map((e) => ({
+      employeeProfileId: e.employeeProfileId,
+      joinDate: e.profile.joinDate,
+      leaveDate: e.profile.leaveDate,
+    })),
+  })
+
   const payslips: CreatePayslipInput[] = employees.map((e) => {
     const adj = adjustments.get(e.employeeProfileId) ?? null
     const ytd = ytdByEmp.get(e.employeeProfileId)
@@ -863,6 +885,31 @@ export async function generatePayrollPayslips(input: {
       project: e.primaryProject,
       org: orgHours,
     })
+
+    // Regular working hours (the HRS column) — DISPLAY ONLY. These are
+    // snapshotted onto the payslip so the table/payslip can show worked
+    // vs expected hours, but they do NOT affect pay: `calcPayslip`
+    // prorates by working days, not attendance. Only computed when the
+    // employee's policy grants attendance access; otherwise the column
+    // shows "—". The admin's per-run override (if any) wins for display.
+    const isMonthly = e.profile.salaryType === "MONTHLY"
+    const attendanceApplies =
+      (e.policyId ? policyById.get(e.policyId)?.canAccessAttendance : undefined) ===
+      true
+    const hrs = hoursByEmp.get(e.employeeProfileId) ?? null
+    const auto = attendanceApplies
+      ? autoHoursFromMinutes({
+          salaryType: e.profile.salaryType,
+          workedMin: hrs?.workedMin ?? 0,
+          scheduledMin: hrs?.scheduledMin ?? 0,
+          paidLeaveMin: hrs?.paidLeaveMin ?? 0,
+        })
+      : { workedHours: null, expectedHours: null }
+    const displayWorkedHours = adj?.workedHours ?? auto.workedHours
+    const displayExpectedHours = isMonthly
+      ? adj?.expectedHours ?? auto.expectedHours
+      : null
+
     const result = calcPayslip({
       profile: profileWithAdjAllowances,
       settings: calcSettings,
@@ -908,7 +955,9 @@ export async function generatePayrollPayslips(input: {
       snapshotEpfRates: result.epfRatesSnapshot,
       basicPay: result.basicPay,
       proratedPay: result.proratedPay,
-      workedHours: result.workedHours,
+      // Display-only attendance figures (do not affect pay above).
+      workedHours: displayWorkedHours,
+      expectedHours: displayExpectedHours,
       proratedFactor: result.proratedFactor,
       proratedDays: result.proratedDays,
       totalWorkingDays: result.totalWorkingDays,
@@ -969,6 +1018,16 @@ export type RunEmployeeAdjustmentSummary = {
   otNormalHours: number
   otRestHours: number
   otPublicHours: number
+  /// Salary type — drives whether HRS shows as a % (MONTHLY) or as
+  /// absolute hours (HOURLY) in the run table.
+  salaryType: SalaryType
+  /// Resolved regular working hours (admin override ?? auto from
+  /// attendance + paid leave). Null when no attendance data exists.
+  workedHours: number | null
+  /// Leave-adjusted expected hours (MONTHLY only). Null otherwise.
+  expectedHours: number | null
+  /// `workedHours / expectedHours` as a percentage (MONTHLY only).
+  attendancePercent: number | null
   /// Count of manual ALLOWANCE-kind line items.
   allowanceCount: number
   /// Count of manual DEDUCTION-kind line items.
@@ -1016,10 +1075,15 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
   // 1-hour TTL — keyed on runId so each run has its own slot. Every
   // payroll mutation (generate, adjustment save, attach/detach, status
   // transition, Xero sync) calls `bustPayrollCaches({ organizationId })`.
-  // The v2 segment intentionally bypasses older cached payloads that
-  // pre-date the "hide already-Xero-synced claims" filter.
+  // The version segment intentionally bypasses older cached payloads:
+  //  - v2 added the "hide already-Xero-synced claims" filter
+  //  - v3 added per-employee working-hours (HRS %) + salary-type fields
+  //  - v4 made attendance authoritative (no attendance → 0%, not blank)
+  //  - v5 gated HRS on policy attendance access ("—" + full pay when off)
+  //  - v6 made HRS display-only (pay reverted to day-based proration)
+  //  - v7 force-refresh so payslips carry worked/expected hours for HRS
   return getOrSetCache(
-    key("org", orgId, "payroll", "page", "run-detail:v2", input.runId),
+    key("org", orgId, "payroll", "page", "run-detail:v7", input.runId),
     3600,
     () => loadPayrollRunDetailWithPayslipsPageData(input, orgId),
   )
@@ -1032,7 +1096,7 @@ async function loadPayrollRunDetailWithPayslipsPageData(
   const base = await getPayrollRunDetailPageData(input)
   if (!base) return null
 
-  const [payslips, attachments, attachableClaims, adjustments] =
+  const [payslips, attachments, attachableClaims, adjustments, readyProfiles, policies] =
     await Promise.all([
       payslipRepository.listForRun(input.runId),
       payrollRunClaimRepository.listForRun(input.runId),
@@ -1041,33 +1105,101 @@ async function loadPayrollRunDetailWithPayslipsPageData(
         excludeAttached: true,
       }),
       payrollRunAdjustmentRepository.listForRun(input.runId),
+      payrollProfileRepository.listReadyForPayroll(orgId),
+      policyRepository.listForOrganization(orgId),
     ])
 
-  // Project every PayrollRunAdjustment row into a serialisable
-  // summary, keyed by employeeProfileId. The "Will be included"
-  // table reads these so admins can see who has OT / line items
-  // set before clicking Generate.
+  // Join/leave dates come from the ready payroll profiles (only ready
+  // employees generate a payslip, so only they need an HRS figure).
+  const joinLeaveByEmp = new Map(
+    readyProfiles.map((p) => [
+      p.employeeProfileId,
+      { joinDate: p.profile.joinDate, leaveDate: p.profile.leaveDate },
+    ]),
+  )
+  // Whether attendance applies, per employee — drives whether the HRS
+  // column shows a percentage/hours (attendance access) or "—" + full
+  // pay (no attendance access). Keyed by employeeProfileId via policy.
+  const policyById = new Map(policies.map((p) => [p.id, p]))
+  const attendanceByEmp = new Map(
+    readyProfiles.map((p) => [
+      p.employeeProfileId,
+      (p.policyId ? policyById.get(p.policyId)?.canAccessAttendance : undefined) ===
+        true,
+    ]),
+  )
+
+  // Auto-computed working hours per employee (worked / scheduled /
+  // paid-leave minutes) so the table can show the HRS figure that will
+  // apply at generation — even before the admin opens the dialog.
+  const hoursByEmp = await attendanceRepository.getPayrollHoursForProfiles({
+    organizationId: orgId,
+    periodYear: base.run.periodYear,
+    periodMonth: base.run.periodMonth,
+    employees: base.employees.map((e) => ({
+      employeeProfileId: e.employeeProfileId,
+      joinDate: joinLeaveByEmp.get(e.employeeProfileId)?.joinDate ?? null,
+      leaveDate: joinLeaveByEmp.get(e.employeeProfileId)?.leaveDate ?? null,
+    })),
+  })
+
+  // Project every employee into a serialisable adjustment summary,
+  // keyed by employeeProfileId. The "Will be included" table reads
+  // these so admins can see who has OT / line items / an HRS figure
+  // set before clicking Generate. Ready employees always get a summary
+  // (so the HRS column shows a % / hours / "—"); non-ready rows only
+  // when they carry an adjustment.
   const summariesByEmp = new Map<string, RunEmployeeAdjustmentSummary>()
-  for (const [empId, adj] of adjustments.entries()) {
+  for (const e of base.employees) {
+    const empId = e.employeeProfileId
+    const adj = adjustments.get(empId) ?? null
+    const hrs = hoursByEmp.get(empId) ?? null
+    const isMonthly = e.salaryType === "MONTHLY"
+    // No hours basis unless the employee's policy grants attendance —
+    // otherwise the HRS column shows "—" and pay is the full month.
+    const attendanceApplies = attendanceByEmp.get(empId) === true
+    const auto = attendanceApplies
+      ? autoHoursFromMinutes({
+          salaryType: e.salaryType,
+          workedMin: hrs?.workedMin ?? 0,
+          scheduledMin: hrs?.scheduledMin ?? 0,
+          paidLeaveMin: hrs?.paidLeaveMin ?? 0,
+        })
+      : { workedHours: null, expectedHours: null }
+    const workedHours = adj?.workedHours ?? auto.workedHours
+    const expectedHours = isMonthly
+      ? adj?.expectedHours ?? auto.expectedHours
+      : null
+    const attendancePercent = isMonthly
+      ? attendancePercentOf(workedHours, expectedHours)
+      : null
+
     let allowanceCount = 0
     let deductionCount = 0
-    for (const li of adj.manualLineItems) {
+    for (const li of adj?.manualLineItems ?? []) {
       if (li.kind === "ALLOWANCE") allowanceCount += 1
       else if (li.kind === "DEDUCTION") deductionCount += 1
     }
     let overrideCount = 0
-    for (const v of Object.values(adj.fixedAllowanceOverrides ?? {})) {
+    for (const v of Object.values(adj?.fixedAllowanceOverrides ?? {})) {
       if (v.skip || v.amount != null) overrideCount += 1
     }
+
+    if (!e.ready && adj == null) continue
+
     summariesByEmp.set(empId, {
-      otNormalHours: adj.otNormalHours,
-      otRestHours: adj.otRestHours,
-      otPublicHours: adj.otPublicHours,
+      otNormalHours: adj?.otNormalHours ?? 0,
+      otRestHours: adj?.otRestHours ?? 0,
+      otPublicHours: adj?.otPublicHours ?? 0,
+      salaryType: e.salaryType,
+      workedHours,
+      expectedHours,
+      attendancePercent,
       allowanceCount,
       deductionCount,
       overrideCount,
       hasNote:
-        typeof adj.notes === "string" && adj.notes.trim().length > 0,
+        typeof adj?.notes === "string" && adj.notes.trim().length > 0,
     })
   }
 
@@ -1229,6 +1361,14 @@ export async function getPayrollAdjustmentPageData(input: {
   /// so admins can override them per-run (Phase 18).
   fixedAllowances: FixedAllowance[]
   adjustment: PayrollRunAdjustmentData | null
+  /// Auto-computed regular working hours from attendance + paid leave.
+  /// The form prefills with these when the admin hasn't set an override.
+  /// Nulls when no attendance data exists (legacy day-based proration).
+  autoHours: {
+    workedHours: number | null
+    expectedHours: number | null
+    attendancePercent: number | null
+  }
   /// Active loan installments that auto-deduct for THIS run's period.
   /// Shown read-only in the modal (editing happens on the Loans page).
   loans: Array<{ id: string; label: string; amount: number }>
@@ -1258,6 +1398,7 @@ export async function getPayrollAdjustmentPageData(input: {
       id: true,
       employeeId: true,
       jobTitle: true,
+      policy: { select: { canAccessAttendance: true } },
       user: { select: { id: true, name: true, email: true } },
       payrollProfile: {
         select: {
@@ -1299,6 +1440,44 @@ export async function getPayrollAdjustmentPageData(input: {
     }))
     .filter((l) => l.amount > 0)
 
+  const salaryType =
+    (profileRow.payrollProfile?.salaryType as "MONTHLY" | "HOURLY") ?? "MONTHLY"
+  // Only compute an attendance-based default when the employee's policy
+  // grants attendance access; otherwise the HRS field is left empty and
+  // the run pays the full month (day-based proration).
+  const attendanceApplies = profileRow.policy?.canAccessAttendance === true
+  const hoursMap = attendanceApplies
+    ? await attendanceRepository.getPayrollHoursForProfiles({
+        organizationId: orgId,
+        periodYear: run.periodYear,
+        periodMonth: run.periodMonth,
+        employees: [
+          {
+            employeeProfileId: profileRow.id,
+            joinDate: payrollProfile?.joinDate ?? null,
+            leaveDate: payrollProfile?.leaveDate ?? null,
+          },
+        ],
+      })
+    : null
+  const hrs = hoursMap?.get(profileRow.id) ?? null
+  const auto = attendanceApplies
+    ? autoHoursFromMinutes({
+        salaryType,
+        workedMin: hrs?.workedMin ?? 0,
+        scheduledMin: hrs?.scheduledMin ?? 0,
+        paidLeaveMin: hrs?.paidLeaveMin ?? 0,
+      })
+    : { workedHours: null, expectedHours: null }
+  const autoHours = {
+    workedHours: auto.workedHours,
+    expectedHours: auto.expectedHours,
+    attendancePercent:
+      salaryType === "MONTHLY"
+        ? attendancePercentOf(auto.workedHours, auto.expectedHours)
+        : null,
+  }
+
   return {
     organizationName: org?.name ?? "",
     run,
@@ -1321,6 +1500,7 @@ export async function getPayrollAdjustmentPageData(input: {
     },
     fixedAllowances: payrollProfile?.fixedAllowances ?? [],
     adjustment,
+    autoHours,
     loans,
   }
 }

@@ -144,6 +144,7 @@ export const payrollProfileRepository = {
           name: u.name,
           email: u.email,
           jobTitle: ep.jobTitle,
+          salaryType: projected?.salaryType ?? "MONTHLY",
           hasProfile: pp !== null,
           isComplete: projected ? isPayrollProfileComplete(projected) : false,
           isArchived: projected?.isArchived ?? false,

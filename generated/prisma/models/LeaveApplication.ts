@@ -48,14 +48,14 @@ export type LeaveApplicationMinAggregateOutputType = {
   duration: $Enums.LeaveDuration | null
   totalDays: number | null
   reason: string | null
-  attachmentUrl: string | null
-  attachmentName: string | null
-  xeroFileId: string | null
   status: $Enums.LeaveStatus | null
   currentStep: number | null
   createdAt: Date | null
   updatedAt: Date | null
   decidedAt: Date | null
+  attachmentName: string | null
+  attachmentUrl: string | null
+  xeroFileId: string | null
 }
 
 export type LeaveApplicationMaxAggregateOutputType = {
@@ -67,14 +67,14 @@ export type LeaveApplicationMaxAggregateOutputType = {
   duration: $Enums.LeaveDuration | null
   totalDays: number | null
   reason: string | null
-  attachmentUrl: string | null
-  attachmentName: string | null
-  xeroFileId: string | null
   status: $Enums.LeaveStatus | null
   currentStep: number | null
   createdAt: Date | null
   updatedAt: Date | null
   decidedAt: Date | null
+  attachmentName: string | null
+  attachmentUrl: string | null
+  xeroFileId: string | null
 }
 
 export type LeaveApplicationCountAggregateOutputType = {
@@ -86,15 +86,15 @@ export type LeaveApplicationCountAggregateOutputType = {
   duration: number
   totalDays: number
   reason: number
-  attachmentUrl: number
-  attachmentName: number
-  xeroFileId: number
   status: number
   currentStep: number
   approvals: number
   createdAt: number
   updatedAt: number
   decidedAt: number
+  attachmentName: number
+  attachmentUrl: number
+  xeroFileId: number
   _all: number
 }
 
@@ -118,14 +118,14 @@ export type LeaveApplicationMinAggregateInputType = {
   duration?: true
   totalDays?: true
   reason?: true
-  attachmentUrl?: true
-  attachmentName?: true
-  xeroFileId?: true
   status?: true
   currentStep?: true
   createdAt?: true
   updatedAt?: true
   decidedAt?: true
+  attachmentName?: true
+  attachmentUrl?: true
+  xeroFileId?: true
 }
 
 export type LeaveApplicationMaxAggregateInputType = {
@@ -137,14 +137,14 @@ export type LeaveApplicationMaxAggregateInputType = {
   duration?: true
   totalDays?: true
   reason?: true
-  attachmentUrl?: true
-  attachmentName?: true
-  xeroFileId?: true
   status?: true
   currentStep?: true
   createdAt?: true
   updatedAt?: true
   decidedAt?: true
+  attachmentName?: true
+  attachmentUrl?: true
+  xeroFileId?: true
 }
 
 export type LeaveApplicationCountAggregateInputType = {
@@ -156,15 +156,15 @@ export type LeaveApplicationCountAggregateInputType = {
   duration?: true
   totalDays?: true
   reason?: true
-  attachmentUrl?: true
-  attachmentName?: true
-  xeroFileId?: true
   status?: true
   currentStep?: true
   approvals?: true
   createdAt?: true
   updatedAt?: true
   decidedAt?: true
+  attachmentName?: true
+  attachmentUrl?: true
+  xeroFileId?: true
   _all?: true
 }
 
@@ -263,15 +263,15 @@ export type LeaveApplicationGroupByOutputType = {
   duration: $Enums.LeaveDuration
   totalDays: number
   reason: string | null
-  attachmentUrl: string | null
-  attachmentName: string | null
-  xeroFileId: string | null
   status: $Enums.LeaveStatus
   currentStep: number
   approvals: runtime.JsonValue | null
   createdAt: Date
   updatedAt: Date
   decidedAt: Date | null
+  attachmentName: string | null
+  attachmentUrl: string | null
+  xeroFileId: string | null
   _count: LeaveApplicationCountAggregateOutputType | null
   _avg: LeaveApplicationAvgAggregateOutputType | null
   _sum: LeaveApplicationSumAggregateOutputType | null
@@ -306,15 +306,15 @@ export type LeaveApplicationWhereInput = {
   duration?: Prisma.EnumLeaveDurationFilter<"LeaveApplication"> | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFilter<"LeaveApplication"> | number
   reason?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
-  attachmentUrl?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
-  attachmentName?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
-  xeroFileId?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
   status?: Prisma.EnumLeaveStatusFilter<"LeaveApplication"> | $Enums.LeaveStatus
   currentStep?: Prisma.IntFilter<"LeaveApplication"> | number
   approvals?: Prisma.JsonNullableFilter<"LeaveApplication">
   createdAt?: Prisma.DateTimeFilter<"LeaveApplication"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LeaveApplication"> | Date | string
   decidedAt?: Prisma.DateTimeNullableFilter<"LeaveApplication"> | Date | string | null
+  attachmentName?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
+  attachmentUrl?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
+  xeroFileId?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
   employee?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   leaveType?: Prisma.XOR<Prisma.LeaveTypeScalarRelationFilter, Prisma.LeaveTypeWhereInput>
 }
@@ -328,15 +328,15 @@ export type LeaveApplicationOrderByWithRelationInput = {
   duration?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
-  attachmentUrl?: Prisma.SortOrderInput | Prisma.SortOrder
-  attachmentName?: Prisma.SortOrderInput | Prisma.SortOrder
-  xeroFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   currentStep?: Prisma.SortOrder
   approvals?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   decidedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  attachmentName?: Prisma.SortOrderInput | Prisma.SortOrder
+  attachmentUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   employee?: Prisma.EmployeeProfileOrderByWithRelationInput
   leaveType?: Prisma.LeaveTypeOrderByWithRelationInput
   _relevance?: Prisma.LeaveApplicationOrderByRelevanceInput
@@ -354,15 +354,15 @@ export type LeaveApplicationWhereUniqueInput = Prisma.AtLeast<{
   duration?: Prisma.EnumLeaveDurationFilter<"LeaveApplication"> | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFilter<"LeaveApplication"> | number
   reason?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
-  attachmentUrl?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
-  attachmentName?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
-  xeroFileId?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
   status?: Prisma.EnumLeaveStatusFilter<"LeaveApplication"> | $Enums.LeaveStatus
   currentStep?: Prisma.IntFilter<"LeaveApplication"> | number
   approvals?: Prisma.JsonNullableFilter<"LeaveApplication">
   createdAt?: Prisma.DateTimeFilter<"LeaveApplication"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LeaveApplication"> | Date | string
   decidedAt?: Prisma.DateTimeNullableFilter<"LeaveApplication"> | Date | string | null
+  attachmentName?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
+  attachmentUrl?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
+  xeroFileId?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
   employee?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   leaveType?: Prisma.XOR<Prisma.LeaveTypeScalarRelationFilter, Prisma.LeaveTypeWhereInput>
 }, "id">
@@ -376,15 +376,15 @@ export type LeaveApplicationOrderByWithAggregationInput = {
   duration?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrderInput | Prisma.SortOrder
-  attachmentUrl?: Prisma.SortOrderInput | Prisma.SortOrder
-  attachmentName?: Prisma.SortOrderInput | Prisma.SortOrder
-  xeroFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   currentStep?: Prisma.SortOrder
   approvals?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   decidedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  attachmentName?: Prisma.SortOrderInput | Prisma.SortOrder
+  attachmentUrl?: Prisma.SortOrderInput | Prisma.SortOrder
+  xeroFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.LeaveApplicationCountOrderByAggregateInput
   _avg?: Prisma.LeaveApplicationAvgOrderByAggregateInput
   _max?: Prisma.LeaveApplicationMaxOrderByAggregateInput
@@ -404,15 +404,15 @@ export type LeaveApplicationScalarWhereWithAggregatesInput = {
   duration?: Prisma.EnumLeaveDurationWithAggregatesFilter<"LeaveApplication"> | $Enums.LeaveDuration
   totalDays?: Prisma.FloatWithAggregatesFilter<"LeaveApplication"> | number
   reason?: Prisma.StringNullableWithAggregatesFilter<"LeaveApplication"> | string | null
-  attachmentUrl?: Prisma.StringNullableWithAggregatesFilter<"LeaveApplication"> | string | null
-  attachmentName?: Prisma.StringNullableWithAggregatesFilter<"LeaveApplication"> | string | null
-  xeroFileId?: Prisma.StringNullableWithAggregatesFilter<"LeaveApplication"> | string | null
   status?: Prisma.EnumLeaveStatusWithAggregatesFilter<"LeaveApplication"> | $Enums.LeaveStatus
   currentStep?: Prisma.IntWithAggregatesFilter<"LeaveApplication"> | number
   approvals?: Prisma.JsonNullableWithAggregatesFilter<"LeaveApplication">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"LeaveApplication"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"LeaveApplication"> | Date | string
   decidedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"LeaveApplication"> | Date | string | null
+  attachmentName?: Prisma.StringNullableWithAggregatesFilter<"LeaveApplication"> | string | null
+  attachmentUrl?: Prisma.StringNullableWithAggregatesFilter<"LeaveApplication"> | string | null
+  xeroFileId?: Prisma.StringNullableWithAggregatesFilter<"LeaveApplication"> | string | null
 }
 
 export type LeaveApplicationCreateInput = {
@@ -422,15 +422,15 @@ export type LeaveApplicationCreateInput = {
   duration?: $Enums.LeaveDuration
   totalDays: number
   reason?: string | null
-  attachmentUrl?: string | null
-  attachmentName?: string | null
-  xeroFileId?: string | null
   status?: $Enums.LeaveStatus
   currentStep?: number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   decidedAt?: Date | string | null
+  attachmentName?: string | null
+  attachmentUrl?: string | null
+  xeroFileId?: string | null
   employee: Prisma.EmployeeProfileCreateNestedOneWithoutLeaveApplicationsInput
   leaveType: Prisma.LeaveTypeCreateNestedOneWithoutApplicationsInput
 }
@@ -444,15 +444,15 @@ export type LeaveApplicationUncheckedCreateInput = {
   duration?: $Enums.LeaveDuration
   totalDays: number
   reason?: string | null
-  attachmentUrl?: string | null
-  attachmentName?: string | null
-  xeroFileId?: string | null
   status?: $Enums.LeaveStatus
   currentStep?: number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   decidedAt?: Date | string | null
+  attachmentName?: string | null
+  attachmentUrl?: string | null
+  xeroFileId?: string | null
 }
 
 export type LeaveApplicationUpdateInput = {
@@ -462,15 +462,15 @@ export type LeaveApplicationUpdateInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employee?: Prisma.EmployeeProfileUpdateOneRequiredWithoutLeaveApplicationsNestedInput
   leaveType?: Prisma.LeaveTypeUpdateOneRequiredWithoutApplicationsNestedInput
 }
@@ -484,15 +484,15 @@ export type LeaveApplicationUncheckedUpdateInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type LeaveApplicationCreateManyInput = {
@@ -504,15 +504,15 @@ export type LeaveApplicationCreateManyInput = {
   duration?: $Enums.LeaveDuration
   totalDays: number
   reason?: string | null
-  attachmentUrl?: string | null
-  attachmentName?: string | null
-  xeroFileId?: string | null
   status?: $Enums.LeaveStatus
   currentStep?: number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   decidedAt?: Date | string | null
+  attachmentName?: string | null
+  attachmentUrl?: string | null
+  xeroFileId?: string | null
 }
 
 export type LeaveApplicationUpdateManyMutationInput = {
@@ -522,15 +522,15 @@ export type LeaveApplicationUpdateManyMutationInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type LeaveApplicationUncheckedUpdateManyInput = {
@@ -542,15 +542,15 @@ export type LeaveApplicationUncheckedUpdateManyInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type LeaveApplicationListRelationFilter = {
@@ -578,15 +578,15 @@ export type LeaveApplicationCountOrderByAggregateInput = {
   duration?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrder
-  attachmentUrl?: Prisma.SortOrder
-  attachmentName?: Prisma.SortOrder
-  xeroFileId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   currentStep?: Prisma.SortOrder
   approvals?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   decidedAt?: Prisma.SortOrder
+  attachmentName?: Prisma.SortOrder
+  attachmentUrl?: Prisma.SortOrder
+  xeroFileId?: Prisma.SortOrder
 }
 
 export type LeaveApplicationAvgOrderByAggregateInput = {
@@ -603,14 +603,14 @@ export type LeaveApplicationMaxOrderByAggregateInput = {
   duration?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrder
-  attachmentUrl?: Prisma.SortOrder
-  attachmentName?: Prisma.SortOrder
-  xeroFileId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   currentStep?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   decidedAt?: Prisma.SortOrder
+  attachmentName?: Prisma.SortOrder
+  attachmentUrl?: Prisma.SortOrder
+  xeroFileId?: Prisma.SortOrder
 }
 
 export type LeaveApplicationMinOrderByAggregateInput = {
@@ -622,14 +622,14 @@ export type LeaveApplicationMinOrderByAggregateInput = {
   duration?: Prisma.SortOrder
   totalDays?: Prisma.SortOrder
   reason?: Prisma.SortOrder
-  attachmentUrl?: Prisma.SortOrder
-  attachmentName?: Prisma.SortOrder
-  xeroFileId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   currentStep?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   decidedAt?: Prisma.SortOrder
+  attachmentName?: Prisma.SortOrder
+  attachmentUrl?: Prisma.SortOrder
+  xeroFileId?: Prisma.SortOrder
 }
 
 export type LeaveApplicationSumOrderByAggregateInput = {
@@ -736,15 +736,15 @@ export type LeaveApplicationCreateWithoutEmployeeInput = {
   duration?: $Enums.LeaveDuration
   totalDays: number
   reason?: string | null
-  attachmentUrl?: string | null
-  attachmentName?: string | null
-  xeroFileId?: string | null
   status?: $Enums.LeaveStatus
   currentStep?: number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   decidedAt?: Date | string | null
+  attachmentName?: string | null
+  attachmentUrl?: string | null
+  xeroFileId?: string | null
   leaveType: Prisma.LeaveTypeCreateNestedOneWithoutApplicationsInput
 }
 
@@ -756,15 +756,15 @@ export type LeaveApplicationUncheckedCreateWithoutEmployeeInput = {
   duration?: $Enums.LeaveDuration
   totalDays: number
   reason?: string | null
-  attachmentUrl?: string | null
-  attachmentName?: string | null
-  xeroFileId?: string | null
   status?: $Enums.LeaveStatus
   currentStep?: number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   decidedAt?: Date | string | null
+  attachmentName?: string | null
+  attachmentUrl?: string | null
+  xeroFileId?: string | null
 }
 
 export type LeaveApplicationCreateOrConnectWithoutEmployeeInput = {
@@ -805,15 +805,15 @@ export type LeaveApplicationScalarWhereInput = {
   duration?: Prisma.EnumLeaveDurationFilter<"LeaveApplication"> | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFilter<"LeaveApplication"> | number
   reason?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
-  attachmentUrl?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
-  attachmentName?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
-  xeroFileId?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
   status?: Prisma.EnumLeaveStatusFilter<"LeaveApplication"> | $Enums.LeaveStatus
   currentStep?: Prisma.IntFilter<"LeaveApplication"> | number
   approvals?: Prisma.JsonNullableFilter<"LeaveApplication">
   createdAt?: Prisma.DateTimeFilter<"LeaveApplication"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"LeaveApplication"> | Date | string
   decidedAt?: Prisma.DateTimeNullableFilter<"LeaveApplication"> | Date | string | null
+  attachmentName?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
+  attachmentUrl?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
+  xeroFileId?: Prisma.StringNullableFilter<"LeaveApplication"> | string | null
 }
 
 export type LeaveApplicationCreateWithoutLeaveTypeInput = {
@@ -823,15 +823,15 @@ export type LeaveApplicationCreateWithoutLeaveTypeInput = {
   duration?: $Enums.LeaveDuration
   totalDays: number
   reason?: string | null
-  attachmentUrl?: string | null
-  attachmentName?: string | null
-  xeroFileId?: string | null
   status?: $Enums.LeaveStatus
   currentStep?: number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   decidedAt?: Date | string | null
+  attachmentName?: string | null
+  attachmentUrl?: string | null
+  xeroFileId?: string | null
   employee: Prisma.EmployeeProfileCreateNestedOneWithoutLeaveApplicationsInput
 }
 
@@ -843,15 +843,15 @@ export type LeaveApplicationUncheckedCreateWithoutLeaveTypeInput = {
   duration?: $Enums.LeaveDuration
   totalDays: number
   reason?: string | null
-  attachmentUrl?: string | null
-  attachmentName?: string | null
-  xeroFileId?: string | null
   status?: $Enums.LeaveStatus
   currentStep?: number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   decidedAt?: Date | string | null
+  attachmentName?: string | null
+  attachmentUrl?: string | null
+  xeroFileId?: string | null
 }
 
 export type LeaveApplicationCreateOrConnectWithoutLeaveTypeInput = {
@@ -888,15 +888,15 @@ export type LeaveApplicationCreateManyEmployeeInput = {
   duration?: $Enums.LeaveDuration
   totalDays: number
   reason?: string | null
-  attachmentUrl?: string | null
-  attachmentName?: string | null
-  xeroFileId?: string | null
   status?: $Enums.LeaveStatus
   currentStep?: number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   decidedAt?: Date | string | null
+  attachmentName?: string | null
+  attachmentUrl?: string | null
+  xeroFileId?: string | null
 }
 
 export type LeaveApplicationUpdateWithoutEmployeeInput = {
@@ -906,15 +906,15 @@ export type LeaveApplicationUpdateWithoutEmployeeInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   leaveType?: Prisma.LeaveTypeUpdateOneRequiredWithoutApplicationsNestedInput
 }
 
@@ -926,15 +926,15 @@ export type LeaveApplicationUncheckedUpdateWithoutEmployeeInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type LeaveApplicationUncheckedUpdateManyWithoutEmployeeInput = {
@@ -945,15 +945,15 @@ export type LeaveApplicationUncheckedUpdateManyWithoutEmployeeInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type LeaveApplicationCreateManyLeaveTypeInput = {
@@ -964,15 +964,15 @@ export type LeaveApplicationCreateManyLeaveTypeInput = {
   duration?: $Enums.LeaveDuration
   totalDays: number
   reason?: string | null
-  attachmentUrl?: string | null
-  attachmentName?: string | null
-  xeroFileId?: string | null
   status?: $Enums.LeaveStatus
   currentStep?: number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   updatedAt?: Date | string
   decidedAt?: Date | string | null
+  attachmentName?: string | null
+  attachmentUrl?: string | null
+  xeroFileId?: string | null
 }
 
 export type LeaveApplicationUpdateWithoutLeaveTypeInput = {
@@ -982,15 +982,15 @@ export type LeaveApplicationUpdateWithoutLeaveTypeInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employee?: Prisma.EmployeeProfileUpdateOneRequiredWithoutLeaveApplicationsNestedInput
 }
 
@@ -1002,15 +1002,15 @@ export type LeaveApplicationUncheckedUpdateWithoutLeaveTypeInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type LeaveApplicationUncheckedUpdateManyWithoutLeaveTypeInput = {
@@ -1021,15 +1021,15 @@ export type LeaveApplicationUncheckedUpdateManyWithoutLeaveTypeInput = {
   duration?: Prisma.EnumLeaveDurationFieldUpdateOperationsInput | $Enums.LeaveDuration
   totalDays?: Prisma.FloatFieldUpdateOperationsInput | number
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumLeaveStatusFieldUpdateOperationsInput | $Enums.LeaveStatus
   currentStep?: Prisma.IntFieldUpdateOperationsInput | number
   approvals?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  attachmentName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attachmentUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1043,15 +1043,15 @@ export type LeaveApplicationSelect<ExtArgs extends runtime.Types.Extensions.Inte
   duration?: boolean
   totalDays?: boolean
   reason?: boolean
-  attachmentUrl?: boolean
-  attachmentName?: boolean
-  xeroFileId?: boolean
   status?: boolean
   currentStep?: boolean
   approvals?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   decidedAt?: boolean
+  attachmentName?: boolean
+  attachmentUrl?: boolean
+  xeroFileId?: boolean
   employee?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   leaveType?: boolean | Prisma.LeaveTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["leaveApplication"]>
@@ -1067,18 +1067,18 @@ export type LeaveApplicationSelectScalar = {
   duration?: boolean
   totalDays?: boolean
   reason?: boolean
-  attachmentUrl?: boolean
-  attachmentName?: boolean
-  xeroFileId?: boolean
   status?: boolean
   currentStep?: boolean
   approvals?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   decidedAt?: boolean
+  attachmentName?: boolean
+  attachmentUrl?: boolean
+  xeroFileId?: boolean
 }
 
-export type LeaveApplicationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "leaveTypeId" | "startDate" | "endDate" | "duration" | "totalDays" | "reason" | "attachmentUrl" | "attachmentName" | "xeroFileId" | "status" | "currentStep" | "approvals" | "createdAt" | "updatedAt" | "decidedAt", ExtArgs["result"]["leaveApplication"]>
+export type LeaveApplicationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "leaveTypeId" | "startDate" | "endDate" | "duration" | "totalDays" | "reason" | "status" | "currentStep" | "approvals" | "createdAt" | "updatedAt" | "decidedAt" | "attachmentName" | "attachmentUrl" | "xeroFileId", ExtArgs["result"]["leaveApplication"]>
 export type LeaveApplicationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   leaveType?: boolean | Prisma.LeaveTypeDefaultArgs<ExtArgs>
@@ -1106,22 +1106,6 @@ export type $LeaveApplicationPayload<ExtArgs extends runtime.Types.Extensions.In
      */
     totalDays: number
     reason: string | null
-    /**
-     * URL the UI consumes to display the attachment. Either the Xero
-     * Files proxy route (/api/leave/files/{xeroFileId}/content) when the
-     * org has a usable Xero connection, or a local /uploads/... path as
-     * fallback. Null when the employee didn't upload anything.
-     */
-    attachmentUrl: string | null
-    /**
-     * Original filename, surfaced in the UI for clarity ("mc-2026-05-20.pdf").
-     */
-    attachmentName: string | null
-    /**
-     * Xero Files API id when the attachment lives in Xero. Null for local
-     * fallback uploads. Used by the proxy route to look up & authorise.
-     */
-    xeroFileId: string | null
     status: $Enums.LeaveStatus
     currentStep: number
     /**
@@ -1131,6 +1115,22 @@ export type $LeaveApplicationPayload<ExtArgs extends runtime.Types.Extensions.In
     createdAt: Date
     updatedAt: Date
     decidedAt: Date | null
+    /**
+     * Original filename, surfaced in the UI for clarity ("mc-2026-05-20.pdf").
+     */
+    attachmentName: string | null
+    /**
+     * URL the UI consumes to display the attachment. Either the Xero
+     * Files proxy route (/api/leave/files/{xeroFileId}/content) when the
+     * org has a usable Xero connection, or a local /uploads/... path as
+     * fallback. Null when the employee didn't upload anything.
+     */
+    attachmentUrl: string | null
+    /**
+     * Xero Files API id when the attachment lives in Xero. Null for local
+     * fallback uploads. Used by the proxy route to look up & authorise.
+     */
+    xeroFileId: string | null
   }, ExtArgs["result"]["leaveApplication"]>
   composites: {}
 }
@@ -1510,15 +1510,15 @@ export interface LeaveApplicationFieldRefs {
   readonly duration: Prisma.FieldRef<"LeaveApplication", 'LeaveDuration'>
   readonly totalDays: Prisma.FieldRef<"LeaveApplication", 'Float'>
   readonly reason: Prisma.FieldRef<"LeaveApplication", 'String'>
-  readonly attachmentUrl: Prisma.FieldRef<"LeaveApplication", 'String'>
-  readonly attachmentName: Prisma.FieldRef<"LeaveApplication", 'String'>
-  readonly xeroFileId: Prisma.FieldRef<"LeaveApplication", 'String'>
   readonly status: Prisma.FieldRef<"LeaveApplication", 'LeaveStatus'>
   readonly currentStep: Prisma.FieldRef<"LeaveApplication", 'Int'>
   readonly approvals: Prisma.FieldRef<"LeaveApplication", 'Json'>
   readonly createdAt: Prisma.FieldRef<"LeaveApplication", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"LeaveApplication", 'DateTime'>
   readonly decidedAt: Prisma.FieldRef<"LeaveApplication", 'DateTime'>
+  readonly attachmentName: Prisma.FieldRef<"LeaveApplication", 'String'>
+  readonly attachmentUrl: Prisma.FieldRef<"LeaveApplication", 'String'>
+  readonly xeroFileId: Prisma.FieldRef<"LeaveApplication", 'String'>
 }
     
 

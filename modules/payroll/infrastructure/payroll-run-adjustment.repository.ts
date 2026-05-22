@@ -70,6 +70,8 @@ export const payrollRunAdjustmentRepository = {
       otNormalHours: number
       otRestHours: number
       otPublicHours: number
+      workedHours: number | null
+      expectedHours: number | null
       manualLineItems: ManualLineItem[]
       fixedAllowanceOverrides: FixedAllowanceOverrideMap
       notes: string | null
@@ -130,6 +132,9 @@ function mapAdjustment(row: any): PayrollRunAdjustmentData {
     otNormalHours: toNumber(row.otNormalHours, 0),
     otRestHours: toNumber(row.otRestHours, 0),
     otPublicHours: toNumber(row.otPublicHours, 0),
+    workedHours: row.workedHours == null ? null : toNumber(row.workedHours, 0),
+    expectedHours:
+      row.expectedHours == null ? null : toNumber(row.expectedHours, 0),
     manualLineItems: parseManualLineItems(row.manualLineItems),
     fixedAllowanceOverrides: parseFixedAllowanceOverrides(
       row.fixedAllowanceOverrides,
@@ -212,6 +217,8 @@ function toUpsertData(
   if (patch.otNormalHours !== undefined) out.otNormalHours = patch.otNormalHours
   if (patch.otRestHours !== undefined) out.otRestHours = patch.otRestHours
   if (patch.otPublicHours !== undefined) out.otPublicHours = patch.otPublicHours
+  if (patch.workedHours !== undefined) out.workedHours = patch.workedHours
+  if (patch.expectedHours !== undefined) out.expectedHours = patch.expectedHours
   if (patch.manualLineItems !== undefined) {
     out.manualLineItems = patch.manualLineItems as unknown as object
   }

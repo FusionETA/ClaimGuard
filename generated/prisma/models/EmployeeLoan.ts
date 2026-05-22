@@ -91,11 +91,11 @@ export type EmployeeLoanCountAggregateOutputType = {
   startYear: number
   startMonth: number
   installmentCount: number
-  schedule: number
   status: number
   notes: number
   createdAt: number
   updatedAt: number
+  schedule: number
   _all: number
 }
 
@@ -158,11 +158,11 @@ export type EmployeeLoanCountAggregateInputType = {
   startYear?: true
   startMonth?: true
   installmentCount?: true
-  schedule?: true
   status?: true
   notes?: true
   createdAt?: true
   updatedAt?: true
+  schedule?: true
   _all?: true
 }
 
@@ -262,11 +262,11 @@ export type EmployeeLoanGroupByOutputType = {
   startYear: number
   startMonth: number
   installmentCount: number
-  schedule: runtime.JsonValue | null
   status: $Enums.LoanStatus
   notes: string | null
   createdAt: Date
   updatedAt: Date
+  schedule: runtime.JsonValue | null
   _count: EmployeeLoanCountAggregateOutputType | null
   _avg: EmployeeLoanAvgAggregateOutputType | null
   _sum: EmployeeLoanSumAggregateOutputType | null
@@ -302,11 +302,11 @@ export type EmployeeLoanWhereInput = {
   startYear?: Prisma.IntFilter<"EmployeeLoan"> | number
   startMonth?: Prisma.IntFilter<"EmployeeLoan"> | number
   installmentCount?: Prisma.IntFilter<"EmployeeLoan"> | number
-  schedule?: Prisma.JsonNullableFilter<"EmployeeLoan">
   status?: Prisma.EnumLoanStatusFilter<"EmployeeLoan"> | $Enums.LoanStatus
   notes?: Prisma.StringNullableFilter<"EmployeeLoan"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeLoan"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeLoan"> | Date | string
+  schedule?: Prisma.JsonNullableFilter<"EmployeeLoan">
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
 }
 
@@ -320,11 +320,11 @@ export type EmployeeLoanOrderByWithRelationInput = {
   startYear?: Prisma.SortOrder
   startMonth?: Prisma.SortOrder
   installmentCount?: Prisma.SortOrder
-  schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
   _relevance?: Prisma.EmployeeLoanOrderByRelevanceInput
 }
@@ -342,11 +342,11 @@ export type EmployeeLoanWhereUniqueInput = Prisma.AtLeast<{
   startYear?: Prisma.IntFilter<"EmployeeLoan"> | number
   startMonth?: Prisma.IntFilter<"EmployeeLoan"> | number
   installmentCount?: Prisma.IntFilter<"EmployeeLoan"> | number
-  schedule?: Prisma.JsonNullableFilter<"EmployeeLoan">
   status?: Prisma.EnumLoanStatusFilter<"EmployeeLoan"> | $Enums.LoanStatus
   notes?: Prisma.StringNullableFilter<"EmployeeLoan"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeLoan"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeLoan"> | Date | string
+  schedule?: Prisma.JsonNullableFilter<"EmployeeLoan">
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
 }, "id">
 
@@ -360,11 +360,11 @@ export type EmployeeLoanOrderByWithAggregationInput = {
   startYear?: Prisma.SortOrder
   startMonth?: Prisma.SortOrder
   installmentCount?: Prisma.SortOrder
-  schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  schedule?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.EmployeeLoanCountOrderByAggregateInput
   _avg?: Prisma.EmployeeLoanAvgOrderByAggregateInput
   _max?: Prisma.EmployeeLoanMaxOrderByAggregateInput
@@ -385,11 +385,11 @@ export type EmployeeLoanScalarWhereWithAggregatesInput = {
   startYear?: Prisma.IntWithAggregatesFilter<"EmployeeLoan"> | number
   startMonth?: Prisma.IntWithAggregatesFilter<"EmployeeLoan"> | number
   installmentCount?: Prisma.IntWithAggregatesFilter<"EmployeeLoan"> | number
-  schedule?: Prisma.JsonNullableWithAggregatesFilter<"EmployeeLoan">
   status?: Prisma.EnumLoanStatusWithAggregatesFilter<"EmployeeLoan"> | $Enums.LoanStatus
   notes?: Prisma.StringNullableWithAggregatesFilter<"EmployeeLoan"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeeLoan"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeeLoan"> | Date | string
+  schedule?: Prisma.JsonNullableWithAggregatesFilter<"EmployeeLoan">
 }
 
 export type EmployeeLoanCreateInput = {
@@ -401,11 +401,11 @@ export type EmployeeLoanCreateInput = {
   startYear: number
   startMonth: number
   installmentCount: number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.LoanStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutLoansInput
 }
 
@@ -419,11 +419,11 @@ export type EmployeeLoanUncheckedCreateInput = {
   startYear: number
   startMonth: number
   installmentCount: number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.LoanStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanUpdateInput = {
@@ -435,11 +435,11 @@ export type EmployeeLoanUpdateInput = {
   startYear?: Prisma.IntFieldUpdateOperationsInput | number
   startMonth?: Prisma.IntFieldUpdateOperationsInput | number
   installmentCount?: Prisma.IntFieldUpdateOperationsInput | number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutLoansNestedInput
 }
 
@@ -453,11 +453,11 @@ export type EmployeeLoanUncheckedUpdateInput = {
   startYear?: Prisma.IntFieldUpdateOperationsInput | number
   startMonth?: Prisma.IntFieldUpdateOperationsInput | number
   installmentCount?: Prisma.IntFieldUpdateOperationsInput | number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanCreateManyInput = {
@@ -470,11 +470,11 @@ export type EmployeeLoanCreateManyInput = {
   startYear: number
   startMonth: number
   installmentCount: number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.LoanStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanUpdateManyMutationInput = {
@@ -486,11 +486,11 @@ export type EmployeeLoanUpdateManyMutationInput = {
   startYear?: Prisma.IntFieldUpdateOperationsInput | number
   startMonth?: Prisma.IntFieldUpdateOperationsInput | number
   installmentCount?: Prisma.IntFieldUpdateOperationsInput | number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanUncheckedUpdateManyInput = {
@@ -503,11 +503,11 @@ export type EmployeeLoanUncheckedUpdateManyInput = {
   startYear?: Prisma.IntFieldUpdateOperationsInput | number
   startMonth?: Prisma.IntFieldUpdateOperationsInput | number
   installmentCount?: Prisma.IntFieldUpdateOperationsInput | number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanListRelationFilter = {
@@ -536,11 +536,11 @@ export type EmployeeLoanCountOrderByAggregateInput = {
   startYear?: Prisma.SortOrder
   startMonth?: Prisma.SortOrder
   installmentCount?: Prisma.SortOrder
-  schedule?: Prisma.SortOrder
   status?: Prisma.SortOrder
   notes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  schedule?: Prisma.SortOrder
 }
 
 export type EmployeeLoanAvgOrderByAggregateInput = {
@@ -650,11 +650,11 @@ export type EmployeeLoanCreateWithoutEmployeeProfileInput = {
   startYear: number
   startMonth: number
   installmentCount: number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.LoanStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanUncheckedCreateWithoutEmployeeProfileInput = {
@@ -666,11 +666,11 @@ export type EmployeeLoanUncheckedCreateWithoutEmployeeProfileInput = {
   startYear: number
   startMonth: number
   installmentCount: number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.LoanStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanCreateOrConnectWithoutEmployeeProfileInput = {
@@ -712,11 +712,11 @@ export type EmployeeLoanScalarWhereInput = {
   startYear?: Prisma.IntFilter<"EmployeeLoan"> | number
   startMonth?: Prisma.IntFilter<"EmployeeLoan"> | number
   installmentCount?: Prisma.IntFilter<"EmployeeLoan"> | number
-  schedule?: Prisma.JsonNullableFilter<"EmployeeLoan">
   status?: Prisma.EnumLoanStatusFilter<"EmployeeLoan"> | $Enums.LoanStatus
   notes?: Prisma.StringNullableFilter<"EmployeeLoan"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeLoan"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeLoan"> | Date | string
+  schedule?: Prisma.JsonNullableFilter<"EmployeeLoan">
 }
 
 export type EmployeeLoanCreateManyEmployeeProfileInput = {
@@ -728,11 +728,11 @@ export type EmployeeLoanCreateManyEmployeeProfileInput = {
   startYear: number
   startMonth: number
   installmentCount: number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: $Enums.LoanStatus
   notes?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanUpdateWithoutEmployeeProfileInput = {
@@ -744,11 +744,11 @@ export type EmployeeLoanUpdateWithoutEmployeeProfileInput = {
   startYear?: Prisma.IntFieldUpdateOperationsInput | number
   startMonth?: Prisma.IntFieldUpdateOperationsInput | number
   installmentCount?: Prisma.IntFieldUpdateOperationsInput | number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanUncheckedUpdateWithoutEmployeeProfileInput = {
@@ -760,11 +760,11 @@ export type EmployeeLoanUncheckedUpdateWithoutEmployeeProfileInput = {
   startYear?: Prisma.IntFieldUpdateOperationsInput | number
   startMonth?: Prisma.IntFieldUpdateOperationsInput | number
   installmentCount?: Prisma.IntFieldUpdateOperationsInput | number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type EmployeeLoanUncheckedUpdateManyWithoutEmployeeProfileInput = {
@@ -776,11 +776,11 @@ export type EmployeeLoanUncheckedUpdateManyWithoutEmployeeProfileInput = {
   startYear?: Prisma.IntFieldUpdateOperationsInput | number
   startMonth?: Prisma.IntFieldUpdateOperationsInput | number
   installmentCount?: Prisma.IntFieldUpdateOperationsInput | number
-  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   status?: Prisma.EnumLoanStatusFieldUpdateOperationsInput | $Enums.LoanStatus
   notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  schedule?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 
@@ -795,11 +795,11 @@ export type EmployeeLoanSelect<ExtArgs extends runtime.Types.Extensions.Internal
   startYear?: boolean
   startMonth?: boolean
   installmentCount?: boolean
-  schedule?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  schedule?: boolean
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employeeLoan"]>
 
@@ -815,14 +815,14 @@ export type EmployeeLoanSelectScalar = {
   startYear?: boolean
   startMonth?: boolean
   installmentCount?: boolean
-  schedule?: boolean
   status?: boolean
   notes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  schedule?: boolean
 }
 
-export type EmployeeLoanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employeeProfileId" | "principalAmount" | "mode" | "installmentAmount" | "startYear" | "startMonth" | "installmentCount" | "schedule" | "status" | "notes" | "createdAt" | "updatedAt", ExtArgs["result"]["employeeLoan"]>
+export type EmployeeLoanOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "employeeProfileId" | "principalAmount" | "mode" | "installmentAmount" | "startYear" | "startMonth" | "installmentCount" | "status" | "notes" | "createdAt" | "updatedAt" | "schedule", ExtArgs["result"]["employeeLoan"]>
 export type EmployeeLoanInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
 }
@@ -863,6 +863,10 @@ export type $EmployeeLoanPayload<ExtArgs extends runtime.Types.Extensions.Intern
      */
     startMonth: number
     installmentCount: number
+    status: $Enums.LoanStatus
+    notes: string | null
+    createdAt: Date
+    updatedAt: Date
     /**
      * Per-installment amounts as a JSON number[] (length =
      * installmentCount). Source of truth for each month's deduction —
@@ -872,10 +876,6 @@ export type $EmployeeLoanPayload<ExtArgs extends runtime.Types.Extensions.Intern
      * computed equal-installment schedule.
      */
     schedule: runtime.JsonValue | null
-    status: $Enums.LoanStatus
-    notes: string | null
-    createdAt: Date
-    updatedAt: Date
   }, ExtArgs["result"]["employeeLoan"]>
   composites: {}
 }
@@ -1255,11 +1255,11 @@ export interface EmployeeLoanFieldRefs {
   readonly startYear: Prisma.FieldRef<"EmployeeLoan", 'Int'>
   readonly startMonth: Prisma.FieldRef<"EmployeeLoan", 'Int'>
   readonly installmentCount: Prisma.FieldRef<"EmployeeLoan", 'Int'>
-  readonly schedule: Prisma.FieldRef<"EmployeeLoan", 'Json'>
   readonly status: Prisma.FieldRef<"EmployeeLoan", 'LoanStatus'>
   readonly notes: Prisma.FieldRef<"EmployeeLoan", 'String'>
   readonly createdAt: Prisma.FieldRef<"EmployeeLoan", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"EmployeeLoan", 'DateTime'>
+  readonly schedule: Prisma.FieldRef<"EmployeeLoan", 'Json'>
 }
     
 

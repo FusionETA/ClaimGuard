@@ -51,6 +51,16 @@ export function PayrollAdjustmentForm(props: {
   employeeProfileId: string
   adjustment: PayrollRunAdjustmentData | null
   fixedAllowances: FixedAllowance[]
+  /// Salary type — MONTHLY edits the HRS as a percentage, HOURLY as
+  /// absolute worked hours.
+  salaryType: "MONTHLY" | "HOURLY"
+  /// Auto-computed working hours from attendance + paid leave. Used to
+  /// prefill the HRS field when the admin hasn't set an override.
+  autoHours: {
+    workedHours: number | null
+    expectedHours: number | null
+    attendancePercent: number | null
+  }
   /// Active loan installments auto-deducted for this run's period.
   /// Shown read-only — editing happens on the Loans page.
   loans?: Array<{ id: string; label: string; amount: number }>
@@ -170,6 +180,44 @@ export function PayrollAdjustmentForm(props: {
   const allowanceCount = lines.filter((l) => l.kind === "ALLOWANCE").length
   const deductionCount = lines.filter((l) => l.kind === "DEDUCTION").length
 
+  // ── Regular working hours (the HRS column) ──────────────────────────
+  // MONTHLY staff edit a percentage (worked ÷ leave-adjusted expected);
+  // HOURLY staff edit absolute worked hours. Blank → use the auto value
+  // computed from attendance + paid leave at generation time. A MONTHLY
+  // override is persisted as worked=<percent>, expected=100 so the
+  // factor is exactly percent/100; the auto (non-override) path keeps
+  // the real attendance hours for audit.
+  const isMonthly = props.salaryType === "MONTHLY"
+  const initialHrsPercent =
+    props.adjustment?.workedHours != null &&
+    props.adjustment?.expectedHours != null &&
+    props.adjustment.expectedHours > 0
+      ? String(
+          Math.round(
+            (props.adjustment.workedHours / props.adjustment.expectedHours) *
+              1000,
+          ) / 10,
+        )
+      : ""
+  const [hrsPercent, setHrsPercent] = useState(initialHrsPercent)
+  const [hourlyWorked, setHourlyWorked] = useState(
+    props.adjustment?.workedHours != null
+      ? String(props.adjustment.workedHours)
+      : "",
+  )
+
+  const hrsPercentNum =
+    hrsPercent.trim() === "" ? null : Number(hrsPercent)
+  const monthlyOverrideActive =
+    isMonthly && hrsPercentNum != null && Number.isFinite(hrsPercentNum)
+  const submittedWorkedHours = isMonthly
+    ? monthlyOverrideActive
+      ? String(hrsPercentNum)
+      : ""
+    : hourlyWorked.trim()
+  const submittedExpectedHours =
+    isMonthly && monthlyOverrideActive ? "100" : ""
+
   return (
     <div className="space-y-6">
     <form id={saveFormId} action={action} className="space-y-6">
@@ -180,6 +228,75 @@ export function PayrollAdjustmentForm(props: {
         value={props.employeeProfileId}
         hidden
       />
+      <input type="hidden" name="workedHours" value={submittedWorkedHours} />
+      <input type="hidden" name="expectedHours" value={submittedExpectedHours} />
+
+      {/* Working hours (HRS). MONTHLY = percentage of leave-adjusted
+          expected; HOURLY = absolute paid hours. */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Working hours</CardTitle>
+          <CardDescription>
+            {isMonthly
+              ? "Percentage of expected hours actually worked. Paid leave is already excluded from the target, so full attendance = 100%. Unpaid leave lowers this and prorates the salary. Leave blank to use the value computed from attendance."
+              : "Hours paid this run (attendance plus any approved paid leave). Leave blank to use the value computed from attendance."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {isMonthly ? (
+            <Field label="Worked (% of expected)">
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                inputMode="decimal"
+                value={hrsPercent}
+                onChange={(e) => setHrsPercent(e.target.value)}
+                placeholder={
+                  props.autoHours.attendancePercent != null
+                    ? String(props.autoHours.attendancePercent)
+                    : "100"
+                }
+                disabled={props.readOnly}
+              />
+            </Field>
+          ) : (
+            <Field label="Worked hours">
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                max="744"
+                inputMode="decimal"
+                value={hourlyWorked}
+                onChange={(e) => setHourlyWorked(e.target.value)}
+                placeholder={
+                  props.autoHours.workedHours != null
+                    ? String(Math.round(props.autoHours.workedHours * 100) / 100)
+                    : "0"
+                }
+                disabled={props.readOnly}
+              />
+            </Field>
+          )}
+          <p className="text-[11px] text-muted-foreground">
+            {isMonthly
+              ? props.autoHours.attendancePercent != null
+                ? `Auto from attendance: ${props.autoHours.attendancePercent}% (${
+                    Math.round((props.autoHours.workedHours ?? 0) * 10) / 10
+                  }h of ${
+                    Math.round((props.autoHours.expectedHours ?? 0) * 10) / 10
+                  }h expected).`
+                : "No attendance data this period — salary prorates by working days unless you set a percentage."
+              : props.autoHours.workedHours != null
+                ? `Auto from attendance: ${
+                    Math.round(props.autoHours.workedHours * 100) / 100
+                  }h paid.`
+                : "No attendance data this period."}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Validation banner — highlighted in red when a save is blocked
           (e.g. deductions would push net pay to zero or below). The

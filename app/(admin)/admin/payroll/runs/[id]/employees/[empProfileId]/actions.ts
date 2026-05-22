@@ -32,12 +32,32 @@ import type {
  * — we walk indexes 0..50 until we run out.
  */
 
+/// Parse an optional non-negative hours field. Empty string / null →
+/// null (use the auto-computed default). Non-numeric or negative → null.
+function coerceOptionalHours(v: string | null): number | null {
+  if (v == null) return null
+  const t = v.trim()
+  if (t.length === 0) return null
+  const n = Number(t)
+  if (!Number.isFinite(n) || n < 0) return null
+  return Math.round(n * 100) / 100
+}
+
 const adjustmentSchema = z.object({
   runId: z.string().min(1),
   employeeProfileId: z.string().min(1),
   otNormalHours: z.coerce.number().min(0).max(744).default(0),
   otRestHours: z.coerce.number().min(0).max(744).default(0),
   otPublicHours: z.coerce.number().min(0).max(744).default(0),
+  // Regular working hours override (the HRS column). Blank → null → the
+  // run falls back to the value auto-computed from attendance + leave.
+  // MONTHLY persists both (worked = % × expected); HOURLY only worked.
+  workedHours: z
+    .union([z.string(), z.null()])
+    .transform((v) => coerceOptionalHours(v)),
+  expectedHours: z
+    .union([z.string(), z.null()])
+    .transform((v) => coerceOptionalHours(v)),
   notes: z
     .union([z.string(), z.null()])
     .transform((v) => {
@@ -57,6 +77,8 @@ export async function savePayrollAdjustmentAction(
     otNormalHours: formData.get("otNormalHours"),
     otRestHours: formData.get("otRestHours"),
     otPublicHours: formData.get("otPublicHours"),
+    workedHours: formData.get("workedHours"),
+    expectedHours: formData.get("expectedHours"),
     notes: formData.get("notes"),
   })
 
@@ -156,6 +178,8 @@ export async function savePayrollAdjustmentAction(
         otNormalHours: parsed.data.otNormalHours,
         otRestHours: parsed.data.otRestHours,
         otPublicHours: parsed.data.otPublicHours,
+        workedHours: parsed.data.workedHours,
+        expectedHours: parsed.data.expectedHours,
         manualLineItems,
         fixedAllowanceOverrides,
       },
@@ -185,6 +209,8 @@ export async function savePayrollAdjustmentAction(
         otNormalHours: parsed.data.otNormalHours,
         otRestHours: parsed.data.otRestHours,
         otPublicHours: parsed.data.otPublicHours,
+        workedHours: parsed.data.workedHours,
+        expectedHours: parsed.data.expectedHours,
         notes: parsed.data.notes,
         manualLineItems,
         fixedAllowanceOverrides,
@@ -250,6 +276,12 @@ export async function fetchAdjustmentForDialogAction(input: {
 }): Promise<{
   adjustment: PayrollRunAdjustmentData | null
   fixedAllowances: FixedAllowance[]
+  salaryType: "MONTHLY" | "HOURLY"
+  autoHours: {
+    workedHours: number | null
+    expectedHours: number | null
+    attendancePercent: number | null
+  }
   loans: Array<{ id: string; label: string; amount: number }>
 } | null> {
   const data = await getPayrollAdjustmentPageData(input)
@@ -257,6 +289,8 @@ export async function fetchAdjustmentForDialogAction(input: {
   return {
     adjustment: data.adjustment,
     fixedAllowances: data.fixedAllowances,
+    salaryType: data.employee.salaryType,
+    autoHours: data.autoHours,
     loans: data.loans,
   }
 }

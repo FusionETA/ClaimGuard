@@ -167,6 +167,7 @@ export type PayslipData = {
   basicPay: number
   proratedPay: number
   workedHours: number | null
+  expectedHours: number | null
   proratedFactor: number
   proratedDays: number | null
   totalWorkingDays: number | null
@@ -320,6 +321,12 @@ export type PayrollRunAdjustmentData = {
   otNormalHours: number
   otRestHours: number
   otPublicHours: number
+  /// Per-run override of the auto-computed regular working hours. Null =
+  /// use the value derived from attendance + paid leave at calc time.
+  /// MONTHLY: `workedHours / expectedHours` drives the HRS % proration.
+  /// HOURLY: `workedHours` is the paid quantity (`expectedHours` unused).
+  workedHours: number | null
+  expectedHours: number | null
   manualLineItems: ManualLineItem[]
   fixedAllowanceOverrides: FixedAllowanceOverrideMap
   notes: string | null

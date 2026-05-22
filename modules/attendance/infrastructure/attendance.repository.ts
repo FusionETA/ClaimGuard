@@ -3469,4 +3469,137 @@ export const attendanceRepository = {
       }
     })
   },
+
+  /**
+   * Worked / scheduled / paid-leave minutes per employee profile for a
+   * payroll period. Used by the payroll run service to default the HRS
+   * proration figures.
+   *
+   * - `workedMin`  — summed `durationMin` of all attendance records in
+   *   the calendar month (records only exist within employment, so no
+   *   clipping needed for the sum).
+   * - `scheduledMin` — `expectedMinutesForRange` over the **effective
+   *   employment window** (month clipped to join/leave dates), so a
+   *   mid-month joiner/leaver gets a smaller target.
+   * - `paidLeaveMin` — approved PAID leave inside the same window
+   *   (unpaid leave excluded by `paidLeaveMinutes`).
+   *
+   * Keyed by `employeeProfileId`. Profiles with no attendance config
+   * still get an entry (zeros) so callers can rely on the key existing.
+   */
+  async getPayrollHoursForProfiles(input: {
+    organizationId: string
+    periodYear: number
+    periodMonth: number
+    employees: Array<{
+      employeeProfileId: string
+      joinDate: string | null
+      leaveDate: string | null
+    }>
+  }): Promise<
+    Map<string, { workedMin: number; scheduledMin: number; paidLeaveMin: number }>
+  > {
+    const out = new Map<
+      string,
+      { workedMin: number; scheduledMin: number; paidLeaveMin: number }
+    >()
+    const prisma = getClient()
+    if (!prisma || input.employees.length === 0) return out
+
+    const monthFrom = startOfDay(
+      new Date(Date.UTC(input.periodYear, input.periodMonth - 1, 1)),
+    )
+    const monthTo = endOfDay(
+      new Date(Date.UTC(input.periodYear, input.periodMonth, 0)),
+    )
+
+    const profileIds = input.employees.map((e) => e.employeeProfileId)
+    const [org, profiles] = await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: input.organizationId },
+        select: { workingHoursStart: true, workingHoursEnd: true },
+      }),
+      prisma.employeeProfile.findMany({
+        where: { id: { in: profileIds } },
+        select: {
+          id: true,
+          userId: true,
+          projectAssignments: {
+            select: {
+              project: {
+                select: {
+                  workingHoursStart: true,
+                  workingHoursEnd: true,
+                  lunchBreakMinutes: true,
+                  workingDays: true,
+                },
+              },
+            },
+            take: 1,
+          },
+        },
+      }),
+    ])
+
+    const userIds = profiles.map((p) => p.userId).filter((id): id is string => !!id)
+    const workedByUser = new Map<string, number>()
+    if (userIds.length > 0) {
+      const durations = await prisma.attendanceRecord.groupBy({
+        by: ["employeeId"],
+        where: {
+          employeeId: { in: userIds },
+          date: { gte: monthFrom, lte: monthTo },
+          durationMin: { not: null },
+        },
+        _sum: { durationMin: true },
+      })
+      for (const d of durations) {
+        workedByUser.set(d.employeeId, d._sum.durationMin ?? 0)
+      }
+    }
+
+    const joinLeaveByProfile = new Map(
+      input.employees.map((e) => [
+        e.employeeProfileId,
+        { joinDate: e.joinDate, leaveDate: e.leaveDate },
+      ]),
+    )
+
+    for (const p of profiles) {
+      const primary = p.projectAssignments?.[0]?.project ?? null
+      const start = primary?.workingHoursStart ?? org?.workingHoursStart ?? "09:00"
+      const end = primary?.workingHoursEnd ?? org?.workingHoursEnd ?? "18:00"
+      const lunch = primary?.lunchBreakMinutes ?? DEFAULT_LUNCH_BREAK_MIN
+      const workingDays = parseWorkingDays(primary?.workingDays ?? null)
+      const standardDailyMin = standardDailyMinutesFrom(start, end, lunch)
+
+      // Clip the expected window to the effective employment window so
+      // a mid-month joiner/leaver gets a pro-rated target.
+      const jl = joinLeaveByProfile.get(p.id)
+      const join = jl?.joinDate ? startOfDay(new Date(jl.joinDate)) : null
+      const leave = jl?.leaveDate ? endOfDay(new Date(jl.leaveDate)) : null
+      const from = join && join > monthFrom ? join : monthFrom
+      const to = leave && leave < monthTo ? leave : monthTo
+
+      let scheduledMin = 0
+      let paidLeaveMin = 0
+      if (to >= from) {
+        scheduledMin = expectedMinutesForRange({
+          from,
+          to,
+          workingDays,
+          standardDailyMin,
+        })
+        paidLeaveMin = await paidLeaveMinutes(p.id, from, to, standardDailyMin)
+      }
+
+      out.set(p.id, {
+        workedMin: p.userId ? workedByUser.get(p.userId) ?? 0 : 0,
+        scheduledMin,
+        paidLeaveMin,
+      })
+    }
+
+    return out
+  },
 }

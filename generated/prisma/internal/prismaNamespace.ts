@@ -3599,8 +3599,6 @@ export const ClaimScalarFieldEnum = {
   lastReviewerId: 'lastReviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
-  xeroSpendMoneyId: 'xeroSpendMoneyId',
-  xeroSpendMoneyRef: 'xeroSpendMoneyRef',
   xeroSyncStatus: 'xeroSyncStatus',
   xeroSyncError: 'xeroSyncError',
   xeroSyncedAt: 'xeroSyncedAt',
@@ -3618,7 +3616,9 @@ export const ClaimScalarFieldEnum = {
   projectId: 'projectId',
   exceedsLimit: 'exceedsLimit',
   xeroFileId: 'xeroFileId',
-  spendingWith: 'spendingWith'
+  spendingWith: 'spendingWith',
+  xeroSpendMoneyId: 'xeroSpendMoneyId',
+  xeroSpendMoneyRef: 'xeroSpendMoneyRef'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
@@ -3666,12 +3666,12 @@ export const ChartOfAccountScalarFieldEnum = {
   updatedAt: 'updatedAt',
   isBankAccount: 'isBankAccount',
   isDisabled: 'isDisabled',
-  archivedByXeroConnect: 'archivedByXeroConnect',
   allowMileageClaim: 'allowMileageClaim',
   limitAmount: 'limitAmount',
   limitPeriod: 'limitPeriod',
   limitScope: 'limitScope',
-  mileageRate: 'mileageRate'
+  mileageRate: 'mileageRate',
+  archivedByXeroConnect: 'archivedByXeroConnect'
 } as const
 
 export type ChartOfAccountScalarFieldEnum = (typeof ChartOfAccountScalarFieldEnum)[keyof typeof ChartOfAccountScalarFieldEnum]
@@ -3682,7 +3682,6 @@ export const XeroConnectionScalarFieldEnum = {
   provider: 'provider',
   organizationId: 'organizationId',
   tenantId: 'tenantId',
-  xeroConnectionId: 'xeroConnectionId',
   tenantName: 'tenantName',
   tenantType: 'tenantType',
   accessToken: 'accessToken',
@@ -3696,7 +3695,8 @@ export const XeroConnectionScalarFieldEnum = {
   lastReauthVersion: 'lastReauthVersion',
   xeroTrackingCategoryId: 'xeroTrackingCategoryId',
   xeroTrackingCategoryName: 'xeroTrackingCategoryName',
-  reauthorizedAt: 'reauthorizedAt'
+  reauthorizedAt: 'reauthorizedAt',
+  xeroConnectionId: 'xeroConnectionId'
 } as const
 
 export type XeroConnectionScalarFieldEnum = (typeof XeroConnectionScalarFieldEnum)[keyof typeof XeroConnectionScalarFieldEnum]
@@ -3714,14 +3714,14 @@ export const XeroProjectScalarFieldEnum = {
   location: 'location',
   projectManagerId: 'projectManagerId',
   isDisabled: 'isDisabled',
-  archivedByXeroConnect: 'archivedByXeroConnect',
   latitude: 'latitude',
   longitude: 'longitude',
   workingHoursStart: 'workingHoursStart',
   workingHoursEnd: 'workingHoursEnd',
   workingDays: 'workingDays',
   lunchBreakMinutes: 'lunchBreakMinutes',
-  xeroTrackingOptionId: 'xeroTrackingOptionId'
+  xeroTrackingOptionId: 'xeroTrackingOptionId',
+  archivedByXeroConnect: 'archivedByXeroConnect'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
@@ -3766,12 +3766,12 @@ export const AttendanceRecordScalarFieldEnum = {
   selfieUploadedAt: 'selfieUploadedAt',
   xeroSelfieFileId: 'xeroSelfieFileId',
   remark: 'remark',
+  clockInDistanceMeters: 'clockInDistanceMeters',
   clockInLat: 'clockInLat',
   clockInLng: 'clockInLng',
-  clockInDistanceMeters: 'clockInDistanceMeters',
+  clockOutDistanceMeters: 'clockOutDistanceMeters',
   clockOutLat: 'clockOutLat',
-  clockOutLng: 'clockOutLng',
-  clockOutDistanceMeters: 'clockOutDistanceMeters'
+  clockOutLng: 'clockOutLng'
 } as const
 
 export type AttendanceRecordScalarFieldEnum = (typeof AttendanceRecordScalarFieldEnum)[keyof typeof AttendanceRecordScalarFieldEnum]
@@ -4025,7 +4025,6 @@ export const PayrollCompanyInfoScalarFieldEnum = {
   employerCategory: 'employerCategory',
   employerStatus: 'employerStatus',
   cp8dFurnishType: 'cp8dFurnishType',
-  perkesoEmployerCode: 'perkesoEmployerCode',
   addressLine1: 'addressLine1',
   addressLine2: 'addressLine2',
   postcode: 'postcode',
@@ -4051,7 +4050,8 @@ export const PayrollCompanyInfoScalarFieldEnum = {
   taxAgentFirmCity: 'taxAgentFirmCity',
   taxAgentFirmName: 'taxAgentFirmName',
   taxAgentFirmPostcode: 'taxAgentFirmPostcode',
-  taxAgentFirmState: 'taxAgentFirmState'
+  taxAgentFirmState: 'taxAgentFirmState',
+  perkesoEmployerCode: 'perkesoEmployerCode'
 } as const
 
 export type PayrollCompanyInfoScalarFieldEnum = (typeof PayrollCompanyInfoScalarFieldEnum)[keyof typeof PayrollCompanyInfoScalarFieldEnum]
@@ -4148,6 +4148,8 @@ export const PayrollRunAdjustmentScalarFieldEnum = {
   otNormalHours: 'otNormalHours',
   otRestHours: 'otRestHours',
   otPublicHours: 'otPublicHours',
+  workedHours: 'workedHours',
+  expectedHours: 'expectedHours',
   manualLineItems: 'manualLineItems',
   notes: 'notes',
   createdAt: 'createdAt',
@@ -4175,6 +4177,7 @@ export const PayslipScalarFieldEnum = {
   basicPay: 'basicPay',
   proratedPay: 'proratedPay',
   workedHours: 'workedHours',
+  expectedHours: 'expectedHours',
   proratedFactor: 'proratedFactor',
   proratedDays: 'proratedDays',
   totalWorkingDays: 'totalWorkingDays',
@@ -4234,11 +4237,11 @@ export const EmployeeLoanScalarFieldEnum = {
   startYear: 'startYear',
   startMonth: 'startMonth',
   installmentCount: 'installmentCount',
-  schedule: 'schedule',
   status: 'status',
   notes: 'notes',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  schedule: 'schedule'
 } as const
 
 export type EmployeeLoanScalarFieldEnum = (typeof EmployeeLoanScalarFieldEnum)[keyof typeof EmployeeLoanScalarFieldEnum]
@@ -4302,15 +4305,15 @@ export const LeaveApplicationScalarFieldEnum = {
   duration: 'duration',
   totalDays: 'totalDays',
   reason: 'reason',
-  attachmentUrl: 'attachmentUrl',
-  attachmentName: 'attachmentName',
-  xeroFileId: 'xeroFileId',
   status: 'status',
   currentStep: 'currentStep',
   approvals: 'approvals',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  decidedAt: 'decidedAt'
+  decidedAt: 'decidedAt',
+  attachmentName: 'attachmentName',
+  attachmentUrl: 'attachmentUrl',
+  xeroFileId: 'xeroFileId'
 } as const
 
 export type LeaveApplicationScalarFieldEnum = (typeof LeaveApplicationScalarFieldEnum)[keyof typeof LeaveApplicationScalarFieldEnum]
@@ -4512,15 +4515,15 @@ export const ClaimOrderByRelevanceFieldEnum = {
   lastReviewerId: 'lastReviewerId',
   xeroBillId: 'xeroBillId',
   xeroBillRef: 'xeroBillRef',
-  xeroSpendMoneyId: 'xeroSpendMoneyId',
-  xeroSpendMoneyRef: 'xeroSpendMoneyRef',
   xeroSyncError: 'xeroSyncError',
   payViaAccountId: 'payViaAccountId',
   mileageDestinationAddress: 'mileageDestinationAddress',
   mileageOriginAddress: 'mileageOriginAddress',
   projectId: 'projectId',
   xeroFileId: 'xeroFileId',
-  spendingWith: 'spendingWith'
+  spendingWith: 'spendingWith',
+  xeroSpendMoneyId: 'xeroSpendMoneyId',
+  xeroSpendMoneyRef: 'xeroSpendMoneyRef'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
@@ -4566,7 +4569,6 @@ export const XeroConnectionOrderByRelevanceFieldEnum = {
   provider: 'provider',
   organizationId: 'organizationId',
   tenantId: 'tenantId',
-  xeroConnectionId: 'xeroConnectionId',
   tenantName: 'tenantName',
   tenantType: 'tenantType',
   accessToken: 'accessToken',
@@ -4576,7 +4578,8 @@ export const XeroConnectionOrderByRelevanceFieldEnum = {
   connectedByAdminId: 'connectedByAdminId',
   lastReauthVersion: 'lastReauthVersion',
   xeroTrackingCategoryId: 'xeroTrackingCategoryId',
-  xeroTrackingCategoryName: 'xeroTrackingCategoryName'
+  xeroTrackingCategoryName: 'xeroTrackingCategoryName',
+  xeroConnectionId: 'xeroConnectionId'
 } as const
 
 export type XeroConnectionOrderByRelevanceFieldEnum = (typeof XeroConnectionOrderByRelevanceFieldEnum)[keyof typeof XeroConnectionOrderByRelevanceFieldEnum]
@@ -4779,7 +4782,6 @@ export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
   employerCategory: 'employerCategory',
   employerStatus: 'employerStatus',
   cp8dFurnishType: 'cp8dFurnishType',
-  perkesoEmployerCode: 'perkesoEmployerCode',
   addressLine1: 'addressLine1',
   addressLine2: 'addressLine2',
   postcode: 'postcode',
@@ -4802,7 +4804,8 @@ export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
   taxAgentFirmCity: 'taxAgentFirmCity',
   taxAgentFirmName: 'taxAgentFirmName',
   taxAgentFirmPostcode: 'taxAgentFirmPostcode',
-  taxAgentFirmState: 'taxAgentFirmState'
+  taxAgentFirmState: 'taxAgentFirmState',
+  perkesoEmployerCode: 'perkesoEmployerCode'
 } as const
 
 export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompanyInfoOrderByRelevanceFieldEnum)[keyof typeof PayrollCompanyInfoOrderByRelevanceFieldEnum]
@@ -4935,8 +4938,8 @@ export const LeaveApplicationOrderByRelevanceFieldEnum = {
   employeeId: 'employeeId',
   leaveTypeId: 'leaveTypeId',
   reason: 'reason',
-  attachmentUrl: 'attachmentUrl',
   attachmentName: 'attachmentName',
+  attachmentUrl: 'attachmentUrl',
   xeroFileId: 'xeroFileId'
 } as const
 

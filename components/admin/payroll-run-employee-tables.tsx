@@ -24,7 +24,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { PayrollEmployeeRow } from "@/modules/payroll/domain/models"
+import {
+  SALARY_TYPE_LABELS,
+  type PayrollEmployeeRow,
+} from "@/modules/payroll/domain/models"
 
 type RunEmployeeRow = PayrollEmployeeRow & {
   ready: boolean
@@ -35,6 +38,10 @@ type RunEmployeeRow = PayrollEmployeeRow & {
     otNormalHours: number
     otRestHours: number
     otPublicHours: number
+    salaryType: "MONTHLY" | "HOURLY"
+    workedHours: number | null
+    expectedHours: number | null
+    attendancePercent: number | null
     allowanceCount: number
     deductionCount: number
     overrideCount: number
@@ -344,18 +351,26 @@ function RunEmployeeTable({
               return (
                 <TableRow key={employee.userId}>
                   <TableCell>
-                    {mode === "ready" ? (
-                      <span className="font-bold text-foreground">
-                        {employee.name}
-                      </span>
-                    ) : (
-                      <Link
-                        href={profileHref}
-                        className="font-bold text-foreground transition hover:text-primary"
+                    <div className="flex items-center gap-2">
+                      {mode === "ready" ? (
+                        <span className="font-bold text-foreground">
+                          {employee.name}
+                        </span>
+                      ) : (
+                        <Link
+                          href={profileHref}
+                          className="font-bold text-foreground transition hover:text-primary"
+                        >
+                          {employee.name}
+                        </Link>
+                      )}
+                      <Badge
+                        variant="outline"
+                        className="border-border/60 text-[10px] text-muted-foreground"
                       >
-                        {employee.name}
-                      </Link>
-                    )}
+                        {SALARY_TYPE_LABELS[employee.salaryType]}
+                      </Badge>
+                    </div>
                   </TableCell>
                   <TableCell>{employee.jobTitle}</TableCell>
                   <TableCell className="max-w-[260px] truncate text-muted-foreground">
@@ -461,6 +476,28 @@ function AdjustmentSummaryCell({
     adjustment.otPublicHours
 
   const chips: React.ReactNode[] = []
+
+  // HRS — percentage for MONTHLY staff, absolute hours for HOURLY. A
+  // null value means no attendance basis (policy without attendance
+  // access, or unconfigured hours): show "—", which pairs with full
+  // month pay.
+  const hrsValue =
+    adjustment.salaryType === "MONTHLY"
+      ? adjustment.attendancePercent != null
+        ? `${adjustment.attendancePercent}%`
+        : "—"
+      : adjustment.workedHours != null
+        ? `${Math.round(adjustment.workedHours * 100) / 100}h`
+        : "—"
+  chips.push(
+    <Badge
+      key="hrs"
+      variant="outline"
+      className="border-indigo-300/60 text-[10px] text-indigo-700"
+    >
+      HRS {hrsValue}
+    </Badge>,
+  )
   if (totalOt > 0) {
     // Display the breakdown only when needed (avoid noisy chips
     // when admin set just normal-day OT).

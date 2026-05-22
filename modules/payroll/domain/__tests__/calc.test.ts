@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest"
 
-import { calcPayslip, type CalcPayslipInput } from "../calc"
+import {
+  autoHoursFromMinutes,
+  calcPayslip,
+  type CalcPayslipInput,
+} from "../calc"
 import type { PayrollAdjustmentCategory } from "../models"
 
 /**
@@ -366,5 +370,58 @@ describe("calcPayslip — PCB always runs", () => {
       periodMonth: 1,
     })
     expect(result.statutoryWarnings).toEqual([])
+  })
+})
+
+// ─── Working-hours DISPLAY helpers (do not affect pay) ──────────────────
+
+describe("calcPayslip — pay is day-based, not attendance-based", () => {
+  const monthly = () =>
+    makeProfile({ monthlySalary: 6000, joinDate: "2024-01-01", leaveDate: null })
+
+  it("full-month MONTHLY employee is paid the full salary (day-based)", () => {
+    const result = calcPayslip({
+      profile: monthly(),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+    })
+    expect(result.proratedFactor).toBe(1)
+    expect(result.proratedPay).toBe(6000)
+  })
+})
+
+describe("autoHoursFromMinutes", () => {
+  it("MONTHLY with no attendance → 0 worked, expected = scheduled (0%)", () => {
+    const r = autoHoursFromMinutes({
+      salaryType: "MONTHLY",
+      workedMin: 0,
+      scheduledMin: 176 * 60,
+      paidLeaveMin: 0,
+    })
+    expect(r.workedHours).toBe(0)
+    expect(r.expectedHours).toBe(176)
+  })
+
+  it("MONTHLY removes paid leave from expected", () => {
+    const r = autoHoursFromMinutes({
+      salaryType: "MONTHLY",
+      workedMin: 160 * 60,
+      scheduledMin: 176 * 60,
+      paidLeaveMin: 16 * 60,
+    })
+    expect(r.workedHours).toBe(160)
+    expect(r.expectedHours).toBe(160)
+  })
+
+  it("HOURLY adds paid leave to worked and has no expected basis", () => {
+    const r = autoHoursFromMinutes({
+      salaryType: "HOURLY",
+      workedMin: 100 * 60,
+      scheduledMin: 176 * 60,
+      paidLeaveMin: 8 * 60,
+    })
+    expect(r.workedHours).toBe(108)
+    expect(r.expectedHours).toBeNull()
   })
 })

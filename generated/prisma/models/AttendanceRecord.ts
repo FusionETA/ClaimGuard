@@ -29,23 +29,23 @@ export type AggregateAttendanceRecord = {
 export type AttendanceRecordAvgAggregateOutputType = {
   durationMin: number | null
   lateByMin: number | null
+  clockInDistanceMeters: number | null
   clockInLat: number | null
   clockInLng: number | null
-  clockInDistanceMeters: number | null
+  clockOutDistanceMeters: number | null
   clockOutLat: number | null
   clockOutLng: number | null
-  clockOutDistanceMeters: number | null
 }
 
 export type AttendanceRecordSumAggregateOutputType = {
   durationMin: number | null
   lateByMin: number | null
+  clockInDistanceMeters: number | null
   clockInLat: number | null
   clockInLng: number | null
-  clockInDistanceMeters: number | null
+  clockOutDistanceMeters: number | null
   clockOutLat: number | null
   clockOutLng: number | null
-  clockOutDistanceMeters: number | null
 }
 
 export type AttendanceRecordMinAggregateOutputType = {
@@ -66,12 +66,12 @@ export type AttendanceRecordMinAggregateOutputType = {
   selfieUploadedAt: Date | null
   xeroSelfieFileId: string | null
   remark: string | null
+  clockInDistanceMeters: number | null
   clockInLat: number | null
   clockInLng: number | null
-  clockInDistanceMeters: number | null
+  clockOutDistanceMeters: number | null
   clockOutLat: number | null
   clockOutLng: number | null
-  clockOutDistanceMeters: number | null
 }
 
 export type AttendanceRecordMaxAggregateOutputType = {
@@ -92,12 +92,12 @@ export type AttendanceRecordMaxAggregateOutputType = {
   selfieUploadedAt: Date | null
   xeroSelfieFileId: string | null
   remark: string | null
+  clockInDistanceMeters: number | null
   clockInLat: number | null
   clockInLng: number | null
-  clockInDistanceMeters: number | null
+  clockOutDistanceMeters: number | null
   clockOutLat: number | null
   clockOutLng: number | null
-  clockOutDistanceMeters: number | null
 }
 
 export type AttendanceRecordCountAggregateOutputType = {
@@ -118,12 +118,12 @@ export type AttendanceRecordCountAggregateOutputType = {
   selfieUploadedAt: number
   xeroSelfieFileId: number
   remark: number
+  clockInDistanceMeters: number
   clockInLat: number
   clockInLng: number
-  clockInDistanceMeters: number
+  clockOutDistanceMeters: number
   clockOutLat: number
   clockOutLng: number
-  clockOutDistanceMeters: number
   _all: number
 }
 
@@ -131,23 +131,23 @@ export type AttendanceRecordCountAggregateOutputType = {
 export type AttendanceRecordAvgAggregateInputType = {
   durationMin?: true
   lateByMin?: true
+  clockInDistanceMeters?: true
   clockInLat?: true
   clockInLng?: true
-  clockInDistanceMeters?: true
+  clockOutDistanceMeters?: true
   clockOutLat?: true
   clockOutLng?: true
-  clockOutDistanceMeters?: true
 }
 
 export type AttendanceRecordSumAggregateInputType = {
   durationMin?: true
   lateByMin?: true
+  clockInDistanceMeters?: true
   clockInLat?: true
   clockInLng?: true
-  clockInDistanceMeters?: true
+  clockOutDistanceMeters?: true
   clockOutLat?: true
   clockOutLng?: true
-  clockOutDistanceMeters?: true
 }
 
 export type AttendanceRecordMinAggregateInputType = {
@@ -168,12 +168,12 @@ export type AttendanceRecordMinAggregateInputType = {
   selfieUploadedAt?: true
   xeroSelfieFileId?: true
   remark?: true
+  clockInDistanceMeters?: true
   clockInLat?: true
   clockInLng?: true
-  clockInDistanceMeters?: true
+  clockOutDistanceMeters?: true
   clockOutLat?: true
   clockOutLng?: true
-  clockOutDistanceMeters?: true
 }
 
 export type AttendanceRecordMaxAggregateInputType = {
@@ -194,12 +194,12 @@ export type AttendanceRecordMaxAggregateInputType = {
   selfieUploadedAt?: true
   xeroSelfieFileId?: true
   remark?: true
+  clockInDistanceMeters?: true
   clockInLat?: true
   clockInLng?: true
-  clockInDistanceMeters?: true
+  clockOutDistanceMeters?: true
   clockOutLat?: true
   clockOutLng?: true
-  clockOutDistanceMeters?: true
 }
 
 export type AttendanceRecordCountAggregateInputType = {
@@ -220,12 +220,12 @@ export type AttendanceRecordCountAggregateInputType = {
   selfieUploadedAt?: true
   xeroSelfieFileId?: true
   remark?: true
+  clockInDistanceMeters?: true
   clockInLat?: true
   clockInLng?: true
-  clockInDistanceMeters?: true
+  clockOutDistanceMeters?: true
   clockOutLat?: true
   clockOutLng?: true
-  clockOutDistanceMeters?: true
   _all?: true
 }
 
@@ -333,12 +333,12 @@ export type AttendanceRecordGroupByOutputType = {
   selfieUploadedAt: Date | null
   xeroSelfieFileId: string | null
   remark: string | null
+  clockInDistanceMeters: number | null
   clockInLat: number | null
   clockInLng: number | null
-  clockInDistanceMeters: number | null
+  clockOutDistanceMeters: number | null
   clockOutLat: number | null
   clockOutLng: number | null
-  clockOutDistanceMeters: number | null
   _count: AttendanceRecordCountAggregateOutputType | null
   _avg: AttendanceRecordAvgAggregateOutputType | null
   _sum: AttendanceRecordSumAggregateOutputType | null
@@ -382,12 +382,12 @@ export type AttendanceRecordWhereInput = {
   selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   xeroSelfieFileId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   remark?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  clockInDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockInLat?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockInLng?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
-  clockInDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
+  clockOutDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockOutLat?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockOutLng?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
-  clockOutDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   editLogs?: Prisma.AttendanceEditLogListRelationFilter
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
@@ -413,12 +413,12 @@ export type AttendanceRecordOrderByWithRelationInput = {
   selfieUploadedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   remark?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockInDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInLat?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInLng?: Prisma.SortOrderInput | Prisma.SortOrder
-  clockInDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockOutDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutLat?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutLng?: Prisma.SortOrderInput | Prisma.SortOrder
-  clockOutDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   editLogs?: Prisma.AttendanceEditLogOrderByRelationAggregateInput
   employee?: Prisma.UserOrderByWithRelationInput
   projectRef?: Prisma.XeroProjectOrderByWithRelationInput
@@ -449,12 +449,12 @@ export type AttendanceRecordWhereUniqueInput = Prisma.AtLeast<{
   selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   xeroSelfieFileId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   remark?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  clockInDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockInLat?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockInLng?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
-  clockInDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
+  clockOutDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockOutLat?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockOutLng?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
-  clockOutDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   editLogs?: Prisma.AttendanceEditLogListRelationFilter
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
@@ -480,12 +480,12 @@ export type AttendanceRecordOrderByWithAggregationInput = {
   selfieUploadedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   remark?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockInDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInLat?: Prisma.SortOrderInput | Prisma.SortOrder
   clockInLng?: Prisma.SortOrderInput | Prisma.SortOrder
-  clockInDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
+  clockOutDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutLat?: Prisma.SortOrderInput | Prisma.SortOrder
   clockOutLng?: Prisma.SortOrderInput | Prisma.SortOrder
-  clockOutDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AttendanceRecordCountOrderByAggregateInput
   _avg?: Prisma.AttendanceRecordAvgOrderByAggregateInput
   _max?: Prisma.AttendanceRecordMaxOrderByAggregateInput
@@ -514,12 +514,12 @@ export type AttendanceRecordScalarWhereWithAggregatesInput = {
   selfieUploadedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AttendanceRecord"> | Date | string | null
   xeroSelfieFileId?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
   remark?: Prisma.StringNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
+  clockInDistanceMeters?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
   clockInLat?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
   clockInLng?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
-  clockInDistanceMeters?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
+  clockOutDistanceMeters?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
   clockOutLat?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
   clockOutLng?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
-  clockOutDistanceMeters?: Prisma.FloatNullableWithAggregatesFilter<"AttendanceRecord"> | number | null
 }
 
 export type AttendanceRecordCreateInput = {
@@ -538,12 +538,12 @@ export type AttendanceRecordCreateInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
@@ -569,12 +569,12 @@ export type AttendanceRecordUncheckedCreateInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
@@ -596,12 +596,12 @@ export type AttendanceRecordUpdateInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
@@ -627,12 +627,12 @@ export type AttendanceRecordUncheckedUpdateInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
@@ -656,12 +656,12 @@ export type AttendanceRecordCreateManyInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
 }
 
 export type AttendanceRecordUpdateManyMutationInput = {
@@ -680,12 +680,12 @@ export type AttendanceRecordUpdateManyMutationInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type AttendanceRecordUncheckedUpdateManyInput = {
@@ -706,12 +706,12 @@ export type AttendanceRecordUncheckedUpdateManyInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type AttendanceRecordListRelationFilter = {
@@ -753,23 +753,23 @@ export type AttendanceRecordCountOrderByAggregateInput = {
   selfieUploadedAt?: Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrder
   remark?: Prisma.SortOrder
+  clockInDistanceMeters?: Prisma.SortOrder
   clockInLat?: Prisma.SortOrder
   clockInLng?: Prisma.SortOrder
-  clockInDistanceMeters?: Prisma.SortOrder
+  clockOutDistanceMeters?: Prisma.SortOrder
   clockOutLat?: Prisma.SortOrder
   clockOutLng?: Prisma.SortOrder
-  clockOutDistanceMeters?: Prisma.SortOrder
 }
 
 export type AttendanceRecordAvgOrderByAggregateInput = {
   durationMin?: Prisma.SortOrder
   lateByMin?: Prisma.SortOrder
+  clockInDistanceMeters?: Prisma.SortOrder
   clockInLat?: Prisma.SortOrder
   clockInLng?: Prisma.SortOrder
-  clockInDistanceMeters?: Prisma.SortOrder
+  clockOutDistanceMeters?: Prisma.SortOrder
   clockOutLat?: Prisma.SortOrder
   clockOutLng?: Prisma.SortOrder
-  clockOutDistanceMeters?: Prisma.SortOrder
 }
 
 export type AttendanceRecordMaxOrderByAggregateInput = {
@@ -790,12 +790,12 @@ export type AttendanceRecordMaxOrderByAggregateInput = {
   selfieUploadedAt?: Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrder
   remark?: Prisma.SortOrder
+  clockInDistanceMeters?: Prisma.SortOrder
   clockInLat?: Prisma.SortOrder
   clockInLng?: Prisma.SortOrder
-  clockInDistanceMeters?: Prisma.SortOrder
+  clockOutDistanceMeters?: Prisma.SortOrder
   clockOutLat?: Prisma.SortOrder
   clockOutLng?: Prisma.SortOrder
-  clockOutDistanceMeters?: Prisma.SortOrder
 }
 
 export type AttendanceRecordMinOrderByAggregateInput = {
@@ -816,23 +816,23 @@ export type AttendanceRecordMinOrderByAggregateInput = {
   selfieUploadedAt?: Prisma.SortOrder
   xeroSelfieFileId?: Prisma.SortOrder
   remark?: Prisma.SortOrder
+  clockInDistanceMeters?: Prisma.SortOrder
   clockInLat?: Prisma.SortOrder
   clockInLng?: Prisma.SortOrder
-  clockInDistanceMeters?: Prisma.SortOrder
+  clockOutDistanceMeters?: Prisma.SortOrder
   clockOutLat?: Prisma.SortOrder
   clockOutLng?: Prisma.SortOrder
-  clockOutDistanceMeters?: Prisma.SortOrder
 }
 
 export type AttendanceRecordSumOrderByAggregateInput = {
   durationMin?: Prisma.SortOrder
   lateByMin?: Prisma.SortOrder
+  clockInDistanceMeters?: Prisma.SortOrder
   clockInLat?: Prisma.SortOrder
   clockInLng?: Prisma.SortOrder
-  clockInDistanceMeters?: Prisma.SortOrder
+  clockOutDistanceMeters?: Prisma.SortOrder
   clockOutLat?: Prisma.SortOrder
   clockOutLng?: Prisma.SortOrder
-  clockOutDistanceMeters?: Prisma.SortOrder
 }
 
 export type AttendanceRecordScalarRelationFilter = {
@@ -986,12 +986,12 @@ export type AttendanceRecordCreateWithoutEmployeeInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
@@ -1015,12 +1015,12 @@ export type AttendanceRecordUncheckedCreateWithoutEmployeeInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
@@ -1073,12 +1073,12 @@ export type AttendanceRecordScalarWhereInput = {
   selfieUploadedAt?: Prisma.DateTimeNullableFilter<"AttendanceRecord"> | Date | string | null
   xeroSelfieFileId?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
   remark?: Prisma.StringNullableFilter<"AttendanceRecord"> | string | null
+  clockInDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockInLat?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockInLng?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
-  clockInDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
+  clockOutDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockOutLat?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
   clockOutLng?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
-  clockOutDistanceMeters?: Prisma.FloatNullableFilter<"AttendanceRecord"> | number | null
 }
 
 export type AttendanceRecordCreateWithoutProjectRefInput = {
@@ -1097,12 +1097,12 @@ export type AttendanceRecordCreateWithoutProjectRefInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
@@ -1126,12 +1126,12 @@ export type AttendanceRecordUncheckedCreateWithoutProjectRefInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
@@ -1179,12 +1179,12 @@ export type AttendanceRecordCreateWithoutEditLogsInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
@@ -1209,12 +1209,12 @@ export type AttendanceRecordUncheckedCreateWithoutEditLogsInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
@@ -1251,12 +1251,12 @@ export type AttendanceRecordUpdateWithoutEditLogsInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
@@ -1281,12 +1281,12 @@ export type AttendanceRecordUncheckedUpdateWithoutEditLogsInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
@@ -1307,12 +1307,12 @@ export type AttendanceRecordCreateWithoutBreaksInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
@@ -1337,12 +1337,12 @@ export type AttendanceRecordUncheckedCreateWithoutBreaksInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
@@ -1379,12 +1379,12 @@ export type AttendanceRecordUpdateWithoutBreaksInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
@@ -1409,12 +1409,12 @@ export type AttendanceRecordUncheckedUpdateWithoutBreaksInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
@@ -1435,12 +1435,12 @@ export type AttendanceRecordCreateWithoutBreakEditLogsInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
@@ -1465,12 +1465,12 @@ export type AttendanceRecordUncheckedCreateWithoutBreakEditLogsInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
@@ -1507,12 +1507,12 @@ export type AttendanceRecordUpdateWithoutBreakEditLogsInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
@@ -1537,12 +1537,12 @@ export type AttendanceRecordUncheckedUpdateWithoutBreakEditLogsInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
@@ -1564,12 +1564,12 @@ export type AttendanceRecordCreateManyEmployeeInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
 }
 
 export type AttendanceRecordUpdateWithoutEmployeeInput = {
@@ -1588,12 +1588,12 @@ export type AttendanceRecordUpdateWithoutEmployeeInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
@@ -1617,12 +1617,12 @@ export type AttendanceRecordUncheckedUpdateWithoutEmployeeInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
@@ -1645,12 +1645,12 @@ export type AttendanceRecordUncheckedUpdateManyWithoutEmployeeInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type AttendanceRecordCreateManyProjectRefInput = {
@@ -1670,12 +1670,12 @@ export type AttendanceRecordCreateManyProjectRefInput = {
   selfieUploadedAt?: Date | string | null
   xeroSelfieFileId?: string | null
   remark?: string | null
+  clockInDistanceMeters?: number | null
   clockInLat?: number | null
   clockInLng?: number | null
-  clockInDistanceMeters?: number | null
+  clockOutDistanceMeters?: number | null
   clockOutLat?: number | null
   clockOutLng?: number | null
-  clockOutDistanceMeters?: number | null
 }
 
 export type AttendanceRecordUpdateWithoutProjectRefInput = {
@@ -1694,12 +1694,12 @@ export type AttendanceRecordUpdateWithoutProjectRefInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
@@ -1723,12 +1723,12 @@ export type AttendanceRecordUncheckedUpdateWithoutProjectRefInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
@@ -1751,12 +1751,12 @@ export type AttendanceRecordUncheckedUpdateManyWithoutProjectRefInput = {
   selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
-  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 
@@ -1826,12 +1826,12 @@ export type AttendanceRecordSelect<ExtArgs extends runtime.Types.Extensions.Inte
   selfieUploadedAt?: boolean
   xeroSelfieFileId?: boolean
   remark?: boolean
+  clockInDistanceMeters?: boolean
   clockInLat?: boolean
   clockInLng?: boolean
-  clockInDistanceMeters?: boolean
+  clockOutDistanceMeters?: boolean
   clockOutLat?: boolean
   clockOutLng?: boolean
-  clockOutDistanceMeters?: boolean
   editLogs?: boolean | Prisma.AttendanceRecord$editLogsArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
@@ -1860,15 +1860,15 @@ export type AttendanceRecordSelectScalar = {
   selfieUploadedAt?: boolean
   xeroSelfieFileId?: boolean
   remark?: boolean
+  clockInDistanceMeters?: boolean
   clockInLat?: boolean
   clockInLng?: boolean
-  clockInDistanceMeters?: boolean
+  clockOutDistanceMeters?: boolean
   clockOutLat?: boolean
   clockOutLng?: boolean
-  clockOutDistanceMeters?: boolean
 }
 
-export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "durationMin" | "lateByMin" | "location" | "project" | "status" | "notes" | "createdAt" | "updatedAt" | "projectId" | "selfieUploadedAt" | "xeroSelfieFileId" | "remark" | "clockInLat" | "clockInLng" | "clockInDistanceMeters" | "clockOutLat" | "clockOutLng" | "clockOutDistanceMeters", ExtArgs["result"]["attendanceRecord"]>
+export type AttendanceRecordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "date" | "timeIn" | "timeOut" | "durationMin" | "lateByMin" | "location" | "project" | "status" | "notes" | "createdAt" | "updatedAt" | "projectId" | "selfieUploadedAt" | "xeroSelfieFileId" | "remark" | "clockInDistanceMeters" | "clockInLat" | "clockInLng" | "clockOutDistanceMeters" | "clockOutLat" | "clockOutLng", ExtArgs["result"]["attendanceRecord"]>
 export type AttendanceRecordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   editLogs?: boolean | Prisma.AttendanceRecord$editLogsArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1926,6 +1926,7 @@ export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.In
      * commentary (and vice-versa).
      */
     remark: string | null
+    clockInDistanceMeters: number | null
     /**
      * Captured GPS coordinates and distance-from-site at clock-in. Null
      * when the employee clocked in without granting location (Office
@@ -1935,10 +1936,9 @@ export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.In
      */
     clockInLat: number | null
     clockInLng: number | null
-    clockInDistanceMeters: number | null
+    clockOutDistanceMeters: number | null
     clockOutLat: number | null
     clockOutLng: number | null
-    clockOutDistanceMeters: number | null
   }, ExtArgs["result"]["attendanceRecord"]>
   composites: {}
 }
@@ -2330,12 +2330,12 @@ export interface AttendanceRecordFieldRefs {
   readonly selfieUploadedAt: Prisma.FieldRef<"AttendanceRecord", 'DateTime'>
   readonly xeroSelfieFileId: Prisma.FieldRef<"AttendanceRecord", 'String'>
   readonly remark: Prisma.FieldRef<"AttendanceRecord", 'String'>
+  readonly clockInDistanceMeters: Prisma.FieldRef<"AttendanceRecord", 'Float'>
   readonly clockInLat: Prisma.FieldRef<"AttendanceRecord", 'Float'>
   readonly clockInLng: Prisma.FieldRef<"AttendanceRecord", 'Float'>
-  readonly clockInDistanceMeters: Prisma.FieldRef<"AttendanceRecord", 'Float'>
+  readonly clockOutDistanceMeters: Prisma.FieldRef<"AttendanceRecord", 'Float'>
   readonly clockOutLat: Prisma.FieldRef<"AttendanceRecord", 'Float'>
   readonly clockOutLng: Prisma.FieldRef<"AttendanceRecord", 'Float'>
-  readonly clockOutDistanceMeters: Prisma.FieldRef<"AttendanceRecord", 'Float'>
 }
     
 

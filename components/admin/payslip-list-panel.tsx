@@ -62,13 +62,40 @@ function fmtSigned(value: number): string {
   )
 }
 
-/** Format hour counts — strips trailing zeros and shows "—" for 0. */
-function fmtHours(value: number | null): string {
-  if (value == null || !Number.isFinite(value) || value === 0) return "—"
+/** Format hour counts — renders 0 as "0" (the OT/HRS columns show 0,
+ * not "—", so an admin can tell "no OT" from "no data"). */
+function fmtHoursValue(value: number | null): string {
+  if (value == null || !Number.isFinite(value)) return "—"
   return value.toLocaleString("en-MY", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })
+}
+
+/** HRS column: worked hours as a percentage of expected (standard)
+ * hours for staff with an expected basis; the worked hours for hourly
+ * staff. "—" only when neither is recorded. */
+function fmtWorkingHours(payslip: {
+  workedHours: number | null
+  expectedHours: number | null
+}): string {
+  // Coerce defensively — the value may arrive as a number, a string, or
+  // a Decimal-like through serialization.
+  const expected = payslip.expectedHours == null ? null : Number(payslip.expectedHours)
+  const worked = payslip.workedHours == null ? null : Number(payslip.workedHours)
+  if (expected != null && Number.isFinite(expected) && expected > 0) {
+    const pct = ((worked ?? 0) / expected) * 100
+    return (
+      pct.toLocaleString("en-MY", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 1,
+      }) + "%"
+    )
+  }
+  if (worked != null && Number.isFinite(worked) && worked > 0) {
+    return fmtHoursValue(worked)
+  }
+  return "—"
 }
 
 const PAGE_SIZE = 20
@@ -546,16 +573,16 @@ function PayslipRow({
         </div>
       </TableCell>
       <TableCell className="text-right font-mono">
-        {fmtHours(payslip.workedHours)}
+        {fmtWorkingHours(payslip)}
       </TableCell>
       <TableCell className="text-right font-mono">
-        {fmtHours(payslip.otNormalHours)}
+        {fmtHoursValue(payslip.otNormalHours)}
       </TableCell>
       <TableCell className="text-right font-mono">
-        {fmtHours(payslip.otRestHours)}
+        {fmtHoursValue(payslip.otRestHours)}
       </TableCell>
       <TableCell className="text-right font-mono">
-        {fmtHours(payslip.otPublicHours)}
+        {fmtHoursValue(payslip.otPublicHours)}
       </TableCell>
       <TableCell className="text-right font-mono font-semibold">
         {fmt(payslip.grossPay)}

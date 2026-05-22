@@ -76,6 +76,12 @@ export function EditAdjustmentDialog({
   const [data, setData] = useState<{
     adjustment: PayrollRunAdjustmentData | null
     fixedAllowances: FixedAllowance[]
+    salaryType: "MONTHLY" | "HOURLY"
+    autoHours: {
+      workedHours: number | null
+      expectedHours: number | null
+      attendancePercent: number | null
+    }
     loans: Array<{ id: string; label: string; amount: number }>
   } | null>(null)
   const [loading, startLoading] = useTransition()
@@ -165,6 +171,8 @@ export function EditAdjustmentDialog({
               employeeProfileId={employeeProfileId}
               adjustment={data.adjustment}
               fixedAllowances={data.fixedAllowances}
+              salaryType={data.salaryType}
+              autoHours={data.autoHours}
               loans={data.loans}
               readOnly={readOnly}
               saveFormId={saveFormId}

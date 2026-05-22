@@ -50,12 +50,12 @@ export type ChartOfAccountMinAggregateOutputType = {
   updatedAt: Date | null
   isBankAccount: boolean | null
   isDisabled: boolean | null
-  archivedByXeroConnect: boolean | null
   allowMileageClaim: boolean | null
   limitAmount: runtime.Decimal | null
   limitPeriod: $Enums.LimitPeriod | null
   limitScope: $Enums.LimitScope | null
   mileageRate: runtime.Decimal | null
+  archivedByXeroConnect: boolean | null
 }
 
 export type ChartOfAccountMaxAggregateOutputType = {
@@ -72,12 +72,12 @@ export type ChartOfAccountMaxAggregateOutputType = {
   updatedAt: Date | null
   isBankAccount: boolean | null
   isDisabled: boolean | null
-  archivedByXeroConnect: boolean | null
   allowMileageClaim: boolean | null
   limitAmount: runtime.Decimal | null
   limitPeriod: $Enums.LimitPeriod | null
   limitScope: $Enums.LimitScope | null
   mileageRate: runtime.Decimal | null
+  archivedByXeroConnect: boolean | null
 }
 
 export type ChartOfAccountCountAggregateOutputType = {
@@ -94,12 +94,12 @@ export type ChartOfAccountCountAggregateOutputType = {
   updatedAt: number
   isBankAccount: number
   isDisabled: number
-  archivedByXeroConnect: number
   allowMileageClaim: number
   limitAmount: number
   limitPeriod: number
   limitScope: number
   mileageRate: number
+  archivedByXeroConnect: number
   _all: number
 }
 
@@ -128,12 +128,12 @@ export type ChartOfAccountMinAggregateInputType = {
   updatedAt?: true
   isBankAccount?: true
   isDisabled?: true
-  archivedByXeroConnect?: true
   allowMileageClaim?: true
   limitAmount?: true
   limitPeriod?: true
   limitScope?: true
   mileageRate?: true
+  archivedByXeroConnect?: true
 }
 
 export type ChartOfAccountMaxAggregateInputType = {
@@ -150,12 +150,12 @@ export type ChartOfAccountMaxAggregateInputType = {
   updatedAt?: true
   isBankAccount?: true
   isDisabled?: true
-  archivedByXeroConnect?: true
   allowMileageClaim?: true
   limitAmount?: true
   limitPeriod?: true
   limitScope?: true
   mileageRate?: true
+  archivedByXeroConnect?: true
 }
 
 export type ChartOfAccountCountAggregateInputType = {
@@ -172,12 +172,12 @@ export type ChartOfAccountCountAggregateInputType = {
   updatedAt?: true
   isBankAccount?: true
   isDisabled?: true
-  archivedByXeroConnect?: true
   allowMileageClaim?: true
   limitAmount?: true
   limitPeriod?: true
   limitScope?: true
   mileageRate?: true
+  archivedByXeroConnect?: true
   _all?: true
 }
 
@@ -281,12 +281,12 @@ export type ChartOfAccountGroupByOutputType = {
   updatedAt: Date
   isBankAccount: boolean
   isDisabled: boolean
-  archivedByXeroConnect: boolean
   allowMileageClaim: boolean
   limitAmount: runtime.Decimal | null
   limitPeriod: $Enums.LimitPeriod | null
   limitScope: $Enums.LimitScope | null
   mileageRate: runtime.Decimal | null
+  archivedByXeroConnect: boolean
   _count: ChartOfAccountCountAggregateOutputType | null
   _avg: ChartOfAccountAvgAggregateOutputType | null
   _sum: ChartOfAccountSumAggregateOutputType | null
@@ -326,12 +326,12 @@ export type ChartOfAccountWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"ChartOfAccount"> | Date | string
   isBankAccount?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   isDisabled?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
-  archivedByXeroConnect?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   allowMileageClaim?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   limitAmount?: Prisma.DecimalNullableFilter<"ChartOfAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.EnumLimitPeriodNullableFilter<"ChartOfAccount"> | $Enums.LimitPeriod | null
   limitScope?: Prisma.EnumLimitScopeNullableFilter<"ChartOfAccount"> | $Enums.LimitScope | null
   mileageRate?: Prisma.DecimalNullableFilter<"ChartOfAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   claims?: Prisma.ClaimListRelationFilter
   paidClaims?: Prisma.ClaimListRelationFilter
@@ -351,12 +351,12 @@ export type ChartOfAccountOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   isBankAccount?: Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
-  archivedByXeroConnect?: Prisma.SortOrder
   allowMileageClaim?: Prisma.SortOrder
   limitAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   limitPeriod?: Prisma.SortOrderInput | Prisma.SortOrder
   limitScope?: Prisma.SortOrderInput | Prisma.SortOrder
   mileageRate?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedByXeroConnect?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
   paidClaims?: Prisma.ClaimOrderByRelationAggregateInput
@@ -382,12 +382,12 @@ export type ChartOfAccountWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"ChartOfAccount"> | Date | string
   isBankAccount?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   isDisabled?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
-  archivedByXeroConnect?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   allowMileageClaim?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   limitAmount?: Prisma.DecimalNullableFilter<"ChartOfAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.EnumLimitPeriodNullableFilter<"ChartOfAccount"> | $Enums.LimitPeriod | null
   limitScope?: Prisma.EnumLimitScopeNullableFilter<"ChartOfAccount"> | $Enums.LimitScope | null
   mileageRate?: Prisma.DecimalNullableFilter<"ChartOfAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   claims?: Prisma.ClaimListRelationFilter
   paidClaims?: Prisma.ClaimListRelationFilter
@@ -407,12 +407,12 @@ export type ChartOfAccountOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   isBankAccount?: Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
-  archivedByXeroConnect?: Prisma.SortOrder
   allowMileageClaim?: Prisma.SortOrder
   limitAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   limitPeriod?: Prisma.SortOrderInput | Prisma.SortOrder
   limitScope?: Prisma.SortOrderInput | Prisma.SortOrder
   mileageRate?: Prisma.SortOrderInput | Prisma.SortOrder
+  archivedByXeroConnect?: Prisma.SortOrder
   _count?: Prisma.ChartOfAccountCountOrderByAggregateInput
   _avg?: Prisma.ChartOfAccountAvgOrderByAggregateInput
   _max?: Prisma.ChartOfAccountMaxOrderByAggregateInput
@@ -437,12 +437,12 @@ export type ChartOfAccountScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ChartOfAccount"> | Date | string
   isBankAccount?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
   isDisabled?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
-  archivedByXeroConnect?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
   allowMileageClaim?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
   limitAmount?: Prisma.DecimalNullableWithAggregatesFilter<"ChartOfAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.EnumLimitPeriodNullableWithAggregatesFilter<"ChartOfAccount"> | $Enums.LimitPeriod | null
   limitScope?: Prisma.EnumLimitScopeNullableWithAggregatesFilter<"ChartOfAccount"> | $Enums.LimitScope | null
   mileageRate?: Prisma.DecimalNullableWithAggregatesFilter<"ChartOfAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolWithAggregatesFilter<"ChartOfAccount"> | boolean
 }
 
 export type ChartOfAccountCreateInput = {
@@ -458,12 +458,12 @@ export type ChartOfAccountCreateInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
   organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
   claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
   paidClaims?: Prisma.ClaimCreateNestedManyWithoutPayViaAccountInput
@@ -483,12 +483,12 @@ export type ChartOfAccountUncheckedCreateInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
   paidClaims?: Prisma.ClaimUncheckedCreateNestedManyWithoutPayViaAccountInput
 }
@@ -506,12 +506,12 @@ export type ChartOfAccountUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
   paidClaims?: Prisma.ClaimUpdateManyWithoutPayViaAccountNestedInput
@@ -531,12 +531,12 @@ export type ChartOfAccountUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
   paidClaims?: Prisma.ClaimUncheckedUpdateManyWithoutPayViaAccountNestedInput
 }
@@ -555,12 +555,12 @@ export type ChartOfAccountCreateManyInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
 }
 
 export type ChartOfAccountUpdateManyMutationInput = {
@@ -576,12 +576,12 @@ export type ChartOfAccountUpdateManyMutationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ChartOfAccountUncheckedUpdateManyInput = {
@@ -598,12 +598,12 @@ export type ChartOfAccountUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type ChartOfAccountListRelationFilter = {
@@ -651,12 +651,12 @@ export type ChartOfAccountCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   isBankAccount?: Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
-  archivedByXeroConnect?: Prisma.SortOrder
   allowMileageClaim?: Prisma.SortOrder
   limitAmount?: Prisma.SortOrder
   limitPeriod?: Prisma.SortOrder
   limitScope?: Prisma.SortOrder
   mileageRate?: Prisma.SortOrder
+  archivedByXeroConnect?: Prisma.SortOrder
 }
 
 export type ChartOfAccountAvgOrderByAggregateInput = {
@@ -678,12 +678,12 @@ export type ChartOfAccountMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   isBankAccount?: Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
-  archivedByXeroConnect?: Prisma.SortOrder
   allowMileageClaim?: Prisma.SortOrder
   limitAmount?: Prisma.SortOrder
   limitPeriod?: Prisma.SortOrder
   limitScope?: Prisma.SortOrder
   mileageRate?: Prisma.SortOrder
+  archivedByXeroConnect?: Prisma.SortOrder
 }
 
 export type ChartOfAccountMinOrderByAggregateInput = {
@@ -700,12 +700,12 @@ export type ChartOfAccountMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   isBankAccount?: Prisma.SortOrder
   isDisabled?: Prisma.SortOrder
-  archivedByXeroConnect?: Prisma.SortOrder
   allowMileageClaim?: Prisma.SortOrder
   limitAmount?: Prisma.SortOrder
   limitPeriod?: Prisma.SortOrder
   limitScope?: Prisma.SortOrder
   mileageRate?: Prisma.SortOrder
+  archivedByXeroConnect?: Prisma.SortOrder
 }
 
 export type ChartOfAccountSumOrderByAggregateInput = {
@@ -808,12 +808,12 @@ export type ChartOfAccountCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
   claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
   paidClaims?: Prisma.ClaimCreateNestedManyWithoutPayViaAccountInput
 }
@@ -831,12 +831,12 @@ export type ChartOfAccountUncheckedCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
   paidClaims?: Prisma.ClaimUncheckedCreateNestedManyWithoutPayViaAccountInput
 }
@@ -884,12 +884,12 @@ export type ChartOfAccountScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"ChartOfAccount"> | Date | string
   isBankAccount?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   isDisabled?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
-  archivedByXeroConnect?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   allowMileageClaim?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
   limitAmount?: Prisma.DecimalNullableFilter<"ChartOfAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.EnumLimitPeriodNullableFilter<"ChartOfAccount"> | $Enums.LimitPeriod | null
   limitScope?: Prisma.EnumLimitScopeNullableFilter<"ChartOfAccount"> | $Enums.LimitScope | null
   mileageRate?: Prisma.DecimalNullableFilter<"ChartOfAccount"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFilter<"ChartOfAccount"> | boolean
 }
 
 export type ChartOfAccountCreateWithoutClaimsInput = {
@@ -905,12 +905,12 @@ export type ChartOfAccountCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
   organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
   paidClaims?: Prisma.ClaimCreateNestedManyWithoutPayViaAccountInput
 }
@@ -929,12 +929,12 @@ export type ChartOfAccountUncheckedCreateWithoutClaimsInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
   paidClaims?: Prisma.ClaimUncheckedCreateNestedManyWithoutPayViaAccountInput
 }
 
@@ -956,12 +956,12 @@ export type ChartOfAccountCreateWithoutPaidClaimsInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
   organization: Prisma.OrganizationCreateNestedOneWithoutChartAccountsInput
   claims?: Prisma.ClaimCreateNestedManyWithoutChartOfAccountInput
 }
@@ -980,12 +980,12 @@ export type ChartOfAccountUncheckedCreateWithoutPaidClaimsInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutChartOfAccountInput
 }
 
@@ -1018,12 +1018,12 @@ export type ChartOfAccountUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
   paidClaims?: Prisma.ClaimUpdateManyWithoutPayViaAccountNestedInput
 }
@@ -1042,12 +1042,12 @@ export type ChartOfAccountUncheckedUpdateWithoutClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   paidClaims?: Prisma.ClaimUncheckedUpdateManyWithoutPayViaAccountNestedInput
 }
 
@@ -1075,12 +1075,12 @@ export type ChartOfAccountUpdateWithoutPaidClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutChartAccountsNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
 }
@@ -1099,12 +1099,12 @@ export type ChartOfAccountUncheckedUpdateWithoutPaidClaimsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
 }
 
@@ -1121,12 +1121,12 @@ export type ChartOfAccountCreateManyOrganizationInput = {
   updatedAt?: Date | string
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: $Enums.LimitPeriod | null
   limitScope?: $Enums.LimitScope | null
   mileageRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: boolean
 }
 
 export type ChartOfAccountUpdateWithoutOrganizationInput = {
@@ -1142,12 +1142,12 @@ export type ChartOfAccountUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUpdateManyWithoutChartOfAccountNestedInput
   paidClaims?: Prisma.ClaimUpdateManyWithoutPayViaAccountNestedInput
 }
@@ -1165,12 +1165,12 @@ export type ChartOfAccountUncheckedUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutChartOfAccountNestedInput
   paidClaims?: Prisma.ClaimUncheckedUpdateManyWithoutPayViaAccountNestedInput
 }
@@ -1188,12 +1188,12 @@ export type ChartOfAccountUncheckedUpdateManyWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isBankAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isDisabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
   allowMileageClaim?: Prisma.BoolFieldUpdateOperationsInput | boolean
   limitAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   limitPeriod?: Prisma.NullableEnumLimitPeriodFieldUpdateOperationsInput | $Enums.LimitPeriod | null
   limitScope?: Prisma.NullableEnumLimitScopeFieldUpdateOperationsInput | $Enums.LimitScope | null
   mileageRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  archivedByXeroConnect?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 
@@ -1250,12 +1250,12 @@ export type ChartOfAccountSelect<ExtArgs extends runtime.Types.Extensions.Intern
   updatedAt?: boolean
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: boolean
   limitPeriod?: boolean
   limitScope?: boolean
   mileageRate?: boolean
+  archivedByXeroConnect?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   claims?: boolean | Prisma.ChartOfAccount$claimsArgs<ExtArgs>
   paidClaims?: boolean | Prisma.ChartOfAccount$paidClaimsArgs<ExtArgs>
@@ -1278,15 +1278,15 @@ export type ChartOfAccountSelectScalar = {
   updatedAt?: boolean
   isBankAccount?: boolean
   isDisabled?: boolean
-  archivedByXeroConnect?: boolean
   allowMileageClaim?: boolean
   limitAmount?: boolean
   limitPeriod?: boolean
   limitScope?: boolean
   mileageRate?: boolean
+  archivedByXeroConnect?: boolean
 }
 
-export type ChartOfAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroAccountId" | "code" | "name" | "type" | "status" | "isSelectable" | "isCustom" | "createdAt" | "updatedAt" | "isBankAccount" | "isDisabled" | "archivedByXeroConnect" | "allowMileageClaim" | "limitAmount" | "limitPeriod" | "limitScope" | "mileageRate", ExtArgs["result"]["chartOfAccount"]>
+export type ChartOfAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "xeroAccountId" | "code" | "name" | "type" | "status" | "isSelectable" | "isCustom" | "createdAt" | "updatedAt" | "isBankAccount" | "isDisabled" | "allowMileageClaim" | "limitAmount" | "limitPeriod" | "limitScope" | "mileageRate" | "archivedByXeroConnect", ExtArgs["result"]["chartOfAccount"]>
 export type ChartOfAccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   claims?: boolean | Prisma.ChartOfAccount$claimsArgs<ExtArgs>
@@ -1315,12 +1315,12 @@ export type $ChartOfAccountPayload<ExtArgs extends runtime.Types.Extensions.Inte
     updatedAt: Date
     isBankAccount: boolean
     isDisabled: boolean
-    archivedByXeroConnect: boolean
     allowMileageClaim: boolean
     limitAmount: runtime.Decimal | null
     limitPeriod: $Enums.LimitPeriod | null
     limitScope: $Enums.LimitScope | null
     mileageRate: runtime.Decimal | null
+    archivedByXeroConnect: boolean
   }, ExtArgs["result"]["chartOfAccount"]>
   composites: {}
 }
@@ -1706,12 +1706,12 @@ export interface ChartOfAccountFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"ChartOfAccount", 'DateTime'>
   readonly isBankAccount: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
   readonly isDisabled: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
-  readonly archivedByXeroConnect: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
   readonly allowMileageClaim: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
   readonly limitAmount: Prisma.FieldRef<"ChartOfAccount", 'Decimal'>
   readonly limitPeriod: Prisma.FieldRef<"ChartOfAccount", 'LimitPeriod'>
   readonly limitScope: Prisma.FieldRef<"ChartOfAccount", 'LimitScope'>
   readonly mileageRate: Prisma.FieldRef<"ChartOfAccount", 'Decimal'>
+  readonly archivedByXeroConnect: Prisma.FieldRef<"ChartOfAccount", 'Boolean'>
 }
     
 
