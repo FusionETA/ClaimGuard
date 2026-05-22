@@ -33,9 +33,10 @@ export default async function AdminAnnualPayrollFormsPage({
           Annual Tax Forms
         </h1>
         <p className="text-sm text-muted-foreground">
-          Year-end statutory forms aggregated across every SUBMITTED
-          payroll run. Forms EA must be issued to employees by 28 Feb;
-          Form E + CP8D filed with LHDN by 31 Mar (or 30 Apr e-Filed).
+          Year-end statutory forms generated only after every Jan-Dec
+          payroll run is approved. Forms EA must be issued to employees
+          by 28 Feb; Form E + CP8D filed with LHDN by 31 Mar (or 30 Apr
+          e-Filed).
         </p>
       </header>
 
@@ -45,6 +46,8 @@ export default async function AdminAnnualPayrollFormsPage({
         selectedYear={data.selectedYear}
         rows={data.rows}
         canGenerate={data.canGenerate}
+        submittedMonthCount={data.submittedMonthCount}
+        missingMonths={data.missingMonths}
         employerNoConfigured={data.employerNoConfigured}
       />
     </div>

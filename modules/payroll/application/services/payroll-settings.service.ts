@@ -44,12 +44,15 @@ export type PayrollSettingsPageData = {
   /// the org. Drives the HRDF tier display in the settings form.
   malaysianEmployeeCount: number
   hrdfTier: HrdfTier
-  /// True when the org has at least one Xero connection. Used to gate
-  /// the "sync claims / payroll to Xero on submit" toggles in the
-  /// settings UI — when there's no connection, those toggles are
-  /// hidden entirely (and persisted as false).
+  /// True when the org has at least one Xero connection. Read live so
+  /// OAuth connect/update status cannot lag behind Redis page data.
   hasXeroConnection: boolean
 }
+
+type PayrollSettingsCachedPageData = Omit<
+  PayrollSettingsPageData,
+  "hasXeroConnection"
+>
 
 export async function getPayrollSettingsPageData(): Promise<PayrollSettingsPageData | null> {
   const session = await getCurrentSession()
@@ -57,33 +60,38 @@ export async function getPayrollSettingsPageData(): Promise<PayrollSettingsPageD
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
-  // 1-hour TTL — settings/company-info/xeroMapping change rarely; each
-  // mutation calls `bustPayrollCaches({ organizationId })` so the next
-  // render is always fresh. The TTL is just a backstop.
-  return getOrSetCache(
-    key("org", orgId, "payroll", "page", "settings"),
-    3600,
-    () => loadPayrollSettingsPageData(orgId),
-  )
+  // 1-hour TTL — settings/company-info change rarely; each mutation
+  // calls `bustPayrollCaches({ organizationId })` so the next render is
+  // always fresh. Xero connection state stays outside this cache because
+  // OAuth scope/status changes must show immediately after callback.
+  const [cached, xeroConnections] = await Promise.all([
+    getOrSetCache(
+      key("org", orgId, "payroll", "page", "settings"),
+      3600,
+      () => loadPayrollSettingsPageData(orgId),
+    ),
+    organizationRepository.getXeroConnections(orgId),
+  ])
+  return cached
+    ? { ...cached, hasXeroConnection: xeroConnections.length > 0 }
+    : null
 }
 
 async function loadPayrollSettingsPageData(
   orgId: string,
-): Promise<PayrollSettingsPageData | null> {
+): Promise<PayrollSettingsCachedPageData | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
 
-  const [org, settings, companyInfo, malaysianEmployeeCount, xeroConnections] =
-    await Promise.all([
-      prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { name: true },
-      }),
-      payrollSettingsRepository.getByOrgId(orgId),
-      payrollCompanyInfoRepository.getByOrgId(orgId),
-      countActiveMalaysianEmployees(prisma, orgId),
-      organizationRepository.getXeroConnections(orgId),
-    ])
+  const [org, settings, companyInfo, malaysianEmployeeCount] = await Promise.all([
+    prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { name: true },
+    }),
+    payrollSettingsRepository.getByOrgId(orgId),
+    payrollCompanyInfoRepository.getByOrgId(orgId),
+    countActiveMalaysianEmployees(prisma, orgId),
+  ])
 
   return {
     organizationName: org?.name ?? "",
@@ -91,7 +99,6 @@ async function loadPayrollSettingsPageData(
     companyInfo,
     malaysianEmployeeCount,
     hrdfTier: hrdfTierFromCount(malaysianEmployeeCount),
-    hasXeroConnection: xeroConnections.length > 0,
   }
 }
 

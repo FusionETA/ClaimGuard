@@ -264,13 +264,9 @@ export async function approvePayrollRunAction(
   let xeroSyncOutcome: Awaited<
     ReturnType<typeof approvePayrollRun>
   >["xeroSync"]
-  let claimXeroSyncOutcome: Awaited<
-    ReturnType<typeof approvePayrollRun>
-  >["claimXeroSync"]
   try {
     const result = await approvePayrollRun({ runId: parsed.data.runId })
     xeroSyncOutcome = result.xeroSync
-    claimXeroSyncOutcome = result.claimXeroSync
   } catch (err) {
     return {
       status: "error",
@@ -287,15 +283,6 @@ export async function approvePayrollRunAction(
   // Build a message that includes the Xero sync outcome so the admin
   // gets one toast covering both events.
   let message = "Payroll run approved and submitted."
-  if (claimXeroSyncOutcome?.status === "synced") {
-    message += ` Created ${claimXeroSyncOutcome.created} Xero bill${
-      claimXeroSyncOutcome.created === 1 ? "" : "s"
-    } for attached claims.`
-  } else if (claimXeroSyncOutcome?.status === "skipped") {
-    message += ` Claim bill sync skipped — ${claimXeroSyncOutcome.message}`
-  } else if (claimXeroSyncOutcome?.status === "error") {
-    message += ` Claim bill sync failed — ${claimXeroSyncOutcome.message}`
-  }
   if (xeroSyncOutcome?.status === "synced") {
     message += ` Posted to Xero — journal ${xeroSyncOutcome.narration}.`
   } else if (xeroSyncOutcome?.status === "skipped") {
@@ -390,7 +377,7 @@ export async function revertPayrollRunAction(
 /**
  * Build a preview of what will be posted to Xero when this run is
  * approved. Used by the pre-approval modal so the admin sees the
- * journal lines + attached-claim bills before clicking Confirm.
+ * journal lines before clicking Confirm.
  */
 export async function getPayrollSyncPreviewAction(input: {
   runId: string

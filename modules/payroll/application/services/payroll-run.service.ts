@@ -312,10 +312,6 @@ export async function approvePayrollRun(input: {
     | { status: "synced"; manualJournalId: string; narration: string }
     | { status: "skipped"; message: string }
     | { status: "error"; message: string }
-  claimXeroSync?:
-    | { status: "synced"; created: number; skipped: number; message: string }
-    | { status: "skipped"; message: string }
-    | { status: "error"; created: number; skipped: number; failed: number; message: string }
 }> {
   const session = await getCurrentSession()
   if (!session || session.role !== "ADMIN") {
@@ -1019,10 +1015,11 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
 
   // 1-hour TTL — keyed on runId so each run has its own slot. Every
   // payroll mutation (generate, adjustment save, attach/detach, status
-  // transition, Xero sync) calls `bustPayrollCaches({ organizationId })`
-  // which sweeps `org:<orgId>:payroll:*` — that includes this key.
+  // transition, Xero sync) calls `bustPayrollCaches({ organizationId })`.
+  // The v2 segment intentionally bypasses older cached payloads that
+  // pre-date the "hide already-Xero-synced claims" filter.
   return getOrSetCache(
-    key("org", orgId, "payroll", "page", "run-detail", input.runId),
+    key("org", orgId, "payroll", "page", "run-detail:v2", input.runId),
     3600,
     () => loadPayrollRunDetailWithPayslipsPageData(input, orgId),
   )
@@ -1456,6 +1453,11 @@ export async function attachClaimToPayrollRun(input: {
   if (claim.paymentType !== "PERSONAL") {
     throw new Error(
       "Only PERSONAL-paymentType claims need reimbursing through payroll.",
+    )
+  }
+  if (claim.xeroBillId || claim.xeroSpendMoneyId) {
+    throw new Error(
+      "This claim has already been synced to Xero, so it cannot be reimbursed through payroll.",
     )
   }
   if (!claim.employeeProfileId) {

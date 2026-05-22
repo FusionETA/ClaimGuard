@@ -79,6 +79,49 @@ export const payrollRunRepository = {
   },
 
   /**
+   * Annual statutory forms are only valid once every month in the
+   * calendar year has a finalised payroll run. Return submitted-month
+   * coverage so the page can explain what's still missing and the
+   * generation action can enforce the same rule server-side.
+   */
+  async getAnnualSubmissionCoverage(input: {
+    organizationId: string
+    year: number
+  }): Promise<{
+    submittedMonths: number[]
+    missingMonths: number[]
+    complete: boolean
+  }> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      return {
+        submittedMonths: [],
+        missingMonths: Array.from({ length: 12 }, (_, i) => i + 1),
+        complete: false,
+      }
+    }
+
+    const rows = await prisma.payrollRun.findMany({
+      where: {
+        organizationId: input.organizationId,
+        periodYear: input.year,
+        status: "SUBMITTED",
+      },
+      select: { periodMonth: true },
+    })
+    const submitted = new Set(rows.map((r) => r.periodMonth))
+    const submittedMonths = Array.from(submitted).sort((a, b) => a - b)
+    const missingMonths = Array.from({ length: 12 }, (_, i) => i + 1).filter(
+      (month) => !submitted.has(month),
+    )
+    return {
+      submittedMonths,
+      missingMonths,
+      complete: missingMonths.length === 0,
+    }
+  },
+
+  /**
    * Lookup by (org, year, month). Returns null when no run exists for
    * that period. Used by the "new draft" action to short-circuit
    * before hitting the unique-constraint error.

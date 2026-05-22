@@ -154,11 +154,13 @@ export const payrollRunClaimRepository = {
         organizationId: input.organizationId,
         status: "REVIEWED",
         paymentType: "PERSONAL",
+        xeroBillId: null,
+        xeroSpendMoneyId: null,
         // The old gate required `xeroSyncStatus: "SYNCED"` here — we
         // dropped it so reviewed personal-paid claims can flow
         // straight into a payroll run without going through Xero
-        // first. Xero sync becomes a post-submit, module-gated step
-        // (or is skipped entirely for orgs that don't use Xero).
+        // first. Claims already posted as a Xero bill/spend-money are
+        // excluded because that path is already paid/accounted for.
         ...(input.excludeAttached
           ? { payrollRunAttachment: { is: null } }
           : {}),
@@ -235,6 +237,8 @@ export const payrollRunClaimRepository = {
     organizationId: string | null
     status: string
     xeroSyncStatus: string
+    xeroBillId: string | null
+    xeroSpendMoneyId: string | null
     paymentType: string
     employeeProfileId: string | null
     alreadyAttachedRunId: string | null
@@ -252,6 +256,8 @@ export const payrollRunClaimRepository = {
         organizationId: true,
         status: true,
         xeroSyncStatus: true,
+        xeroBillId: true,
+        xeroSpendMoneyId: true,
         paymentType: true,
         employee: {
           select: {
@@ -271,6 +277,8 @@ export const payrollRunClaimRepository = {
       organizationId: row.organizationId,
       status: row.status,
       xeroSyncStatus: row.xeroSyncStatus,
+      xeroBillId: row.xeroBillId,
+      xeroSpendMoneyId: row.xeroSpendMoneyId,
       paymentType: row.paymentType,
       employeeProfileId: row.employee.employeeProfile?.id ?? null,
       alreadyAttachedRunId: row.payrollRunAttachment?.payrollRunId ?? null,

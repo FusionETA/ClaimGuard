@@ -72,6 +72,11 @@ export async function GET(request: NextRequest) {
     "Spent on": c.spentAt.slice(0, 10),
     "Submitted on": c.submittedAt.slice(0, 10),
     "Status": c.status,
+    "Payroll": c.payrollRunAttachment ? "Included" : "Not included",
+    "Payroll run": c.payrollRunAttachment
+      ? `${monthName(c.payrollRunAttachment.periodMonth)} ${c.payrollRunAttachment.periodYear}`
+      : "",
+    "Xero sync": describeXeroSync(c),
     "Reviewed by": c.reviewerName ?? "",
     "Review notes": c.reviewNotes ?? "",
   }))
@@ -125,6 +130,38 @@ function formatYmd(d: Date): string {
   const m = String(d.getUTCMonth() + 1).padStart(2, "0")
   const day = String(d.getUTCDate()).padStart(2, "0")
   return `${y}-${m}-${day}`
+}
+
+function monthName(month: number): string {
+  return new Intl.DateTimeFormat("en-US", { month: "long" }).format(
+    new Date(Date.UTC(2026, month - 1, 1)),
+  )
+}
+
+function describeXeroSync(claim: {
+  xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
+  xeroBillId?: string
+  xeroSpendMoneyId?: string
+  payrollRunAttachment?: {
+    xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
+  }
+}): string {
+  if (claim.xeroSyncStatus === "SYNCED") {
+    if (claim.xeroSpendMoneyId) return "Synced as Spend Money"
+    if (claim.xeroBillId) return "Synced as Bill"
+    return "Synced"
+  }
+  if (claim.payrollRunAttachment?.xeroSyncStatus === "SYNCED") {
+    return "Synced via payroll"
+  }
+  if (
+    claim.xeroSyncStatus === "ERROR" ||
+    claim.payrollRunAttachment?.xeroSyncStatus === "ERROR"
+  ) {
+    return "Error"
+  }
+  if (claim.payrollRunAttachment) return "Pending payroll sync"
+  return "Not synced"
 }
 
 function resolveRange(

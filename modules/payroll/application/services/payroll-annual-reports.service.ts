@@ -16,6 +16,7 @@ import {
   type PayrollAnnualReportKind,
   type PayrollAnnualReportRow,
 } from "@/modules/payroll/domain/annual-reports"
+import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { payrollAnnualReportRepository } from "@/modules/payroll/infrastructure/payroll-annual-report.repository"
 import { payrollCompanyInfoRepository } from "@/modules/payroll/infrastructure/payroll-company-info.repository"
 import { renderFormEaBulkPdf } from "@/modules/payroll/application/services/report-renderers/form-ea-bulk-pdf"
@@ -32,9 +33,8 @@ import { renderCp8dEmployeeTxt } from "@/modules/payroll/application/services/re
  * - `generatePayrollAnnualReport(year, kind)` renders/saves the
  *   requested file (or short-circuits on cache hit).
  *
- * Year is bound by SUBMITTED runs — admin can't pre-generate a year
- * that has no submitted payroll yet (avoids creating an empty Form E
- * by accident).
+ * Year is bound by a complete Jan-Dec set of SUBMITTED runs — annual
+ * statutory forms must not be generated from a partial year.
  */
 
 export async function getPayrollAnnualReportsPageData(input: {
@@ -48,9 +48,11 @@ export async function getPayrollAnnualReportsPageData(input: {
   /// any SUBMITTED run, or the current year when none exist yet.
   selectedYear: number
   rows: PayrollAnnualReportRow[]
-  /// Whether the org has at least one SUBMITTED run for the selected
-  /// year. The modal disables every download button when false.
+  /// Whether the org has all 12 monthly payroll runs SUBMITTED for the
+  /// selected year. The modal disables every download button when false.
   canGenerate: boolean
+  submittedMonthCount: number
+  missingMonths: number[]
   /// True when the LHDN E-number is configured. The CP8D TXT files
   /// can't be generated without it; the UI surfaces this so admin
   /// knows where to look.
@@ -80,6 +82,8 @@ async function loadAnnualReportsPageData(
   selectedYear: number
   rows: PayrollAnnualReportRow[]
   canGenerate: boolean
+  submittedMonthCount: number
+  missingMonths: number[]
   employerNoConfigured: boolean
 } | null> {
   const prisma = getPrismaClient()
@@ -103,10 +107,16 @@ async function loadAnnualReportsPageData(
   const fallbackYear = availableYears[0] ?? new Date().getFullYear()
   const selectedYear = year ?? fallbackYear
 
-  const stored = await payrollAnnualReportRepository.listForYear({
-    organizationId: orgId,
-    year: selectedYear,
-  })
+  const [stored, coverage] = await Promise.all([
+    payrollAnnualReportRepository.listForYear({
+      organizationId: orgId,
+      year: selectedYear,
+    }),
+    payrollRunRepository.getAnnualSubmissionCoverage({
+      organizationId: orgId,
+      year: selectedYear,
+    }),
+  ])
   const storedByKind = new Map(stored.map((s) => [s.kind, s]))
 
   const rows: PayrollAnnualReportRow[] = payrollAnnualReportKinds.map(
@@ -127,7 +137,7 @@ async function loadAnnualReportsPageData(
     },
   )
 
-  const canGenerate = availableYears.includes(selectedYear)
+  const canGenerate = coverage.complete
   const employerNoConfigured = Boolean(
     companyInfo?.employerTin && companyInfo.employerTin.trim().length > 0,
   )
@@ -138,6 +148,8 @@ async function loadAnnualReportsPageData(
     selectedYear,
     rows,
     canGenerate,
+    submittedMonthCount: coverage.submittedMonths.length,
+    missingMonths: coverage.missingMonths,
     employerNoConfigured,
   }
 }
@@ -158,6 +170,11 @@ export async function generatePayrollAnnualReport(input: {
   }
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
+
+  await assertAnnualYearComplete({
+    organizationId: orgId,
+    year: input.year,
+  })
 
   // Cache hit — short-circuit.
   const cached = await payrollAnnualReportRepository.getByYearAndKind({
@@ -228,6 +245,24 @@ export async function generatePayrollAnnualReport(input: {
     sizeBytes: bytes.byteLength,
     alreadyCached: false,
   }
+}
+
+async function assertAnnualYearComplete(input: {
+  organizationId: string
+  year: number
+}): Promise<void> {
+  const coverage = await payrollRunRepository.getAnnualSubmissionCoverage(input)
+  if (coverage.complete) return
+  const missing = coverage.missingMonths
+    .map((month) =>
+      new Intl.DateTimeFormat("en-US", { month: "short" }).format(
+        new Date(Date.UTC(input.year, month - 1, 1)),
+      ),
+    )
+    .join(", ")
+  throw new Error(
+    `Annual tax forms require all Jan-Dec payroll runs to be approved. Missing: ${missing}.`,
+  )
 }
 
 async function renderAnnual(input: {

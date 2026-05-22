@@ -98,6 +98,11 @@ type PrismaClaim = {
   submittedAt: Date
   claimRunMonth: Date | null
   status: string
+  xeroSyncStatus: string
+  xeroSyncError?: string | null
+  xeroSyncedAt?: Date | null
+  xeroBillId?: string | null
+  xeroSpendMoneyId?: string | null
   paymentType: string
   payViaAccountId?: string | null
   claimType?: string | null
@@ -131,6 +136,16 @@ type PrismaClaim = {
     mimeType: string | null
     sizeBytes: number | null
   }>
+  payrollRunAttachment?: {
+    payrollRunId: string
+    payrollRun: {
+      periodYear: number
+      periodMonth: number
+      status: string
+      xeroSyncStatus: string
+      xeroSyncedAt: Date | null
+    }
+  } | null
   /// Per-step audit entries. Optional because old claim selects without
   /// the include don't return them; the chain renderer treats absent
   /// entries as "legacy claim, unknown actor".
@@ -530,6 +545,29 @@ function mapClaim(
     submittedAt: claim.submittedAt.toISOString(),
     claimRunMonth: claim.claimRunMonth?.toISOString(),
     status: claim.status as ClaimStatus,
+    xeroSyncStatus:
+      claim.xeroSyncStatus === "SYNCED" || claim.xeroSyncStatus === "ERROR"
+        ? claim.xeroSyncStatus
+        : "NOT_SYNCED",
+    xeroSyncError: claim.xeroSyncError ?? undefined,
+    xeroSyncedAt: claim.xeroSyncedAt?.toISOString(),
+    xeroBillId: claim.xeroBillId ?? undefined,
+    xeroSpendMoneyId: claim.xeroSpendMoneyId ?? undefined,
+    payrollRunAttachment: claim.payrollRunAttachment
+      ? {
+          payrollRunId: claim.payrollRunAttachment.payrollRunId,
+          periodYear: claim.payrollRunAttachment.payrollRun.periodYear,
+          periodMonth: claim.payrollRunAttachment.payrollRun.periodMonth,
+          status: claim.payrollRunAttachment.payrollRun.status,
+          xeroSyncStatus:
+            claim.payrollRunAttachment.payrollRun.xeroSyncStatus === "SYNCED" ||
+            claim.payrollRunAttachment.payrollRun.xeroSyncStatus === "ERROR"
+              ? claim.payrollRunAttachment.payrollRun.xeroSyncStatus
+              : "NOT_SYNCED",
+          xeroSyncedAt:
+            claim.payrollRunAttachment.payrollRun.xeroSyncedAt?.toISOString(),
+        }
+      : undefined,
     paymentType: claim.paymentType as PaymentType,
     claimType: (claim.claimType as ClaimType | null | undefined) ?? "EXPENSE",
     receiptUrl: claim.receiptUrl ?? undefined,
@@ -577,6 +615,20 @@ const claimInclude = {
   organization: true,
   chartOfAccount: true,
   payViaAccount: true,
+  payrollRunAttachment: {
+    select: {
+      payrollRunId: true,
+      payrollRun: {
+        select: {
+          periodYear: true,
+          periodMonth: true,
+          status: true,
+          xeroSyncStatus: true,
+          xeroSyncedAt: true,
+        },
+      },
+    },
+  },
   // Include the supporting attachments relation so review surfaces
   // can render the file list without an extra round-trip.
   supportingAttachments: {
@@ -2125,7 +2177,7 @@ export const claimRepository = {
     const payViaBankAccount = claim.payViaAccountId
       ? await prisma.chartOfAccount.findUnique({
           where: { id: claim.payViaAccountId },
-          select: { code: true, name: true, xeroConnectionId: true },
+          select: { code: true, name: true },
         })
       : null
 
@@ -2153,7 +2205,7 @@ export const claimRepository = {
         ? {
             code: payViaBankAccount.code,
             name: payViaBankAccount.name,
-            xeroConnectionId: payViaBankAccount.xeroConnectionId,
+            xeroConnectionId: connection?.id ?? null,
           }
         : null,
       xeroFileId: claim.xeroFileId,
@@ -2208,6 +2260,53 @@ export const claimRepository = {
     const map = new Map<string, string>()
     for (const row of rows) {
       if (row.chartOfAccount?.code) map.set(row.id, row.chartOfAccount.code)
+    }
+    return map
+  },
+
+  /**
+   * Claim metadata needed by payroll's Manual Journal builder for
+   * reimbursements attached to a payroll run. The debit goes to the
+   * claim's selected expense account, and tracking follows the claim
+   * project selected at submission time.
+   */
+  async getReimbursementJournalDataForClaims(
+    claimIds: string[],
+  ): Promise<
+    Map<
+      string,
+      {
+        accountCode: string | null
+        accountName: string | null
+        projectName: string | null
+      }
+    >
+  > {
+    if (claimIds.length === 0) return new Map()
+    const prisma = getPrismaClient()
+    if (!prisma) return new Map()
+    const rows = await prisma.claim.findMany({
+      where: { id: { in: claimIds } },
+      select: {
+        id: true,
+        chartOfAccount: { select: { code: true, name: true } },
+        project: { select: { name: true } },
+      },
+    })
+    const map = new Map<
+      string,
+      {
+        accountCode: string | null
+        accountName: string | null
+        projectName: string | null
+      }
+    >()
+    for (const row of rows) {
+      map.set(row.id, {
+        accountCode: row.chartOfAccount?.code ?? null,
+        accountName: row.chartOfAccount?.name ?? null,
+        projectName: row.project?.name ?? null,
+      })
     }
     return map
   },

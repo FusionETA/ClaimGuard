@@ -72,6 +72,8 @@ export type XeroSpendMoneyPayload = {
   contactName: string
   contactEmail?: string
   date: string
+  /// Kept for caller context, but not sent to Xero for normal SPEND
+  /// transactions. Xero only accepts CurrencyCode for overpayments.
   currency: string
   amount: number
   description: string
@@ -152,9 +154,9 @@ function getRequiredEnv(name: string) {
 export function getXeroScopes() {
   // Scopes summary:
   //   • `offline_access`            — refresh tokens (mandatory).
-  //   • `accounting.transactions`   — bills, invoices, bank tx, etc.
+  //   • `accounting.invoices`       — bills / invoices.
+  //   • `accounting.banktransactions` — Spend Money / Receive Money.
   //   • `accounting.manualjournals` — manual journals (separate scope
-  //                                    from `accounting.transactions`
   //                                    on the Xero side; payroll runs
   //                                    sync as manual journals).
   //   • `accounting.contacts`       — bill contact (employee) records.
@@ -170,7 +172,7 @@ export function getXeroScopes() {
   // on their Xero connection.
   return (
     process.env.XERO_SCOPES?.trim() ||
-    "openid profile email offline_access accounting.invoices accounting.contacts accounting.settings accounting.manualjournals projects files"
+    "openid profile email offline_access accounting.invoices accounting.banktransactions accounting.contacts accounting.settings accounting.manualjournals projects files"
   )
 }
 
@@ -194,7 +196,7 @@ export function getXeroScopes() {
  * Format: YYYY-MM-DD-<short-reason>. Use the date of the deploy
  * that ships the new scope set.
  */
-const DEFAULT_REAUTH_VERSION = "2026-05-18-manualjournals-scopes"
+const DEFAULT_REAUTH_VERSION = "2026-05-22-banktransactions-scope"
 
 export function getXeroReauthVersion(): string | null {
   // Env override wins so admins can force a re-auth even when no
@@ -258,7 +260,14 @@ function collectXeroValidationMessages(value: unknown): string[] {
     if (typeof record.Message === "string" && record.Message.trim()) {
       messages.push(record.Message.trim())
     }
-    for (const key of ["ValidationErrors", "Elements", "JournalLines"] as const) {
+    for (const key of [
+      "ValidationErrors",
+      "Elements",
+      "JournalLines",
+      "BankTransactions",
+      "LineItems",
+      "Invoices",
+    ] as const) {
       const child = record[key]
       if (Array.isArray(child)) {
         for (const item of child) visit(item)
@@ -748,31 +757,30 @@ export async function createXeroSpendMoney({
       "Idempotency-Key": idempotencyKey,
     },
     body: JSON.stringify({
-      BankTransactions: [
-        {
-          Type: "SPEND",
-          Status: "AUTHORISED",
-          Contact: {
-            Name: payload.contactName,
-            EmailAddress: payload.contactEmail,
-          },
-          Date: payload.date,
-          CurrencyCode: payload.currency,
-          Reference: payload.reference,
-          // The bank/card the money came out of.
-          BankAccount: { Code: payload.bankAccountCode },
-          LineAmountTypes: "Exclusive",
-          LineItems: [lineItem],
-        },
-      ],
+      Type: "SPEND",
+      Status: "AUTHORISED",
+      Contact: {
+        Name: payload.contactName,
+        EmailAddress: payload.contactEmail,
+      },
+      Date: payload.date,
+      Reference: payload.reference,
+      // The bank/card the money came out of.
+      BankAccount: { Code: payload.bankAccountCode },
+      LineAmountTypes: "Exclusive",
+      LineItems: [lineItem],
     }),
     cache: "no-store",
   })
 
   if (!response.ok) {
     const errorBody = await parseXeroResponse(response)
+    const validationMessages = collectXeroValidationMessages(errorBody)
+    const validationSummary = validationMessages.join("; ").slice(0, 150)
     throw new Error(
-      `Xero spend-money creation failed with ${response.status}: ${JSON.stringify(errorBody)}`
+      validationMessages.length > 0
+        ? `Xero spend-money creation failed: ${validationSummary}`
+        : `Xero spend-money creation failed with ${response.status}: ${JSON.stringify(errorBody)}`
     )
   }
 
@@ -781,9 +789,11 @@ export async function createXeroSpendMoney({
       BankTransactionID?: string
       Reference?: string
     }>
+    BankTransactionID?: string
+    Reference?: string
   }
 
-  const txn = json.BankTransactions?.[0]
+  const txn = json.BankTransactions?.[0] ?? json
   if (!txn?.BankTransactionID) {
     throw new Error(
       "Xero spend-money creation succeeded but no BankTransactionID was returned."

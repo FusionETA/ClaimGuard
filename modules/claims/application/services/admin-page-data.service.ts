@@ -119,40 +119,44 @@ export type AdminHierarchyPageData = {
   policies: EmployeePolicy[]
 }
 
+type AdminHierarchyCachedPageData = Omit<
+  AdminHierarchyPageData,
+  "xeroConnections"
+>
+
 export async function getAdminHierarchyPageData(input: {
   organizationId: string | undefined
 }): Promise<AdminHierarchyPageData | null> {
-  // No org context — fall straight through to the loader (no caching
-  // for unauthed/unscoped reads).
   if (!input.organizationId) {
-    return loadAdminHierarchyPageData(input)
+    const cached = await loadAdminHierarchyPageData(input)
+    return cached ? { ...cached, xeroConnections: [] } : null
   }
-  // 1-hour TTL — hierarchy + projects + Xero connections change rarely.
-  // `bustOrgConfigCaches` invalidates this on hierarchy / settings /
-  // project mutations, so the next page load is always fresh. The TTL
-  // is the backstop in case a bust ever fails.
-  return getOrSetCache(
-    key("org", input.organizationId, "config", "page", "hierarchy"),
-    3600,
-    () => loadAdminHierarchyPageData(input),
-  )
+
+  // Keep Xero connections out of Redis-backed page data. OAuth scope /
+  // reauth status changes must appear immediately after callback.
+  const [cached, xeroConnections] = await Promise.all([
+    getOrSetCache(
+      key("org", input.organizationId, "config", "page", "hierarchy"),
+      3600,
+      () => loadAdminHierarchyPageData(input),
+    ),
+    organizationRepository.getXeroConnections(input.organizationId),
+  ])
+  return cached ? { ...cached, xeroConnections } : null
 }
 
 async function loadAdminHierarchyPageData(input: {
   organizationId: string | undefined
-}): Promise<AdminHierarchyPageData | null> {
+}): Promise<AdminHierarchyCachedPageData | null> {
   const members = await getOrganizationHierarchy()
   if (members === null) return null
 
-  const [organization, projects, xeroConnections, teams, policies] = await Promise.all([
+  const [organization, projects, teams, policies] = await Promise.all([
     input.organizationId
       ? organizationRepository.getOrganizationById(input.organizationId)
       : Promise.resolve(null),
     input.organizationId
       ? organizationRepository.getProjectsForOrganization(input.organizationId)
-      : Promise.resolve([]),
-    input.organizationId
-      ? organizationRepository.getXeroConnections(input.organizationId)
       : Promise.resolve([]),
     input.organizationId
       ? organizationRepository.listTeams(input.organizationId)
@@ -165,7 +169,6 @@ async function loadAdminHierarchyPageData(input: {
   return {
     members,
     projects,
-    xeroConnections,
     organizationName: organization?.name ?? "",
     teams,
     policies,
@@ -185,54 +188,65 @@ export type AdminSettingsPageData = {
   activeXeroConnectionId?: string
 }
 
+type AdminSettingsCachedPageData = Omit<
+  AdminSettingsPageData,
+  "xeroConnection" | "activeXeroConnectionId"
+>
+
 export async function getAdminSettingsPageData(input: {
   adminEmail: string
   organizationId: string | undefined
   preferredConnectionId: string | undefined
 }): Promise<AdminSettingsPageData | null> {
   if (!input.organizationId) {
-    return loadAdminSettingsPageData(input)
+    const [cached, xeroConnection] = await Promise.all([
+      loadAdminSettingsPageData(input),
+      getXeroConnectionSummary(undefined),
+    ])
+    return cached ? { ...cached, xeroConnection } : null
   }
-  // Cache key has to encode both org AND admin email AND preferred Xero
-  // connection — the same org viewed by two admins, or with different
-  // active connections, can resolve to different settings (Xero
-  // chart-of-accounts is connection-scoped). 1-hour TTL — settings
-  // change infrequently and `bustOrgConfigCaches` sweeps the org
-  // namespace on any settings/chart-account/project mutation.
-  return getOrSetCache(
-    key(
-      "org",
-      input.organizationId,
-      "config",
-      "page",
-      "settings",
-      input.adminEmail,
-      input.preferredConnectionId ?? "_none",
+
+  // Cache the heavy settings data, but always read Xero connection
+  // summary live so OAuth scope/reauth status cannot go stale in Redis.
+  const [cached, xeroConnection] = await Promise.all([
+    getOrSetCache(
+      key(
+        "org",
+        input.organizationId,
+        "config",
+        "page",
+        "settings",
+        input.adminEmail,
+      ),
+      3600,
+      () => loadAdminSettingsPageData(input),
     ),
-    3600,
-    () => loadAdminSettingsPageData(input),
+    getXeroConnectionSummary(input.organizationId),
+  ])
+  if (!cached) return null
+  const activeXeroConnectionId = resolveActiveConnection(
+    xeroConnection,
+    input.preferredConnectionId,
   )
+
+  return {
+    ...cached,
+    xeroConnection,
+    activeXeroConnectionId,
+  }
 }
 
 async function loadAdminSettingsPageData(input: {
   adminEmail: string
   organizationId: string | undefined
   preferredConnectionId: string | undefined
-}): Promise<AdminSettingsPageData | null> {
+}): Promise<AdminSettingsCachedPageData | null> {
   const admin = await claimRepository.getAdminProfile(input.adminEmail)
   if (!admin) return null
 
-  const [organization, xeroConnection] = await Promise.all([
-    input.organizationId
-      ? organizationRepository.getOrganizationById(input.organizationId)
-      : Promise.resolve(null),
-    getXeroConnectionSummary(input.organizationId),
-  ])
-
-  const activeXeroConnectionId = resolveActiveConnection(
-    xeroConnection,
-    input.preferredConnectionId,
-  )
+  const organization = input.organizationId
+    ? await organizationRepository.getOrganizationById(input.organizationId)
+    : null
 
   const [chartAccounts, projects, customAccounts, members, workingHours, timezone] =
     await Promise.all([
@@ -260,14 +274,12 @@ async function loadAdminSettingsPageData(input: {
   return {
     admin,
     organization: organization ?? undefined,
-    xeroConnection,
     chartAccounts,
     customAccounts,
     projects,
     members,
     workingHours,
     timezone,
-    activeXeroConnectionId,
   }
 }
 

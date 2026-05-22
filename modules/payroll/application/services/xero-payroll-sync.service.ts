@@ -115,14 +115,10 @@ export async function syncPayrollRunToXero(
           proratedPay: true,
           otPay: true,
           totalAllowances: true,
-          /**
-           * Reimbursements come from claims, which post to Xero as
-           * Bills on claim approval. They must NOT appear on the
-           * manual journal or we'd double-count: bill creates the
-           * payable, accrual-salary would create a second one. We
-           * subtract this from `netPay` when computing ACCRUAL
-           * SALARY below.
-           */
+          // Reimbursements are paid through payroll. They are posted
+          // in this manual journal as claim-expense debits, while the
+          // reimbursement-inclusive net pay is credited to salary
+          // payable below.
           totalReimbursements: true,
           grossPay: true,
           netPay: true,
@@ -231,8 +227,8 @@ export async function syncPayrollRunToXero(
     }
   }
 
-  // Resolve tracking category Name from the saved ID (Xero's bill /
-  // journal API takes the category Name + option Name, not IDs).
+  // Resolve tracking category Name from the saved ID (Xero's journal
+  // API takes the category Name + option Name, not IDs).
   let trackingCategoryName: string | null = null
   let trackingOptions: Set<string> | null = null
   if (mapping.trackingCategoryId) {
@@ -316,8 +312,9 @@ export async function syncPayrollRunToXero(
 
   // Normalised payslip rows with project + line-item lookup once.
   // Line items are split into allowance vs deduction buckets so the
-  // builder can iterate each independently — reimbursements come from
-  // claims and post as Bills on claim approval, never here.
+  // builder can iterate each independently. Reimbursements stay here:
+  // payroll pays them out, so the Manual Journal carries the claim
+  // expense debit and the matching salary-payable credit.
   const rows = run.payslips.map((p) => {
     const projectName =
       p.employeeProfile?.projectAssignments[0]?.project?.name ?? null
@@ -689,12 +686,19 @@ export async function syncPayrollRunToXero(
   const allReimbursementClaimIds = rows.flatMap((r) =>
     r.reimbursementLines.map((l) => l.claimId),
   )
-  const reimbursementExpenseCodes =
+  const reimbursementJournalData =
     allReimbursementClaimIds.length > 0
-      ? await claimRepository.getExpenseAccountCodesForClaims(
+      ? await claimRepository.getReimbursementJournalDataForClaims(
           allReimbursementClaimIds,
         )
-      : new Map<string, string>()
+      : new Map<
+          string,
+          {
+            accountCode: string | null
+            accountName: string | null
+            projectName: string | null
+          }
+        >()
 
   const unmappedReimbursementClaims: string[] = []
   // Bucket by (expense account code, project) → summed amount.
@@ -704,19 +708,21 @@ export async function syncPayrollRunToXero(
   >()
   for (const r of rows) {
     for (const rl of r.reimbursementLines) {
-      const code = reimbursementExpenseCodes.get(rl.claimId)
+      const meta = reimbursementJournalData.get(rl.claimId)
+      const code = meta?.accountCode ?? null
       if (!code) {
         unmappedReimbursementClaims.push(rl.label || rl.claimId)
         continue
       }
-      const bucketKey = `${code}::${r.projectName}`
+      const project = meta?.projectName ?? r.projectName
+      const bucketKey = `${code}::${project}`
       const existing = reimbursementBuckets.get(bucketKey)
       if (existing) {
         existing.amount = round2(existing.amount + rl.amount)
       } else {
         reimbursementBuckets.set(bucketKey, {
           code,
-          project: r.projectName,
+          project,
           amount: round2(rl.amount),
         })
       }
@@ -733,7 +739,7 @@ export async function syncPayrollRunToXero(
       message:
         "These reimbursement claims have no Xero-linked expense account, so they can't be posted to the manual journal: " +
         unmappedReimbursementClaims.join(", ") +
-        ". Fix the claim's expense account or sync it to Xero as a bill instead.",
+        ". Fix the claim's expense account before retrying.",
     }
   }
 

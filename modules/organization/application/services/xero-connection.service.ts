@@ -1,5 +1,6 @@
 import "server-only"
 
+import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import {
   getXeroAccounts,
   getXeroRuntimeConfigStatus,
@@ -444,6 +445,16 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
     }
   }
 
+  const failClaimSync = async (message: string): Promise<XeroSyncResult> => {
+    await claimRepository
+      .markClaimXeroError({
+        claimId: claim.id,
+        message,
+      })
+      .catch(() => undefined)
+    return { status: "error", message }
+  }
+
   const isCompanyMoney = claim.paymentType === "COMPANY"
 
   // Idempotency: skip if this claim has already been posted on its path.
@@ -465,11 +476,9 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
   if (isCompanyMoney) {
     const bankCode = claim.payViaBankAccount?.code ?? null
     if (!bankCode) {
-      return {
-        status: "error",
-        message:
-          "Company-money claim has no Xero-linked bank account to pay from. Re-check the claim's 'pay via' account.",
-      }
+      return failClaimSync(
+        "Company-money claim has no Xero-linked bank account to pay from. Re-check the claim's 'pay via' account.",
+      )
     }
   }
 
@@ -480,35 +489,40 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
   const xeroConnectionId = claim.chartOfAccount?.xeroConnectionId ?? null
   const xeroAccountCode = claim.chartOfAccount?.code ?? null
   if (!xeroConnectionId || !xeroAccountCode) {
-    return {
-      status: "error",
-      message:
-        "Claim's expense account isn't linked to Xero. Pick a Xero-linked account before syncing.",
-    }
+    return failClaimSync(
+      "Claim's expense account isn't linked to Xero. Pick a Xero-linked account before syncing.",
+    )
   }
 
   const connection = await getUsableXeroAccessToken(xeroConnectionId)
   if (!connection) {
-    return {
-      status: "error",
-      message:
-        "Xero connection unavailable. Reconnect Xero in Settings → Integrations.",
-    }
+    return failClaimSync(
+      "Xero connection unavailable. Reconnect Xero in Settings -> Integrations.",
+    )
   }
 
-  // Pull the org's payroll-settings xeroMapping for the tracking
-  // category. We import the repo lazily to avoid pulling payroll
-  // code into claim flows when Xero isn't configured.
+  // Resolve the Xero Tracking Category used for claim projects. The
+  // org-level Xero connection is the source of truth because that same
+  // pick drives the claim/attendance project list. Payroll's mapping is
+  // retained as a fallback for older data where only payroll settings
+  // had a tracking category selected.
   let trackingCategoryName: string | null = null
   let trackingOptions: Set<string> | null = null
   if (claim.organizationId && claim.project?.name) {
-    const { payrollSettingsRepository } = await import(
-      "@/modules/payroll/infrastructure/payroll-settings.repository"
-    )
-    const settings = await payrollSettingsRepository.getByOrgId(
-      claim.organizationId,
-    )
-    const trackingCategoryId = settings?.xeroMapping?.trackingCategoryId
+    const connectionRecord =
+      await organizationRepository.getXeroConnectionById(xeroConnectionId)
+    let trackingCategoryId = connectionRecord?.xeroTrackingCategoryId ?? null
+
+    if (!trackingCategoryId) {
+      const { payrollSettingsRepository } = await import(
+        "@/modules/payroll/infrastructure/payroll-settings.repository"
+      )
+      const settings = await payrollSettingsRepository.getByOrgId(
+        claim.organizationId,
+      )
+      trackingCategoryId = settings?.xeroMapping?.trackingCategoryId ?? null
+    }
+
     if (trackingCategoryId) {
       // Look up the tracking category's NAME (Xero's bill API needs
       // the category Name + option Name, not their IDs).
@@ -573,6 +587,9 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
         xeroSpendMoneyId: txn.bankTransactionId,
         xeroSpendMoneyRef: txn.reference,
       })
+      if (claim.organizationId) {
+        await bustPayrollCaches({ organizationId: claim.organizationId })
+      }
 
       if (claim.xeroFileId) {
         try {
@@ -626,6 +643,9 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
       xeroBillId: bill.invoiceId,
       xeroBillRef: bill.invoiceNumber,
     })
+    if (claim.organizationId) {
+      await bustPayrollCaches({ organizationId: claim.organizationId })
+    }
 
     // Best-effort: attach the receipt to the bill in Xero so it
     // shows up in the bill's Files panel.
@@ -647,9 +667,6 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
       message: `Bill ${bill.invoiceNumber ?? bill.invoiceId} created in Xero.`,
     }
   } catch (err) {
-    return {
-      status: "error",
-      message: safeErrorMessage(err, "Xero sync failed."),
-    }
+    return failClaimSync(safeErrorMessage(err, "Xero sync failed."))
   }
 }

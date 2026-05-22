@@ -43,6 +43,8 @@ export function PayrollAnnualDownloadsCard(props: {
   selectedYear: number
   rows: PayrollAnnualReportRow[]
   canGenerate: boolean
+  submittedMonthCount: number
+  missingMonths: number[]
   employerNoConfigured: boolean
 }) {
   const { toast } = useToast()
@@ -121,12 +123,16 @@ export function PayrollAnnualDownloadsCard(props: {
           <CardTitle>Annual Tax Forms — {year}</CardTitle>
           <CardDescription className="mt-2">
             {props.organizationName ? `${props.organizationName} · ` : ""}
-            Forms aggregating every SUBMITTED payroll run in the calendar
-            year.{" "}
+            Forms aggregate the full Jan-Dec approved payroll year.{" "}
             {!props.canGenerate
-              ? "No SUBMITTED runs in this year yet. Submit + approve at least one run to enable downloads."
+              ? `${props.submittedMonthCount}/12 monthly runs approved. Complete every month to enable downloads.`
               : null}
           </CardDescription>
+          {!props.canGenerate && props.missingMonths.length > 0 ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Missing: {props.missingMonths.map(monthShortName).join(", ")}
+            </p>
+          ) : null}
         </div>
         <div className="shrink-0">
           <Select value={String(year)} onValueChange={handleYearChange}>
@@ -251,6 +257,12 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function monthShortName(month: number): string {
+  return new Intl.DateTimeFormat("en-US", { month: "short" }).format(
+    new Date(Date.UTC(2026, month - 1, 1)),
+  )
 }
 
 function triggerDownload(url: string, fileName: string) {

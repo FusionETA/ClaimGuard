@@ -178,6 +178,19 @@ export type ClaimRecord = {
   paymentType: PaymentType
   claimType: ClaimType
   receiptUrl?: string
+  xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
+  xeroSyncError?: string
+  xeroSyncedAt?: string
+  xeroBillId?: string
+  xeroSpendMoneyId?: string
+  payrollRunAttachment?: {
+    payrollRunId: string
+    periodYear: number
+    periodMonth: number
+    status: string
+    xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
+    xeroSyncedAt?: string
+  }
   reviewNotes?: string
   reviewerName?: string
   reviewerRole?: ReviewerRole

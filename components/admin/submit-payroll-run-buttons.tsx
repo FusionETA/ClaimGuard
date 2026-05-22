@@ -81,13 +81,10 @@ export function SubmitPayrollRunButton(props: {
  * Step 2 of the two-step approval flow. Approver flips a
  * PENDING_APPROVAL run to SUBMITTED — payslips become visible to
  * employees and the run is officially finalised. When Xero sync is
- * enabled, the modal also previews:
- *   - Number of Bills that will be created (one per attached claim,
- *     posted as each claim is approved).
- *   - The single Manual Journal that posts immediately on approval,
- *     with every debit / credit line.
- * Both sections are collapsible — the count is always visible; the
- * details unfold on click.
+ * enabled, the modal also previews the single Manual Journal that posts
+ * immediately on approval, including attached-claim reimbursements.
+ * The section is collapsible — the count is always visible; the details
+ * unfold on click.
  */
 export function ApprovePayrollRunButton(props: { runId: string }) {
   const formId = useId()
@@ -165,12 +162,12 @@ export function ApprovePayrollRunButton(props: { runId: string }) {
 }
 
 /**
- * Renders the bill + journal preview inside the approval modal.
+ * Renders the journal preview inside the approval modal.
  * Three states:
  *   - `preview === null` → still loading.
  *   - `status === "error"` → friendly error, modal still lets the
  *     admin proceed (approval works even if preview fails).
- *   - `status === "success" | "skipped"` → bills + journal sections.
+ *   - `status === "success" | "skipped"` → journal section.
  *     "skipped" means the run will land but no Xero post will fire
  *     (e.g. mapping incomplete). Banner explains why.
  */
@@ -209,78 +206,11 @@ function SyncPreviewPanel({
   return (
     <div className="space-y-3 py-2">
       {skippedBanner}
-      <BillsSection
-        bills={data.bills}
-        willPost={data.claimsSyncEnabled && preview.status === "success"}
-      />
       <JournalSection
         journal={data.journal}
         willPost={preview.status === "success"}
       />
     </div>
-  )
-}
-
-function BillsSection({
-  bills,
-  willPost,
-}: {
-  bills: PayrollSyncPreview["bills"]
-  willPost: boolean
-}) {
-  const [open, setOpen] = useState(false)
-  const pendingBills = bills.filter((bill) => !bill.alreadySynced)
-
-  return (
-    <SectionToggle
-      open={open}
-      onToggle={() => setOpen((o) => !o)}
-      headline={
-        <>
-          <span className="font-semibold text-foreground">
-            {willPost ? pendingBills.length : 0} Bill
-            {(willPost ? pendingBills.length : 0) === 1 ? "" : "s"}
-          </span>{" "}
-          will {willPost ? "be created" : "be skipped"}
-          <span className="ml-2 text-xs text-muted-foreground">
-            · {bills.length} attached claim
-            {bills.length === 1 ? "" : "s"}
-            {bills.some((bill) => bill.alreadySynced) ? " · some already synced" : ""}
-          </span>
-        </>
-      }
-    >
-      <div className="space-y-2 px-3 py-2 text-xs">
-        {bills.length === 0 ? (
-          <p className="text-muted-foreground">
-            No reimbursable claims are attached to this payroll run.
-          </p>
-        ) : (
-          <table className="w-full">
-            <tbody>
-              {bills.map((bill) => (
-                <tr key={bill.claimId} className="border-t border-border/40 first:border-t-0">
-                  <td className="py-1.5 pr-2 align-top">
-                    <div className="text-foreground">
-                      {bill.claimNumber} — {bill.title}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground">
-                      → {bill.employeeName}
-                      {bill.alreadySynced
-                        ? ` · already synced${bill.xeroBillRef ? ` (${bill.xeroBillRef})` : ""}`
-                        : ""}
-                    </div>
-                  </td>
-                  <td className="py-1.5 pl-2 text-right font-mono tabular-nums">
-                    {bill.currency} {bill.amount.toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </SectionToggle>
   )
 }
 

@@ -286,7 +286,7 @@ function ClaimGroup({
               ) : (
                 <Upload className="h-3.5 w-3.5" />
               )}
-              Create Spend Money
+              Sync Xero Spend Money
             </Button>
           ) : (
             <span className="text-xs text-muted-foreground">

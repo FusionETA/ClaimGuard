@@ -3,6 +3,7 @@ import "server-only"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { toNumber } from "@/lib/decimal"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
+import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import {
   PAYROLL_XERO_ACCOUNT_LABELS,
@@ -16,12 +17,9 @@ import type { PayrollAdjustmentCategory } from "@/modules/payroll/domain/models"
  * Preview the Xero artifacts that will be posted when this payroll
  * run is approved.
  *
- * Returns BOTH:
- *   - bills:   claims attached to this run that will become Xero
- *              Bills (one per claim) when claim Xero sync is enabled.
- *   - journal: the manual-journal lines (same algorithm as the real
- *              sync), so the admin can sanity-check before clicking
- *              Approve.
+ * Returns the manual-journal lines that will be posted, including
+ * claim reimbursements attached to the run. Attached claims are paid
+ * through payroll now, so they are not previewed as Xero Bills here.
  *
  * This service does NOT call Xero — it derives everything from the
  * DB. Account codes / tracking names are shown as the category name
@@ -39,20 +37,18 @@ export type PayrollSyncPreviewResult =
       status: "skipped"
       message: string
       /// When the mapping is missing/incomplete we still want to
-      /// show the bills + raw amounts so the admin sees what would
-      /// have been posted. Optional.
+      /// show the journal preview so the admin sees what would have
+      /// been posted. Optional.
       preview?: PayrollSyncPreview
     }
   | { status: "error"; message: string }
 
 export type PayrollSyncPreview = {
+  /** @deprecated Payroll-attached claims now post inside the Manual Journal. */
   bills: PreviewBill[]
   /// The single manual journal that will post on run approval.
   /// `lines.length === 0` means the run is empty / nothing to post.
   ///
-  /// Note: claim reimbursements are EXCLUDED from this journal.
-  /// Each claim posts as a separate Xero Bill during payroll approval
-  /// time; including them here would double-count the payable.
   journal: {
     narration: string
     date: string
@@ -80,7 +76,9 @@ export type PayrollSyncPreview = {
     key: string
     label: string
   }>
+  missingReimbursementClaims: string[]
   syncEnabled: boolean
+  /** @deprecated Payroll approval no longer creates claim bills. */
   claimsSyncEnabled: boolean
 }
 
@@ -101,7 +99,7 @@ export type PreviewJournalLine = {
   accountLabel: string
   /// Category key — useful for the modal to group / colour-code
   /// lines.
-  categoryKey: PayrollXeroAccountKey
+  categoryKey: PayrollXeroAccountKey | "reimbursement"
   /// Positive = debit, negative = credit.
   amount: number
   description: string
@@ -164,7 +162,13 @@ export async function buildPayrollSyncPreview(
           // detection so the modal can surface unmapped categories
           // before the admin clicks Approve.
           lineItems: {
-            select: { kind: true, category: true, amount: true },
+            select: {
+              kind: true,
+              category: true,
+              amount: true,
+              label: true,
+              claimId: true,
+            },
           },
           employeeProfile: {
             select: {
@@ -188,8 +192,6 @@ export async function buildPayrollSyncPreview(
               claimNumber: true,
               title: true,
               currency: true,
-              xeroBillId: true,
-              xeroBillRef: true,
             },
           },
           employeeProfile: {
@@ -208,7 +210,7 @@ export async function buildPayrollSyncPreview(
   const settings = await payrollSettingsRepository.getByOrgId(orgId)
   const mapping = settings?.xeroMapping ?? null
   const syncEnabled = Boolean(settings?.syncPayrollToXeroOnSubmit)
-  const claimsSyncEnabled = Boolean(settings?.syncClaimsToXeroOnSubmit)
+  const claimsSyncEnabled = false
   // HRDF accounts are only required when the run actually carries an
   // HRDF charge; the unified `deduction` account only when the run has
   // deductions and the org isn't using per-category deduction mapping.
@@ -266,16 +268,7 @@ export async function buildPayrollSyncPreview(
           }))
       : []
 
-  const bills: PreviewBill[] = run.claimAttachments.map((attachment) => ({
-    claimId: attachment.claimId,
-    claimNumber: attachment.claim.claimNumber,
-    title: attachment.label || attachment.claim.title,
-    employeeName: attachment.employeeProfile.user.name,
-    amount: round2(toNumber(attachment.amount, 0)),
-    currency: attachment.claim.currency,
-    alreadySynced: Boolean(attachment.claim.xeroBillId),
-    xeroBillRef: attachment.claim.xeroBillRef,
-  }))
+  const bills: PreviewBill[] = []
 
   // ── Journal lines preview ──
   // Reuses the same shape/algorithm as syncPayrollRunToXero, but
@@ -306,17 +299,29 @@ export async function buildPayrollSyncPreview(
     eisEmployer: toNumber(p.eisEmployer, 0),
     pcb: toNumber(p.pcb, 0),
     hrdf: toNumber(p.hrdf, 0),
+    reimbursementLines: p.lineItems
+      .filter((li) => li.kind === "REIMBURSEMENT" && li.claimId)
+      .map((li) => ({
+        claimId: li.claimId as string,
+        amount: toNumber(li.amount, 0),
+        label: li.label,
+      })),
   }))
 
   const lines: PreviewJournalLine[] = []
   const pushLine = (
-    categoryKey: PayrollXeroAccountKey,
+    categoryKey: PayrollXeroAccountKey | "reimbursement",
     amount: number,
     description: string,
     trackingOption: string | null,
+    accountLabel?: string,
   ) => {
     lines.push({
-      accountLabel: PAYROLL_XERO_ACCOUNT_LABELS[categoryKey],
+      accountLabel:
+        accountLabel ??
+        (categoryKey === "reimbursement"
+          ? "Claim reimbursement"
+          : PAYROLL_XERO_ACCOUNT_LABELS[categoryKey]),
       categoryKey,
       amount: round2(amount),
       description,
@@ -433,10 +438,9 @@ export async function buildPayrollSyncPreview(
   // matching credit to their account.
   const totalHrdf = sum(rows, (r) => r.hrdf)
   const totalDeductions = sum(rows, (r) => r.totalDeductions)
-  // Reimbursements post as separate Bills during payroll approval — they
-  // must NOT appear in the accrual-salary credit or we'd double-
-  // count the payable.
-  const totalNet = sum(rows, (r) => r.netPay - r.totalReimbursements)
+  // Net pay includes reimbursements because attached claims are paid out
+  // through payroll. The matching reimbursement debits are emitted below.
+  const totalNet = sum(rows, (r) => r.netPay)
   if (totalEpf > 0)
     pushLine(
       "accrualEpf",
@@ -479,6 +483,62 @@ export async function buildPayrollSyncPreview(
       "ACCRUAL - HRDF (HRD Corp levy payable)",
       ALL_PROJECTS,
     )
+
+  const allReimbursementClaimIds = rows.flatMap((r) =>
+    r.reimbursementLines.map((line) => line.claimId),
+  )
+  const reimbursementJournalData =
+    allReimbursementClaimIds.length > 0
+      ? await claimRepository.getReimbursementJournalDataForClaims(
+          allReimbursementClaimIds,
+        )
+      : new Map<
+          string,
+          {
+            accountCode: string | null
+            accountName: string | null
+            projectName: string | null
+          }
+        >()
+  const missingReimbursementClaims: string[] = []
+  const reimbursementBuckets = new Map<
+    string,
+    { code: string; name: string | null; project: string; amount: number }
+  >()
+  for (const r of rows) {
+    for (const line of r.reimbursementLines) {
+      if (line.amount <= 0) continue
+      const meta = reimbursementJournalData.get(line.claimId)
+      const code = meta?.accountCode ?? null
+      if (!code) {
+        missingReimbursementClaims.push(line.label || line.claimId)
+        continue
+      }
+      const project = meta?.projectName ?? r.projectName
+      const bucketKey = `${code}::${project}`
+      const existing = reimbursementBuckets.get(bucketKey)
+      if (existing) {
+        existing.amount = round2(existing.amount + line.amount)
+      } else {
+        reimbursementBuckets.set(bucketKey, {
+          code,
+          name: meta?.accountName ?? null,
+          project,
+          amount: round2(line.amount),
+        })
+      }
+    }
+  }
+  for (const bucket of reimbursementBuckets.values()) {
+    pushLine(
+      "reimbursement",
+      bucket.amount,
+      `REIMBURSEMENT - ${bucket.project}`,
+      bucket.project,
+      `${bucket.code}${bucket.name ? ` · ${bucket.name}` : ""}`,
+    )
+  }
+
   if (totalNet > 0)
     pushLine("accrualSalary", -totalNet, "ACCRUAL - SALARY", ALL_PROJECTS)
 
@@ -513,6 +573,7 @@ export async function buildPayrollSyncPreview(
     missingAccountKeys,
     missingAllowanceCategories,
     missingDeductionCategories,
+    missingReimbursementClaims,
     syncEnabled,
     claimsSyncEnabled,
   }
@@ -522,6 +583,17 @@ export async function buildPayrollSyncPreview(
   const hasMissingCategories =
     missingAllowanceCategories.length > 0 ||
     missingDeductionCategories.length > 0
+
+  if (missingReimbursementClaims.length > 0) {
+    return {
+      status: "skipped",
+      message:
+        "Some reimbursement claims have no Xero-linked expense account: " +
+        missingReimbursementClaims.join(", ") +
+        ". Fix the claim expense account before posting to Xero.",
+      preview,
+    }
+  }
 
   if (!mapping || missingAccountKeys.length > 0 || hasMissingCategories) {
     return {

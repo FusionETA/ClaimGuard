@@ -7,7 +7,7 @@ import { ClaimsReportPagination } from "@/components/admin/claims-report-paginat
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { getCurrentSession } from "@/lib/auth/session"
-import { cn, formatCurrency, formatShortDate } from "@/lib/utils"
+import { cn, formatCurrency, formatMonthYear, formatShortDate } from "@/lib/utils"
 import { getClaimsReportPageData } from "@/modules/claims/application/services/claims-breakdown.service"
 
 /**
@@ -163,12 +163,14 @@ export default async function AdminClaimsReportsPage({
                   <th className="px-4 py-3">Spent</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Payroll</th>
+                  <th className="px-4 py-3">Xero</th>
                 </tr>
               </thead>
               <tbody>
                 {data.rows.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    <td colSpan={9} className="px-4 py-10 text-center text-sm text-muted-foreground">
                       No claims match the current filters.
                     </td>
                   </tr>
@@ -208,6 +210,12 @@ export default async function AdminClaimsReportsPage({
                       </td>
                       <td className="px-4 py-3">
                         <StatusBadge status={claim.status} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <PayrollBadge attachment={claim.payrollRunAttachment} />
+                      </td>
+                      <td className="px-4 py-3">
+                        <XeroBadge claim={claim} />
                       </td>
                     </tr>
                   ))
@@ -271,6 +279,89 @@ function StatusBadge({ status }: { status: string }) {
       )}
     >
       {STATUS_LABEL[status] ?? status.toLowerCase()}
+    </span>
+  )
+}
+
+function PayrollBadge({
+  attachment,
+}: {
+  attachment?: {
+    periodYear: number
+    periodMonth: number
+    status: string
+  }
+}) {
+  if (!attachment) {
+    return <MutedBadge label="Not included" />
+  }
+  const period = formatMonthYear(
+    new Date(Date.UTC(attachment.periodYear, attachment.periodMonth - 1, 1)),
+  )
+  return (
+    <div className="space-y-1">
+      <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">
+        Included
+      </span>
+      <p className="text-xs text-muted-foreground">{period}</p>
+    </div>
+  )
+}
+
+function XeroBadge({
+  claim,
+}: {
+  claim: {
+    xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
+    xeroBillId?: string
+    xeroSpendMoneyId?: string
+    payrollRunAttachment?: {
+      xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
+    }
+  }
+}) {
+  if (claim.xeroSyncStatus === "SYNCED") {
+    return (
+      <SuccessBadge
+        label={claim.xeroSpendMoneyId ? "Spend Money" : claim.xeroBillId ? "Bill" : "Synced"}
+      />
+    )
+  }
+  if (claim.payrollRunAttachment?.xeroSyncStatus === "SYNCED") {
+    return <SuccessBadge label="Via payroll" />
+  }
+  if (
+    claim.xeroSyncStatus === "ERROR" ||
+    claim.payrollRunAttachment?.xeroSyncStatus === "ERROR"
+  ) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-900">
+        Error
+      </span>
+    )
+  }
+  if (claim.payrollRunAttachment) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">
+        Payroll pending
+      </span>
+    )
+  }
+  return <MutedBadge label="Not synced" />
+}
+
+function SuccessBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">
+      {label}
+    </span>
+  )
+}
+
+function MutedBadge({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+      {label}
     </span>
   )
 }

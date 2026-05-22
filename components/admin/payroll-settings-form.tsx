@@ -402,18 +402,14 @@ function GeneralTab(props: {
           <CardHeader>
             <CardTitle className="text-base">Xero sync on submit</CardTitle>
             <CardDescription>
-              When a payroll run is submitted, push the reimbursable
-              claims attached to that run into Xero as bills awaiting
-              payment, and post the payroll summary as a manual
-              journal. Leave both off if you reconcile in Xero manually.
+              When a payroll run is submitted, post the payroll summary
+              as a manual journal. Attached reimbursements are included
+              in that journal using each claim&apos;s selected expense
+              account.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <Toggle
-              name="syncClaimsToXeroOnSubmit"
-              question="Sync claims to Xero (Awaiting Payment)?"
-              defaultChecked={s?.syncClaimsToXeroOnSubmit ?? false}
-            />
+          <CardContent>
+            <input type="hidden" name="syncClaimsToXeroOnSubmit" value="false" />
             <Toggle
               name="syncPayrollToXeroOnSubmit"
               question="Sync payroll to Xero (Manual Journal)?"
