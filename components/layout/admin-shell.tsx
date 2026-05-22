@@ -82,7 +82,7 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     icon: Receipt,
     children: [
       { href: "/admin/claims", label: "Queue" },
-      { href: "/admin/claims/payroll-ready" as Route, label: "Ready for Payroll" },
+      { href: "/admin/claims/payroll-ready" as Route, label: "Ready to Pay" },
       { href: "/admin/claims/breakdown" as Route, label: "Reports" },
       { href: "/admin/claims/settings" as Route, label: "Settings" },
     ],

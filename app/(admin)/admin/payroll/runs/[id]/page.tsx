@@ -276,7 +276,7 @@ export default async function AdminPayrollRunDetailPage({
                     href="/admin/claims/payroll-ready"
                     className="text-primary underline-offset-2 hover:underline"
                   >
-                    Ready for payroll
+                    Ready to Pay
                   </Link>{" "}
                   first.
                 </p>
