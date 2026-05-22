@@ -2022,8 +2022,27 @@ export function AdminSettingsPanel({
                     </form>
                   )
                 ) : bankAccounts.length === 0 ? (
-                  <div className="rounded-[24px] bg-surface-low p-5 text-sm leading-6 text-muted-foreground">
-                    No bank accounts found for this Xero connection. Sync your chart of accounts first from the Claim accounts tab.
+                  <div className="space-y-3 rounded-[24px] bg-surface-low p-5 text-sm leading-6 text-muted-foreground">
+                    <p>
+                      No bank accounts found for this Xero connection. Sync your
+                      chart of accounts first from the Claim accounts tab.
+                    </p>
+                    <div className="rounded-2xl border border-amber-300/60 bg-amber-50/70 p-4 text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-200">
+                      <p className="font-semibold">
+                        Bank account still not showing after syncing?
+                      </p>
+                      <p className="mt-1">
+                        Xero only syncs bank accounts that have an{" "}
+                        <span className="font-semibold">Account Code</span>. In
+                        Xero, go to{" "}
+                        <span className="font-semibold">
+                          Accounting → Chart of accounts
+                        </span>
+                        , open the bank account, set an Account Code (e.g.{" "}
+                        <span className="font-mono">090</span>), save, then
+                        re-sync from the Claim accounts tab here.
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <form action={selectedBankAction} className="space-y-4">
