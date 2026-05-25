@@ -506,6 +506,24 @@ export const leaveRepository = {
       include: { leaveType: true },
     })
   },
+
+  async listApprovedUnpaidApplicationsInRange(
+    employeeId: string,
+    from: Date,
+    to: Date,
+  ) {
+    const prisma = requirePrisma()
+    return prisma.leaveApplication.findMany({
+      where: {
+        employeeId,
+        status: "APPROVED",
+        leaveType: { paid: false },
+        startDate: { lte: to },
+        endDate: { gte: from },
+      },
+      include: { leaveType: true },
+    })
+  },
 }
 
 function toApplicationView(r: {

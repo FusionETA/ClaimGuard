@@ -871,13 +871,13 @@ export const PayrollRunAdjustmentScalarFieldEnum = {
   otNormalHours: 'otNormalHours',
   otRestHours: 'otRestHours',
   otPublicHours: 'otPublicHours',
-  workedHours: 'workedHours',
-  expectedHours: 'expectedHours',
   manualLineItems: 'manualLineItems',
   notes: 'notes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  fixedAllowanceOverrides: 'fixedAllowanceOverrides'
+  fixedAllowanceOverrides: 'fixedAllowanceOverrides',
+  expectedHours: 'expectedHours',
+  workedHours: 'workedHours'
 } as const
 
 export type PayrollRunAdjustmentScalarFieldEnum = (typeof PayrollRunAdjustmentScalarFieldEnum)[keyof typeof PayrollRunAdjustmentScalarFieldEnum]
@@ -900,7 +900,6 @@ export const PayslipScalarFieldEnum = {
   basicPay: 'basicPay',
   proratedPay: 'proratedPay',
   workedHours: 'workedHours',
-  expectedHours: 'expectedHours',
   proratedFactor: 'proratedFactor',
   proratedDays: 'proratedDays',
   totalWorkingDays: 'totalWorkingDays',
@@ -926,7 +925,9 @@ export const PayslipScalarFieldEnum = {
   totalCostToEmployer: 'totalCostToEmployer',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  totalBenefitsInKind: 'totalBenefitsInKind'
+  totalBenefitsInKind: 'totalBenefitsInKind',
+  expectedHours: 'expectedHours',
+  unpaidLeaveDays: 'unpaidLeaveDays'
 } as const
 
 export type PayslipScalarFieldEnum = (typeof PayslipScalarFieldEnum)[keyof typeof PayslipScalarFieldEnum]

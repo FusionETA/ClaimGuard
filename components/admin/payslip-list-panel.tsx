@@ -72,30 +72,20 @@ function fmtHoursValue(value: number | null): string {
   })
 }
 
-/** HRS column: worked hours as a percentage of expected (standard)
- * hours for staff with an expected basis; the worked hours for hourly
- * staff. "—" only when neither is recorded. */
-function fmtWorkingHours(payslip: {
-  workedHours: number | null
-  expectedHours: number | null
+/** DAYS column (MONTHLY only): actual working days / company working
+ * days, e.g. "22/26". Actual = totalWorkingDays − unpaid leave days.
+ * "—" when the working-days basis isn't known. */
+function fmtDays(payslip: {
+  totalWorkingDays: number | null
+  unpaidLeaveDays: number | null
 }): string {
-  // Coerce defensively — the value may arrive as a number, a string, or
-  // a Decimal-like through serialization.
-  const expected = payslip.expectedHours == null ? null : Number(payslip.expectedHours)
-  const worked = payslip.workedHours == null ? null : Number(payslip.workedHours)
-  if (expected != null && Number.isFinite(expected) && expected > 0) {
-    const pct = ((worked ?? 0) / expected) * 100
-    return (
-      pct.toLocaleString("en-MY", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 1,
-      }) + "%"
-    )
-  }
-  if (worked != null && Number.isFinite(worked) && worked > 0) {
-    return fmtHoursValue(worked)
-  }
-  return "—"
+  const total = payslip.totalWorkingDays == null ? null : Number(payslip.totalWorkingDays)
+  if (total == null || !Number.isFinite(total) || total <= 0) return "—"
+  const unpaid = payslip.unpaidLeaveDays == null ? 0 : Number(payslip.unpaidLeaveDays)
+  const actual = Math.max(0, total - (Number.isFinite(unpaid) ? unpaid : 0))
+  const fmt = (n: number) =>
+    n.toLocaleString("en-MY", { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+  return `${fmt(actual)}/${fmt(total)}`
 }
 
 const PAGE_SIZE = 20
@@ -272,7 +262,7 @@ export function PayslipsListPanel({
                   <TableRow className="border-b-0 hover:bg-transparent">
                     <TableHead className="sticky left-0 z-20 bg-background" colSpan={1}></TableHead>
                     <TableHead
-                      colSpan={4}
+                      colSpan={5}
                       className="text-center text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground/70"
                     >
                       Hours
@@ -302,8 +292,14 @@ export function PayslipsListPanel({
                     <TableHead className="sticky left-0 z-20 bg-background border-r border-border/60">
                       Employee
                     </TableHead>
-                    <TableHead className="text-right" title="Worked hours (hourly employees)">
+                    <TableHead className="text-right" title="Total normal working hours">
                       Hrs
+                    </TableHead>
+                    <TableHead
+                      className="text-right"
+                      title="Working days (actual / company), monthly staff"
+                    >
+                      Days
                     </TableHead>
                     <TableHead className="text-right" title="Normal-day OT hours">
                       OT&nbsp;N
@@ -494,6 +490,8 @@ function PayslipRow({
   showAdjustLink: boolean
   runIsDraft: boolean
 }) {
+  // Hourly staff only get the HRS column; DAYS + OT are monthly-only.
+  const isHourly = payslip.snapshotSalaryType === "HOURLY"
   // Build the breakdown items the way the PDF does: base salary
   // first, then OT pay (computed from columns, with formula text),
   // then each line item with its sign.
@@ -572,17 +570,22 @@ function PayslipRow({
           </div>
         </div>
       </TableCell>
+      {/* HRS = actual clocked hours (both worker types). DAYS + OT are
+          MONTHLY-only; hourly rows leave those cells blank. */}
       <TableCell className="text-right font-mono">
-        {fmtWorkingHours(payslip)}
+        {fmtHoursValue(payslip.workedHours)}
       </TableCell>
       <TableCell className="text-right font-mono">
-        {fmtHoursValue(payslip.otNormalHours)}
+        {isHourly ? "" : fmtDays(payslip)}
       </TableCell>
       <TableCell className="text-right font-mono">
-        {fmtHoursValue(payslip.otRestHours)}
+        {isHourly ? "" : fmtHoursValue(payslip.otNormalHours)}
       </TableCell>
       <TableCell className="text-right font-mono">
-        {fmtHoursValue(payslip.otPublicHours)}
+        {isHourly ? "" : fmtHoursValue(payslip.otRestHours)}
+      </TableCell>
+      <TableCell className="text-right font-mono">
+        {isHourly ? "" : fmtHoursValue(payslip.otPublicHours)}
       </TableCell>
       <TableCell className="text-right font-mono font-semibold">
         {fmt(payslip.grossPay)}

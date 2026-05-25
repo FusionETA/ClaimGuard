@@ -43,6 +43,7 @@ import {
 } from "@/modules/payroll/infrastructure/payslip.repository"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
+import { unpaidLeaveDays } from "@/modules/leave/application/services/leave-balance.service"
 import { deriveDailyHours } from "@/modules/payroll/domain/calc"
 
 /**
@@ -815,6 +816,25 @@ export async function generatePayrollPayslips(input: {
     })),
   })
 
+  // Approved UNPAID leave days per employee for the period — display-only
+  // snapshot for the DAYS column (actual working days = company working
+  // days − unpaid leave). Does not affect pay.
+  const periodFrom = new Date(Date.UTC(run.periodYear, run.periodMonth - 1, 1))
+  const periodTo = new Date(
+    Date.UTC(run.periodYear, run.periodMonth, 0, 23, 59, 59),
+  )
+  const unpaidLeaveByEmp = new Map(
+    await Promise.all(
+      employees.map(
+        async (e) =>
+          [
+            e.employeeProfileId,
+            await unpaidLeaveDays(e.employeeProfileId, periodFrom, periodTo),
+          ] as const,
+      ),
+    ),
+  )
+
   const payslips: CreatePayslipInput[] = employees.map((e) => {
     const adj = adjustments.get(e.employeeProfileId) ?? null
     const ytd = ytdByEmp.get(e.employeeProfileId)
@@ -958,6 +978,7 @@ export async function generatePayrollPayslips(input: {
       // Display-only attendance figures (do not affect pay above).
       workedHours: displayWorkedHours,
       expectedHours: displayExpectedHours,
+      unpaidLeaveDays: unpaidLeaveByEmp.get(e.employeeProfileId) ?? 0,
       proratedFactor: result.proratedFactor,
       proratedDays: result.proratedDays,
       totalWorkingDays: result.totalWorkingDays,

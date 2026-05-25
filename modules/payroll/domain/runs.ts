@@ -168,6 +168,9 @@ export type PayslipData = {
   proratedPay: number
   workedHours: number | null
   expectedHours: number | null
+  /// Approved UNPAID leave days in the period (display-only; drives the
+  /// DAYS column: actual working days = totalWorkingDays − unpaidLeaveDays).
+  unpaidLeaveDays: number | null
   proratedFactor: number
   proratedDays: number | null
   totalWorkingDays: number | null

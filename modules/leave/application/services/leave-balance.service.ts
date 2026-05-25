@@ -42,6 +42,39 @@ export async function paidLeaveMinutes(
   return Math.round(totalDays * dailyMin)
 }
 
+/// Approved UNPAID leave days for an employee inside [from, to]. Mirrors
+/// `paidLeaveMinutes` (same half-day / multi-day overlap handling) but
+/// sums `totalDays` and returns DAYS — used by the payslip DAYS column
+/// (actual working days = company working days − unpaid leave days).
+/// Paid leave is intentionally excluded.
+export async function unpaidLeaveDays(
+  employeeProfileId: string,
+  from: Date,
+  to: Date,
+): Promise<number> {
+  const apps = await leaveRepository.listApprovedUnpaidApplicationsInRange(
+    employeeProfileId,
+    from,
+    to,
+  )
+  let totalDays = 0
+  for (const a of apps) {
+    const aStart = utcMidnight(a.startDate)
+    const aEnd = utcMidnight(a.endDate)
+    const wStart = utcMidnight(from)
+    const wEnd = utcMidnight(to)
+    const overlapStart = aStart > wStart ? aStart : wStart
+    const overlapEnd = aEnd < wEnd ? aEnd : wEnd
+    if (overlapEnd < overlapStart) continue
+    const spanDays = dayDiff(aStart, aEnd) + 1
+    const overlapDays = dayDiff(overlapStart, overlapEnd) + 1
+    const portion = spanDays === 0 ? 0 : overlapDays / spanDays
+    totalDays += a.totalDays * portion
+  }
+  // Round to 2dp to match the stored Decimal(5,2) snapshot.
+  return Math.round(totalDays * 100) / 100
+}
+
 export async function employeeProfileIdForUserId(userId: string): Promise<string | null> {
   return leaveRepository.findEmployeeProfileIdByUserId(userId)
 }
