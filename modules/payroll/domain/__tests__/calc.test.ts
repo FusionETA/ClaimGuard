@@ -414,14 +414,25 @@ describe("autoHoursFromMinutes", () => {
     expect(r.expectedHours).toBe(160)
   })
 
-  it("HOURLY adds paid leave to worked and has no expected basis", () => {
+  it("HOURLY = actual clocked hours only (paid leave NOT added), no expected basis", () => {
     const r = autoHoursFromMinutes({
       salaryType: "HOURLY",
       workedMin: 100 * 60,
       scheduledMin: 176 * 60,
       paidLeaveMin: 8 * 60,
     })
-    expect(r.workedHours).toBe(108)
+    expect(r.workedHours).toBe(100)
+    expect(r.expectedHours).toBeNull()
+  })
+
+  it("HOURLY short session reports exact worked hours (15 min → 0.25h)", () => {
+    const r = autoHoursFromMinutes({
+      salaryType: "HOURLY",
+      workedMin: 15,
+      scheduledMin: 176 * 60,
+      paidLeaveMin: 8 * 60, // a paid-leave day in the period must not inflate HRS
+    })
+    expect(r.workedHours).toBe(0.25)
     expect(r.expectedHours).toBeNull()
   })
 })
