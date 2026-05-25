@@ -1,7 +1,7 @@
 import "server-only"
 
 import { createHash } from "node:crypto"
-import { access, mkdir, writeFile } from "node:fs/promises"
+import { access, mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -283,6 +283,77 @@ export async function generatePayrollReport(input: {
     sizeBytes: bytes.byteLength,
     alreadyCached: false,
   }
+}
+
+/**
+ * Read the bytes of one generated report so a route handler can stream
+ * it back to the browser with a proper `Content-Disposition`.
+ *
+ * Why this exists: the files live under `public/uploads/...`, but
+ * Next.js only serves files that were present in `public/` when the
+ * server started — anything written at runtime (which is exactly how
+ * these reports are produced) is NOT served by the static handler and
+ * 404s ("File wasn't available on site"). So instead of linking the
+ * browser straight at `/uploads/...`, we stream the bytes through an
+ * admin route that reads them off disk here.
+ *
+ * Prefers the already-generated file on disk; if the row exists but the
+ * bytes are gone (e.g. a deploy wiped `public/`), it falls back to
+ * re-rendering via `generatePayrollReport`. Returns null when the
+ * session/org doesn't match or the run/file can't be produced.
+ */
+export async function readPayrollReportFile(input: {
+  runId: string
+  kind: PayrollReportKind
+}): Promise<{
+  bytes: Buffer
+  fileName: string
+  mimeType: string
+} | null> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") return null
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return null
+
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  if (!run) return null
+
+  // Fast path — the row exists and the bytes are still on disk.
+  const row = await payrollRunReportRepository.getByRunAndKind({
+    payrollRunId: run.id,
+    kind: input.kind,
+  })
+  if (row) {
+    const onDiskPath = path.join(
+      process.cwd(),
+      "public",
+      row.fileUrl.replace(/^\/+/, ""),
+    )
+    const bytes = await readFile(onDiskPath).then(
+      (b) => b,
+      () => null,
+    )
+    if (bytes) {
+      return { bytes, fileName: row.fileName, mimeType: row.mimeType }
+    }
+  }
+
+  // Missing on disk (or never generated) — re-render. This re-runs the
+  // SUBMITTED gate + writes the file, then we read it straight back.
+  const gen = await generatePayrollReport({
+    runId: run.id,
+    kind: input.kind,
+  })
+  const regenPath = path.join(
+    process.cwd(),
+    "public",
+    gen.fileUrl.replace(/^\/+/, ""),
+  )
+  const bytes = await readFile(regenPath)
+  return { bytes, fileName: gen.fileName, mimeType: gen.mimeType }
 }
 
 /// Parse a YYYY-MM-DD string into a Date at local midnight.

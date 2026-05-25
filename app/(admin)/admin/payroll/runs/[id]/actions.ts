@@ -61,10 +61,17 @@ export async function generatePayrollReportAction(input: {
       kind: input.kind,
       paymentDate: input.paymentDate,
     })
+    // Hand the browser a route-handler URL, NOT the raw `/uploads/...`
+    // path. Next.js doesn't serve files written to `public/` at
+    // runtime, so the static path 404s; the route streams the bytes
+    // off disk instead. The file itself was just written to disk by
+    // `generatePayrollReport` above (with the correct PB ECP payment
+    // date when applicable), so the route reads exactly that copy.
+    const downloadUrl = `/admin/payroll/runs/${input.runId}/reports/${input.kind}`
     return {
       status: "ready",
       fileName: result.fileName,
-      fileUrl: result.fileUrl,
+      fileUrl: downloadUrl,
       mimeType: result.mimeType,
       sizeBytes: result.sizeBytes,
       alreadyCached: result.alreadyCached,
