@@ -18,7 +18,6 @@ import {
   payrollAdjustmentCategories,
   salaryTypes,
   socsoSchemes,
-  zakatMethods,
   type FixedAllowance,
 } from "@/modules/payroll/domain/models"
 import { SALARY_CHANGE_REASONS } from "@/modules/payroll/domain/salary-change"
@@ -350,10 +349,6 @@ const statutorySchema = z.object({
   incomeTaxNumber: nullableString(),
   pcbBorneByEmployer: booleanString(),
   ssfwNumber: nullableString(),
-  // Zakat-on-income method. Only submitted by the race-gated Zakat
-  // card, so absent → null → leave the persisted value untouched.
-  zakatMethod: nullableEnum(zakatMethods),
-  zakatTp1Amount: nullableNumber(),
   paymentMethod: z.enum(paymentMethods),
   bankName: nullableString(),
   bankAccountHolderName: nullableString(),
@@ -382,8 +377,6 @@ export async function savePayrollStatutoryAction(
     incomeTaxNumber: formData.get("incomeTaxNumber"),
     pcbBorneByEmployer: formData.get("pcbBorneByEmployer"),
     ssfwNumber: formData.get("ssfwNumber"),
-    zakatMethod: formData.get("zakatMethod"),
-    zakatTp1Amount: formData.get("zakatTp1Amount"),
     paymentMethod: formData.get("paymentMethod") ?? "BANK_TRANSFER",
     bankName: formData.get("bankName"),
     bankAccountHolderName: formData.get("bankAccountHolderName"),
@@ -396,27 +389,10 @@ export async function savePayrollStatutoryAction(
     }
   }
 
-  // The Zakat card only renders for Malay employees, so the
-  // `zakatMethod` field is absent for everyone else. When absent
-  // (null), strip both zakat fields from the patch so a Statutory save
-  // never silently resets a value the card didn't display. When the
-  // method is PZB (salary deduction), the TP1 amount is irrelevant —
-  // clear it so a stale figure can't leak into the calc.
-  const { zakatMethod, zakatTp1Amount, ...rest } = parsed.data
-  const patch =
-    zakatMethod === null
-      ? rest
-      : {
-          ...rest,
-          zakatMethod,
-          zakatTp1Amount:
-            zakatMethod === "SELF_PAID_TP1" ? zakatTp1Amount : null,
-        }
-
   try {
     await upsertPayrollProfile({
       userId,
-      patch,
+      patch: parsed.data,
     })
   } catch (err) {
     return {

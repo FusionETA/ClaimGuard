@@ -42,7 +42,6 @@ export type PayrollProfileAvgAggregateOutputType = {
   prevAllowableDeductions: runtime.Decimal | null
   prevPcb: runtime.Decimal | null
   prevZakat: runtime.Decimal | null
-  zakatTp1Amount: runtime.Decimal | null
 }
 
 export type PayrollProfileSumAggregateOutputType = {
@@ -57,7 +56,6 @@ export type PayrollProfileSumAggregateOutputType = {
   prevAllowableDeductions: runtime.Decimal | null
   prevPcb: runtime.Decimal | null
   prevZakat: runtime.Decimal | null
-  zakatTp1Amount: runtime.Decimal | null
 }
 
 export type PayrollProfileMinAggregateOutputType = {
@@ -126,8 +124,6 @@ export type PayrollProfileMinAggregateOutputType = {
   prevAllowableDeductions: runtime.Decimal | null
   prevPcb: runtime.Decimal | null
   prevZakat: runtime.Decimal | null
-  zakatMethod: $Enums.ZakatMethod | null
-  zakatTp1Amount: runtime.Decimal | null
 }
 
 export type PayrollProfileMaxAggregateOutputType = {
@@ -196,8 +192,6 @@ export type PayrollProfileMaxAggregateOutputType = {
   prevAllowableDeductions: runtime.Decimal | null
   prevPcb: runtime.Decimal | null
   prevZakat: runtime.Decimal | null
-  zakatMethod: $Enums.ZakatMethod | null
-  zakatTp1Amount: runtime.Decimal | null
 }
 
 export type PayrollProfileCountAggregateOutputType = {
@@ -270,8 +264,6 @@ export type PayrollProfileCountAggregateOutputType = {
   prevAllowableDeductions: number
   prevPcb: number
   prevZakat: number
-  zakatMethod: number
-  zakatTp1Amount: number
   _all: number
 }
 
@@ -288,7 +280,6 @@ export type PayrollProfileAvgAggregateInputType = {
   prevAllowableDeductions?: true
   prevPcb?: true
   prevZakat?: true
-  zakatTp1Amount?: true
 }
 
 export type PayrollProfileSumAggregateInputType = {
@@ -303,7 +294,6 @@ export type PayrollProfileSumAggregateInputType = {
   prevAllowableDeductions?: true
   prevPcb?: true
   prevZakat?: true
-  zakatTp1Amount?: true
 }
 
 export type PayrollProfileMinAggregateInputType = {
@@ -372,8 +362,6 @@ export type PayrollProfileMinAggregateInputType = {
   prevAllowableDeductions?: true
   prevPcb?: true
   prevZakat?: true
-  zakatMethod?: true
-  zakatTp1Amount?: true
 }
 
 export type PayrollProfileMaxAggregateInputType = {
@@ -442,8 +430,6 @@ export type PayrollProfileMaxAggregateInputType = {
   prevAllowableDeductions?: true
   prevPcb?: true
   prevZakat?: true
-  zakatMethod?: true
-  zakatTp1Amount?: true
 }
 
 export type PayrollProfileCountAggregateInputType = {
@@ -516,8 +502,6 @@ export type PayrollProfileCountAggregateInputType = {
   prevAllowableDeductions?: true
   prevPcb?: true
   prevZakat?: true
-  zakatMethod?: true
-  zakatTp1Amount?: true
   _all?: true
 }
 
@@ -677,8 +661,6 @@ export type PayrollProfileGroupByOutputType = {
   prevAllowableDeductions: runtime.Decimal | null
   prevPcb: runtime.Decimal | null
   prevZakat: runtime.Decimal | null
-  zakatMethod: $Enums.ZakatMethod
-  zakatTp1Amount: runtime.Decimal | null
   _count: PayrollProfileCountAggregateOutputType | null
   _avg: PayrollProfileAvgAggregateOutputType | null
   _sum: PayrollProfileSumAggregateOutputType | null
@@ -774,8 +756,6 @@ export type PayrollProfileWhereInput = {
   prevAllowableDeductions?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFilter<"PayrollProfile"> | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   payslips?: Prisma.PayslipListRelationFilter
 }
@@ -850,8 +830,6 @@ export type PayrollProfileOrderByWithRelationInput = {
   prevAllowableDeductions?: Prisma.SortOrderInput | Prisma.SortOrder
   prevPcb?: Prisma.SortOrderInput | Prisma.SortOrder
   prevZakat?: Prisma.SortOrderInput | Prisma.SortOrder
-  zakatMethod?: Prisma.SortOrder
-  zakatTp1Amount?: Prisma.SortOrderInput | Prisma.SortOrder
   employeeProfile?: Prisma.EmployeeProfileOrderByWithRelationInput
   payslips?: Prisma.PayslipOrderByRelationAggregateInput
   _relevance?: Prisma.PayrollProfileOrderByRelevanceInput
@@ -930,8 +908,6 @@ export type PayrollProfileWhereUniqueInput = Prisma.AtLeast<{
   prevAllowableDeductions?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFilter<"PayrollProfile"> | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.DecimalNullableFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile?: Prisma.XOR<Prisma.EmployeeProfileScalarRelationFilter, Prisma.EmployeeProfileWhereInput>
   payslips?: Prisma.PayslipListRelationFilter
 }, "id" | "employeeProfileId">
@@ -1006,8 +982,6 @@ export type PayrollProfileOrderByWithAggregationInput = {
   prevAllowableDeductions?: Prisma.SortOrderInput | Prisma.SortOrder
   prevPcb?: Prisma.SortOrderInput | Prisma.SortOrder
   prevZakat?: Prisma.SortOrderInput | Prisma.SortOrder
-  zakatMethod?: Prisma.SortOrder
-  zakatTp1Amount?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PayrollProfileCountOrderByAggregateInput
   _avg?: Prisma.PayrollProfileAvgOrderByAggregateInput
   _max?: Prisma.PayrollProfileMaxOrderByAggregateInput
@@ -1088,8 +1062,6 @@ export type PayrollProfileScalarWhereWithAggregatesInput = {
   prevAllowableDeductions?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodWithAggregatesFilter<"PayrollProfile"> | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.DecimalNullableWithAggregatesFilter<"PayrollProfile"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileCreateInput = {
@@ -1161,8 +1133,6 @@ export type PayrollProfileCreateInput = {
   prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: $Enums.ZakatMethod
-  zakatTp1Amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
   payslips?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
 }
@@ -1237,8 +1207,6 @@ export type PayrollProfileUncheckedCreateInput = {
   prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: $Enums.ZakatMethod
-  zakatTp1Amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
 }
 
@@ -1311,8 +1279,6 @@ export type PayrollProfileUpdateInput = {
   prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFieldUpdateOperationsInput | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
   payslips?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
 }
@@ -1387,8 +1353,6 @@ export type PayrollProfileUncheckedUpdateInput = {
   prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFieldUpdateOperationsInput | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
 }
 
@@ -1462,8 +1426,6 @@ export type PayrollProfileCreateManyInput = {
   prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: $Enums.ZakatMethod
-  zakatTp1Amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileUpdateManyMutationInput = {
@@ -1535,8 +1497,6 @@ export type PayrollProfileUpdateManyMutationInput = {
   prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFieldUpdateOperationsInput | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileUncheckedUpdateManyInput = {
@@ -1609,8 +1569,6 @@ export type PayrollProfileUncheckedUpdateManyInput = {
   prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFieldUpdateOperationsInput | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileNullableScalarRelationFilter = {
@@ -1694,8 +1652,6 @@ export type PayrollProfileCountOrderByAggregateInput = {
   prevAllowableDeductions?: Prisma.SortOrder
   prevPcb?: Prisma.SortOrder
   prevZakat?: Prisma.SortOrder
-  zakatMethod?: Prisma.SortOrder
-  zakatTp1Amount?: Prisma.SortOrder
 }
 
 export type PayrollProfileAvgOrderByAggregateInput = {
@@ -1710,7 +1666,6 @@ export type PayrollProfileAvgOrderByAggregateInput = {
   prevAllowableDeductions?: Prisma.SortOrder
   prevPcb?: Prisma.SortOrder
   prevZakat?: Prisma.SortOrder
-  zakatTp1Amount?: Prisma.SortOrder
 }
 
 export type PayrollProfileMaxOrderByAggregateInput = {
@@ -1779,8 +1734,6 @@ export type PayrollProfileMaxOrderByAggregateInput = {
   prevAllowableDeductions?: Prisma.SortOrder
   prevPcb?: Prisma.SortOrder
   prevZakat?: Prisma.SortOrder
-  zakatMethod?: Prisma.SortOrder
-  zakatTp1Amount?: Prisma.SortOrder
 }
 
 export type PayrollProfileMinOrderByAggregateInput = {
@@ -1849,8 +1802,6 @@ export type PayrollProfileMinOrderByAggregateInput = {
   prevAllowableDeductions?: Prisma.SortOrder
   prevPcb?: Prisma.SortOrder
   prevZakat?: Prisma.SortOrder
-  zakatMethod?: Prisma.SortOrder
-  zakatTp1Amount?: Prisma.SortOrder
 }
 
 export type PayrollProfileSumOrderByAggregateInput = {
@@ -1865,7 +1816,6 @@ export type PayrollProfileSumOrderByAggregateInput = {
   prevAllowableDeductions?: Prisma.SortOrder
   prevPcb?: Prisma.SortOrder
   prevZakat?: Prisma.SortOrder
-  zakatTp1Amount?: Prisma.SortOrder
 }
 
 export type PayrollProfileCreateNestedOneWithoutEmployeeProfileInput = {
@@ -1926,10 +1876,6 @@ export type EnumPaymentMethodFieldUpdateOperationsInput = {
 
 export type EnumSalaryTypeFieldUpdateOperationsInput = {
   set?: $Enums.SalaryType
-}
-
-export type EnumZakatMethodFieldUpdateOperationsInput = {
-  set?: $Enums.ZakatMethod
 }
 
 export type PayrollProfileCreateNestedOneWithoutPayslipsInput = {
@@ -2017,8 +1963,6 @@ export type PayrollProfileCreateWithoutEmployeeProfileInput = {
   prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: $Enums.ZakatMethod
-  zakatTp1Amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipCreateNestedManyWithoutPayrollProfileInput
 }
 
@@ -2091,8 +2035,6 @@ export type PayrollProfileUncheckedCreateWithoutEmployeeProfileInput = {
   prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: $Enums.ZakatMethod
-  zakatTp1Amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUncheckedCreateNestedManyWithoutPayrollProfileInput
 }
 
@@ -2181,8 +2123,6 @@ export type PayrollProfileUpdateWithoutEmployeeProfileInput = {
   prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFieldUpdateOperationsInput | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUpdateManyWithoutPayrollProfileNestedInput
 }
 
@@ -2255,8 +2195,6 @@ export type PayrollProfileUncheckedUpdateWithoutEmployeeProfileInput = {
   prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFieldUpdateOperationsInput | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   payslips?: Prisma.PayslipUncheckedUpdateManyWithoutPayrollProfileNestedInput
 }
 
@@ -2329,8 +2267,6 @@ export type PayrollProfileCreateWithoutPayslipsInput = {
   prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: $Enums.ZakatMethod
-  zakatTp1Amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile: Prisma.EmployeeProfileCreateNestedOneWithoutPayrollProfileInput
 }
 
@@ -2404,8 +2340,6 @@ export type PayrollProfileUncheckedCreateWithoutPayslipsInput = {
   prevAllowableDeductions?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: $Enums.ZakatMethod
-  zakatTp1Amount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 export type PayrollProfileCreateOrConnectWithoutPayslipsInput = {
@@ -2493,8 +2427,6 @@ export type PayrollProfileUpdateWithoutPayslipsInput = {
   prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFieldUpdateOperationsInput | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   employeeProfile?: Prisma.EmployeeProfileUpdateOneRequiredWithoutPayrollProfileNestedInput
 }
 
@@ -2568,8 +2500,6 @@ export type PayrollProfileUncheckedUpdateWithoutPayslipsInput = {
   prevAllowableDeductions?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevPcb?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   prevZakat?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  zakatMethod?: Prisma.EnumZakatMethodFieldUpdateOperationsInput | $Enums.ZakatMethod
-  zakatTp1Amount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
 }
 
 
@@ -2673,8 +2603,6 @@ export type PayrollProfileSelect<ExtArgs extends runtime.Types.Extensions.Intern
   prevAllowableDeductions?: boolean
   prevPcb?: boolean
   prevZakat?: boolean
-  zakatMethod?: boolean
-  zakatTp1Amount?: boolean
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payslips?: boolean | Prisma.PayrollProfile$payslipsArgs<ExtArgs>
   _count?: boolean | Prisma.PayrollProfileCountOutputTypeDefaultArgs<ExtArgs>
@@ -2752,11 +2680,9 @@ export type PayrollProfileSelectScalar = {
   prevAllowableDeductions?: boolean
   prevPcb?: boolean
   prevZakat?: boolean
-  zakatMethod?: boolean
-  zakatTp1Amount?: boolean
 }
 
-export type PayrollProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "phone" | "alternateEmail" | "gender" | "dateOfBirth" | "nationality" | "race" | "hasPr" | "idType" | "idNumber" | "maritalStatus" | "isResident" | "isOku" | "spouseWorking" | "spouseDisabled" | "spousePcbNumber" | "spouseIdNumber" | "addressLine1" | "addressLine2" | "addressLine3" | "city" | "postcode" | "state" | "emergencyContactName" | "emergencyContactPhone" | "emergencyContactRelation" | "childRelief" | "prevEmploymentYear" | "prevRemuneration" | "prevEpf" | "contributeToEpf" | "epfMemberBefore1998" | "epfNumber" | "epfEmployeeRate" | "epfEmployeeVoluntary" | "epfEmployerVoluntary" | "socsoNumber" | "socsoScheme" | "contributeToEis" | "incomeTaxNumber" | "pcbBorneByEmployer" | "ssfwNumber" | "paymentMethod" | "bankName" | "bankAccountHolderName" | "bankAccountNumber" | "salaryType" | "monthlySalary" | "hourlyRate" | "fixedAllowances" | "joinDate" | "leaveDate" | "archiveReason" | "reportedToLhdn" | "department" | "location" | "workSchedule" | "payrollPolicy" | "payrollCycle" | "leaveEntitlement" | "isArchived" | "archivedAt" | "createdAt" | "updatedAt" | "payrollDocuments" | "prevAllowableDeductions" | "prevPcb" | "prevZakat" | "zakatMethod" | "zakatTp1Amount", ExtArgs["result"]["payrollProfile"]>
+export type PayrollProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeProfileId" | "phone" | "alternateEmail" | "gender" | "dateOfBirth" | "nationality" | "race" | "hasPr" | "idType" | "idNumber" | "maritalStatus" | "isResident" | "isOku" | "spouseWorking" | "spouseDisabled" | "spousePcbNumber" | "spouseIdNumber" | "addressLine1" | "addressLine2" | "addressLine3" | "city" | "postcode" | "state" | "emergencyContactName" | "emergencyContactPhone" | "emergencyContactRelation" | "childRelief" | "prevEmploymentYear" | "prevRemuneration" | "prevEpf" | "contributeToEpf" | "epfMemberBefore1998" | "epfNumber" | "epfEmployeeRate" | "epfEmployeeVoluntary" | "epfEmployerVoluntary" | "socsoNumber" | "socsoScheme" | "contributeToEis" | "incomeTaxNumber" | "pcbBorneByEmployer" | "ssfwNumber" | "paymentMethod" | "bankName" | "bankAccountHolderName" | "bankAccountNumber" | "salaryType" | "monthlySalary" | "hourlyRate" | "fixedAllowances" | "joinDate" | "leaveDate" | "archiveReason" | "reportedToLhdn" | "department" | "location" | "workSchedule" | "payrollPolicy" | "payrollCycle" | "leaveEntitlement" | "isArchived" | "archivedAt" | "createdAt" | "updatedAt" | "payrollDocuments" | "prevAllowableDeductions" | "prevPcb" | "prevZakat", ExtArgs["result"]["payrollProfile"]>
 export type PayrollProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payslips?: boolean | Prisma.PayrollProfile$payslipsArgs<ExtArgs>
@@ -2925,18 +2851,6 @@ export type $PayrollProfilePayload<ExtArgs extends runtime.Types.Extensions.Inte
      * `calcPcb` because zakat fully offsets MTD obligation.
      */
     prevZakat: runtime.Decimal | null
-    /**
-     * How this employee pays zakat-on-income. Drives the calc's PCB
-     * offset behaviour (see ZakatMethod enum). Default SALARY_DEDUCTION
-     * (PZB): zakat is entered as a monthly deduction adjustment.
-     */
-    zakatMethod: $Enums.ZakatMethod
-    /**
-     * Monthly self-paid zakat amount (RM) when zakatMethod=SELF_PAID_TP1.
-     * Keyed in on the employee's Zakat card. Offsets PCB but is NOT
-     * deducted from take-home. Ignored when zakatMethod=SALARY_DEDUCTION.
-     */
-    zakatTp1Amount: runtime.Decimal | null
   }, ExtArgs["result"]["payrollProfile"]>
   composites: {}
 }
@@ -3377,8 +3291,6 @@ export interface PayrollProfileFieldRefs {
   readonly prevAllowableDeductions: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
   readonly prevPcb: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
   readonly prevZakat: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
-  readonly zakatMethod: Prisma.FieldRef<"PayrollProfile", 'ZakatMethod'>
-  readonly zakatTp1Amount: Prisma.FieldRef<"PayrollProfile", 'Decimal'>
 }
     
 

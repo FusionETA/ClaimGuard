@@ -772,13 +772,6 @@ export type EnumSalaryTypeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumSalaryTypeFilter<$PrismaModel> | $Enums.SalaryType
 }
 
-export type EnumZakatMethodFilter<$PrismaModel = never> = {
-  equals?: $Enums.ZakatMethod | Prisma.EnumZakatMethodFieldRefInput<$PrismaModel>
-  in?: $Enums.ZakatMethod[]
-  notIn?: $Enums.ZakatMethod[]
-  not?: Prisma.NestedEnumZakatMethodFilter<$PrismaModel> | $Enums.ZakatMethod
-}
-
 export type EnumGenderNullableWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.Gender | Prisma.EnumGenderFieldRefInput<$PrismaModel> | null
   in?: $Enums.Gender[] | null
@@ -845,16 +838,6 @@ export type EnumSalaryTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSalaryTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSalaryTypeFilter<$PrismaModel>
-}
-
-export type EnumZakatMethodWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.ZakatMethod | Prisma.EnumZakatMethodFieldRefInput<$PrismaModel>
-  in?: $Enums.ZakatMethod[]
-  notIn?: $Enums.ZakatMethod[]
-  not?: Prisma.NestedEnumZakatMethodWithAggregatesFilter<$PrismaModel> | $Enums.ZakatMethod
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumZakatMethodFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumZakatMethodFilter<$PrismaModel>
 }
 
 export type EnumSalaryChangeReasonFilter<$PrismaModel = never> = {
@@ -1781,13 +1764,6 @@ export type NestedEnumSalaryTypeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumSalaryTypeFilter<$PrismaModel> | $Enums.SalaryType
 }
 
-export type NestedEnumZakatMethodFilter<$PrismaModel = never> = {
-  equals?: $Enums.ZakatMethod | Prisma.EnumZakatMethodFieldRefInput<$PrismaModel>
-  in?: $Enums.ZakatMethod[]
-  notIn?: $Enums.ZakatMethod[]
-  not?: Prisma.NestedEnumZakatMethodFilter<$PrismaModel> | $Enums.ZakatMethod
-}
-
 export type NestedEnumGenderNullableWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.Gender | Prisma.EnumGenderFieldRefInput<$PrismaModel> | null
   in?: $Enums.Gender[] | null
@@ -1854,16 +1830,6 @@ export type NestedEnumSalaryTypeWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSalaryTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSalaryTypeFilter<$PrismaModel>
-}
-
-export type NestedEnumZakatMethodWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.ZakatMethod | Prisma.EnumZakatMethodFieldRefInput<$PrismaModel>
-  in?: $Enums.ZakatMethod[]
-  notIn?: $Enums.ZakatMethod[]
-  not?: Prisma.NestedEnumZakatMethodWithAggregatesFilter<$PrismaModel> | $Enums.ZakatMethod
-  _count?: Prisma.NestedIntFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumZakatMethodFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumZakatMethodFilter<$PrismaModel>
 }
 
 export type NestedEnumSalaryChangeReasonFilter<$PrismaModel = never> = {

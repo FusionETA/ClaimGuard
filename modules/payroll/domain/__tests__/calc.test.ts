@@ -63,8 +63,6 @@ function makeProfile(overrides: Partial<CalcPayslipInput["profile"]> = {}): Calc
     incomeTaxNumber: "OG12345678",
     epfNumber: "EPF12345",
     socsoNumber: "SOC12345",
-    zakatMethod: "SALARY_DEDUCTION",
-    zakatTp1Amount: null,
     ...overrides,
   }
 }
@@ -262,16 +260,16 @@ describe("calcPayslip — zakat offset", () => {
   })
 })
 
-// ─── Zakat paid outside payroll (TP1, profile method) ───────────────────
+// ─── Zakat paid outside payroll (TP1 deduction category) ────────────────
 //
-// Self-paid zakat declared via Borang TP1 is configured on the PROFILE
-// (zakatMethod = SELF_PAID_TP1 + zakatTp1Amount), NOT as a monthly
-// deduction line. It must reduce PCB exactly like salary-deduction
-// zakat, but must NOT be subtracted from take-home — the employee
-// already paid it directly to the zakat centre. So it leaves MORE in
-// the paycheck than the PZB (salary-deduction) variant, because the PCB
-// withheld is lower and nothing is deducted.
-describe("calcPayslip — zakat paid outside payroll (TP1, profile method)", () => {
+// Self-paid zakat declared via Borang TP1 is now a `deduct_zakat_tp1`
+// monthly adjustment line (offsetsPcb + cashNeutral), NOT a profile
+// setting. It must reduce PCB exactly like salary-deduction zakat
+// (`deduct_zakat`), but must NOT be subtracted from take-home — the
+// employee already paid it directly to the zakat centre. So it leaves
+// MORE in the paycheck than the PZB variant, because the PCB withheld is
+// lower and nothing is deducted.
+describe("calcPayslip — zakat paid outside payroll (TP1 deduction category)", () => {
   const baseline = calcPayslip({
     profile: makeProfile({ monthlySalary: 10000 }),
     settings: baseSettings,
@@ -298,8 +296,13 @@ describe("calcPayslip — zakat paid outside payroll (TP1, profile method)", () 
   const tp1 = calcPayslip({
     profile: makeProfile({
       monthlySalary: 10000,
-      zakatMethod: "SELF_PAID_TP1",
-      zakatTp1Amount: 100,
+      fixedAllowances: [
+        {
+          category: "deduct_zakat_tp1" satisfies PayrollAdjustmentCategory,
+          name: "Zakat (TP1)",
+          amount: 100,
+        },
+      ],
     }),
     settings: baseSettings,
     periodYear: 2026,
@@ -327,8 +330,13 @@ describe("calcPayslip — zakat paid outside payroll (TP1, profile method)", () 
     const lowEarner = calcPayslip({
       profile: makeProfile({
         monthlySalary: 3000, // PCB ~0 at this level
-        zakatMethod: "SELF_PAID_TP1",
-        zakatTp1Amount: 200,
+        fixedAllowances: [
+          {
+            category: "deduct_zakat_tp1" satisfies PayrollAdjustmentCategory,
+            name: "Zakat (TP1)",
+            amount: 200,
+          },
+        ],
       }),
       settings: baseSettings,
       periodYear: 2026,

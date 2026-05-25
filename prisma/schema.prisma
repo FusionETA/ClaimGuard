@@ -1034,14 +1034,9 @@ model PayrollProfile {
   /// payroll or self-paid). Subtracted from annual tax inside
   /// `calcPcb` because zakat fully offsets MTD obligation.
   prevZakat                Decimal?        @db.Decimal(12, 2)
-  /// How this employee pays zakat-on-income. Drives the calc's PCB
-  /// offset behaviour (see ZakatMethod enum). Default SALARY_DEDUCTION
-  /// (PZB): zakat is entered as a monthly deduction adjustment.
-  zakatMethod              ZakatMethod     @default(SALARY_DEDUCTION)
-  /// Monthly self-paid zakat amount (RM) when zakatMethod=SELF_PAID_TP1.
-  /// Keyed in on the employee's Zakat card. Offsets PCB but is NOT
-  /// deducted from take-home. Ignored when zakatMethod=SALARY_DEDUCTION.
-  zakatTp1Amount           Decimal?        @db.Decimal(12, 2)
+  // Zakat-on-income is now handled via the monthly deduction categories
+  // `deduct_zakat` (PZB) / `deduct_zakat_tp1` (self-paid TP1) — no
+  // per-profile zakat method or amount column.
   employeeProfile          EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
   payslips                 Payslip[]
 }
@@ -1878,17 +1873,6 @@ enum SocsoScheme {
 enum SalaryType {
   MONTHLY
   HOURLY
-}
-
-/// How an employee's zakat-on-income (zakat pendapatan) is paid.
-/// SALARY_DEDUCTION (PZB) — deducted from salary each month and
-/// remitted by the employer; reduces take-home AND offsets PCB.
-/// SELF_PAID_TP1 — employee already paid zakat directly to the zakat
-/// centre and declared it via Borang TP1 §D1(a). It offsets PCB but
-/// must NOT be deducted from take-home (the cash already left).
-enum ZakatMethod {
-  SALARY_DEDUCTION
-  SELF_PAID_TP1
 }
 
 enum PaymentMethod {

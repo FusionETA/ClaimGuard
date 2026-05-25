@@ -453,8 +453,6 @@ export type CalcPayslipInput = {
     | "incomeTaxNumber"
     | "epfNumber"
     | "socsoNumber"
-    | "zakatMethod"
-    | "zakatTp1Amount"
   >
   /// Org-level operational settings.
   settings: {
@@ -828,19 +826,9 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   pcbAdditionalRemunerationEpf = round2(pcbAdditionalRemunerationEpf)
   hrdfAdjustmentBase = round2(hrdfAdjustmentBase)
 
-  // Self-paid zakat (Borang TP1 §D1(a)): the employee paid zakat
-  // directly to the zakat centre and declared a monthly figure on their
-  // profile's Zakat card. It offsets this month's PCB exactly like a
-  // PZB salary deduction, but is NOT subtracted from take-home (the cash
-  // already left the employee's own pocket). We add it to the same
-  // PCB-offset bucket as `deduct_zakat` line items WITHOUT touching
-  // `totalRecurringDeductions`. Not prorated — it's a declared paid
-  // amount, not a salary-derived figure.
-  if (profile.zakatMethod === "SELF_PAID_TP1") {
-    const tp1 = profile.zakatTp1Amount ?? 0
-    if (tp1 > 0) thisMonthZakat += tp1
-  }
-
+  // Self-paid zakat (Borang TP1 §D1(a)) is now just a `deduct_zakat_tp1`
+  // adjustment line (offsetsPcb + cashNeutral), handled in the deduction
+  // loop above — no separate profile-level branch needed.
   thisMonthZakat = round2(thisMonthZakat)
 
   // 5. Reimbursements (Phase 5 — approved claims). Not wage-like, so

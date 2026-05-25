@@ -35,23 +35,11 @@ export type SalaryType = (typeof salaryTypes)[number]
 
 export const paymentMethods = ["BANK_TRANSFER", "CASH", "CHEQUE"] as const
 export type PaymentMethod = (typeof paymentMethods)[number]
-
-/**
- * How an employee pays zakat-on-income (zakat pendapatan):
- *   - SALARY_DEDUCTION (PZB) — deducted from salary each month and
- *     remitted by the employer. Reduces take-home AND offsets PCB.
- *     Entered as a `deduct_zakat` adjustment on the monthly run.
- *   - SELF_PAID_TP1 — employee paid zakat directly to the zakat centre
- *     and declared it via Borang TP1 §D1(a). Offsets PCB but is NOT
- *     deducted from take-home. Amount is keyed in on the profile's
- *     Zakat card (`zakatTp1Amount`), not the monthly adjustment form.
- */
-export const zakatMethods = ["SALARY_DEDUCTION", "SELF_PAID_TP1"] as const
-export type ZakatMethod = (typeof zakatMethods)[number]
-export const ZAKAT_METHOD_LABELS: Record<ZakatMethod, string> = {
-  SALARY_DEDUCTION: "Paid through salary (PZB)",
-  SELF_PAID_TP1: "Paid by employee, outside payroll (TP1)",
-}
+// Zakat-on-income (zakat pendapatan) is handled entirely through the
+// monthly deduction categories — there is no separate per-employee
+// zakat method or eligibility setting:
+//   - `deduct_zakat`      (PZB) — reduces take-home AND offsets PCB.
+//   - `deduct_zakat_tp1`  (TP1) — offsets PCB only (self-paid; cashNeutral).
 
 /**
  * Employee types accepted by the bulk import. Subset of `UserRole`
@@ -157,6 +145,7 @@ export const payrollAdjustmentCategories = [
   "deduct_advance",
   "deduct_cp38",
   "deduct_zakat",
+  "deduct_zakat_tp1",
   "deduct_tp1",
 ] as const
 export type PayrollAdjustmentCategory =
@@ -706,6 +695,22 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     subjectToHrdf: false,
     offsetsPcb: true,
   },
+  deduct_zakat_tp1: {
+    code: "deduct_zakat_tp1",
+    label: "Zakat — self-paid (TP1)",
+    group: "Deductions",
+    kind: "DEDUCTION",
+    subjectToEpf: false,
+    subjectToSocso: false,
+    subjectToEis: false,
+    subjectToPcb: false,
+    subjectToHrdf: false,
+    // Employee paid the zakat centre directly and declared it via Borang
+    // TP1 §D1(a). It offsets this month's PCB but is NOT taken from
+    // take-home pay (cashNeutral) — the money already left their pocket.
+    offsetsPcb: true,
+    cashNeutral: true,
+  },
   deduct_tp1: {
     code: "deduct_tp1",
     label: "TP1/TP3 Deduction",
@@ -829,14 +834,6 @@ export type PayrollProfileData = {
   prevPcb: number | null               // X
   prevZakat: number | null             // Z
   prevAllowableDeductions: number | null // ΣLP
-
-  // Zakat-on-income method (zakat pendapatan). SALARY_DEDUCTION (PZB)
-  // is the default — zakat is entered as a monthly `deduct_zakat`
-  // adjustment. SELF_PAID_TP1 means the employee paid zakat directly
-  // and declared it via Borang TP1; `zakatTp1Amount` (RM/month) offsets
-  // PCB without reducing take-home. See `ZakatMethod`.
-  zakatMethod: ZakatMethod
-  zakatTp1Amount: number | null
 
   // EPF
   contributeToEpf: boolean

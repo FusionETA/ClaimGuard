@@ -70,8 +70,6 @@ import {
   payrollAdjustmentCategories,
   SALARY_TYPE_LABELS,
   SOCSO_SCHEME_LABELS,
-  ZAKAT_METHOD_LABELS,
-  zakatMethods,
   childAbilityStatuses,
   childPcbDeductionLevels,
   childStudyingLevels,
@@ -1308,12 +1306,6 @@ function StatutoryTab(props: {
   const [incomeTaxNumber, setIncomeTaxNumber] = useState(
     props.profile?.incomeTaxNumber ?? "",
   )
-  // Zakat method drives the Zakat card: PZB (salary deduction) keeps the
-  // monthly-adjustment workflow; TP1 (self-paid outside payroll) reveals
-  // an inline amount field that offsets PCB without reducing take-home.
-  const [zakatMethod, setZakatMethod] = useState<string>(
-    props.profile?.zakatMethod ?? "SALARY_DEDUCTION",
-  )
   const epfNumberMissing = contributeToEpfInitial && epfNumber.trim() === ""
   const socsoNumberMissing =
     socsoScheme !== "" && socsoNumber.trim() === ""
@@ -1637,75 +1629,10 @@ function StatutoryTab(props: {
         </CardContent>
       </Card>
 
-      {/* Zakat card — only shown when race = "M" (Malay), since under
-          Federal Constitution Art. 160 a Malay is by definition Muslim
-          and therefore eligible for zakat pendapatan. Non-Malay
-          Muslims (Chinese-Muslim, Indian-Muslim) can still have zakat
-          added as a manual deduction line item on the monthly
-          adjustment form; this card is a UX hint, not a gate. */}
-      {props.profile?.race === "M" ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Zakat pendapatan</CardTitle>
-            <CardDescription>
-              Detected race = Malay, so this employee is eligible for
-              zakat-on-income. Choose how they pay it. Either way, zakat
-              offsets the PCB owed for the month (net MTD floored at
-              RM&nbsp;0) and the accumulated total reduces annual
-              chargeable income for later months — LHDN MTD Spec 2026.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <Field label="Zakat payment method">
-              <NativeSelect
-                name="zakatMethod"
-                value={zakatMethod}
-                onChange={(e) => setZakatMethod(e.target.value)}
-              >
-                {zakatMethods.map((m) => (
-                  <option key={m} value={m}>
-                    {ZAKAT_METHOD_LABELS[m]}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-
-            {zakatMethod === "SELF_PAID_TP1" ? (
-              <Field label="Monthly zakat amount (RM)">
-                <Input
-                  name="zakatTp1Amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  defaultValue={props.profile?.zakatTp1Amount ?? ""}
-                  placeholder="e.g. 100.00"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Self-paid via Borang TP1 §D1(a). Offsets PCB but is{" "}
-                  <span className="font-medium">not</span> deducted from
-                  take-home — the employee already paid the zakat centre
-                  directly.
-                </p>
-              </Field>
-            ) : (
-              <StatutoryDisplay
-                label="Where to enter the amount"
-                value="On the monthly payroll run"
-                note={
-                  <>
-                    Add a{" "}
-                    <span className="font-medium">
-                      &ldquo;Zakat — via salary deduction (PZB)&rdquo;
-                    </span>{" "}
-                    deduction line each run. It is deducted from
-                    take-home and offsets that month&rsquo;s PCB.
-                  </>
-                }
-              />
-            )}
-          </CardContent>
-        </Card>
-      ) : null}
+      {/* Zakat pendapatan is handled entirely through the monthly
+          deduction categories now — add a "Zakat — via salary deduction
+          (PZB)" or "Zakat — self-paid (TP1)" line on the run. No
+          per-employee zakat card / race detection. */}
 
       <Card>
         <CardHeader>
