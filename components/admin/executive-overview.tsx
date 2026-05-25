@@ -383,8 +383,16 @@ function Stat({
   tone?: string
 }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-surface-low p-4">
-      <p className={`font-headline text-2xl font-extrabold ${tone}`}>{value}</p>
+    // `min-w-0` lets this grid cell shrink below its content width — without
+    // it, grid items default to `min-width: auto` and a long value (e.g. a
+    // big "Queued value" currency) overflows the box. `break-words` +
+    // `tabular-nums` then let the figure wrap cleanly instead of spilling.
+    <div className="min-w-0 rounded-2xl border border-border/60 bg-surface-low p-4">
+      <p
+        className={`font-headline text-xl font-extrabold leading-tight tabular-nums break-words ${tone}`}
+      >
+        {value}
+      </p>
       <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </p>
