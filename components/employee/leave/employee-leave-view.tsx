@@ -77,6 +77,17 @@ function fmtDate(iso: string): string {
   return iso.slice(0, 10) // YYYY-MM-DD
 }
 
+/// Today's date in the user's local timezone as YYYY-MM-DD — used to
+/// pre-fill the apply-leave date fields so the common "applying for
+/// today" case needs no extra clicks.
+function todayLocalISO(): string {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, "0")
+  const d = String(now.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
 export function EmployeeLeaveView(props: {
   year: number
   balances: BalanceRow[]
@@ -207,8 +218,10 @@ export function ApplyForm({
   onSuccess?: () => void
 }) {
   const [leaveTypeId, setLeaveTypeId] = useState<string>(balances[0]?.leaveTypeId ?? "")
-  const [startDate, setStartDate] = useState<string>("")
-  const [endDate, setEndDate] = useState<string>("")
+  // Pre-fill both dates with today so a single-day "leave today" request
+  // is ready to submit; the employee can still change either field.
+  const [startDate, setStartDate] = useState<string>(() => todayLocalISO())
+  const [endDate, setEndDate] = useState<string>(() => todayLocalISO())
   const [duration, setDuration] = useState<"FULL_DAY" | "MORNING" | "AFTERNOON">("FULL_DAY")
   const [reason, setReason] = useState("")
   const [attachment, setAttachment] = useState<File | null>(null)

@@ -68,6 +68,17 @@ export const DEFAULT_LEAVE_TYPES: Array<{
     maxCarryForwardDays: null,
   },
   {
+    code: "MATERNITY",
+    name: "Maternity Leave",
+    paid: true,
+    accrualMethod: "LUMP_SUM",
+    // Malaysian Employment Act 2022: 98 consecutive days.
+    defaultDays: 98,
+    carryForward: false,
+    carryExpiryMonth: null,
+    maxCarryForwardDays: null,
+  },
+  {
     code: "PATERNITY",
     name: "Paternity Leave",
     paid: true,

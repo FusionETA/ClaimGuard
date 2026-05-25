@@ -150,7 +150,7 @@ function ApprovalCard({
             </Badge>
           )}
           <span className="text-xs font-semibold text-muted-foreground">
-            {fmtDate(app.startDate)}
+            <span className="font-normal">Leave:</span> {fmtDate(app.startDate)}
             {app.startDate !== app.endDate && <> → {fmtDate(app.endDate)}</>}
           </span>
           {app.currentStep > 1 ? (
@@ -185,7 +185,7 @@ function ApprovalCard({
             </p>
           ) : null}
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Submitted {fmtDate(app.createdAt)}
+            Submitted on {fmtDate(app.createdAt)}
           </p>
         </div>
 
