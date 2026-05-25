@@ -55,6 +55,7 @@ export function ClaimForm({
   onSuccess,
   compact = false,
   defaultClaimType,
+  defaultPaymentType,
   aiPrefill,
   prefilledReceiptFile,
   onBack,
@@ -81,6 +82,10 @@ export function ClaimForm({
   /// When set (by ClaimFlow), forces the initial claim-type radio. The
   /// in-form type-picker still appears so the user can flip mid-edit.
   defaultClaimType?: "EXPENSE" | "MILEAGE"
+  /// Payment source chosen up front in the wizard's first step. When set,
+  /// the in-form payment-type picker is replaced by a read-only summary
+  /// (the choice was already made), but the value still submits.
+  defaultPaymentType?: "PERSONAL" | "COMPANY"
   /// AI-extracted defaults from the OCR step. Sticky form values still
   /// win on a re-submit; AI is only used on first render.
   aiPrefill?: ClaimFormAiPrefill
@@ -159,7 +164,7 @@ export function ClaimForm({
     return "MYR"
   })
   const [paymentType, setPaymentType] = useState<"PERSONAL" | "COMPANY">(
-    state?.values?.paymentType ?? "PERSONAL"
+    defaultPaymentType ?? state?.values?.paymentType ?? "PERSONAL"
   )
   const [payViaAccountId, setPayViaAccountId] = useState(
     state?.values?.payViaAccountId ?? ""
@@ -209,7 +214,7 @@ export function ClaimForm({
     if (state.status === "success") {
       setSelectedReceiptName("")
       setSelectedChartAccountId("")
-      setPaymentType("PERSONAL")
+      setPaymentType(defaultPaymentType ?? "PERSONAL")
       setPayViaAccountId("")
       setClaimType("EXPENSE")
       setDistance("")
@@ -709,54 +714,55 @@ export function ClaimForm({
         <FieldError message={state.errors?.description} />
       </div>
 
-      {/* Payment type — who paid for this expense? */}
+      {/* Payment type — who paid for this expense?
+          When the wizard chose it up front (defaultPaymentType), show a
+          read-only summary so it isn't asked twice; the value still
+          submits via the hidden input. */}
       <div className="space-y-2">
         <Label>Paid with</Label>
         <input type="hidden" name="paymentType" value={paymentType} />
-        <div
-          role="radiogroup"
-          aria-label="Payment type"
-          className="grid grid-cols-2 gap-2 rounded-2xl border border-border/70 bg-card/94 p-1 shadow-ambient"
-        >
-          {(
-            [
-              {
-                value: "PERSONAL" as const,
-                label: "My own money",
-              },
-              {
-                value: "COMPANY" as const,
-                label: "Company money",
-              },
-            ]
-          ).map((option) => {
-            const active = paymentType === option.value
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                onClick={() => setPaymentType(option.value)}
-                className={cn(
-                  "flex flex-col items-start rounded-xl px-4 py-3 text-left text-sm font-semibold transition-colors",
-                  active
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
-                )}
-              >
-                <span>{option.label}</span>
-                <span
+        {defaultPaymentType ? (
+          <div className="flex items-center justify-between gap-2 rounded-2xl border border-border/70 bg-surface-low px-4 py-3 text-sm shadow-ambient">
+            <span className="font-semibold text-foreground">
+              {paymentType === "COMPANY" ? "Company money" : "My own money"}
+            </span>
+            <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Chosen in step 1
+            </span>
+          </div>
+        ) : (
+          <div
+            role="radiogroup"
+            aria-label="Payment type"
+            className="grid grid-cols-2 gap-2 rounded-2xl border border-border/70 bg-card/94 p-1 shadow-ambient"
+          >
+            {(
+              [
+                { value: "PERSONAL" as const, label: "My own money" },
+                { value: "COMPANY" as const, label: "Company money" },
+              ]
+            ).map((option) => {
+              const active = paymentType === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setPaymentType(option.value)}
                   className={cn(
-                    "text-[11px] font-medium",
-                    active ? "text-primary-foreground/80" : "text-muted-foreground"
+                    "flex flex-col items-start rounded-xl px-4 py-3 text-left text-sm font-semibold transition-colors",
+                    active
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-surface-low hover:text-foreground"
                   )}
                 >
-                </span>
-              </button>
-            )
-          })}
-        </div>
+                  <span>{option.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
         <FieldError message={state.errors?.paymentType} />
       </div>
 

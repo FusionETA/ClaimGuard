@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { safeErrorMessage } from "@/lib/errors"
 import {
   ArrowLeft,
+  Building2,
   Camera,
   CircleAlert,
   FileText,
@@ -13,6 +14,7 @@ import {
   RefreshCw,
   Sparkles,
   Upload,
+  Wallet,
 } from "lucide-react"
 
 import {
@@ -28,8 +30,9 @@ import type {
 } from "@/modules/claims/domain/models"
 import type { ChartOfAccountOption } from "@/modules/organization/domain/models"
 
-type ClaimFlowStep = "type" | "receipt" | "form"
+type ClaimFlowStep = "payment" | "type" | "receipt" | "form"
 type ClaimType = "EXPENSE" | "MILEAGE"
+type PaymentType = "PERSONAL" | "COMPANY"
 
 type AnalyzeApiResponse = {
   extraction?: {
@@ -59,19 +62,19 @@ function loadTesseract() {
 }
 
 /**
- * Three-step wizard:
- *   1. type → pick Expense or Mileage.
- *   2. receipt → (Expense only) upload, OCR with Tesseract, AI extraction.
- *   3. form → render the existing ClaimForm with prefilled values.
+ * Wizard:
+ *   1. payment → pick Personal (own money) or Company money.
+ *   2. type → pick Expense or Mileage.
+ *   3. receipt → (Expense only) upload, OCR with Tesseract, AI extraction.
+ *   4. form → render the existing ClaimForm with prefilled values.
  *
- * Mileage skips step 2 entirely. The user can also "Skip and fill manually"
- * on step 2 — useful when the OCR is being unreliable or they don't have
- * a clear photo.
+ * Mileage skips the receipt step. The user can also "Skip and fill
+ * manually" on the receipt step. The payment-type choice from step 1 is
+ * passed into the form and locked there (shown as a read-only summary).
  *
  * State lives entirely in this component; the form's server action is
- * untouched. Submission failures rerun the form in step 3 with sticky
- * values, AI prefill is overridden by sticky values to avoid clobbering
- * the user's edits.
+ * untouched. Submission failures rerun the form with sticky values; AI
+ * prefill is overridden by sticky values to avoid clobbering edits.
  */
 export function ClaimFlow(props: {
   chartAccounts: ChartAccountWithRemainingLimit[]
@@ -87,7 +90,8 @@ export function ClaimFlow(props: {
   onSuccess?: () => void
   compact?: boolean
 }) {
-  const [step, setStep] = useState<ClaimFlowStep>("type")
+  const [step, setStep] = useState<ClaimFlowStep>("payment")
+  const [paymentType, setPaymentType] = useState<PaymentType | null>(null)
   const [claimType, setClaimType] = useState<ClaimType | null>(null)
   const [aiPrefill, setAiPrefill] = useState<ClaimFormAiPrefill | undefined>()
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
@@ -100,6 +104,11 @@ export function ClaimFlow(props: {
       if (receiptPreview) URL.revokeObjectURL(receiptPreview)
     }
   }, [receiptPreview])
+
+  const handlePickPayment = useCallback((type: PaymentType) => {
+    setPaymentType(type)
+    setStep("type")
+  }, [])
 
   const handlePickType = useCallback((type: ClaimType) => {
     setClaimType(type)
@@ -118,7 +127,17 @@ export function ClaimFlow(props: {
 
   return (
     <div className="space-y-4">
-      {step === "type" ? <TypeStep onPick={handlePickType} /> : null}
+      {step === "payment" ? <PaymentStep onPick={handlePickPayment} /> : null}
+
+      {step === "type" ? (
+        <TypeStep
+          onPick={handlePickType}
+          onBack={() => {
+            setClaimType(null)
+            setStep("payment")
+          }}
+        />
+      ) : null}
 
       {step === "receipt" ? (
         <ReceiptStep
@@ -139,10 +158,11 @@ export function ClaimFlow(props: {
         />
       ) : null}
 
-      {step === "form" && claimType ? (
+      {step === "form" && claimType && paymentType ? (
         <ClaimForm
           {...props}
           defaultClaimType={claimType}
+          defaultPaymentType={paymentType}
           aiPrefill={aiPrefill}
           prefilledReceiptFile={receiptFile}
           onBack={() => {
@@ -162,24 +182,76 @@ export function ClaimFlow(props: {
 }
 
 // ----------------------------------------------------------------------------
-// Step 1: Type picker
+// Step 1: Payment source picker (Personal vs Company money)
 // ----------------------------------------------------------------------------
 
-function TypeStep({ onPick }: { onPick: (type: ClaimType) => void }) {
+function PaymentStep({ onPick }: { onPick: (type: PaymentType) => void }) {
   return (
     <Card>
       <CardContent className="space-y-5 p-5 sm:p-6">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Step 1 of {3} · Pick a claim type
+            Step 1 · How was this paid?
           </p>
           <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
-            What kind of claim is this?
+            Who paid for this?
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Expense claims need a receipt photo we can scan. Mileage claims are
-            entered manually with distance and route.
+            Pick whether you paid out of your own pocket (to be reimbursed) or
+            it was paid with company money.
           </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <TypeCard
+            icon={<Wallet className="h-5 w-5" />}
+            title="My own money"
+            description="You paid personally and need to be reimbursed — via payroll or a bill."
+            onClick={() => onPick("PERSONAL")}
+          />
+          <TypeCard
+            icon={<Building2 className="h-5 w-5" />}
+            title="Company money"
+            description="Already paid from a company card or bank account — recorded as a company spend."
+            onClick={() => onPick("COMPANY")}
+          />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ----------------------------------------------------------------------------
+// Step 1: Type picker
+// ----------------------------------------------------------------------------
+
+function TypeStep({
+  onPick,
+  onBack,
+}: {
+  onPick: (type: ClaimType) => void
+  onBack: () => void
+}) {
+  return (
+    <Card>
+      <CardContent className="space-y-5 p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Step 2 · Pick a claim type
+            </p>
+            <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
+              What kind of claim is this?
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Expense claims need a receipt photo we can scan. Mileage claims are
+              entered manually with distance and route.
+            </p>
+          </div>
+          <Button type="button" variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            Back
+          </Button>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
@@ -340,7 +412,7 @@ function ReceiptStep({
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Step 2 of 3 · Scan the receipt
+              Step 3 · Scan the receipt
             </p>
             <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
               Upload your receipt
