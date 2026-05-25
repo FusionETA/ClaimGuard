@@ -1192,8 +1192,12 @@ function epfSnapshotRates(input: {
  * Convert attendance/leave minutes into the worked/expected hours shown
  * on the run table and payslip. DISPLAY ONLY — these figures do NOT feed
  * the pay calculation (`calcPayslip` prorates by working days, not by
- * attendance). MONTHLY: worked = attended, expected = scheduled − paid
- * leave. HOURLY: worked = attended + paid leave, expected unused.
+ * attendance).
+ *
+ * `workedHours` = actual clocked hours (attended `durationMin` / 60), for
+ * BOTH worker types — paid leave is NOT added (the HRS column shows hours
+ * actually worked). `expectedHours` (MONTHLY only) = scheduled − paid
+ * leave; HOURLY has no expected basis.
  */
 export function autoHoursFromMinutes(input: {
   salaryType: SalaryType
@@ -1201,16 +1205,14 @@ export function autoHoursFromMinutes(input: {
   scheduledMin: number
   paidLeaveMin: number
 }): { workedHours: number | null; expectedHours: number | null } {
+  const workedHours = input.workedMin / 60
   if (input.salaryType === "MONTHLY") {
     return {
-      workedHours: input.workedMin / 60,
+      workedHours,
       expectedHours: Math.max(0, input.scheduledMin - input.paidLeaveMin) / 60,
     }
   }
-  return {
-    workedHours: (input.workedMin + input.paidLeaveMin) / 60,
-    expectedHours: null,
-  }
+  return { workedHours, expectedHours: null }
 }
 
 /**
