@@ -1,7 +1,7 @@
 "use client"
 
-import { useActionState, useMemo, useRef, useState } from "react"
-import { Plus, Trash2 } from "lucide-react"
+import { useActionState, useEffect, useMemo, useRef, useState } from "react"
+import { ArrowRight, Plus, Trash2 } from "lucide-react"
 
 import {
   archivePayrollProfileAction,
@@ -122,6 +122,20 @@ export function PayrollEmployeeDetail(props: {
   const employmentComplete = isEmploymentTabComplete(props.profile)
   const statutoryComplete = isStatutoryTabComplete(props.profile)
 
+  // Resolve the employee's assigned policy so the Employment tab's
+  // Compensation card can lock the salary type to it. The policy uses
+  // PayoutMethod (HOURLY | MONTHLY_BASED); map to the profile's
+  // SalaryType (HOURLY | MONTHLY). Null when no policy is assigned.
+  const assignedPolicy = props.company?.policies.find(
+    (p) => p.id === props.company?.member.policyId,
+  )
+  const policySalaryType: "MONTHLY" | "HOURLY" | null =
+    assignedPolicy?.salaryType === "MONTHLY_BASED"
+      ? "MONTHLY"
+      : assignedPolicy?.salaryType === "HOURLY"
+        ? "HOURLY"
+        : null
+
   return (
     <div className="space-y-6">
       <nav className="flex flex-wrap gap-3 border-y border-border/60 py-5">
@@ -165,6 +179,11 @@ export function PayrollEmployeeDetail(props: {
           userId={props.userId}
           profile={props.profile}
           salaryHistory={props.salaryHistory}
+          policySalaryType={policySalaryType}
+          policyName={assignedPolicy?.name ?? null}
+          // Only offer the "assign a policy" shortcut when the Company
+          // tab actually exists (company context resolved).
+          onAssignPolicy={props.company ? () => setTab("company") : undefined}
         />
       )}
       {tab === "statutory" && (
@@ -667,6 +686,15 @@ function EmploymentTab(props: {
   userId: string
   profile: PayrollProfileData | null
   salaryHistory: SalaryChangeData[]
+  /// Salary type governed by the employee's assigned policy (mapped to
+  /// the profile's SalaryType). Null when no policy is assigned — the
+  /// salary-type field then stays editable as a legacy fallback.
+  policySalaryType: "MONTHLY" | "HOURLY" | null
+  /// Assigned policy name, for the read-only hint. Null when unassigned.
+  policyName: string | null
+  /// Jumps to the Company tab so the admin can assign a policy. Undefined
+  /// when there's no Company tab (company context unavailable).
+  onAssignPolicy?: () => void
 }) {
   const [state, action, pending] = useActionState(
     savePayrollEmploymentAction,
@@ -677,6 +705,20 @@ function EmploymentTab(props: {
   const [salaryType, setSalaryType] = useState(
     props.profile?.salaryType ?? "MONTHLY",
   )
+
+  // Salary type is governed by the employee's assigned policy (passed in
+  // as `policySalaryType`) — it is NOT edited here.
+  const { policySalaryType } = props
+
+  // Keep the submitted salary type in lock-step with the policy so the
+  // hidden input, dirty-tracking, and the salary-change dialog all use
+  // the policy-governed value.
+  useEffect(() => {
+    if (policySalaryType && salaryType !== policySalaryType) {
+      setSalaryType(policySalaryType)
+    }
+  }, [policySalaryType, salaryType])
+
   const [allowances, setAllowances] = useState<FixedAllowance[]>(
     props.profile?.fixedAllowances ?? [],
   )
@@ -815,19 +857,59 @@ function EmploymentTab(props: {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
           <Field label="Salary type">
-            <NativeSelect
-              name="salaryType"
-              value={salaryType}
-              onChange={(e) =>
-                setSalaryType(e.target.value as typeof salaryType)
-              }
-            >
-              {salaryTypes.map((t) => (
-                <option key={t} value={t}>
-                  {SALARY_TYPE_LABELS[t]}
-                </option>
-              ))}
-            </NativeSelect>
+            {policySalaryType ? (
+              // Governed by the assigned policy — read-only here. The
+              // hidden input still submits the value.
+              <>
+                <input type="hidden" name="salaryType" value={salaryType} />
+                <div className="flex h-9 items-center justify-between gap-2 rounded-md border border-input bg-muted/40 px-3 text-sm">
+                  <span className="font-medium">
+                    {SALARY_TYPE_LABELS[policySalaryType]}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    From policy
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+                  Set by the assigned policy
+                  {props.policyName ? ` (${props.policyName})` : ""}. Change it
+                  in the Company tab.
+                </p>
+              </>
+            ) : props.onAssignPolicy ? (
+              // No policy assigned yet. Salary type is governed by the
+              // policy, so guide the admin to assign one rather than
+              // letting them set a type that the policy will override.
+              <>
+                <input type="hidden" name="salaryType" value={salaryType} />
+                <div className="flex h-9 items-center justify-between gap-2 rounded-md border border-dashed border-input bg-muted/20 px-3 text-sm">
+                  <span className="text-muted-foreground">No policy assigned</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={props.onAssignPolicy}
+                  className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                >
+                  Assign a policy in the Company tab
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              </>
+            ) : (
+              // True legacy fallback (no Company tab) — keep it editable.
+              <NativeSelect
+                name="salaryType"
+                value={salaryType}
+                onChange={(e) =>
+                  setSalaryType(e.target.value as typeof salaryType)
+                }
+              >
+                {salaryTypes.map((t) => (
+                  <option key={t} value={t}>
+                    {SALARY_TYPE_LABELS[t]}
+                  </option>
+                ))}
+              </NativeSelect>
+            )}
           </Field>
           {salaryType === "MONTHLY" ? (
             <Field label="Monthly salary (MYR)">
