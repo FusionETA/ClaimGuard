@@ -181,6 +181,11 @@ export type PayrollAdjustmentCategoryMeta = {
   /// `totalDeductions` (which would double-reduce net). The base-salary
   /// line still shows the full salary, with this as a separate "−X" line.
   reducesGross?: boolean
+  /// When true, this line's amount is NOT multiplied by the join/leave
+  /// proration factor in `calcPayslip`. Unpaid leave is already computed
+  /// at the full daily rate (monthlySalary ÷ divisor × unpaid days), so
+  /// re-prorating it would under-deduct for a late joiner/leaver.
+  skipProration?: boolean
   referenceOnly?: boolean
   /// When true, the amount is treated as additional remuneration
   /// under LHDN's PCB MTD spec — a one-off payment (bonus,
@@ -655,6 +660,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // Unpaid leave is lost earnings: dock it from GROSS (not just net),
     // while the base-salary line still shows the full salary.
     reducesGross: true,
+    // The deduction is already the full daily rate × unpaid days, so it
+    // must not be re-prorated by the join/leave factor.
+    skipProration: true,
   },
   deduct_salary_adjustment: {
     code: "deduct_salary_adjustment",

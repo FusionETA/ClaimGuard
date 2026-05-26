@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   autoHoursFromMinutes,
   calcPayslip,
+  effectiveWorkedDays,
   type CalcPayslipInput,
 } from "../calc"
 import type { PayrollAdjustmentCategory } from "../models"
@@ -445,6 +446,91 @@ describe("autoHoursFromMinutes", () => {
   })
 })
 
+describe("effectiveWorkedDays — join/leave proration by rule", () => {
+  it("full month returns the working-days basis", () => {
+    expect(
+      effectiveWorkedDays({
+        periodYear: 2026,
+        periodMonth: 1,
+        joinDate: "2024-01-01",
+        leaveDate: null,
+        workingDays: 26,
+        rule: "TWENTY_SIX",
+        workingDaySet: new Set([1, 2, 3, 4, 5]),
+      }),
+    ).toBe(26)
+  })
+
+  it("TWENTY_SIX counts only configured working days for a late joiner", () => {
+    // Jan 2026: 1 Jan is a Thursday → Mon–Fri days from 15–31 Jan = 12.
+    expect(
+      effectiveWorkedDays({
+        periodYear: 2026,
+        periodMonth: 1,
+        joinDate: "2026-01-15",
+        leaveDate: null,
+        workingDays: 26,
+        rule: "TWENTY_SIX",
+        workingDaySet: new Set([1, 2, 3, 4, 5]),
+      }),
+    ).toBe(12)
+  })
+
+  it("CALENDAR counts calendar days for a late joiner", () => {
+    // 15–31 Jan inclusive = 17 calendar days.
+    expect(
+      effectiveWorkedDays({
+        periodYear: 2026,
+        periodMonth: 1,
+        joinDate: "2026-01-15",
+        leaveDate: null,
+        workingDays: 31,
+        rule: "CALENDAR",
+      }),
+    ).toBe(17)
+  })
+
+  it("a 6-day-week set (incl. Saturday) counts more days than Mon–Fri", () => {
+    const monFri = effectiveWorkedDays({
+      periodYear: 2026,
+      periodMonth: 1,
+      joinDate: "2026-01-15",
+      leaveDate: null,
+      workingDays: 26,
+      rule: "TWENTY_SIX",
+      workingDaySet: new Set([1, 2, 3, 4, 5]),
+    })!
+    const monSat = effectiveWorkedDays({
+      periodYear: 2026,
+      periodMonth: 1,
+      joinDate: "2026-01-15",
+      leaveDate: null,
+      workingDays: 26,
+      rule: "TWENTY_SIX",
+      workingDaySet: new Set([1, 2, 3, 4, 5, 6]),
+    })!
+    expect(monSat).toBeGreaterThan(monFri)
+  })
+})
+
+describe("calcPayslip — exact proration (no intermediate rounding)", () => {
+  it("late joiner 19 Feb on RM4999.99 → 1346.15, not 1346.00", () => {
+    const result = calcPayslip({
+      profile: makeProfile({ monthlySalary: 4999.99, joinDate: "2026-02-19" }),
+      settings: baseSettings, // TWENTY_SIX
+      periodYear: 2026,
+      periodMonth: 2,
+      workingDaySet: new Set([1, 2, 3, 4, 5]),
+    })
+    expect(result.proratedDays).toBe(7) // Mon–Fri, 19–28 Feb 2026
+    // 4999.99 × (7/26) = 1346.15, NOT 4999.99 × round4(7/26)=1346.00.
+    expect(result.proratedPay).toBe(1346.15)
+    expect(result.grossPay).toBe(1346.15)
+    // Snapshot factor is still rounded to 4dp for the Decimal(5,4) column.
+    expect(result.proratedFactor).toBe(0.2692)
+  })
+})
+
 describe("calcPayslip — unpaid leave reduces gross (not just net)", () => {
   it("docks unpaid leave from gross; base salary line stays full", () => {
     const base = calcPayslip({
@@ -475,5 +561,37 @@ describe("calcPayslip — unpaid leave reduces gross (not just net)", () => {
     expect(withUnpaid.grossPay).toBeCloseTo(base.grossPay - 115.38, 2)
     // Not double-counted: net = gross − statutory (unpaid leave already in gross).
     expect(withUnpaid.totalDeductions).toBe(0)
+  })
+
+  it("does NOT re-prorate the unpaid-leave deduction for a late joiner", () => {
+    // Late joiner → proratedFactor < 1. The unpaid-leave line is already
+    // at the full daily rate, so the full amount must come off gross.
+    const withoutUnpaid = calcPayslip({
+      profile: makeProfile({ monthlySalary: 5200, joinDate: "2026-01-15" }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+      workingDaySet: new Set([1, 2, 3, 4, 5]),
+    })
+    const withUnpaid = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 5200,
+        joinDate: "2026-01-15",
+        fixedAllowances: [
+          {
+            category:
+              "deduct_unpaid_leave" satisfies PayrollAdjustmentCategory,
+            name: "Unpaid Leave",
+            amount: 400,
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+      workingDaySet: new Set([1, 2, 3, 4, 5]),
+    })
+    // Full 400 off gross — not 400 × proratedFactor.
+    expect(withUnpaid.grossPay).toBeCloseTo(withoutUnpaid.grossPay - 400, 2)
   })
 })

@@ -303,6 +303,14 @@ export function effectiveWorkedDays(input: {
   joinDate: string | null
   leaveDate: string | null
   workingDays: number
+  /// Proration rule. CALENDAR counts calendar days for a partial period;
+  /// TWENTY_SIX counts only configured working days (weekday set).
+  /// Defaults to TWENTY_SIX.
+  rule?: WorkingDaysRule
+  /// ISO weekdays (1=Mon … 7=Sun) treated as working days. Used to count
+  /// eligible days for a partial period under the TWENTY_SIX rule.
+  /// Defaults to Mon–Fri.
+  workingDaySet?: Set<number>
 }): number | null {
   const periodStart = Date.UTC(input.periodYear, input.periodMonth - 1, 1)
   const periodEnd = Date.UTC(
@@ -325,11 +333,38 @@ export function effectiveWorkedDays(input: {
   const startMs = join != null && join > periodStart ? join : periodStart
   const endMs = leave != null && leave < periodEnd ? leave : periodEnd
 
-  // Inclusive day count.
-  const days = Math.round((endMs - startMs) / 86_400_000) + 1
-  // Cap the worked-days at the working-days basis (e.g. 26) so a
-  // calendar-day count doesn't exceed the basis when CALENDAR rule is
-  // in use.
+  const rule = input.rule ?? "TWENTY_SIX"
+  let days: number
+  if (rule === "CALENDAR") {
+    // Calendar days from join/leave to the period boundary, inclusive.
+    days = Math.round((endMs - startMs) / 86_400_000) + 1
+  } else {
+    // 26-day rule: count only configured working days (weekday set) in
+    // the inclusive [start, end] range — e.g. 15→31 Jan = 13 Mon–Fri.
+    const set = input.workingDaySet ?? new Set([1, 2, 3, 4, 5])
+    days = 0
+    const cursor = new Date(
+      Date.UTC(
+        new Date(startMs).getUTCFullYear(),
+        new Date(startMs).getUTCMonth(),
+        new Date(startMs).getUTCDate(),
+      ),
+    )
+    const end = new Date(
+      Date.UTC(
+        new Date(endMs).getUTCFullYear(),
+        new Date(endMs).getUTCMonth(),
+        new Date(endMs).getUTCDate(),
+      ),
+    )
+    while (cursor <= end) {
+      // ISO weekday: Mon=1 … Sun=7 (JS getUTCDay is Sun=0 … Sat=6).
+      const iso = ((cursor.getUTCDay() + 6) % 7) + 1
+      if (set.has(iso)) days += 1
+      cursor.setUTCDate(cursor.getUTCDate() + 1)
+    }
+  }
+  // Cap the worked-days at the working-days basis (e.g. 26).
   return Math.max(0, Math.min(days, input.workingDays))
 }
 
@@ -485,6 +520,10 @@ export type CalcPayslipInput = {
   /// from the employee's primary project (or the org fallback) by the
   /// caller. When omitted, defaults to 8 — same as the legacy formula.
   dailyHours?: number
+  /// ISO weekdays (1=Mon … 7=Sun) the employee works — from their
+  /// project/org config. Used to count eligible paid days for a partial
+  /// (join/leave) month under the TWENTY_SIX rule. Defaults to Mon–Fri.
+  workingDaySet?: Set<number>
   /// Optional inputs that aren't stored on the profile.
   otNormalHours?: number
   otRestHours?: number
@@ -648,10 +687,17 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       joinDate: profile.joinDate,
       leaveDate: profile.leaveDate,
       workingDays: totalWorkingDays,
+      rule: settings.workingDaysRule,
+      workingDaySet: input.workingDaySet,
     }) ?? 0
 
-  const proratedFactor =
-    totalWorkingDays > 0 ? round4(workedDays / totalWorkingDays) : 0
+  // Use the EXACT ratio for money math; only round to 4dp for the
+  // stored snapshot (proratedFactor). Rounding the factor before
+  // multiplying loses cents — e.g. 4999.99 × round4(7/26) = 1346.00,
+  // but 4999.99 × (7/26) = 1346.15.
+  const prorationRatio =
+    totalWorkingDays > 0 ? workedDays / totalWorkingDays : 0
+  const proratedFactor = round4(prorationRatio)
 
   let basicPay = 0
   if (profile.salaryType === "MONTHLY" && profile.monthlySalary != null) {
@@ -662,7 +708,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   }
   const proratedPay =
     profile.salaryType === "MONTHLY"
-      ? round2(basicPay * proratedFactor)
+      ? round2(basicPay * prorationRatio)
       : basicPay // hourly = already exact, no proration
 
   // 3. OT.
@@ -721,7 +767,13 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     if (a.amount <= 0) continue
     const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[a.category]
     if (!meta) continue
-    const amt = round2(a.amount * proratedFactor)
+    // Most recurring lines prorate with the salary (join/leave factor).
+    // `skipProration` lines (e.g. unpaid leave) are already at the full
+    // daily rate, so they're taken as-is. Use the exact ratio (not the
+    // 4dp-rounded snapshot factor) to avoid losing cents.
+    const amt = meta.skipProration
+      ? round2(a.amount)
+      : round2(a.amount * prorationRatio)
 
     // Compute how much of this row contributes to the PCB base. By
     // default it's `amt` (the full amount). When `taxExemptLimit` is

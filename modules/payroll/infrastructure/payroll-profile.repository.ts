@@ -182,6 +182,7 @@ export const payrollProfileRepository = {
         workingHoursStart: string | null
         workingHoursEnd: string | null
         lunchBreakMinutes: number | null
+        workingDays: string | null
       } | null
     }>
   > {
@@ -215,6 +216,7 @@ export const payrollProfileRepository = {
                     workingHoursStart: true,
                     workingHoursEnd: true,
                     lunchBreakMinutes: true,
+                    workingDays: true,
                   },
                 },
               },
@@ -240,6 +242,7 @@ export const payrollProfileRepository = {
         workingHoursStart: string | null
         workingHoursEnd: string | null
         lunchBreakMinutes: number | null
+        workingDays: string | null
       } | null
     }> = []
 

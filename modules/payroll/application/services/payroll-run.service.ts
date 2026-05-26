@@ -45,6 +45,7 @@ import {
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { unpaidLeaveDays } from "@/modules/leave/application/services/leave-balance.service"
+import { parseWorkingDays } from "@/modules/attendance/domain/hours-summary"
 import { deriveDailyHours } from "@/modules/payroll/domain/calc"
 
 /**
@@ -705,6 +706,7 @@ export async function previewEmployeeNetForRun(input: {
     otRestHours: input.patch.otRestHours,
     otPublicHours: input.patch.otPublicHours,
     workedHours: previewWorkedHours,
+    workingDaySet: parseWorkingDays(e.primaryProject?.workingDays ?? null),
     reimbursements,
     manualDeductions: [],
     ytdTaxable: ytd.ytdTaxable,
@@ -1035,6 +1037,9 @@ export async function generatePayrollPayslips(input: {
       // HOURLY gross = workedHours × rate. MONTHLY ignores this for basic
       // pay (paid by salary, docked via the unpaid-leave deduction line).
       workedHours: displayWorkedHours,
+      // Configured working days — used to count eligible paid days for a
+      // partial (join/leave) month under the 26-day rule.
+      workingDaySet: parseWorkingDays(e.primaryProject?.workingDays ?? null),
       // Reimbursements: pre-attached PayrollRunClaim rows for this
       // employee. The claim id flows through to the generated
       // PayslipLineItem's `claimId` FK for traceability.
