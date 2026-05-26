@@ -4,10 +4,12 @@ import type { AnalyzeReceiptOptions, ReceiptExtraction } from "@/lib/ai"
 import { buildReceiptPrompt, parseReceiptResponse } from "@/lib/ai/prompt"
 
 /**
- * Default Gemini model. 1.5 Flash is fast and free-tier friendly; for
- * messy receipts you may want to bump to 1.5 Pro via GEMINI_MODEL env.
+ * Default Gemini model. 2.5 Flash is the current GA flash model — fast,
+ * free-tier friendly, and supported on the v1beta API. (The old
+ * gemini-1.5-flash was retired by Google and now 404s.) Override with
+ * GEMINI_MODEL env (e.g. gemini-2.5-pro for messy receipts).
  */
-const DEFAULT_GEMINI_MODEL = "gemini-1.5-flash"
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
@@ -43,8 +45,12 @@ export async function analyzeReceiptTextWithGemini(
         // Keep extraction deterministic across retries.
         temperature: 0.1,
         maxOutputTokens: 800,
-        // Force JSON output. Gemini honors this on 1.5 Flash and Pro.
+        // Force JSON output. Gemini honors this on 2.x Flash and Pro.
         responseMimeType: "application/json",
+        // Disable "thinking" — on 2.5 models it's on by default and can
+        // silently eat the entire maxOutputTokens budget, returning an
+        // empty completion. We only want the structured JSON.
+        thinkingConfig: { thinkingBudget: 0 },
       },
     }),
   })

@@ -47,14 +47,14 @@ export type AnalyzeReceiptOptions = {
    *  model is instructed to ONLY suggest from this list (or null). */
   candidateAccounts?: CandidateAccount[]
   /** Force a provider override. Otherwise uses AI_PROVIDER env (default
-   *  "groq"). */
+   *  "gemini"). */
   provider?: "groq" | "gemini"
 }
 
 /**
  * Single entry-point used by API routes. Picks a provider and dispatches.
  * Provider selection precedence: explicit `options.provider` arg → env
- * `AI_PROVIDER` → "groq".
+ * `AI_PROVIDER` → "gemini".
  *
  * Throws on:
  *  - missing API key for the chosen provider
@@ -88,7 +88,8 @@ export async function analyzeReceipt(
 
 function resolveProviderFromEnv(): "groq" | "gemini" {
   const raw = process.env.AI_PROVIDER?.trim().toLowerCase()
-  if (raw === "gemini") return "gemini"
-  // Default to Groq — cheap, fast, generous free tier.
-  return "groq"
+  if (raw === "groq") return "groq"
+  // Default to Gemini for receipt OCR — better at reading messy receipt
+  // OCR text. Set AI_PROVIDER=groq to switch back.
+  return "gemini"
 }

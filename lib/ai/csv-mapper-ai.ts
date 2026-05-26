@@ -25,7 +25,10 @@ import {
 const GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
 const DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
-const DEFAULT_GEMINI_MODEL = "gemini-1.5-flash"
+// gemini-2.5-flash is the current GA flash model. The old
+// gemini-1.5-flash was retired by Google and now 404s — which is why
+// the Groq→Gemini fallback used to error out. Override via GEMINI_MODEL.
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 
 /**
  * Map the admin's source CSV columns to our schema with a three-tier
@@ -151,6 +154,9 @@ async function aiMapCsvColumnsWithGemini(
         temperature: 0.1,
         maxOutputTokens: 3000,
         responseMimeType: "application/json",
+        // Disable "thinking" — on 2.5 models it's on by default and can
+        // eat the whole token budget, returning an empty completion.
+        thinkingConfig: { thinkingBudget: 0 },
       },
     }),
   })

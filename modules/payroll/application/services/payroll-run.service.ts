@@ -453,22 +453,63 @@ export async function revertPayrollRunToDraft(input: {
   })
   if (!run) throw new Error("Payroll run not found.")
 
-  await payrollRunRepository.revertToDraft({
-    id: input.runId,
+  // Cascade: later SUBMITTED months in the same year carry YTD-
+  // cumulative figures (PCB, SOCSO+EIS relief) that depend on this
+  // month. Reverting this month invalidates them, so they must revert
+  // to draft too. The admin is warned about this in the confirm modal
+  // (see getLaterSubmittedRunsForRevert / RevertPayrollRunButton).
+  const laterRuns = await payrollRunRepository.listSubmittedLaterInYear({
     organizationId: orgId,
+    periodYear: run.periodYear,
+    afterMonth: run.periodMonth,
   })
-  // Clear any cached generated reports for this run — their numbers may
-  // become stale once the admin edits the draft, so we force a
-  // re-generation on the next submit. Cascade still handles full
-  // deletion separately.
-  await payrollRunReportRepository.deleteForRun(input.runId)
-  // Annual reports for this run's year are also invalidated — this run
-  // is no longer SUBMITTED so its contribution shouldn't be included.
+
+  // Revert the target run plus every later submitted month.
+  const runIdsToRevert = [input.runId, ...laterRuns.map((r) => r.id)]
+  for (const id of runIdsToRevert) {
+    await payrollRunRepository.revertToDraft({ id, organizationId: orgId })
+    // Clear cached generated reports for each reverted run — their
+    // numbers may become stale once the admin edits the draft, so we
+    // force a re-generation on the next submit.
+    await payrollRunReportRepository.deleteForRun(id)
+  }
+
+  // Annual reports for this run's year are invalidated — these runs are
+  // no longer SUBMITTED so their contribution shouldn't be included.
   await payrollAnnualReportRepository.deleteForYear({
     organizationId: orgId,
     year: run.periodYear,
   })
   await bustPayrollCaches({ organizationId: orgId })
+}
+
+/**
+ * List the later SUBMITTED months in the same year that a revert of
+ * `runId` would ALSO cascade back to draft. The run-detail page passes
+ * these labels to the revert confirm modal so the admin sees exactly
+ * which other months will be affected before confirming. Returns an
+ * empty array when there's nothing downstream (the common case).
+ */
+export async function getLaterSubmittedRunsForRevert(input: {
+  runId: string
+}): Promise<string[]> {
+  const session = await getCurrentSession()
+  if (!session || session.role !== "ADMIN") return []
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return []
+
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  if (!run || run.status !== "SUBMITTED") return []
+
+  const laterRuns = await payrollRunRepository.listSubmittedLaterInYear({
+    organizationId: orgId,
+    periodYear: run.periodYear,
+    afterMonth: run.periodMonth,
+  })
+  return laterRuns.map((r) => periodLabel(r.periodYear, r.periodMonth))
 }
 
 export async function deletePayrollRunDraft(input: {

@@ -463,7 +463,13 @@ export function SendBackToDraftButton(props: { runId: string }) {
  * needed after submit. Confirms because reverting changes the
  * historical state.
  */
-export function RevertPayrollRunButton(props: { runId: string }) {
+export function RevertPayrollRunButton(props: {
+  runId: string
+  /// Later submitted months (e.g. "June 2026") that reverting this run
+  /// will ALSO cascade back to draft, because their YTD figures depend
+  /// on this month. Empty when there's nothing downstream.
+  laterMonths?: string[]
+}) {
   const formId = useId()
   const [state, action, pending] = useActionState(
     revertPayrollRunAction,
@@ -471,14 +477,27 @@ export function RevertPayrollRunButton(props: { runId: string }) {
   )
   useToastOnAction(state)
 
+  const hasCascade = (props.laterMonths?.length ?? 0) > 0
+  const description = hasCascade
+    ? `Heads up: ${props.laterMonths!.join(", ")} ${
+        props.laterMonths!.length === 1 ? "was" : "were"
+      } submitted after this month and will ALSO be reverted to draft — their tax (PCB) and statutory totals are calculated cumulatively from this month, so they must be re-run. Employees won't see any of these payslips again until you resubmit.`
+    : "Employees who saw a submitted payslip will not see it again until you resubmit this run."
+
   return (
     <form id={formId} action={action}>
       <input type="hidden" name="runId" value={props.runId} hidden />
       <ConfirmSubmitButton
         formId={formId}
-        title="Revert run to draft?"
-        description="Employees who saw a submitted payslip will not see it again until you resubmit this run."
-        confirmLabel="Revert to draft"
+        title={
+          hasCascade
+            ? `Revert this and ${props.laterMonths!.length} later month${
+                props.laterMonths!.length === 1 ? "" : "s"
+              }?`
+            : "Revert run to draft?"
+        }
+        description={description}
+        confirmLabel={hasCascade ? "Revert all to draft" : "Revert to draft"}
         triggerLabel="Revert to draft"
         pendingLabel="Reverting..."
         pending={pending}

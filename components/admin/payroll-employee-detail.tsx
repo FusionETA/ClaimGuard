@@ -44,6 +44,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
+import { NATIONALITIES } from "@/lib/nationalities"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
 import {
   EPF_RELIEF_CAP,
@@ -307,6 +308,28 @@ function PersonalTab(props: {
   )
   const spouseWorkingMissing = showSpouseCard && spouseWorking === ""
 
+  // Nationality drives PR + tax-resident: a Malaysian citizen is always
+  // a permanent resident and a tax resident, so when nationality is
+  // Malaysian we force both ON and lock them. Track live so the toggles
+  // react the instant the admin changes the dropdown.
+  const [nationality, setNationality] = useState<string>(
+    props.profile?.nationality ?? "Malaysian",
+  )
+  const isMalaysian = isMalaysianNationality(nationality)
+  const [hasPr, setHasPr] = useState<boolean>(props.profile?.hasPr ?? false)
+  const [isResident, setIsResident] = useState<boolean>(
+    props.profile?.isResident ?? true,
+  )
+  // Locked-on display values when Malaysian; otherwise the admin's pick.
+  const prChecked = isMalaysian ? true : hasPr
+  const residentChecked = isMalaysian ? true : isResident
+  // Build the dropdown options, preserving any legacy free-text value
+  // that isn't in our canonical list so it still shows + round-trips.
+  const nationalityOptions =
+    nationality && !NATIONALITIES.includes(nationality as never)
+      ? [nationality, ...NATIONALITIES]
+      : NATIONALITIES
+
   function addChild() {
     setChildren((c) => [
       ...c,
@@ -375,11 +398,17 @@ function PersonalTab(props: {
             />
           </Field>
           <Field label="Nationality">
-            <Input
+            <NativeSelect
               name="nationality"
-              defaultValue={props.profile?.nationality ?? "Malaysian"}
-              placeholder="Malaysian"
-            />
+              value={nationality}
+              onChange={(e) => setNationality(e.target.value)}
+            >
+              {nationalityOptions.map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </NativeSelect>
           </Field>
           <Field label="Race (LHDN code)">
             <Input
@@ -424,12 +453,26 @@ function PersonalTab(props: {
           <Toggle
             name="hasPr"
             question="Permanent Resident?"
-            defaultChecked={props.profile?.hasPr ?? false}
+            checked={prChecked}
+            disabled={isMalaysian}
+            onCheckedChange={setHasPr}
+            hint={
+              isMalaysian
+                ? "Locked on — Malaysian citizens are permanent residents."
+                : undefined
+            }
           />
           <Toggle
             name="isResident"
             question="Resident (tax)?"
-            defaultChecked={props.profile?.isResident ?? true}
+            checked={residentChecked}
+            disabled={isMalaysian}
+            onCheckedChange={setIsResident}
+            hint={
+              isMalaysian
+                ? "Locked on — Malaysian citizens are tax residents."
+                : undefined
+            }
           />
           <Toggle
             name="isOku"

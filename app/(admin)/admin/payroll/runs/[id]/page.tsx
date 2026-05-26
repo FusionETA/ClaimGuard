@@ -33,7 +33,10 @@ import {
   SubmitPayrollRunButton,
 } from "@/components/admin/submit-payroll-run-buttons"
 import { getPayrollReportsModalData } from "@/modules/payroll/application/services/payroll-reports.service"
-import { getPayrollRunDetailWithPayslipsPageData } from "@/modules/payroll/application/services/payroll-run.service"
+import {
+  getLaterSubmittedRunsForRevert,
+  getPayrollRunDetailWithPayslipsPageData,
+} from "@/modules/payroll/application/services/payroll-run.service"
 import {
   PAYROLL_RUN_STATUS_LABELS,
   periodLabel,
@@ -70,6 +73,13 @@ export default async function AdminPayrollRunDetailPage({
     data.run.status === "SUBMITTED"
       ? await getPayrollReportsModalData({ runId: id })
       : null
+
+  // Later submitted months that a revert of this run would also cascade
+  // back to draft — surfaced in the revert confirm modal.
+  const revertCascadeMonths =
+    data.run.status === "SUBMITTED"
+      ? await getLaterSubmittedRunsForRevert({ runId: id })
+      : []
 
   const ready = data.employees.filter((e) => e.ready)
   // Excluded employees (salary = 0) are NOT in the "needs setup"
@@ -402,7 +412,10 @@ export default async function AdminPayrollRunDetailPage({
                   showBankCsv
                 />
               ) : null}
-              <RevertPayrollRunButton runId={data.run.id} />
+              <RevertPayrollRunButton
+                runId={data.run.id}
+                laterMonths={revertCascadeMonths}
+              />
             </div>
           </div>
 

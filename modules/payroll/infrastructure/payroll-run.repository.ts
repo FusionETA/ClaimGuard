@@ -362,6 +362,33 @@ export const payrollRunRepository = {
   },
 
   /**
+   * List SUBMITTED runs in the same org + calendar year whose period
+   * month is strictly AFTER `afterMonth`. Used when reverting an
+   * earlier month: those later months' YTD-cumulative figures (PCB,
+   * SOCSO+EIS relief) depend on the reverted month, so they must
+   * cascade back to draft too. Ordered ascending by month.
+   */
+  async listSubmittedLaterInYear(input: {
+    organizationId: string
+    periodYear: number
+    afterMonth: number
+  }): Promise<Array<{ id: string; periodYear: number; periodMonth: number }>> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    return prisma.payrollRun.findMany({
+      where: {
+        organizationId: input.organizationId,
+        periodYear: input.periodYear,
+        periodMonth: { gt: input.afterMonth },
+        status: "SUBMITTED",
+      },
+      select: { id: true, periodYear: true, periodMonth: true },
+      orderBy: { periodMonth: "asc" },
+    })
+  },
+
+  /**
    * Bump the `lastMutatedAt` timestamp on a run — called after every
    * content-level mutation: claim attach, detach, adjustment save,
    * adjustment clear. Drives the "stale run" warning by being

@@ -203,22 +203,63 @@ function parseSelectOptions(children: React.ReactNode): SelectOption[] {
 }
 
 export function Toggle(props: {
-  defaultChecked: boolean
+  /** Uncontrolled initial state. Ignored when `checked` is provided. */
+  defaultChecked?: boolean
+  /** Controlled checked state. When set, the toggle is controlled and
+   *  `onCheckedChange` should be supplied to update it. */
+  checked?: boolean
+  /** Disable interaction (e.g. a value forced by another field). When
+   *  disabled + checked, a hidden input keeps the value in FormData
+   *  since disabled checkboxes don't submit. */
+  disabled?: boolean
+  onCheckedChange?: (checked: boolean) => void
+  /** Optional helper text shown under the question. */
+  hint?: string
   label?: string
   name: string
   question?: string
 }) {
+  const isControlled = props.checked !== undefined
+  const checkboxProps = isControlled
+    ? {
+        checked: props.checked,
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+          props.onCheckedChange?.(e.target.checked),
+      }
+    : { defaultChecked: props.defaultChecked ?? false }
+
   return (
-    <label className="group inline-flex min-h-11 w-full cursor-pointer items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card px-4 py-2 text-sm shadow-sm transition hover:border-primary/40">
+    <label
+      className={cn(
+        "group inline-flex min-h-11 w-full items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card px-4 py-2 text-sm shadow-sm transition",
+        props.disabled
+          ? "cursor-not-allowed opacity-70"
+          : "cursor-pointer hover:border-primary/40",
+      )}
+    >
       <input
         type="checkbox"
         name={props.name}
-        defaultChecked={props.defaultChecked}
         value="true"
+        disabled={props.disabled}
         className="peer sr-only"
+        {...checkboxProps}
       />
+      {/* A disabled checkbox is omitted from FormData. When it's locked
+          ON we still need the value to submit, so mirror it via a hidden
+          input. */}
+      {props.disabled && (isControlled ? props.checked : props.defaultChecked) ? (
+        <input type="hidden" name={props.name} value="true" />
+      ) : null}
       {props.question ? (
-        <span className="font-medium text-foreground">{props.question}</span>
+        <span className="flex flex-col">
+          <span className="font-medium text-foreground">{props.question}</span>
+          {props.hint ? (
+            <span className="text-xs font-normal text-muted-foreground">
+              {props.hint}
+            </span>
+          ) : null}
+        </span>
       ) : null}
       <span className="inline-flex shrink-0 items-center gap-2">
         <span className="flex h-5 w-5 items-center justify-center rounded-md border border-border bg-background text-transparent shadow-sm transition group-has-[:checked]:border-primary group-has-[:checked]:bg-primary group-has-[:checked]:text-primary-foreground">

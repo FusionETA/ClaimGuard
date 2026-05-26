@@ -1,6 +1,7 @@
 import "server-only"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
 import {
   loadStatutoryRunPayload,
   normaliseNewIc,
@@ -79,12 +80,14 @@ export async function renderSocsoEisTxt(input: {
       continue
     }
 
-    // Identification: New IC for locals/PRs, SSFW for foreigners.
-    const isMalaysian =
-      (row.nationality ?? "").toLowerCase() === "malaysian" || row.hasPr
-    const identification = isMalaysian
+    // Identification (positions 033-044): New IC for locals/PRs;
+    // foreigners are keyed off their SOCSO number (they have no NRIC).
+    // Prefer the dedicated SOCSO number, then the SSFW (SOCSO foreign
+    // worker) number, then fall back to the raw ID.
+    const isLocalOrPr = isMalaysianNationality(row.nationality) || row.hasPr
+    const identification = isLocalOrPr
       ? normaliseNewIc(row.idNumber)
-      : row.ssfwNumber ?? normaliseNewIc(row.idNumber)
+      : row.socsoNumber ?? row.ssfwNumber ?? normaliseNewIc(row.idNumber)
 
     const line =
       padRight(employerCode, 12) +
