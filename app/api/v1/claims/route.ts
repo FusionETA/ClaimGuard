@@ -99,7 +99,14 @@ export const GET = handleApiRequest(["claims:read"], async (request, ctx) => {
  *   projectId             string  — optional
  *   currency              string  — optional (defaults to org default)
  *   spendingWith          string  — optional
- *   receiptUrl            string  — optional (pre-uploaded receipt)
+ *   receiptUrl            string  — optional (pre-uploaded receipt URL)
+ *   receiptBase64         string  — optional inline receipt image (raw base64
+ *                                   or a data: URL). For partners that can't
+ *                                   pre-upload a file (e.g. HRGenie on
+ *                                   WhatsApp). Decoded and handed to the same
+ *                                   storage path the web form uses.
+ *   receiptFileName       string  — optional filename for receiptBase64
+ *   receiptMimeType       string  — optional MIME type for receiptBase64
  *   amount                number  — EXPENSE only
  *   distance              number  — MILEAGE only
  *   mileageOriginAddress  string  — MILEAGE only
@@ -175,6 +182,23 @@ export const POST = handleApiRequest(["claims:write"], async (request, ctx) => {
         }),
   }
 
+  // Optional inline receipt. Partner apps (e.g. HRGenie on WhatsApp) can't
+  // pre-upload a file, so they may send the bytes as base64. Decode into a
+  // File and let createClaimForEmployee store it (Xero Files or local disk)
+  // and set the claim's receiptUrl — the same path the web form uses.
+  const receiptBase64 = str(body.receiptBase64)
+  if (receiptBase64) {
+    const receiptFile = fileFromBase64(
+      receiptBase64,
+      str(body.receiptFileName) || "receipt.jpg",
+      str(body.receiptMimeType) || undefined,
+    )
+    if (!receiptFile) {
+      return jsonError(400, "receiptBase64 is not valid image data (or exceeds 8 MB).")
+    }
+    input.receiptFile = receiptFile
+  }
+
   const result = await createClaimForEmployee({ session, input })
 
   if (!result.ok) {
@@ -226,6 +250,32 @@ function num(v: unknown): number {
 
 function jsonError(status: number, message: string): NextResponse {
   return NextResponse.json({ error: message }, { status })
+}
+
+const MAX_RECEIPT_BYTES = 8 * 1024 * 1024
+
+/**
+ * Decode a base64 string (raw, or a `data:<mime>;base64,<...>` URL) into a
+ * File for the workflow service. Returns undefined when the input is empty,
+ * decodes to nothing, or exceeds the 8 MB receipt cap. The service still runs
+ * its own MIME/size validation, so a wrong type is rejected downstream.
+ */
+function fileFromBase64(
+  raw: string,
+  fileName: string,
+  mimeType?: string,
+): File | undefined {
+  if (!raw) return undefined
+  let b64 = raw
+  let mime = mimeType
+  const dataUrl = /^data:([^;]+);base64,(.*)$/s.exec(raw)
+  if (dataUrl) {
+    mime = mime || dataUrl[1]
+    b64 = dataUrl[2]
+  }
+  const bytes = Buffer.from(b64, "base64")
+  if (bytes.length === 0 || bytes.length > MAX_RECEIPT_BYTES) return undefined
+  return new File([bytes], fileName, { type: mime || "image/jpeg" })
 }
 
 /**
