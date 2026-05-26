@@ -8,7 +8,11 @@ import { CalendarDays, Clock, Coins, Download, Loader2, MapPin, Plus, Search, Tr
 
 import { CURRENCY_CATALOG } from "@/lib/currencies"
 
-import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
+import {
+  initialSettingsActionState,
+  initialInviteAdminState,
+  type InviteAdminActionState,
+} from "@/app/(admin)/admin/settings/form-state"
 import {
   createCustomAccountAction,
   createManualProjectAction,
@@ -16,8 +20,6 @@ import {
   deleteManualProjectAction,
   createAdminAction,
   removeAdminAction,
-  initialInviteAdminState,
-  type InviteAdminActionState,
   importCustomChartAccountsAction,
   importManualProjectsAction,
   saveAccountLimitAction,

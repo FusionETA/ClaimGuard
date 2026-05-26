@@ -6,7 +6,10 @@ import { safeErrorMessage } from "@/lib/errors"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
-import type { SettingsActionState } from "@/app/(admin)/admin/settings/form-state"
+import type {
+  SettingsActionState,
+  InviteAdminActionState,
+} from "@/app/(admin)/admin/settings/form-state"
 import { generateApiToken } from "@/lib/api-auth"
 import { isKnownApiScope, type ApiScope } from "@/lib/api-scopes"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
@@ -1655,25 +1658,6 @@ export async function deleteProjectHolidayAction(
 // ----------------------------------------------------------------------------
 // Multi-admin: create another admin for the active organization
 // ----------------------------------------------------------------------------
-
-/**
- * State for the owner's "invite admin" form. Extends the shared settings
- * state with a `confirm` payload: when the typed email already belongs to
- * an existing admin (of another org), we don't create a duplicate — we
- * bounce back asking the owner to confirm they want to grant that same
- * person access to THIS org too. The form then resubmits with
- * `confirm=true` to link them.
- */
-export type InviteAdminActionState = {
-  status: "idle" | "success" | "error" | "confirm"
-  message: string
-  confirm?: { name: string; email: string }
-}
-
-export const initialInviteAdminState: InviteAdminActionState = {
-  status: "idle",
-  message: "",
-}
 
 const inviteAdminSchema = z.object({
   email: z
