@@ -9,6 +9,7 @@ import type { AuthenticatedSession } from "@/lib/auth/types"
 import { isKnownCurrency, SYSTEM_FALLBACK_CURRENCY } from "@/lib/currencies"
 import { computeMileageAmount, resolveMileageRate } from "@/lib/mileage"
 import { notify } from "@/modules/notifications/application/services/notification.service"
+import { publishUserEvents } from "@/lib/realtime"
 import {
   storeReceiptForClaim,
   storeSupportingFileForClaim,
@@ -939,6 +940,32 @@ export async function reviewClaimForSupervisor({
   // admin's final review does (see reviewClaimForAdmin). This keeps the
   // employee from getting a "Claim Updated" ping at every chain step;
   // they hear once, when the decision is final.
+  //
+  // BUT we do fan out for the multi-supervisor live experience:
+  //   - the NEXT step's approvers get a real notification (claim now in
+  //     their queue + bell), and
+  //   - peers at the step just acted on get a silent realtime nudge so
+  //     the claim leaves their queue once a colleague has handled it.
+  try {
+    await Promise.all(
+      (result.nextApproverIds ?? []).map((approverId) =>
+        notify({
+          userId: approverId,
+          organizationId: session.organizationId ?? null,
+          type: "CLAIM_SUBMITTED",
+          title: "Claim Awaiting Your Approval",
+          body: `A claim ("${result.claimTitle}") advanced to you for review.`,
+          url: "/employee/review",
+        }),
+      ),
+    )
+    await publishUserEvents(result.peerApproverIds ?? [], {
+      type: "claim",
+      scope: "review",
+    })
+  } catch {
+    // Realtime / notifications must never block a successful review.
+  }
 
   return {
     ok: true,

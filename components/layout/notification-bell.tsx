@@ -64,6 +64,16 @@ export function NotificationBell() {
     }
   }, [load])
 
+  // Live updates: reload immediately when the realtime listener
+  // (SSE) reports a change, instead of waiting for the 45s poll.
+  useEffect(() => {
+    function onRealtime() {
+      void load()
+    }
+    window.addEventListener("altomate:realtime", onRealtime)
+    return () => window.removeEventListener("altomate:realtime", onRealtime)
+  }, [load])
+
   // Refresh the list when the dropdown is opened.
   useEffect(() => {
     if (open) {

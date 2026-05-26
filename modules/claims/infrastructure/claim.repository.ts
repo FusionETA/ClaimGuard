@@ -405,6 +405,15 @@ export type ReviewClaimResult =
       employeeUserId: string
       claimTitle: string
       claimStatus: ClaimStatus
+      /// Approvers at the NEXT chain step — populated only when a
+      /// supervisor APPROVED and the claim advanced (not final, not
+      /// rejected). The service notifies them so the claim appears live
+      /// in their queue + bell.
+      nextApproverIds?: string[]
+      /// Other approvers at the step just acted on (excluding the
+      /// reviewer). The service nudges them so the claim leaves their
+      /// queue live once a peer has handled it.
+      peerApproverIds?: string[]
     }
   | {
       ok: false
@@ -1917,6 +1926,9 @@ export const claimRepository = {
     }
 
     let persistedStatus: ClaimStatus
+    // Realtime fan-out targets (supervisor branch only).
+    let nextApproverIds: string[] = []
+    let peerApproverIds: string[] = []
 
     if (data.supervisorOnly) {
       // Load the employee's *module-filtered, grouped* approval chain
@@ -1960,6 +1972,18 @@ export const claimRepository = {
 
         supervisorChainComplete = reviewerStep.step === chain[chain.length - 1]!.step
         actedStepNumber = reviewerStep.step
+
+        // Realtime targets: peers at this step (so the claim leaves their
+        // queue once handled) and, when approving advances the chain, the
+        // next step's approvers (so it appears live in their queue).
+        peerApproverIds = reviewerStep.approvers
+          .map((a) => a.approverId)
+          .filter((id) => id !== data.reviewerId)
+        if (data.status === "APPROVED" && !supervisorChainComplete) {
+          const idx = chain.findIndex((s) => s.step === reviewerStep.step)
+          nextApproverIds =
+            chain[idx + 1]?.approvers.map((a) => a.approverId) ?? []
+        }
       } else {
         // Orphaned employee: no chain at all → reject. Every employee should
         // be in at least one team after the legacy-fallback removal; this
@@ -2059,6 +2083,8 @@ export const claimRepository = {
       employeeUserId: existingClaim.employeeId,
       claimTitle: existingClaim.title,
       claimStatus: persistedStatus,
+      nextApproverIds,
+      peerApproverIds,
     }
   },
 

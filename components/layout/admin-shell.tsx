@@ -19,6 +19,7 @@ import {
 
 import { LogoutButton } from "@/components/layout/logout-button"
 import { NotificationBell } from "@/components/layout/notification-bell"
+import { RealtimeListener } from "@/components/layout/realtime-listener"
 import {
   createOrganizationAction,
   switchActiveOrganizationAction,
@@ -418,6 +419,7 @@ export function AdminShell({
               ) : null}
             </div>
             <div className="flex items-center gap-3">
+              <RealtimeListener />
               <NotificationBell />
               <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
                 <Avatar className="h-10 w-10">

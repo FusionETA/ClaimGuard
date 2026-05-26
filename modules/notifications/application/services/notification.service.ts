@@ -1,5 +1,6 @@
 import "server-only"
 
+import { publishUserEvent } from "@/lib/realtime"
 import { sendPushToUser } from "@/lib/web-push"
 import type { NotificationType, NotificationView } from "@/modules/notifications/domain/models"
 import { notificationRepository } from "@/modules/notifications/infrastructure/notification.repository"
@@ -42,6 +43,11 @@ export async function notify(input: {
   } catch {
     // sendPushToUser swallows internally; belt + suspenders.
   }
+
+  // Live in-app update (SSE): nudge any open tab for this user to refresh
+  // the page (supervisor queue) + the notification bell. Best-effort and
+  // a no-op when Redis isn't configured.
+  await publishUserEvent(input.userId, { type: "notification" })
 }
 
 export async function getNotificationsForUser(
