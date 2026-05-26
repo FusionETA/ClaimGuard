@@ -62,27 +62,20 @@ export const supervisorAttendanceService = {
       options?.overrideEventAt ?? null,
     )
 
-    // Realtime fan-out (mirrors claims):
-    //   - next-step approvers get a real notification (live queue + bell),
-    //   - peers at the step just acted on get a silent refresh so it
-    //     leaves their queue, and
-    //   - the employee hears the FINAL decision (approved/rejected).
+    // Realtime fan-out:
+    //   - Everyone whose attendance queue changed — the next-step
+    //     approvers (request advanced to them) AND the peers at the step
+    //     just acted on — gets a SILENT live refresh. Deliberately NO
+    //     per-event push to approvers: a supervisor with many reports
+    //     would be flooded. The digest cron owns the batched
+    //     "you have N pending" push/bell.
+    //   - The employee DOES get a direct push on the FINAL decision —
+    //     it's a single recipient (no fan-out), so there's no flood risk.
     try {
-      await Promise.all(
-        result.nextApproverIds.map((approverId) =>
-          notify({
-            userId: approverId,
-            type: "ATTENDANCE_APPROVAL",
-            title: "Approval Awaiting You",
-            body: `An ${approvalKindLabel(result.kind)} request advanced to you for review.`,
-            url: "/employee/attendance/approvals",
-          }),
-        ),
+      await publishUserEvents(
+        [...result.nextApproverIds, ...result.peerApproverIds],
+        { type: "refresh", scope: "attendance" },
       )
-      await publishUserEvents(result.peerApproverIds, {
-        type: "refresh",
-        scope: "attendance",
-      })
       if (result.finalStatus !== "PENDING") {
         const approved = result.finalStatus === "APPROVED"
         await notify({
