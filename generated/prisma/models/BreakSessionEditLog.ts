@@ -31,7 +31,7 @@ export type BreakSessionEditLogMinAggregateOutputType = {
   breakSessionId: string | null
   attendanceRecordId: string | null
   editedById: string | null
-  editorRole: $Enums.UserRole | null
+  editorRole: $Enums.BreakSessionEditLog_editorRole | null
   reason: string | null
   prevStartedAt: Date | null
   nextStartedAt: Date | null
@@ -46,7 +46,7 @@ export type BreakSessionEditLogMaxAggregateOutputType = {
   breakSessionId: string | null
   attendanceRecordId: string | null
   editedById: string | null
-  editorRole: $Enums.UserRole | null
+  editorRole: $Enums.BreakSessionEditLog_editorRole | null
   reason: string | null
   prevStartedAt: Date | null
   nextStartedAt: Date | null
@@ -196,7 +196,7 @@ export type BreakSessionEditLogGroupByOutputType = {
   breakSessionId: string | null
   attendanceRecordId: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason: string | null
   prevStartedAt: Date | null
   nextStartedAt: Date | null
@@ -232,7 +232,7 @@ export type BreakSessionEditLogWhereInput = {
   breakSessionId?: Prisma.StringNullableFilter<"BreakSessionEditLog"> | string | null
   attendanceRecordId?: Prisma.StringFilter<"BreakSessionEditLog"> | string
   editedById?: Prisma.StringFilter<"BreakSessionEditLog"> | string
-  editorRole?: Prisma.EnumUserRoleFilter<"BreakSessionEditLog"> | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFilter<"BreakSessionEditLog"> | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.StringNullableFilter<"BreakSessionEditLog"> | string | null
   prevStartedAt?: Prisma.DateTimeNullableFilter<"BreakSessionEditLog"> | Date | string | null
   nextStartedAt?: Prisma.DateTimeNullableFilter<"BreakSessionEditLog"> | Date | string | null
@@ -272,7 +272,7 @@ export type BreakSessionEditLogWhereUniqueInput = Prisma.AtLeast<{
   breakSessionId?: Prisma.StringNullableFilter<"BreakSessionEditLog"> | string | null
   attendanceRecordId?: Prisma.StringFilter<"BreakSessionEditLog"> | string
   editedById?: Prisma.StringFilter<"BreakSessionEditLog"> | string
-  editorRole?: Prisma.EnumUserRoleFilter<"BreakSessionEditLog"> | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFilter<"BreakSessionEditLog"> | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.StringNullableFilter<"BreakSessionEditLog"> | string | null
   prevStartedAt?: Prisma.DateTimeNullableFilter<"BreakSessionEditLog"> | Date | string | null
   nextStartedAt?: Prisma.DateTimeNullableFilter<"BreakSessionEditLog"> | Date | string | null
@@ -311,7 +311,7 @@ export type BreakSessionEditLogScalarWhereWithAggregatesInput = {
   breakSessionId?: Prisma.StringNullableWithAggregatesFilter<"BreakSessionEditLog"> | string | null
   attendanceRecordId?: Prisma.StringWithAggregatesFilter<"BreakSessionEditLog"> | string
   editedById?: Prisma.StringWithAggregatesFilter<"BreakSessionEditLog"> | string
-  editorRole?: Prisma.EnumUserRoleWithAggregatesFilter<"BreakSessionEditLog"> | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleWithAggregatesFilter<"BreakSessionEditLog"> | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.StringNullableWithAggregatesFilter<"BreakSessionEditLog"> | string | null
   prevStartedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BreakSessionEditLog"> | Date | string | null
   nextStartedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BreakSessionEditLog"> | Date | string | null
@@ -323,7 +323,7 @@ export type BreakSessionEditLogScalarWhereWithAggregatesInput = {
 
 export type BreakSessionEditLogCreateInput = {
   id?: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -341,7 +341,7 @@ export type BreakSessionEditLogUncheckedCreateInput = {
   breakSessionId?: string | null
   attendanceRecordId: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -353,7 +353,7 @@ export type BreakSessionEditLogUncheckedCreateInput = {
 
 export type BreakSessionEditLogUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -371,7 +371,7 @@ export type BreakSessionEditLogUncheckedUpdateInput = {
   breakSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -386,7 +386,7 @@ export type BreakSessionEditLogCreateManyInput = {
   breakSessionId?: string | null
   attendanceRecordId: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -398,7 +398,7 @@ export type BreakSessionEditLogCreateManyInput = {
 
 export type BreakSessionEditLogUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -413,7 +413,7 @@ export type BreakSessionEditLogUncheckedUpdateManyInput = {
   breakSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -610,9 +610,13 @@ export type BreakSessionEditLogUncheckedUpdateManyWithoutBreakSessionNestedInput
   deleteMany?: Prisma.BreakSessionEditLogScalarWhereInput | Prisma.BreakSessionEditLogScalarWhereInput[]
 }
 
+export type EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput = {
+  set?: $Enums.BreakSessionEditLog_editorRole
+}
+
 export type BreakSessionEditLogCreateWithoutEditorInput = {
   id?: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -628,7 +632,7 @@ export type BreakSessionEditLogUncheckedCreateWithoutEditorInput = {
   id?: string
   breakSessionId?: string | null
   attendanceRecordId: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -672,7 +676,7 @@ export type BreakSessionEditLogScalarWhereInput = {
   breakSessionId?: Prisma.StringNullableFilter<"BreakSessionEditLog"> | string | null
   attendanceRecordId?: Prisma.StringFilter<"BreakSessionEditLog"> | string
   editedById?: Prisma.StringFilter<"BreakSessionEditLog"> | string
-  editorRole?: Prisma.EnumUserRoleFilter<"BreakSessionEditLog"> | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFilter<"BreakSessionEditLog"> | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.StringNullableFilter<"BreakSessionEditLog"> | string | null
   prevStartedAt?: Prisma.DateTimeNullableFilter<"BreakSessionEditLog"> | Date | string | null
   nextStartedAt?: Prisma.DateTimeNullableFilter<"BreakSessionEditLog"> | Date | string | null
@@ -684,7 +688,7 @@ export type BreakSessionEditLogScalarWhereInput = {
 
 export type BreakSessionEditLogCreateWithoutAttendanceRecordInput = {
   id?: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -700,7 +704,7 @@ export type BreakSessionEditLogUncheckedCreateWithoutAttendanceRecordInput = {
   id?: string
   breakSessionId?: string | null
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -738,7 +742,7 @@ export type BreakSessionEditLogUpdateManyWithWhereWithoutAttendanceRecordInput =
 
 export type BreakSessionEditLogCreateWithoutBreakSessionInput = {
   id?: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -754,7 +758,7 @@ export type BreakSessionEditLogUncheckedCreateWithoutBreakSessionInput = {
   id?: string
   attendanceRecordId: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -794,7 +798,7 @@ export type BreakSessionEditLogCreateManyEditorInput = {
   id?: string
   breakSessionId?: string | null
   attendanceRecordId: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -806,7 +810,7 @@ export type BreakSessionEditLogCreateManyEditorInput = {
 
 export type BreakSessionEditLogUpdateWithoutEditorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -822,7 +826,7 @@ export type BreakSessionEditLogUncheckedUpdateWithoutEditorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   breakSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -836,7 +840,7 @@ export type BreakSessionEditLogUncheckedUpdateManyWithoutEditorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   breakSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -850,7 +854,7 @@ export type BreakSessionEditLogCreateManyAttendanceRecordInput = {
   id?: string
   breakSessionId?: string | null
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -862,7 +866,7 @@ export type BreakSessionEditLogCreateManyAttendanceRecordInput = {
 
 export type BreakSessionEditLogUpdateWithoutAttendanceRecordInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -878,7 +882,7 @@ export type BreakSessionEditLogUncheckedUpdateWithoutAttendanceRecordInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   breakSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -892,7 +896,7 @@ export type BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordInput =
   id?: Prisma.StringFieldUpdateOperationsInput | string
   breakSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -906,7 +910,7 @@ export type BreakSessionEditLogCreateManyBreakSessionInput = {
   id?: string
   attendanceRecordId: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.BreakSessionEditLog_editorRole
   reason?: string | null
   prevStartedAt?: Date | string | null
   nextStartedAt?: Date | string | null
@@ -918,7 +922,7 @@ export type BreakSessionEditLogCreateManyBreakSessionInput = {
 
 export type BreakSessionEditLogUpdateWithoutBreakSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -934,7 +938,7 @@ export type BreakSessionEditLogUncheckedUpdateWithoutBreakSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -948,7 +952,7 @@ export type BreakSessionEditLogUncheckedUpdateManyWithoutBreakSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumBreakSessionEditLog_editorRoleFieldUpdateOperationsInput | $Enums.BreakSessionEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextStartedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1022,7 +1026,7 @@ export type $BreakSessionEditLogPayload<ExtArgs extends runtime.Types.Extensions
      */
     attendanceRecordId: string
     editedById: string
-    editorRole: $Enums.UserRole
+    editorRole: $Enums.BreakSessionEditLog_editorRole
     reason: string | null
     /**
      * `null` when this edit row represents a CREATE (no prior value).
@@ -1415,7 +1419,7 @@ export interface BreakSessionEditLogFieldRefs {
   readonly breakSessionId: Prisma.FieldRef<"BreakSessionEditLog", 'String'>
   readonly attendanceRecordId: Prisma.FieldRef<"BreakSessionEditLog", 'String'>
   readonly editedById: Prisma.FieldRef<"BreakSessionEditLog", 'String'>
-  readonly editorRole: Prisma.FieldRef<"BreakSessionEditLog", 'UserRole'>
+  readonly editorRole: Prisma.FieldRef<"BreakSessionEditLog", 'BreakSessionEditLog_editorRole'>
   readonly reason: Prisma.FieldRef<"BreakSessionEditLog", 'String'>
   readonly prevStartedAt: Prisma.FieldRef<"BreakSessionEditLog", 'DateTime'>
   readonly nextStartedAt: Prisma.FieldRef<"BreakSessionEditLog", 'DateTime'>

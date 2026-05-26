@@ -30,6 +30,7 @@ model User {
   claimApprovalEntries            ClaimApprovalEntry[]  @relation("UserApprovalEntries")
   employeeImportDrafts            EmployeeImportDraft[]
   employeeProfile                 EmployeeProfile?      @relation("EmployeeProfileUser")
+  notifications                   Notification[]
   submittedPayrollRuns            PayrollRun[]          @relation("PayrollRunSubmittedBy")
   submittedForApprovalPayrollRuns PayrollRun[]          @relation("PayrollRunSubmittedForApprovalBy")
   projectManagerOf                ProjectManager[]      @relation("ProjectManagerOf")
@@ -126,11 +127,6 @@ model EmployeePolicy {
   /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
   /// selfie on for any policy regardless of pay type.
   requireSelfie              Boolean                  @default(false)
-  /// When true, employees on this policy are temporary (e.g. probation,
-  /// fixed-term). The admin sets a `temporaryReviewDate` on each such
-  /// employee's payroll profile; a cron reminds admins to revisit the
-  /// employee's classification when that date arrives.
-  temporary                  Boolean                  @default(false)
   /// Daily working minutes after which extra time becomes OT-eligible.
   /// Stored as minutes for precision; the admin UI presents this as
   /// hours (minutes ÷ 60).
@@ -150,6 +146,11 @@ model EmployeePolicy {
   /// Null means no cap. Mirrors the legacy org-wide
   /// `Organization.otSalaryThreshold` but is now opt-in per policy.
   otSalaryThreshold          Decimal?                 @db.Decimal(10, 2)
+  /// When true, employees on this policy are temporary (e.g. probation,
+  /// fixed-term). The admin sets a `temporaryReviewDate` on each such
+  /// employee's payroll profile; a cron reminds admins to revisit the
+  /// employee's classification when that date arrives.
+  temporary                  Boolean                  @default(false)
   organization               Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   employees                  EmployeeProfile[]
   leaveDefaults              PolicyLeaveEntitlement[]
@@ -295,6 +296,33 @@ model PushSubscription {
   @@index([userId])
 }
 
+/// Persisted in-app notification. Mirrors what gets sent via web push so
+/// users have a notification center (bell + list) on both the admin and
+/// employee surfaces. Created through the notification service alongside
+/// the push send, so a user sees the same event whether or not push was
+/// delivered.
+model Notification {
+  id             String           @id @default(cuid())
+  /// Recipient. A notification always targets exactly one user.
+  userId         String
+  /// Org the notification belongs to (for scoping/auditing). Nullable for
+  /// the rare cross-org case; recipient is always the source of truth.
+  organizationId String?
+  type           NotificationType
+  title          String
+  body           String           @db.Text
+  /// Relative URL to open when clicked, e.g. "/employee/claims". Mirrors
+  /// the web-push payload's `url`.
+  url            String?          @db.VarChar(500)
+  /// Null while unread; set to the read timestamp once acknowledged.
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
 /// Resumable draft of the bulk-employee-import wizard. One draft per
 /// (user, organization). Auto-saved by the wizard on every state
 /// change (debounced), restored when the admin re-opens the dialog.
@@ -419,7 +447,7 @@ model Claim {
   mileageOriginAddress      String?
   mileageRateUsed           Decimal?                    @db.Decimal(10, 4)
   mileageUnitUsed           MileageUnit?
-  reviewerRole              UserRole?
+  reviewerRole              Claim_reviewerRole?
   /// Project this claim is filed against. Drives approval routing — when
   /// set, the claim follows the employee's team chain in this project.
   /// Nullable for legacy claims that pre-date the project picker; new
@@ -745,28 +773,28 @@ model AttendanceRecord {
 /// timeIn, timeOut, status, notes, and remark so the change history is
 /// fully reconstructable. `source` tags which UI path produced the edit.
 model AttendanceEditLog {
-  id                 String            @id @default(cuid())
+  id                 String                       @id @default(cuid())
   attendanceRecordId String
   editedById         String
   /// Snapshot of the editor's role at the time of the edit so the trail
   /// stays meaningful even if the user's role changes later.
-  editorRole         UserRole
-  reason             String?           @db.Text
+  editorRole         AttendanceEditLog_editorRole
+  reason             String?                      @db.Text
   prevTimeIn         DateTime?
   nextTimeIn         DateTime?
   prevTimeOut        DateTime?
   nextTimeOut        DateTime?
   prevStatus         AttendanceStatus?
   nextStatus         AttendanceStatus?
-  prevNotes          String?           @db.Text
-  nextNotes          String?           @db.Text
-  prevRemark         String?           @db.Text
-  nextRemark         String?           @db.Text
+  prevNotes          String?                      @db.Text
+  nextNotes          String?                      @db.Text
+  prevRemark         String?                      @db.Text
+  nextRemark         String?                      @db.Text
   /// "DIRECT_EDIT" | "APPROVE_OVERRIDE" | "EMPLOYEE_REMARK" | "APPROVAL_REJECTION"
   source             String
-  createdAt          DateTime          @default(now())
-  attendanceRecord   AttendanceRecord  @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
-  editor             User              @relation("AttendanceEditLogActor", fields: [editedById], references: [id])
+  createdAt          DateTime                     @default(now())
+  attendanceRecord   AttendanceRecord             @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  editor             User                         @relation("AttendanceEditLogActor", fields: [editedById], references: [id])
 
   @@index([attendanceRecordId, createdAt])
   @@index([editedById, createdAt])
@@ -789,7 +817,7 @@ model BreakSession {
 /// per save (or create/delete) — captures the before/after values of
 /// `startedAt` and `endedAt`, plus the originating edit `source` tag.
 model BreakSessionEditLog {
-  id                 String           @id @default(cuid())
+  id                 String                         @id @default(cuid())
   /// Nullable so deleted BreakSession rows survive cascade as historical
   /// audit; set to `null` via `SetNull` when the source row is removed.
   breakSessionId     String?
@@ -797,8 +825,8 @@ model BreakSessionEditLog {
   /// the break row itself was deleted.
   attendanceRecordId String
   editedById         String
-  editorRole         UserRole
-  reason             String?          @db.Text
+  editorRole         BreakSessionEditLog_editorRole
+  reason             String?                        @db.Text
   /// `null` when this edit row represents a CREATE (no prior value).
   prevStartedAt      DateTime?
   /// `null` when this edit row represents a DELETE.
@@ -807,10 +835,10 @@ model BreakSessionEditLog {
   nextEndedAt        DateTime?
   /// "DIRECT_EDIT" | "APPROVAL_REJECTION" | "CREATE" | "DELETE"
   source             String
-  createdAt          DateTime         @default(now())
-  attendanceRecord   AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
-  breakSession       BreakSession?    @relation(fields: [breakSessionId], references: [id])
-  editor             User             @relation("BreakSessionEditLogActor", fields: [editedById], references: [id])
+  createdAt          DateTime                       @default(now())
+  attendanceRecord   AttendanceRecord               @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  breakSession       BreakSession?                  @relation(fields: [breakSessionId], references: [id])
+  editor             User                           @relation("BreakSessionEditLogActor", fields: [editedById], references: [id])
 
   @@index([attendanceRecordId, createdAt])
   @@index([breakSessionId, createdAt])
@@ -997,10 +1025,6 @@ model PayrollProfile {
   /// One-off adjustments are added per-run via PayslipLineItem.
   fixedAllowances          Json?
   joinDate                 DateTime?
-  /// Review/checkpoint date for temporary employees (probation end,
-  /// fixed-term review, etc). Only meaningful when the assigned policy
-  /// has `temporary = true`. A cron reminds admins when it arrives.
-  temporaryReviewDate      DateTime?
   /// Set when employee leaves. Triggers proration on their final
   /// payroll run.
   leaveDate                DateTime?
@@ -1043,9 +1067,10 @@ model PayrollProfile {
   /// payroll or self-paid). Subtracted from annual tax inside
   /// `calcPcb` because zakat fully offsets MTD obligation.
   prevZakat                Decimal?        @db.Decimal(12, 2)
-  // Zakat-on-income is now handled via the monthly deduction categories
-  // `deduct_zakat` (PZB) / `deduct_zakat_tp1` (self-paid TP1) — no
-  // per-profile zakat method or amount column.
+  /// Review/checkpoint date for temporary employees (probation end,
+  /// fixed-term review, etc). Only meaningful when the assigned policy
+  /// has `temporary = true`. A cron reminds admins when it arrives.
+  temporaryReviewDate      DateTime?
   employeeProfile          EmployeeProfile @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
   payslips                 Payslip[]
 }
@@ -1691,6 +1716,13 @@ model LeaveApplication {
   @@index([startDate, endDate])
 }
 
+enum NotificationType {
+  CLAIM_SUBMITTED
+  CLAIM_REVIEWED
+  ATTENDANCE_APPROVAL
+  TEMPORARY_REVIEW
+}
+
 enum LoanRepaymentMode {
   /// System splits the principal into equal installments.
   FIXED
@@ -1744,10 +1776,6 @@ enum UserRole {
   ADMIN
   EMPLOYEE
   SUPERVISOR
-  // OWNER behaves exactly like ADMIN everywhere (every admin gate
-  // treats OWNER as admin via isAdminRole), EXCEPT only OWNER can
-  // add/remove admins. Assigned via seed/master only — never created
-  // through the in-app UI.
   OWNER
 }
 
@@ -1934,4 +1962,22 @@ enum LeaveStatus {
   APPROVED
   REJECTED
   CANCELLED
+}
+
+enum AttendanceEditLog_editorRole {
+  ADMIN
+  EMPLOYEE
+  SUPERVISOR
+}
+
+enum BreakSessionEditLog_editorRole {
+  ADMIN
+  EMPLOYEE
+  SUPERVISOR
+}
+
+enum Claim_reviewerRole {
+  ADMIN
+  EMPLOYEE
+  SUPERVISOR
 }

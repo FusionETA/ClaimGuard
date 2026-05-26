@@ -399,6 +399,23 @@ export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
   _max?: Prisma.NestedJsonFilter<$PrismaModel>
 }
 
+export type EnumNotificationTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.NotificationType | Prisma.EnumNotificationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.NotificationType[]
+  notIn?: $Enums.NotificationType[]
+  not?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel> | $Enums.NotificationType
+}
+
+export type EnumNotificationTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.NotificationType | Prisma.EnumNotificationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.NotificationType[]
+  notIn?: $Enums.NotificationType[]
+  not?: Prisma.NestedEnumNotificationTypeWithAggregatesFilter<$PrismaModel> | $Enums.NotificationType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
+}
+
 export type EnumClaimCategoryFilter<$PrismaModel = never> = {
   equals?: $Enums.ClaimCategory | Prisma.EnumClaimCategoryFieldRefInput<$PrismaModel>
   in?: $Enums.ClaimCategory[]
@@ -441,11 +458,11 @@ export type EnumMileageUnitNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMileageUnitNullableFilter<$PrismaModel> | $Enums.MileageUnit | null
 }
 
-export type EnumUserRoleNullableFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserRole | Prisma.EnumUserRoleFieldRefInput<$PrismaModel> | null
-  in?: $Enums.UserRole[] | null
-  notIn?: $Enums.UserRole[] | null
-  not?: Prisma.NestedEnumUserRoleNullableFilter<$PrismaModel> | $Enums.UserRole | null
+export type EnumClaim_reviewerRoleNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.Claim_reviewerRole | Prisma.EnumClaim_reviewerRoleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.Claim_reviewerRole[] | null
+  notIn?: $Enums.Claim_reviewerRole[] | null
+  not?: Prisma.NestedEnumClaim_reviewerRoleNullableFilter<$PrismaModel> | $Enums.Claim_reviewerRole | null
 }
 
 export type EnumClaimCategoryWithAggregatesFilter<$PrismaModel = never> = {
@@ -508,14 +525,14 @@ export type EnumMileageUnitNullableWithAggregatesFilter<$PrismaModel = never> = 
   _max?: Prisma.NestedEnumMileageUnitNullableFilter<$PrismaModel>
 }
 
-export type EnumUserRoleNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserRole | Prisma.EnumUserRoleFieldRefInput<$PrismaModel> | null
-  in?: $Enums.UserRole[] | null
-  notIn?: $Enums.UserRole[] | null
-  not?: Prisma.NestedEnumUserRoleNullableWithAggregatesFilter<$PrismaModel> | $Enums.UserRole | null
+export type EnumClaim_reviewerRoleNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Claim_reviewerRole | Prisma.EnumClaim_reviewerRoleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.Claim_reviewerRole[] | null
+  notIn?: $Enums.Claim_reviewerRole[] | null
+  not?: Prisma.NestedEnumClaim_reviewerRoleNullableWithAggregatesFilter<$PrismaModel> | $Enums.Claim_reviewerRole | null
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumUserRoleNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumUserRoleNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClaim_reviewerRoleNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClaim_reviewerRoleNullableFilter<$PrismaModel>
 }
 
 export type IntNullableFilter<$PrismaModel = never> = {
@@ -640,11 +657,28 @@ export type EnumAttendanceStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel>
 }
 
+export type EnumAttendanceEditLog_editorRoleFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceEditLog_editorRole | Prisma.EnumAttendanceEditLog_editorRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceEditLog_editorRole[]
+  notIn?: $Enums.AttendanceEditLog_editorRole[]
+  not?: Prisma.NestedEnumAttendanceEditLog_editorRoleFilter<$PrismaModel> | $Enums.AttendanceEditLog_editorRole
+}
+
 export type EnumAttendanceStatusNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.AttendanceStatus | Prisma.EnumAttendanceStatusFieldRefInput<$PrismaModel> | null
   in?: $Enums.AttendanceStatus[] | null
   notIn?: $Enums.AttendanceStatus[] | null
   not?: Prisma.NestedEnumAttendanceStatusNullableFilter<$PrismaModel> | $Enums.AttendanceStatus | null
+}
+
+export type EnumAttendanceEditLog_editorRoleWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceEditLog_editorRole | Prisma.EnumAttendanceEditLog_editorRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceEditLog_editorRole[]
+  notIn?: $Enums.AttendanceEditLog_editorRole[]
+  not?: Prisma.NestedEnumAttendanceEditLog_editorRoleWithAggregatesFilter<$PrismaModel> | $Enums.AttendanceEditLog_editorRole
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAttendanceEditLog_editorRoleFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAttendanceEditLog_editorRoleFilter<$PrismaModel>
 }
 
 export type EnumAttendanceStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -655,6 +689,23 @@ export type EnumAttendanceStatusNullableWithAggregatesFilter<$PrismaModel = neve
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumAttendanceStatusNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumAttendanceStatusNullableFilter<$PrismaModel>
+}
+
+export type EnumBreakSessionEditLog_editorRoleFilter<$PrismaModel = never> = {
+  equals?: $Enums.BreakSessionEditLog_editorRole | Prisma.EnumBreakSessionEditLog_editorRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.BreakSessionEditLog_editorRole[]
+  notIn?: $Enums.BreakSessionEditLog_editorRole[]
+  not?: Prisma.NestedEnumBreakSessionEditLog_editorRoleFilter<$PrismaModel> | $Enums.BreakSessionEditLog_editorRole
+}
+
+export type EnumBreakSessionEditLog_editorRoleWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BreakSessionEditLog_editorRole | Prisma.EnumBreakSessionEditLog_editorRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.BreakSessionEditLog_editorRole[]
+  notIn?: $Enums.BreakSessionEditLog_editorRole[]
+  not?: Prisma.NestedEnumBreakSessionEditLog_editorRoleWithAggregatesFilter<$PrismaModel> | $Enums.BreakSessionEditLog_editorRole
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBreakSessionEditLog_editorRoleFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBreakSessionEditLog_editorRoleFilter<$PrismaModel>
 }
 
 export type EnumApprovalKindFilter<$PrismaModel = never> = {
@@ -1402,6 +1453,23 @@ export type NestedJsonFilterBase<$PrismaModel = never> = {
   not?: runtime.InputJsonValue | Prisma.JsonFieldRefInput<$PrismaModel> | Prisma.JsonNullValueFilter
 }
 
+export type NestedEnumNotificationTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.NotificationType | Prisma.EnumNotificationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.NotificationType[]
+  notIn?: $Enums.NotificationType[]
+  not?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel> | $Enums.NotificationType
+}
+
+export type NestedEnumNotificationTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.NotificationType | Prisma.EnumNotificationTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.NotificationType[]
+  notIn?: $Enums.NotificationType[]
+  not?: Prisma.NestedEnumNotificationTypeWithAggregatesFilter<$PrismaModel> | $Enums.NotificationType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumNotificationTypeFilter<$PrismaModel>
+}
+
 export type NestedEnumClaimCategoryFilter<$PrismaModel = never> = {
   equals?: $Enums.ClaimCategory | Prisma.EnumClaimCategoryFieldRefInput<$PrismaModel>
   in?: $Enums.ClaimCategory[]
@@ -1444,11 +1512,11 @@ export type NestedEnumMileageUnitNullableFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumMileageUnitNullableFilter<$PrismaModel> | $Enums.MileageUnit | null
 }
 
-export type NestedEnumUserRoleNullableFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserRole | Prisma.EnumUserRoleFieldRefInput<$PrismaModel> | null
-  in?: $Enums.UserRole[] | null
-  notIn?: $Enums.UserRole[] | null
-  not?: Prisma.NestedEnumUserRoleNullableFilter<$PrismaModel> | $Enums.UserRole | null
+export type NestedEnumClaim_reviewerRoleNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.Claim_reviewerRole | Prisma.EnumClaim_reviewerRoleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.Claim_reviewerRole[] | null
+  notIn?: $Enums.Claim_reviewerRole[] | null
+  not?: Prisma.NestedEnumClaim_reviewerRoleNullableFilter<$PrismaModel> | $Enums.Claim_reviewerRole | null
 }
 
 export type NestedEnumClaimCategoryWithAggregatesFilter<$PrismaModel = never> = {
@@ -1511,14 +1579,14 @@ export type NestedEnumMileageUnitNullableWithAggregatesFilter<$PrismaModel = nev
   _max?: Prisma.NestedEnumMileageUnitNullableFilter<$PrismaModel>
 }
 
-export type NestedEnumUserRoleNullableWithAggregatesFilter<$PrismaModel = never> = {
-  equals?: $Enums.UserRole | Prisma.EnumUserRoleFieldRefInput<$PrismaModel> | null
-  in?: $Enums.UserRole[] | null
-  notIn?: $Enums.UserRole[] | null
-  not?: Prisma.NestedEnumUserRoleNullableWithAggregatesFilter<$PrismaModel> | $Enums.UserRole | null
+export type NestedEnumClaim_reviewerRoleNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.Claim_reviewerRole | Prisma.EnumClaim_reviewerRoleFieldRefInput<$PrismaModel> | null
+  in?: $Enums.Claim_reviewerRole[] | null
+  notIn?: $Enums.Claim_reviewerRole[] | null
+  not?: Prisma.NestedEnumClaim_reviewerRoleNullableWithAggregatesFilter<$PrismaModel> | $Enums.Claim_reviewerRole | null
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
-  _min?: Prisma.NestedEnumUserRoleNullableFilter<$PrismaModel>
-  _max?: Prisma.NestedEnumUserRoleNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumClaim_reviewerRoleNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumClaim_reviewerRoleNullableFilter<$PrismaModel>
 }
 
 export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -1632,11 +1700,28 @@ export type NestedEnumAttendanceStatusWithAggregatesFilter<$PrismaModel = never>
   _max?: Prisma.NestedEnumAttendanceStatusFilter<$PrismaModel>
 }
 
+export type NestedEnumAttendanceEditLog_editorRoleFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceEditLog_editorRole | Prisma.EnumAttendanceEditLog_editorRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceEditLog_editorRole[]
+  notIn?: $Enums.AttendanceEditLog_editorRole[]
+  not?: Prisma.NestedEnumAttendanceEditLog_editorRoleFilter<$PrismaModel> | $Enums.AttendanceEditLog_editorRole
+}
+
 export type NestedEnumAttendanceStatusNullableFilter<$PrismaModel = never> = {
   equals?: $Enums.AttendanceStatus | Prisma.EnumAttendanceStatusFieldRefInput<$PrismaModel> | null
   in?: $Enums.AttendanceStatus[] | null
   notIn?: $Enums.AttendanceStatus[] | null
   not?: Prisma.NestedEnumAttendanceStatusNullableFilter<$PrismaModel> | $Enums.AttendanceStatus | null
+}
+
+export type NestedEnumAttendanceEditLog_editorRoleWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AttendanceEditLog_editorRole | Prisma.EnumAttendanceEditLog_editorRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.AttendanceEditLog_editorRole[]
+  notIn?: $Enums.AttendanceEditLog_editorRole[]
+  not?: Prisma.NestedEnumAttendanceEditLog_editorRoleWithAggregatesFilter<$PrismaModel> | $Enums.AttendanceEditLog_editorRole
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAttendanceEditLog_editorRoleFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAttendanceEditLog_editorRoleFilter<$PrismaModel>
 }
 
 export type NestedEnumAttendanceStatusNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -1647,6 +1732,23 @@ export type NestedEnumAttendanceStatusNullableWithAggregatesFilter<$PrismaModel 
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedEnumAttendanceStatusNullableFilter<$PrismaModel>
   _max?: Prisma.NestedEnumAttendanceStatusNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumBreakSessionEditLog_editorRoleFilter<$PrismaModel = never> = {
+  equals?: $Enums.BreakSessionEditLog_editorRole | Prisma.EnumBreakSessionEditLog_editorRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.BreakSessionEditLog_editorRole[]
+  notIn?: $Enums.BreakSessionEditLog_editorRole[]
+  not?: Prisma.NestedEnumBreakSessionEditLog_editorRoleFilter<$PrismaModel> | $Enums.BreakSessionEditLog_editorRole
+}
+
+export type NestedEnumBreakSessionEditLog_editorRoleWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.BreakSessionEditLog_editorRole | Prisma.EnumBreakSessionEditLog_editorRoleFieldRefInput<$PrismaModel>
+  in?: $Enums.BreakSessionEditLog_editorRole[]
+  notIn?: $Enums.BreakSessionEditLog_editorRole[]
+  not?: Prisma.NestedEnumBreakSessionEditLog_editorRoleWithAggregatesFilter<$PrismaModel> | $Enums.BreakSessionEditLog_editorRole
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumBreakSessionEditLog_editorRoleFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumBreakSessionEditLog_editorRoleFilter<$PrismaModel>
 }
 
 export type NestedEnumApprovalKindFilter<$PrismaModel = never> = {

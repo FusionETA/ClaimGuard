@@ -60,6 +60,7 @@ export const ModelName = {
   MasterApiAuditLog: 'MasterApiAuditLog',
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
+  Notification: 'Notification',
   EmployeeImportDraft: 'EmployeeImportDraft',
   EmployeeProfile: 'EmployeeProfile',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
@@ -167,14 +168,14 @@ export const EmployeePolicyScalarFieldEnum = {
   otEnabled: 'otEnabled',
   requireGeofence: 'requireGeofence',
   requireSelfie: 'requireSelfie',
-  temporary: 'temporary',
   otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
   otRatePublicHolidayInShift: 'otRatePublicHolidayInShift',
   otRateRestDay: 'otRateRestDay',
   otRateRestDayInShift: 'otRateRestDayInShift',
-  otSalaryThreshold: 'otSalaryThreshold'
+  otSalaryThreshold: 'otSalaryThreshold',
+  temporary: 'temporary'
 } as const
 
 export type EmployeePolicyScalarFieldEnum = (typeof EmployeePolicyScalarFieldEnum)[keyof typeof EmployeePolicyScalarFieldEnum]
@@ -259,6 +260,21 @@ export const PushSubscriptionScalarFieldEnum = {
 } as const
 
 export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  url: 'url',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const EmployeeImportDraftScalarFieldEnum = {
@@ -672,7 +688,6 @@ export const PayrollProfileScalarFieldEnum = {
   hourlyRate: 'hourlyRate',
   fixedAllowances: 'fixedAllowances',
   joinDate: 'joinDate',
-  temporaryReviewDate: 'temporaryReviewDate',
   leaveDate: 'leaveDate',
   archiveReason: 'archiveReason',
   reportedToLhdn: 'reportedToLhdn',
@@ -689,7 +704,8 @@ export const PayrollProfileScalarFieldEnum = {
   payrollDocuments: 'payrollDocuments',
   prevAllowableDeductions: 'prevAllowableDeductions',
   prevPcb: 'prevPcb',
-  prevZakat: 'prevZakat'
+  prevZakat: 'prevZakat',
+  temporaryReviewDate: 'temporaryReviewDate'
 } as const
 
 export type PayrollProfileScalarFieldEnum = (typeof PayrollProfileScalarFieldEnum)[keyof typeof PayrollProfileScalarFieldEnum]
@@ -1191,6 +1207,18 @@ export const PushSubscriptionOrderByRelevanceFieldEnum = {
 } as const
 
 export type PushSubscriptionOrderByRelevanceFieldEnum = (typeof PushSubscriptionOrderByRelevanceFieldEnum)[keyof typeof PushSubscriptionOrderByRelevanceFieldEnum]
+
+
+export const NotificationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  title: 'title',
+  body: 'body',
+  url: 'url'
+} as const
+
+export type NotificationOrderByRelevanceFieldEnum = (typeof NotificationOrderByRelevanceFieldEnum)[keyof typeof NotificationOrderByRelevanceFieldEnum]
 
 
 export const EmployeeImportDraftOrderByRelevanceFieldEnum = {

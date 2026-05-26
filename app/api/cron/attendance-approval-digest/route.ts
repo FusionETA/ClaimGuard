@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getRedis, key } from "@/lib/redis"
-import { sendPushToUser } from "@/lib/web-push"
+import { notify } from "@/modules/notifications/application/services/notification.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
 
@@ -209,13 +209,16 @@ export async function POST(request: NextRequest) {
             : `${group.count} attendance approvals waiting. Oldest ${ageLabel} old.`
 
         try {
-          await sendPushToUser(group.reviewerId, {
+          await notify({
+            userId: group.reviewerId,
+            organizationId: orgId,
+            type: "ATTENDANCE_APPROVAL",
             title: "Approvals Waiting",
             body,
             url: "/employee/attendance/approvals",
           })
         } catch {
-          // sendPushToUser swallows internally, but belt + suspenders.
+          // notify swallows internally, but belt + suspenders.
         }
 
         await writeState(redis, stateKey, {
