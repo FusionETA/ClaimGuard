@@ -9,6 +9,7 @@ import {
   attendancePercentOf,
   autoHoursFromMinutes,
   calcPayslip,
+  workingDaysForPeriod,
 } from "@/modules/payroll/domain/calc"
 import { PAYROLL_RUN_STATUS_LABELS, periodLabel } from "@/modules/payroll/domain/runs"
 import type {
@@ -45,6 +46,25 @@ import { policyRepository } from "@/modules/policy/infrastructure/policy.reposit
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import { unpaidLeaveDays } from "@/modules/leave/application/services/leave-balance.service"
 import { deriveDailyHours } from "@/modules/payroll/domain/calc"
+
+/**
+ * Auto "Unpaid Leave" deduction for MONTHLY staff: the base salary is left
+ * intact and unpaid leave is docked as a separate `deduct_unpaid_leave`
+ * line (daily rate × unpaid days, daily rate = monthlySalary ÷ working-days
+ * basis). Returns 0 when not applicable (HOURLY, no unpaid leave, no salary).
+ */
+function unpaidLeaveDeductionAmount(input: {
+  salaryType: "MONTHLY" | "HOURLY"
+  monthlySalary: number | null
+  unpaidDays: number
+  workingDaysBasis: number
+}): number {
+  if (input.salaryType !== "MONTHLY") return 0
+  if (input.monthlySalary == null || input.monthlySalary <= 0) return 0
+  if (input.unpaidDays <= 0 || input.workingDaysBasis <= 0) return 0
+  const daily = input.monthlySalary / input.workingDaysBasis
+  return Math.round(daily * input.unpaidDays * 100) / 100
+}
 
 /**
  * Page-data + action services for the "Payroll → Runs" surface.
@@ -588,6 +608,30 @@ export async function previewEmployeeNetForRun(input: {
     }
   }
 
+  // Mirror the run's auto "Unpaid Leave" deduction (MONTHLY) so the
+  // net-pay guard matches what generation will produce.
+  const previewFrom = new Date(Date.UTC(run.periodYear, run.periodMonth - 1, 1))
+  const previewTo = new Date(
+    Date.UTC(run.periodYear, run.periodMonth, 0, 23, 59, 59),
+  )
+  const previewUnpaidDeduct = unpaidLeaveDeductionAmount({
+    salaryType: e.profile.salaryType,
+    monthlySalary: e.profile.monthlySalary,
+    unpaidDays: await unpaidLeaveDays(e.employeeProfileId, previewFrom, previewTo),
+    workingDaysBasis: workingDaysForPeriod({
+      year: run.periodYear,
+      month: run.periodMonth,
+      rule: settings?.workingDaysRule ?? "TWENTY_SIX",
+    }),
+  })
+  if (previewUnpaidDeduct > 0) {
+    oneOffLines.push({
+      category: "deduct_unpaid_leave" as (typeof overriddenFixed)[number]["category"],
+      name: "Unpaid Leave",
+      amount: previewUnpaidDeduct,
+    })
+  }
+
   const ytdRaw = await payslipRepository.getYtdForEmployee({
     employeeProfileId: e.employeeProfileId,
     year: run.periodYear,
@@ -626,6 +670,31 @@ export async function previewEmployeeNetForRun(input: {
     .filter((a) => a.employeeProfileId === e.employeeProfileId)
     .map((a) => ({ id: a.claimId, label: a.label, amount: a.amount }))
 
+  // HOURLY gross = worked hours × rate. Use the admin's override if set,
+  // else the attendance-derived hours (when the policy grants attendance).
+  let previewWorkedHours = input.patch.workedHours ?? null
+  if (previewWorkedHours == null && policy?.canAccessAttendance === true) {
+    const hoursMap = await attendanceRepository.getPayrollHoursForProfiles({
+      organizationId: orgId,
+      periodYear: run.periodYear,
+      periodMonth: run.periodMonth,
+      employees: [
+        {
+          employeeProfileId: e.employeeProfileId,
+          joinDate: e.profile.joinDate,
+          leaveDate: e.profile.leaveDate,
+        },
+      ],
+    })
+    const hrs = hoursMap.get(e.employeeProfileId) ?? null
+    previewWorkedHours = autoHoursFromMinutes({
+      salaryType: e.profile.salaryType,
+      workedMin: hrs?.workedMin ?? 0,
+      scheduledMin: hrs?.scheduledMin ?? 0,
+      paidLeaveMin: hrs?.paidLeaveMin ?? 0,
+    }).workedHours
+  }
+
   const result = calcPayslip({
     profile: { ...e.profile, fixedAllowances: [...overriddenFixed, ...oneOffLines] },
     settings: calcSettings,
@@ -635,6 +704,7 @@ export async function previewEmployeeNetForRun(input: {
     otNormalHours: input.patch.otNormalHours,
     otRestHours: input.patch.otRestHours,
     otPublicHours: input.patch.otPublicHours,
+    workedHours: previewWorkedHours,
     reimbursements,
     manualDeductions: [],
     ytdTaxable: ytd.ytdTaxable,
@@ -895,6 +965,28 @@ export async function generatePayrollPayslips(input: {
       }
     }
 
+    // Auto "Unpaid Leave" deduction (MONTHLY): the base salary stays full;
+    // approved unpaid leave is docked as its own line so the payslip reads
+    // "Base salary 3000 / Unpaid Leave −115.38". Flows through the
+    // category-aware calc, reducing gross/net + EPF/SOCSO/EIS/PCB/HRDF.
+    const unpaidLeaveDeduct = unpaidLeaveDeductionAmount({
+      salaryType: e.profile.salaryType,
+      monthlySalary: e.profile.monthlySalary,
+      unpaidDays: unpaidLeaveByEmp.get(e.employeeProfileId) ?? 0,
+      workingDaysBasis: workingDaysForPeriod({
+        year: run.periodYear,
+        month: run.periodMonth,
+        rule: settings?.workingDaysRule ?? "TWENTY_SIX",
+      }),
+    })
+    if (unpaidLeaveDeduct > 0) {
+      oneOffLines.push({
+        category: "deduct_unpaid_leave" as (typeof overriddenFixed)[number]["category"],
+        name: "Unpaid Leave",
+        amount: unpaidLeaveDeduct,
+      })
+    }
+
     const profileWithAdjAllowances = {
       ...e.profile,
       fixedAllowances: [...overriddenFixed, ...oneOffLines],
@@ -940,6 +1032,9 @@ export async function generatePayrollPayslips(input: {
       otNormalHours: adj?.otNormalHours ?? 0,
       otRestHours: adj?.otRestHours ?? 0,
       otPublicHours: adj?.otPublicHours ?? 0,
+      // HOURLY gross = workedHours × rate. MONTHLY ignores this for basic
+      // pay (paid by salary, docked via the unpaid-leave deduction line).
+      workedHours: displayWorkedHours,
       // Reimbursements: pre-attached PayrollRunClaim rows for this
       // employee. The claim id flows through to the generated
       // PayslipLineItem's `claimId` FK for traceability.

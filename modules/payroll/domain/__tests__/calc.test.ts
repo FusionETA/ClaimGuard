@@ -444,3 +444,36 @@ describe("autoHoursFromMinutes", () => {
     expect(r.expectedHours).toBeNull()
   })
 })
+
+describe("calcPayslip — unpaid leave reduces gross (not just net)", () => {
+  it("docks unpaid leave from gross; base salary line stays full", () => {
+    const base = calcPayslip({
+      profile: makeProfile({ monthlySalary: 3000 }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+    })
+    const withUnpaid = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3000,
+        fixedAllowances: [
+          {
+            category:
+              "deduct_unpaid_leave" satisfies PayrollAdjustmentCategory,
+            name: "Unpaid Leave",
+            amount: 115.38, // 1 day of a 26-day basis on RM3000
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+    })
+    // Base salary (proratedPay) is unchanged — full month.
+    expect(withUnpaid.proratedPay).toBe(base.proratedPay)
+    // Gross is reduced by exactly the unpaid-leave amount.
+    expect(withUnpaid.grossPay).toBeCloseTo(base.grossPay - 115.38, 2)
+    // Not double-counted: net = gross − statutory (unpaid leave already in gross).
+    expect(withUnpaid.totalDeductions).toBe(0)
+  })
+})

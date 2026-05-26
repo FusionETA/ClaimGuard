@@ -698,6 +698,10 @@ function LineRow(props: {
   // Reimbursement categories aren't surfaced here — those flow through
   // the Reimbursements (claims) section instead.
   const allowedCategories = payrollAdjustmentCategories.filter((code) => {
+    // Unpaid leave is auto-docked from approved unpaid-leave applications
+    // (a "deduct_unpaid_leave" line is injected at generation), so don't
+    // let admins add it manually too — that would double-deduct.
+    if (code === "deduct_unpaid_leave") return false
     const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[code]
     if (props.line.kind === "DEDUCTION") return meta.kind === "DEDUCTION"
     return meta.kind === "ALLOWANCE"

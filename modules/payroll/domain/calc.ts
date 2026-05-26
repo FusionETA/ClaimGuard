@@ -704,6 +704,10 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   /// payslip surfaces this as a separate "Benefits in Kind" subtotal.
   let totalBenefitsInKind = 0
   let totalRecurringDeductions = 0
+  /// Deductions that represent lost earnings (e.g. unpaid leave). These
+  /// are subtracted from GROSS rather than from take-home, so they are
+  /// NOT added to `totalRecurringDeductions` (which would double-count).
+  let totalGrossReducingDeductions = 0
   let totalRecurringReimbursements = 0
   let epfAdjustmentBase = 0
   let socsoAdjustmentBase = 0
@@ -739,12 +743,17 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     }
 
     if (meta.kind === "DEDUCTION") {
+      // `reducesGross` rows (unpaid leave) are lost earnings — they come
+      // off GROSS, not take-home, so they go in their own bucket and are
+      // kept OUT of `totalRecurringDeductions` (else net double-counts).
       // `cashNeutral` rows (zakat paid outside payroll, declared via
       // TP1) lower PCB but are NOT subtracted from take-home — the
       // employee already paid the amount directly to the zakat centre.
       // So skip `totalRecurringDeductions` for them; the `offsetsPcb`
       // branch below still reduces the month's PCB.
-      if (!meta.cashNeutral) {
+      if (meta.reducesGross) {
+        totalGrossReducingDeductions += amt
+      } else if (!meta.cashNeutral) {
         totalRecurringDeductions += amt
       }
       if (meta.reducesBase) {
@@ -1025,10 +1034,16 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   const hrdf = hrdfActive ? round2(hrdfWage * (hrdfRate / 100)) : 0
 
   // 10. Gross / Net / Cost to employer.
-  // Gross = prorated + OT + allowances + reimbursements (what the
-  // employee sees on the payslip before deductions).
+  // Gross = prorated + OT + allowances + reimbursements, minus any
+  // gross-reducing deductions (lost earnings, e.g. unpaid leave). The
+  // base-salary line still shows the full salary; unpaid leave appears
+  // as a separate "−X" line and is reflected here in gross.
   const grossPay = round2(
-    proratedPay + otPay + totalAllowances + totalReimbursements,
+    proratedPay +
+      otPay +
+      totalAllowances +
+      totalReimbursements -
+      totalGrossReducingDeductions,
   )
   // Zakat is already inside `totalDeductions` (kind: DEDUCTION line
   // items get counted there) — don't subtract it again here. The

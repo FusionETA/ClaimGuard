@@ -175,6 +175,12 @@ export type PayrollAdjustmentCategoryMeta = {
   /// `calcPayslip` via `ytdAllowanceByCategory` — see calc.ts.
   taxExemptLimit?: number
   reducesBase?: boolean
+  /// When true, this deduction reduces GROSS pay (it represents lost
+  /// earnings, e.g. unpaid leave), not just take-home. The amount is
+  /// subtracted from gross and is NOT also counted in
+  /// `totalDeductions` (which would double-reduce net). The base-salary
+  /// line still shows the full salary, with this as a separate "−X" line.
+  reducesGross?: boolean
   referenceOnly?: boolean
   /// When true, the amount is treated as additional remuneration
   /// under LHDN's PCB MTD spec — a one-off payment (bonus,
@@ -646,6 +652,9 @@ export const PAYROLL_ADJUSTMENT_CATEGORY_META: Record<
     // them shouldn't be in the levy base.
     subjectToHrdf: true,
     reducesBase: true,
+    // Unpaid leave is lost earnings: dock it from GROSS (not just net),
+    // while the base-salary line still shows the full salary.
+    reducesGross: true,
   },
   deduct_salary_adjustment: {
     code: "deduct_salary_adjustment",
