@@ -165,7 +165,13 @@ export async function generatePayrollReport(input: {
   // each click regenerates with the current admin-supplied date.
   // File size is small (low KBs) so re-rendering on every click is
   // cheap.
-  const skipCacheRead = input.kind === "BANK_PB_ECP_XLSX"
+  //
+  // PCB TXT is also regenerated on each click because it depends on live
+  // statutory identity fields and LHDN's portal rejects incomplete
+  // fixed-width rows. This prevents an older bad TXT from being served
+  // after the admin corrects passport/employee/tax fields.
+  const skipCacheRead =
+    input.kind === "BANK_PB_ECP_XLSX" || input.kind === "PCB_TXT"
 
   // Cache hit — return the existing entry without re-rendering.
   const cached = skipCacheRead
@@ -326,7 +332,7 @@ export async function readPayrollReportFile(input: {
     payrollRunId: run.id,
     kind: input.kind,
   })
-  if (row) {
+  if (row && input.kind !== "PCB_TXT") {
     const onDiskPath = path.join(
       process.cwd(),
       "public",

@@ -100,7 +100,14 @@ export async function renderPcbTxt(input: {
     // we don't compute it).
     if (row.payslip.pcb <= 0) continue
 
+    const employeeCode = row.employeeCode.trim()
+    const employeeRef = employeeCode || row.employeeName
     const taxRef = taxRefWithoutWifeCode(row.incomeTaxNumber)
+    if (taxRef.length === 0) {
+      throw new Error(
+        `PCB TXT cannot be generated: ${employeeRef} is missing an income tax number.`,
+      )
+    }
     const wifeCode = pcbWifeCode({
       taxRef: row.incomeTaxNumber,
       gender: row.gender,
@@ -112,8 +119,22 @@ export async function renderPcbTxt(input: {
     const isMalaysian =
       (row.nationality ?? "").toLowerCase() === "malaysian" || row.hasPr
     const newIc = isMalaysian ? normaliseNewIc(row.idNumber) : ""
-    const passport =
-      !isMalaysian && row.idType === "PASSPORT" ? (row.idNumber ?? "") : ""
+    const passport = !isMalaysian ? normalisePassport(row.idNumber) : ""
+    if (isMalaysian && newIc.length === 0) {
+      throw new Error(
+        `PCB TXT cannot be generated: ${employeeRef} is missing a New IC number.`,
+      )
+    }
+    if (!isMalaysian && passport.length === 0) {
+      throw new Error(
+        `PCB TXT cannot be generated: ${employeeRef} is missing a passport number.`,
+      )
+    }
+    if (employeeCode.length === 0) {
+      throw new Error(
+        `PCB TXT cannot be generated: ${row.employeeName} is missing an employee/payroll number.`,
+      )
+    }
     // Country code not yet captured separately on PayrollProfile —
     // leave blank. Admin can dry-run + we add it if LHDN rejects.
     const countryCode = ""
@@ -133,7 +154,7 @@ export async function renderPcbTxt(input: {
       padRight(countryCode, 2) +
       padZero(pcbSen, 8) +
       padZero(0, 8) + // CP38 amount
-      padRight(row.employeeCode, 10)
+      padRight(employeeCode, 10)
 
     if (detail.length !== 136) {
       detailLines.push(detail.padEnd(136, " ").slice(0, 136))
@@ -160,4 +181,8 @@ export async function renderPcbTxt(input: {
   const allLines = [headerLine, ...detailLines]
   const text = allLines.join("\r\n") + "\r\n"
   return Buffer.from(text, "utf8")
+}
+
+function normalisePassport(idNumber: string | null | undefined): string {
+  return (idNumber ?? "").replace(/[^0-9A-Za-z]/g, "")
 }
