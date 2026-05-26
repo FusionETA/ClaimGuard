@@ -714,7 +714,9 @@ export const claimRepository = {
     if (!prisma) return null
 
     const row = await prisma.user.findFirst({
-      where: { email, role: "ADMIN" },
+      // OWNER is an admin superset — it must resolve as an admin profile
+      // too, otherwise owners get bounced from every admin page.
+      where: { email, role: { in: ["ADMIN", "OWNER"] } },
       include: {
         organization: true,
       },
@@ -1696,7 +1698,7 @@ export const claimRepository = {
 
     const row = await prisma.user.findFirst({
       where: {
-        role: "ADMIN",
+        role: { in: ["ADMIN", "OWNER"] },
         ...(organizationId ? { organizationId } : {}),
       },
       orderBy: { createdAt: "asc" },
@@ -1715,7 +1717,9 @@ export const claimRepository = {
       where:
         role === "EMPLOYEE"
           ? { email, role: { in: ["EMPLOYEE", "SUPERVISOR"] } }
-          : { email, role },
+          : role === "ADMIN"
+            ? { email, role: { in: ["ADMIN", "OWNER"] } }
+            : { email, role },
     })
     return row?.id ?? null
   },
