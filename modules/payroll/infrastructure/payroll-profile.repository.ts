@@ -60,6 +60,59 @@ export const payrollProfileRepository = {
   },
 
   /**
+   * Find temporary employees whose review date has arrived (on or before
+   * `cutoff`). Only includes active employees whose assigned policy is
+   * temporary. Used by the temporary-review reminder cron.
+   */
+  async findDueTemporaryReviews(cutoff: Date): Promise<
+    Array<{
+      userId: string
+      employeeName: string
+      organizationId: string
+      reviewDate: string // ISO yyyy-mm-dd
+    }>
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    const rows = await prisma.payrollProfile.findMany({
+      where: {
+        isArchived: false,
+        temporaryReviewDate: { not: null, lte: cutoff },
+        employeeProfile: { policy: { temporary: true } },
+      },
+      select: {
+        temporaryReviewDate: true,
+        employeeProfile: {
+          select: {
+            user: {
+              select: { id: true, name: true, organizationId: true },
+            },
+          },
+        },
+      },
+    })
+
+    const out: Array<{
+      userId: string
+      employeeName: string
+      organizationId: string
+      reviewDate: string
+    }> = []
+    for (const row of rows) {
+      const user = row.employeeProfile?.user
+      if (!user || !user.organizationId || !row.temporaryReviewDate) continue
+      out.push({
+        userId: user.id,
+        employeeName: user.name,
+        organizationId: user.organizationId,
+        reviewDate: row.temporaryReviewDate.toISOString().slice(0, 10),
+      })
+    }
+    return out
+  },
+
+  /**
    * Upsert: create the profile if missing, otherwise patch the supplied
    * fields. `employeeProfileId` is the lookup key. Anything not in
    * `patch` is left untouched (PATCH semantics).
@@ -382,6 +435,9 @@ function mapPayrollProfile(row: any): PayrollProfileData {
     fixedAllowances: parseFixedAllowancesJson(row.fixedAllowances),
 
     joinDate: row.joinDate ? row.joinDate.toISOString().slice(0, 10) : null,
+    temporaryReviewDate: row.temporaryReviewDate
+      ? row.temporaryReviewDate.toISOString().slice(0, 10)
+      : null,
     leaveDate: row.leaveDate ? row.leaveDate.toISOString().slice(0, 10) : null,
     archiveReason: row.archiveReason ?? null,
     reportedToLhdn: row.reportedToLhdn,
@@ -489,6 +545,7 @@ function toPrismaUpsertData(
   }
 
   copyDate("joinDate")
+  copyDate("temporaryReviewDate")
   copyDate("leaveDate")
   copy("archiveReason")
   copy("reportedToLhdn")

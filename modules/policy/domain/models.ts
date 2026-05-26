@@ -30,6 +30,10 @@ export type EmployeePolicy = {
   /// When true, the clock-in flow gates on a selfie capture. Replaces
   /// the legacy "Hourly Worker == selfie required" hardcoding.
   requireSelfie: boolean
+  /// When true, employees on this policy are temporary (probation /
+  /// fixed-term). Enables the per-employee `temporaryReviewDate` field
+  /// and the admin review reminder.
+  temporary: boolean
   /// OT multipliers, salary cap, and daily threshold. Applied only when
   /// `otEnabled && otMethod === "CASH"`. Always present in the DB row;
   /// the calc engine ignores them outside CASH mode.

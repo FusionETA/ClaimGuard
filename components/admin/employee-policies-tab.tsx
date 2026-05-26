@@ -517,6 +517,29 @@ function PolicyEditorCard({
             </div>
           </div>
 
+          <div>
+            <p className="text-sm font-semibold text-foreground">Classification</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Mark this policy as temporary (e.g. probation, fixed-term).
+              Employees assigned to it get a review date, and admins are
+              reminded to revisit their classification when it arrives.
+            </p>
+            <div className="mt-3">
+              <label className="flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
+                  name="temporary"
+                  defaultChecked={policy?.temporary ?? false}
+                  disabled={pending}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">
+                  Temporary
+                </span>
+              </label>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <Button type="submit" disabled={pending}>
               {pending ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}

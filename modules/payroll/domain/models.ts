@@ -882,6 +882,10 @@ export type PayrollProfileData = {
 
   // Employment dates
   joinDate: string | null // ISO yyyy-mm-dd
+  /// Review/checkpoint date for temporary employees (probation end,
+  /// fixed-term review). Only meaningful when the assigned policy is
+  /// temporary. ISO yyyy-mm-dd.
+  temporaryReviewDate: string | null
   leaveDate: string | null
   archiveReason: string | null
   reportedToLhdn: boolean

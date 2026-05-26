@@ -126,6 +126,11 @@ model EmployeePolicy {
   /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
   /// selfie on for any policy regardless of pay type.
   requireSelfie              Boolean                  @default(false)
+  /// When true, employees on this policy are temporary (e.g. probation,
+  /// fixed-term). The admin sets a `temporaryReviewDate` on each such
+  /// employee's payroll profile; a cron reminds admins to revisit the
+  /// employee's classification when that date arrives.
+  temporary                  Boolean                  @default(false)
   /// Daily working minutes after which extra time becomes OT-eligible.
   /// Stored as minutes for precision; the admin UI presents this as
   /// hours (minutes ÷ 60).
@@ -992,6 +997,10 @@ model PayrollProfile {
   /// One-off adjustments are added per-run via PayslipLineItem.
   fixedAllowances          Json?
   joinDate                 DateTime?
+  /// Review/checkpoint date for temporary employees (probation end,
+  /// fixed-term review, etc). Only meaningful when the assigned policy
+  /// has `temporary = true`. A cron reminds admins when it arrives.
+  temporaryReviewDate      DateTime?
   /// Set when employee leaves. Triggers proration on their final
   /// payroll run.
   leaveDate                DateTime?

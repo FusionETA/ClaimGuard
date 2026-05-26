@@ -428,6 +428,7 @@ export async function createImportPolicyAction(input: {
       otMethod: "CASH",
       requireGeofence: true,
       requireSelfie: false,
+      temporary: false,
       otRateNormalDay: 1.5,
       otRateRestDay: 2.0,
       otRatePublicHoliday: 3.0,
