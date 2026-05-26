@@ -1,11 +1,29 @@
 import "server-only"
 
+import { publishUserEvents } from "@/lib/realtime"
+import { notify } from "@/modules/notifications/application/services/notification.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type {
   ApprovalRequestView,
   SupervisorTeamOverview,
 } from "@/modules/attendance/domain/models"
 import { loadEmployeeDetail } from "./employee-detail-loader"
+
+/** Human label for an approval kind, used in notification bodies. */
+function approvalKindLabel(kind: string): string {
+  switch (kind) {
+    case "CLOCK_IN":
+      return "clock-in"
+    case "CLOCK_OUT":
+      return "clock-out"
+    case "BREAK":
+      return "break"
+    case "OT":
+      return "overtime"
+    default:
+      return "attendance"
+  }
+}
 
 export const supervisorAttendanceService = {
   async getTeamOverview(supervisorId: string): Promise<SupervisorTeamOverview> {
@@ -36,13 +54,50 @@ export const supervisorAttendanceService = {
     status: "APPROVED" | "REJECTED",
     options?: { notes?: string | null; overrideEventAt?: Date | null },
   ): Promise<void> {
-    await attendanceRepository.reviewApproval(
+    const result = await attendanceRepository.reviewApproval(
       approvalId,
       supervisorId,
       status,
       options?.notes ?? undefined,
       options?.overrideEventAt ?? null,
     )
+
+    // Realtime fan-out (mirrors claims):
+    //   - next-step approvers get a real notification (live queue + bell),
+    //   - peers at the step just acted on get a silent refresh so it
+    //     leaves their queue, and
+    //   - the employee hears the FINAL decision (approved/rejected).
+    try {
+      await Promise.all(
+        result.nextApproverIds.map((approverId) =>
+          notify({
+            userId: approverId,
+            type: "ATTENDANCE_APPROVAL",
+            title: "Approval Awaiting You",
+            body: `An ${approvalKindLabel(result.kind)} request advanced to you for review.`,
+            url: "/employee/attendance/approvals",
+          }),
+        ),
+      )
+      await publishUserEvents(result.peerApproverIds, {
+        type: "refresh",
+        scope: "attendance",
+      })
+      if (result.finalStatus !== "PENDING") {
+        const approved = result.finalStatus === "APPROVED"
+        await notify({
+          userId: result.employeeUserId,
+          type: "ATTENDANCE_APPROVAL",
+          title: approved ? "Attendance Approved" : "Attendance Rejected",
+          body: `Your ${approvalKindLabel(result.kind)} request was ${
+            approved ? "approved" : "rejected"
+          }.`,
+          url: "/employee/attendance",
+        })
+      }
+    } catch {
+      // Realtime / notifications must never block a successful review.
+    }
   },
 
   async overrideAttendanceTimes(

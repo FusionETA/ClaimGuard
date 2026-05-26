@@ -286,6 +286,36 @@ function approvalToView(r: PrismaApproval): ApprovalRequestView {
 }
 
 /**
+ * Resolve the current-step approver user-ids for a freshly created
+ * PENDING approval request. Returns [] when there's no chain. Used to
+ * drive the silent realtime "refresh" so the request shows up live in
+ * the right supervisors' approval queues.
+ */
+async function resolveCurrentApproverIds(
+  requestId: string,
+  employeeId: string,
+  kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK" | "OT",
+  projectId: string | null,
+): Promise<string[]> {
+  try {
+    const ctx = await resolveApprovalContext({
+      requestId,
+      employeeId,
+      kind,
+      status: "PENDING",
+      reviewerId: null,
+      projectId,
+    })
+    if (ctx.currentStep === null) return []
+    return (ctx.chain[ctx.currentStep - 1]?.approvers ?? []).map(
+      (a) => a.approverId,
+    )
+  } catch {
+    return []
+  }
+}
+
+/**
  * Per-row chain resolution. Looks up the project for each approval (via
  * AttendanceRecord on the same employee+date), resolves the chain, and
  * overrides currentStep / totalSteps / currentStepApproverNames on each
@@ -891,7 +921,16 @@ export const attendanceRepository = {
     projectId?: string,
     notes?: string,
     geo?: { lat: number; lng: number; distanceMeters: number | null },
-  ): Promise<{ recordId: string; approvalId: string }> {
+  ): Promise<{
+    recordId: string
+    approvalId: string
+    /// Current-step approver user-ids for the PENDING request just
+    /// created (empty when auto-approved). The service publishes a
+    /// silent realtime "refresh" to them so the request appears live in
+    /// their approval queue — without a per-event bell notification
+    /// (the digest cron owns batched bell reminders).
+    pendingApproverIds: string[]
+  }> {
     const prisma = getClient()
     const now = new Date()
     const today = startOfDay(now)
@@ -986,7 +1025,16 @@ export const attendanceRepository = {
       },
     })
 
-    return { recordId: record.id, approvalId: approval.id }
+    const pendingApproverIds = autoApprove
+      ? []
+      : await resolveCurrentApproverIds(
+          approval.id,
+          employeeId,
+          "CLOCK_IN",
+          projectId ?? null,
+        )
+
+    return { recordId: record.id, approvalId: approval.id, pendingApproverIds }
   },
 
   async clockOut(
@@ -994,7 +1042,14 @@ export const attendanceRepository = {
     location?: string,
     notes?: string,
     geo?: { lat: number; lng: number; distanceMeters: number | null },
-  ): Promise<{ recordId: string; approvalId: string }> {
+  ): Promise<{
+    recordId: string
+    approvalId: string
+    /// Current-step approver ids for any PENDING request(s) created here
+    /// (clock-out and/or the auto-OT). Empty when auto-approved. Drives
+    /// the silent realtime "refresh" of the supervisors' queues.
+    pendingApproverIds: string[]
+  }> {
     const prisma = getClient()
     const now = new Date()
     const today = startOfDay(now)
@@ -1124,6 +1179,7 @@ export const attendanceRepository = {
     // exceed the org's daily OT threshold. Routed through the team's
     // multi-layer chain (filtered by Team.moduleConfig.OT) — the work
     // only buckets as OT once the chain reaches APPROVED.
+    let otPendingApproverIds: string[] = []
     if (durationMin && orgId) {
       // OT threshold + per-employee enablement come from the policy
       // now. Org-level `otEnabled` is still the master kill-switch.
@@ -1170,7 +1226,7 @@ export const attendanceRepository = {
             projectId: existing?.projectId ?? null,
             kind: "OT",
           })
-          await prisma.approvalRequest.create({
+          const otApproval = await prisma.approvalRequest.create({
             data: {
               employeeId,
               kind: "OT",
@@ -1197,11 +1253,33 @@ export const attendanceRepository = {
               data: { otTimeBalanceMin: { increment: otMinutes } },
             })
           }
+          if (!otAutoApprove) {
+            otPendingApproverIds = await resolveCurrentApproverIds(
+              otApproval.id,
+              employeeId,
+              "OT",
+              existing?.projectId ?? null,
+            )
+          }
         }
       }
     }
 
-    return { recordId: record.id, approvalId: approval.id }
+    const clockOutApproverIds = autoApprove
+      ? []
+      : await resolveCurrentApproverIds(
+          approval.id,
+          employeeId,
+          "CLOCK_OUT",
+          existing?.projectId ?? null,
+        )
+    return {
+      recordId: record.id,
+      approvalId: approval.id,
+      pendingApproverIds: Array.from(
+        new Set([...clockOutApproverIds, ...otPendingApproverIds]),
+      ),
+    }
   },
 
   async startBreak(
@@ -2255,7 +2333,18 @@ export const attendanceRepository = {
     status: "APPROVED" | "REJECTED",
     notes?: string,
     overrideEventAt?: Date | null,
-  ): Promise<void> {
+  ): Promise<{
+    employeeUserId: string
+    kind: string
+    finalStatus: "PENDING" | "APPROVED" | "REJECTED"
+    /// Approvers at the NEXT step — set only when an APPROVAL advanced
+    /// the chain (still PENDING). The service notifies them so the
+    /// request appears live in their queue + bell.
+    nextApproverIds: string[]
+    /// Other approvers at the step just acted on (excluding the
+    /// reviewer) — nudged so the request leaves their queue live.
+    peerApproverIds: string[]
+  }> {
     const prisma = getClient()
     const now = new Date()
 
@@ -2330,6 +2419,15 @@ export const attendanceRepository = {
     const isLastStep = ctx.currentStep === ctx.chain.length
     const finalStatus: "PENDING" | "APPROVED" | "REJECTED" =
       status === "REJECTED" ? "REJECTED" : isLastStep ? "APPROVED" : "PENDING"
+
+    // Realtime fan-out targets (computed from the chain we already have).
+    const peerApproverIds = (stepEntry?.approvers ?? [])
+      .map((a) => a.approverId)
+      .filter((id) => id !== reviewerId)
+    const nextApproverIds =
+      finalStatus === "PENDING"
+        ? (ctx.chain[ctx.currentStep]?.approvers ?? []).map((a) => a.approverId)
+        : []
 
     await prisma.approvalRequest.update({
       where: { id: approvalId },
@@ -2445,6 +2543,14 @@ export const attendanceRepository = {
           })
         }
       }
+    }
+
+    return {
+      employeeUserId: request.employeeId,
+      kind: request.kind,
+      finalStatus,
+      nextApproverIds,
+      peerApproverIds,
     }
   },
 

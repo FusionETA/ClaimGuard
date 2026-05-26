@@ -2,6 +2,7 @@ import "server-only"
 
 import { getOrSetCache } from "@/lib/cache"
 import { DEFAULT_GEOFENCE_RADIUS_METERS, checkGeofence } from "@/lib/geo"
+import { publishUserEvents } from "@/lib/realtime"
 import { key } from "@/lib/redis"
 import {
   getOrCreateAttendanceSelfieFolder,
@@ -404,6 +405,16 @@ export const employeeAttendanceService = {
       }
     }
 
+    // Live: nudge the supervisors who can approve this pending clock-in
+    // so it appears in their queue immediately (silent — no bell spam;
+    // the digest cron still owns batched reminders).
+    if (result.pendingApproverIds.length > 0) {
+      await publishUserEvents(result.pendingApproverIds, {
+        type: "refresh",
+        scope: "attendance",
+      })
+    }
+
     return result
   },
 
@@ -420,12 +431,22 @@ export const employeeAttendanceService = {
     const location = coords
       ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
       : undefined
-    return attendanceRepository.clockOut(
+    const result = await attendanceRepository.clockOut(
       employeeId,
       location,
       notes,
       coords ? { lat: coords.lat, lng: coords.lng, distanceMeters } : undefined,
     )
+
+    // Live nudge for any pending clock-out / auto-OT approvals.
+    if (result.pendingApproverIds.length > 0) {
+      await publishUserEvents(result.pendingApproverIds, {
+        type: "refresh",
+        scope: "attendance",
+      })
+    }
+
+    return result
   },
 
   async startBreak(
