@@ -75,6 +75,9 @@ const createPolicySchema = z.object({
   requireGeofence: z.boolean(),
   requireSelfie: z.boolean(),
 
+  // Classification — temporary (probation / fixed-term) employees.
+  temporary: z.boolean().default(false),
+
   // OT multipliers (always required — see file-level note)
   otRateNormalDay: z.number().nonnegative(),
   otRateRestDay: z.number().nonnegative(),
@@ -137,6 +140,7 @@ export const POST = handleApiRequest(
         otMethod: parsed.data.otMethod,
         requireGeofence: parsed.data.requireGeofence,
         requireSelfie: parsed.data.requireSelfie,
+        temporary: parsed.data.temporary,
         otRateNormalDay: parsed.data.otRateNormalDay,
         otRateRestDay: parsed.data.otRateRestDay,
         otRatePublicHoliday: parsed.data.otRatePublicHoliday,
@@ -194,6 +198,7 @@ export function toExternalPolicy(p: EmployeePolicy) {
     attendance: {
       requireGeofence: p.requireGeofence,
       requireSelfie: p.requireSelfie,
+      temporary: p.temporary,
     },
     otRates: {
       normalDay: p.otRateNormalDay,

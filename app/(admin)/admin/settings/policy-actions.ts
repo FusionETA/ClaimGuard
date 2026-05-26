@@ -21,6 +21,7 @@ const baseSchema = z.object({
   otMode: z.enum(["NONE", "CASH", "TIME_BANK"]),
   requireGeofence: z.boolean(),
   requireSelfie: z.boolean(),
+  temporary: z.boolean(),
   otRateNormalDay: z.coerce.number().nonnegative().max(20),
   otRateRestDay: z.coerce.number().nonnegative().max(20),
   otRatePublicHoliday: z.coerce.number().nonnegative().max(20),
@@ -132,6 +133,7 @@ export async function createPolicyAction(
     otMode: String(formData.get("otMode") ?? "CASH"),
     requireGeofence: parseBoolFlag(formData, "requireGeofence"),
     requireSelfie: parseBoolFlag(formData, "requireSelfie"),
+    temporary: parseBoolFlag(formData, "temporary"),
     ...readOtRates(formData),
   })
 
@@ -153,6 +155,7 @@ export async function createPolicyAction(
       otMethod: ot.otMethod,
       requireGeofence: parsed.data.requireGeofence,
       requireSelfie: parsed.data.requireSelfie,
+      temporary: parsed.data.temporary,
       otRateNormalDay: parsed.data.otRateNormalDay,
       otRateRestDay: parsed.data.otRateRestDay,
       otRatePublicHoliday: parsed.data.otRatePublicHoliday,
@@ -194,6 +197,7 @@ export async function updatePolicyAction(
     otMode: String(formData.get("otMode") ?? "CASH"),
     requireGeofence: parseBoolFlag(formData, "requireGeofence"),
     requireSelfie: parseBoolFlag(formData, "requireSelfie"),
+    temporary: parseBoolFlag(formData, "temporary"),
     ...readOtRates(formData),
   })
 
@@ -216,6 +220,7 @@ export async function updatePolicyAction(
       otMethod: ot.otMethod,
       requireGeofence: parsed.data.requireGeofence,
       requireSelfie: parsed.data.requireSelfie,
+      temporary: parsed.data.temporary,
       otRateNormalDay: parsed.data.otRateNormalDay,
       otRateRestDay: parsed.data.otRateRestDay,
       otRatePublicHoliday: parsed.data.otRatePublicHoliday,

@@ -23,6 +23,7 @@ type PolicyRow = {
   otMethod: OtPayoutMethod
   requireGeofence: boolean
   requireSelfie: boolean
+  temporary: boolean
   otRateNormalDay: unknown
   otRateRestDay: unknown
   otRatePublicHoliday: unknown
@@ -48,6 +49,7 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     otMethod: row.otMethod,
     requireGeofence: row.requireGeofence,
     requireSelfie: row.requireSelfie,
+    temporary: row.temporary,
     otRateNormalDay: toNumber(row.otRateNormalDay, 1.5),
     otRateRestDay: toNumber(row.otRateRestDay, 2.0),
     otRatePublicHoliday: toNumber(row.otRatePublicHoliday, 3.0),
@@ -83,6 +85,7 @@ export type PolicyCreateInput = {
   otMethod: OtPayoutMethod
   requireGeofence: boolean
   requireSelfie: boolean
+  temporary: boolean
   isDefault?: boolean
 } & PolicyOtRateInput
 
@@ -99,6 +102,7 @@ export type PolicyUpdateInput = {
   otMethod?: OtPayoutMethod
   requireGeofence?: boolean
   requireSelfie?: boolean
+  temporary?: boolean
 } & Partial<PolicyOtRateInput>
 
 export const policyRepository = {
@@ -166,6 +170,7 @@ export const policyRepository = {
           otMethod: input.otMethod,
           requireGeofence: input.requireGeofence,
           requireSelfie: input.requireSelfie,
+          temporary: input.temporary,
           otRateNormalDay: input.otRateNormalDay,
           otRateRestDay: input.otRateRestDay,
           otRatePublicHoliday: input.otRatePublicHoliday,
@@ -204,6 +209,7 @@ export const policyRepository = {
           otMethod: input.otMethod ?? undefined,
           requireGeofence: input.requireGeofence ?? undefined,
           requireSelfie: input.requireSelfie ?? undefined,
+          temporary: input.temporary ?? undefined,
           otRateNormalDay: input.otRateNormalDay ?? undefined,
           otRateRestDay: input.otRateRestDay ?? undefined,
           otRatePublicHoliday: input.otRatePublicHoliday ?? undefined,

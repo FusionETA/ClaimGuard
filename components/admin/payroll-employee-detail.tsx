@@ -179,6 +179,7 @@ export function PayrollEmployeeDetail(props: {
           salaryHistory={props.salaryHistory}
           policySalaryType={policySalaryType}
           policyName={assignedPolicy?.name ?? null}
+          policyTemporary={assignedPolicy?.temporary ?? false}
           // Only offer the "assign a policy" shortcut when the Company
           // tab actually exists (company context resolved).
           onAssignPolicy={props.company ? () => setTab("company") : undefined}
@@ -690,6 +691,9 @@ function EmploymentTab(props: {
   policySalaryType: "MONTHLY" | "HOURLY" | null
   /// Assigned policy name, for the read-only hint. Null when unassigned.
   policyName: string | null
+  /// True when the assigned policy is temporary — reveals the review-date
+  /// field so admins can track probation / fixed-term checkpoints.
+  policyTemporary: boolean
   /// Jumps to the Company tab so the admin can assign a policy. Undefined
   /// when there's no Company tab (company context unavailable).
   onAssignPolicy?: () => void
@@ -735,6 +739,9 @@ function EmploymentTab(props: {
       : "",
   )
   const [joinDate, setJoinDate] = useState(props.profile?.joinDate ?? "")
+  const [temporaryReviewDate, setTemporaryReviewDate] = useState(
+    props.profile?.temporaryReviewDate ?? "",
+  )
 
   // Salary-change classification dialog. When the admin clicks Save:
   //   1. We diff the live salary values against the saved snapshot.
@@ -1011,6 +1018,20 @@ function EmploymentTab(props: {
               defaultValue={props.profile?.leaveDate ?? ""}
             />
           </Field>
+          {props.policyTemporary ? (
+            <Field label="Temporary review date">
+              <Input
+                name="temporaryReviewDate"
+                type="date"
+                value={temporaryReviewDate}
+                onChange={(e) => setTemporaryReviewDate(e.target.value)}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                This employee is on a temporary policy. Admins are reminded
+                to review their classification when this date arrives.
+              </p>
+            </Field>
+          ) : null}
         </CardContent>
       </Card>
 
