@@ -9,6 +9,16 @@
 * 🟢 You can import this file directly.
 */
 
+export const NotificationType = {
+  CLAIM_SUBMITTED: 'CLAIM_SUBMITTED',
+  CLAIM_REVIEWED: 'CLAIM_REVIEWED',
+  ATTENDANCE_APPROVAL: 'ATTENDANCE_APPROVAL',
+  TEMPORARY_REVIEW: 'TEMPORARY_REVIEW'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
+
+
 export const LoanRepaymentMode = {
   FIXED: 'FIXED',
   CUSTOM: 'CUSTOM'
@@ -314,3 +324,30 @@ export const LeaveStatus = {
 } as const
 
 export type LeaveStatus = (typeof LeaveStatus)[keyof typeof LeaveStatus]
+
+
+export const AttendanceEditLog_editorRole = {
+  ADMIN: 'ADMIN',
+  EMPLOYEE: 'EMPLOYEE',
+  SUPERVISOR: 'SUPERVISOR'
+} as const
+
+export type AttendanceEditLog_editorRole = (typeof AttendanceEditLog_editorRole)[keyof typeof AttendanceEditLog_editorRole]
+
+
+export const BreakSessionEditLog_editorRole = {
+  ADMIN: 'ADMIN',
+  EMPLOYEE: 'EMPLOYEE',
+  SUPERVISOR: 'SUPERVISOR'
+} as const
+
+export type BreakSessionEditLog_editorRole = (typeof BreakSessionEditLog_editorRole)[keyof typeof BreakSessionEditLog_editorRole]
+
+
+export const Claim_reviewerRole = {
+  ADMIN: 'ADMIN',
+  EMPLOYEE: 'EMPLOYEE',
+  SUPERVISOR: 'SUPERVISOR'
+} as const
+
+export type Claim_reviewerRole = (typeof Claim_reviewerRole)[keyof typeof Claim_reviewerRole]

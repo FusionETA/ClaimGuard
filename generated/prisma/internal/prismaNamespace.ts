@@ -393,6 +393,7 @@ export const ModelName = {
   MasterApiAuditLog: 'MasterApiAuditLog',
   AdminOrganization: 'AdminOrganization',
   PushSubscription: 'PushSubscription',
+  Notification: 'Notification',
   EmployeeImportDraft: 'EmployeeImportDraft',
   EmployeeProfile: 'EmployeeProfile',
   EmployeeProjectAssignment: 'EmployeeProjectAssignment',
@@ -443,7 +444,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1038,6 +1039,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PushSubscriptionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PushSubscriptionCountAggregateOutputType> | number
+        }
+      }
+    }
+    Notification: {
+      payload: Prisma.$NotificationPayload<ExtArgs>
+      fields: Prisma.NotificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NotificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NotificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        findFirst: {
+          args: Prisma.NotificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NotificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        findMany: {
+          args: Prisma.NotificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>[]
+        }
+        create: {
+          args: Prisma.NotificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        createMany: {
+          args: Prisma.NotificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.NotificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        update: {
+          args: Prisma.NotificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.NotificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NotificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.NotificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NotificationPayload>
+        }
+        aggregate: {
+          args: Prisma.NotificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNotification>
+        }
+        groupBy: {
+          args: Prisma.NotificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NotificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NotificationCountAggregateOutputType> | number
         }
       }
     }
@@ -3444,14 +3511,14 @@ export const EmployeePolicyScalarFieldEnum = {
   otEnabled: 'otEnabled',
   requireGeofence: 'requireGeofence',
   requireSelfie: 'requireSelfie',
-  temporary: 'temporary',
   otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   otRateNormalDay: 'otRateNormalDay',
   otRatePublicHoliday: 'otRatePublicHoliday',
   otRatePublicHolidayInShift: 'otRatePublicHolidayInShift',
   otRateRestDay: 'otRateRestDay',
   otRateRestDayInShift: 'otRateRestDayInShift',
-  otSalaryThreshold: 'otSalaryThreshold'
+  otSalaryThreshold: 'otSalaryThreshold',
+  temporary: 'temporary'
 } as const
 
 export type EmployeePolicyScalarFieldEnum = (typeof EmployeePolicyScalarFieldEnum)[keyof typeof EmployeePolicyScalarFieldEnum]
@@ -3536,6 +3603,21 @@ export const PushSubscriptionScalarFieldEnum = {
 } as const
 
 export type PushSubscriptionScalarFieldEnum = (typeof PushSubscriptionScalarFieldEnum)[keyof typeof PushSubscriptionScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  url: 'url',
+  readAt: 'readAt',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const EmployeeImportDraftScalarFieldEnum = {
@@ -3949,7 +4031,6 @@ export const PayrollProfileScalarFieldEnum = {
   hourlyRate: 'hourlyRate',
   fixedAllowances: 'fixedAllowances',
   joinDate: 'joinDate',
-  temporaryReviewDate: 'temporaryReviewDate',
   leaveDate: 'leaveDate',
   archiveReason: 'archiveReason',
   reportedToLhdn: 'reportedToLhdn',
@@ -3966,7 +4047,8 @@ export const PayrollProfileScalarFieldEnum = {
   payrollDocuments: 'payrollDocuments',
   prevAllowableDeductions: 'prevAllowableDeductions',
   prevPcb: 'prevPcb',
-  prevZakat: 'prevZakat'
+  prevZakat: 'prevZakat',
+  temporaryReviewDate: 'temporaryReviewDate'
 } as const
 
 export type PayrollProfileScalarFieldEnum = (typeof PayrollProfileScalarFieldEnum)[keyof typeof PayrollProfileScalarFieldEnum]
@@ -4468,6 +4550,18 @@ export const PushSubscriptionOrderByRelevanceFieldEnum = {
 } as const
 
 export type PushSubscriptionOrderByRelevanceFieldEnum = (typeof PushSubscriptionOrderByRelevanceFieldEnum)[keyof typeof PushSubscriptionOrderByRelevanceFieldEnum]
+
+
+export const NotificationOrderByRelevanceFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  organizationId: 'organizationId',
+  title: 'title',
+  body: 'body',
+  url: 'url'
+} as const
+
+export type NotificationOrderByRelevanceFieldEnum = (typeof NotificationOrderByRelevanceFieldEnum)[keyof typeof NotificationOrderByRelevanceFieldEnum]
 
 
 export const EmployeeImportDraftOrderByRelevanceFieldEnum = {
@@ -5031,6 +5125,13 @@ export type EnumOtPayoutMethodFieldRefInput<$PrismaModel> = FieldRefInputType<$P
 
 
 /**
+ * Reference to a field of type 'NotificationType'
+ */
+export type EnumNotificationTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NotificationType'>
+    
+
+
+/**
  * Reference to a field of type 'ClaimCategory'
  */
 export type EnumClaimCategoryFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimCategory'>
@@ -5066,6 +5167,13 @@ export type EnumClaimTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
+ * Reference to a field of type 'Claim_reviewerRole'
+ */
+export type EnumClaim_reviewerRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Claim_reviewerRole'>
+    
+
+
+/**
  * Reference to a field of type 'ClaimApprovalDecision'
  */
 export type EnumClaimApprovalDecisionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ClaimApprovalDecision'>
@@ -5097,6 +5205,20 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'AttendanceStatus'
  */
 export type EnumAttendanceStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttendanceStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AttendanceEditLog_editorRole'
+ */
+export type EnumAttendanceEditLog_editorRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AttendanceEditLog_editorRole'>
+    
+
+
+/**
+ * Reference to a field of type 'BreakSessionEditLog_editorRole'
+ */
+export type EnumBreakSessionEditLog_editorRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BreakSessionEditLog_editorRole'>
     
 
 
@@ -5343,6 +5465,7 @@ export type GlobalOmitConfig = {
   masterApiAuditLog?: Prisma.MasterApiAuditLogOmit
   adminOrganization?: Prisma.AdminOrganizationOmit
   pushSubscription?: Prisma.PushSubscriptionOmit
+  notification?: Prisma.NotificationOmit
   employeeImportDraft?: Prisma.EmployeeImportDraftOmit
   employeeProfile?: Prisma.EmployeeProfileOmit
   employeeProjectAssignment?: Prisma.EmployeeProjectAssignmentOmit

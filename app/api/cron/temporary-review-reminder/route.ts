@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 
 import { getRedis, key } from "@/lib/redis"
-import { sendPushToUser } from "@/lib/web-push"
+import { notify } from "@/modules/notifications/application/services/notification.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 
@@ -112,13 +112,16 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        await sendPushToUser(adminId, {
+        await notify({
+          userId: adminId,
+          organizationId: review.organizationId,
+          type: "TEMPORARY_REVIEW",
           title: "Temporary employee review due",
           body,
           url: `/admin/payroll/employees/${review.userId}`,
         })
       } catch {
-        // sendPushToUser swallows internally; belt + suspenders.
+        // notify swallows internally; belt + suspenders.
       }
 
       if (redis) {

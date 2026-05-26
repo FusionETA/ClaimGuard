@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 
 import { LogoutButton } from "@/components/layout/logout-button"
+import { NotificationBell } from "@/components/layout/notification-bell"
 import { PushNotificationPrompt } from "@/components/pwa/push-notification-prompt"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -362,20 +363,23 @@ export function EmployeeShell({
                 <p className="mt-1 text-sm text-muted-foreground">{displayOrganizationName}</p>
               ) : null}
             </div>
-            <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
-              <Link
-                href="/employee/account"
-                className="flex items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background"
-              >
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback>{user.initials}</AvatarFallback>
-                </Avatar>
-                <div className="hidden text-right sm:block">
-                  <p className="text-sm font-bold">{user.name}</p>
-                  <p className="text-xs text-muted-foreground">{user.subtitle}</p>
-                </div>
-              </Link>
-              <LogoutButton />
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <div className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-3 py-2 shadow-ambient">
+                <Link
+                  href="/employee/account"
+                  className="flex items-center gap-3 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background"
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>{user.initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="hidden text-right sm:block">
+                    <p className="text-sm font-bold">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.subtitle}</p>
+                  </div>
+                </Link>
+                <LogoutButton />
+              </div>
             </div>
           </div>
         </header>
