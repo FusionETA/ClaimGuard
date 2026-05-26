@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { isAdminRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
 
 import { aiMapCsvColumns } from "@/lib/ai/csv-mapper-ai"
@@ -307,7 +308,7 @@ export type ImportPickerOptionsActionResult =
  */
 export async function listImportPickerOptionsAction(): Promise<ImportPickerOptionsActionResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -361,7 +362,7 @@ export async function resolveReferencesAction(input: {
   mapping: Record<string, string | null>
 }): Promise<ResolveReferencesActionResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -402,7 +403,7 @@ export async function createImportPolicyAction(input: {
   name: string
 }): Promise<CreatePolicyShortcutResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -458,7 +459,7 @@ export async function createImportProjectAction(input: {
   name: string
 }): Promise<CreateProjectShortcutResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -500,7 +501,7 @@ export async function createImportTeamAction(input: {
   layerCount: number
 }): Promise<CreateTeamShortcutResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -584,7 +585,7 @@ export async function saveImportDraftAction(
   payload: ImportDraftPayload,
 ): Promise<SaveImportDraftActionResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -628,7 +629,7 @@ export type GetImportDraftActionResult =
  */
 export async function getImportDraftAction(): Promise<GetImportDraftActionResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -672,7 +673,7 @@ export type DiscardImportDraftActionResult =
  */
 export async function discardImportDraftAction(): Promise<DiscardImportDraftActionResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)

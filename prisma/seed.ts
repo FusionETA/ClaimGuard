@@ -17,6 +17,15 @@ const ADMIN = {
   password: "ChangeMe123!",
 }
 
+// OWNER behaves like an admin everywhere, but is the ONLY role that can
+// add/remove admins. Owners are created here (seed) or via the master
+// API — never through the in-app UI.
+const OWNER = {
+  email: "owner@example.com",
+  name: "Owner User",
+  password: "ChangeMe123!",
+}
+
 // ---------------------------------------------------------------------------
 
 async function main() {
@@ -53,8 +62,24 @@ async function main() {
     },
   })
 
+  // Upsert the owner — full admin powers PLUS admin management.
+  await prisma.user.upsert({
+    where: { email: OWNER.email },
+    update: {
+      name: OWNER.name,
+      role: "OWNER",
+      passwordHash: hashPassword(OWNER.password),
+    },
+    create: {
+      email: OWNER.email,
+      name: OWNER.name,
+      role: "OWNER",
+      passwordHash: hashPassword(OWNER.password),
+    },
+  })
+
   await prisma.$disconnect()
-  console.log("Seed complete. Log in with:", ADMIN.email)
+  console.log("Seed complete. Log in with:", ADMIN.email, "or", OWNER.email)
 }
 
 main().catch((error) => {

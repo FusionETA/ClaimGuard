@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { isAdminRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
@@ -46,7 +47,7 @@ export type PolicyActionState = {
 
 async function requireOrgId(): Promise<string | { error: PolicyActionState }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { error: { status: "error", message: "Session expired. Please log in again." } }
   }
   const organizationId = resolveActiveOrgId(session)

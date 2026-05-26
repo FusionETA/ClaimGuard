@@ -8,13 +8,15 @@ const ROLE_PATHS: Record<string, string> = {
   EMPLOYEE: "/employee",
   SUPERVISOR: "/employee",
   ADMIN: "/admin",
+  // OWNER is an admin superset — same portal as ADMIN.
+  OWNER: "/admin",
 }
 
 const sessionSchema = z.object({
   userId: z.string().min(1),
   email: z.string().email(),
   name: z.string().min(1),
-  role: z.enum(["EMPLOYEE", "SUPERVISOR", "ADMIN"]),
+  role: z.enum(["EMPLOYEE", "SUPERVISOR", "ADMIN", "OWNER"]),
   initials: z.string().min(1),
   subtitle: z.string().min(1),
   organizationId: z.string().min(1).optional(),

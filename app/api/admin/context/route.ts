@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
@@ -6,7 +7,7 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
 export async function GET() {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return NextResponse.json(
       { message: "Unauthorized." },
       {

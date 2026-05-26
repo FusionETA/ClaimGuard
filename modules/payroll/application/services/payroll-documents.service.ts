@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import crypto from "node:crypto"
 import { mkdir, writeFile } from "node:fs/promises"
@@ -37,7 +38,7 @@ export async function uploadPayrollDocument(input: {
   file: File
 }): Promise<PayrollDocument[]> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -125,7 +126,7 @@ export async function deletePayrollDocument(input: {
   documentId: string
 }): Promise<PayrollDocument[]> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)

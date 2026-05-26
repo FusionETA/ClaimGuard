@@ -44,7 +44,12 @@ export async function shouldAutoApproveLeave(args: {
   employeeUserId: string
   role: string | null | undefined
 }): Promise<boolean> {
-  if (args.role === "ADMIN" || args.role === "SUPERVISOR") return true
+  if (
+    args.role === "ADMIN" ||
+    args.role === "OWNER" ||
+    args.role === "SUPERVISOR"
+  )
+    return true
   // Note: unlike attendance we don't bypass for project managers — leave
   // is org-wide, not project-scoped.
   const prisma = getPrismaClient()

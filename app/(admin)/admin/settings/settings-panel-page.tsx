@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { isAdminRole, isOwnerRole } from "@/lib/auth/types"
 import { redirect } from "next/navigation"
 
 import {
@@ -34,7 +35,7 @@ export async function AdminSettingsPanelPage({
   visibleTabs?: SettingsTabKey[]
 }) {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") redirect("/login")
+  if (!session || !isAdminRole(session.role)) redirect("/login")
 
   const cookieStore = await cookies()
   const cookieConnectionId = cookieStore.get(ACTIVE_CONNECTION_COOKIE)?.value
@@ -133,6 +134,7 @@ export async function AdminSettingsPanelPage({
       apiIntegrations={apiIntegrations}
       policies={policies}
       currentAdminEmail={session.email}
+      canManageAdmins={isOwnerRole(session.role)}
       activeXeroConnectionId={data.activeXeroConnectionId}
       xeroStatus={
         typeof searchParams.xero === "string" ? searchParams.xero : undefined

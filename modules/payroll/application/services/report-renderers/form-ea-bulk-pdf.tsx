@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { renderToBuffer } from "@react-pdf/renderer"
 
@@ -10,7 +11,7 @@ export async function renderFormEaBulkPdf(input: {
   year: number
 }): Promise<Buffer> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)

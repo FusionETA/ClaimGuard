@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import * as XLSX from "xlsx"
 
@@ -49,7 +50,7 @@ export async function renderPbEcpXlsx(input: {
   paymentDate?: Date
 }): Promise<Buffer> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)

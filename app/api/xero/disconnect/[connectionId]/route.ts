@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession } from "@/lib/auth/session"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
@@ -10,7 +11,7 @@ export async function DELETE(
 ) {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

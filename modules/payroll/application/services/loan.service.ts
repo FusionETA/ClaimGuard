@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
@@ -47,7 +48,7 @@ export type LoansPageData = {
 
 async function requireAdminOrg(): Promise<{ orgId: string } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
   return { orgId }

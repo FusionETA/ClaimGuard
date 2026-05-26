@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { ClaimPayrollReadyList } from "@/components/admin/claim-payroll-ready-list"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,7 +25,7 @@ import { payrollRunRepository } from "@/modules/payroll/infrastructure/payroll-r
  */
 export default async function AdminClaimsPayrollReadyPage() {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") redirect("/login")
+  if (!session || !isAdminRole(session.role)) redirect("/login")
 
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) {

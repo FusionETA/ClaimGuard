@@ -97,7 +97,12 @@ export async function isAutoApprovingActor(args: {
   role: string | null | undefined
   projectId: string | null
 }): Promise<boolean> {
-  if (args.role === "ADMIN" || args.role === "SUPERVISOR") return true
+  if (
+    args.role === "ADMIN" ||
+    args.role === "OWNER" ||
+    args.role === "SUPERVISOR"
+  )
+    return true
   if (!args.projectId) return false
   const prisma = getPrismaClient()
   if (!prisma) return false

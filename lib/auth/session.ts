@@ -11,7 +11,7 @@ import type {
   AuthenticatedSession,
   SessionUser,
 } from "@/lib/auth/types"
-import { isEmployeePortalRole } from "@/lib/auth/types"
+import { isAdminRole, isEmployeePortalRole } from "@/lib/auth/types"
 
 const SESSION_COOKIE_NAME = "claimguard_session"
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7
@@ -20,7 +20,7 @@ const sessionSchema = z.object({
   userId: z.string().min(1),
   email: z.string().email(),
   name: z.string().min(1),
-  role: z.enum(["EMPLOYEE", "SUPERVISOR", "ADMIN"]),
+  role: z.enum(["EMPLOYEE", "SUPERVISOR", "ADMIN", "OWNER"]),
   initials: z.string().min(1),
   subtitle: z.string().min(1),
   organizationId: z.string().min(1).optional(),
@@ -43,7 +43,7 @@ function getAuthSecret() {
 }
 
 function getHomePath(role: AppRole) {
-  return (role === "ADMIN" ? "/admin" : "/employee") as Route
+  return (isAdminRole(role) ? "/admin" : "/employee") as Route
 }
 
 function signValue(value: string) {
@@ -195,7 +195,9 @@ export async function requireSessionForRole(
 
   const matchesEmployeePortal =
     role === "EMPLOYEE" && isEmployeePortalRole(session.role)
-  if (session.role !== role && !matchesEmployeePortal) {
+  // OWNER satisfies any ADMIN requirement (it's a superset of admin).
+  const matchesAdminPortal = role === "ADMIN" && isAdminRole(session.role)
+  if (session.role !== role && !matchesEmployeePortal && !matchesAdminPortal) {
     return { ok: false, reason: "wrong-role" }
   }
   return { ok: true, session }
@@ -210,9 +212,11 @@ export async function requirePortalSession(role: AppRole) {
 
   const matchesEmployeePortal =
     role === "EMPLOYEE" && isEmployeePortalRole(session.role)
+  // OWNER satisfies any ADMIN requirement (it's a superset of admin).
+  const matchesAdminPortal = role === "ADMIN" && isAdminRole(session.role)
   const matchesExactRole = session.role === role
 
-  if (!matchesEmployeePortal && !matchesExactRole) {
+  if (!matchesEmployeePortal && !matchesAdminPortal && !matchesExactRole) {
     redirect(getHomePath(session.role))
   }
 

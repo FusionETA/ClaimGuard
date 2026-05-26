@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
@@ -44,7 +45,7 @@ export async function getManageEmployeesPageData(): Promise<{
   policies: EmployeePolicy[]
 } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -112,7 +113,7 @@ export async function getPayrollEmployeeDetailPageData(input: {
   | null
 > {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -165,7 +166,7 @@ export async function upsertPayrollProfile(input: {
   patch: Parameters<typeof payrollProfileRepository.upsert>[0]["patch"]
 }): Promise<PayrollProfileData> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -205,7 +206,7 @@ export async function archivePayrollProfile(input: {
   reason: string
 }): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -231,7 +232,7 @@ export async function unarchivePayrollProfile(input: {
   userId: string
 }): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)

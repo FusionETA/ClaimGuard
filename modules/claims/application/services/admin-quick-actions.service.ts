@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
@@ -33,7 +34,7 @@ export async function getAdminQuickActionCounts(): Promise<AdminQuickActionCount
   }
 
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return empty
+  if (!session || !isAdminRole(session.role)) return empty
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return empty
 

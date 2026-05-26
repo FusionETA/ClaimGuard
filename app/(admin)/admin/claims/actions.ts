@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { isAdminRole } from "@/lib/auth/types"
 
 import {
   type ReviewClaimFormState,
@@ -31,7 +32,7 @@ export async function adminFinalReviewClaimAction(
 
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return {
       status: "error",
       message: "Session expired. Please log in again.",
@@ -169,7 +170,7 @@ export async function syncClaimAction(input: {
   chartOfAccountId?: string
 }): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
@@ -217,7 +218,7 @@ export async function syncClaimsBulkAction(input: {
   failures: Array<{ claimId: string; message: string }>
 }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return {
       ok: false,
       message: "Session expired. Please log in again.",

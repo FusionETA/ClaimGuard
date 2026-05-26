@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { isAdminRole } from "@/lib/auth/types"
 import * as XLSX from "xlsx"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -26,7 +27,7 @@ import { claimRepository } from "@/modules/claims/infrastructure/claim.repositor
  */
 export async function GET(request: NextRequest) {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 })
   }
   const organizationId = resolveActiveOrgId(session)

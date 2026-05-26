@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getXeroFileContent } from "@/lib/xero"
@@ -34,7 +35,7 @@ export async function GET(
   const isOwner = record.employeeId === session.userId
   const activeOrgId = resolveActiveOrgId(session)
   const isSameOrgAdmin =
-    session.role === "ADMIN" &&
+    isAdminRole(session.role) &&
     !!record.employeeOrgId &&
     record.employeeOrgId === activeOrgId
   let isApproverInChain = false

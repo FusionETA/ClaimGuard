@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { hashPassword } from "@/lib/auth/password"
 import { parseAllowedCurrencies } from "@/lib/currencies"
@@ -276,7 +277,7 @@ export const organizationRepository = {
       select: { role: true, organizationId: true },
     })
 
-    if (!admin || admin.role !== "ADMIN") {
+    if (!admin || !isAdminRole(admin.role)) {
       throw new Error("Admin account not found.")
     }
 
@@ -335,7 +336,7 @@ export const organizationRepository = {
       select: { role: true, organizationId: true },
     })
 
-    if (admin?.role === "ADMIN" && admin.organizationId === organizationId) {
+    if (admin != null && isAdminRole(admin.role) && admin.organizationId === organizationId) {
       return true
     }
 
@@ -375,7 +376,7 @@ export const organizationRepository = {
       select: { organizationId: true, role: true },
     })
 
-    if (!admin || admin.role !== "ADMIN") {
+    if (!admin || !isAdminRole(admin.role)) {
       throw new Error("Admin account not found.")
     }
 
@@ -460,6 +461,7 @@ export const organizationRepository = {
       id: string
       email: string
       name: string
+      role: "ADMIN" | "OWNER"
       createdAt: string
     }>
   > {
@@ -468,7 +470,9 @@ export const organizationRepository = {
 
     const rows = await prisma.user.findMany({
       where: {
-        role: "ADMIN",
+        // OWNER is an admin superset — show owners in the admins list too
+        // (badged + non-removable in the UI).
+        role: { in: ["ADMIN", "OWNER"] },
         OR: [
           { organizationId },
           { adminOrganizations: { some: { organizationId } } },
@@ -478,6 +482,7 @@ export const organizationRepository = {
         id: true,
         email: true,
         name: true,
+        role: true,
         createdAt: true,
       },
       orderBy: { createdAt: "asc" },
@@ -487,8 +492,73 @@ export const organizationRepository = {
       id: u.id,
       email: u.email,
       name: u.name,
+      role: u.role as "ADMIN" | "OWNER",
       createdAt: u.createdAt.toISOString(),
     }))
+  },
+
+  /**
+   * Look up a user by email (case-insensitive). Used by the owner's
+   * "invite admin" flow to detect when the typed email already belongs
+   * to someone — so an existing admin can be linked to another org
+   * instead of erroring on the unique-email constraint.
+   */
+  async findUserByEmail(email: string): Promise<{
+    id: string
+    name: string
+    email: string
+    role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER"
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const user = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      select: { id: true, name: true, email: true, role: true },
+    })
+    return user
+      ? {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role as "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER",
+        }
+      : null
+  },
+
+  /**
+   * Remove an admin's access to ONE organization. Deletes the
+   * `AdminOrganization` join row. If this org happened to be the admin's
+   * "home" org (`User.organizationId`), we re-point that to another org
+   * they still administer (or null) so `listAdminsForOrganization`
+   * stops returning them for this org. Owner-gated at the caller.
+   */
+  async unlinkAdminFromOrganization(
+    adminId: string,
+    organizationId: string,
+  ): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    await prisma.adminOrganization.deleteMany({
+      where: { adminId, organizationId },
+    })
+
+    const user = await prisma.user.findUnique({
+      where: { id: adminId },
+      select: { organizationId: true },
+    })
+    if (user?.organizationId === organizationId) {
+      const remaining = await prisma.adminOrganization.findFirst({
+        where: { adminId },
+        select: { organizationId: true },
+        orderBy: { createdAt: "asc" },
+      })
+      await prisma.user.update({
+        where: { id: adminId },
+        data: { organizationId: remaining?.organizationId ?? null },
+      })
+    }
   },
 
   /**
@@ -1022,7 +1092,7 @@ export const organizationRepository = {
 
     if (
       !targetUser ||
-      targetUser.role === "ADMIN" ||
+      isAdminRole(targetUser.role) ||
       targetUser.organizationId !== data.organizationId
     ) {
       throw new Error("You can only manage members inside your own organization.")
@@ -1119,7 +1189,7 @@ export const organizationRepository = {
           if (!u || u.organizationId !== data.organizationId) {
             throw new Error("All chain approvers must belong to your organization.")
           }
-          if (u.role !== "SUPERVISOR" && u.role !== "ADMIN") {
+          if (u.role !== "SUPERVISOR" && u.role !== "ADMIN" && u.role !== "OWNER") {
             throw new Error("Chain approvers must be supervisors or admins.")
           }
           const layer = layerByTeamUser.get(`${a.teamId}:${c.userId}`)
@@ -1360,7 +1430,7 @@ export const organizationRepository = {
           if (!u || u.organizationId !== data.organizationId) {
             throw new Error("All chain approvers must belong to your organization.")
           }
-          if (u.role !== "SUPERVISOR" && u.role !== "ADMIN") {
+          if (u.role !== "SUPERVISOR" && u.role !== "ADMIN" && u.role !== "OWNER") {
             throw new Error("Chain approvers must be supervisors or admins.")
           }
           const layer = layerByTeamUser.get(`${a.teamId}:${c.userId}`)
@@ -1479,7 +1549,7 @@ export const organizationRepository = {
         if (approver.organizationId !== data.organizationId) {
           throw new Error("All approvers must belong to the same organization.")
         }
-        if (approver.role !== "SUPERVISOR" && approver.role !== "ADMIN") {
+        if (approver.role !== "SUPERVISOR" && approver.role !== "ADMIN" && approver.role !== "OWNER") {
           throw new Error("Approvers must be supervisors or admins.")
         }
       }
@@ -2487,7 +2557,7 @@ export const organizationRepository = {
         if (pm.organizationId !== data.organizationId) {
           throw new Error("Project managers must belong to this organization.")
         }
-        if (pm.role !== "SUPERVISOR" && pm.role !== "ADMIN") {
+        if (pm.role !== "SUPERVISOR" && pm.role !== "ADMIN" && pm.role !== "OWNER") {
           throw new Error("Project managers must be SUPERVISOR or ADMIN.")
         }
       }
@@ -2561,7 +2631,7 @@ export const organizationRepository = {
           if (pm.organizationId !== data.organizationId) {
             throw new Error("Project managers must belong to this organization.")
           }
-          if (pm.role !== "SUPERVISOR" && pm.role !== "ADMIN") {
+          if (pm.role !== "SUPERVISOR" && pm.role !== "ADMIN" && pm.role !== "OWNER") {
             throw new Error("Project managers must be SUPERVISOR or ADMIN.")
           }
         }
@@ -2774,7 +2844,7 @@ export const organizationRepository = {
     // through the multi-admin flow, not the employees endpoint. Letting
     // the partner accidentally nuke an admin via the wrong endpoint
     // would be very bad.
-    if (user.role === "ADMIN") return { ok: false }
+    if (isAdminRole(user.role)) return { ok: false }
 
     await prisma.user.delete({ where: { id: user.id } })
     return { ok: true }
@@ -3382,7 +3452,7 @@ export const organizationRepository = {
         if (a.organizationId !== data.organizationId) {
           throw new Error("Approvers must belong to the same organization.")
         }
-        if (a.role !== "SUPERVISOR" && a.role !== "ADMIN") {
+        if (a.role !== "SUPERVISOR" && a.role !== "ADMIN" && a.role !== "OWNER") {
           throw new Error("Approvers must be supervisors or admins.")
         }
       }

@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import type { OrganizationMember } from "@/modules/organization/domain/models"
@@ -7,7 +8,7 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
 export async function getOrganizationHierarchy(): Promise<OrganizationMember[] | null> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return null
   }
 

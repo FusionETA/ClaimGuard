@@ -1735,6 +1735,11 @@ enum UserRole {
   ADMIN
   EMPLOYEE
   SUPERVISOR
+  // OWNER behaves exactly like ADMIN everywhere (every admin gate
+  // treats OWNER as admin via isAdminRole), EXCEPT only OWNER can
+  // add/remove admins. Assigned via seed/master only — never created
+  // through the in-app UI.
+  OWNER
 }
 
 enum ClaimCategory {

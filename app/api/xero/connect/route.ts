@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession } from "@/lib/auth/session"
 import { getRequestOrigin } from "@/lib/request-origin"
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
   const origin = getRequestOrigin(request)
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return NextResponse.redirect(new URL("/login", origin))
   }
 

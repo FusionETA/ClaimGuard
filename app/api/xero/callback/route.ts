@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache"
+import { isAdminRole } from "@/lib/auth/types"
 import { NextRequest, NextResponse } from "next/server"
 
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   const origin = getRequestOrigin(request)
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return NextResponse.redirect(new URL("/login", origin))
   }
 

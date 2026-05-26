@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
+import { isAdminRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
 
 import { getCurrentSession } from "@/lib/auth/session"
@@ -49,7 +50,7 @@ export async function GET(
   // path).
   const isOwnClaim = session.userId === claim.employeeId
   const isOrgInsider =
-    (session.role === "ADMIN" || session.role === "SUPERVISOR") &&
+    (isAdminRole(session.role) || session.role === "SUPERVISOR") &&
     Boolean(session.organizationId) &&
     session.organizationId === claim.organizationId
   if (!isOwnClaim && !isOrgInsider) {

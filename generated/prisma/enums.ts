@@ -61,7 +61,8 @@ export type ClaimApprovalDecision = (typeof ClaimApprovalDecision)[keyof typeof 
 export const UserRole = {
   ADMIN: 'ADMIN',
   EMPLOYEE: 'EMPLOYEE',
-  SUPERVISOR: 'SUPERVISOR'
+  SUPERVISOR: 'SUPERVISOR',
+  OWNER: 'OWNER'
 } as const
 
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]

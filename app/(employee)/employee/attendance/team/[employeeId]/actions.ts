@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { isAdminRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
 
 import { redirect } from "next/navigation"
@@ -55,7 +56,7 @@ export async function overrideAttendanceAction(
 ): Promise<OverrideAttendanceState> {
   const session = await getCurrentSession()
   if (!session) redirect("/login")
-  if (session.role !== "SUPERVISOR" && session.role !== "ADMIN") {
+  if (session.role !== "SUPERVISOR" && !isAdminRole(session.role)) {
     return { error: "Only supervisors or admins can edit attendance." }
   }
 
@@ -144,7 +145,7 @@ export async function loadSessionBreaksAction(
 }> {
   const session = await getCurrentSession()
   if (!session) redirect("/login")
-  if (session.role !== "SUPERVISOR" && session.role !== "ADMIN") {
+  if (session.role !== "SUPERVISOR" && !isAdminRole(session.role)) {
     return { error: "Only supervisors or admins can view session details." }
   }
   if (session.role === "SUPERVISOR") {
@@ -189,7 +190,7 @@ export async function editSessionAction(
 ): Promise<EditSessionResult> {
   const session = await getCurrentSession()
   if (!session) redirect("/login")
-  if (session.role !== "SUPERVISOR" && session.role !== "ADMIN") {
+  if (session.role !== "SUPERVISOR" && !isAdminRole(session.role)) {
     return { error: "Only supervisors or admins can edit attendance." }
   }
   const reason = input.reason.trim()
@@ -227,7 +228,7 @@ export async function editSessionAction(
   }
 
   // Admin scoping: ensure the target employee is in the admin's active org.
-  if (session.role === "ADMIN") {
+  if (isAdminRole(session.role)) {
     const employeeOrg = await attendanceRepository.getOrganizationIdForUser(
       input.employeeId,
     )
@@ -245,7 +246,7 @@ export async function editSessionAction(
       timeOut,
       breaks,
       reason,
-      editorRole: session.role === "ADMIN" ? "ADMIN" : "SUPERVISOR",
+      editorRole: isAdminRole(session.role) ? "ADMIN" : "SUPERVISOR",
     })
   } catch (err) {
     return { error: safeErrorMessage(err, "Could not save.") }

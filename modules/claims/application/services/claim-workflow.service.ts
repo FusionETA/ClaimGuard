@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { randomBytes } from "node:crypto"
 
@@ -211,7 +212,7 @@ export async function listClaimsForSession({
   status?: ClaimStatus | "ALL"
 }): Promise<ClaimRecord[]> {
   const claims =
-    session.role === "ADMIN"
+    isAdminRole(session.role)
       ? session.organizationId
         ? await claimRepository.getClaimsForOrganization(session.organizationId)
         : []
@@ -965,7 +966,7 @@ export async function reviewClaimForAdmin({
   session: AuthenticatedSession
   input: AdminReviewClaimInput
 }): Promise<ReviewClaimServiceResult> {
-  if (session.role !== "ADMIN") {
+  if (!isAdminRole(session.role)) {
     return {
       ok: false,
       status: 403,
@@ -1075,7 +1076,7 @@ export async function syncClaimToXero({
   session: AuthenticatedSession
   input: SyncClaimInput
 }): Promise<SyncClaimResult> {
-  if (session.role !== "ADMIN") {
+  if (!isAdminRole(session.role)) {
     return { ok: false, status: 403, message: "Admins only." }
   }
   if (!input.claimId) {

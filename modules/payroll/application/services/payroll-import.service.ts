@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { z } from "zod"
 
@@ -964,7 +965,7 @@ export async function bulkImportPayrollEmployees(input: {
   csv: string
 }): Promise<ImportResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -1086,11 +1087,14 @@ export async function bulkImportPayrollEmployees(input: {
       let userId: string
       let outcome: "created" | "updated"
       if (existing) {
-        // ADMIN role is never overwritten by a CSV import — admin
-        // assignment is an admin-UI-only operation. EMPLOYEE and
-        // SUPERVISOR rows can flip between each other freely.
+        // ADMIN/OWNER roles are never overwritten by a CSV import —
+        // admin assignment is an admin-UI-only operation and owner is
+        // seed/master only. EMPLOYEE and SUPERVISOR rows can flip
+        // between each other freely.
         const nextRole =
-          existing.role === "ADMIN" ? "ADMIN" : row.employeeType
+          existing.role === "ADMIN" || existing.role === "OWNER"
+            ? existing.role
+            : row.employeeType
         await tx.user.update({
           where: { id: existing.id },
           data: { name: row.name, role: nextRole },
@@ -1894,7 +1898,7 @@ export async function previewMappedCsv(input: {
   rowOverrides?: RowOverrides
 }): Promise<PreviewResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   if (!resolveActiveOrgId(session)) {
@@ -1954,7 +1958,7 @@ export async function importMappedCsv(input: {
   rowOverrides?: RowOverrides
 }): Promise<MappedImportResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)

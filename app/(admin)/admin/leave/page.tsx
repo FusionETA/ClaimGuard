@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { LeaveOverviewView } from "@/components/admin/leave/leave-overview-view"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -22,7 +23,7 @@ function todayIso(): string {
 
 export default async function AdminLeavePage() {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") redirect("/login")
+  if (!session || !isAdminRole(session.role)) redirect("/login")
   const orgId = resolveActiveOrgId(session)
   if (!orgId) redirect("/admin")
 

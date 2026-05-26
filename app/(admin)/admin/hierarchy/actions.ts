@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { isAdminRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
@@ -94,7 +95,7 @@ export async function updateHierarchyAction(
   }
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return {
       ...createInitialHierarchyFormState(values),
       status: "error",
@@ -195,7 +196,7 @@ export async function createHierarchyMemberAction(
   }
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return {
       ...createInitialAddHierarchyMemberFormState(values),
       status: "error",

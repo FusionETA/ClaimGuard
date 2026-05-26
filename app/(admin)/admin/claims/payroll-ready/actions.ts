@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { bustClaimCaches } from "@/lib/cache-invalidation"
@@ -20,7 +21,7 @@ async function requireAdmin(): Promise<
   | { ok: false; message: string }
 > {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)

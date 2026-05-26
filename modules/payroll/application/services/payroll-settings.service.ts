@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getOrSetCache } from "@/lib/cache"
 import { bustPayrollCaches } from "@/lib/cache-invalidation"
@@ -56,7 +57,7 @@ type PayrollSettingsCachedPageData = Omit<
 
 export async function getPayrollSettingsPageData(): Promise<PayrollSettingsPageData | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -153,7 +154,7 @@ export async function upsertPayrollSettings(
   patch: Parameters<typeof payrollSettingsRepository.upsert>[0]["patch"],
 ): Promise<PayrollSettingsData> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -188,7 +189,7 @@ export async function getXeroMappingOptions(): Promise<{
   }>
 } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -294,7 +295,7 @@ export async function upsertPayrollCompanyInfo(
   patch: Parameters<typeof payrollCompanyInfoRepository.upsert>[0]["patch"],
 ): Promise<PayrollCompanyInfoData> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)

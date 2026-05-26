@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { createHash } from "node:crypto"
 import { access, mkdir, readFile, writeFile } from "node:fs/promises"
@@ -48,7 +49,7 @@ export async function getPayrollReportsModalData(input: {
   canGenerate: boolean
 } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -142,7 +143,7 @@ export async function generatePayrollReport(input: {
   alreadyCached: boolean
 }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -317,7 +318,7 @@ export async function readPayrollReportFile(input: {
   mimeType: string
 } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 

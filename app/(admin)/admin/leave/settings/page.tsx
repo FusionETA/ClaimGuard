@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { LeaveSettingsView } from "@/components/admin/leave/leave-settings-view"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -9,7 +10,7 @@ import { policyRepository } from "@/modules/policy/infrastructure/policy.reposit
 
 export default async function AdminLeaveSettingsPage() {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") redirect("/login")
+  if (!session || !isAdminRole(session.role)) redirect("/login")
   const orgId = resolveActiveOrgId(session)
   if (!orgId) redirect("/admin")
 

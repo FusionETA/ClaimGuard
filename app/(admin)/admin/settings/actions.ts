@@ -1,6 +1,7 @@
 "use server"
 
 import { cookies } from "next/headers"
+import { isAdminRole, isOwnerRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
@@ -101,7 +102,7 @@ export async function saveOrganizationSettingsAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return {
       status: "error",
       message: "Session expired. Please log in again.",
@@ -163,7 +164,7 @@ export async function syncXeroAccountsAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return {
       status: "error",
       message: "Session expired. Please log in again.",
@@ -195,7 +196,7 @@ export async function syncXeroProjectsAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return {
       status: "error",
       message: "Session expired. Please log in again.",
@@ -231,7 +232,7 @@ export async function saveXeroTrackingCategoryAction(
   formData: FormData,
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -267,7 +268,7 @@ export async function saveSelectableAccountsAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return {
       status: "error",
       message: "Session expired. Please log in again.",
@@ -314,7 +315,7 @@ export async function switchActiveOrganizationAction(
   organizationId: string
 ): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return
+  if (!session || !isAdminRole(session.role)) return
 
   // Verify the admin actually belongs to this org before switching
   const isAdmin = await organizationRepository.isAdminOfOrganization(session.userId, organizationId)
@@ -343,7 +344,7 @@ export async function createCustomAccountAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -399,7 +400,7 @@ export async function importCustomChartAccountsAction(
   formData: FormData,
 ): Promise<ImportCsvActionResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -447,7 +448,7 @@ export async function importManualProjectsAction(
   formData: FormData,
 ): Promise<ImportCsvActionResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -489,7 +490,7 @@ export async function deleteCustomAccountAction(
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
@@ -521,7 +522,7 @@ export async function selectXeroTenantAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -628,7 +629,7 @@ export async function disconnectXeroAction(
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
@@ -655,7 +656,7 @@ export async function createOrganizationAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -709,7 +710,7 @@ export async function saveSelectedBankAccountsAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -738,7 +739,7 @@ export async function createManualProjectAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -803,7 +804,7 @@ export async function updateProjectAction(
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
@@ -852,7 +853,7 @@ export async function deleteManualProjectAction(
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
@@ -884,7 +885,7 @@ export async function saveClaimRunSettingsAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return {
       status: "error",
       message: "Session expired. Please log in again.",
@@ -938,7 +939,7 @@ export async function saveCurrencySettingsAction(
   formData: FormData,
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -1007,7 +1008,7 @@ export async function saveMileageDefaultsAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -1058,7 +1059,7 @@ export async function saveMileageAccountsAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -1156,7 +1157,7 @@ export async function saveAccountLimitAction(
 ): Promise<SettingsActionState> {
   const session = await getCurrentSession()
 
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
 
@@ -1207,7 +1208,7 @@ const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/
 
 async function assertProjectInActiveOrg(projectId: string) {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false as const, message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -1227,7 +1228,7 @@ export async function saveOrgWorkingHoursAction(
   end: string
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -1257,7 +1258,7 @@ export async function saveOrgTimezoneAction(
   timezone: string
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -1287,7 +1288,7 @@ export async function toggleOrgOtAction(
   enabled: boolean
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -1311,7 +1312,7 @@ export async function saveSupervisorReportSettingsAction(
   slaMinutes: number,
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -1342,7 +1343,7 @@ export async function saveGeofenceRadiusAction(
   meters: number
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -1628,7 +1629,7 @@ export async function deleteProjectHolidayAction(
   holidayId: string
 ): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -1655,34 +1656,64 @@ export async function deleteProjectHolidayAction(
 // Multi-admin: create another admin for the active organization
 // ----------------------------------------------------------------------------
 
-const createAdminSchema = z.object({
+/**
+ * State for the owner's "invite admin" form. Extends the shared settings
+ * state with a `confirm` payload: when the typed email already belongs to
+ * an existing admin (of another org), we don't create a duplicate — we
+ * bounce back asking the owner to confirm they want to grant that same
+ * person access to THIS org too. The form then resubmits with
+ * `confirm=true` to link them.
+ */
+export type InviteAdminActionState = {
+  status: "idle" | "success" | "error" | "confirm"
+  message: string
+  confirm?: { name: string; email: string }
+}
+
+export const initialInviteAdminState: InviteAdminActionState = {
+  status: "idle",
+  message: "",
+}
+
+const inviteAdminSchema = z.object({
   email: z
     .string()
     .trim()
     .min(1, "Email is required.")
     .email("Enter a valid email address.")
     .toLowerCase(),
-  name: z.string().trim().min(1, "Name is required.").max(120, "Name is too long."),
-  password: z
-    .string()
-    .min(8, "Temporary password must be at least 8 characters.")
-    .max(128, "Password is too long."),
+  name: z.string().trim().max(120, "Name is too long.").optional(),
+  password: z.string().max(128, "Password is too long.").optional(),
+  confirm: z.boolean().optional(),
 })
 
 /**
- * Create a new full-tier admin for the active organization. The inviting
- * admin types the new admin's email + name + a temporary password and
- * hands the password over out-of-band (Slack, message, phone). The new
- * admin can change their password from their account page after first
- * login. Currently no email is sent — the app doesn't have a mailer.
+ * Owner-only: invite an admin to the ACTIVE organization, by email.
+ *
+ * Three outcomes:
+ *  - Email is brand new       → create a new ADMIN (name + temp password
+ *    required) tied to this org.
+ *  - Email is an existing admin/owner NOT yet on this org → ask the owner
+ *    to confirm (status "confirm"); on resubmit with confirm=true, link
+ *    them to this org via AdminOrganization (no new account, no password).
+ *  - Email is an existing admin already on this org, or a non-admin user
+ *    → friendly error.
+ *
+ * Owners are seed/master-only, so this never creates owners — only admins.
  */
 export async function createAdminAction(
-  _previousState: SettingsActionState,
+  _previousState: InviteAdminActionState,
   formData: FormData,
-): Promise<SettingsActionState> {
+): Promise<InviteAdminActionState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session) {
     return { status: "error", message: "Session expired. Please log in again." }
+  }
+  if (!isOwnerRole(session.role)) {
+    return {
+      status: "error",
+      message: "Only the owner can add or remove admins.",
+    }
   }
 
   const organizationId = resolveActiveOrgId(session)
@@ -1694,39 +1725,149 @@ export async function createAdminAction(
     }
   }
 
-  const parsed = createAdminSchema.safeParse({
+  const parsed = inviteAdminSchema.safeParse({
     email: formData.get("email") ?? "",
     name: formData.get("name") ?? "",
     password: formData.get("password") ?? "",
+    confirm: formData.get("confirm") === "true",
   })
-
   if (!parsed.success) {
     return {
       status: "error",
       message: parsed.error.issues[0]?.message ?? "Unable to add admin.",
     }
   }
+  const { email, name, password, confirm } = parsed.data
 
   try {
+    const existing = await organizationRepository.findUserByEmail(email)
+
+    if (existing) {
+      // Existing account must be an admin/owner to be granted org access.
+      if (existing.role !== "ADMIN" && existing.role !== "OWNER") {
+        return {
+          status: "error",
+          message:
+            "That email belongs to a non-admin user in the system. Use a different email for the admin.",
+        }
+      }
+
+      const alreadyHere = await organizationRepository.isAdminOfOrganization(
+        existing.id,
+        organizationId,
+      )
+      if (alreadyHere) {
+        return {
+          status: "error",
+          message: `${existing.name} is already an admin of this organisation.`,
+        }
+      }
+
+      // Known admin from another org — confirm before linking.
+      if (!confirm) {
+        return {
+          status: "confirm",
+          message: `${existing.name} (${existing.email}) is already an admin of another organisation. Add them to this organisation too?`,
+          confirm: { name: existing.name, email: existing.email },
+        }
+      }
+
+      await organizationRepository.linkAdminToOrganization(
+        existing.id,
+        organizationId,
+      )
+      await revalidateAdminSurfaces(organizationId)
+      return {
+        status: "success",
+        message: `${existing.name} now has admin access to this organisation.`,
+      }
+    }
+
+    // Brand-new admin — name + temp password required.
+    if (!name || name.length === 0) {
+      return { status: "error", message: "Name is required for a new admin." }
+    }
+    if (!password || password.length < 8) {
+      return {
+        status: "error",
+        message: "Temporary password must be at least 8 characters.",
+      }
+    }
+
     await organizationRepository.createAdminForOrganization({
       organizationId,
-      email: parsed.data.email,
-      name: parsed.data.name,
-      password: parsed.data.password,
+      email,
+      name,
+      password,
     })
   } catch (error) {
     return {
       status: "error",
-      message:
-        safeErrorMessage(error, "Could not create admin."),
+      message: safeErrorMessage(error, "Could not add admin."),
     }
   }
 
   await revalidateAdminSurfaces(organizationId)
   return {
     status: "success",
-    message: `New admin invited. They can sign in with the temp password.`,
+    message: "New admin invited. They can sign in with the temp password.",
   }
+}
+
+/**
+ * Owner-only: remove an admin's access to the ACTIVE organization.
+ * Deletes their AdminOrganization link for this org (the user account
+ * stays — they may still administer other orgs). Refuses to remove the
+ * owner or the current user themselves.
+ */
+export async function removeAdminAction(
+  _previousState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const session = await getCurrentSession()
+  if (!session) {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  if (!isOwnerRole(session.role)) {
+    return {
+      status: "error",
+      message: "Only the owner can add or remove admins.",
+    }
+  }
+
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) {
+    return { status: "error", message: "No active organisation." }
+  }
+
+  const adminId = String(formData.get("adminId") ?? "").trim()
+  if (!adminId) {
+    return { status: "error", message: "Missing admin id." }
+  }
+  if (adminId === session.userId) {
+    return { status: "error", message: "You can't remove yourself." }
+  }
+
+  try {
+    const target = await organizationRepository.findUserByEmail(
+      String(formData.get("email") ?? ""),
+    )
+    if (target && target.role === "OWNER") {
+      return { status: "error", message: "The owner can't be removed." }
+    }
+    await organizationRepository.unlinkAdminFromOrganization(
+      adminId,
+      organizationId,
+    )
+  } catch (error) {
+    return {
+      status: "error",
+      message: safeErrorMessage(error, "Could not remove admin."),
+    }
+  }
+
+  await revalidateAdminSurfaces(organizationId)
+  return { status: "success", message: "Admin access removed." }
 }
 
 // ----------------------------------------------------------------------------
@@ -1766,7 +1907,7 @@ export async function createApiTokenAction(formData: FormData): Promise<{
   prefix?: string
 }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
@@ -1829,7 +1970,7 @@ export async function setApiTokenActiveAction(input: {
   active: boolean
 }): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
 
@@ -1862,7 +2003,7 @@ export async function deleteApiTokenAction(input: {
   integrationId: string
 }): Promise<{ ok: boolean; message: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, message: "Session expired. Please log in again." }
   }
 

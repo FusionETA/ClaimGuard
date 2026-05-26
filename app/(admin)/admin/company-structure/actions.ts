@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { isAdminRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
@@ -60,7 +61,7 @@ export async function createTeamAction(
   formData: FormData,
 ): Promise<CreateTeamActionState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -137,7 +138,7 @@ export async function updateTeamAction(
   formData: FormData,
 ): Promise<BaseFormState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -205,7 +206,7 @@ export async function setProjectManagersAction(
   formData: FormData,
 ): Promise<BaseFormState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -266,7 +267,7 @@ export async function removeEmployeeFromProjectAction(
   formData: FormData,
 ): Promise<BaseFormState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -325,7 +326,7 @@ export async function addEmployeeToProjectAction(
   formData: FormData,
 ): Promise<BaseFormState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -386,7 +387,7 @@ export async function assignTeamMemberAction(
   formData: FormData,
 ): Promise<BaseFormState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -439,7 +440,7 @@ export async function removeTeamMemberAction(
   formData: FormData,
 ): Promise<BaseFormState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)
@@ -484,7 +485,7 @@ export async function deleteTeamAction(
   formData: FormData,
 ): Promise<BaseFormState> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const organizationId = resolveActiveOrgId(session)

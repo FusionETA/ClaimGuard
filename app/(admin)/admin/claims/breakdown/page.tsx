@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { isAdminRole } from "@/lib/auth/types"
 import type { Route } from "next"
 import { Download } from "lucide-react"
 
@@ -46,7 +47,7 @@ export default async function AdminClaimsReportsPage({
   searchParams: Promise<SearchParams>
 }) {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") redirect("/login")
+  if (!session || !isAdminRole(session.role)) redirect("/login")
 
   const params = await searchParams
   const projectIds = parseCsvIds(params.projects)

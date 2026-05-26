@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
@@ -96,7 +97,7 @@ export function buildMonthOptions(count = 12) {
 
 async function requireAdminOrgId(): Promise<string | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   return resolveActiveOrgId(session) ?? null
 }
 

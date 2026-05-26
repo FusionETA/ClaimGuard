@@ -8,9 +8,13 @@ import type {
 import { buildInitials } from "@/lib/utils"
 
 function buildSubtitle(
-  role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR",
+  role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER",
   profile: { jobTitle: string } | null
 ) {
+  if (role === "OWNER") {
+    return "Owner"
+  }
+
   if (role === "ADMIN") {
     return "Administrator"
   }

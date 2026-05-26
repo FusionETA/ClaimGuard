@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { isAdminRole } from "@/lib/auth/types"
 import { redirect } from "next/navigation"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -21,7 +22,7 @@ import type { LeaveAccrualMethod } from "@/modules/leave/domain/models"
 
 async function requireAdminOrg(): Promise<string> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") redirect("/login")
+  if (!session || !isAdminRole(session.role)) redirect("/login")
   const orgId = resolveActiveOrgId(session)
   if (!orgId) redirect("/admin")
   return orgId

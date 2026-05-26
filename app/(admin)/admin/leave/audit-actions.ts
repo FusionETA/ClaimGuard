@@ -1,6 +1,7 @@
 "use server"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { isAdminRole } from "@/lib/auth/types"
 import {
   listLeaveAuditLog,
   type LeaveAuditEntry,
@@ -11,7 +12,7 @@ export async function loadLeaveAuditLogAction(
   filters: LeaveAuditFilters,
 ): Promise<{ ok: true; rows: LeaveAuditEntry[] } | { ok: false; error: string }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { ok: false, error: "Unauthorized" }
   }
   const orgId = resolveActiveOrgId(session)

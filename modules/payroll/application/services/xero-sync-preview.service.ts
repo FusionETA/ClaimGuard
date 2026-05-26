@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { toNumber } from "@/lib/decimal"
@@ -124,7 +125,7 @@ export async function buildPayrollSyncPreview(
   payrollRunId: string,
 ): Promise<PayrollSyncPreviewResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired." }
   }
   const orgId = resolveActiveOrgId(session)

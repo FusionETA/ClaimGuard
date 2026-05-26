@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { AdminCompanyStructure } from "@/components/admin/admin-company-structure"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -6,7 +7,7 @@ import { getAdminCompanyStructurePageData } from "@/modules/claims/application/s
 
 export default async function AdminCompanyStructurePage() {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") redirect("/login")
+  if (!session || !isAdminRole(session.role)) redirect("/login")
 
   const data = await getAdminCompanyStructurePageData({
     organizationId: resolveActiveOrgId(session),

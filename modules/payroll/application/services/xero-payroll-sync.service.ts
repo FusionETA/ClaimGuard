@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { createHash } from "node:crypto"
 
@@ -88,7 +89,7 @@ export async function syncPayrollRunToXero(
   payrollRunId: string,
 ): Promise<PayrollXeroSyncResult> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     return { status: "error", message: "Session expired. Please log in again." }
   }
   const orgId = resolveActiveOrgId(session)

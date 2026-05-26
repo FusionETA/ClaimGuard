@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getOrSetCache } from "@/lib/cache"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
@@ -20,7 +21,7 @@ import { claimRepository } from "@/modules/claims/infrastructure/claim.repositor
 
 async function requireAdminSession() {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   return session
 }
 

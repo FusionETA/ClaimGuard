@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getOrSetCache } from "@/lib/cache"
 import { bustPayrollCaches } from "@/lib/cache-invalidation"
@@ -86,7 +87,7 @@ export async function getPayrollRunsPageData(): Promise<{
   eligibleEmployeeCount: number
 } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -136,7 +137,7 @@ export async function getPayrollRunDetailPageData(input: {
   employees: Array<PayrollEmployeeRow & { ready: boolean }>
 } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -174,7 +175,7 @@ export async function createPayrollRunDraft(input: {
   periodMonth: number
 }): Promise<PayrollRunData> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -231,7 +232,7 @@ export async function submitPayrollRunForApproval(input: {
   runId: string
 }): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -342,7 +343,7 @@ export async function approvePayrollRun(input: {
     | { status: "error"; message: string }
 }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -417,7 +418,7 @@ export async function rejectPayrollRunApproval(input: {
   reason: string | null
 }): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -440,7 +441,7 @@ export async function revertPayrollRunToDraft(input: {
   runId: string
 }): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -494,7 +495,7 @@ export async function getLaterSubmittedRunsForRevert(input: {
   runId: string
 }): Promise<string[]> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return []
+  if (!session || !isAdminRole(session.role)) return []
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return []
 
@@ -516,7 +517,7 @@ export async function deletePayrollRunDraft(input: {
   runId: string
 }): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -574,7 +575,7 @@ export async function previewEmployeeNetForRun(input: {
   }
 }): Promise<{ netPay: number; grossPay: number } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -765,7 +766,7 @@ export async function generatePayrollPayslips(input: {
   runId: string
 }): Promise<{ count: number }> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -1230,7 +1231,7 @@ export async function getPayrollRunDetailWithPayslipsPageData(input: {
   runId: string
 }): Promise<PayrollRunDetailWithPayslipsPageData | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -1435,7 +1436,7 @@ export async function getPayrollDisbursementRows(input: {
   rows: DisbursementRow[]
 } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -1536,7 +1537,7 @@ export async function getPayrollAdjustmentPageData(input: {
   loans: Array<{ id: string; label: string; amount: number }>
 } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
@@ -1677,7 +1678,7 @@ export async function savePayrollAdjustment(input: {
   patch: Parameters<typeof payrollRunAdjustmentRepository.upsert>[0]["patch"]
 }): Promise<PayrollRunAdjustmentData> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -1714,7 +1715,7 @@ export async function clearPayrollAdjustment(input: {
   employeeProfileId: string
 }): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -1751,7 +1752,7 @@ export async function attachClaimToPayrollRun(input: {
   claimId: string
 }): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -1827,7 +1828,7 @@ export async function detachClaimFromPayrollRun(input: {
   claimId: string
 }): Promise<void> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") {
+  if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
@@ -1868,7 +1869,7 @@ export async function getPayrollPayslipDetailPageData(input: {
   run: PayrollRunRow
 } | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 

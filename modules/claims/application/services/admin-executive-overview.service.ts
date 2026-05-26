@@ -1,4 +1,5 @@
 import "server-only"
+import { isAdminRole } from "@/lib/auth/types"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getOrSetCache } from "@/lib/cache"
@@ -100,7 +101,7 @@ const SLOW_OT_LOOKBACK_DAYS = 60
 
 export async function getAdminExecutiveOverview(): Promise<AdminExecutiveOverview | null> {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") return null
+  if (!session || !isAdminRole(session.role)) return null
 
   const orgId = resolveActiveOrgId(session) ?? null
   if (!orgId) {

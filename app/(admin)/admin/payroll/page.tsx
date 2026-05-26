@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { isAdminRole } from "@/lib/auth/types"
 import type { Route } from "next"
 import { redirect } from "next/navigation"
 import {
@@ -37,7 +38,7 @@ import { getCurrentSession } from "@/lib/auth/session"
  */
 export default async function AdminPayrollPage() {
   const session = await getCurrentSession()
-  if (!session || session.role !== "ADMIN") redirect("/login")
+  if (!session || !isAdminRole(session.role)) redirect("/login")
 
   return (
     <div className="space-y-6">
