@@ -21,12 +21,12 @@ import { organizationRepository } from "@/modules/organization/infrastructure/or
  * alongside the customer record so subsequent /api/v1/* calls can
  * authenticate as that organization.
  *
- * NOTE: this endpoint deliberately does NOT create an admin user. The
- * tenant is API-only — the partner's own admin portal is the surface
- * customers use, not AltomateHR's. If we ever need to add direct portal
- * login for a tenant, we'll add an `admin` block to the request body
- * (or a separate admin-users endpoint) — design notes are in the
- * conversation history but the code is intentionally minimal here.
+ * Optionally accepts an `owner` block ({ email, name }). When present,
+ * we provision the paying customer's OWNER account for this org so they
+ * can SSO straight into the AltomateHR admin dashboard (see
+ * /api/sso/altomate). The owner has no usable password — they only ever
+ * enter via the signed SSO hand-off from Altomate Accounting. Omit the
+ * block to keep the tenant API-only (no portal login).
  *
  * NOTE on default scopes: today the auto-issued token receives every
  * scope in the catalog. When per-plan gating ships, this list will be
@@ -42,6 +42,26 @@ const createOrgSchema = z.object({
   // partner attribute the token in the admin UI later
   // ("Acme HR portal — Customer A").
   tokenLabel: z.string().trim().max(120).optional(),
+  // Optional OWNER to provision for the new org. When the partner
+  // (Altomate Accounting) sends this, we create the paying customer's
+  // OWNER account so they can SSO straight into the admin dashboard.
+  // No password is accepted — the owner only ever signs in via the
+  // signed SSO hand-off.
+  owner: z
+    .object({
+      email: z
+        .string()
+        .trim()
+        .min(1, "Owner email is required.")
+        .email("Enter a valid owner email.")
+        .toLowerCase(),
+      name: z
+        .string()
+        .trim()
+        .min(1, "Owner name is required.")
+        .max(120, "Owner name is too long."),
+    })
+    .optional(),
 })
 
 export const POST = handleMasterApiRequest(async (request, ctx) => {
@@ -100,12 +120,35 @@ export const POST = handleMasterApiRequest(async (request, ctx) => {
     },
   })
 
+  // Optionally provision the OWNER (paying customer) for this org so they
+  // can SSO straight into the admin dashboard. No password is set — they
+  // authenticate via the signed SSO hand-off from Altomate Accounting.
+  let owner: { id: string; email: string; name: string; created: boolean } | null =
+    null
+  if (parsed.data.owner) {
+    owner = await organizationRepository.createOwnerForOrganization({
+      organizationId: result.org.id,
+      email: parsed.data.owner.email,
+      name: parsed.data.owner.name,
+    })
+  }
+
   const response = NextResponse.json(
     {
       organization: {
         id: result.org.id,
         name: result.org.name,
       },
+      ...(owner
+        ? {
+            owner: {
+              id: owner.id,
+              email: owner.email,
+              name: owner.name,
+              created: owner.created,
+            },
+          }
+        : {}),
       apiToken: {
         // The raw secret. Exposed exactly once — partner MUST persist
         // this on their side immediately.

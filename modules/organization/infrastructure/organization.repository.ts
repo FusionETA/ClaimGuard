@@ -1,6 +1,8 @@
 import "server-only"
 import { isAdminRole } from "@/lib/auth/types"
 
+import { randomBytes } from "node:crypto"
+
 import { hashPassword } from "@/lib/auth/password"
 import { parseAllowedCurrencies } from "@/lib/currencies"
 import { toNumber } from "@/lib/decimal"
@@ -620,6 +622,62 @@ export const organizationRepository = {
     })
 
     return created
+  },
+
+  /**
+   * Create (or link) the OWNER for an organization — used by the master
+   * API when Altomate Accounting provisions a paid HR tenant. The owner
+   * authenticates via the SSO hand-off, never with a password here, so we
+   * store a random unusable hash. Idempotent: if the email already exists
+   * we just ensure the AdminOrganization link (so re-provisioning the same
+   * customer is safe) without touching their existing role.
+   */
+  async createOwnerForOrganization(input: {
+    organizationId: string
+    email: string
+    name: string
+  }): Promise<{ id: string; email: string; name: string; created: boolean }> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+
+    const email = input.email.trim().toLowerCase()
+    const name = input.name.trim()
+
+    const existing = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, name: true },
+    })
+    if (existing) {
+      await prisma.adminOrganization.upsert({
+        where: {
+          adminId_organizationId: {
+            adminId: existing.id,
+            organizationId: input.organizationId,
+          },
+        },
+        create: { adminId: existing.id, organizationId: input.organizationId },
+        update: {},
+      })
+      return { id: existing.id, email, name: existing.name, created: false }
+    }
+
+    // No usable password — the owner only ever enters via the signed SSO
+    // hand-off from Altomate Accounting.
+    const randomPassword = randomBytes(24).toString("base64url")
+    const created = await prisma.user.create({
+      data: {
+        email,
+        name,
+        passwordHash: hashPassword(randomPassword),
+        role: "OWNER",
+        organizationId: input.organizationId,
+        adminOrganizations: {
+          create: { organizationId: input.organizationId },
+        },
+      },
+      select: { id: true, email: true, name: true },
+    })
+    return { ...created, created: true }
   },
 
   async updateOrganizationName(data: {

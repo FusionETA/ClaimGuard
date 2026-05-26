@@ -30,7 +30,7 @@ const sessionSchema = z.object({
   expiresAt: z.number().int().positive(),
 })
 
-function getAuthSecret() {
+export function getAuthSecret() {
   if (process.env.AUTH_SECRET) {
     return process.env.AUTH_SECRET
   }
@@ -116,6 +116,26 @@ export async function createUserSession(user: SessionUser) {
   )
 
   return session
+}
+
+/**
+ * Build the session cookie tuple (name / value / options) WITHOUT writing
+ * it to the cookie store. Route handlers that issue a redirect must attach
+ * the cookie to the `NextResponse` themselves — mutating the `cookies()`
+ * store and returning a redirect in the same handler is unreliable. The
+ * SSO hand-off route uses this to set the session on its redirect response.
+ */
+export function buildSessionCookie(user: SessionUser): {
+  name: string
+  value: string
+  options: ReturnType<typeof getCookieOptions>
+} {
+  const expiresAt = Date.now() + SESSION_DURATION_MS
+  return {
+    name: SESSION_COOKIE_NAME,
+    value: encodeSession({ ...user, expiresAt }),
+    options: getCookieOptions(expiresAt),
+  }
 }
 
 export async function updateCurrentSession(
