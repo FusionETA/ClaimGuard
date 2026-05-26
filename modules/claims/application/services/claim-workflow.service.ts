@@ -963,6 +963,21 @@ export async function reviewClaimForSupervisor({
       type: "claim",
       scope: "review",
     })
+
+    // Tell the employee when a supervisor REJECTS — rejection is
+    // terminal and never reaches the admin step, so without this the
+    // employee would never hear the outcome. (Final approval still goes
+    // to the admin, who notifies on the final decision.)
+    if (result.claimStatus === "REJECTED") {
+      await notify({
+        userId: result.employeeUserId,
+        organizationId: session.organizationId ?? null,
+        type: "CLAIM_REVIEWED",
+        title: "Claim Updated",
+        body: `Your claim "${result.claimTitle}" was rejected.`,
+        url: "/employee/claims",
+      })
+    }
   } catch {
     // Realtime / notifications must never block a successful review.
   }
