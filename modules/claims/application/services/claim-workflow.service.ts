@@ -8,7 +8,7 @@ import { z } from "zod"
 import type { AuthenticatedSession } from "@/lib/auth/types"
 import { isKnownCurrency, SYSTEM_FALLBACK_CURRENCY } from "@/lib/currencies"
 import { computeMileageAmount, resolveMileageRate } from "@/lib/mileage"
-import { sendPushToUser } from "@/lib/web-push"
+import { notify } from "@/modules/notifications/application/services/notification.service"
 import {
   storeReceiptForClaim,
   storeSupportingFileForClaim,
@@ -796,7 +796,10 @@ export async function createClaimForEmployee({
 
     await Promise.all(
       firstStepApproverIds.map((approverId) =>
-        sendPushToUser(approverId, {
+        notify({
+          userId: approverId,
+          organizationId: session.organizationId ?? null,
+          type: "CLAIM_SUBMITTED",
           title: "New Claim Submitted",
           body: `${session.name} submitted "${parsed.data.title}" for review.`,
           url: "/employee/review",
@@ -932,18 +935,10 @@ export async function reviewClaimForSupervisor({
     }
   }
 
-  try {
-    await sendPushToUser(result.employeeUserId, {
-      title: "Claim Updated",
-      body:
-        parsed.data.decision === "APPROVED"
-          ? `Your claim "${result.claimTitle}" was approved.`
-          : `Your claim "${result.claimTitle}" was rejected.`,
-      url: "/employee/claims",
-    })
-  } catch {
-    // Push notifications should never block a successful review.
-  }
+  // Supervisor / mid-chain reviews do NOT notify the employee — only the
+  // admin's final review does (see reviewClaimForAdmin). This keeps the
+  // employee from getting a "Claim Updated" ping at every chain step;
+  // they hear once, when the decision is final.
 
   return {
     ok: true,
@@ -1023,7 +1018,10 @@ export async function reviewClaimForAdmin({
   }
 
   try {
-    await sendPushToUser(result.employeeUserId, {
+    await notify({
+      userId: result.employeeUserId,
+      organizationId: session.organizationId ?? null,
+      type: "CLAIM_REVIEWED",
       title: "Claim Updated",
       body:
         parsed.data.decision === "APPROVED"

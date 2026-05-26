@@ -31,7 +31,7 @@ export type AttendanceEditLogMinAggregateOutputType = {
   id: string | null
   attendanceRecordId: string | null
   editedById: string | null
-  editorRole: $Enums.UserRole | null
+  editorRole: $Enums.AttendanceEditLog_editorRole | null
   reason: string | null
   prevTimeIn: Date | null
   nextTimeIn: Date | null
@@ -51,7 +51,7 @@ export type AttendanceEditLogMaxAggregateOutputType = {
   id: string | null
   attendanceRecordId: string | null
   editedById: string | null
-  editorRole: $Enums.UserRole | null
+  editorRole: $Enums.AttendanceEditLog_editorRole | null
   reason: string | null
   prevTimeIn: Date | null
   nextTimeIn: Date | null
@@ -226,7 +226,7 @@ export type AttendanceEditLogGroupByOutputType = {
   id: string
   attendanceRecordId: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason: string | null
   prevTimeIn: Date | null
   nextTimeIn: Date | null
@@ -267,7 +267,7 @@ export type AttendanceEditLogWhereInput = {
   id?: Prisma.StringFilter<"AttendanceEditLog"> | string
   attendanceRecordId?: Prisma.StringFilter<"AttendanceEditLog"> | string
   editedById?: Prisma.StringFilter<"AttendanceEditLog"> | string
-  editorRole?: Prisma.EnumUserRoleFilter<"AttendanceEditLog"> | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFilter<"AttendanceEditLog"> | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.StringNullableFilter<"AttendanceEditLog"> | string | null
   prevTimeIn?: Prisma.DateTimeNullableFilter<"AttendanceEditLog"> | Date | string | null
   nextTimeIn?: Prisma.DateTimeNullableFilter<"AttendanceEditLog"> | Date | string | null
@@ -315,7 +315,7 @@ export type AttendanceEditLogWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.AttendanceEditLogWhereInput | Prisma.AttendanceEditLogWhereInput[]
   attendanceRecordId?: Prisma.StringFilter<"AttendanceEditLog"> | string
   editedById?: Prisma.StringFilter<"AttendanceEditLog"> | string
-  editorRole?: Prisma.EnumUserRoleFilter<"AttendanceEditLog"> | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFilter<"AttendanceEditLog"> | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.StringNullableFilter<"AttendanceEditLog"> | string | null
   prevTimeIn?: Prisma.DateTimeNullableFilter<"AttendanceEditLog"> | Date | string | null
   nextTimeIn?: Prisma.DateTimeNullableFilter<"AttendanceEditLog"> | Date | string | null
@@ -363,7 +363,7 @@ export type AttendanceEditLogScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"AttendanceEditLog"> | string
   attendanceRecordId?: Prisma.StringWithAggregatesFilter<"AttendanceEditLog"> | string
   editedById?: Prisma.StringWithAggregatesFilter<"AttendanceEditLog"> | string
-  editorRole?: Prisma.EnumUserRoleWithAggregatesFilter<"AttendanceEditLog"> | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleWithAggregatesFilter<"AttendanceEditLog"> | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.StringNullableWithAggregatesFilter<"AttendanceEditLog"> | string | null
   prevTimeIn?: Prisma.DateTimeNullableWithAggregatesFilter<"AttendanceEditLog"> | Date | string | null
   nextTimeIn?: Prisma.DateTimeNullableWithAggregatesFilter<"AttendanceEditLog"> | Date | string | null
@@ -381,7 +381,7 @@ export type AttendanceEditLogScalarWhereWithAggregatesInput = {
 
 export type AttendanceEditLogCreateInput = {
   id?: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason?: string | null
   prevTimeIn?: Date | string | null
   nextTimeIn?: Date | string | null
@@ -403,7 +403,7 @@ export type AttendanceEditLogUncheckedCreateInput = {
   id?: string
   attendanceRecordId: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason?: string | null
   prevTimeIn?: Date | string | null
   nextTimeIn?: Date | string | null
@@ -421,7 +421,7 @@ export type AttendanceEditLogUncheckedCreateInput = {
 
 export type AttendanceEditLogUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -443,7 +443,7 @@ export type AttendanceEditLogUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -463,7 +463,7 @@ export type AttendanceEditLogCreateManyInput = {
   id?: string
   attendanceRecordId: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason?: string | null
   prevTimeIn?: Date | string | null
   nextTimeIn?: Date | string | null
@@ -481,7 +481,7 @@ export type AttendanceEditLogCreateManyInput = {
 
 export type AttendanceEditLogUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -501,7 +501,7 @@ export type AttendanceEditLogUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -677,13 +677,17 @@ export type AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInp
   deleteMany?: Prisma.AttendanceEditLogScalarWhereInput | Prisma.AttendanceEditLogScalarWhereInput[]
 }
 
+export type EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput = {
+  set?: $Enums.AttendanceEditLog_editorRole
+}
+
 export type NullableEnumAttendanceStatusFieldUpdateOperationsInput = {
   set?: $Enums.AttendanceStatus | null
 }
 
 export type AttendanceEditLogCreateWithoutEditorInput = {
   id?: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason?: string | null
   prevTimeIn?: Date | string | null
   nextTimeIn?: Date | string | null
@@ -703,7 +707,7 @@ export type AttendanceEditLogCreateWithoutEditorInput = {
 export type AttendanceEditLogUncheckedCreateWithoutEditorInput = {
   id?: string
   attendanceRecordId: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason?: string | null
   prevTimeIn?: Date | string | null
   nextTimeIn?: Date | string | null
@@ -752,7 +756,7 @@ export type AttendanceEditLogScalarWhereInput = {
   id?: Prisma.StringFilter<"AttendanceEditLog"> | string
   attendanceRecordId?: Prisma.StringFilter<"AttendanceEditLog"> | string
   editedById?: Prisma.StringFilter<"AttendanceEditLog"> | string
-  editorRole?: Prisma.EnumUserRoleFilter<"AttendanceEditLog"> | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFilter<"AttendanceEditLog"> | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.StringNullableFilter<"AttendanceEditLog"> | string | null
   prevTimeIn?: Prisma.DateTimeNullableFilter<"AttendanceEditLog"> | Date | string | null
   nextTimeIn?: Prisma.DateTimeNullableFilter<"AttendanceEditLog"> | Date | string | null
@@ -770,7 +774,7 @@ export type AttendanceEditLogScalarWhereInput = {
 
 export type AttendanceEditLogCreateWithoutAttendanceRecordInput = {
   id?: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason?: string | null
   prevTimeIn?: Date | string | null
   nextTimeIn?: Date | string | null
@@ -790,7 +794,7 @@ export type AttendanceEditLogCreateWithoutAttendanceRecordInput = {
 export type AttendanceEditLogUncheckedCreateWithoutAttendanceRecordInput = {
   id?: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason?: string | null
   prevTimeIn?: Date | string | null
   nextTimeIn?: Date | string | null
@@ -835,7 +839,7 @@ export type AttendanceEditLogUpdateManyWithWhereWithoutAttendanceRecordInput = {
 export type AttendanceEditLogCreateManyEditorInput = {
   id?: string
   attendanceRecordId: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason?: string | null
   prevTimeIn?: Date | string | null
   nextTimeIn?: Date | string | null
@@ -853,7 +857,7 @@ export type AttendanceEditLogCreateManyEditorInput = {
 
 export type AttendanceEditLogUpdateWithoutEditorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -873,7 +877,7 @@ export type AttendanceEditLogUpdateWithoutEditorInput = {
 export type AttendanceEditLogUncheckedUpdateWithoutEditorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -892,7 +896,7 @@ export type AttendanceEditLogUncheckedUpdateWithoutEditorInput = {
 export type AttendanceEditLogUncheckedUpdateManyWithoutEditorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -911,7 +915,7 @@ export type AttendanceEditLogUncheckedUpdateManyWithoutEditorInput = {
 export type AttendanceEditLogCreateManyAttendanceRecordInput = {
   id?: string
   editedById: string
-  editorRole: $Enums.UserRole
+  editorRole: $Enums.AttendanceEditLog_editorRole
   reason?: string | null
   prevTimeIn?: Date | string | null
   nextTimeIn?: Date | string | null
@@ -929,7 +933,7 @@ export type AttendanceEditLogCreateManyAttendanceRecordInput = {
 
 export type AttendanceEditLogUpdateWithoutAttendanceRecordInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -949,7 +953,7 @@ export type AttendanceEditLogUpdateWithoutAttendanceRecordInput = {
 export type AttendanceEditLogUncheckedUpdateWithoutAttendanceRecordInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -968,7 +972,7 @@ export type AttendanceEditLogUncheckedUpdateWithoutAttendanceRecordInput = {
 export type AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   editedById?: Prisma.StringFieldUpdateOperationsInput | string
-  editorRole?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  editorRole?: Prisma.EnumAttendanceEditLog_editorRoleFieldUpdateOperationsInput | $Enums.AttendanceEditLog_editorRole
   reason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   prevTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   nextTimeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1050,7 +1054,7 @@ export type $AttendanceEditLogPayload<ExtArgs extends runtime.Types.Extensions.I
      * Snapshot of the editor's role at the time of the edit so the trail
      * stays meaningful even if the user's role changes later.
      */
-    editorRole: $Enums.UserRole
+    editorRole: $Enums.AttendanceEditLog_editorRole
     reason: string | null
     prevTimeIn: Date | null
     nextTimeIn: Date | null
@@ -1441,7 +1445,7 @@ export interface AttendanceEditLogFieldRefs {
   readonly id: Prisma.FieldRef<"AttendanceEditLog", 'String'>
   readonly attendanceRecordId: Prisma.FieldRef<"AttendanceEditLog", 'String'>
   readonly editedById: Prisma.FieldRef<"AttendanceEditLog", 'String'>
-  readonly editorRole: Prisma.FieldRef<"AttendanceEditLog", 'UserRole'>
+  readonly editorRole: Prisma.FieldRef<"AttendanceEditLog", 'AttendanceEditLog_editorRole'>
   readonly reason: Prisma.FieldRef<"AttendanceEditLog", 'String'>
   readonly prevTimeIn: Prisma.FieldRef<"AttendanceEditLog", 'DateTime'>
   readonly nextTimeIn: Prisma.FieldRef<"AttendanceEditLog", 'DateTime'>

@@ -94,6 +94,15 @@ export type AdminOrganization = Prisma.AdminOrganizationModel
  */
 export type PushSubscription = Prisma.PushSubscriptionModel
 /**
+ * Model Notification
+ * Persisted in-app notification. Mirrors what gets sent via web push so
+ * users have a notification center (bell + list) on both the admin and
+ * employee surfaces. Created through the notification service alongside
+ * the push send, so a user sees the same event whether or not push was
+ * delivered.
+ */
+export type Notification = Prisma.NotificationModel
+/**
  * Model EmployeeImportDraft
  * Resumable draft of the bulk-employee-import wizard. One draft per
  * (user, organization). Auto-saved by the wizard on every state
