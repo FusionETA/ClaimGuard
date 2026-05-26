@@ -1423,6 +1423,11 @@ export type DisbursementRow = {
   bankName: string
   accountHolderName: string
   accountNumber: string
+  /// Live ID details from the employee's payroll profile — used by the
+  /// PB ECP file's "ID Type" + "Bene Identification No / Passport"
+  /// columns. Null when the employee hasn't filled them in.
+  idType: "IC" | "PASSPORT" | "OTHER" | null
+  idNumber: string | null
   currency: string
   netAmount: number
   reference: string
@@ -1461,6 +1466,8 @@ export async function getPayrollDisbursementRows(input: {
           bankName: true,
           bankAccountHolderName: true,
           bankAccountNumber: true,
+          idType: true,
+          idNumber: true,
         },
       },
     },
@@ -1483,6 +1490,9 @@ export async function getPayrollDisbursementRows(input: {
       accountHolderName:
         p.payrollProfile?.bankAccountHolderName ?? p.snapshotName,
       accountNumber: p.payrollProfile?.bankAccountNumber ?? "",
+      idType:
+        (p.payrollProfile?.idType as DisbursementRow["idType"]) ?? null,
+      idNumber: p.payrollProfile?.idNumber ?? null,
       currency: "MYR",
       netAmount: Number(p.netPay) || 0,
       reference: `Payroll ${periodTag} ${p.snapshotEmployeeId}`,

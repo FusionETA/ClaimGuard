@@ -173,13 +173,14 @@ export async function renderPbEcpXlsx(input: {
       continue
     }
 
+    const { ecpIdType, ecpIdNo } = mapPbEcpId(row.idType, row.idNumber)
     detailRows.push([
       bank.ecpMode, // A
       row.accountNumber.replace(/[^0-9]/g, ""), // B
       bank.bic, // C
       row.accountHolderName || row.employeeName, // D
-      "", // E ID Type — left blank (admin can fill if needed)
-      "", // F ID No — left blank
+      ecpIdType, // E ID Type (NI = New IC, PP = Passport)
+      ecpIdNo, // F Bene Identification No / Passport
       Number(row.netAmount.toFixed(2)), // G
       reference, // H
       `EMP ${row.employeeCode}`.slice(0, 20), // I
@@ -245,6 +246,34 @@ export async function renderPbEcpXlsx(input: {
 
 /// `DDMMYY` for the filename + `DD/MM/YYYY` for the cell. PB ECP
 /// accepts the latter inside the sheet.
+/**
+ * Map our `idType`/`idNumber` to PB ECP's "ID Type" code + ID number.
+ * PB codes: NI = New IC, OI = Old IC, BR = Business Reg, PL = Police,
+ * ML = Military, PP = Passport. We only produce NI (IC) and PP
+ * (Passport); anything else emits the number with no type code.
+ * Both columns are optional in the spec — blank when no ID on file.
+ */
+function mapPbEcpId(
+  idType: "IC" | "PASSPORT" | "OTHER" | null,
+  idNumber: string | null,
+): { ecpIdType: string; ecpIdNo: string } {
+  const raw = (idNumber ?? "").trim()
+  if (raw.length === 0) return { ecpIdType: "", ecpIdNo: "" }
+
+  if (idType === "PASSPORT") {
+    return {
+      ecpIdType: "PP",
+      ecpIdNo: raw.replace(/[^0-9A-Za-z]/g, "").slice(0, 29),
+    }
+  }
+  if (idType === "IC") {
+    // New IC — digits only, no dashes.
+    return { ecpIdType: "NI", ecpIdNo: raw.replace(/[^0-9]/g, "").slice(0, 29) }
+  }
+  // OTHER / unknown — pass the raw value through without a type code.
+  return { ecpIdType: "", ecpIdNo: raw.replace(/[^0-9A-Za-z]/g, "").slice(0, 29) }
+}
+
 function formatDdMmYyyy(d: Date): string {
   const dd = String(d.getDate()).padStart(2, "0")
   const mm = String(d.getMonth() + 1).padStart(2, "0")
