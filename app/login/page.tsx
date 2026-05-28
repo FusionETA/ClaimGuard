@@ -1,15 +1,23 @@
 import Image from "next/image"
 
 import { LoginForm } from "@/app/login/login-form"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 const loginCopy = {
   // eyebrow: "AltomateHR Access",
   title: "Login",
 } as const
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const copy = loginCopy
+  const sp = await searchParams
+  // `?passwordReset=1` is set by the reset flow's final redirect so the
+  // user gets confirmation that the password change went through.
+  const passwordResetBanner = sp.passwordReset === "1"
 
   return (
     <main className="flex min-h-[100svh] items-center px-4 py-4 sm:min-h-screen sm:px-6 sm:py-10 lg:px-8">
@@ -37,6 +45,11 @@ export default function LoginPage() {
             </div>
           </CardHeader>
           <CardContent className="p-5 pt-2 sm:p-8 sm:pt-6">
+            {passwordResetBanner ? (
+              <p className="mb-4 rounded-2xl border border-emerald-200/60 bg-emerald-50/70 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-700/40 dark:bg-emerald-950/30 dark:text-emerald-200">
+                Password updated. Sign in with your new password.
+              </p>
+            ) : null}
             <LoginForm />
           </CardContent>
         </Card>

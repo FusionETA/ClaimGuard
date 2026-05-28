@@ -18,6 +18,7 @@ import {
   Settings2,
 } from "lucide-react"
 
+import { ChangePasswordButton } from "@/components/layout/change-password-button"
 import { LogoutButton } from "@/components/layout/logout-button"
 import { NotificationBell } from "@/components/layout/notification-bell"
 import { RealtimeListener } from "@/components/layout/realtime-listener"
@@ -438,12 +439,16 @@ export function AdminShell({
                   <p className="text-sm font-bold">{user.name}</p>
                   <p className="text-xs text-muted-foreground">{user.subtitle}</p>
                 </div>
-                {/* SSO sessions hide the Log out button — these
-                    customers sign in via Altomate Accounting and
-                    should manage their session there instead of
-                    landing on our /login. Password / direct logins
-                    still see the button as normal. */}
-                {user.loggedInViaSso ? null : <LogoutButton />}
+                {/* SSO sessions hide Change Password + Log Out —
+                    those customers sign in via Altomate Accounting
+                    (no useful password here, session managed there).
+                    Password / direct logins see both buttons. */}
+                {user.loggedInViaSso ? null : (
+                  <>
+                    <ChangePasswordButton />
+                    <LogoutButton />
+                  </>
+                )}
               </div>
             </div>
           </div>

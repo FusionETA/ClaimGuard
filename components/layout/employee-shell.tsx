@@ -13,6 +13,7 @@ import {
   Receipt,
 } from "lucide-react"
 
+import { ChangePasswordButton } from "@/components/layout/change-password-button"
 import { LogoutButton } from "@/components/layout/logout-button"
 import { NotificationBell } from "@/components/layout/notification-bell"
 import { RealtimeListener } from "@/components/layout/realtime-listener"
@@ -399,6 +400,7 @@ export function EmployeeShell({
                     <p className="text-xs text-muted-foreground">{user.subtitle}</p>
                   </div>
                 </Link>
+                <ChangePasswordButton />
                 <LogoutButton />
               </div>
             </div>

@@ -1,0 +1,166 @@
+"use client"
+
+import { useActionState, useEffect, useState } from "react"
+import { KeyRound, LoaderCircle } from "lucide-react"
+
+import {
+  changePasswordAction,
+  initialChangePasswordFormState,
+} from "@/app/login/actions"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useToastOnAction } from "@/components/ui/toaster"
+
+/**
+ * Trigger + Dialog for changing the signed-in user's password.
+ * Sits in the avatar area next to `<LogoutButton />`. Hidden when the
+ * session was minted via SSO (those accounts have no useful password —
+ * see lib/auth/authenticate.buildSessionUserForEmail).
+ *
+ * The dialog auto-closes on success (toast surfaces the result via the
+ * existing useToastOnAction wiring).
+ */
+export function ChangePasswordButton() {
+  const [open, setOpen] = useState(false)
+  const [state, action, pending] = useActionState(
+    changePasswordAction,
+    initialChangePasswordFormState,
+  )
+  // Mirror the action state into the toast hook's required shape. For
+  // idle / error-without-message we pass status "idle" with an empty
+  // message so the hook stays quiet.
+  useToastOnAction(
+    state.status === "success"
+      ? { status: "success" as const, message: state.message ?? "Password updated." }
+      : state.status === "error" && state.message
+        ? { status: "error" as const, message: state.message }
+        : { status: "idle" as const, message: "" },
+  )
+
+  // Close the dialog automatically on success.
+  useEffect(() => {
+    if (state.status === "success") setOpen(false)
+  }, [state.status])
+
+  return (
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => setOpen(true)}
+        title="Change password"
+        className="h-9 w-9 shrink-0 rounded-full p-0"
+        aria-label="Change password"
+      >
+        <KeyRound className="h-4 w-4" />
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          className="flex w-[min(92vw,440px)] flex-col overflow-hidden px-6 pb-6 pt-6 sm:max-w-[440px]"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="shrink-0 pr-8">
+            <DialogTitle>Change password</DialogTitle>
+            <DialogDescription>
+              Enter your current password, then choose a new one.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form action={action} className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="currentPassword">Current password</Label>
+              <Input
+                id="currentPassword"
+                name="currentPassword"
+                type="password"
+                autoComplete="current-password"
+                aria-invalid={Boolean(state.errors?.currentPassword)}
+                required
+              />
+              {state.errors?.currentPassword ? (
+                <p className="text-xs text-destructive">
+                  {state.errors.currentPassword}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="newPassword">New password</Label>
+              <Input
+                id="newPassword"
+                name="newPassword"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                placeholder="At least 8 characters"
+                aria-invalid={Boolean(state.errors?.newPassword)}
+                required
+              />
+              {state.errors?.newPassword ? (
+                <p className="text-xs text-destructive">
+                  {state.errors.newPassword}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="confirmPassword">Confirm new password</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                aria-invalid={Boolean(state.errors?.confirmPassword)}
+                required
+              />
+              {state.errors?.confirmPassword ? (
+                <p className="text-xs text-destructive">
+                  {state.errors.confirmPassword}
+                </p>
+              ) : null}
+            </div>
+
+            {state.message && state.status === "error" ? (
+              <p className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                {state.message}
+              </p>
+            ) : null}
+
+            <DialogFooter className="gap-2 sm:gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                disabled={pending}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={pending}>
+                {pending ? (
+                  <>
+                    <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                    Updating…
+                  </>
+                ) : (
+                  "Update password"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}

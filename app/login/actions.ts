@@ -9,13 +9,16 @@ import {
   type LoginFormState,
 } from "@/app/login/form-state"
 import { authenticateUser } from "@/lib/auth/authenticate"
+import { hashPassword, verifyPassword } from "@/lib/auth/password"
 import {
   clearUserSession,
   createUserSession,
   getCurrentSession,
   getHomePathForRole,
 } from "@/lib/auth/session"
+import { getPrismaClient } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { pushSubscriptionRepository } from "@/modules/notifications/infrastructure/push-subscription.repository"
 
 /**
@@ -101,6 +104,149 @@ export async function loginAction(
   // so it was unreliable in multi-instance deployments anyway.
   // Pages lazy-load their own data from the DB on first visit.
   redirect(getHomePathForRole(result.user.role))
+}
+
+/**
+ * Form-state shape for changePasswordAction. Matches the FormState
+ * pattern used elsewhere — status + message + per-field errors.
+ */
+export type ChangePasswordFormState = {
+  status: "idle" | "success" | "error"
+  message?: string
+  errors?: {
+    currentPassword?: string
+    newPassword?: string
+    confirmPassword?: string
+  }
+}
+
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password."),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters.")
+      .max(128, "Password is too long."),
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords don't match.",
+  })
+  .refine((d) => d.newPassword !== d.currentPassword, {
+    path: ["newPassword"],
+    message: "New password must be different from current password.",
+  })
+
+/**
+ * Authenticated change-password action. Validates the CURRENT password,
+ * then writes the new hash. Session stays valid afterwards — we don't
+ * force a re-login because the session is the user's own and they just
+ * proved they own it by typing the current password.
+ *
+ * Refused for SSO-originated sessions (their `User.passwordHash` is a
+ * random unusable value set at provisioning time — they sign in via
+ * Altomate Accounting and never use a password here).
+ */
+export async function changePasswordAction(
+  _prev: ChangePasswordFormState,
+  formData: FormData,
+): Promise<ChangePasswordFormState> {
+  const session = await getCurrentSession()
+  if (!session) {
+    return { status: "error", message: "Session expired. Please log in again." }
+  }
+  if (session.loggedInViaSso) {
+    return {
+      status: "error",
+      message:
+        "This account signs in via Altomate Accounting and has no local password to change.",
+    }
+  }
+
+  // IP rate-limit — same scope as login since the attack surface is
+  // similar (someone trying to guess the current password).
+  const ip = await getClientIpForRateLimit()
+  const rl = await rateLimit({
+    scope: "change-password",
+    id: ip,
+    max: 5,
+    windowSec: 300,
+  })
+  if (!rl.ok) {
+    return {
+      status: "error",
+      message: `Too many attempts. Try again in ${rl.retryAfterSec}s.`,
+    }
+  }
+
+  const parsed = changePasswordSchema.safeParse({
+    currentPassword: String(formData.get("currentPassword") ?? ""),
+    newPassword: String(formData.get("newPassword") ?? ""),
+    confirmPassword: String(formData.get("confirmPassword") ?? ""),
+  })
+  if (!parsed.success) {
+    const flat = parsed.error.flatten().fieldErrors
+    return {
+      status: "error",
+      message: "Please fix the highlighted fields.",
+      errors: {
+        currentPassword: flat.currentPassword?.[0],
+        newPassword: flat.newPassword?.[0],
+        confirmPassword: flat.confirmPassword?.[0],
+      },
+    }
+  }
+
+  const prisma = getPrismaClient()
+  if (!prisma) {
+    return { status: "error", message: "Database is not available." }
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { passwordHash: true },
+  })
+  if (!user) {
+    return { status: "error", message: "Account not found." }
+  }
+  if (!verifyPassword(parsed.data.currentPassword, user.passwordHash)) {
+    return {
+      status: "error",
+      errors: { currentPassword: "Current password is incorrect." },
+      message: "Current password is incorrect.",
+    }
+  }
+
+  await prisma.user.update({
+    where: { id: session.userId },
+    data: { passwordHash: hashPassword(parsed.data.newPassword) },
+  })
+
+  // Audit so an admin can spot a compromised account changing its
+  // password (in addition to the user's own peace of mind).
+  if (session.activeOrganizationId ?? session.organizationId) {
+    void writeAudit({
+      organizationId:
+        session.activeOrganizationId ?? session.organizationId!,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "auth.password.change",
+      status: "SUCCESS",
+      summary: "Changed account password",
+      targetType: "user",
+      targetId: session.userId,
+    })
+  }
+
+  return { status: "success", message: "Password updated." }
+}
+
+export const initialChangePasswordFormState: ChangePasswordFormState = {
+  status: "idle",
 }
 
 export async function logoutAction() {
