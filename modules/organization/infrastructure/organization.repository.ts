@@ -3211,6 +3211,12 @@ export const organizationRepository = {
     layerCount: number
     moduleConfig?: TeamModuleConfig
     layerLabels?: string[] | null
+    /// Per-event approval gates. Omitted → DB defaults (all true) apply,
+    /// matching the previous always-approve behaviour.
+    requireClockInApproval?: boolean
+    requireClockOutApproval?: boolean
+    requireBreakStartApproval?: boolean
+    requireBreakEndApproval?: boolean
   }): Promise<TeamSummary> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -3249,6 +3255,18 @@ export const organizationRepository = {
         layerCount: data.layerCount,
         layerLabels: labels ?? undefined,
         moduleConfig: validated.value,
+        ...(data.requireClockInApproval !== undefined
+          ? { requireClockInApproval: data.requireClockInApproval }
+          : {}),
+        ...(data.requireClockOutApproval !== undefined
+          ? { requireClockOutApproval: data.requireClockOutApproval }
+          : {}),
+        ...(data.requireBreakStartApproval !== undefined
+          ? { requireBreakStartApproval: data.requireBreakStartApproval }
+          : {}),
+        ...(data.requireBreakEndApproval !== undefined
+          ? { requireBreakEndApproval: data.requireBreakEndApproval }
+          : {}),
       },
       include: {
         project: { select: { id: true, name: true } },
@@ -3265,6 +3283,10 @@ export const organizationRepository = {
     layerCount?: number
     layerLabels?: string[] | null
     moduleConfig?: TeamModuleConfig
+    requireClockInApproval?: boolean
+    requireClockOutApproval?: boolean
+    requireBreakStartApproval?: boolean
+    requireBreakEndApproval?: boolean
   }): Promise<TeamSummary> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -3324,6 +3346,18 @@ export const organizationRepository = {
           ? { layerLabels: labelsUpdate ?? undefined }
           : {}),
         ...(nextModuleCfg ? { moduleConfig: nextModuleCfg } : {}),
+        ...(data.requireClockInApproval !== undefined
+          ? { requireClockInApproval: data.requireClockInApproval }
+          : {}),
+        ...(data.requireClockOutApproval !== undefined
+          ? { requireClockOutApproval: data.requireClockOutApproval }
+          : {}),
+        ...(data.requireBreakStartApproval !== undefined
+          ? { requireBreakStartApproval: data.requireBreakStartApproval }
+          : {}),
+        ...(data.requireBreakEndApproval !== undefined
+          ? { requireBreakEndApproval: data.requireBreakEndApproval }
+          : {}),
       },
       include: {
         project: { select: { id: true, name: true } },
@@ -3656,6 +3690,10 @@ type TeamRow = {
   layerCount: number
   layerLabels: unknown
   moduleConfig: unknown
+  requireClockInApproval: boolean
+  requireClockOutApproval: boolean
+  requireBreakStartApproval: boolean
+  requireBreakEndApproval: boolean
   project: { id: string; name: string }
   _count: { memberships: number }
 }
@@ -3670,6 +3708,10 @@ function mapTeamSummary(row: TeamRow): TeamSummary {
     layerLabels: parseLayerLabels(row.layerLabels),
     moduleConfig: parseModuleConfigJson(row.moduleConfig, row.layerCount),
     memberCount: row._count.memberships,
+    requireClockInApproval: row.requireClockInApproval,
+    requireClockOutApproval: row.requireClockOutApproval,
+    requireBreakStartApproval: row.requireBreakStartApproval,
+    requireBreakEndApproval: row.requireBreakEndApproval,
   }
 }
 

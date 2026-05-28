@@ -1337,6 +1337,7 @@ export const attendanceRepository = {
       role: employee?.role,
       projectId: existing.projectId ?? null,
       kind: "BREAK",
+      breakSubtype: "start",
     })
     const approval = await prisma.approvalRequest.create({
       data: {
@@ -1423,6 +1424,7 @@ export const attendanceRepository = {
       role: employee?.role,
       projectId: existing.projectId ?? null,
       kind: "BREAK",
+      breakSubtype: "end",
     })
     const approval = await prisma.approvalRequest.create({
       data: {

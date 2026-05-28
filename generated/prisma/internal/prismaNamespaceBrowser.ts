@@ -616,6 +616,10 @@ export const TeamScalarFieldEnum = {
   layerCount: 'layerCount',
   layerLabels: 'layerLabels',
   moduleConfig: 'moduleConfig',
+  requireClockInApproval: 'requireClockInApproval',
+  requireClockOutApproval: 'requireClockOutApproval',
+  requireBreakStartApproval: 'requireBreakStartApproval',
+  requireBreakEndApproval: 'requireBreakEndApproval',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -917,6 +917,18 @@ model Team {
   layerCount   Int                      @default(1)
   layerLabels  Json?
   moduleConfig Json
+  /// Per-event approval gates for attendance kinds. When false, the
+  /// corresponding clock/break event auto-approves at creation time
+  /// (no chain). When true, the event flows through the team's
+  /// existing ATTENDANCE module chain (see `moduleConfig.ATTENDANCE`).
+  /// Default true preserves the previous always-approve behaviour.
+  /// BREAK is split here even though the underlying ApprovalKind stays
+  /// "BREAK" — the request's `breakSubtype` ('start'/'end') decides
+  /// which of these two flags applies.
+  requireClockInApproval     Boolean @default(true)
+  requireClockOutApproval    Boolean @default(true)
+  requireBreakStartApproval  Boolean @default(true)
+  requireBreakEndApproval    Boolean @default(true)
   createdAt    DateTime                 @default(now())
   updatedAt    DateTime                 @updatedAt
   chainSteps   ApprovalChainStep[]

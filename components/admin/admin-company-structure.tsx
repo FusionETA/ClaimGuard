@@ -388,6 +388,20 @@ function TeamEditor(props: EditorProps) {
   const [layerCount, setLayerCount] = useState(initialLayerCount)
   const [layerLabels, setLayerLabels] = useState<string[]>(initialLayerLabels)
   const [moduleConfig, setModuleConfig] = useState(initialModuleConfig)
+  // Per-event attendance approval gates. Default true so new teams behave
+  // like before (every clock/break event needs approval).
+  const [requireClockInApproval, setRequireClockInApproval] = useState(
+    isEdit ? props.team.requireClockInApproval : true,
+  )
+  const [requireClockOutApproval, setRequireClockOutApproval] = useState(
+    isEdit ? props.team.requireClockOutApproval : true,
+  )
+  const [requireBreakStartApproval, setRequireBreakStartApproval] = useState(
+    isEdit ? props.team.requireBreakStartApproval : true,
+  )
+  const [requireBreakEndApproval, setRequireBreakEndApproval] = useState(
+    isEdit ? props.team.requireBreakEndApproval : true,
+  )
 
   // When the layer count changes, trim/extend dependent state.
   function handleLayerCountChange(next: number) {
@@ -637,6 +651,79 @@ function TeamEditor(props: EditorProps) {
                 />
               )
             })}
+          </div>
+
+          {/* Per-event attendance approval gates. Each toggle decides whether
+              the corresponding event flows through the ATTENDANCE chain
+              above (when checked) or auto-approves on creation (when
+              unchecked). Break is split by `breakSubtype` even though the
+              underlying ApprovalKind stays "BREAK". */}
+          <div className="space-y-3 rounded-lg border bg-card/60 p-4">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Attendance approval per event
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Tick which events still need supervisor approval. Unchecked
+                events auto-approve on creation (no chain) — useful for teams
+                where, say, clock-out should be silent but clock-in is
+                reviewed. Applies on top of the ATTENDANCE layer config above.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="flex items-center gap-2 rounded-md border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
+                  name="requireClockInApproval"
+                  checked={requireClockInApproval}
+                  onChange={(e) => setRequireClockInApproval(e.target.checked)}
+                  disabled={pending}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">
+                  Require approval for Clock in
+                </span>
+              </label>
+              <label className="flex items-center gap-2 rounded-md border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
+                  name="requireClockOutApproval"
+                  checked={requireClockOutApproval}
+                  onChange={(e) => setRequireClockOutApproval(e.target.checked)}
+                  disabled={pending}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">
+                  Require approval for Clock out
+                </span>
+              </label>
+              <label className="flex items-center gap-2 rounded-md border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
+                  name="requireBreakStartApproval"
+                  checked={requireBreakStartApproval}
+                  onChange={(e) => setRequireBreakStartApproval(e.target.checked)}
+                  disabled={pending}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">
+                  Require approval for Break start
+                </span>
+              </label>
+              <label className="flex items-center gap-2 rounded-md border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
+                  name="requireBreakEndApproval"
+                  checked={requireBreakEndApproval}
+                  onChange={(e) => setRequireBreakEndApproval(e.target.checked)}
+                  disabled={pending}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">
+                  Require approval for Break end
+                </span>
+              </label>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 pt-2">

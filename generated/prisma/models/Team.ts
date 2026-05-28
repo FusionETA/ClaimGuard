@@ -43,6 +43,10 @@ export type TeamMinAggregateOutputType = {
   projectId: string | null
   name: string | null
   layerCount: number | null
+  requireClockInApproval: boolean | null
+  requireClockOutApproval: boolean | null
+  requireBreakStartApproval: boolean | null
+  requireBreakEndApproval: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -52,6 +56,10 @@ export type TeamMaxAggregateOutputType = {
   projectId: string | null
   name: string | null
   layerCount: number | null
+  requireClockInApproval: boolean | null
+  requireClockOutApproval: boolean | null
+  requireBreakStartApproval: boolean | null
+  requireBreakEndApproval: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -63,6 +71,10 @@ export type TeamCountAggregateOutputType = {
   layerCount: number
   layerLabels: number
   moduleConfig: number
+  requireClockInApproval: number
+  requireClockOutApproval: number
+  requireBreakStartApproval: number
+  requireBreakEndApproval: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -82,6 +94,10 @@ export type TeamMinAggregateInputType = {
   projectId?: true
   name?: true
   layerCount?: true
+  requireClockInApproval?: true
+  requireClockOutApproval?: true
+  requireBreakStartApproval?: true
+  requireBreakEndApproval?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -91,6 +107,10 @@ export type TeamMaxAggregateInputType = {
   projectId?: true
   name?: true
   layerCount?: true
+  requireClockInApproval?: true
+  requireClockOutApproval?: true
+  requireBreakStartApproval?: true
+  requireBreakEndApproval?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -102,6 +122,10 @@ export type TeamCountAggregateInputType = {
   layerCount?: true
   layerLabels?: true
   moduleConfig?: true
+  requireClockInApproval?: true
+  requireClockOutApproval?: true
+  requireBreakStartApproval?: true
+  requireBreakEndApproval?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -200,6 +224,10 @@ export type TeamGroupByOutputType = {
   layerCount: number
   layerLabels: runtime.JsonValue | null
   moduleConfig: runtime.JsonValue
+  requireClockInApproval: boolean
+  requireClockOutApproval: boolean
+  requireBreakStartApproval: boolean
+  requireBreakEndApproval: boolean
   createdAt: Date
   updatedAt: Date
   _count: TeamCountAggregateOutputType | null
@@ -234,6 +262,10 @@ export type TeamWhereInput = {
   layerCount?: Prisma.IntFilter<"Team"> | number
   layerLabels?: Prisma.JsonNullableFilter<"Team">
   moduleConfig?: Prisma.JsonFilter<"Team">
+  requireClockInApproval?: Prisma.BoolFilter<"Team"> | boolean
+  requireClockOutApproval?: Prisma.BoolFilter<"Team"> | boolean
+  requireBreakStartApproval?: Prisma.BoolFilter<"Team"> | boolean
+  requireBreakEndApproval?: Prisma.BoolFilter<"Team"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Team"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Team"> | Date | string
   chainSteps?: Prisma.ApprovalChainStepListRelationFilter
@@ -248,6 +280,10 @@ export type TeamOrderByWithRelationInput = {
   layerCount?: Prisma.SortOrder
   layerLabels?: Prisma.SortOrderInput | Prisma.SortOrder
   moduleConfig?: Prisma.SortOrder
+  requireClockInApproval?: Prisma.SortOrder
+  requireClockOutApproval?: Prisma.SortOrder
+  requireBreakStartApproval?: Prisma.SortOrder
+  requireBreakEndApproval?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   chainSteps?: Prisma.ApprovalChainStepOrderByRelationAggregateInput
@@ -267,6 +303,10 @@ export type TeamWhereUniqueInput = Prisma.AtLeast<{
   layerCount?: Prisma.IntFilter<"Team"> | number
   layerLabels?: Prisma.JsonNullableFilter<"Team">
   moduleConfig?: Prisma.JsonFilter<"Team">
+  requireClockInApproval?: Prisma.BoolFilter<"Team"> | boolean
+  requireClockOutApproval?: Prisma.BoolFilter<"Team"> | boolean
+  requireBreakStartApproval?: Prisma.BoolFilter<"Team"> | boolean
+  requireBreakEndApproval?: Prisma.BoolFilter<"Team"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Team"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Team"> | Date | string
   chainSteps?: Prisma.ApprovalChainStepListRelationFilter
@@ -281,6 +321,10 @@ export type TeamOrderByWithAggregationInput = {
   layerCount?: Prisma.SortOrder
   layerLabels?: Prisma.SortOrderInput | Prisma.SortOrder
   moduleConfig?: Prisma.SortOrder
+  requireClockInApproval?: Prisma.SortOrder
+  requireClockOutApproval?: Prisma.SortOrder
+  requireBreakStartApproval?: Prisma.SortOrder
+  requireBreakEndApproval?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.TeamCountOrderByAggregateInput
@@ -300,6 +344,10 @@ export type TeamScalarWhereWithAggregatesInput = {
   layerCount?: Prisma.IntWithAggregatesFilter<"Team"> | number
   layerLabels?: Prisma.JsonNullableWithAggregatesFilter<"Team">
   moduleConfig?: Prisma.JsonWithAggregatesFilter<"Team">
+  requireClockInApproval?: Prisma.BoolWithAggregatesFilter<"Team"> | boolean
+  requireClockOutApproval?: Prisma.BoolWithAggregatesFilter<"Team"> | boolean
+  requireBreakStartApproval?: Prisma.BoolWithAggregatesFilter<"Team"> | boolean
+  requireBreakEndApproval?: Prisma.BoolWithAggregatesFilter<"Team"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Team"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Team"> | Date | string
 }
@@ -310,6 +358,10 @@ export type TeamCreateInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   chainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutTeamInput
@@ -324,6 +376,10 @@ export type TeamUncheckedCreateInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   chainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutTeamInput
@@ -336,6 +392,10 @@ export type TeamUpdateInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutTeamNestedInput
@@ -350,6 +410,10 @@ export type TeamUncheckedUpdateInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutTeamNestedInput
@@ -363,6 +427,10 @@ export type TeamCreateManyInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -373,6 +441,10 @@ export type TeamUpdateManyMutationInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -384,6 +456,10 @@ export type TeamUncheckedUpdateManyInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -421,6 +497,10 @@ export type TeamCountOrderByAggregateInput = {
   layerCount?: Prisma.SortOrder
   layerLabels?: Prisma.SortOrder
   moduleConfig?: Prisma.SortOrder
+  requireClockInApproval?: Prisma.SortOrder
+  requireClockOutApproval?: Prisma.SortOrder
+  requireBreakStartApproval?: Prisma.SortOrder
+  requireBreakEndApproval?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -434,6 +514,10 @@ export type TeamMaxOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   layerCount?: Prisma.SortOrder
+  requireClockInApproval?: Prisma.SortOrder
+  requireClockOutApproval?: Prisma.SortOrder
+  requireBreakStartApproval?: Prisma.SortOrder
+  requireBreakEndApproval?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -443,6 +527,10 @@ export type TeamMinOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
   name?: Prisma.SortOrder
   layerCount?: Prisma.SortOrder
+  requireClockInApproval?: Prisma.SortOrder
+  requireClockOutApproval?: Prisma.SortOrder
+  requireBreakStartApproval?: Prisma.SortOrder
+  requireBreakEndApproval?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -534,6 +622,10 @@ export type TeamCreateWithoutProjectInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   chainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutTeamInput
@@ -546,6 +638,10 @@ export type TeamUncheckedCreateWithoutProjectInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   chainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutTeamInput
@@ -588,6 +684,10 @@ export type TeamScalarWhereInput = {
   layerCount?: Prisma.IntFilter<"Team"> | number
   layerLabels?: Prisma.JsonNullableFilter<"Team">
   moduleConfig?: Prisma.JsonFilter<"Team">
+  requireClockInApproval?: Prisma.BoolFilter<"Team"> | boolean
+  requireClockOutApproval?: Prisma.BoolFilter<"Team"> | boolean
+  requireBreakStartApproval?: Prisma.BoolFilter<"Team"> | boolean
+  requireBreakEndApproval?: Prisma.BoolFilter<"Team"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Team"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Team"> | Date | string
 }
@@ -598,6 +698,10 @@ export type TeamCreateWithoutChainStepsInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.EmployeeTeamMembershipCreateNestedManyWithoutTeamInput
@@ -611,6 +715,10 @@ export type TeamUncheckedCreateWithoutChainStepsInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   memberships?: Prisma.EmployeeTeamMembershipUncheckedCreateNestedManyWithoutTeamInput
@@ -638,6 +746,10 @@ export type TeamUpdateWithoutChainStepsInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.EmployeeTeamMembershipUpdateManyWithoutTeamNestedInput
@@ -651,6 +763,10 @@ export type TeamUncheckedUpdateWithoutChainStepsInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   memberships?: Prisma.EmployeeTeamMembershipUncheckedUpdateManyWithoutTeamNestedInput
@@ -662,6 +778,10 @@ export type TeamCreateWithoutMembershipsInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   chainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutTeamInput
@@ -675,6 +795,10 @@ export type TeamUncheckedCreateWithoutMembershipsInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   chainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutTeamInput
@@ -702,6 +826,10 @@ export type TeamUpdateWithoutMembershipsInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutTeamNestedInput
@@ -715,6 +843,10 @@ export type TeamUncheckedUpdateWithoutMembershipsInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutTeamNestedInput
@@ -726,6 +858,10 @@ export type TeamCreateManyProjectInput = {
   layerCount?: number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -736,6 +872,10 @@ export type TeamUpdateWithoutProjectInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutTeamNestedInput
@@ -748,6 +888,10 @@ export type TeamUncheckedUpdateWithoutProjectInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   chainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutTeamNestedInput
@@ -760,6 +904,10 @@ export type TeamUncheckedUpdateManyWithoutProjectInput = {
   layerCount?: Prisma.IntFieldUpdateOperationsInput | number
   layerLabels?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   moduleConfig?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  requireClockInApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireClockOutApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakStartApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  requireBreakEndApproval?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -811,6 +959,10 @@ export type TeamSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   layerCount?: boolean
   layerLabels?: boolean
   moduleConfig?: boolean
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   chainSteps?: boolean | Prisma.Team$chainStepsArgs<ExtArgs>
@@ -828,11 +980,15 @@ export type TeamSelectScalar = {
   layerCount?: boolean
   layerLabels?: boolean
   moduleConfig?: boolean
+  requireClockInApproval?: boolean
+  requireClockOutApproval?: boolean
+  requireBreakStartApproval?: boolean
+  requireBreakEndApproval?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type TeamOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "layerCount" | "layerLabels" | "moduleConfig" | "createdAt" | "updatedAt", ExtArgs["result"]["team"]>
+export type TeamOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "name" | "layerCount" | "layerLabels" | "moduleConfig" | "requireClockInApproval" | "requireClockOutApproval" | "requireBreakStartApproval" | "requireBreakEndApproval" | "createdAt" | "updatedAt", ExtArgs["result"]["team"]>
 export type TeamInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chainSteps?: boolean | Prisma.Team$chainStepsArgs<ExtArgs>
   memberships?: boolean | Prisma.Team$membershipsArgs<ExtArgs>
@@ -854,6 +1010,20 @@ export type $TeamPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     layerCount: number
     layerLabels: runtime.JsonValue | null
     moduleConfig: runtime.JsonValue
+    /**
+     * Per-event approval gates for attendance kinds. When false, the
+     * corresponding clock/break event auto-approves at creation time
+     * (no chain). When true, the event flows through the team's
+     * existing ATTENDANCE module chain (see `moduleConfig.ATTENDANCE`).
+     * Default true preserves the previous always-approve behaviour.
+     * BREAK is split here even though the underlying ApprovalKind stays
+     * "BREAK" — the request's `breakSubtype` ('start'/'end') decides
+     * which of these two flags applies.
+     */
+    requireClockInApproval: boolean
+    requireClockOutApproval: boolean
+    requireBreakStartApproval: boolean
+    requireBreakEndApproval: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["team"]>
@@ -1234,6 +1404,10 @@ export interface TeamFieldRefs {
   readonly layerCount: Prisma.FieldRef<"Team", 'Int'>
   readonly layerLabels: Prisma.FieldRef<"Team", 'Json'>
   readonly moduleConfig: Prisma.FieldRef<"Team", 'Json'>
+  readonly requireClockInApproval: Prisma.FieldRef<"Team", 'Boolean'>
+  readonly requireClockOutApproval: Prisma.FieldRef<"Team", 'Boolean'>
+  readonly requireBreakStartApproval: Prisma.FieldRef<"Team", 'Boolean'>
+  readonly requireBreakEndApproval: Prisma.FieldRef<"Team", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Team", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Team", 'DateTime'>
 }

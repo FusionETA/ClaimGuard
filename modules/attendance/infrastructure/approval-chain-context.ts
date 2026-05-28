@@ -68,22 +68,109 @@ export async function resolveApprovalContext(args: {
 /**
  * Returns true when the request should skip approval:
  *   - the actor bypasses (ADMIN/SUPERVISOR/PM — see `isAutoApprovingActor`),
+ *   - OR the team has the per-event approval flag turned off for this
+ *     clock/break kind (admins toggle these on the Company Structure
+ *     team editor),
  *   - OR the resolved approval chain for this (employee, module, project)
  *     is empty (team has no layers above the employee, e.g. a 1-layer team).
+ *
+ * `breakSubtype` is only consulted when `kind === "BREAK"` — it routes
+ * the gate to the team's `requireBreakStartApproval` vs
+ * `requireBreakEndApproval` flag.
  */
 export async function shouldAutoApprove(args: {
   employeeId: string
   role: string | null | undefined
   projectId: string | null
   kind: ApprovalKind
+  breakSubtype?: "start" | "end"
 }): Promise<boolean> {
   if (await isAutoApprovingActor(args)) return true
+  if (
+    !(await isAttendanceApprovalRequired({
+      employeeId: args.employeeId,
+      projectId: args.projectId,
+      kind: args.kind,
+      breakSubtype: args.breakSubtype,
+    }))
+  ) {
+    return true
+  }
   const chain = await resolveModuleChain(
     args.employeeId,
     kindToModule(args.kind),
     args.projectId ?? undefined,
   )
   return chain.length === 0
+}
+
+/**
+ * Look up the employee's team for the given project (falling back to
+ * their alphabetically-first project's team when projectId is absent)
+ * and read whether the team requires approval for this event kind.
+ *
+ * Returns true (= approval required) when:
+ *   - the employee has no team membership (legacy / unmigrated rows),
+ *   - the kind isn't gated by these flags (`OT` is never gated here),
+ *   - or the team's flag for this kind is true.
+ *
+ * Returns false only when the team explicitly has the matching flag
+ * disabled — in which case the caller should auto-approve.
+ */
+async function isAttendanceApprovalRequired(args: {
+  employeeId: string
+  projectId: string | null
+  kind: ApprovalKind
+  breakSubtype?: "start" | "end"
+}): Promise<boolean> {
+  // OT is governed by the existing ATTENDANCE/OT chain — not these flags.
+  if (args.kind === "OT") return true
+  const prisma = getPrismaClient()
+  if (!prisma) return true
+  const profile = await prisma.employeeProfile.findUnique({
+    where: { userId: args.employeeId },
+    select: {
+      teamMemberships: {
+        select: {
+          team: {
+            select: {
+              projectId: true,
+              requireClockInApproval: true,
+              requireClockOutApproval: true,
+              requireBreakStartApproval: true,
+              requireBreakEndApproval: true,
+              project: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!profile || profile.teamMemberships.length === 0) return true
+
+  // Pick the membership for the event's project; otherwise fall back to
+  // the alphabetically-first project's team (same selection rule the
+  // chain resolver uses, so the gate and the chain agree).
+  let membership = args.projectId
+    ? profile.teamMemberships.find((m) => m.team.projectId === args.projectId)
+    : undefined
+  if (!membership) {
+    const sorted = [...profile.teamMemberships].sort((a, b) =>
+      a.team.project.name.localeCompare(b.team.project.name),
+    )
+    membership = sorted[0]
+  }
+  const t = membership.team
+  if (args.kind === "CLOCK_IN") return t.requireClockInApproval
+  if (args.kind === "CLOCK_OUT") return t.requireClockOutApproval
+  if (args.kind === "BREAK") {
+    if (args.breakSubtype === "start") return t.requireBreakStartApproval
+    if (args.breakSubtype === "end") return t.requireBreakEndApproval
+    // Unknown subtype on a BREAK request — default to required so we
+    // don't accidentally auto-approve.
+    return true
+  }
+  return true
 }
 
 /**

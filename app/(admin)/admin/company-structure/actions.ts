@@ -15,6 +15,16 @@ import {
 } from "@/modules/organization/domain/models"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
+/// Parse a checkbox value from FormData. Browsers omit unchecked
+/// checkboxes entirely, so absence == false. A present value of "on" /
+/// "true" / "1" counts as true; anything else is false.
+function parseCheckbox(formData: FormData, name: string): boolean {
+  const value = formData.get(name)
+  if (value === null) return false
+  const str = String(value).toLowerCase()
+  return str === "on" || str === "true" || str === "1"
+}
+
 /// Pulls the moduleConfig out of a FormData. Each module is a comma-separated
 /// list of layer numbers (e.g. CLAIMS = "1,3"). Falls back to default-all when
 /// a key is missing.
@@ -98,6 +108,10 @@ export async function createTeamAction(
       layerCount: parsed.data.layerCount,
       layerLabels: parsed.data.layerLabels,
       moduleConfig,
+      requireClockInApproval: parseCheckbox(formData, "requireClockInApproval"),
+      requireClockOutApproval: parseCheckbox(formData, "requireClockOutApproval"),
+      requireBreakStartApproval: parseCheckbox(formData, "requireBreakStartApproval"),
+      requireBreakEndApproval: parseCheckbox(formData, "requireBreakEndApproval"),
     })
   } catch (error) {
     return {
@@ -171,6 +185,10 @@ export async function updateTeamAction(
       layerCount: parsed.data.layerCount,
       layerLabels: parsed.data.layerLabels ?? null,
       moduleConfig,
+      requireClockInApproval: parseCheckbox(formData, "requireClockInApproval"),
+      requireClockOutApproval: parseCheckbox(formData, "requireClockOutApproval"),
+      requireBreakStartApproval: parseCheckbox(formData, "requireBreakStartApproval"),
+      requireBreakEndApproval: parseCheckbox(formData, "requireBreakEndApproval"),
     })
   } catch (error) {
     return {

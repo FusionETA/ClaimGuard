@@ -261,6 +261,16 @@ export type TeamSummary = {
   layerLabels?: string[]
   moduleConfig: TeamModuleConfig
   memberCount: number
+  /// Per-event approval gates for attendance kinds. When false, the
+  /// corresponding clock/break event auto-approves at creation time
+  /// (no chain). Default true preserves existing behaviour on rows that
+  /// pre-date the column. BREAK is split here even though the underlying
+  /// approval kind stays "BREAK" — the request's `breakSubtype`
+  /// ('start'/'end') decides which flag applies.
+  requireClockInApproval: boolean
+  requireClockOutApproval: boolean
+  requireBreakStartApproval: boolean
+  requireBreakEndApproval: boolean
 }
 
 export type TeamMembership = {
