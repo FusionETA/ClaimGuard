@@ -301,7 +301,7 @@ export function FormECp8dPdfDocument(props: FormECp8dPdfDocumentProps) {
           value={payload.companyInfo?.employerName ?? payload.organizationName}
         />
         <KvRow
-          label="Employer TIN"
+          label="Employer No. (LHDN E No.)"
           value={payload.companyInfo?.employerTin ?? "—"}
         />
         <KvRow

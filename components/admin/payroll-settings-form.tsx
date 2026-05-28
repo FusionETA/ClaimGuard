@@ -456,11 +456,11 @@ function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
               defaultValue={c?.employerName ?? ""}
             />
           </Field>
-          <Field label="Employer TIN">
+          <Field label="Employer No. (LHDN E No.)">
             <Input
               name="employerTin"
               defaultValue={c?.employerTin ?? ""}
-              placeholder="C 12345678901"
+              placeholder="E 1234567890"
             />
           </Field>
           <Field label="Registration No. (SSM / ROC)">
