@@ -30,6 +30,27 @@ Next.js 15 App Router. Two route groups, plus `api/` and `login/`.
    - Call services.
    - Call `revalidatePath(...)` for any affected route.
    - Return a `FormState`-shaped result.
+4. **`"use server"` files can ONLY export async functions.** Next.js
+   enforces this at build time — a `const`, `type`, `interface`, or
+   any non-function export from an `actions.ts` (or any file starting
+   with `"use server"`) breaks the deploy with:
+
+       A "use server" file can only export async functions, found object.
+
+   Where to put the other things:
+   - **Types** (`FormState`, error shapes, etc.) → `form-state.ts` in
+     the same route folder. Client components can also import these
+     freely from there.
+   - **Initial-state constants** (`initialLoginFormState`, etc.) →
+     same `form-state.ts`. Re-import into actions.ts when needed.
+   - **Helper functions** used only inside actions.ts → keep them
+     non-exported (function declarations inside the file are fine —
+     the restriction is only on `export`s).
+   - **Zod schemas** used only inside actions.ts → don't export them.
+
+   The local `npm run build` doesn't always catch this — the deploy
+   pipeline does. Audit before committing with:
+   `grep -nE "^export (const|let|var|interface|type)\b" <file>`.
 
 ## Common patterns
 
