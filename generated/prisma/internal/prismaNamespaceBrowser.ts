@@ -738,8 +738,6 @@ export const PayrollSettingsScalarFieldEnum = {
   defaultEpfEmployerRate: 'defaultEpfEmployerRate',
   hrdfEnabled: 'hrdfEnabled',
   hrdfRate: 'hrdfRate',
-  employerIdNumber: 'employerIdNumber',
-  myCoOrSsmNumber: 'myCoOrSsmNumber',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   autoApplySocsoEisRelief: 'autoApplySocsoEisRelief',
@@ -1514,8 +1512,6 @@ export type SalaryChangeOrderByRelevanceFieldEnum = (typeof SalaryChangeOrderByR
 export const PayrollSettingsOrderByRelevanceFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
-  employerIdNumber: 'employerIdNumber',
-  myCoOrSsmNumber: 'myCoOrSsmNumber',
   ecpPayorAccountNo: 'ecpPayorAccountNo',
   ecpPayorBic: 'ecpPayorBic'
 } as const
