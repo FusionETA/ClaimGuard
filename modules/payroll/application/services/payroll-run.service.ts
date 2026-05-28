@@ -1011,6 +1011,26 @@ export async function generatePayrollPayslips(input: {
     ),
   )
 
+  // Per-employee worked minutes bucketed by day type (regardless of OT
+  // approval status). Drives the HRS column on the run table: HRS now
+  // shows `normalMin / 60` instead of the raw `durationMin` total, so
+  // over-threshold (OT) time never inflates normal worked hours.
+  const workedBucketsByEmp = new Map(
+    await Promise.all(
+      employees.map(
+        async (e) =>
+          [
+            e.employeeProfileId,
+            await attendanceRepository.getWorkedHoursBucketsForPeriod({
+              employeeId: e.userId,
+              from: periodFrom,
+              to: periodTo,
+            }),
+          ] as const,
+      ),
+    ),
+  )
+
   const payslips: CreatePayslipInput[] = employees.map((e) => {
     const adj = adjustments.get(e.employeeProfileId) ?? null
     const ytd = ytdByEmp.get(e.employeeProfileId)
@@ -1197,10 +1217,20 @@ export async function generatePayrollPayslips(input: {
       (e.policyId ? policyById.get(e.policyId)?.canAccessAttendance : undefined) ===
       true
     const hrs = hoursByEmp.get(e.employeeProfileId) ?? null
+    // HRS uses NORMAL minutes (capped per-day at policy threshold), not
+    // raw `workedMin` — over-threshold OT time shows up in the OT
+    // columns + the wages_overtime line item, not in the normal HRS
+    // column. Falls back to total worked when the bucket helper returns
+    // 0 (no records / no project info), so legacy data still surfaces.
+    const workedBuckets = workedBucketsByEmp.get(e.employeeProfileId)
+    const hrsNormalMin =
+      workedBuckets && workedBuckets.normalMin > 0
+        ? workedBuckets.normalMin
+        : hrs?.workedMin ?? 0
     const auto = attendanceApplies
       ? autoHoursFromMinutes({
           salaryType: e.profile.salaryType,
-          workedMin: hrs?.workedMin ?? 0,
+          workedMin: hrsNormalMin,
           scheduledMin: hrs?.scheduledMin ?? 0,
           paidLeaveMin: hrs?.paidLeaveMin ?? 0,
         })
@@ -1272,9 +1302,16 @@ export async function generatePayrollPayslips(input: {
       proratedFactor: result.proratedFactor,
       proratedDays: result.proratedDays,
       totalWorkingDays: result.totalWorkingDays,
-      otNormalHours: result.otNormalHours,
-      otRestHours: result.otRestHours,
-      otPublicHours: result.otPublicHours,
+      // OT hour columns (OT N / OT R / OT PH on the run table) reflect
+      // APPROVED OT only — matching what the wages_overtime line item
+      // actually pays. The engine inputs are zeroed (we drive OT pay
+      // via the line item, not the engine path), so `result.ot*Hours`
+      // would always be 0 here. We override with the auto-derived
+      // approved hours from `otByEmp` so the columns aren't blank.
+      otNormalHours:
+        (otByEmp.get(e.employeeProfileId)?.normalOtMin ?? 0) / 60,
+      otRestHours: (otByEmp.get(e.employeeProfileId)?.restMin ?? 0) / 60,
+      otPublicHours: (otByEmp.get(e.employeeProfileId)?.publicMin ?? 0) / 60,
       otPay: result.otPay,
       totalAllowances: result.totalAllowances,
       totalBenefitsInKind: result.totalBenefitsInKind,

@@ -454,6 +454,122 @@ export const attendanceRepository = {
   // an employee's org + geofence context without bypassing the repo layer).
 
   /**
+   * Sum worked minutes for an employee across a period, bucketed by
+   * day type (working-day normal vs OT past threshold vs rest-day vs
+   * public-holiday). Approval status is NOT consulted — over-threshold
+   * time always lands in `otMin` regardless of whether the OT request
+   * has been approved yet. Mirrors the always-split semantics in
+   * `bucketRecord` and powers the payroll run table's HRS column:
+   * HRS = `normalMin / 60`, so OT never inflates normal worked hours.
+   *
+   * Pair with `getApprovedOtMinutesForPeriod` when you want the
+   * approval-aware view (e.g. for OT pay): that one filters by
+   * APPROVED requests; this one tells you what was actually clocked.
+   */
+  async getWorkedHoursBucketsForPeriod(args: {
+    employeeId: string
+    from: Date
+    to: Date
+  }): Promise<{
+    normalMin: number
+    otMin: number
+    restMin: number
+    publicMin: number
+  }> {
+    const prisma = getClient()
+    if (!prisma) return { normalMin: 0, otMin: 0, restMin: 0, publicMin: 0 }
+
+    const [records, profile] = await Promise.all([
+      prisma.attendanceRecord.findMany({
+        where: {
+          employeeId: args.employeeId,
+          date: { gte: args.from, lte: args.to },
+          durationMin: { not: null, gt: 0 },
+        },
+        select: {
+          date: true,
+          durationMin: true,
+          projectId: true,
+          projectRef: {
+            select: {
+              workingHoursStart: true,
+              workingHoursEnd: true,
+              workingDays: true,
+              lunchBreakMinutes: true,
+            },
+          },
+        },
+      }),
+      prisma.employeeProfile.findUnique({
+        where: { userId: args.employeeId },
+        select: {
+          policy: { select: { otDailyThresholdMinutes: true } },
+        },
+      }),
+    ])
+
+    if (records.length === 0) {
+      return { normalMin: 0, otMin: 0, restMin: 0, publicMin: 0 }
+    }
+
+    const projectIds = Array.from(
+      new Set(
+        records
+          .map((r) => r.projectId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    )
+    const holidayKeys = new Set<string>()
+    if (projectIds.length > 0) {
+      const holidays = await prisma.projectHoliday.findMany({
+        where: {
+          projectId: { in: projectIds },
+          date: { gte: args.from, lte: args.to },
+        },
+        select: { projectId: true, date: true },
+      })
+      for (const h of holidays) {
+        holidayKeys.add(`${h.projectId}:${h.date.toISOString().slice(0, 10)}`)
+      }
+    }
+
+    const otThresholdMin = profile?.policy?.otDailyThresholdMinutes ?? 480
+
+    let normalMin = 0
+    let otMin = 0
+    let restMin = 0
+    let publicMin = 0
+    for (const rec of records) {
+      const isPH = rec.projectId
+        ? holidayKeys.has(
+            `${rec.projectId}:${rec.date.toISOString().slice(0, 10)}`,
+          )
+        : false
+      const workingDays = parseWorkingDays(rec.projectRef?.workingDays ?? null)
+      const standardDailyMin = standardDailyMinutesFrom(
+        rec.projectRef?.workingHoursStart ?? null,
+        rec.projectRef?.workingHoursEnd ?? null,
+        rec.projectRef?.lunchBreakMinutes ?? null,
+      )
+      const bucket = bucketRecord({
+        durationMin: rec.durationMin ?? 0,
+        date: rec.date,
+        isPublicHoliday: isPH,
+        workingDays,
+        standardDailyMin,
+        otThresholdMin,
+        hasApprovedOT: true, // unused after always-split change
+      })
+      normalMin += bucket.normalMin
+      otMin += bucket.otMin
+      restMin += bucket.restDayMin
+      publicMin += bucket.publicHolidayMin
+    }
+
+    return { normalMin, otMin, restMin, publicMin }
+  },
+
+  /**
    * Sum approved OT minutes for an employee across a period, broken down
    * by day-type bucket so payroll can apply the right OT rate to each:
    *   - `normalOtMin` — minutes past the daily threshold on a working day.
