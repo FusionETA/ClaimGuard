@@ -30,7 +30,31 @@ export function NotificationBell() {
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<NotificationView[]>([])
   const [unread, setUnread] = useState(0)
+  const [panelPos, setPanelPos] = useState<{
+    top: number
+    left: number
+    width: number
+  } | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+
+  // Measure where to place the dropdown so it never overflows off-screen.
+  // The bell sits to the left of the avatar pill, so a right-anchored
+  // absolute panel ran off the LEFT edge on narrow viewports. We use
+  // fixed positioning instead, computed against the bell's rect, and
+  // clamp horizontally to stay inside the viewport with a small margin.
+  // Desktop: anchor the panel's right edge to the bell. Mobile: span
+  // the viewport (minus a 12px gutter).
+  const reposition = useCallback(() => {
+    const el = containerRef.current
+    if (!el || typeof window === "undefined") return
+    const rect = el.getBoundingClientRect()
+    const margin = 12
+    const desktop = window.innerWidth >= 640
+    const width = desktop ? 360 : window.innerWidth - margin * 2
+    let left = desktop ? rect.right - width : margin
+    left = Math.max(margin, Math.min(left, window.innerWidth - margin - width))
+    setPanelPos({ top: rect.bottom + 8, left, width })
+  }, [])
 
   const load = useCallback((signal?: AbortSignal) => {
     return fetch("/api/notifications", {
@@ -81,6 +105,21 @@ export function NotificationBell() {
       void load().finally(() => setLoading(false))
     }
   }, [open, load])
+
+  // Keep the panel pinned to the bell across viewport resize / scroll
+  // while it's open. The header is sticky so vertical position rarely
+  // shifts, but we still listen so a soft-keyboard open or orientation
+  // change doesn't strand the panel half off-screen.
+  useEffect(() => {
+    if (!open) return
+    reposition()
+    window.addEventListener("resize", reposition)
+    window.addEventListener("scroll", reposition, true)
+    return () => {
+      window.removeEventListener("resize", reposition)
+      window.removeEventListener("scroll", reposition, true)
+    }
+  }, [open, reposition])
 
   // Close on outside click / Escape.
   useEffect(() => {
@@ -139,7 +178,13 @@ export function NotificationBell() {
       <button
         type="button"
         aria-label="Notifications"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          // Measure synchronously before flipping `open` so the first
+          // render of the panel already has a valid position — avoids a
+          // one-frame flash at (0, 0).
+          if (!open) reposition()
+          setOpen((o) => !o)
+        }}
         className="relative flex h-10 w-10 items-center justify-center rounded-full border border-border/60 bg-card/90 text-muted-foreground shadow-ambient transition-colors hover:text-foreground"
       >
         <Bell className="h-5 w-5" />
@@ -150,8 +195,16 @@ export function NotificationBell() {
         ) : null}
       </button>
 
-      {open ? (
-        <div className="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[20px] border border-border/60 bg-card shadow-panel">
+      {open && panelPos ? (
+        <div
+          style={{
+            position: "fixed",
+            top: panelPos.top,
+            left: panelPos.left,
+            width: panelPos.width,
+          }}
+          className="z-50 overflow-hidden rounded-[20px] border border-border/60 bg-card shadow-panel"
+        >
           <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
             <p className="text-sm font-bold">Notifications</p>
             {unread > 0 ? (
@@ -166,7 +219,16 @@ export function NotificationBell() {
             ) : null}
           </div>
 
-          <div className="max-h-[60vh] overflow-y-auto">
+          <div
+            className="overflow-y-auto overscroll-contain"
+            style={{
+              // Cap to whatever space is left between the panel top and
+              // the bottom of the viewport (minus a small margin) so on
+              // short mobile screens the list stays scrollable instead
+              // of spilling off-screen.
+              maxHeight: `calc(100vh - ${panelPos.top + 16}px)`,
+            }}
+          >
             {loading && items.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin" />
