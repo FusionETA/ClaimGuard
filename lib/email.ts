@@ -77,6 +77,62 @@ export type SendEmailInput = {
   text?: string
 }
 
+/**
+ * Diagnostic helper. Reads the resolved SMTP config (without password)
+ * and runs nodemailer's `transporter.verify()` — handshakes with the
+ * SMTP server (auth + TLS) WITHOUT actually sending an email. Used by
+ * /api/admin/email-test to surface why SMTP isn't working when the
+ * `[email] send failed:` log isn't accessible.
+ */
+export async function verifyEmailConnection(): Promise<{
+  ok: boolean
+  config: {
+    host: string | null
+    port: number | null
+    secure: boolean | null
+    encryption: string | null
+    username: string | null
+    fromAddress: string | null
+    fromName: string | null
+  }
+  error?: string
+}> {
+  const host = process.env.MAIL_HOST?.trim() ?? null
+  const portRaw = process.env.MAIL_PORT?.trim() ?? null
+  const port = portRaw ? Number.parseInt(portRaw, 10) : null
+  const username = process.env.MAIL_USERNAME?.trim() ?? null
+  const fromAddress = process.env.MAIL_FROM_ADDRESS?.trim() ?? null
+  const fromName = process.env.MAIL_FROM_NAME?.trim() ?? null
+  const encryption = process.env.MAIL_ENCRYPTION?.trim().toLowerCase() ?? null
+  const secure =
+    port != null
+      ? encryption === "ssl" || port === 465
+      : null
+
+  const t = getTransporter()
+  if (!t) {
+    return {
+      ok: false,
+      config: { host, port, secure, encryption, username, fromAddress, fromName },
+      error:
+        "Transporter not configured — one of MAIL_HOST/PORT/USERNAME/PASSWORD is missing or empty. Restart the Node process after setting them.",
+    }
+  }
+  try {
+    await t.verify()
+    return {
+      ok: true,
+      config: { host, port, secure, encryption, username, fromAddress, fromName },
+    }
+  } catch (err) {
+    return {
+      ok: false,
+      config: { host, port, secure, encryption, username, fromAddress, fromName },
+      error: err instanceof Error ? err.message : String(err),
+    }
+  }
+}
+
 export async function sendEmail(
   input: SendEmailInput,
 ): Promise<{ delivered: boolean; messageId?: string; reason?: string }> {
