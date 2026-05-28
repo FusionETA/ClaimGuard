@@ -54,8 +54,19 @@ export function buildAdminOverview(claims: ClaimRecord[]) {
   return {
     totals: {
       totalClaims: claims.length,
-      pending: claims.filter((claim) => claim.status === "PENDING" || claim.status === "SUBMITTED")
-        .length,
+      // "Needs review" = supervisor queue (SUBMITTED + PENDING mid-chain)
+      // PLUS admin queue (APPROVED — supervisor chain complete, admin
+      // still needs to finalise). The card subtitle reads "Supervisor +
+      // admin queue", so it has to actually count both — previously it
+      // missed every APPROVED claim, making the number show 0 while
+      // the table below clearly listed claims with an active Review
+      // button.
+      pending: claims.filter(
+        (claim) =>
+          claim.status === "PENDING" ||
+          claim.status === "SUBMITTED" ||
+          claim.status === "APPROVED",
+      ).length,
       approvedValue,
       paidValue: claims
         .filter((claim) => claim.status === "REVIEWED")
