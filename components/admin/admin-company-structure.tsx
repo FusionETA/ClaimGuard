@@ -681,7 +681,7 @@ function TeamEditor(props: EditorProps) {
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <span className="font-medium text-foreground">
-                  Require approval for Clock in
+                  Clock in
                 </span>
               </label>
               <label className="flex items-center gap-2 rounded-md border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
@@ -694,7 +694,7 @@ function TeamEditor(props: EditorProps) {
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <span className="font-medium text-foreground">
-                  Require approval for Clock out
+                  Clock out
                 </span>
               </label>
               <label className="flex items-center gap-2 rounded-md border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
@@ -707,7 +707,7 @@ function TeamEditor(props: EditorProps) {
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <span className="font-medium text-foreground">
-                  Require approval for Break start
+                  Break start
                 </span>
               </label>
               <label className="flex items-center gap-2 rounded-md border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
@@ -720,7 +720,7 @@ function TeamEditor(props: EditorProps) {
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <span className="font-medium text-foreground">
-                  Require approval for Break end
+                  Break end
                 </span>
               </label>
             </div>
