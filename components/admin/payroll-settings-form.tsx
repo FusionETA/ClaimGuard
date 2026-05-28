@@ -309,26 +309,28 @@ function GeneralTab(props: {
         <CardHeader>
           <CardTitle className="text-base">EPF defaults</CardTitle>
           <CardDescription>
-            Fallback employee rate used when an employee&apos;s profile
-            doesn&apos;t set their own. Employer rate is set by EPF Act
-            452 (auto-stepped 13% ≤ RM 5,000 / 12% &gt; RM 5,000) — not
-            configurable.
+            Both rates are set by EPF Act 452 (Third Schedule) — locked.
+            Employee 11% (statutory minimum, Part A). Employer auto-
+            stepped 13% ≤ RM 5,000 / 12% &gt; RM 5,000. Above-statutory
+            employee contributions are captured per-employee on their
+            profile under &ldquo;Employee voluntary&rdquo;.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
-          <Field label="Employee rate (%) — default">
-            <Input
-              name="defaultEpfEmployeeRate"
-              type="number"
-              step="0.01"
-              min="0"
-              max="100"
-              defaultValue={s?.defaultEpfEmployeeRate ?? 11}
-            />
-          </Field>
-          {/* Hidden input preserves the existing DB column. The calc
-              engine ignores this value (employer rate is statutory),
-              but we keep the column for backward compatibility. */}
+          <LockedDisplay
+            label="Employee rate (%)"
+            value="11"
+            note="Statutory minimum per EPF Act 452 (Third Schedule, Part A)."
+          />
+          {/* Hidden inputs keep both columns flowing to the save
+              action. The calc engine ignores both at runtime
+              (statutory-locked) — we keep the DB columns for
+              backward compatibility with older payroll snapshots. */}
+          <input
+            type="hidden"
+            name="defaultEpfEmployeeRate"
+            value="11"
+          />
           <input
             type="hidden"
             name="defaultEpfEmployerRate"
