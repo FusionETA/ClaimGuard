@@ -83,7 +83,7 @@ function getSectionTitle(pathname: string) {
   }
 
   if (pathname.startsWith("/employee/claims")) {
-    return "Claim History"
+    return "My Claims"
   }
 
   if (pathname.startsWith("/employee/review")) {
