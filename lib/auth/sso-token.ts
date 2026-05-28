@@ -32,11 +32,22 @@ export type SsoTokenClaims = {
   iat: number
   exp: number
   jti: string
+  /// Target organization for this SSO hand-off. Carried so the callback
+  /// can land the user in a SPECIFIC org rather than defaulting to their
+  /// primary one — Altomate Accounting picks which org the customer
+  /// wants to enter (they may own several) by minting the token with the
+  /// matching per-org API token. Optional for backwards-compat with any
+  /// in-flight tokens minted before this field existed.
+  organizationId?: string
 }
 
 /** Mint a signed, short-lived SSO token for a (already-verified) email. */
 export function signSsoToken(input: {
   email: string
+  /// Target organization. When set, the callback seeds the session's
+  /// `activeOrganizationId` with this value so the user lands directly
+  /// in this org (they may still switch via the dropdown afterwards).
+  organizationId?: string
   ttlSeconds?: number
 }): { token: string; expiresIn: number } {
   const ttl = input.ttlSeconds ?? DEFAULT_TTL_SECONDS
@@ -49,6 +60,7 @@ export function signSsoToken(input: {
       iat: now,
       exp: now + ttl,
       jti: randomUUID(),
+      ...(input.organizationId ? { organizationId: input.organizationId } : {}),
     } satisfies SsoTokenClaims),
   )
   const signature = createHmac("sha256", getAuthSecret())
