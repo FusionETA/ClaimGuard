@@ -2359,6 +2359,11 @@ export const attendanceRepository = {
         chainHistory: true,
         date: true,
         otPayoutMethod: true,
+        // Carry-forward time: each step that applies an override writes
+        // back to `eventAt`, so subsequent reviewers (and the final-step
+        // apply-to-AttendanceRecord branch below) see the latest proposed
+        // value, not the original submission.
+        eventAt: true,
       },
     })
     if (!request) throw new Error("Approval not found.")
@@ -2429,6 +2434,14 @@ export const attendanceRepository = {
         ? (ctx.chain[ctx.currentStep]?.approvers ?? []).map((a) => a.approverId)
         : []
 
+    // When the reviewer adjusted the time, persist it on the request so
+    // subsequent reviewers (and the final-step apply branch below) see the
+    // edit instead of the original submission. Skipped on rejection.
+    const carriesOverride =
+      status !== "REJECTED" &&
+      overrideEventAt != null &&
+      (request.kind === "CLOCK_IN" || request.kind === "CLOCK_OUT")
+
     await prisma.approvalRequest.update({
       where: { id: approvalId },
       data: {
@@ -2437,6 +2450,7 @@ export const attendanceRepository = {
         reviewedAt: now,
         reviewNotes: notes ?? null,
         chainHistory: nextHistory as unknown as object,
+        ...(carriesOverride ? { eventAt: overrideEventAt } : {}),
       },
     })
 
@@ -2483,33 +2497,45 @@ export const attendanceRepository = {
       }
     }
 
-    // Approve-with-override: when the supervisor adjusts the event time
-    // while approving a CLOCK_IN/CLOCK_OUT request, patch the underlying
-    // AttendanceRecord so the audit log + duration reflect the corrected
-    // timestamp instead of the originally-submitted `eventAt`.
+    // Apply-on-final-approval: when a CLOCK_IN/CLOCK_OUT chain reaches the
+    // last step, commit the **effective** time to the underlying
+    // AttendanceRecord. The effective time is THIS step's override if the
+    // reviewer adjusted, otherwise the carried-forward eventAt from a
+    // prior step that did. The no-op short-circuit (current time already
+    // equals the effective time) avoids creating an empty audit row when
+    // no edit ever happened anywhere in the chain.
     if (
       finalStatus === "APPROVED" &&
-      overrideEventAt &&
       (request.kind === "CLOCK_IN" || request.kind === "CLOCK_OUT") &&
       attendance
     ) {
-      const fullRecord = await prisma.attendanceRecord.findUnique({
-        where: {
-          employeeId_date: { employeeId: request.employeeId, date: request.date },
-        },
-        select: { id: true },
-      })
-      if (fullRecord) {
-        await this.overrideAttendanceTimes({
-          attendanceRecordId: fullRecord.id,
-          editorId: reviewerId,
-          editorRole: "SUPERVISOR",
-          source: "APPROVE_OVERRIDE",
-          ...(request.kind === "CLOCK_IN"
-            ? { timeIn: overrideEventAt }
-            : { timeOut: overrideEventAt }),
-          reason: notes ?? null,
+      const effectiveEventAt = overrideEventAt ?? request.eventAt
+      if (effectiveEventAt) {
+        const fullRecord = await prisma.attendanceRecord.findUnique({
+          where: {
+            employeeId_date: { employeeId: request.employeeId, date: request.date },
+          },
+          select: { id: true, timeIn: true, timeOut: true },
         })
+        if (fullRecord) {
+          const currentTime =
+            request.kind === "CLOCK_IN" ? fullRecord.timeIn : fullRecord.timeOut
+          const differs =
+            currentTime == null ||
+            currentTime.getTime() !== effectiveEventAt.getTime()
+          if (differs) {
+            await this.overrideAttendanceTimes({
+              attendanceRecordId: fullRecord.id,
+              editorId: reviewerId,
+              editorRole: "SUPERVISOR",
+              source: "APPROVE_OVERRIDE",
+              ...(request.kind === "CLOCK_IN"
+                ? { timeIn: effectiveEventAt }
+                : { timeOut: effectiveEventAt }),
+              reason: notes ?? null,
+            })
+          }
+        }
       }
     }
 
