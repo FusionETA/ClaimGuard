@@ -4,6 +4,20 @@ export type HoursBuckets = {
   restDayMin: number
   publicHolidayMin: number
   totalMin: number
+  /// Status sub-totals of the OT-eligible minutes (which is
+  /// `otMin + restDayMin + publicHolidayMin`), split by the underlying
+  /// day's OT `ApprovalRequest` status. These are filled in by the
+  /// aggregator (the per-record `bucketRecord` itself doesn't know the
+  /// approval status — it only categorises by day type and threshold).
+  ///
+  /// Invariant when every OT day has a matching request:
+  ///   otApprovedMin + otPendingMin + otRejectedMin
+  ///       === otMin + restDayMin + publicHolidayMin
+  /// Days with NO OT request (legacy / never-auto-created) sit in
+  /// none of the three sub-totals — the difference accounts for them.
+  otApprovedMin: number
+  otPendingMin: number
+  otRejectedMin: number
 }
 
 export const EMPTY_BUCKETS: HoursBuckets = {
@@ -12,6 +26,9 @@ export const EMPTY_BUCKETS: HoursBuckets = {
   restDayMin: 0,
   publicHolidayMin: 0,
   totalMin: 0,
+  otApprovedMin: 0,
+  otPendingMin: 0,
+  otRejectedMin: 0,
 }
 
 export type BucketInputs = {
@@ -136,6 +153,9 @@ export function bucketRecord(input: BucketInputs): HoursBuckets {
       restDayMin: 0,
       publicHolidayMin: dur,
       totalMin: dur,
+      otApprovedMin: 0,
+      otPendingMin: 0,
+      otRejectedMin: 0,
     }
   }
 
@@ -147,6 +167,9 @@ export function bucketRecord(input: BucketInputs): HoursBuckets {
       restDayMin: dur,
       publicHolidayMin: 0,
       totalMin: dur,
+      otApprovedMin: 0,
+      otPendingMin: 0,
+      otRejectedMin: 0,
     }
   }
 
@@ -158,6 +181,9 @@ export function bucketRecord(input: BucketInputs): HoursBuckets {
       restDayMin: 0,
       publicHolidayMin: 0,
       totalMin: dur,
+      otApprovedMin: 0,
+      otPendingMin: 0,
+      otRejectedMin: 0,
     }
   }
 
@@ -176,6 +202,9 @@ export function bucketRecord(input: BucketInputs): HoursBuckets {
     restDayMin: 0,
     publicHolidayMin: 0,
     totalMin: dur,
+    otApprovedMin: 0,
+    otPendingMin: 0,
+    otRejectedMin: 0,
   }
 }
 
@@ -186,6 +215,9 @@ export function addBuckets(a: HoursBuckets, b: HoursBuckets): HoursBuckets {
     restDayMin: a.restDayMin + b.restDayMin,
     publicHolidayMin: a.publicHolidayMin + b.publicHolidayMin,
     totalMin: a.totalMin + b.totalMin,
+    otApprovedMin: a.otApprovedMin + b.otApprovedMin,
+    otPendingMin: a.otPendingMin + b.otPendingMin,
+    otRejectedMin: a.otRejectedMin + b.otRejectedMin,
   }
 }
 

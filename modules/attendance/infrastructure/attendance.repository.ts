@@ -3288,18 +3288,37 @@ export const attendanceRepository = {
       holidays.map((h) => holidayKey(h.projectId, h.date)),
     )
 
-    const approvedOT = await prisma.approvalRequest.findMany({
+    // Fetch ALL OT requests in the period (not just APPROVED) so we can
+    // surface per-day approval status in the buckets below — the hours
+    // summary panel renders Overtime as Approved + Pending + Rejected,
+    // not a single opaque "Overtime" total.
+    const otRequests = await prisma.approvalRequest.findMany({
       where: {
         employeeId: { in: employeeIds },
         kind: "OT",
-        status: "APPROVED",
         date: { gte: from, lte: to },
       },
-      select: { employeeId: true, date: true },
+      select: { employeeId: true, date: true, status: true },
     })
     const otKey = (employeeId: string, date: Date) =>
       `${employeeId}|${startOfDay(date).toISOString()}`
-    const otSet = new Set(approvedOT.map((o) => otKey(o.employeeId, o.date)))
+    const otStatusByKey = new Map<
+      string,
+      "APPROVED" | "PENDING" | "REJECTED"
+    >()
+    for (const r of otRequests) {
+      // Multiple OT rows on the same day shouldn't happen by design, but
+      // prefer APPROVED over PENDING over REJECTED if it ever does.
+      const k = otKey(r.employeeId, r.date)
+      const prev = otStatusByKey.get(k)
+      if (
+        prev === "APPROVED" ||
+        (prev === "PENDING" && r.status === "REJECTED")
+      ) {
+        continue
+      }
+      otStatusByKey.set(k, r.status as "APPROVED" | "PENDING" | "REJECTED")
+    }
 
     const perEmployee = new Map<string, HoursBuckets>()
     for (const id of employeeIds) {
@@ -3318,7 +3337,7 @@ export const attendanceRepository = {
         record.projectRef?.workingHoursEnd ?? null,
         record.projectRef?.lunchBreakMinutes ?? null,
       )
-      const hasApprovedOT = otSet.has(otKey(record.employeeId, record.date))
+      const otStatus = otStatusByKey.get(otKey(record.employeeId, record.date)) ?? null
 
       const bucket = bucketRecord({
         durationMin: dur,
@@ -3327,8 +3346,23 @@ export const attendanceRepository = {
         workingDays,
         standardDailyMin,
         otThresholdMin: otThresholdFor(record.employeeId),
-        hasApprovedOT,
+        // No longer consulted by bucketRecord's math (always-split), but
+        // kept on the input shape for backwards-compat.
+        hasApprovedOT: otStatus === "APPROVED",
       })
+
+      // Attribute the day's OT-eligible time (working-day OT + rest day
+      // + public holiday) to the matching status sub-bucket so the
+      // hours summary can render Approved / Pending / Rejected splits.
+      // Days with NO OT request fall into none of the three — that
+      // residual is implicit (totalOt − approved − pending − rejected).
+      const otEligibleMin =
+        bucket.otMin + bucket.restDayMin + bucket.publicHolidayMin
+      if (otEligibleMin > 0 && otStatus !== null) {
+        if (otStatus === "APPROVED") bucket.otApprovedMin = otEligibleMin
+        else if (otStatus === "PENDING") bucket.otPendingMin = otEligibleMin
+        else if (otStatus === "REJECTED") bucket.otRejectedMin = otEligibleMin
+      }
 
       const current = perEmployee.get(record.employeeId) ?? { ...EMPTY_BUCKETS }
       perEmployee.set(record.employeeId, addBuckets(current, bucket))

@@ -204,6 +204,45 @@ export function HoursSummaryPanel({
   )
 }
 
+/// Tiny inline breakdown shown under the OT totals: "✓ 4h · ⏳ 1h · ✗ 0h".
+/// Only renders non-zero buckets so a clean Approved-only state still
+/// looks clean. A trailing "+ Xh unassigned" appears when some OT
+/// minutes have no matching ApprovalRequest (legacy rows where the
+/// auto-create never ran).
+function OtStatusBreakdown({
+  approvedMin,
+  pendingMin,
+  rejectedMin,
+  totalMin,
+}: {
+  approvedMin: number
+  pendingMin: number
+  rejectedMin: number
+  totalMin: number
+}) {
+  const unassigned = Math.max(0, totalMin - approvedMin - pendingMin - rejectedMin)
+  const parts: Array<{ label: string; value: number; cls: string }> = []
+  if (approvedMin > 0) parts.push({ label: "Approved", value: approvedMin, cls: "text-emerald-600" })
+  if (pendingMin > 0) parts.push({ label: "Pending", value: pendingMin, cls: "text-amber-600" })
+  if (rejectedMin > 0) parts.push({ label: "Rejected", value: rejectedMin, cls: "text-destructive" })
+  if (unassigned > 0) parts.push({ label: "Unassigned", value: unassigned, cls: "text-muted-foreground" })
+  if (parts.length === 0) return null
+  return (
+    <p className="mt-1 text-[10px] font-medium leading-snug">
+      {parts.map((p, i) => (
+        <span key={p.label}>
+          <span className={p.cls}>
+            {p.label} {formatHm(p.value)}
+          </span>
+          {i < parts.length - 1 ? (
+            <span className="px-1 text-muted-foreground/60">·</span>
+          ) : null}
+        </span>
+      ))}
+    </p>
+  )
+}
+
 function BucketTotals({
   totals,
 }: {
@@ -224,6 +263,14 @@ function BucketTotals({
           <p className={`mt-1 text-lg font-bold ${meta.tone}`}>
             {formatHm(totals[meta.key])}
           </p>
+          {meta.key === "otMin" && totals.otMin > 0 ? (
+            <OtStatusBreakdown
+              approvedMin={totals.otApprovedMin}
+              pendingMin={totals.otPendingMin}
+              rejectedMin={totals.otRejectedMin}
+              totalMin={totals.otMin}
+            />
+          ) : null}
         </div>
       ))}
       <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
@@ -309,6 +356,14 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
                 </td>
                 <td className="py-2 pr-3 text-right tabular-nums">
                   {formatHm(row.buckets.otMin)}
+                  {row.buckets.otMin > 0 ? (
+                    <OtStatusBreakdown
+                      approvedMin={row.buckets.otApprovedMin}
+                      pendingMin={row.buckets.otPendingMin}
+                      rejectedMin={row.buckets.otRejectedMin}
+                      totalMin={row.buckets.otMin}
+                    />
+                  ) : null}
                 </td>
                 <td className="py-2 pr-3 text-right tabular-nums">
                   {formatHm(row.buckets.restDayMin)}
