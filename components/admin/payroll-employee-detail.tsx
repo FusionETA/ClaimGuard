@@ -213,14 +213,16 @@ export function PayrollEmployeeDetail(props: {
       {tab === "personal" && (
         <PersonalTab
           userId={props.userId}
-          profile={props.profile}
+          // Pass the LIVE mirror so the tab's own inline red helpers
+          // also update as the admin types — not just the tab pill.
+          profile={liveProfile}
           onLiveChange={handleLiveProfileChange}
         />
       )}
       {tab === "employment" && (
         <EmploymentTab
           userId={props.userId}
-          profile={props.profile}
+          profile={liveProfile}
           salaryHistory={props.salaryHistory}
           policySalaryType={policySalaryType}
           policyName={assignedPolicy?.name ?? null}
@@ -234,7 +236,7 @@ export function PayrollEmployeeDetail(props: {
       {tab === "statutory" && (
         <StatutoryTab
           userId={props.userId}
-          profile={props.profile}
+          profile={liveProfile}
           defaultEpfEmployerRate={props.defaultEpfEmployerRate}
           onLiveChange={handleLiveProfileChange}
         />
@@ -454,13 +456,24 @@ function PersonalTab(props: {
                 </option>
               ))}
             </NativeSelect>
+            {!hasValue(props.profile?.gender) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required.
+              </p>
+            ) : null}
           </Field>
           <Field label="Date of birth">
             <Input
               name="dateOfBirth"
               type="date"
               defaultValue={props.profile?.dateOfBirth ?? ""}
+              aria-invalid={!hasValue(props.profile?.dateOfBirth) || undefined}
             />
+            {!hasValue(props.profile?.dateOfBirth) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required — drives EIS age gating.
+              </p>
+            ) : null}
           </Field>
           <Field label="Nationality">
             <NativeSelect
@@ -474,6 +487,11 @@ function PersonalTab(props: {
                 </option>
               ))}
             </NativeSelect>
+            {!hasValue(nationality) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required.
+              </p>
+            ) : null}
           </Field>
           <Field label="Race (LHDN code)">
             <Input
@@ -494,12 +512,23 @@ function PersonalTab(props: {
                 </option>
               ))}
             </NativeSelect>
+            {!hasValue(props.profile?.idType) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required for PCB / SOCSO+EIS file generation.
+              </p>
+            ) : null}
           </Field>
           <Field label="ID number">
             <Input
               name="idNumber"
               defaultValue={props.profile?.idNumber ?? ""}
+              aria-invalid={!hasValue(props.profile?.idNumber) || undefined}
             />
+            {!hasValue(props.profile?.idNumber) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required for PCB / SOCSO+EIS file generation.
+              </p>
+            ) : null}
           </Field>
           <Field label="Marital status">
             <NativeSelect
@@ -514,6 +543,11 @@ function PersonalTab(props: {
                 </option>
               ))}
             </NativeSelect>
+            {!hasValue(maritalStatus) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required — drives PCB spouse / child relief calc.
+              </p>
+            ) : null}
           </Field>
           <Toggle
             name="hasPr"
@@ -606,7 +640,13 @@ function PersonalTab(props: {
             <Input
               name="addressLine1"
               defaultValue={props.profile?.addressLine1 ?? ""}
+              aria-invalid={!hasValue(props.profile?.addressLine1) || undefined}
             />
+            {!hasValue(props.profile?.addressLine1) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required — appears on payslip and LHDN filings.
+              </p>
+            ) : null}
           </Field>
           <Field label="Address line 2" className="md:col-span-2">
             <Input
@@ -624,19 +664,37 @@ function PersonalTab(props: {
             <Input
               name="city"
               defaultValue={props.profile?.city ?? ""}
+              aria-invalid={!hasValue(props.profile?.city) || undefined}
             />
+            {!hasValue(props.profile?.city) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required.
+              </p>
+            ) : null}
           </Field>
           <Field label="Postcode">
             <Input
               name="postcode"
               defaultValue={props.profile?.postcode ?? ""}
+              aria-invalid={!hasValue(props.profile?.postcode) || undefined}
             />
+            {!hasValue(props.profile?.postcode) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required.
+              </p>
+            ) : null}
           </Field>
           <Field label="State">
             <Input
               name="state"
               defaultValue={props.profile?.state ?? ""}
+              aria-invalid={!hasValue(props.profile?.state) || undefined}
             />
+            {!hasValue(props.profile?.state) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required.
+              </p>
+            ) : null}
           </Field>
         </CardContent>
       </Card>
@@ -1038,6 +1096,11 @@ function EmploymentTab(props: {
                 onChange={(e) => setMonthlySalary(e.target.value)}
                 aria-invalid={monthlySalaryMissing || undefined}
               />
+              {monthlySalaryMissing ? (
+                <p className="mt-1 text-xs font-medium text-destructive">
+                  Required.
+                </p>
+              ) : null}
             </Field>
           ) : (
             <Field label="Hourly rate (MYR)">
@@ -1050,6 +1113,11 @@ function EmploymentTab(props: {
                 onChange={(e) => setHourlyRate(e.target.value)}
                 aria-invalid={hourlyRateMissing || undefined}
               />
+              {hourlyRateMissing ? (
+                <p className="mt-1 text-xs font-medium text-destructive">
+                  Required.
+                </p>
+              ) : null}
             </Field>
           )}
         </CardContent>
@@ -1121,6 +1189,11 @@ function EmploymentTab(props: {
               onChange={(e) => setJoinDate(e.target.value)}
               aria-invalid={joinDateMissing || undefined}
             />
+            {joinDateMissing ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required — drives proration on first-month payroll.
+              </p>
+            ) : null}
           </Field>
           <Field label="Leave date (last day)">
             <Input
@@ -1544,6 +1617,11 @@ function StatutoryTab(props: {
               onChange={(e) => setEpfNumber(e.target.value)}
               aria-invalid={epfNumberMissing || undefined}
             />
+            {epfNumberMissing ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required when EPF contributions are enabled.
+              </p>
+            ) : null}
           </Field>
           <StatutoryDisplay
             label="Employer mandatory rate"
@@ -1630,6 +1708,11 @@ function StatutoryTab(props: {
                   : undefined
               }
             />
+            {socsoNumberMissing ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required when a SOCSO scheme is selected.
+              </p>
+            ) : null}
           </Field>
           {(() => {
             // Resolve which SOCSO category will actually fire on
@@ -1786,6 +1869,11 @@ function StatutoryTab(props: {
               onChange={(e) => setIncomeTaxNumber(e.target.value)}
               aria-invalid={incomeTaxNumberMissing || undefined}
             />
+            {incomeTaxNumberMissing ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required for PCB TXT generation.
+              </p>
+            ) : null}
           </Field>
           {/* "PCB borne by employer" toggle removed — the gross-up
               calculation is listed in the "Upcoming features" card
