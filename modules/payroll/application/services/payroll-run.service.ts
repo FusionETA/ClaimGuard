@@ -15,6 +15,7 @@ import {
 import { PAYROLL_RUN_STATUS_LABELS, periodLabel } from "@/modules/payroll/domain/runs"
 import type {
   FixedAllowance,
+  IdType,
   PayrollEmployeeRow,
   SalaryType,
 } from "@/modules/payroll/domain/models"
@@ -1426,7 +1427,7 @@ export type DisbursementRow = {
   /// Live ID details from the employee's payroll profile — used by the
   /// PB ECP file's "ID Type" + "Bene Identification No / Passport"
   /// columns. Null when the employee hasn't filled them in.
-  idType: "IC" | "PASSPORT" | "OTHER" | null
+  idType: IdType | null
   idNumber: string | null
   currency: string
   netAmount: number
@@ -1490,8 +1491,7 @@ export async function getPayrollDisbursementRows(input: {
       accountHolderName:
         p.payrollProfile?.bankAccountHolderName ?? p.snapshotName,
       accountNumber: p.payrollProfile?.bankAccountNumber ?? "",
-      idType:
-        (p.payrollProfile?.idType as DisbursementRow["idType"]) ?? null,
+      idType: p.payrollProfile?.idType ?? null,
       idNumber: p.payrollProfile?.idNumber ?? null,
       currency: "MYR",
       netAmount: Number(p.netPay) || 0,

@@ -5,6 +5,7 @@ import * as XLSX from "xlsx"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { findBankByName } from "@/modules/payroll/domain/malaysian-banks"
+import type { IdType } from "@/modules/payroll/domain/models"
 import {
   getPayrollDisbursementRows,
 } from "@/modules/payroll/application/services/payroll-run.service"
@@ -85,18 +86,29 @@ export async function renderPbEcpXlsx(input: {
 
   // ─── Build the worksheet rows ────────────────────────────────────
 
-  /// Row 1: PAYMENT DATE label + value
-  const row1: (string | number | null)[] = ["PAYMENT DATE: (DD/MM/YYYY)", formatDdMmYyyy(paymentDate)]
-  // Pad row 1 to 21 columns.
+  // PB ECP's validator compares the header block (rows 1-3) against its
+  // exact template — any drift (a trailing space, a truncated label, a
+  // different format hint) trips "Header: … is invalid". These strings
+  // are copied verbatim from a PB-accepted file. Do NOT "tidy" them.
+  const ID_TYPE_HEADER =
+    "ID Type:\n\nFor Intrabank & IBG\nNI, OI, BR, PL, ML, PP\n\nFor Rentas\nNI, OI, BR, OT"
+
+  /// Row 1: PAYMENT DATE label. B1 (the date itself) is written AFTER
+  /// the sheet is built, as a real Excel date serial — PB rejects a
+  /// text date ("Payment Date is invalid"). Placeholder here.
+  const row1: (string | number | null)[] = [
+    "PAYMENT DATE :\n(DD/MM/YYYY)",
+    "",
+  ]
   while (row1.length < 21) row1.push(null)
 
-  /// Row 2: headers
+  /// Row 2: headers (verbatim PB template).
   const row2: string[] = [
     "Payment Type/ Mode : PBB/IBG/REN",
     "Bene Account No.",
-    "BIC ",
+    "BIC",
     "Bene Full Name",
-    "ID Type",
+    ID_TYPE_HEADER,
     "Bene Identification No / Passport",
     "Payment Amount (with 2 decimal points)",
     "Recipient Reference",
@@ -107,7 +119,7 @@ export async function renderPbEcpXlsx(input: {
     "Bene Mobile No. 2",
     "Joint Bene Name",
     "Joint Beneficiary Identification No.",
-    "Joint ID Type",
+    `Joint ${ID_TYPE_HEADER}`,
     "E-mail Content Line 1",
     "E-mail Content Line 2",
     "E-mail Content Line 3",
@@ -115,12 +127,12 @@ export async function renderPbEcpXlsx(input: {
     "E-mail Content Line 5",
   ]
 
-  /// Row 3: format hints — informational only.
+  /// Row 3: format hints (verbatim PB template).
   const row3: string[] = [
     "(M) - Char: 3 - A",
-    "(M) - Char: 20 - N",
-    "(M) - Char: 11 - AN",
-    "(M) - Char: 120 - AN",
+    "(M) - Char:20 - N",
+    "(M) - Char: 11 - A",
+    "(M) - Char: 120 - A",
     "(O) - Char: 2 - A",
     "(O) - Char: 29 - AN",
     "(M) - Char: 18 - N",
@@ -158,6 +170,7 @@ export async function renderPbEcpXlsx(input: {
   // Track unmatched banks so we can flag a clear error rather than
   // ship an unusable file.
   const unmatchedBanks: string[] = []
+  let totalAmount = 0
 
   for (const row of data.rows) {
     // Skip rows with no bank account number — bank can't process them.
@@ -174,6 +187,7 @@ export async function renderPbEcpXlsx(input: {
     }
 
     const { ecpIdType, ecpIdNo } = mapPbEcpId(row.idType, row.idNumber)
+    totalAmount += row.netAmount
     detailRows.push([
       bank.ecpMode, // A
       row.accountNumber.replace(/[^0-9]/g, ""), // B
@@ -181,7 +195,9 @@ export async function renderPbEcpXlsx(input: {
       row.accountHolderName || row.employeeName, // D
       ecpIdType, // E ID Type (NI = New IC, PP = Passport)
       ecpIdNo, // F Bene Identification No / Passport
-      Number(row.netAmount.toFixed(2)), // G
+      // G — amount as TEXT with exactly 2 decimals. A numeric cell would
+      // drop a trailing zero (3108.10 → 3108.1) and PB rejects it.
+      row.netAmount.toFixed(2), // G
       reference, // H
       `EMP ${row.employeeCode}`.slice(0, 20), // I
       "", "", // J, K — emails
@@ -203,10 +219,29 @@ export async function renderPbEcpXlsx(input: {
     )
   }
 
+  // ─── Footer: TOTAL row ───────────────────────────────────────────
+  // PB validates a footer "TOTAL:" row. The total, like the per-row
+  // amounts, is TEXT with exactly 2 decimals (a numeric total trips
+  // "Footer: Total is invalid").
+  const totalRow: (string | number | null)[] = ["TOTAL:"]
+  while (totalRow.length < 6) totalRow.push("")
+  totalRow.push(totalAmount.toFixed(2)) // G
+  while (totalRow.length < 21) totalRow.push("")
+
   // ─── Assemble the workbook ───────────────────────────────────────
 
-  const aoa = [row1, row2, row3, ...detailRows]
+  const aoa = [row1, row2, row3, ...detailRows, totalRow]
   const sheet = XLSX.utils.aoa_to_sheet(aoa)
+
+  // B1 — the payment date. PB rejects a text date; it must be a real
+  // Excel date serial with a dd/mm/yyyy number format (matches a
+  // PB-accepted file). Compute the serial from the local Y/M/D so a
+  // timezone offset can't shift the day.
+  sheet["B1"] = {
+    t: "n",
+    v: excelDateSerial(paymentDate),
+    z: "dd/mm/yyyy",
+  }
 
   // Set columns widths roughly matching the template so the
   // pre-upload preview in Excel is readable.
@@ -247,38 +282,51 @@ export async function renderPbEcpXlsx(input: {
 /// `DDMMYY` for the filename + `DD/MM/YYYY` for the cell. PB ECP
 /// accepts the latter inside the sheet.
 /**
- * Map our `idType`/`idNumber` to PB ECP's "ID Type" code + ID number.
+ * Map our `IdType` enum + id number to PB ECP's "ID Type" code + number.
  * PB codes: NI = New IC, OI = Old IC, BR = Business Reg, PL = Police,
- * ML = Military, PP = Passport. We only produce NI (IC) and PP
- * (Passport); anything else emits the number with no type code.
+ * ML = Military, PP = Passport.
+ *
+ * IMPORTANT: our enum values are NRIC / PASSPORT / ARMY_NO / POLICE_NO
+ * (see `IdType` in domain/models) — NOT "IC". Matching on "IC" left the
+ * ID Type column blank for every Malaysian. The mapping:
+ *   NRIC → NI, PASSPORT → PP, POLICE_NO → PL, ARMY_NO → ML.
  * Both columns are optional in the spec — blank when no ID on file.
  */
 function mapPbEcpId(
-  idType: "IC" | "PASSPORT" | "OTHER" | null,
+  idType: IdType | null,
   idNumber: string | null,
 ): { ecpIdType: string; ecpIdNo: string } {
   const raw = (idNumber ?? "").trim()
   if (raw.length === 0) return { ecpIdType: "", ecpIdNo: "" }
 
-  if (idType === "PASSPORT") {
-    return {
-      ecpIdType: "PP",
-      ecpIdNo: raw.replace(/[^0-9A-Za-z]/g, "").slice(0, 29),
-    }
+  const alnum = raw.replace(/[^0-9A-Za-z]/g, "").slice(0, 29)
+  const digits = raw.replace(/[^0-9]/g, "").slice(0, 29)
+
+  switch (idType) {
+    case "NRIC":
+      // New IC — digits only, no dashes.
+      return { ecpIdType: "NI", ecpIdNo: digits }
+    case "PASSPORT":
+      return { ecpIdType: "PP", ecpIdNo: alnum }
+    case "POLICE_NO":
+      return { ecpIdType: "PL", ecpIdNo: alnum }
+    case "ARMY_NO":
+      return { ecpIdType: "ML", ecpIdNo: alnum }
+    default:
+      // Unknown / missing type — emit the number with no type code.
+      return { ecpIdType: "", ecpIdNo: alnum }
   }
-  if (idType === "IC") {
-    // New IC — digits only, no dashes.
-    return { ecpIdType: "NI", ecpIdNo: raw.replace(/[^0-9]/g, "").slice(0, 29) }
-  }
-  // OTHER / unknown — pass the raw value through without a type code.
-  return { ecpIdType: "", ecpIdNo: raw.replace(/[^0-9A-Za-z]/g, "").slice(0, 29) }
 }
 
-function formatDdMmYyyy(d: Date): string {
-  const dd = String(d.getDate()).padStart(2, "0")
-  const mm = String(d.getMonth() + 1).padStart(2, "0")
-  const yyyy = String(d.getFullYear())
-  return `${dd}/${mm}/${yyyy}`
+/**
+ * Excel date serial (days since the 1899-12-30 epoch) for a date-only
+ * value. Built from the date's LOCAL Y/M/D via `Date.UTC` so a timezone
+ * offset can never shift it to the previous/next day.
+ */
+function excelDateSerial(d: Date): number {
+  const utcMidnight = Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())
+  const excelEpoch = Date.UTC(1899, 11, 30)
+  return Math.round((utcMidnight - excelEpoch) / 86_400_000)
 }
 
 const MONTH_ABBR = [
