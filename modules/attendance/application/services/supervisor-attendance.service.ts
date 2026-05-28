@@ -69,13 +69,25 @@ export const supervisorAttendanceService = {
     //     per-event push to approvers: a supervisor with many reports
     //     would be flooded. The digest cron owns the batched
     //     "you have N pending" push/bell.
-    //   - The employee DOES get a direct push on the FINAL decision —
-    //     it's a single recipient (no fan-out), so there's no flood risk.
+    //   - On the FINAL decision, the EMPLOYEE also gets a silent SSE
+    //     refresh so their clock card's "Waiting on supervisor" banner
+    //     disappears and the disabled Clock Out / Break buttons re-enable
+    //     without a manual page reload. They also get a direct push +
+    //     persisted notification (below) telling them the outcome.
     try {
-      await publishUserEvents(
-        [...result.nextApproverIds, ...result.peerApproverIds],
-        { type: "refresh", scope: "attendance" },
-      )
+      const refreshTargets = [
+        ...result.nextApproverIds,
+        ...result.peerApproverIds,
+      ]
+      if (result.finalStatus !== "PENDING") {
+        // Final approve/reject changes what the employee's dashboard
+        // shows — push them an SSE event so the page hot-refreshes.
+        refreshTargets.push(result.employeeUserId)
+      }
+      await publishUserEvents(refreshTargets, {
+        type: "refresh",
+        scope: "attendance",
+      })
       if (result.finalStatus !== "PENDING") {
         const approved = result.finalStatus === "APPROVED"
         await notify({
