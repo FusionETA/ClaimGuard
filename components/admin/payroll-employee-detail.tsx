@@ -76,6 +76,9 @@ import {
   childStudyingLevels,
   genders,
   idTypes,
+  isEmploymentTabComplete,
+  isPersonalTabComplete,
+  isStatutoryTabComplete,
   maritalStatuses,
   paymentMethods,
   salaryTypes,
@@ -88,18 +91,27 @@ import {
 
 type Tab = "personal" | "employment" | "statutory" | "company"
 
-const PERSONAL_COMPLETION_FIELDS: Array<keyof PayrollProfileData> = [
-  "gender",
-  "dateOfBirth",
-  "nationality",
-  "idType",
-  "idNumber",
-  "maritalStatus",
-  "addressLine1",
-  "city",
-  "postcode",
-  "state",
-]
+/**
+ * Seed the live-mirror copy with the same defaults the Personal-tab
+ * dropdowns DISPLAY when the saved profile is blank. Without this, the
+ * tab pill stays red even though the dropdowns visibly read "Malaysian"
+ * / "NRIC" — because the admin never had to touch them, the form's
+ * onChange never fired, and `liveProfile.nationality` / `idType`
+ * remained null. The fix: pre-fill them in the mirror to match the UI.
+ */
+function withPersonalUiDefaults(
+  profile: PayrollProfileData | null,
+): PayrollProfileData | null {
+  if (!profile) return profile
+  return {
+    ...profile,
+    nationality:
+      profile.nationality && profile.nationality.trim().length > 0
+        ? profile.nationality
+        : "Malaysian",
+    idType: profile.idType ?? "NRIC",
+  }
+}
 
 export function PayrollEmployeeDetail(props: {
   userId: string
@@ -120,11 +132,13 @@ export function PayrollEmployeeDetail(props: {
   // Mirror the profile in state so the tab-pill highlight clears AS
   // THE ADMIN TYPES, instead of waiting for a save. Inputs stay
   // uncontrolled (no cursor jumps) — this is just a derived mirror.
+  // We seed with the Personal-tab dropdown UI defaults (Malaysian /
+  // NRIC) so the pill matches what the admin SEES on the form.
   const [liveProfile, setLiveProfile] = useState<PayrollProfileData | null>(
-    props.profile,
+    () => withPersonalUiDefaults(props.profile),
   )
   useEffect(() => {
-    setLiveProfile(props.profile)
+    setLiveProfile(withPersonalUiDefaults(props.profile))
   }, [props.profile])
   // Single delegated form-level change handler used by every tab's
   // form (PersonalTab / EmploymentTab / StatutoryTab pass it as
@@ -157,9 +171,18 @@ export function PayrollEmployeeDetail(props: {
       } as PayrollProfileData),
     )
   }
-  const personalComplete = isPersonalTabComplete(liveProfile)
-  const employmentComplete = isEmploymentTabComplete(liveProfile)
-  const statutoryComplete = isStatutoryTabComplete(liveProfile)
+  // No profile row at all → every tab is "incomplete" (admin hasn't
+  // started onboarding yet). The three completion helpers take a
+  // non-null profile so we early-return false here.
+  const personalComplete = liveProfile
+    ? isPersonalTabComplete(liveProfile)
+    : false
+  const employmentComplete = liveProfile
+    ? isEmploymentTabComplete(liveProfile)
+    : false
+  const statutoryComplete = liveProfile
+    ? isStatutoryTabComplete(liveProfile)
+    : false
 
   // Resolve the employee's assigned policy so the Employment tab's
   // Compensation card can lock the salary type to it. The policy uses
@@ -252,42 +275,6 @@ export function PayrollEmployeeDetail(props: {
 
 function hasValue(value: unknown) {
   return typeof value === "string" ? value.trim().length > 0 : value != null
-}
-
-function isPersonalTabComplete(profile: PayrollProfileData | null) {
-  if (!profile) return false
-
-  return PERSONAL_COMPLETION_FIELDS.every((field) => hasValue(profile[field]))
-}
-
-function isEmploymentTabComplete(profile: PayrollProfileData | null) {
-  if (!profile) return false
-
-  if (!profile.joinDate) return false
-  if (
-    profile.salaryType === "MONTHLY" &&
-    (profile.monthlySalary == null || profile.monthlySalary < 0)
-  ) {
-    return false
-  }
-  if (
-    profile.salaryType === "HOURLY" &&
-    (profile.hourlyRate == null || profile.hourlyRate < 0)
-  ) {
-    return false
-  }
-
-  return true
-}
-
-function isStatutoryTabComplete(profile: PayrollProfileData | null) {
-  if (!profile) return false
-
-  if (profile.contributeToEpf && !profile.epfNumber) return false
-  if (profile.socsoScheme && !profile.socsoNumber) return false
-  if (!profile.incomeTaxNumber) return false
-
-  return true
 }
 
 function TabPill({

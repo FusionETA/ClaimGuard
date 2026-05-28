@@ -945,59 +945,92 @@ export type PayrollEmployeeRow = {
 // ─── Completion check ─────────────────────────────────────────────────────
 
 /**
- * Pure helper: decide whether a payroll profile has all the fields
- * needed to run payroll. Used by the list page to show a ✓ vs warning.
- *
- * Required for payroll calc:
- *   - salaryType + matching salary field
- *   - join date
- *   - EPF rate (always defaulted, so never undefined — checked anyway)
- *   - if EPF contribution enabled: EPF number
- *   - if SOCSO contribution: scheme + number
- *   - PCB / income tax number (the PCB calc itself runs without it,
- *     but LHDN's CP39 submission file requires it, so we gate
- *     "complete" on having it)
- *
- * Bank info is NOT required to run a payroll calc — it's only needed
- * to actually disburse. So we don't gate completeness on it.
+ * Pure helper: tiny "is this string-ish value present?" check used by
+ * the per-tab completion helpers below. `null` / `undefined` / `""` /
+ * "   " are all blank; anything else (incl. numbers, booleans) counts.
  */
-export function isPayrollProfileComplete(p: PayrollProfileData): boolean {
-  // Compensation: salary must be a number (null = not yet entered =
-  // incomplete). 0 is a VALID, complete state — it means "exclude this
-  // employee from payroll runs" and is handled by `isExcludedFromPayroll`
-  // below. Negative values are nonsensical, treat as incomplete.
+function hasValue(value: unknown): boolean {
+  return typeof value === "string" ? value.trim().length > 0 : value != null
+}
+
+/**
+ * Personal-tab completion. These are the identity / contact / family
+ * fields LHDN E-filing + payslip generation need:
+ *   - gender, dateOfBirth (EIS age gating)
+ *   - nationality, idType, idNumber (PCB TXT + SOCSO+EIS file)
+ *   - maritalStatus (drives spouse + child relief calc)
+ *   - addressLine1, city, postcode, state (payslip + LHDN filings)
+ *
+ * When marital status is MARRIED, spouseWorking must also be set
+ * (drives the PCB joint-relief branch).
+ */
+export function isPersonalTabComplete(p: PayrollProfileData): boolean {
+  if (!hasValue(p.gender)) return false
+  if (!hasValue(p.dateOfBirth)) return false
+  if (!hasValue(p.nationality)) return false
+  if (!hasValue(p.idType)) return false
+  if (!hasValue(p.idNumber)) return false
+  if (!hasValue(p.maritalStatus)) return false
+  if (!hasValue(p.addressLine1)) return false
+  if (!hasValue(p.city)) return false
+  if (!hasValue(p.postcode)) return false
+  if (!hasValue(p.state)) return false
+  // Spouse-working is required when married (drives PCB spouse reliefs:
+  // S = RM 4,000 when spouse has no income, plus SU = RM 6,000 if also
+  // disabled). Without this, PCB defaults to the safer "no relief"
+  // path which can over-withhold tax.
+  if (p.maritalStatus === "MARRIED" && p.spouseWorking == null) return false
+  return true
+}
+
+/**
+ * Employment-tab completion. Salary structure + join date — the bare
+ * minimum the payroll calc engine needs to compute a run.
+ *   - salaryType matches a non-negative value (0 is allowed; means
+ *     "excluded from payroll" — handled by `isExcludedFromPayroll`)
+ *   - joinDate (proration on first / last month)
+ */
+export function isEmploymentTabComplete(p: PayrollProfileData): boolean {
   if (p.salaryType === "MONTHLY" && (p.monthlySalary == null || p.monthlySalary < 0)) {
     return false
   }
   if (p.salaryType === "HOURLY" && (p.hourlyRate == null || p.hourlyRate < 0)) {
     return false
   }
-
-  // Must have a join date for proration.
-  if (!p.joinDate) return false
-
-  // EPF: number required if contributing.
-  if (p.contributeToEpf && !p.epfNumber) return false
-
-  // SOCSO: scheme + number required if a SOCSO scheme is set at all.
-  // (We treat an unset scheme as "not contributing" which is allowed
-  // for foreign workers etc.)
-  if (p.socsoScheme && !p.socsoNumber) return false
-
-  // Income tax number — required for any LHDN filing.
-  if (!p.incomeTaxNumber) return false
-
-  // Spouse data — when the employee is married, we need to know
-  // whether the spouse works (drives the PCB spouse reliefs: S =
-  // RM 4,000 when spouse has no income, plus SU = RM 6,000 if also
-  // disabled). Without this, PCB defaults to the safer "no relief"
-  // path which can over-withhold tax — so we require it as part of
-  // "ready for payroll".
-  if (p.maritalStatus === "MARRIED" && p.spouseWorking == null) {
-    return false
-  }
-
+  if (!hasValue(p.joinDate)) return false
   return true
+}
+
+/**
+ * Statutory-tab completion. Numbers required for LHDN / EPF / SOCSO
+ * file generation:
+ *   - if EPF contribution enabled → EPF number
+ *   - if a SOCSO scheme is set → SOCSO number
+ *   - incomeTaxNumber (always; required for PCB TXT + CP39)
+ */
+export function isStatutoryTabComplete(p: PayrollProfileData): boolean {
+  if (p.contributeToEpf && !hasValue(p.epfNumber)) return false
+  if (hasValue(p.socsoScheme) && !hasValue(p.socsoNumber)) return false
+  if (!hasValue(p.incomeTaxNumber)) return false
+  return true
+}
+
+/**
+ * Pure helper: decide whether a payroll profile has all the fields
+ * needed for the "Ready for payroll" badge + the `listReadyForPayroll`
+ * gate. Composed of the three per-tab completion checks so the UI tab
+ * pills (Personal / Employment / Statutory) and the badge can never
+ * disagree — single source of truth.
+ *
+ * Bank info is NOT required to run a payroll calc — it's only needed
+ * to actually disburse. So we don't gate completeness on it.
+ */
+export function isPayrollProfileComplete(p: PayrollProfileData): boolean {
+  return (
+    isPersonalTabComplete(p) &&
+    isEmploymentTabComplete(p) &&
+    isStatutoryTabComplete(p)
+  )
 }
 
 /**
