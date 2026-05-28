@@ -120,6 +120,7 @@ export function EmployeeAttendanceDashboardView({
         enforceGeofence={enforceGeofence}
         todayRecord={dashboard.today}
         latestRejection={latestRejection}
+        pendingApproval={dashboard.pendingApproval}
       />
 
       {dashboard.today ? (

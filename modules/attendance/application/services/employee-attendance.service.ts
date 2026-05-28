@@ -56,45 +56,6 @@ async function policyEnforcesGeofence(employeeId: string): Promise<boolean> {
  * geofence of their active project AND has not provided a remark. Used by the
  * clock-out and break flows. No-ops when the active record has no project.
  */
-/// Block the next clock/break event when a prior one is still PENDING
-/// supervisor review. Without this, employees can clock-out → start
-/// break → end break while their clock-in is still PENDING, leaving the
-/// supervisor with a stack of dependent approvals to wade through.
-/// OT approvals are excluded — they're auto-generated downstream of a
-/// clock-out and don't represent an employee-chosen event.
-///
-/// Auto-approved actors (admins / supervisors-self / project managers /
-/// teams with the per-event approval gate off) sail through: their
-/// approvals are written as APPROVED at creation, so this guard never
-/// finds anything PENDING for them.
-async function ensurePriorApprovalNotPending(
-  employeeId: string,
-  kindWeAreDoing: "CLOCK_OUT" | "BREAK_START" | "BREAK_END",
-): Promise<void> {
-  const today = new Date()
-  const pending =
-    await attendanceRepository.findPendingClockOrBreakApprovalForDay(
-      employeeId,
-      today,
-    )
-  if (!pending) return
-  const priorLabel =
-    pending.kind === "CLOCK_IN"
-      ? "clock-in"
-      : pending.kind === "CLOCK_OUT"
-        ? "clock-out"
-        : "break"
-  const nextLabel =
-    kindWeAreDoing === "CLOCK_OUT"
-      ? "clock out"
-      : kindWeAreDoing === "BREAK_START"
-        ? "start a break"
-        : "end your break"
-  throw new Error(
-    `Your previous ${priorLabel} is still waiting for supervisor approval. You can ${nextLabel} once it's approved.`,
-  )
-}
-
 async function enforceGeofenceForActiveRecord(
   employeeId: string,
   coords: { lat: number; lng: number } | undefined,
@@ -281,15 +242,26 @@ export const employeeAttendanceService = {
       key("user", employeeId, "attendance", "dashboard", today),
       60,
       async () => {
-        const [today, weekToDate, todayEvents, recentOT, orgId, todayProjectId] =
-          await Promise.all([
-            attendanceRepository.getTodayAttendance(employeeId),
-            attendanceRepository.getWeekAttendance(employeeId),
-            attendanceRepository.getTodayEvents(employeeId),
-            attendanceRepository.getEmployeeOTApprovals(employeeId),
-            attendanceRepository.getOrganizationIdForUser(employeeId),
-            attendanceRepository.getTodayProjectId(employeeId),
-          ])
+        const [
+          today,
+          weekToDate,
+          todayEvents,
+          recentOT,
+          orgId,
+          todayProjectId,
+          pendingApproval,
+        ] = await Promise.all([
+          attendanceRepository.getTodayAttendance(employeeId),
+          attendanceRepository.getWeekAttendance(employeeId),
+          attendanceRepository.getTodayEvents(employeeId),
+          attendanceRepository.getEmployeeOTApprovals(employeeId),
+          attendanceRepository.getOrganizationIdForUser(employeeId),
+          attendanceRepository.getTodayProjectId(employeeId),
+          attendanceRepository.findPendingClockOrBreakApprovalForDay(
+            employeeId,
+            new Date(),
+          ),
+        ])
 
         const geofenceRadiusMeters = await resolveGeofenceRadius(orgId)
 
@@ -313,6 +285,7 @@ export const employeeAttendanceService = {
           recentOT,
           geofenceRadiusMeters,
           activeProjectCoords,
+          pendingApproval,
         }
       },
     )
@@ -462,7 +435,6 @@ export const employeeAttendanceService = {
     coords?: { lat: number; lng: number },
     notes?: string,
   ) {
-    await ensurePriorApprovalNotPending(employeeId, "CLOCK_OUT")
     const { distanceMeters } = await enforceGeofenceForActiveRecord(
       employeeId,
       coords,
@@ -494,7 +466,6 @@ export const employeeAttendanceService = {
     coords?: { lat: number; lng: number },
     notes?: string,
   ) {
-    await ensurePriorApprovalNotPending(employeeId, "BREAK_START")
     await enforceGeofenceForActiveRecord(employeeId, coords, notes)
     const location = coords
       ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`
@@ -507,7 +478,6 @@ export const employeeAttendanceService = {
     coords?: { lat: number; lng: number },
     notes?: string,
   ) {
-    await ensurePriorApprovalNotPending(employeeId, "BREAK_END")
     await enforceGeofenceForActiveRecord(employeeId, coords, notes)
     const location = coords
       ? `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`

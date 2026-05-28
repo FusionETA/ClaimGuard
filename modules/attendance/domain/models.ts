@@ -116,6 +116,12 @@ export type EmployeeAttendanceDashboard = {
   recentOT: ApprovalRequestView[]
   geofenceRadiusMeters: number
   activeProjectCoords: { latitude: number | null; longitude: number | null } | null
+  /// Set when there's an unresolved (PENDING) clock-in / clock-out / break
+  /// approval on today's date — used by the clock card to disable the
+  /// next-event button until the supervisor reviews. `null` means there's
+  /// nothing pending and the employee can act freely. OT approvals are
+  /// excluded — they don't gate subsequent clocking activity.
+  pendingApproval: { id: string; kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK" } | null
 }
 
 export type SupervisorTeamOverview = {

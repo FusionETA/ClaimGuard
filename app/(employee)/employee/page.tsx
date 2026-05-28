@@ -155,6 +155,7 @@ export default async function EmployeeDashboardPage() {
             enforceGeofence={enforceGeofence}
             todayRecord={attendanceDashboard.today}
             latestRejection={deriveLatestRejection(attendanceDashboard.todayEvents)}
+            pendingApproval={attendanceDashboard.pendingApproval}
           />
         </section>
       ) : null}

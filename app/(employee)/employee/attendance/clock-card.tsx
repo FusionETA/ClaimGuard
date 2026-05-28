@@ -126,6 +126,11 @@ type Props = {
    *  a warning banner is rendered above the clock buttons explaining why the
    *  previous event was rejected and prompting the employee to retry. */
   latestRejection: ClockEventLite | null
+  /** Set when today has a PENDING clock-in/out/break approval. Disables
+   *  the next-event button(s) until the supervisor reviews — clock-in
+   *  is never disabled by this flag (it's the first event of the day,
+   *  there's no prior). */
+  pendingApproval: { id: string; kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK" } | null
 }
 
 function ClockInButton({ pending }: { pending: boolean }) {
@@ -151,12 +156,18 @@ function ClockInButton({ pending }: { pending: boolean }) {
   )
 }
 
-function ClockOutButton({ pending }: { pending: boolean }) {
+function ClockOutButton({
+  pending,
+  blocked,
+}: {
+  pending: boolean
+  blocked?: boolean
+}) {
   return (
     <button
       type="submit"
-      disabled={pending}
-      className="flex w-full flex-col items-center justify-center rounded-[28px] border border-border/70 bg-card/94 py-5 shadow-ambient backdrop-blur-sm transition hover:bg-card active:scale-95 disabled:opacity-50"
+      disabled={pending || blocked}
+      className="flex w-full flex-col items-center justify-center rounded-[28px] border border-border/70 bg-card/94 py-5 shadow-ambient backdrop-blur-sm transition hover:bg-card active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-destructive text-destructive-foreground">
         <LogOut className="h-6 w-6" />
@@ -164,17 +175,25 @@ function ClockOutButton({ pending }: { pending: boolean }) {
       <p className="text-sm font-bold text-destructive">
         {pending ? "Clocking out…" : "Clock Out"}
       </p>
-      <p className="mt-0.5 text-[11px] text-muted-foreground">End shift</p>
+      <p className="mt-0.5 text-[11px] text-muted-foreground">
+        {blocked ? "Waiting on supervisor" : "End shift"}
+      </p>
     </button>
   )
 }
 
-function BreakStartButton({ pending }: { pending: boolean }) {
+function BreakStartButton({
+  pending,
+  blocked,
+}: {
+  pending: boolean
+  blocked?: boolean
+}) {
   return (
     <button
       type="submit"
-      disabled={pending}
-      className="flex w-full flex-col items-center justify-center rounded-[28px] border border-border/70 bg-card/94 py-5 shadow-ambient backdrop-blur-sm transition hover:bg-card active:scale-95 disabled:opacity-50"
+      disabled={pending || blocked}
+      className="flex w-full flex-col items-center justify-center rounded-[28px] border border-border/70 bg-card/94 py-5 shadow-ambient backdrop-blur-sm transition hover:bg-card active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
         <Coffee className="h-6 w-6" />
@@ -183,18 +202,24 @@ function BreakStartButton({ pending }: { pending: boolean }) {
         {pending ? "Saving…" : "Start Break"}
       </p>
       <p className="mt-0.5 text-[11px] text-muted-foreground">
-        Pauses your shift
+        {blocked ? "Waiting on supervisor" : "Pauses your shift"}
       </p>
     </button>
   )
 }
 
-function BreakEndButton({ pending }: { pending: boolean }) {
+function BreakEndButton({
+  pending,
+  blocked,
+}: {
+  pending: boolean
+  blocked?: boolean
+}) {
   return (
     <button
       type="submit"
-      disabled={pending}
-      className="flex w-full flex-col items-center justify-center rounded-[28px] border border-amber-300 bg-amber-50 py-5 shadow-ambient backdrop-blur-sm transition hover:bg-amber-100 active:scale-95 disabled:opacity-50"
+      disabled={pending || blocked}
+      className="flex w-full flex-col items-center justify-center rounded-[28px] border border-amber-300 bg-amber-50 py-5 shadow-ambient backdrop-blur-sm transition hover:bg-amber-100 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-white">
         <Coffee className="h-6 w-6" />
@@ -203,7 +228,7 @@ function BreakEndButton({ pending }: { pending: boolean }) {
         {pending ? "Saving…" : "End Break"}
       </p>
       <p className="mt-0.5 text-[11px] text-amber-800">
-        Resumes your shift
+        {blocked ? "Waiting on supervisor" : "Resumes your shift"}
       </p>
     </button>
   )
@@ -224,6 +249,7 @@ export function ClockCard({
   enforceGeofence,
   todayRecord,
   latestRejection,
+  pendingApproval,
 }: Props) {
   const [rejectionDismissed, setRejectionDismissed] = useState(false)
   const [selected, setSelected] = useState("")
@@ -604,6 +630,29 @@ export function ClockCard({
         </div>
       ) : null}
 
+      {pendingApproval && state === "IN" ? (
+        <div className="mb-4 rounded-[20px] border border-amber-300/60 bg-amber-50 p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-amber-900">
+                Waiting on supervisor approval
+              </p>
+              <p className="mt-1 text-xs text-amber-800">
+                Your{" "}
+                {pendingApproval.kind === "CLOCK_IN"
+                  ? "clock-in"
+                  : pendingApproval.kind === "CLOCK_OUT"
+                    ? "clock-out"
+                    : "break"}{" "}
+                is still pending review. The next clock or break action
+                will unlock once your supervisor approves it.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {state === "OUT" ? (
         <form onSubmit={handleClockIn} className="space-y-3">
           <div>
@@ -681,16 +730,25 @@ export function ClockCard({
             . Clock out is disabled until you end the break.
           </p>
           <form onSubmit={(e) => handleBreak(e, "BREAK_END")}>
-            <BreakEndButton pending={isBreakPending || isResolving} />
+            <BreakEndButton
+              pending={isBreakPending || isResolving}
+              blocked={pendingApproval !== null}
+            />
           </form>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
           <form onSubmit={(e) => handleBreak(e, "BREAK_START")}>
-            <BreakStartButton pending={isBreakPending || isResolving} />
+            <BreakStartButton
+              pending={isBreakPending || isResolving}
+              blocked={pendingApproval !== null}
+            />
           </form>
           <form onSubmit={handleClockOut}>
-            <ClockOutButton pending={isClockOutPending || isResolving} />
+            <ClockOutButton
+              pending={isClockOutPending || isResolving}
+              blocked={pendingApproval !== null}
+            />
           </form>
         </div>
       )}
