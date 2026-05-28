@@ -961,14 +961,25 @@ export const claimRepository = {
   },
 
   /**
-   * Count claims in the org awaiting review (PENDING + freshly-SUBMITTED).
-   * Used by the admin overview "Review claims" quick action badge.
+   * Count claims in the org awaiting admin attention. Used by the admin
+   * Executive Overview "Review claims" quick-action badge.
+   *
+   * SUBMITTED  — newly submitted, awaiting first reviewer.
+   * PENDING    — under supervisor chain mid-step (might still escalate
+   *              to admin if no supervisor exists at this step).
+   * APPROVED   — supervisor chain complete; admin must finalise (this
+   *              is the admin queue). Missing this status meant the
+   *              badge dropped to 0 the moment a supervisor approved,
+   *              even though the admin still had work waiting.
    */
   async countPendingForOrganization(organizationId: string): Promise<number> {
     const prisma = getPrismaClient()
     if (!prisma) return 0
     return prisma.claim.count({
-      where: { organizationId, status: { in: ["PENDING", "SUBMITTED"] } },
+      where: {
+        organizationId,
+        status: { in: ["PENDING", "SUBMITTED", "APPROVED"] },
+      },
     })
   },
 
