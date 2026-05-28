@@ -39,8 +39,6 @@ const settingsSchema = z.object({
   hrdfEnabled: booleanString(),
   hrdfRate: nullableNumber(),
   autoApplySocsoEisRelief: booleanString(),
-  employerIdNumber: nullableString(),
-  myCoOrSsmNumber: nullableString(),
   syncClaimsToXeroOnSubmit: booleanString(),
   syncPayrollToXeroOnSubmit: booleanString(),
   // Public Bank ECP — 10-digit debiting account number. Empty / null
@@ -68,8 +66,6 @@ export async function savePayrollSettingsAction(
     hrdfEnabled: formData.get("hrdfEnabled"),
     hrdfRate: formData.get("hrdfRate"),
     autoApplySocsoEisRelief: formData.get("autoApplySocsoEisRelief"),
-    employerIdNumber: formData.get("employerIdNumber"),
-    myCoOrSsmNumber: formData.get("myCoOrSsmNumber"),
     syncClaimsToXeroOnSubmit: formData.get("syncClaimsToXeroOnSubmit"),
     syncPayrollToXeroOnSubmit: formData.get("syncPayrollToXeroOnSubmit"),
     ecpPayorAccountNo: formData.get("ecpPayorAccountNo"),

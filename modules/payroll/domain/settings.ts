@@ -51,10 +51,13 @@ export type PayrollSettingsData = {
   // relief is treated as a TP1 item.
   autoApplySocsoEisRelief: boolean
 
-  // Employer identifiers
-  employerIdNumber: string | null
-  myCoOrSsmNumber: string | null
-
+  // NB: PayrollSettings used to also expose `employerIdNumber` (LHDN
+  // E No.) and `myCoOrSsmNumber` (SSM) here, but those duplicated the
+  // canonical fields on PayrollCompanyInfo (`employerTin` and
+  // `registrationNo`) — which every statutory generator already reads
+  // from. The duplicates were dropped from the TS layer; the DB
+  // columns are left in place (no migration) until they're confirmed
+  // safe to drop.
 
   // Xero sync — opt-in toggles that fire when the admin submits a
   // payroll run. UI is hidden when the org has no Xero connection.

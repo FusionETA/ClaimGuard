@@ -64,8 +64,6 @@ function mapPayrollSettings(row: any): PayrollSettingsData {
     // (prisma db push backfills with the schema default, but be
     // defensive in case the row was hand-inserted).
     autoApplySocsoEisRelief: row.autoApplySocsoEisRelief ?? true,
-    employerIdNumber: row.employerIdNumber ?? null,
-    myCoOrSsmNumber: row.myCoOrSsmNumber ?? null,
     // ?? false guards legacy rows minted before these columns existed;
     // prisma db push backfills with the schema default, but defensive
     // anyway.
@@ -175,8 +173,6 @@ function toUpsertData(
   copy("hrdfEnabled")
   copy("hrdfRate")
   copy("autoApplySocsoEisRelief")
-  copy("employerIdNumber")
-  copy("myCoOrSsmNumber")
   copy("syncClaimsToXeroOnSubmit")
   copy("syncPayrollToXeroOnSubmit")
   copy("ecpPayorAccountNo")

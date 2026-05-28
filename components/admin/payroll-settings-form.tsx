@@ -367,31 +367,6 @@ function GeneralTab(props: {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Employer identifiers</CardTitle>
-          <CardDescription>
-            Used in payslip headers and statutory exports.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <Field label="Employer ID number (LHDN E No.)">
-            <Input
-              name="employerIdNumber"
-              defaultValue={s?.employerIdNumber ?? ""}
-              placeholder="E 12345678901"
-            />
-          </Field>
-          <Field label="MyCoID / SSM number">
-            <Input
-              name="myCoOrSsmNumber"
-              defaultValue={s?.myCoOrSsmNumber ?? ""}
-              placeholder="202301234567"
-            />
-          </Field>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
           <CardTitle className="text-base">
             Bank disbursement (Public Bank ECP)
           </CardTitle>
