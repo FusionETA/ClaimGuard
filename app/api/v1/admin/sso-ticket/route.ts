@@ -1,40 +1,36 @@
 import { NextResponse } from "next/server"
+import { randomBytes } from "node:crypto"
 import { z } from "zod"
 
-import { signSsoToken } from "@/lib/auth/sso-token"
 import { handleApiRequest } from "@/lib/api-auth"
+import { getRedis, key } from "@/lib/redis"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
  * POST /api/v1/admin/sso-ticket
  *
  * Server-to-server SSO ticket minter. Altomate Accounting calls this to
- * obtain a short-lived SSO token for one of its provisioned owners/admins,
- * then redirects the customer's browser to:
+ * obtain a short-lived SSO ticket for one of its provisioned
+ * owners/admins, then redirects the customer's browser to:
  *
- *   <AltomateHR>/api/sso/altomate?token=<token>
+ *   <AltomateHR>{redirectPath}
  *
- * Authentication: **per-organization API token** (`Authorization: Bearer
- * wp_live_*`). The token's `organizationId` is the target the customer
- * wants to land in. This replaced the earlier master-key auth so that
- * Altomate Accounting — which has an organization dropdown — can pick
- * WHICH org the customer enters (a single owner can own many companies;
- * defaulting to "primary org" landed them in the wrong place).
+ * Authentication: per-organization API token (`Authorization: Bearer
+ * wp_live_*`). The token's `organizationId` is the org we'll land the
+ * user in. The master key is only for org creation (POST
+ * /api/v1/admin/organizations).
  *
- * The master key is now only used to CREATE organizations
- * (POST /api/v1/admin/organizations). Once an org exists and has its own
- * `wp_live_*` token, SSO uses that token.
+ * Internally the ticket is a short opaque ID (~22 chars). The actual
+ * claims (email + organizationId) live in Redis under
+ * `key("sso","ticket",<id>)` with a 120s TTL. The callback
+ * /api/sso/altomate does GETDEL on that key — atomic single-use:
+ * first click wins, subsequent clicks see an expired ticket.
  *
- * Email rules:
- *   - Must already resolve to an ADMIN/OWNER (provision via the org
- *     creation endpoint first).
- *   - Must have admin access to the SPECIFIC organization the token
- *     belongs to (either via `AdminOrganization` link or by being the
- *     legacy single-org admin whose `User.organizationId` matches).
- *   - 404 otherwise — clear signal so the partner can fix.
- *
- * HR signs the resulting JWT with its own `AUTH_SECRET` and verifies it
- * on the callback — no shared secret with Accounting.
+ * Why opaque + Redis instead of a self-contained JWT in the URL? The
+ * JWT version meant a ~300-char `?token=eyJ…` query string. We already
+ * used Redis for jti-replay protection, so we were never stateless.
+ * Switching to a server-stored ticket buys a much shorter URL with the
+ * same single-use semantics.
  */
 
 const ticketSchema = z.object({
@@ -46,8 +42,14 @@ const ticketSchema = z.object({
     .toLowerCase(),
 })
 
-// No scopes required — any active per-org token can mint an SSO ticket.
-// (We can tighten this later by adding an `sso:create-ticket` scope.)
+const TICKET_TTL_SECONDS = 120
+
+/** Stored ticket payload — kept tiny (Redis tax is per-byte). */
+type StoredTicket = {
+  email: string
+  organizationId: string
+}
+
 export const POST = handleApiRequest([], async (request, { integration }) => {
   let body: unknown
   try {
@@ -87,10 +89,10 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
     )
   }
 
-  // Verify the email has admin access to THE specific org this token
-  // belongs to. Same email might own multiple orgs — the per-org token
-  // is the differentiator. Returns true when either an AdminOrganization
-  // row exists OR the user is the legacy single-org admin
+  // Email must have admin access to THE specific org this token belongs
+  // to. Same email can own multiple orgs — the per-org token is the
+  // differentiator. Returns true when either an AdminOrganization row
+  // exists OR the user is the legacy single-org admin
   // (User.organizationId === integration.organizationId).
   const hasAccess = await organizationRepository.isAdminOfOrganization(
     user.id,
@@ -109,18 +111,60 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
     )
   }
 
-  const { token, expiresIn } = signSsoToken({
+  const redis = getRedis()
+  if (!redis) {
+    // Without Redis we can't store the ticket. Fail loudly so the
+    // partner sees the misconfig instead of silently degrading.
+    return NextResponse.json(
+      {
+        error: {
+          status: 503,
+          message:
+            "SSO temporarily unavailable. The session store is not configured.",
+        },
+      },
+      { status: 503 },
+    )
+  }
+
+  // 16 random bytes -> 22 url-safe chars. Vast entropy; collision odds
+  // are astronomically small. The `NX` guard below catches any
+  // theoretical collision anyway.
+  const ticketId = randomBytes(16).toString("base64url")
+  const payload: StoredTicket = {
     email: user.email,
     organizationId: integration.organizationId,
-  })
+  }
+
+  const stored = await redis.set(
+    key("sso", "ticket", ticketId),
+    JSON.stringify(payload),
+    "EX",
+    TICKET_TTL_SECONDS,
+    "NX",
+  )
+  if (stored === null) {
+    // Collision (or store rejected for some other reason). Surface as
+    // a 500 — the partner can just retry.
+    return NextResponse.json(
+      {
+        error: {
+          status: 500,
+          message: "Could not allocate ticket. Please retry.",
+        },
+      },
+      { status: 500 },
+    )
+  }
 
   return NextResponse.json(
     {
-      token,
-      expiresIn,
-      // Convenience: the path to redirect the browser to. Prepend your
-      // AltomateHR origin (e.g. https://hr.altomate.io).
-      redirectPath: `/api/sso/altomate?token=${encodeURIComponent(token)}`,
+      ticket: ticketId,
+      expiresIn: TICKET_TTL_SECONDS,
+      // Opaque path partners append to their HR domain. Treat it as
+      // a black box — we may change the internal shape in the future
+      // (this changed once from `?token=eyJ…` to `?t=<id>` already).
+      redirectPath: `/api/sso/altomate?t=${encodeURIComponent(ticketId)}`,
     },
     { status: 201 },
   )

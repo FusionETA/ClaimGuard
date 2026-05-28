@@ -2,35 +2,36 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { buildSessionUserForEmail } from "@/lib/auth/authenticate"
 import { buildSessionCookie } from "@/lib/auth/session"
-import { verifySsoToken } from "@/lib/auth/sso-token"
 import { getRedis, key } from "@/lib/redis"
 import { getRequestOrigin } from "@/lib/request-origin"
 
 /**
- * GET /api/sso/altomate?token=<token>
+ * GET /api/sso/altomate?t=<ticketId>
  *
- * SSO hand-off from Altomate Accounting into AltomateHR (Option C:
- * master-key + HR-signed token). Accounting first obtains the token via
- * the master-key-protected /api/v1/admin/sso-ticket endpoint, then
- * redirects the customer's browser here. We:
+ * SSO hand-off callback. Altomate Accounting first obtains an opaque
+ * ticket id via POST /api/v1/admin/sso-ticket, then redirects the
+ * customer's browser here. We:
  *
- *   1. Verify the token — HR signed it with its own AUTH_SECRET, so HR
- *      verifies it (no shared secret). Checks signature + typ + expiry.
- *   2. Enforce single-use via the token's `jti` (Redis) to block replay
- *      if the redirect URL is captured.
- *   3. Look up the matching admin/owner and mint our OWN iron-session
- *      cookie (the same one password login issues).
- *   4. Redirect into /admin — middleware + everything else then works.
+ *   1. Atomically GETDEL the ticket in Redis. First click wins (the
+ *      key is gone); any subsequent click sees an expired ticket
+ *      (single-use replay protection).
+ *   2. Look up the matching admin/owner and mint our OWN iron-session
+ *      cookie. Active org is set to the ticket's `organizationId` so
+ *      the customer lands in the org Altomate Accounting picked.
+ *   3. Redirect into /admin — middleware + everything else then works.
  *
- * The token is the one-time entry ticket (short expiry); the session it
- * mints lasts the normal 7 days.
+ * The ticket TTL is 120s (minted server-side). The session it mints
+ * lasts the normal 7 days.
  */
 
+type StoredTicket = {
+  email: string
+  organizationId: string
+}
+
 function loginError(request: NextRequest, reason: string): NextResponse {
-  // `request.url` is the internal listener address behind nginx /
-  // DO App Platform — building the redirect from it sends users to
-  // http://localhost:3000/login. Use the public origin from forwarded
-  // headers instead.
+  // Build the redirect from the PUBLIC origin (forwarded headers) not
+  // the internal listener URL — see lib/request-origin.ts.
   const url = new URL("/login", getRequestOrigin(request))
   url.searchParams.set("error", "sso")
   url.searchParams.set("reason", reason)
@@ -38,35 +39,32 @@ function loginError(request: NextRequest, reason: string): NextResponse {
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const token = request.nextUrl.searchParams.get("token")
-  if (!token) return loginError(request, "missing-token")
+  const ticketId = request.nextUrl.searchParams.get("t")
+  if (!ticketId) return loginError(request, "missing-ticket")
 
-  const claims = verifySsoToken(token)
-  if (!claims) return loginError(request, "invalid-token")
-
-  // Single-use: claim the jti in Redis. If it's already claimed, this is a
-  // replay — reject. When Redis isn't configured we can't enforce this, so
-  // we fall back to signature + expiry only (still safe, just no replay
-  // protection) rather than locking everyone out.
   const redis = getRedis()
-  if (redis) {
-    const nowSec = Math.floor(Date.now() / 1000)
-    const ttl = Math.max(1, claims.exp - nowSec)
-    const set = await redis.set(
-      key("sso", "jti", claims.jti),
-      "1",
-      "EX",
-      ttl,
-      "NX",
-    )
-    if (set === null) return loginError(request, "replay")
+  if (!redis) return loginError(request, "store-unavailable")
+
+  // Atomic GET + DEL — first click wins. Subsequent clicks (or stale
+  // bookmarks) see null and fall through to invalid-ticket.
+  const raw = await redis.getdel(key("sso", "ticket", ticketId))
+  if (!raw) return loginError(request, "invalid-ticket")
+
+  let claims: StoredTicket
+  try {
+    claims = JSON.parse(raw) as StoredTicket
+  } catch {
+    return loginError(request, "invalid-ticket")
+  }
+  if (typeof claims.email !== "string" || claims.email.length === 0) {
+    return loginError(request, "invalid-ticket")
   }
 
-  // Identity is proven — mint our session for the matching admin/owner.
-  // Pass `targetOrganizationId` from the token so the session lands on
-  // the specific org Altomate Accounting picked, not the user's primary
-  // org. When the claim is absent (legacy tokens), the session defaults
-  // to primary as before.
+  // Identity is proven (we stored the ticket ourselves). Pass the
+  // target organizationId so the session lands on the specific org
+  // Altomate picked, not the user's primary org. When the claim is
+  // absent on a legacy ticket, buildSessionUserForEmail falls back to
+  // the user's primary org.
   const result = await buildSessionUserForEmail(claims.email, {
     targetOrganizationId: claims.organizationId,
   })
@@ -75,8 +73,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const cookie = buildSessionCookie(result.user)
-  // Same reason as the login-error redirect above: use the public
-  // origin from forwarded headers, not the internal listener URL.
   const response = NextResponse.redirect(
     new URL("/admin", getRequestOrigin(request)),
   )
