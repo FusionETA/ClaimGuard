@@ -107,7 +107,14 @@ export function SessionEditorDialog({
   const [loading, setLoading] = useState(false)
   const [pending, startTransition] = useTransition()
 
-  // Reset + load breaks when dialog opens.
+  // Reset + load breaks ONLY when the dialog flips open. Intentionally
+  // does NOT depend on `initialTimeIn` / `initialTimeOut` / `recordId`:
+  // those props' references change on every parent re-render (e.g. when
+  // RealtimeListener fires `router.refresh()` in response to an SSE
+  // event), and depending on them here would wipe the user's in-progress
+  // edits back to the saved values mid-typing — making the fields feel
+  // "locked." Read them inside the effect so we get the values at the
+  // moment of open, then leave them alone until the dialog closes.
   useEffect(() => {
     if (!open) return
     setTimeIn(toLocalInput(initialTimeIn))
@@ -135,7 +142,8 @@ export function SessionEditorDialog({
         setInitialBreaks(loaded.map((b) => ({ ...b })))
       })
       .finally(() => setLoading(false))
-  }, [open, recordId, employeeId, initialTimeIn, initialTimeOut])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   function updateBreak(uid: string, patch: Partial<EditableBreak>) {
     setBreaks((prev) =>
