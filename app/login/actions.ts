@@ -16,10 +16,10 @@ import {
   getCurrentSession,
   getHomePathForRole,
 } from "@/lib/auth/session"
-import { getPrismaClient } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { pushSubscriptionRepository } from "@/modules/notifications/infrastructure/push-subscription.repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
  * Best-effort client IP for rate-limiting. Reads the standard reverse-proxy
@@ -198,14 +198,9 @@ export async function changePasswordAction(
     }
   }
 
-  const prisma = getPrismaClient()
-  if (!prisma) {
-    return { status: "error", message: "Database is not available." }
-  }
-  const user = await prisma.user.findUnique({
-    where: { id: session.userId },
-    select: { passwordHash: true },
-  })
+  const user = await organizationRepository.findUserByIdWithHash(
+    session.userId,
+  )
   if (!user) {
     return { status: "error", message: "Account not found." }
   }
@@ -217,10 +212,10 @@ export async function changePasswordAction(
     }
   }
 
-  await prisma.user.update({
-    where: { id: session.userId },
-    data: { passwordHash: hashPassword(parsed.data.newPassword) },
-  })
+  await organizationRepository.updateUserPasswordHash(
+    session.userId,
+    hashPassword(parsed.data.newPassword),
+  )
 
   // Audit so an admin can spot a compromised account changing its
   // password (in addition to the user's own peace of mind).

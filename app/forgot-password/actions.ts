@@ -16,8 +16,8 @@ import {
   issuePasswordResetCode,
   verifyAndConsumePasswordResetCode,
 } from "@/lib/password-reset"
-import { getPrismaClient } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
  * Best-effort client IP. Same pattern as login/actions.ts.
@@ -93,12 +93,7 @@ export async function requestPasswordResetAction(
   // actually email anyone unless the address is an employee.
   void (async () => {
     try {
-      const prisma = getPrismaClient()
-      if (!prisma) return
-      const user = await prisma.user.findUnique({
-        where: { email },
-        select: { id: true, name: true, role: true },
-      })
+      const user = await organizationRepository.findUserByEmail(email)
       if (!user) return
       // Employees + supervisors only. Admins / owners use a different
       // recovery path (SSO from Altomate; partner-side reprovisioning).
@@ -230,17 +225,7 @@ export async function resetPasswordAction(
   // Code accepted — update the password. Look up the user one more time
   // (the code could theoretically outlive the user row if an admin
   // deletes them mid-reset; better to no-op than 500).
-  const prisma = getPrismaClient()
-  if (!prisma) {
-    return {
-      status: "error",
-      message: "Database is not available right now. Try again in a minute.",
-    }
-  }
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
-    select: { id: true, role: true },
-  })
+  const user = await organizationRepository.findUserByEmail(parsed.data.email)
   if (!user) {
     return {
       status: "error",
@@ -257,10 +242,10 @@ export async function resetPasswordAction(
     }
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { passwordHash: hashPassword(parsed.data.newPassword) },
-  })
+  await organizationRepository.updateUserPasswordHash(
+    user.id,
+    hashPassword(parsed.data.newPassword),
+  )
 
   redirect("/login?passwordReset=1")
   return initialResetPasswordFormState

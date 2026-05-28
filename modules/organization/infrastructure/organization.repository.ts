@@ -529,6 +529,58 @@ export const organizationRepository = {
   },
 
   /**
+   * Find a user by id. Same shape as `findUserByEmail` PLUS the
+   * scrypt password hash for callers that need to verify or update
+   * the user's password (currently the change-password and password-
+   * reset flows). Trusted callers only — never expose `passwordHash`
+   * back to the client.
+   */
+  async findUserByIdWithHash(id: string): Promise<{
+    id: string
+    name: string
+    email: string
+    role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER"
+    passwordHash: string
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        passwordHash: true,
+      },
+    })
+    return user
+      ? {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role as "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER",
+          passwordHash: user.passwordHash,
+        }
+      : null
+  },
+
+  /**
+   * Overwrite the scrypt password hash for a user. The caller must
+   * have already verified authorisation to do this (current-password
+   * check for change-password; valid reset code for forgot-password).
+   */
+  async updateUserPasswordHash(id: string, passwordHash: string): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+    })
+  },
+
+  /**
    * Remove an admin's access to ONE organization. Deletes the
    * `AdminOrganization` join row. If this org happened to be the admin's
    * "home" org (`User.organizationId`), we re-point that to another org

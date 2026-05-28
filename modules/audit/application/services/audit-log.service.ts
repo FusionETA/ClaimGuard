@@ -1,8 +1,8 @@
 import "server-only"
 
-import { getPrismaClient } from "@/lib/prisma"
 import type { AppRole } from "@/lib/auth/types"
 import { auditLogRepository } from "@/modules/audit/infrastructure/audit-log.repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import type {
   AuditActorRole,
   AuditLogEntry,
@@ -124,12 +124,9 @@ export async function writeAuditByUserId(input: {
   partnerInitiated?: boolean
 }): Promise<void> {
   try {
-    const prisma = getPrismaClient()
-    if (!prisma) return
-    const user = await prisma.user.findUnique({
-      where: { id: input.actorUserId },
-      select: { id: true, email: true, name: true, role: true },
-    })
+    const user = await organizationRepository.findUserByIdWithHash(
+      input.actorUserId,
+    )
     if (!user) {
       // Unknown actor — fall back to a system-attributed row so the
       // event still shows in the feed (better than silent miss).
