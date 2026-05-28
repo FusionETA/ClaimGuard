@@ -254,6 +254,25 @@ export function EmployeeShell({
     return () => registerClaimsReviewedHandler(null)
   }, [user.role, fetchContext])
 
+  // SSE: when the realtime listener (mounted lower in this shell) gets
+  // a push from the server — e.g. a subordinate submitted a new claim,
+  // attendance approval, or leave application aimed at THIS supervisor
+  // — re-pull the badge counts so the sidebar pills + homepage shortcut
+  // cards update without waiting for navigation or the page reload.
+  //
+  // Without this, RealtimeListener's `router.refresh()` re-renders the
+  // current server-rendered page (the queue list updates) but the
+  // shell's `pending*Approvals` state is client-side and would stay
+  // stale until the supervisor clicked something.
+  useEffect(() => {
+    if (user.role !== "SUPERVISOR") return
+    function handleRealtime() {
+      void fetchContext()
+    }
+    window.addEventListener("altomate:realtime", handleRealtime)
+    return () => window.removeEventListener("altomate:realtime", handleRealtime)
+  }, [user.role, fetchContext])
+
   const visibleNav = employeeNav
     .filter((item) => !("supervisorOnly" in item) || user.role === "SUPERVISOR")
     .filter((item) => {
