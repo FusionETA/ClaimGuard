@@ -142,10 +142,6 @@ const employmentSchema = z.object({
   monthlySalary: nullableNumber(),
   hourlyRate: nullableNumber(),
   joinDate: nullableDateString(),
-  // Optional: the input is only rendered when the assigned policy is
-  // temporary. When absent (non-temporary policy) we leave the stored
-  // value untouched rather than wiping it.
-  temporaryReviewDate: nullableDateString().optional(),
   leaveDate: nullableDateString(),
   department: nullableString(),
   location: nullableString(),
@@ -195,9 +191,6 @@ export async function savePayrollEmploymentAction(
     monthlySalary: formData.get("monthlySalary"),
     hourlyRate: formData.get("hourlyRate"),
     joinDate: formData.get("joinDate"),
-    temporaryReviewDate: formData.has("temporaryReviewDate")
-      ? formData.get("temporaryReviewDate")
-      : undefined,
     leaveDate: formData.get("leaveDate"),
     department: formData.get("department"),
     location: formData.get("location"),

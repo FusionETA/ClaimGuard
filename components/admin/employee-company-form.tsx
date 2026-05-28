@@ -41,6 +41,11 @@ export type EmployeeCompanyData = {
   teams: TeamSummary[]
   allMembers: OrganizationMember[]
   policies: EmployeePolicy[]
+  /// Stored review/checkpoint date (ISO yyyy-mm-dd) used when the
+  /// employee's policy is temporary. The field below is conditionally
+  /// rendered + persisted via the same hierarchy save action that owns
+  /// the policy assignment, so policy + review-date stay in lock-step.
+  temporaryReviewDate: string | null
 }
 
 function resolveSelectedProjectIds(
@@ -239,6 +244,7 @@ export function EmployeeCompanyForm({
   teams,
   allMembers,
   policies,
+  temporaryReviewDate: initialTemporaryReviewDate,
 }: EmployeeCompanyData) {
   const { toast } = useToast()
   const router = useRouter()
@@ -269,6 +275,15 @@ export function EmployeeCompanyForm({
   )
   const [policyId, setPolicyId] = useState<string>(member.policyId ?? fallbackPolicyId)
   const selectedPolicy = activePolicies.find((p) => p.id === policyId)
+  const [temporaryReviewDate, setTemporaryReviewDate] = useState<string>(
+    initialTemporaryReviewDate ?? "",
+  )
+  // The review date is mandatory when (and only when) the selected
+  // policy is temporary. Save is blocked client-side AND validated
+  // server-side in updateHierarchyAction.
+  const needsTemporaryReviewDate = Boolean(selectedPolicy?.temporary)
+  const temporaryReviewDateMissing =
+    needsTemporaryReviewDate && temporaryReviewDate.trim() === ""
 
   const filteredProjects = useMemo(
     () =>
@@ -442,6 +457,33 @@ export function EmployeeCompanyForm({
                 ? " · supervisors are always paid monthly"
                 : ""}
             </p>
+          ) : null}
+
+          {needsTemporaryReviewDate ? (
+            <div className="space-y-2 pt-1">
+              <label
+                htmlFor={`temporary-review-${member.id}`}
+                className="text-sm font-semibold text-muted-foreground"
+              >
+                Temporary review date{" "}
+                <span className="text-destructive">*</span>
+              </label>
+              <Input
+                id={`temporary-review-${member.id}`}
+                name="temporaryReviewDate"
+                type="date"
+                value={temporaryReviewDate}
+                onChange={(e) => setTemporaryReviewDate(e.target.value)}
+                required
+                aria-invalid={temporaryReviewDateMissing || undefined}
+                disabled={pending}
+              />
+              <p className="text-xs font-normal text-muted-foreground">
+                This policy is marked temporary. Admins are reminded to
+                revisit this employee&apos;s classification when the date
+                arrives.
+              </p>
+            </div>
           ) : null}
         </div>
 
@@ -639,7 +681,8 @@ export function EmployeeCompanyForm({
             activePolicies.length === 0 ||
             !policyId ||
             selectedProjectIds.length === 0 ||
-            !allChainsComplete
+            !allChainsComplete ||
+            temporaryReviewDateMissing
           }
         >
           {pending ? (

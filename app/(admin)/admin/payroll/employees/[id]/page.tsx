@@ -50,6 +50,9 @@ export default async function AdminPayrollEmployeeDetailPage({
       teams: hierarchy.teams,
       allMembers: hierarchy.members,
       policies: hierarchy.policies,
+      // Plumb the stored review date through so the company form can
+      // pre-fill the date input when the assigned policy is temporary.
+      temporaryReviewDate: data.profile?.temporaryReviewDate ?? null,
     }
   }
 

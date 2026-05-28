@@ -14,6 +14,8 @@ import {
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { upsertPayrollProfile } from "@/modules/payroll/application/services/payroll-profile.service"
+import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 
 const hierarchySchema = z.object({
   userId: z.string().min(1),
@@ -22,6 +24,10 @@ const hierarchySchema = z.object({
   jobTitle: z.string().min(1, "Job title is required."),
   policyId: z.string().min(1, "Employee policy is required."),
   email: z.string().email(),
+  /// Mandatory only when the selected policy is temporary. The schema
+  /// keeps it optional/nullable and the action runs the conditional
+  /// validation after looking up the policy.
+  temporaryReviewDate: z.string().optional().nullable(),
 })
 
 const createMemberSchema = z.object({
@@ -117,6 +123,9 @@ export async function updateHierarchyAction(
   const projectAssignments = parseProjectAssignments(formData, projectIds)
 
   const policyId = String(formData.get("policyId") ?? "").trim() || undefined
+  const rawTemporaryReviewDate = String(
+    formData.get("temporaryReviewDate") ?? "",
+  ).trim()
   const parsed = hierarchySchema.safeParse({
     userId: String(formData.get("userId") ?? ""),
     role: values.role,
@@ -124,6 +133,7 @@ export async function updateHierarchyAction(
     jobTitle: values.jobTitle,
     policyId,
     email: String(formData.get("email") ?? ""),
+    temporaryReviewDate: rawTemporaryReviewDate || null,
   })
 
   if (!parsed.success) {
@@ -131,6 +141,30 @@ export async function updateHierarchyAction(
       ...createInitialHierarchyFormState(values),
       status: "error",
       message: parsed.error.issues[0]?.message ?? "Unable to save hierarchy changes.",
+    }
+  }
+
+  // Look up the policy so we know whether to require + persist the
+  // temporary review date. Doing this server-side rather than trusting
+  // the client guards against a stale form (e.g. the policy was edited
+  // to non-temporary between page load and save).
+  const policy = await policyRepository.findById(
+    parsed.data.policyId,
+    organizationId,
+  )
+  if (!policy) {
+    return {
+      ...createInitialHierarchyFormState(values),
+      status: "error",
+      message: "Selected policy not found in this organisation.",
+    }
+  }
+  if (policy.temporary && !parsed.data.temporaryReviewDate) {
+    return {
+      ...createInitialHierarchyFormState(values),
+      status: "error",
+      message:
+        "This policy is temporary — a review date is required for this employee.",
     }
   }
 
@@ -150,6 +184,28 @@ export async function updateHierarchyAction(
       status: "error",
       message:
         safeErrorMessage(error, "Unable to save hierarchy changes."),
+    }
+  }
+
+  // Persist the review date on the PayrollProfile when the policy is
+  // temporary. When it's not, we leave any stored value untouched so
+  // toggling a policy temporary→non-temporary→temporary doesn't lose
+  // the previously-set date.
+  if (policy.temporary) {
+    try {
+      await upsertPayrollProfile({
+        userId: parsed.data.userId,
+        patch: { temporaryReviewDate: parsed.data.temporaryReviewDate ?? null },
+      })
+    } catch (error) {
+      return {
+        ...createInitialHierarchyFormState(values),
+        status: "error",
+        message: safeErrorMessage(
+          error,
+          "Saved hierarchy, but couldn't store the review date.",
+        ),
+      }
     }
   }
 
