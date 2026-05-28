@@ -103,7 +103,19 @@ export function PayrollSettingsForm(props: {
 }) {
   const [tab, setTab] = useState<Tab>("general")
   const generalComplete = props.settings !== null
-  const formEComplete = isFormEComplete(props.companyInfo)
+  // Mirror the FormE inputs in state so the tab-pill highlight + the
+  // inline red helpers clear AS THE ADMIN TYPES, not only after they
+  // save. Inputs stay uncontrolled (no cursor jumping) — this state is
+  // just a derived mirror for the visual indicators.
+  const [liveCompanyInfo, setLiveCompanyInfo] = useState<PayrollCompanyInfoData | null>(
+    props.companyInfo,
+  )
+  // Resync when the server re-renders with fresh values (e.g. after a
+  // successful save) so the indicator can't drift from persisted data.
+  useEffect(() => {
+    setLiveCompanyInfo(props.companyInfo)
+  }, [props.companyInfo])
+  const formEComplete = isFormEComplete(liveCompanyInfo)
   const xeroComplete = isXeroMappingComplete(props.settings)
 
   return (
@@ -142,7 +154,19 @@ export function PayrollSettingsForm(props: {
           hasXeroConnection={props.hasXeroConnection}
         />
       )}
-      {tab === "formE" && <FormETab companyInfo={props.companyInfo} />}
+      {tab === "formE" && (
+        <FormETab
+          companyInfo={liveCompanyInfo}
+          onFieldChange={(field, value) =>
+            setLiveCompanyInfo((prev) =>
+              ({
+                ...(prev ?? ({} as PayrollCompanyInfoData)),
+                [field]: value,
+              } as PayrollCompanyInfoData),
+            )
+          }
+        />
+      )}
       {tab === "xero" && props.hasXeroConnection ? (
         <XeroMappingTab settings={props.settings} />
       ) : null}
@@ -452,7 +476,16 @@ function GeneralTab(props: {
 
 // ─── Form E tab ───────────────────────────────────────────────────────────
 
-function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
+function FormETab(props: {
+  companyInfo: PayrollCompanyInfoData | null
+  /// Called on every input/select change so the parent can mirror form
+  /// values in state and update the tab-pill highlight + inline reds
+  /// LIVE as the admin types (instead of waiting for a save).
+  onFieldChange?: (
+    field: keyof PayrollCompanyInfoData,
+    value: string,
+  ) => void
+}) {
   const [state, action, pending] = useActionState(
     savePayrollCompanyInfoAction,
     initialSettingsActionState,
@@ -461,8 +494,27 @@ function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
 
   const c = props.companyInfo
 
+  // Single delegated change handler — fires on every input/select event
+  // inside the form. Tells the parent which field changed so it can
+  // update its mirrored state and refresh the tab-pill colour + inline
+  // reds immediately (no need to save first).
+  function handleChange(event: React.ChangeEvent<HTMLFormElement>) {
+    // At runtime `event.target` is the actual changed input, not the
+    // form itself — TS just types it as the form. Cast via `unknown`.
+    const target = event.target as unknown as
+      | HTMLInputElement
+      | HTMLSelectElement
+      | HTMLTextAreaElement
+      | null
+    if (!target || !target.name) return
+    props.onFieldChange?.(
+      target.name as keyof PayrollCompanyInfoData,
+      target.value,
+    )
+  }
+
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="space-y-6" onChange={handleChange}>
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Employer particulars</CardTitle>

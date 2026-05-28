@@ -117,9 +117,49 @@ export function PayrollEmployeeDetail(props: {
   company: EmployeeCompanyData | null
 }) {
   const [tab, setTab] = useState<Tab>("personal")
-  const personalComplete = isPersonalTabComplete(props.profile)
-  const employmentComplete = isEmploymentTabComplete(props.profile)
-  const statutoryComplete = isStatutoryTabComplete(props.profile)
+  // Mirror the profile in state so the tab-pill highlight clears AS
+  // THE ADMIN TYPES, instead of waiting for a save. Inputs stay
+  // uncontrolled (no cursor jumps) — this is just a derived mirror.
+  const [liveProfile, setLiveProfile] = useState<PayrollProfileData | null>(
+    props.profile,
+  )
+  useEffect(() => {
+    setLiveProfile(props.profile)
+  }, [props.profile])
+  // Single delegated form-level change handler used by every tab's
+  // form (PersonalTab / EmploymentTab / StatutoryTab pass it as
+  // `onLiveChange`). Coerces checkbox values to booleans and the few
+  // numeric fields the completion checks compare against; everything
+  // else stays a string.
+  function handleLiveProfileChange(
+    event: React.ChangeEvent<HTMLFormElement>,
+  ) {
+    const t = event.target as unknown as
+      | HTMLInputElement
+      | HTMLSelectElement
+      | HTMLTextAreaElement
+      | null
+    if (!t || !t.name) return
+    const name = t.name
+    const isCheckbox = (t as HTMLInputElement).type === "checkbox"
+    const numericFields = new Set(["monthlySalary", "hourlyRate"])
+    let value: string | number | boolean | null = t.value
+    if (isCheckbox) {
+      value = (t as HTMLInputElement).checked
+    } else if (numericFields.has(name)) {
+      const raw = t.value.trim()
+      value = raw === "" ? null : Number(raw)
+    }
+    setLiveProfile((prev) =>
+      ({
+        ...(prev ?? ({} as PayrollProfileData)),
+        [name]: value,
+      } as PayrollProfileData),
+    )
+  }
+  const personalComplete = isPersonalTabComplete(liveProfile)
+  const employmentComplete = isEmploymentTabComplete(liveProfile)
+  const statutoryComplete = isStatutoryTabComplete(liveProfile)
 
   // Resolve the employee's assigned policy so the Employment tab's
   // Compensation card can lock the salary type to it. The policy uses
@@ -171,7 +211,11 @@ export function PayrollEmployeeDetail(props: {
       </nav>
 
       {tab === "personal" && (
-        <PersonalTab userId={props.userId} profile={props.profile} />
+        <PersonalTab
+          userId={props.userId}
+          profile={props.profile}
+          onLiveChange={handleLiveProfileChange}
+        />
       )}
       {tab === "employment" && (
         <EmploymentTab
@@ -184,6 +228,7 @@ export function PayrollEmployeeDetail(props: {
           // Only offer the "assign a policy" shortcut when the Company
           // tab actually exists (company context resolved).
           onAssignPolicy={props.company ? () => setTab("company") : undefined}
+          onLiveChange={handleLiveProfileChange}
         />
       )}
       {tab === "statutory" && (
@@ -191,6 +236,7 @@ export function PayrollEmployeeDetail(props: {
           userId={props.userId}
           profile={props.profile}
           defaultEpfEmployerRate={props.defaultEpfEmployerRate}
+          onLiveChange={handleLiveProfileChange}
         />
       )}
       {tab === "company" && props.company ? (
@@ -298,6 +344,9 @@ function TabPill({
 function PersonalTab(props: {
   userId: string
   profile: PayrollProfileData | null
+  /// Fires on every input/select change so the parent can mirror form
+  /// values in state and update the tab-pill highlight live.
+  onLiveChange?: (event: React.ChangeEvent<HTMLFormElement>) => void
 }) {
   const [state, action, pending] = useActionState(
     savePayrollPersonalAction,
@@ -367,7 +416,7 @@ function PersonalTab(props: {
   }
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="space-y-6" onChange={props.onLiveChange}>
       <input type="hidden" name="userId" value={props.userId} hidden />
 
       <Card>
@@ -755,6 +804,9 @@ function EmploymentTab(props: {
   /// Jumps to the Company tab so the admin can assign a policy. Undefined
   /// when there's no Company tab (company context unavailable).
   onAssignPolicy?: () => void
+  /// Fires on every input/select change so the parent can mirror form
+  /// values in state and update the tab-pill highlight live.
+  onLiveChange?: (event: React.ChangeEvent<HTMLFormElement>) => void
 }) {
   const [state, action, pending] = useActionState(
     savePayrollEmploymentAction,
@@ -874,6 +926,7 @@ function EmploymentTab(props: {
         ref={pendingFormRef}
         action={action}
         className="space-y-6"
+        onChange={props.onLiveChange}
         onSubmit={(e) => {
           // Intercept the very first submit attempt when the salary
           // actually changed. We open the classification dialog and
@@ -1340,6 +1393,9 @@ function StatutoryTab(props: {
   userId: string
   profile: PayrollProfileData | null
   defaultEpfEmployerRate: number
+  /// Fires on every input/select change so the parent can mirror form
+  /// values in state and update the tab-pill highlight live.
+  onLiveChange?: (event: React.ChangeEvent<HTMLFormElement>) => void
 }) {
   const [state, action, pending] = useActionState(
     savePayrollStatutoryAction,
@@ -1437,7 +1493,7 @@ function StatutoryTab(props: {
   }
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={action} className="space-y-6" onChange={props.onLiveChange}>
       <input type="hidden" name="userId" value={props.userId} hidden />
 
       {isForeignWorker && (
