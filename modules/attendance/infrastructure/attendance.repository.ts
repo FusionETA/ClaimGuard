@@ -453,6 +453,136 @@ export const attendanceRepository = {
   // ── User / org lookups (used by the employee-attendance service to resolve
   // an employee's org + geofence context without bypassing the repo layer).
 
+  /**
+   * Sum approved OT minutes for an employee across a period, broken down
+   * by day-type bucket so payroll can apply the right OT rate to each:
+   *   - `normalOtMin` — minutes past the daily threshold on a working day.
+   *   - `restMin`     — every minute worked on a rest day (non-working
+   *                     weekday in the project's working-days set).
+   *   - `publicMin`   — every minute worked on a project public holiday.
+   *
+   * **Only counts days that have an APPROVED OT `ApprovalRequest`** — pending
+   * or rejected requests are excluded. This is the source of truth payroll
+   * uses; the legacy admin-typed `otNormalHours` adjustment is no longer
+   * honoured (see payroll-run.service.ts).
+   */
+  async getApprovedOtMinutesForPeriod(args: {
+    employeeId: string
+    /// Inclusive start of period.
+    from: Date
+    /// Exclusive end of period.
+    to: Date
+  }): Promise<{ normalOtMin: number; restMin: number; publicMin: number }> {
+    const prisma = getClient()
+    if (!prisma) return { normalOtMin: 0, restMin: 0, publicMin: 0 }
+
+    const [records, approvedOt, profile] = await Promise.all([
+      prisma.attendanceRecord.findMany({
+        where: {
+          employeeId: args.employeeId,
+          date: { gte: args.from, lte: args.to },
+          durationMin: { not: null, gt: 0 },
+        },
+        select: {
+          date: true,
+          durationMin: true,
+          projectId: true,
+          projectRef: {
+            select: {
+              workingHoursStart: true,
+              workingHoursEnd: true,
+              workingDays: true,
+              lunchBreakMinutes: true,
+            },
+          },
+        },
+      }),
+      prisma.approvalRequest.findMany({
+        where: {
+          employeeId: args.employeeId,
+          kind: "OT",
+          status: "APPROVED",
+          date: { gte: args.from, lte: args.to },
+        },
+        select: { date: true },
+      }),
+      prisma.employeeProfile.findUnique({
+        where: { userId: args.employeeId },
+        select: {
+          policy: { select: { otDailyThresholdMinutes: true } },
+        },
+      }),
+    ])
+
+    if (approvedOt.length === 0) {
+      return { normalOtMin: 0, restMin: 0, publicMin: 0 }
+    }
+
+    const approvedDateKeys = new Set(
+      approvedOt.map((a) => a.date.toISOString().slice(0, 10)),
+    )
+
+    // Public-holiday lookup for any project the employee actually clocked
+    // into in the period (a record may have null projectId on legacy rows).
+    const projectIds = Array.from(
+      new Set(
+        records
+          .map((r) => r.projectId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    )
+    const holidayKeys = new Set<string>()
+    if (projectIds.length > 0) {
+      const holidays = await prisma.projectHoliday.findMany({
+        where: {
+          projectId: { in: projectIds },
+          date: { gte: args.from, lte: args.to },
+        },
+        select: { projectId: true, date: true },
+      })
+      for (const h of holidays) {
+        holidayKeys.add(`${h.projectId}:${h.date.toISOString().slice(0, 10)}`)
+      }
+    }
+
+    const otThresholdMin = profile?.policy?.otDailyThresholdMinutes ?? 480
+
+    let normalOtMin = 0
+    let restMin = 0
+    let publicMin = 0
+    for (const rec of records) {
+      const dateKey = rec.date.toISOString().slice(0, 10)
+      // Only days with an APPROVED OT request count toward payroll.
+      if (!approvedDateKeys.has(dateKey)) continue
+
+      const isPH = rec.projectId
+        ? holidayKeys.has(`${rec.projectId}:${dateKey}`)
+        : false
+      const workingDays = parseWorkingDays(rec.projectRef?.workingDays ?? null)
+      const standardDailyMin = standardDailyMinutesFrom(
+        rec.projectRef?.workingHoursStart ?? null,
+        rec.projectRef?.workingHoursEnd ?? null,
+        rec.projectRef?.lunchBreakMinutes ?? null,
+      )
+      const bucket = bucketRecord({
+        durationMin: rec.durationMin ?? 0,
+        date: rec.date,
+        isPublicHoliday: isPH,
+        workingDays,
+        standardDailyMin,
+        otThresholdMin,
+        // No longer consulted by bucketRecord (always-split semantics),
+        // but kept for backwards-compatible call signature.
+        hasApprovedOT: true,
+      })
+      normalOtMin += bucket.otMin
+      restMin += bucket.restDayMin
+      publicMin += bucket.publicHolidayMin
+    }
+
+    return { normalOtMin, restMin, publicMin }
+  },
+
   async getOrganizationIdForUser(userId: string): Promise<string | null> {
     const prisma = getClient()
     const user = await prisma.user.findUnique({
