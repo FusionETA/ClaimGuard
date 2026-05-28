@@ -215,6 +215,7 @@ export type UserWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   adminOrganizations?: Prisma.AdminOrganizationListRelationFilter
+  auditLogActor?: Prisma.OrganizationAuditLogListRelationFilter
   approvalChainApprovals?: Prisma.ApprovalChainStepListRelationFilter
   approvalChainSteps?: Prisma.ApprovalChainStepListRelationFilter
   approvals?: Prisma.ApprovalRequestListRelationFilter
@@ -249,6 +250,7 @@ export type UserOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   adminOrganizations?: Prisma.AdminOrganizationOrderByRelationAggregateInput
+  auditLogActor?: Prisma.OrganizationAuditLogOrderByRelationAggregateInput
   approvalChainApprovals?: Prisma.ApprovalChainStepOrderByRelationAggregateInput
   approvalChainSteps?: Prisma.ApprovalChainStepOrderByRelationAggregateInput
   approvals?: Prisma.ApprovalRequestOrderByRelationAggregateInput
@@ -287,6 +289,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   adminOrganizations?: Prisma.AdminOrganizationListRelationFilter
+  auditLogActor?: Prisma.OrganizationAuditLogListRelationFilter
   approvalChainApprovals?: Prisma.ApprovalChainStepListRelationFilter
   approvalChainSteps?: Prisma.ApprovalChainStepListRelationFilter
   approvals?: Prisma.ApprovalRequestListRelationFilter
@@ -350,6 +353,7 @@ export type UserCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -384,6 +388,7 @@ export type UserUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -416,6 +421,7 @@ export type UserUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -450,6 +456,7 @@ export type UserUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -935,6 +942,22 @@ export type UserUpdateOneWithoutSubmittedForApprovalPayrollRunsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSubmittedForApprovalPayrollRunsInput, Prisma.UserUpdateWithoutSubmittedForApprovalPayrollRunsInput>, Prisma.UserUncheckedUpdateWithoutSubmittedForApprovalPayrollRunsInput>
 }
 
+export type UserCreateNestedOneWithoutAuditLogActorInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditLogActorInput, Prisma.UserUncheckedCreateWithoutAuditLogActorInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditLogActorInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutAuditLogActorNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAuditLogActorInput, Prisma.UserUncheckedCreateWithoutAuditLogActorInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAuditLogActorInput
+  upsert?: Prisma.UserUpsertWithoutAuditLogActorInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditLogActorInput, Prisma.UserUpdateWithoutAuditLogActorInput>, Prisma.UserUncheckedUpdateWithoutAuditLogActorInput>
+}
+
 export type UserCreateWithoutOrganizationInput = {
   id?: string
   email: string
@@ -945,6 +968,7 @@ export type UserCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -977,6 +1001,7 @@ export type UserUncheckedCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1049,6 +1074,7 @@ export type UserCreateWithoutAdminOrganizationsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1082,6 +1108,7 @@ export type UserUncheckedCreateWithoutAdminOrganizationsInput = {
   avatarUrl?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1129,6 +1156,7 @@ export type UserUpdateWithoutAdminOrganizationsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1162,6 +1190,7 @@ export type UserUncheckedUpdateWithoutAdminOrganizationsInput = {
   avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1194,6 +1223,7 @@ export type UserCreateWithoutPushSubscriptionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1227,6 +1257,7 @@ export type UserUncheckedCreateWithoutPushSubscriptionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1274,6 +1305,7 @@ export type UserUpdateWithoutPushSubscriptionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1307,6 +1339,7 @@ export type UserUncheckedUpdateWithoutPushSubscriptionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1338,6 +1371,7 @@ export type UserCreateWithoutNotificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1371,6 +1405,7 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1418,6 +1453,7 @@ export type UserUpdateWithoutNotificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1451,6 +1487,7 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1482,6 +1519,7 @@ export type UserCreateWithoutEmployeeImportDraftsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1515,6 +1553,7 @@ export type UserUncheckedCreateWithoutEmployeeImportDraftsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1562,6 +1601,7 @@ export type UserUpdateWithoutEmployeeImportDraftsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1595,6 +1635,7 @@ export type UserUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1626,6 +1667,7 @@ export type UserCreateWithoutEmployeeProfileInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1659,6 +1701,7 @@ export type UserUncheckedCreateWithoutEmployeeProfileInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1706,6 +1749,7 @@ export type UserUpdateWithoutEmployeeProfileInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1739,6 +1783,7 @@ export type UserUncheckedUpdateWithoutEmployeeProfileInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1770,6 +1815,7 @@ export type UserCreateWithoutClaimsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1803,6 +1849,7 @@ export type UserUncheckedCreateWithoutClaimsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1839,6 +1886,7 @@ export type UserCreateWithoutReviewsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -1872,6 +1920,7 @@ export type UserUncheckedCreateWithoutReviewsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -1919,6 +1968,7 @@ export type UserUpdateWithoutClaimsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -1952,6 +2002,7 @@ export type UserUncheckedUpdateWithoutClaimsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -1994,6 +2045,7 @@ export type UserUpdateWithoutReviewsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2027,6 +2079,7 @@ export type UserUncheckedUpdateWithoutReviewsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2058,6 +2111,7 @@ export type UserCreateWithoutClaimApprovalEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2091,6 +2145,7 @@ export type UserUncheckedCreateWithoutClaimApprovalEntriesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2138,6 +2193,7 @@ export type UserUpdateWithoutClaimApprovalEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2171,6 +2227,7 @@ export type UserUncheckedUpdateWithoutClaimApprovalEntriesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2202,6 +2259,7 @@ export type UserCreateWithoutXeroConnectionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2235,6 +2293,7 @@ export type UserUncheckedCreateWithoutXeroConnectionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2282,6 +2341,7 @@ export type UserUpdateWithoutXeroConnectionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2315,6 +2375,7 @@ export type UserUncheckedUpdateWithoutXeroConnectionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2346,6 +2407,7 @@ export type UserCreateWithoutManagedProjectsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2379,6 +2441,7 @@ export type UserUncheckedCreateWithoutManagedProjectsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2426,6 +2489,7 @@ export type UserUpdateWithoutManagedProjectsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2459,6 +2523,7 @@ export type UserUncheckedUpdateWithoutManagedProjectsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2490,6 +2555,7 @@ export type UserCreateWithoutProjectManagerOfInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2523,6 +2589,7 @@ export type UserUncheckedCreateWithoutProjectManagerOfInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2570,6 +2637,7 @@ export type UserUpdateWithoutProjectManagerOfInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2603,6 +2671,7 @@ export type UserUncheckedUpdateWithoutProjectManagerOfInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2634,6 +2703,7 @@ export type UserCreateWithoutAttendanceInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2667,6 +2737,7 @@ export type UserUncheckedCreateWithoutAttendanceInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2714,6 +2785,7 @@ export type UserUpdateWithoutAttendanceInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2747,6 +2819,7 @@ export type UserUncheckedUpdateWithoutAttendanceInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2778,6 +2851,7 @@ export type UserCreateWithoutAttendanceEditsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2811,6 +2885,7 @@ export type UserUncheckedCreateWithoutAttendanceEditsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -2858,6 +2933,7 @@ export type UserUpdateWithoutAttendanceEditsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -2891,6 +2967,7 @@ export type UserUncheckedUpdateWithoutAttendanceEditsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -2922,6 +2999,7 @@ export type UserCreateWithoutBreakSessionEditsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -2955,6 +3033,7 @@ export type UserUncheckedCreateWithoutBreakSessionEditsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -3002,6 +3081,7 @@ export type UserUpdateWithoutBreakSessionEditsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -3035,6 +3115,7 @@ export type UserUncheckedUpdateWithoutBreakSessionEditsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -3066,6 +3147,7 @@ export type UserCreateWithoutApprovalsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
@@ -3099,6 +3181,7 @@ export type UserUncheckedCreateWithoutApprovalsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
@@ -3135,6 +3218,7 @@ export type UserCreateWithoutApprovalReviewsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -3168,6 +3252,7 @@ export type UserUncheckedCreateWithoutApprovalReviewsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -3215,6 +3300,7 @@ export type UserUpdateWithoutApprovalsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
@@ -3248,6 +3334,7 @@ export type UserUncheckedUpdateWithoutApprovalsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
@@ -3290,6 +3377,7 @@ export type UserUpdateWithoutApprovalReviewsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -3323,6 +3411,7 @@ export type UserUncheckedUpdateWithoutApprovalReviewsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -3354,6 +3443,7 @@ export type UserCreateWithoutApprovalChainApprovalsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
@@ -3387,6 +3477,7 @@ export type UserUncheckedCreateWithoutApprovalChainApprovalsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
@@ -3423,6 +3514,7 @@ export type UserCreateWithoutApprovalChainStepsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
@@ -3456,6 +3548,7 @@ export type UserUncheckedCreateWithoutApprovalChainStepsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
@@ -3503,6 +3596,7 @@ export type UserUpdateWithoutApprovalChainApprovalsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
@@ -3536,6 +3630,7 @@ export type UserUncheckedUpdateWithoutApprovalChainApprovalsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
@@ -3578,6 +3673,7 @@ export type UserUpdateWithoutApprovalChainStepsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
@@ -3611,6 +3707,7 @@ export type UserUncheckedUpdateWithoutApprovalChainStepsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
   approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
@@ -3642,6 +3739,7 @@ export type UserCreateWithoutSalaryChangesAuthoredInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -3675,6 +3773,7 @@ export type UserUncheckedCreateWithoutSalaryChangesAuthoredInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -3722,6 +3821,7 @@ export type UserUpdateWithoutSalaryChangesAuthoredInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -3755,6 +3855,7 @@ export type UserUncheckedUpdateWithoutSalaryChangesAuthoredInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -3786,6 +3887,7 @@ export type UserCreateWithoutSubmittedPayrollRunsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -3819,6 +3921,7 @@ export type UserUncheckedCreateWithoutSubmittedPayrollRunsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -3855,6 +3958,7 @@ export type UserCreateWithoutSubmittedForApprovalPayrollRunsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
@@ -3888,6 +3992,7 @@ export type UserUncheckedCreateWithoutSubmittedForApprovalPayrollRunsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutActorInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
   approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
@@ -3935,6 +4040,7 @@ export type UserUpdateWithoutSubmittedPayrollRunsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -3968,6 +4074,7 @@ export type UserUncheckedUpdateWithoutSubmittedPayrollRunsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -4010,6 +4117,7 @@ export type UserUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -4043,6 +4151,7 @@ export type UserUncheckedUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -4057,6 +4166,154 @@ export type UserUncheckedUpdateWithoutSubmittedForApprovalPayrollRunsInput = {
   employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUncheckedUpdateManyWithoutProjectManagerNestedInput
+}
+
+export type UserCreateWithoutAuditLogActorInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  adminOrganizations?: Prisma.AdminOrganizationCreateNestedManyWithoutAdminInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogCreateNestedManyWithoutEditorInput
+  attendance?: Prisma.AttendanceRecordCreateNestedManyWithoutEmployeeInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogCreateNestedManyWithoutEditorInput
+  claims?: Prisma.ClaimCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryCreateNestedManyWithoutApproverInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutUserInput
+  employeeProfile?: Prisma.EmployeeProfileCreateNestedOneWithoutUserInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  submittedPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedByInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutSubmittedForApprovalByInput
+  projectManagerOf?: Prisma.ProjectManagerCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionCreateNestedManyWithoutUserInput
+  salaryChangesAuthored?: Prisma.SalaryChangeCreateNestedManyWithoutChangedByUserInput
+  organization?: Prisma.OrganizationCreateNestedOneWithoutUsersInput
+  xeroConnections?: Prisma.XeroConnectionCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectCreateNestedManyWithoutProjectManagerInput
+}
+
+export type UserUncheckedCreateWithoutAuditLogActorInput = {
+  id?: string
+  email: string
+  name: string
+  role: $Enums.UserRole
+  organizationId?: string | null
+  passwordHash: string
+  avatarUrl?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutAdminInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutApproverInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedCreateNestedManyWithoutEmployeeInput
+  approvals?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutEmployeeInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedCreateNestedManyWithoutReviewerInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutEditorInput
+  attendance?: Prisma.AttendanceRecordUncheckedCreateNestedManyWithoutEmployeeInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutEditorInput
+  claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutEmployeeInput
+  reviews?: Prisma.ClaimUncheckedCreateNestedManyWithoutReviewerInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutApproverInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutUserInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedCreateNestedOneWithoutUserInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  submittedPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedByInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutSubmittedForApprovalByInput
+  projectManagerOf?: Prisma.ProjectManagerUncheckedCreateNestedManyWithoutUserInput
+  pushSubscriptions?: Prisma.PushSubscriptionUncheckedCreateNestedManyWithoutUserInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUncheckedCreateNestedManyWithoutChangedByUserInput
+  xeroConnections?: Prisma.XeroConnectionUncheckedCreateNestedManyWithoutConnectedByAdminInput
+  managedProjects?: Prisma.XeroProjectUncheckedCreateNestedManyWithoutProjectManagerInput
+}
+
+export type UserCreateOrConnectWithoutAuditLogActorInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuditLogActorInput, Prisma.UserUncheckedCreateWithoutAuditLogActorInput>
+}
+
+export type UserUpsertWithoutAuditLogActorInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAuditLogActorInput, Prisma.UserUncheckedUpdateWithoutAuditLogActorInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAuditLogActorInput, Prisma.UserUncheckedCreateWithoutAuditLogActorInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAuditLogActorInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAuditLogActorInput, Prisma.UserUncheckedUpdateWithoutAuditLogActorInput>
+}
+
+export type UserUpdateWithoutAuditLogActorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUpdateManyWithoutEditorNestedInput
+  attendance?: Prisma.AttendanceRecordUpdateManyWithoutEmployeeNestedInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUpdateManyWithoutEditorNestedInput
+  claims?: Prisma.ClaimUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUpdateManyWithoutApproverNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutUserNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUpdateOneWithoutUserNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  submittedPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedByNestedInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUpdateManyWithoutSubmittedForApprovalByNestedInput
+  projectManagerOf?: Prisma.ProjectManagerUpdateManyWithoutUserNestedInput
+  pushSubscriptions?: Prisma.PushSubscriptionUpdateManyWithoutUserNestedInput
+  salaryChangesAuthored?: Prisma.SalaryChangeUpdateManyWithoutChangedByUserNestedInput
+  organization?: Prisma.OrganizationUpdateOneWithoutUsersNestedInput
+  xeroConnections?: Prisma.XeroConnectionUpdateManyWithoutConnectedByAdminNestedInput
+  managedProjects?: Prisma.XeroProjectUpdateManyWithoutProjectManagerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAuditLogActorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  organizationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  avatarUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
+  approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
+  approvalReviews?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutReviewerNestedInput
+  attendanceEdits?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutEditorNestedInput
+  attendance?: Prisma.AttendanceRecordUncheckedUpdateManyWithoutEmployeeNestedInput
+  breakSessionEdits?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutEditorNestedInput
+  claims?: Prisma.ClaimUncheckedUpdateManyWithoutEmployeeNestedInput
+  reviews?: Prisma.ClaimUncheckedUpdateManyWithoutReviewerNestedInput
+  claimApprovalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutApproverNestedInput
+  employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutUserNestedInput
+  employeeProfile?: Prisma.EmployeeProfileUncheckedUpdateOneWithoutUserNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  submittedPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedByNestedInput
+  submittedForApprovalPayrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByNestedInput
   projectManagerOf?: Prisma.ProjectManagerUncheckedUpdateManyWithoutUserNestedInput
   pushSubscriptions?: Prisma.PushSubscriptionUncheckedUpdateManyWithoutUserNestedInput
   salaryChangesAuthored?: Prisma.SalaryChangeUncheckedUpdateManyWithoutChangedByUserNestedInput
@@ -4085,6 +4342,7 @@ export type UserUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUpdateManyWithoutEmployeeNestedInput
@@ -4117,6 +4375,7 @@ export type UserUncheckedUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   adminOrganizations?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutAdminNestedInput
+  auditLogActor?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutActorNestedInput
   approvalChainApprovals?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutApproverNestedInput
   approvalChainSteps?: Prisma.ApprovalChainStepUncheckedUpdateManyWithoutEmployeeNestedInput
   approvals?: Prisma.ApprovalRequestUncheckedUpdateManyWithoutEmployeeNestedInput
@@ -4157,6 +4416,7 @@ export type UserUncheckedUpdateManyWithoutOrganizationInput = {
 
 export type UserCountOutputType = {
   adminOrganizations: number
+  auditLogActor: number
   approvalChainApprovals: number
   approvalChainSteps: number
   approvals: number
@@ -4180,6 +4440,7 @@ export type UserCountOutputType = {
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminOrganizations?: boolean | UserCountOutputTypeCountAdminOrganizationsArgs
+  auditLogActor?: boolean | UserCountOutputTypeCountAuditLogActorArgs
   approvalChainApprovals?: boolean | UserCountOutputTypeCountApprovalChainApprovalsArgs
   approvalChainSteps?: boolean | UserCountOutputTypeCountApprovalChainStepsArgs
   approvals?: boolean | UserCountOutputTypeCountApprovalsArgs
@@ -4216,6 +4477,13 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type UserCountOutputTypeCountAdminOrganizationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AdminOrganizationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAuditLogActorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrganizationAuditLogWhereInput
 }
 
 /**
@@ -4363,6 +4631,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   adminOrganizations?: boolean | Prisma.User$adminOrganizationsArgs<ExtArgs>
+  auditLogActor?: boolean | Prisma.User$auditLogActorArgs<ExtArgs>
   approvalChainApprovals?: boolean | Prisma.User$approvalChainApprovalsArgs<ExtArgs>
   approvalChainSteps?: boolean | Prisma.User$approvalChainStepsArgs<ExtArgs>
   approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
@@ -4404,6 +4673,7 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "role" | "organizationId" | "passwordHash" | "avatarUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminOrganizations?: boolean | Prisma.User$adminOrganizationsArgs<ExtArgs>
+  auditLogActor?: boolean | Prisma.User$auditLogActorArgs<ExtArgs>
   approvalChainApprovals?: boolean | Prisma.User$approvalChainApprovalsArgs<ExtArgs>
   approvalChainSteps?: boolean | Prisma.User$approvalChainStepsArgs<ExtArgs>
   approvals?: boolean | Prisma.User$approvalsArgs<ExtArgs>
@@ -4432,6 +4702,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     adminOrganizations: Prisma.$AdminOrganizationPayload<ExtArgs>[]
+    auditLogActor: Prisma.$OrganizationAuditLogPayload<ExtArgs>[]
     approvalChainApprovals: Prisma.$ApprovalChainStepPayload<ExtArgs>[]
     approvalChainSteps: Prisma.$ApprovalChainStepPayload<ExtArgs>[]
     approvals: Prisma.$ApprovalRequestPayload<ExtArgs>[]
@@ -4805,6 +5076,7 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   adminOrganizations<T extends Prisma.User$adminOrganizationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$adminOrganizationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  auditLogActor<T extends Prisma.User$auditLogActorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogActorArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvalChainApprovals<T extends Prisma.User$approvalChainApprovalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalChainApprovalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalChainStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvalChainSteps<T extends Prisma.User$approvalChainStepsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalChainStepsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalChainStepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvals<T extends Prisma.User$approvalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$approvalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApprovalRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -5233,6 +5505,30 @@ export type User$adminOrganizationsArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.AdminOrganizationScalarFieldEnum | Prisma.AdminOrganizationScalarFieldEnum[]
+}
+
+/**
+ * User.auditLogActor
+ */
+export type User$auditLogActorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrganizationAuditLog
+   */
+  select?: Prisma.OrganizationAuditLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrganizationAuditLog
+   */
+  omit?: Prisma.OrganizationAuditLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganizationAuditLogInclude<ExtArgs> | null
+  where?: Prisma.OrganizationAuditLogWhereInput
+  orderBy?: Prisma.OrganizationAuditLogOrderByWithRelationInput | Prisma.OrganizationAuditLogOrderByWithRelationInput[]
+  cursor?: Prisma.OrganizationAuditLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrganizationAuditLogScalarFieldEnum | Prisma.OrganizationAuditLogScalarFieldEnum[]
 }
 
 /**

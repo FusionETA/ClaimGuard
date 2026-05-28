@@ -95,7 +95,8 @@ export const ModelName = {
   LeaveType: 'LeaveType',
   PolicyLeaveEntitlement: 'PolicyLeaveEntitlement',
   LeaveEntitlement: 'LeaveEntitlement',
-  LeaveApplication: 'LeaveApplication'
+  LeaveApplication: 'LeaveApplication',
+  OrganizationAuditLog: 'OrganizationAuditLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1061,6 +1062,28 @@ export const LeaveApplicationScalarFieldEnum = {
 export type LeaveApplicationScalarFieldEnum = (typeof LeaveApplicationScalarFieldEnum)[keyof typeof LeaveApplicationScalarFieldEnum]
 
 
+export const OrganizationAuditLogScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  actorUserId: 'actorUserId',
+  actorRole: 'actorRole',
+  actorEmail: 'actorEmail',
+  actorName: 'actorName',
+  action: 'action',
+  status: 'status',
+  summary: 'summary',
+  errorReason: 'errorReason',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  metadata: 'metadata',
+  ipAddress: 'ipAddress',
+  partnerInitiated: 'partnerInitiated',
+  createdAt: 'createdAt'
+} as const
+
+export type OrganizationAuditLogScalarFieldEnum = (typeof OrganizationAuditLogScalarFieldEnum)[keyof typeof OrganizationAuditLogScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1696,4 +1719,23 @@ export const LeaveApplicationOrderByRelevanceFieldEnum = {
 } as const
 
 export type LeaveApplicationOrderByRelevanceFieldEnum = (typeof LeaveApplicationOrderByRelevanceFieldEnum)[keyof typeof LeaveApplicationOrderByRelevanceFieldEnum]
+
+
+export const OrganizationAuditLogOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  actorUserId: 'actorUserId',
+  actorRole: 'actorRole',
+  actorEmail: 'actorEmail',
+  actorName: 'actorName',
+  action: 'action',
+  status: 'status',
+  summary: 'summary',
+  errorReason: 'errorReason',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  ipAddress: 'ipAddress'
+} as const
+
+export type OrganizationAuditLogOrderByRelevanceFieldEnum = (typeof OrganizationAuditLogOrderByRelevanceFieldEnum)[keyof typeof OrganizationAuditLogOrderByRelevanceFieldEnum]
 

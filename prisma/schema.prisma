@@ -18,6 +18,7 @@ model User {
   createdAt                       DateTime              @default(now())
   updatedAt                       DateTime              @updatedAt
   adminOrganizations              AdminOrganization[]   @relation("AdminOrganizations")
+  auditLogActor                   OrganizationAuditLog[] @relation("OrgAuditLogActor")
   approvalChainApprovals          ApprovalChainStep[]   @relation("ApproverChain")
   approvalChainSteps              ApprovalChainStep[]   @relation("EmployeeChain")
   approvals                       ApprovalRequest[]     @relation("EmployeeApprovals")
@@ -75,6 +76,7 @@ model Organization {
   supervisorSlaMinutes    Int                   @default(60)
   adminMembers            AdminOrganization[]
   apiIntegrations         ApiIntegration[]
+  auditLog                OrganizationAuditLog[]
   chartAccounts           ChartOfAccount[]
   claims                  Claim[]
   employeeImportDrafts    EmployeeImportDraft[]
@@ -1724,6 +1726,45 @@ model LeaveApplication {
   @@index([leaveTypeId])
   @@index([status])
   @@index([startDate, endDate])
+}
+
+/// Per-organization audit / activity log. Records who did what (and
+/// what failed) inside each org for the last 7 days; a daily cron at
+/// /api/cron/audit-prune deletes anything older. Surfaced in the
+/// admin Settings → Activity log tab.
+///
+/// Identity fields are SNAPSHOTTED (actorEmail / actorName) so the row
+/// stays human-readable even if the User row is later deleted. The FK
+/// to User is kept for joining recent rows back to live profiles, but
+/// `onDelete: SetNull` makes the row outlive the user.
+///
+/// `partnerInitiated = true` flags actions originating from a partner
+/// API call (POST /api/v1/admin/admins etc.) rather than a human in
+/// the admin portal. The actor is still the human if SSO; the flag
+/// just notes the entry point.
+model OrganizationAuditLog {
+  id               String   @id @default(cuid())
+  organizationId   String
+  actorUserId      String?
+  actorRole        String?
+  actorEmail       String
+  actorName        String
+  action           String
+  status           String
+  summary          String   @db.Text
+  errorReason      String?  @db.Text
+  targetType       String?
+  targetId         String?
+  metadata         Json?
+  ipAddress        String?
+  partnerInitiated Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("OrgAuditLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([createdAt])
 }
 
 enum NotificationType {

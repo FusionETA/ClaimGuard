@@ -430,3 +430,21 @@ export type LeaveEntitlement = Prisma.LeaveEntitlementModel
  * employee for the LEAVE module.
  */
 export type LeaveApplication = Prisma.LeaveApplicationModel
+/**
+ * Model OrganizationAuditLog
+ * Per-organization audit / activity log. Records who did what (and
+ * what failed) inside each org for the last 7 days; a daily cron at
+ * /api/cron/audit-prune deletes anything older. Surfaced in the
+ * admin Settings → Activity log tab.
+ * 
+ * Identity fields are SNAPSHOTTED (actorEmail / actorName) so the row
+ * stays human-readable even if the User row is later deleted. The FK
+ * to User is kept for joining recent rows back to live profiles, but
+ * `onDelete: SetNull` makes the row outlive the user.
+ * 
+ * `partnerInitiated = true` flags actions originating from a partner
+ * API call (POST /api/v1/admin/admins etc.) rather than a human in
+ * the admin portal. The actor is still the human if SSO; the flag
+ * just notes the entry point.
+ */
+export type OrganizationAuditLog = Prisma.OrganizationAuditLogModel
