@@ -27,6 +27,7 @@ const sessionSchema = z.object({
   organizationName: z.string().min(1).optional(),
   activeOrganizationId: z.string().min(1).optional(),
   activeXeroConnectionId: z.string().min(1).optional(),
+  loggedInViaSso: z.boolean().optional(),
   expiresAt: z.number().int().positive(),
 })
 

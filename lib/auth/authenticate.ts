@@ -169,6 +169,12 @@ export async function buildSessionUserForEmail(
       organizationName: user.organization?.name ?? undefined,
       activeOrganizationId,
       activeXeroConnectionId,
+      // This builder is SSO-only (only caller is /api/sso/altomate
+      // — password login goes through verifyCredentials above). The
+      // shells use this flag to hide the Log out button, since SSO
+      // customers should sign out from Altomate Accounting (the
+      // parent system) instead of landing on our /login.
+      loggedInViaSso: true,
     } satisfies SessionUser,
   }
 }

@@ -13,6 +13,13 @@ export type SessionUser = {
   organizationName?: string
   activeOrganizationId?: string  // admin's currently selected company
   activeXeroConnectionId?: string
+  /// True when this session was minted via the SSO hand-off from
+  /// Altomate Accounting (POST /api/v1/admin/sso-ticket → callback).
+  /// The shells hide the Log out button in this mode — the customer
+  /// should manage their session from Altomate Accounting (the
+  /// parent system), not log out here and end up on our /login.
+  /// Undefined / false for normal password logins.
+  loggedInViaSso?: boolean
 }
 
 export type AuthenticatedSession = SessionUser & {

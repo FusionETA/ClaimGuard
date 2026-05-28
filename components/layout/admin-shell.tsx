@@ -429,7 +429,12 @@ export function AdminShell({
                   <p className="text-sm font-bold">{user.name}</p>
                   <p className="text-xs text-muted-foreground">{user.subtitle}</p>
                 </div>
-                <LogoutButton />
+                {/* SSO sessions hide the Log out button — these
+                    customers sign in via Altomate Accounting and
+                    should manage their session there instead of
+                    landing on our /login. Password / direct logins
+                    still see the button as normal. */}
+                {user.loggedInViaSso ? null : <LogoutButton />}
               </div>
             </div>
           </div>
