@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   reactStrictMode: !isDev,
   typedRoutes: true,
   allowedDevOrigins: ["192.168.100.71"],
+  experimental: {
+    // Claim submissions can carry 1 receipt (8 MB) + up to 10 supporting
+    // files (8 MB each) — well past Next's 1 MB default. Sized for the
+    // worst-case payload the claim form already permits.
+    serverActions: { bodySizeLimit: "100mb" },
+  },
   async headers() {
     return [
       {
