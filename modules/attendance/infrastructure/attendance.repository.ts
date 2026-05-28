@@ -454,6 +454,38 @@ export const attendanceRepository = {
   // an employee's org + geofence context without bypassing the repo layer).
 
   /**
+   * Find any PENDING attendance approval (CLOCK_IN/CLOCK_OUT/BREAK) for
+   * this employee on the given UTC day. Used by the employee-attendance
+   * service to block the NEXT clock event when a prior one is still
+   * waiting on a supervisor — without this, employees can rack up a
+   * chain of pending events that pile up in the supervisor's queue.
+   *
+   * Returns the matched approval (id + kind) or null when nothing is
+   * pending. OT approvals are deliberately excluded — they're a
+   * side-effect of clock-out, not an event the employee chose to do,
+   * so they shouldn't block subsequent activity.
+   */
+  async findPendingClockOrBreakApprovalForDay(
+    employeeId: string,
+    day: Date,
+  ): Promise<{ id: string; kind: "CLOCK_IN" | "CLOCK_OUT" | "BREAK" } | null> {
+    const prisma = getClient()
+    if (!prisma) return null
+    const row = await prisma.approvalRequest.findFirst({
+      where: {
+        employeeId,
+        date: startOfDay(day),
+        status: "PENDING",
+        kind: { in: ["CLOCK_IN", "CLOCK_OUT", "BREAK"] },
+      },
+      orderBy: { eventAt: "desc" },
+      select: { id: true, kind: true },
+    })
+    if (!row) return null
+    return { id: row.id, kind: row.kind as "CLOCK_IN" | "CLOCK_OUT" | "BREAK" }
+  },
+
+  /**
    * Sum worked minutes for an employee across a period, bucketed by
    * day type (working-day normal vs OT past threshold vs rest-day vs
    * public-holiday). Approval status is NOT consulted — over-threshold
