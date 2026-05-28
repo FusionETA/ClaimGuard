@@ -103,16 +103,16 @@ export function LoginForm() {
           Login
         </Button>
         <Link
-          href="/forgot-password"
-          className="text-center text-sm font-semibold text-primary hover:underline"
-        >
-          Forgot your password?
-        </Link>
-        <Link
           href="/"
           className="inline-flex items-center justify-center rounded-2xl bg-surface-low px-4 py-3 text-sm font-semibold text-muted-foreground transition hover:bg-surface-high hover:text-foreground"
         >
           Back to home
+        </Link>
+        <Link
+          href="/forgot-password"
+          className="text-center text-sm font-semibold text-primary hover:underline"
+        >
+          Forgot your password?
         </Link>
       </div>
 
