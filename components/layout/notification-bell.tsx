@@ -222,11 +222,12 @@ export function NotificationBell() {
           <div
             className="overflow-y-auto overscroll-contain"
             style={{
-              // Cap to whatever space is left between the panel top and
-              // the bottom of the viewport (minus a small margin) so on
-              // short mobile screens the list stays scrollable instead
-              // of spilling off-screen.
-              maxHeight: `calc(100vh - ${panelPos.top + 16}px)`,
+              // Cap the list at roughly 5 items (24rem) so anything
+              // beyond that scrolls inside the panel instead of growing
+              // it further. On a short viewport we shrink to whatever
+              // space is actually left between the panel top and the
+              // bottom of the screen — whichever is smaller wins.
+              maxHeight: `min(24rem, calc(100vh - ${panelPos.top + 16}px))`,
             }}
           >
             {loading && items.length === 0 ? (
