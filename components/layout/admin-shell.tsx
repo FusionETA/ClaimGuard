@@ -9,6 +9,7 @@ import {
   Banknote,
   CalendarClock,
   CalendarDays,
+  History,
   LayoutDashboard,
   Loader2,
   Network,
@@ -132,6 +133,14 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
       { href: "/admin/company-structure" as Route, label: "Company Structure" },
       { href: "/admin/hierarchy" as Route, label: "Manage Employee" },
     ],
+  },
+  {
+    // Per-org activity feed. Server-side fetch (auditLogRepository) with a
+    // 7-day rolling retention prune-cron. Standalone page for now — can
+    // move into Settings later if we want fewer top-level items.
+    href: "/admin/audit" as Route,
+    label: "Activity Log",
+    icon: History,
   },
   {
     href: "/admin/settings",

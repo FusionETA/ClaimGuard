@@ -1,6 +1,7 @@
 import "server-only"
 
 import { publishUserEvents } from "@/lib/realtime"
+import { writeAuditByUserId } from "@/modules/audit/application/services/audit-log.service"
 import { notify } from "@/modules/notifications/application/services/notification.service"
 import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 import type {
@@ -102,6 +103,37 @@ export const supervisorAttendanceService = {
       }
     } catch {
       // Realtime / notifications must never block a successful review.
+    }
+
+    // Audit: capture every reviewer decision (supervisor + final
+    // step alike). The orgId lookup is one extra query but the
+    // result type doesn't carry it; cheap + fire-and-forget.
+    try {
+      const orgId = await attendanceRepository.getOrganizationIdForUser(
+        supervisorId,
+      )
+      if (orgId) {
+        void writeAuditByUserId({
+          organizationId: orgId,
+          actorUserId: supervisorId,
+          action:
+            status === "APPROVED"
+              ? "attendance.approve"
+              : "attendance.reject",
+          status: "SUCCESS",
+          summary:
+            status === "APPROVED"
+              ? `Approved ${approvalKindLabel(result.kind)} request${
+                  result.finalStatus === "APPROVED" ? " (final)" : ""
+                }`
+              : `Rejected ${approvalKindLabel(result.kind)} request`,
+          targetType: "approvalRequest",
+          targetId: approvalId,
+          metadata: options?.notes ? { notes: options.notes } : null,
+        })
+      }
+    } catch {
+      // Audit miss must never block a successful review.
     }
   },
 

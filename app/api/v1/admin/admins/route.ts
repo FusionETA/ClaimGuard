@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -89,6 +90,16 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
   // Refuse to silently promote a non-admin account into an admin role
   // for this org. Partner should use a fresh email or contact us.
   if (existing && existing.role !== "ADMIN" && existing.role !== "OWNER") {
+    void writeAudit({
+      organizationId,
+      actor: { kind: "PARTNER_API", integrationName: integration.name },
+      action: "admin.add",
+      status: "FAILED",
+      summary: `Tried to add ${email} as admin via partner API`,
+      errorReason: `Email belongs to a non-admin user (role: ${existing.role}).`,
+      targetType: "user",
+      targetId: existing.id,
+    })
     return NextResponse.json(
       {
         error: {
@@ -129,6 +140,16 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
       existing.id,
       organizationId,
     )
+    void writeAudit({
+      organizationId,
+      actor: { kind: "PARTNER_API", integrationName: integration.name },
+      action: "admin.add",
+      status: "SUCCESS",
+      summary: `Added ${existing.name} (${existing.email}) as admin via partner API`,
+      targetType: "user",
+      targetId: existing.id,
+      metadata: { existingUser: true, role: existing.role },
+    })
     return NextResponse.json(
       {
         admin: {
@@ -156,6 +177,16 @@ export const POST = handleApiRequest([], async (request, { integration }) => {
       email,
       name,
       password,
+    })
+    void writeAudit({
+      organizationId,
+      actor: { kind: "PARTNER_API", integrationName: integration.name },
+      action: "admin.add",
+      status: "SUCCESS",
+      summary: `Created new admin ${created.name} (${created.email}) via partner API`,
+      targetType: "user",
+      targetId: created.id,
+      metadata: { newUser: true },
     })
     return NextResponse.json(
       {

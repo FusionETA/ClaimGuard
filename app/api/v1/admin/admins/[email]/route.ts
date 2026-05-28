@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -80,6 +81,16 @@ export const DELETE = handleApiRequest<{ email: string }>(
     // org's contact at provisioning time. Surfacing a distinct 409
     // lets the partner see why instead of getting a generic 404.
     if (user.role === "OWNER") {
+      void writeAudit({
+        organizationId,
+        actor: { kind: "PARTNER_API", integrationName: integration.name },
+        action: "admin.remove",
+        status: "FAILED",
+        summary: `Tried to remove owner ${user.email} via partner API`,
+        errorReason: "Owners can't be removed via this endpoint.",
+        targetType: "user",
+        targetId: user.id,
+      })
       return NextResponse.json(
         {
           error: {
@@ -114,6 +125,16 @@ export const DELETE = handleApiRequest<{ email: string }>(
       user.id,
       organizationId,
     )
+
+    void writeAudit({
+      organizationId,
+      actor: { kind: "PARTNER_API", integrationName: integration.name },
+      action: "admin.remove",
+      status: "SUCCESS",
+      summary: `Removed ${user.name} (${user.email}) as admin via partner API`,
+      targetType: "user",
+      targetId: user.id,
+    })
 
     return NextResponse.json(
       {

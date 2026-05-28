@@ -9,6 +9,7 @@ import type { AuthenticatedSession } from "@/lib/auth/types"
 import { isKnownCurrency, SYSTEM_FALLBACK_CURRENCY } from "@/lib/currencies"
 import { computeMileageAmount, resolveMileageRate } from "@/lib/mileage"
 import { notify } from "@/modules/notifications/application/services/notification.service"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { publishUserEvents } from "@/lib/realtime"
 import {
   storeReceiptForClaim,
@@ -982,6 +983,33 @@ export async function reviewClaimForSupervisor({
     // Realtime / notifications must never block a successful review.
   }
 
+  // Audit: supervisor / mid-chain claim review. Activity-feed wants
+  // both APPROVE (chain advanced) and REJECT (terminal). The admin's
+  // final review is audited separately in reviewClaimForAdmin.
+  if (session.organizationId) {
+    void writeAudit({
+      organizationId: session.organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action:
+        parsed.data.decision === "APPROVED"
+          ? "claim.approve"
+          : "claim.reject",
+      status: "SUCCESS",
+      summary:
+        parsed.data.decision === "APPROVED"
+          ? `Approved claim "${result.claimTitle}" (supervisor step)`
+          : `Rejected claim "${result.claimTitle}" (supervisor step)`,
+      targetType: "claim",
+      targetId: parsed.data.claimId,
+      metadata: parsed.data.reason ? { reason: parsed.data.reason } : null,
+    })
+  }
+
   return {
     ok: true,
     claimStatus: result.claimStatus,
@@ -1073,6 +1101,32 @@ export async function reviewClaimForAdmin({
     })
   } catch {
     // Push notifications never block a successful review.
+  }
+
+  // Audit: final admin review on a claim. Captured for SUCCESS only —
+  // failure paths above already returned without touching state.
+  if (session.organizationId) {
+    void writeAudit({
+      organizationId: session.organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action:
+        parsed.data.decision === "APPROVED"
+          ? "claim.approve"
+          : "claim.reject",
+      status: "SUCCESS",
+      summary:
+        parsed.data.decision === "APPROVED"
+          ? `Approved claim "${result.claimTitle}" (final review)`
+          : `Rejected claim "${result.claimTitle}" (final review)`,
+      targetType: "claim",
+      targetId: parsed.data.claimId,
+      metadata: parsed.data.reason ? { reason: parsed.data.reason } : null,
+    })
   }
 
   return {

@@ -1,5 +1,6 @@
 import "server-only"
 
+import { getPrismaClient } from "@/lib/prisma"
 import type { AppRole } from "@/lib/auth/types"
 import { auditLogRepository } from "@/modules/audit/infrastructure/audit-log.repository"
 import type {
@@ -102,6 +103,71 @@ export async function writeAudit(input: WriteAuditInput): Promise<void> {
     })
   } catch (err) {
     console.error("[audit] failed to write row:", err)
+  }
+}
+
+/// Convenience wrapper for service code that has only a User id at
+/// hand (most internal services don't carry the full session). Looks
+/// up email/name/role once, then delegates to writeAudit. Same
+/// fire-and-forget contract — never throws.
+export async function writeAuditByUserId(input: {
+  organizationId: string
+  actorUserId: string
+  action: string
+  status: AuditStatus
+  summary: string
+  errorReason?: string | null
+  targetType?: string | null
+  targetId?: string | null
+  metadata?: Record<string, unknown> | null
+  ipAddress?: string | null
+  partnerInitiated?: boolean
+}): Promise<void> {
+  try {
+    const prisma = getPrismaClient()
+    if (!prisma) return
+    const user = await prisma.user.findUnique({
+      where: { id: input.actorUserId },
+      select: { id: true, email: true, name: true, role: true },
+    })
+    if (!user) {
+      // Unknown actor — fall back to a system-attributed row so the
+      // event still shows in the feed (better than silent miss).
+      await writeAudit({
+        organizationId: input.organizationId,
+        actor: { kind: "SYSTEM", name: "Unknown user" },
+        action: input.action,
+        status: input.status,
+        summary: input.summary,
+        errorReason: input.errorReason,
+        targetType: input.targetType,
+        targetId: input.targetId,
+        metadata: input.metadata,
+        ipAddress: input.ipAddress,
+        partnerInitiated: input.partnerInitiated,
+      })
+      return
+    }
+    await writeAudit({
+      organizationId: input.organizationId,
+      actor: {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+      action: input.action,
+      status: input.status,
+      summary: input.summary,
+      errorReason: input.errorReason,
+      targetType: input.targetType,
+      targetId: input.targetId,
+      metadata: input.metadata,
+      ipAddress: input.ipAddress,
+      partnerInitiated: input.partnerInitiated,
+    })
+  } catch (err) {
+    console.error("[audit] writeAuditByUserId failed:", err)
   }
 }
 
