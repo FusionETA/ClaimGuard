@@ -2,25 +2,39 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 import { signSsoToken } from "@/lib/auth/sso-token"
-import { handleMasterApiRequest } from "@/lib/master-api-auth"
+import { handleApiRequest } from "@/lib/api-auth"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
  * POST /api/v1/admin/sso-ticket
  *
- * Server-to-server (master-key authenticated). Altomate Accounting calls
- * this to obtain a short-lived SSO token for one of its provisioned
- * owners/admins, then redirects the customer's browser to:
+ * Server-to-server SSO ticket minter. Altomate Accounting calls this to
+ * obtain a short-lived SSO token for one of its provisioned owners/admins,
+ * then redirects the customer's browser to:
  *
  *   <AltomateHR>/api/sso/altomate?token=<token>
  *
- * HR signs the token with its OWN AUTH_SECRET and verifies it on the
- * callback — so there is no shared SSO secret to manage. The master key
- * is the only credential, and it never leaves the server-to-server hop.
+ * Authentication: **per-organization API token** (`Authorization: Bearer
+ * wp_live_*`). The token's `organizationId` is the target the customer
+ * wants to land in. This replaced the earlier master-key auth so that
+ * Altomate Accounting — which has an organization dropdown — can pick
+ * WHICH org the customer enters (a single owner can own many companies;
+ * defaulting to "primary org" landed them in the wrong place).
  *
- * The email MUST already resolve to an admin/owner in AltomateHR
- * (provision via POST /api/v1/admin/organizations with an `owner` block
- * first). We return 404 otherwise so the partner gets a clear signal.
+ * The master key is now only used to CREATE organizations
+ * (POST /api/v1/admin/organizations). Once an org exists and has its own
+ * `wp_live_*` token, SSO uses that token.
+ *
+ * Email rules:
+ *   - Must already resolve to an ADMIN/OWNER (provision via the org
+ *     creation endpoint first).
+ *   - Must have admin access to the SPECIFIC organization the token
+ *     belongs to (either via `AdminOrganization` link or by being the
+ *     legacy single-org admin whose `User.organizationId` matches).
+ *   - 404 otherwise — clear signal so the partner can fix.
+ *
+ * HR signs the resulting JWT with its own `AUTH_SECRET` and verifies it
+ * on the callback — no shared secret with Accounting.
  */
 
 const ticketSchema = z.object({
@@ -32,7 +46,9 @@ const ticketSchema = z.object({
     .toLowerCase(),
 })
 
-export const POST = handleMasterApiRequest(async (request) => {
+// No scopes required — any active per-org token can mint an SSO ticket.
+// (We can tighten this later by adding an `sso:create-ticket` scope.)
+export const POST = handleApiRequest([], async (request, { integration }) => {
   let body: unknown
   try {
     body = await request.json()
@@ -71,7 +87,32 @@ export const POST = handleMasterApiRequest(async (request) => {
     )
   }
 
-  const { token, expiresIn } = signSsoToken({ email: user.email })
+  // Verify the email has admin access to THE specific org this token
+  // belongs to. Same email might own multiple orgs — the per-org token
+  // is the differentiator. Returns true when either an AdminOrganization
+  // row exists OR the user is the legacy single-org admin
+  // (User.organizationId === integration.organizationId).
+  const hasAccess = await organizationRepository.isAdminOfOrganization(
+    user.id,
+    integration.organizationId,
+  )
+  if (!hasAccess) {
+    return NextResponse.json(
+      {
+        error: {
+          status: 404,
+          message:
+            "That email is not an admin/owner of the organization this API token belongs to.",
+        },
+      },
+      { status: 404 },
+    )
+  }
+
+  const { token, expiresIn } = signSsoToken({
+    email: user.email,
+    organizationId: integration.organizationId,
+  })
 
   return NextResponse.json(
     {

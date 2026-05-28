@@ -99,9 +99,20 @@ export async function authenticateUser({
  * password check happens here. Restricted to admin-tier accounts
  * (ADMIN / OWNER): SSO into AltomateHR is an admin-portal entry point, and
  * we never want a token to mint a session for an arbitrary employee row.
+ *
+ * When `targetOrganizationId` is supplied, the session's
+ * `activeOrganizationId` is set to that org rather than the user's
+ * primary `User.organizationId`. The caller (the SSO callback) verifies
+ * the email has admin access to that org BEFORE calling this — when the
+ * id reaches us here it's already trusted. We defensively skip the
+ * override (and fall back to primary) if the org doesn't exist, so an
+ * orphaned target id never produces a broken session.
  */
 export async function buildSessionUserForEmail(
   email: string,
+  options: {
+    targetOrganizationId?: string
+  } = {},
 ): Promise<
   | { ok: true; user: SessionUser }
   | { ok: false; reason: "no-db" | "not-found" | "not-admin" }
@@ -117,10 +128,28 @@ export async function buildSessionUserForEmail(
   if (!user) return { ok: false, reason: "not-found" }
   if (!isAdminRole(user.role)) return { ok: false, reason: "not-admin" }
 
+  // Decide which org the session should LAND on. Default = the user's
+  // primary org (`User.organizationId`). When SSO supplies a target,
+  // we use that — but only after a sanity check that the org row exists
+  // (the AdminOrganization-membership check happens at the SSO callback,
+  // before this function runs).
+  let activeOrganizationId: string | undefined = user.organizationId ?? undefined
+  if (options.targetOrganizationId) {
+    const target = await prisma.organization.findUnique({
+      where: { id: options.targetOrganizationId },
+      select: { id: true },
+    })
+    if (target) activeOrganizationId = target.id
+  }
+
+  // Pin the first Xero connection of the LANDING org (not the primary
+  // org) so the admin-portal Xero context lines up with the org they're
+  // about to see — otherwise they'd land in Org B but see Org A's Xero
+  // tenant in the connection picker.
   let activeXeroConnectionId: string | undefined
-  if (user.organizationId) {
+  if (activeOrganizationId) {
     const firstConnection = await prisma.xeroConnection.findFirst({
-      where: { organizationId: user.organizationId },
+      where: { organizationId: activeOrganizationId },
       orderBy: { createdAt: "asc" },
       select: { id: true },
     })
@@ -138,7 +167,7 @@ export async function buildSessionUserForEmail(
       subtitle: buildSubtitle(user.role, user.employeeProfile),
       organizationId: user.organizationId ?? undefined,
       organizationName: user.organization?.name ?? undefined,
-      activeOrganizationId: user.organizationId ?? undefined,
+      activeOrganizationId,
       activeXeroConnectionId,
     } satisfies SessionUser,
   }

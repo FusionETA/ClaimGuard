@@ -58,7 +58,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   // Identity is proven — mint our session for the matching admin/owner.
-  const result = await buildSessionUserForEmail(claims.email)
+  // Pass `targetOrganizationId` from the token so the session lands on
+  // the specific org Altomate Accounting picked, not the user's primary
+  // org. When the claim is absent (legacy tokens), the session defaults
+  // to primary as before.
+  const result = await buildSessionUserForEmail(claims.email, {
+    targetOrganizationId: claims.organizationId,
+  })
   if (!result.ok) {
     return loginError(request, result.reason)
   }
