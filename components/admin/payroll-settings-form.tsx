@@ -61,6 +61,9 @@ const FORM_E_COMPLETION_FIELDS: Array<keyof PayrollCompanyInfoData> = [
   "employerName",
   "employerTin",
   "registrationNo",
+  // SOCSO+EIS document needs this; the Form E tab pill should flag
+  // incomplete until it's filled.
+  "perkesoEmployerCode",
   "referenceType",
   "referenceNo",
   "employerCategory",
@@ -199,6 +202,10 @@ function isXeroMappingComplete(settings: PayrollSettingsData | null): boolean {
   return true
 }
 
+function isBlank(value: string | null | undefined): boolean {
+  return !value || value.trim().length === 0
+}
+
 function hasValue(value: unknown) {
   return typeof value === "string" ? value.trim().length > 0 : value != null
 }
@@ -220,26 +227,41 @@ function TabPill({
   onClick: () => void
   children: React.ReactNode
 }) {
+  // When the tab still has required fields blank, ring the pill in red
+  // and show a tiny red dot — so the admin sees at a glance which tab
+  // is blocking statutory document generation. Clears when every
+  // required field in that tab is filled.
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "min-w-36 rounded-full border px-6 py-2.5 text-left transition",
+        "relative min-w-36 rounded-full border px-6 py-2.5 text-left transition",
         active
           ? "border-primary bg-primary text-primary-foreground shadow-sm"
           : "border-border/70 bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+        !complete && !active && "border-destructive/60 ring-1 ring-destructive/30",
+        !complete && active && "ring-2 ring-destructive/50",
       )}
     >
+      {!complete ? (
+        <span
+          aria-hidden
+          className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-destructive"
+        />
+      ) : null}
       <span className="block text-sm font-semibold leading-tight">{children}</span>
       <span
         className={cn(
           "mt-0.5 block text-[11px] font-medium leading-tight",
-          active ? "text-primary-foreground/75" : "text-muted-foreground",
-          !complete && "opacity-0",
+          complete
+            ? active
+              ? "text-primary-foreground/75"
+              : "text-muted-foreground"
+            : "text-destructive",
         )}
       >
-        Completed
+        {complete ? "Completed" : "Required fields missing"}
       </span>
     </button>
   )
@@ -454,21 +476,39 @@ function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
             <Input
               name="employerName"
               defaultValue={c?.employerName ?? ""}
+              aria-invalid={isBlank(c?.employerName) || undefined}
             />
+            {isBlank(c?.employerName) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required — appears on every statutory document.
+              </p>
+            ) : null}
           </Field>
           <Field label="Employer No. (LHDN E No.)">
             <Input
               name="employerTin"
               defaultValue={c?.employerTin ?? ""}
               placeholder="E 1234567890"
+              aria-invalid={isBlank(c?.employerTin) || undefined}
             />
+            {isBlank(c?.employerTin) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required for PCB TXT, EPF CSV, CP8D, and EA.
+              </p>
+            ) : null}
           </Field>
           <Field label="Registration No. (SSM / ROC)">
             <Input
               name="registrationNo"
               defaultValue={c?.registrationNo ?? ""}
               placeholder="202301234567"
+              aria-invalid={isBlank(c?.registrationNo) || undefined}
             />
+            {isBlank(c?.registrationNo) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required for SOCSO+EIS upload and CP8D.
+              </p>
+            ) : null}
           </Field>
           <Field label="Reference type">
             <NativeSelect
@@ -494,7 +534,13 @@ function FormETab(props: { companyInfo: PayrollCompanyInfoData | null }) {
               name="perkesoEmployerCode"
               defaultValue={c?.perkesoEmployerCode ?? ""}
               placeholder="SOCSO/EIS employer code"
+              aria-invalid={isBlank(c?.perkesoEmployerCode) || undefined}
             />
+            {isBlank(c?.perkesoEmployerCode) ? (
+              <p className="mt-1 text-xs font-medium text-destructive">
+                Required for the SOCSO+EIS upload.
+              </p>
+            ) : null}
           </Field>
           <Field label="Employer category">
             <NativeSelect

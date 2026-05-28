@@ -309,6 +309,42 @@ export async function submitPayrollRunForApproval(input: {
     )
   }
 
+  // Guard 4 — statutory readiness. Block the submit if Company Info or
+  // any included employee is missing a field required by the statutory
+  // document generators (PCB TXT, SOCSO+EIS, EPF CSV, CP8D, EA). Better
+  // to fail loudly here, with an actionable list, than to wait for
+  // post-submit document generation to throw a cryptic error.
+  const { getPayrollRunReadiness } = await import(
+    "@/modules/payroll/application/services/payroll-readiness.service"
+  )
+  const readiness = await getPayrollRunReadiness({ runId: input.runId })
+  if (readiness && !readiness.ok) {
+    const parts: string[] = []
+    if (readiness.orgIssues.length > 0) {
+      parts.push(
+        `Company Info is missing: ${readiness.orgIssues
+          .map((i) => i.label)
+          .join(", ")}.`,
+      )
+    }
+    if (readiness.employeeIssues.length > 0) {
+      const names = readiness.employeeIssues
+        .slice(0, 5)
+        .map((e) => e.name)
+        .join(", ")
+      const more =
+        readiness.employeeIssues.length > 5
+          ? ` and ${readiness.employeeIssues.length - 5} more`
+          : ""
+      parts.push(
+        `${readiness.employeeIssues.length} employee(s) need required fields filled (${names}${more}).`,
+      )
+    }
+    throw new Error(
+      `Can't submit — fix these first: ${parts.join(" ")} Open Payroll Settings → Company Info and the highlighted employee profiles, then try again.`,
+    )
+  }
+
   await payrollRunRepository.submitForApproval({
     id: run.id,
     organizationId: orgId,

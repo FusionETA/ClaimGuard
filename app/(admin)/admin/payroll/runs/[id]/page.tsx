@@ -33,6 +33,7 @@ import {
   SubmitPayrollRunButton,
 } from "@/components/admin/submit-payroll-run-buttons"
 import { getPayrollReportsModalData } from "@/modules/payroll/application/services/payroll-reports.service"
+import { getPayrollRunReadiness } from "@/modules/payroll/application/services/payroll-readiness.service"
 import {
   getLaterSubmittedRunsForRevert,
   getPayrollRunDetailWithPayslipsPageData,
@@ -80,6 +81,14 @@ export default async function AdminPayrollRunDetailPage({
     data.run.status === "SUBMITTED"
       ? await getLaterSubmittedRunsForRevert({ runId: id })
       : []
+
+  // Statutory readiness — fetched only on DRAFT runs (the only state
+  // where Submit-for-approval is offered). Drives a red banner + the
+  // disabled state of the Submit button.
+  const readiness =
+    data.run.status === "DRAFT"
+      ? await getPayrollRunReadiness({ runId: id })
+      : null
 
   const ready = data.employees.filter((e) => e.ready)
   // Excluded employees (salary = 0) are NOT in the "needs setup"
@@ -352,6 +361,74 @@ export default async function AdminPayrollRunDetailPage({
         </Card>
       ) : null}
 
+      {/* Statutory readiness — block Submit until Company Info + every
+          included employee has the fields the document generators
+          (PCB TXT, SOCSO+EIS, EPF CSV, CP8D, EA) require. Better here
+          than failing later at file generation with a cryptic error. */}
+      {isDraft && readiness && !readiness.ok ? (
+        <Card className="border-destructive/50 bg-destructive/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base text-destructive">
+              <ClipboardList className="h-4 w-4" />
+              Required fields missing before this run can be submitted
+            </CardTitle>
+            <CardDescription className="text-destructive/90">
+              Fix the items below so payroll documents (PCB / SOCSO+EIS /
+              EPF / CP8D / EA) can be generated cleanly. Submit is
+              disabled until everything is filled.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {readiness.orgIssues.length > 0 ? (
+              <div>
+                <p className="font-semibold text-destructive">
+                  Company Info ({readiness.orgIssues.length})
+                </p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-5 text-foreground/90">
+                  {readiness.orgIssues.map((i) => (
+                    <li key={i.field}>{i.label}</li>
+                  ))}
+                </ul>
+                <p className="mt-1 text-xs">
+                  Open{" "}
+                  <Link
+                    href="/admin/payroll/settings"
+                    className="font-semibold text-primary hover:underline"
+                  >
+                    Payroll Settings → Company Info
+                  </Link>{" "}
+                  to fill these in.
+                </p>
+              </div>
+            ) : null}
+            {readiness.employeeIssues.length > 0 ? (
+              <div>
+                <p className="font-semibold text-destructive">
+                  Employees ({readiness.employeeIssues.length})
+                </p>
+                <ul className="mt-1 space-y-0.5 pl-5 text-foreground/90">
+                  {readiness.employeeIssues.slice(0, 20).map((e) => (
+                    <li key={e.employeeCode} className="list-disc">
+                      <span className="font-semibold text-foreground">
+                        {e.name}
+                      </span>{" "}
+                      <span className="text-xs text-muted-foreground">
+                        — missing {e.missing.join(", ")}
+                      </span>
+                    </li>
+                  ))}
+                  {readiness.employeeIssues.length > 20 ? (
+                    <li className="text-xs text-muted-foreground">
+                      …and {readiness.employeeIssues.length - 20} more.
+                    </li>
+                  ) : null}
+                </ul>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
       {isDraft && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <DeletePayrollRunDraftButton runId={data.run.id} />
@@ -363,8 +440,14 @@ export default async function AdminPayrollRunDetailPage({
             {data.payslips.length > 0 && (
               <SubmitPayrollRunButton
                 runId={data.run.id}
-                disabled={data.isStale}
-                disabledHint="Re-run payroll first so the payslips reflect your latest changes."
+                disabled={
+                  data.isStale || (readiness != null && !readiness.ok)
+                }
+                disabledHint={
+                  data.isStale
+                    ? "Re-run payroll first so the payslips reflect your latest changes."
+                    : `Fix ${readiness?.totalMissingCount ?? 0} required field(s) above before submitting.`
+                }
               />
             )}
           </div>

@@ -1,0 +1,137 @@
+import "server-only"
+
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { isAdminRole } from "@/lib/auth/types"
+import { loadStatutoryRunPayload } from "@/modules/payroll/application/services/report-renderers/shared"
+import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
+
+/**
+ * Pre-submit readiness check for a payroll run.
+ *
+ * Before letting the admin submit a draft for approval, verify the
+ * fields each statutory document generator requires are filled in —
+ * both at the organisation level (Company Info) and per included
+ * employee. If anything is missing we BLOCK the submit and surface a
+ * structured list of issues so the UI can render a banner with
+ * actionable links instead of failing later at file-generation time
+ * with a cryptic error.
+ *
+ * Required ORG fields (block submit):
+ *   - employerName             — every document
+ *   - employerTin (LHDN E No.) — PCB TXT, EPF CSV, CP8D, EA
+ *   - registrationNo (SSM)     — SOCSO+EIS TXT, CP8D
+ *   - perkesoEmployerCode      — SOCSO+EIS TXT
+ *
+ * NOT required (optional — only fails at PB ECP generation time):
+ *   - ecpPayorAccountNo
+ *
+ * Required PER-EMPLOYEE fields (block submit):
+ *   - employeeCode             — PCB TXT
+ *   - incomeTaxNumber          — PCB TXT
+ *   - idNumber                 — PCB TXT + SOCSO+EIS TXT
+ *                                (label depends on Malaysian/foreigner)
+ */
+
+export type RunReadinessOrgField =
+  | "employerName"
+  | "employerTin"
+  | "registrationNo"
+  | "perkesoEmployerCode"
+
+export type RunReadinessOrgIssue = {
+  field: RunReadinessOrgField
+  label: string
+}
+
+export type RunReadinessEmployeeIssue = {
+  employeeCode: string
+  name: string
+  /// Short field labels e.g. "Income tax number", "New IC number".
+  missing: string[]
+}
+
+export type RunReadiness = {
+  ok: boolean
+  orgIssues: RunReadinessOrgIssue[]
+  employeeIssues: RunReadinessEmployeeIssue[]
+  /// Total count for the run-detail banner (sums org + employees).
+  totalMissingCount: number
+}
+
+const ORG_FIELDS: Array<{ key: RunReadinessOrgField; label: string }> = [
+  { key: "employerName", label: "Employer name" },
+  { key: "employerTin", label: "Employer No. (LHDN E No.)" },
+  { key: "registrationNo", label: "Registration No. (SSM / MyCoID)" },
+  { key: "perkesoEmployerCode", label: "PERKESO Employer Code" },
+]
+
+function isBlank(v: string | null | undefined): boolean {
+  return !v || v.trim().length === 0
+}
+
+/**
+ * Compute readiness for a payroll run. Returns null when the session
+ * isn't authorised or the run isn't visible — the caller treats that
+ * as "no data" rather than "ready".
+ */
+export async function getPayrollRunReadiness(input: {
+  runId: string
+}): Promise<RunReadiness | null> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) return null
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return null
+
+  const payload = await loadStatutoryRunPayload({
+    runId: input.runId,
+    organizationId: orgId,
+  })
+  if (!payload) return null
+
+  // Org-level missing fields.
+  const orgIssues: RunReadinessOrgIssue[] = []
+  const ci = payload.companyInfo
+  for (const f of ORG_FIELDS) {
+    if (isBlank(ci?.[f.key])) {
+      orgIssues.push({ field: f.key, label: f.label })
+    }
+  }
+
+  // Per-employee missing fields. Iterate every payslip in the run.
+  const employeeIssues: RunReadinessEmployeeIssue[] = []
+  for (const row of payload.rows) {
+    const missing: string[] = []
+
+    if (isBlank(row.employeeCode)) missing.push("Employee/payroll number")
+    if (isBlank(row.incomeTaxNumber)) missing.push("Income tax number (PCB)")
+
+    // IC for Malaysians/PRs, passport for foreigners. Label tailored
+    // so the admin knows which field to fix.
+    const isLocalOrPr = isMalaysianNationality(row.nationality) || row.hasPr
+    if (isLocalOrPr) {
+      const ic = (row.idNumber ?? "").replace(/[^0-9]/g, "")
+      if (ic.length === 0) missing.push("New IC number")
+    } else {
+      if (isBlank(row.idNumber)) missing.push("Passport number")
+    }
+
+    if (missing.length > 0) {
+      employeeIssues.push({
+        employeeCode: row.employeeCode,
+        name: row.employeeName,
+        missing,
+      })
+    }
+  }
+
+  const totalMissingCount =
+    orgIssues.length +
+    employeeIssues.reduce((sum, e) => sum + e.missing.length, 0)
+
+  return {
+    ok: totalMissingCount === 0,
+    orgIssues,
+    employeeIssues,
+    totalMissingCount,
+  }
+}

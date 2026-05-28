@@ -253,26 +253,41 @@ function TabPill({
   onClick: () => void
   children: React.ReactNode
 }) {
+  // When the tab still has required fields blank, ring the pill in red
+  // and show a tiny red dot in the corner — at-a-glance signal for the
+  // admin that this tab is what's blocking "ready to payroll".
+  // Clears the moment every required field is filled.
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
-        "min-w-36 rounded-full border px-6 py-2.5 text-left transition",
+        "relative min-w-36 rounded-full border px-6 py-2.5 text-left transition",
         active
           ? "border-primary bg-primary text-primary-foreground shadow-sm"
           : "border-border/70 bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+        !complete && !active && "border-destructive/60 ring-1 ring-destructive/30",
+        !complete && active && "ring-2 ring-destructive/50",
       )}
     >
+      {!complete ? (
+        <span
+          aria-hidden
+          className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-destructive"
+        />
+      ) : null}
       <span className="block text-sm font-semibold leading-tight">{children}</span>
       <span
         className={cn(
           "mt-0.5 block text-[11px] font-medium leading-tight",
-          active ? "text-primary-foreground/75" : "text-muted-foreground",
-          !complete && "opacity-0",
+          complete
+            ? active
+              ? "text-primary-foreground/75"
+              : "text-muted-foreground"
+            : "text-destructive",
         )}
       >
-        Completed
+        {complete ? "Completed" : "Required fields missing"}
       </span>
     </button>
   )
