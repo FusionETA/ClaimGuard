@@ -243,10 +243,6 @@ function TypeStep({
           <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
             What kind of claim is this?
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Expense claims need a receipt photo we can scan. Mileage claims are
-            entered manually with distance and route.
-          </p>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="mr-1.5 h-4 w-4" />
