@@ -151,7 +151,7 @@ export function bucketRecord(input: BucketInputs): HoursBuckets {
   }
 
   const threshold = Math.max(0, input.otThresholdMin)
-  if (dur <= threshold || !input.hasApprovedOT) {
+  if (dur <= threshold) {
     return {
       normalMin: dur,
       otMin: 0,
@@ -161,6 +161,15 @@ export function bucketRecord(input: BucketInputs): HoursBuckets {
     }
   }
 
+  // Always cap "normal" at the threshold — anything beyond is OT, even if
+  // the OT request is still PENDING or has been REJECTED. Approval status
+  // is the payroll gate (only APPROVED OT contributes to OT pay), not a
+  // display-time bucket gate. Without this cap, an over-threshold day
+  // would silently inflate normal hours and underreport OT in the admin's
+  // hours summary.
+  //
+  // `hasApprovedOT` is kept on the input shape for backwards-compatibility
+  // with existing callers but is intentionally not consulted here.
   return {
     normalMin: threshold,
     otMin: dur - threshold,
