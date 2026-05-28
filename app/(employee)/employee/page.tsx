@@ -14,7 +14,6 @@ import { supervisorAttendanceService } from "@/modules/attendance/application/se
 import { countPendingClaimsForSupervisor } from "@/modules/claims/application/services/claim-workflow.service"
 import { countPendingApprovalsForReviewer as countPendingLeaveApprovalsForReviewer } from "@/modules/leave/application/services/leave-application.service"
 import { listEmployeeBalancesForUser } from "@/modules/leave/application/services/leave-entitlements.service"
-import { LeaveQuickAction } from "@/components/employee/leave/leave-quick-action"
 import type { ClockEventLite } from "@/modules/attendance/domain/models"
 import {
   DEFAULT_MODULE_ACCESS,
@@ -253,17 +252,6 @@ export default async function EmployeeDashboardPage() {
         </div>
       ) : null}
 
-      {moduleAccess.leave && leaveBalances.length > 0 ? (
-        <LeaveQuickAction
-          balances={leaveBalances.map((b) => ({
-            ...b,
-            carriedExpiresAt: b.carriedExpiresAt
-              ? b.carriedExpiresAt.toISOString()
-              : null,
-          }))}
-        />
-      ) : null}
-
       <Link
         href="/employee/payslips"
         className="block"
@@ -337,6 +325,21 @@ export default async function EmployeeDashboardPage() {
                   employeeProjects={claimSubmissionData?.employeeProjects ?? []}
                   allowedCurrencies={claimSubmissionData?.organization?.allowedCurrencies}
                   defaultCurrency={claimSubmissionData?.organization?.defaultCurrency}
+                  // Power the consolidated 'Request leave' button — opens
+                  // the same apply-for-leave dialog the standalone
+                  // LeaveQuickAction card used to render. Gated by
+                  // moduleAccess.leave at the load site so when leave is
+                  // disabled the button hides automatically.
+                  leaveBalances={
+                    moduleAccess.leave && leaveBalances.length > 0
+                      ? leaveBalances.map((b) => ({
+                          ...b,
+                          carriedExpiresAt: b.carriedExpiresAt
+                            ? b.carriedExpiresAt.toISOString()
+                            : null,
+                        }))
+                      : undefined
+                  }
                 />
               </div>
             </CardContent>
