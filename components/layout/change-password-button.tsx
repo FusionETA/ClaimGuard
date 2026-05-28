@@ -3,10 +3,8 @@
 import { useActionState, useEffect, useState } from "react"
 import { KeyRound, LoaderCircle } from "lucide-react"
 
-import {
-  changePasswordAction,
-  initialChangePasswordFormState,
-} from "@/app/login/actions"
+import { changePasswordAction } from "@/app/login/actions"
+import { initialChangePasswordFormState } from "@/app/login/form-state"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,

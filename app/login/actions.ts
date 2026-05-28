@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { z } from "zod"
 
 import {
+  type ChangePasswordFormState,
   initialLoginFormState,
   type LoginFormState,
 } from "@/app/login/form-state"
@@ -104,20 +105,6 @@ export async function loginAction(
   // so it was unreliable in multi-instance deployments anyway.
   // Pages lazy-load their own data from the DB on first visit.
   redirect(getHomePathForRole(result.user.role))
-}
-
-/**
- * Form-state shape for changePasswordAction. Matches the FormState
- * pattern used elsewhere — status + message + per-field errors.
- */
-export type ChangePasswordFormState = {
-  status: "idle" | "success" | "error"
-  message?: string
-  errors?: {
-    currentPassword?: string
-    newPassword?: string
-    confirmPassword?: string
-  }
 }
 
 const changePasswordSchema = z
@@ -238,10 +225,6 @@ export async function changePasswordAction(
   }
 
   return { status: "success", message: "Password updated." }
-}
-
-export const initialChangePasswordFormState: ChangePasswordFormState = {
-  status: "idle",
 }
 
 export async function logoutAction() {
