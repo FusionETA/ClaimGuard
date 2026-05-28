@@ -85,7 +85,7 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
       {/* Filter area — one DOM node so space-y doesn't add phantom top margin from the hidden mobile div */}
       <div>
         {/* Mobile: bare scrollable pill row, no card wrapper */}
-        <div className="-mx-6 overflow-x-auto px-6 pb-0.5 md:hidden nice-scrollbar">
+        <div className="overflow-x-auto pb-0.5 md:hidden no-scrollbar">
           <div className="flex gap-2">
             <button
               type="button"
