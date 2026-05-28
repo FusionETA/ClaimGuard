@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState, useTransition } from "react"
-import { Search } from "lucide-react"
+import { CheckSquare, Search, Square } from "lucide-react"
 
 import { Badge } from "@/components/attendance/ui/badge"
 import { Button } from "@/components/attendance/ui/button"
@@ -9,11 +9,12 @@ import { Card, CardContent } from "@/components/attendance/ui/card"
 import { DateTimeField } from "@/components/attendance/datetime-field"
 import { Input } from "@/components/attendance/ui/input"
 import { SelfieThumbnail } from "@/components/attendance/selfie-thumbnail"
+import { useToast } from "@/components/ui/toaster"
 import type { ApprovalRequestView } from "@/modules/attendance/domain/models"
 import { otSubtypeMeta } from "@/modules/attendance/domain/metadata"
 import { cn } from "@/lib/utils"
 
-import { reviewApprovalAction } from "./actions"
+import { bulkReviewApprovalsAction, reviewApprovalAction } from "./actions"
 
 const CLOCK_LABEL: Record<string, string> = {
   CLOCK_IN: "Clock in",
@@ -66,15 +67,30 @@ type Props = {
 }
 
 export function ApprovalsList({ items }: Props) {
+  const { toast } = useToast()
   const [filter, setFilter] = useState<Filter>("ALL")
   const [query, setQuery] = useState("")
   const [optimisticallyHidden, setOptimisticallyHidden] = useState<Set<string>>(new Set())
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [bulkPending, startBulkTransition] = useTransition()
   const [, startTransition] = useTransition()
   // Per-row override editor state: maps approvalId → local datetime string
   // (or "" when the editor is open but not yet edited). `undefined` means
   // the editor isn't expanded for that row.
   const [overrides, setOverrides] = useState<Record<string, string>>({})
+  // Multi-select for bulk approve/reject. Selections are independent of
+  // the filter so the bar shows the real count even after switching
+  // filters; non-visible selections are simply preserved until cleared.
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  function toggleOneSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   function toggleOverride(id: string, initial: string | null) {
     setOverrides((prev) => {
@@ -111,6 +127,44 @@ export function ApprovalsList({ items }: Props) {
         })
       }
       setPendingId(null)
+    })
+  }
+
+  function bulkReview(status: "APPROVED" | "REJECTED") {
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return
+    // Optimistically hide so the rows disappear immediately. Restore on
+    // failure (the action returns succeeded/failed counts but doesn't
+    // tell us WHICH failed, so on partial failure we restore them all
+    // and revalidation will re-show whatever's still pending).
+    setOptimisticallyHidden((prev) => {
+      const next = new Set(prev)
+      for (const id of ids) next.add(id)
+      return next
+    })
+    const formData = new FormData()
+    formData.set("approvalIds", JSON.stringify(ids))
+    formData.set("status", status)
+    startBulkTransition(async () => {
+      const result = await bulkReviewApprovalsAction(
+        { ok: false, message: "", succeeded: 0, failed: 0 },
+        formData,
+      )
+      if (!result.ok) {
+        // Restore any ids that may not have applied — server revalidation
+        // will refresh the underlying `items` so this is just so the UI
+        // doesn't look prematurely empty when something failed.
+        setOptimisticallyHidden((prev) => {
+          const next = new Set(prev)
+          for (const id of ids) next.delete(id)
+          return next
+        })
+      }
+      setSelectedIds(new Set())
+      toast({
+        title: result.message,
+        variant: result.ok ? "success" : "error",
+      })
     })
   }
 
@@ -163,6 +217,74 @@ export function ApprovalsList({ items }: Props) {
         </div>
       </div>
 
+      {filtered.length > 0 ? (
+        <div className="flex flex-col gap-2 rounded-xl border border-border/60 bg-surface-low/40 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="button"
+            onClick={() => {
+              const visibleIds = filtered.map((r) => r.id)
+              const allVisibleSelected = visibleIds.every((id) =>
+                selectedIds.has(id),
+              )
+              setSelectedIds((prev) => {
+                const next = new Set(prev)
+                if (allVisibleSelected) {
+                  for (const id of visibleIds) next.delete(id)
+                } else {
+                  for (const id of visibleIds) next.add(id)
+                }
+                return next
+              })
+            }}
+            disabled={bulkPending}
+            className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            {filtered.every((r) => selectedIds.has(r.id)) ? (
+              <CheckSquare className="h-4 w-4 text-primary" />
+            ) : (
+              <Square className="h-4 w-4" />
+            )}
+            {filtered.every((r) => selectedIds.has(r.id))
+              ? "Deselect all"
+              : "Select all"}
+            {selectedIds.size > 0 ? (
+              <span className="rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                {selectedIds.size} selected
+              </span>
+            ) : null}
+          </button>
+          {selectedIds.size > 0 ? (
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                disabled={bulkPending}
+                onClick={() => bulkReview("APPROVED")}
+              >
+                {bulkPending
+                  ? "Saving…"
+                  : `Approve ${selectedIds.size}`}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={bulkPending}
+                onClick={() => bulkReview("REJECTED")}
+              >
+                Reject {selectedIds.size}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={bulkPending}
+                onClick={() => setSelectedIds(new Set())}
+              >
+                Clear
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       {filtered.length === 0 ? (
         <Card className="p-8 text-center">
           <p className="text-sm font-semibold text-foreground">No matching requests</p>
@@ -173,9 +295,31 @@ export function ApprovalsList({ items }: Props) {
       ) : (
         <div className="space-y-3">
           {filtered.map((r) => (
-            <Card key={r.id}>
+            <Card
+              key={r.id}
+              className={cn(
+                selectedIds.has(r.id) && "border-primary/60 bg-primary/5",
+              )}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleOneSelected(r.id)}
+                    disabled={bulkPending}
+                    aria-label={
+                      selectedIds.has(r.id)
+                        ? "Deselect for bulk action"
+                        : "Select for bulk action"
+                    }
+                    className="-ml-1 inline-flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:text-foreground disabled:opacity-50"
+                  >
+                    {selectedIds.has(r.id) ? (
+                      <CheckSquare className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </button>
                   {r.kind === "OT" ? (
                     <>
                       <Badge variant="overtime">
