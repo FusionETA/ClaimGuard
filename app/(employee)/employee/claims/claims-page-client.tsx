@@ -66,7 +66,7 @@ export function ClaimsPageClient({
           className="flex max-h-[90vh] w-[min(92vw,680px)] flex-col overflow-hidden px-6 pb-6 pt-6 sm:max-w-[680px]"
           onOpenAutoFocus={(e) => e.preventDefault()}
         >
-          <DialogHeader className="shrink-0 pr-8">
+          <DialogHeader className="shrink-0 border-b border-border/60 pb-4 pr-8">
             <DialogTitle>Submit a claim</DialogTitle>
             <DialogDescription>
               Fill in the details and attach a receipt if you have one.
@@ -74,7 +74,7 @@ export function ClaimsPageClient({
           </DialogHeader>
 
           <div
-            className="flex-1 overflow-y-auto pr-1"
+            className="flex-1 overflow-y-auto pr-1 pt-4"
             style={{ scrollbarGutter: "stable both-edges" }}
           >
             <ClaimFlow

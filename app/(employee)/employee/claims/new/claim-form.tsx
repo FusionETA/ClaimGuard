@@ -878,7 +878,9 @@ export function ClaimForm({
         name="receiptFile"
         type="file"
         accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-        capture="environment"
+        // NB: no `capture` attribute — see claim-flow.tsx for the
+        // rationale. Lets phone users pick from their photo library
+        // instead of being forced into the camera.
         className="sr-only"
         onChange={(event) =>
           setSelectedReceiptName(event.target.files?.[0]?.name ?? "")
@@ -1024,10 +1026,16 @@ export function ClaimForm({
     ) : null
 
   if (compact) {
+    // Compact mode (used when ClaimFlow is mounted inside a Dialog).
+    // The Dialog already provides the rounded white surface, so we do
+    // NOT wrap each field group in another rounded/border'd <div> —
+    // doing so produced a visible "box inside a box" on phones and
+    // shrunk the usable content width. Field groups get plain spacing
+    // and let the Dialog be the only chrome.
     return (
       <form
         action={formAction}
-        className="space-y-4 pb-2"
+        className="space-y-5 pb-2"
         suppressHydrationWarning
         onSubmitCapture={() => reattachPrefilledReceipt()}
       >
@@ -1038,12 +1046,8 @@ export function ClaimForm({
           </div>
         ) : null}
         {errorBanner}
-        <div className="space-y-5 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
-          {mainFields}
-        </div>
-        <div className="space-y-5 rounded-[28px] border border-border/70 bg-card/90 p-5 shadow-sm">
-          {receiptField}
-        </div>
+        {mainFields}
+        {receiptField}
         {submitButton}
       </form>
     )

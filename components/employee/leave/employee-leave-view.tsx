@@ -404,7 +404,7 @@ function ApplicationsCard({
                 {applications.map((a) => {
                   const canEdit = a.status === "PENDING" && a.approvalsCount === 0
                   return (
-                    <div key={a.id} className="rounded-2xl border border-border/60 bg-card p-3 space-y-2">
+                    <div key={a.id} className="rounded-2xl border border-border/60 bg-card/40 p-3 space-y-2 backdrop-blur-sm">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-bold text-foreground">{a.leaveTypeName}</p>

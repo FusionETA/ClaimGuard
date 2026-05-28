@@ -22,7 +22,6 @@ import {
   type ClaimFormAiPrefill,
 } from "@/app/(employee)/employee/claims/new/claim-form"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/attendance/ui/card"
 import { cn } from "@/lib/utils"
 import type {
   ChartAccountWithRemainingLimit,
@@ -186,38 +185,40 @@ export function ClaimFlow(props: {
 // ----------------------------------------------------------------------------
 
 function PaymentStep({ onPick }: { onPick: (type: PaymentType) => void }) {
+  // Step body intentionally NOT wrapped in <Card>. The wizard already
+  // lives inside the parent Dialog (or page chrome) which provides
+  // the rounded white surface — wrapping again here doubled the
+  // border + shrunk the content on phones.
   return (
-    <Card>
-      <CardContent className="space-y-5 p-5 sm:p-6">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Step 1 · How was this paid?
-          </p>
-          <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
-            Who paid for this?
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Pick whether you paid out of your own pocket (to be reimbursed) or
-            it was paid with company money.
-          </p>
-        </div>
+    <div className="space-y-5">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Step 1 · How was this paid?
+        </p>
+        <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
+          Who paid for this?
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Pick whether you paid out of your own pocket (to be reimbursed) or
+          it was paid with company money.
+        </p>
+      </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TypeCard
-            icon={<Wallet className="h-5 w-5" />}
-            title="My own money"
-            description="You paid personally and need to be reimbursed — via payroll or a bill."
-            onClick={() => onPick("PERSONAL")}
-          />
-          <TypeCard
-            icon={<Building2 className="h-5 w-5" />}
-            title="Company money"
-            description="Already paid from a company card or bank account — recorded as a company spend."
-            onClick={() => onPick("COMPANY")}
-          />
-        </div>
-      </CardContent>
-    </Card>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <TypeCard
+          icon={<Wallet className="h-5 w-5" />}
+          title="My own money"
+          description="You paid personally and need to be reimbursed — via payroll or a bill."
+          onClick={() => onPick("PERSONAL")}
+        />
+        <TypeCard
+          icon={<Building2 className="h-5 w-5" />}
+          title="Company money"
+          description="Already paid from a company card or bank account — recorded as a company spend."
+          onClick={() => onPick("COMPANY")}
+        />
+      </div>
+    </div>
   )
 }
 
@@ -233,43 +234,41 @@ function TypeStep({
   onBack: () => void
 }) {
   return (
-    <Card>
-      <CardContent className="space-y-5 p-5 sm:p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Step 2 · Pick a claim type
-            </p>
-            <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
-              What kind of claim is this?
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Expense claims need a receipt photo we can scan. Mileage claims are
-              entered manually with distance and route.
-            </p>
-          </div>
-          <Button type="button" variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="mr-1.5 h-4 w-4" />
-            Back
-          </Button>
+    <div className="space-y-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Step 2 · Pick a claim type
+          </p>
+          <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
+            What kind of claim is this?
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Expense claims need a receipt photo we can scan. Mileage claims are
+            entered manually with distance and route.
+          </p>
         </div>
+        <Button type="button" variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="mr-1.5 h-4 w-4" />
+          Back
+        </Button>
+      </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TypeCard
-            icon={<Receipt className="h-5 w-5" />}
-            title="Expense claim"
-            description="Snap a receipt — we'll read it and pre-fill amount, date, supplier, and description for you."
-            onClick={() => onPick("EXPENSE")}
-          />
-          <TypeCard
-            icon={<MapPin className="h-5 w-5" />}
-            title="Mileage claim"
-            description="Enter distance, origin, and destination. The amount is calculated from your org's mileage rate."
-            onClick={() => onPick("MILEAGE")}
-          />
-        </div>
-      </CardContent>
-    </Card>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <TypeCard
+          icon={<Receipt className="h-5 w-5" />}
+          title="Expense claim"
+          description="Snap a receipt — we'll read it and pre-fill amount, date, supplier, and description for you."
+          onClick={() => onPick("EXPENSE")}
+        />
+        <TypeCard
+          icon={<MapPin className="h-5 w-5" />}
+          title="Mileage claim"
+          description="Enter distance, origin, and destination. The amount is calculated from your org's mileage rate."
+          onClick={() => onPick("MILEAGE")}
+        />
+      </div>
+    </div>
   )
 }
 
@@ -407,123 +406,126 @@ function ReceiptStep({
   }
 
   return (
-    <Card>
-      <CardContent className="space-y-5 p-5 sm:p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Step 3 · Scan the receipt
-            </p>
-            <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
-              Upload your receipt
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              We&rsquo;ll read it on your device, then ask the AI to fill in the form.
-            </p>
-          </div>
-          <Button type="button" variant="ghost" size="sm" onClick={onBack}>
-            <ArrowLeft className="mr-1.5 h-4 w-4" />
-            Back
-          </Button>
+    <div className="space-y-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Step 3 · Scan the receipt
+          </p>
+          <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
+            Upload your receipt
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            We&rsquo;ll read it on your device, then ask the AI to fill in the form.
+          </p>
         </div>
+        <Button type="button" variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="mr-1.5 h-4 w-4" />
+          Back
+        </Button>
+      </div>
 
-        <label
-          htmlFor="receiptScanFile"
-          className={cn(
-            "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border/70 bg-card/94 px-4 py-6 text-center shadow-ambient transition-colors hover:border-primary/40 hover:bg-card",
-            receiptPreview && "border-solid",
-          )}
-        >
-          {receiptPreview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={receiptPreview}
-              alt="Receipt preview"
-              className="max-h-64 rounded-xl object-contain"
-            />
-          ) : (
-            <>
-              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                <Upload className="h-4 w-4" />
-                <span>Upload photo</span>
-                <span className="text-muted-foreground">or</span>
-                <Camera className="h-4 w-4" />
-                <span>take photo</span>
-              </div>
-              <p className="text-xs leading-5 text-muted-foreground">
-                JPG, PNG, WEBP, or HEIC up to 8 MB
-              </p>
-            </>
-          )}
-        </label>
-        <input
-          id="receiptScanFile"
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-          capture="environment"
-          className="sr-only"
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            if (file) handleFile(file)
-          }}
+      <label
+        htmlFor="receiptScanFile"
+        className={cn(
+          "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border/70 bg-card/94 px-4 py-6 text-center shadow-ambient transition-colors hover:border-primary/40 hover:bg-card",
+          receiptPreview && "border-solid",
+        )}
+      >
+        {receiptPreview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={receiptPreview}
+            alt="Receipt preview"
+            className="max-h-64 rounded-xl object-contain"
+          />
+        ) : (
+          <>
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Upload className="h-4 w-4" />
+              <span>Upload photo</span>
+              <span className="text-muted-foreground">or</span>
+              <Camera className="h-4 w-4" />
+              <span>take photo</span>
+            </div>
+            <p className="text-xs leading-5 text-muted-foreground">
+              JPG, PNG, WEBP, or HEIC up to 8 MB
+            </p>
+          </>
+        )}
+      </label>
+      <input
+        id="receiptScanFile"
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        // NB: no `capture` attribute. iOS Safari and most Android
+        // browsers treat `capture` as "open camera directly, hide
+        // library" — so users couldn't pick an existing photo. With
+        // it removed, the mobile picker shows BOTH "Take photo" and
+        // "Photo library" / "Choose file" entries, matching the
+        // behaviour of the Supporting documents input below.
+        className="sr-only"
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          if (file) handleFile(file)
+        }}
+      />
+
+      {status.phase === "ocr" ? (
+        <ProgressRow
+          icon={<FileText className="h-4 w-4" />}
+          label={`Reading text from photo… ${Math.round(status.progress * 100)}%`}
+          progress={status.progress}
         />
+      ) : null}
 
-        {status.phase === "ocr" ? (
-          <ProgressRow
-            icon={<FileText className="h-4 w-4" />}
-            label={`Reading text from photo… ${Math.round(status.progress * 100)}%`}
-            progress={status.progress}
-          />
-        ) : null}
+      {status.phase === "ai" ? (
+        <ProgressRow
+          icon={<Sparkles className="h-4 w-4" />}
+          label="AI is extracting the bill details…"
+        />
+      ) : null}
 
-        {status.phase === "ai" ? (
-          <ProgressRow
-            icon={<Sparkles className="h-4 w-4" />}
-            label="AI is extracting the bill details…"
-          />
-        ) : null}
-
-        {status.phase === "error" ? (
-          <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{status.message}</span>
-          </div>
-        ) : null}
-
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
-          <Button type="button" variant="ghost" onClick={onSkip}>
-            Skip — fill manually
-          </Button>
-          <div className="flex gap-2">
-            {receiptFile && status.phase !== "ocr" && status.phase !== "ai" ? (
-              <Button
-                type="button"
-                onClick={runExtraction}
-                className="rounded-xl"
-              >
-                {status.phase === "error" ? (
-                  <>
-                    <RefreshCw className="mr-1.5 h-4 w-4" />
-                    Try again
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-1.5 h-4 w-4" />
-                    Extract with AI
-                  </>
-                )}
-              </Button>
-            ) : null}
-            {status.phase === "ocr" || status.phase === "ai" ? (
-              <Button type="button" disabled className="rounded-xl">
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                Working…
-              </Button>
-            ) : null}
-          </div>
+      {status.phase === "error" ? (
+        <div className="flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{status.message}</span>
         </div>
-      </CardContent>
-    </Card>
+      ) : null}
+
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+        <Button type="button" variant="ghost" onClick={onSkip}>
+          Skip — fill manually
+        </Button>
+        <div className="flex gap-2">
+          {receiptFile && status.phase !== "ocr" && status.phase !== "ai" ? (
+            <Button
+              type="button"
+              onClick={runExtraction}
+              className="rounded-xl"
+            >
+              {status.phase === "error" ? (
+                <>
+                  <RefreshCw className="mr-1.5 h-4 w-4" />
+                  Try again
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-1.5 h-4 w-4" />
+                  Extract with AI
+                </>
+              )}
+            </Button>
+          ) : null}
+          {status.phase === "ocr" || status.phase === "ai" ? (
+            <Button type="button" disabled className="rounded-xl">
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              Working…
+            </Button>
+          ) : null}
+        </div>
+      </div>
+    </div>
   )
 }
 
