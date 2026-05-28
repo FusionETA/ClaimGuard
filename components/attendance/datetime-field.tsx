@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
-import { createPortal } from "react-dom"
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
@@ -412,8 +411,17 @@ function CalendarPicker({
           {fmtDateForDisplay(value)}
         </span>
       </button>
-      {open && mounted && popoverPos
-        ? createPortal(
+      {/*
+        Render inline (NOT via createPortal). Radix Dialog in modal mode
+        blocks pointer events on anything outside its DOM subtree to
+        enforce focus trapping — a portalled popover lands in document.body
+        and Radix silently swallows clicks on its date buttons. Rendering
+        inline keeps the popover under the DialogContent subtree, so date
+        clicks fire normally. `position: fixed` (set on the wrapper below)
+        still positions it relative to the viewport so it can't be clipped
+        by an overflow:hidden ancestor.
+      */}
+      {open && mounted && popoverPos ? (
         <div
           ref={popoverRef}
           style={{ top: popoverPos.top, left: popoverPos.left, width: popoverPos.width }}
@@ -492,10 +500,8 @@ function CalendarPicker({
               </button>
             ) : null}
           </div>
-        </div>,
-        document.body,
-      )
-        : null}
+        </div>
+      ) : null}
     </div>
   )
 }

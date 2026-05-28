@@ -1510,7 +1510,11 @@ export const attendanceRepository = {
         status: true,
         notes: true,
         projectId: true,
-        employee: { select: { organizationId: true } },
+        // Legacy free-string project label, mirrored onto a new OT
+        // ApprovalRequest so the OT row sits alongside the rest of the
+        // employee's queue with the same project tag.
+        project: true,
+        employee: { select: { organizationId: true, role: true } },
       },
     })
     if (!existing) throw new Error("Attendance record not found.")
@@ -1597,6 +1601,91 @@ export const attendanceRepository = {
       }),
     ])
     void logRow
+
+    // Auto-create an OT ApprovalRequest when the recomputed durationMin
+    // exceeds the daily OT threshold. Mirrors the regular clock-out
+    // flow's auto-OT block (see clockOut around line 1183+) so a
+    // supervisor's session edit produces an OT request for the excess
+    // minutes the same way an over-8h clock-out would. Conservative:
+    // only CREATE when no OT request exists for this date; never
+    // overwrite or delete an existing one.
+    const orgId = existing.employee?.organizationId ?? null
+    if (durationMin && orgId) {
+      const [org, employeeProfile] = await Promise.all([
+        prisma.organization.findUnique({
+          where: { id: orgId },
+          select: { otEnabled: true },
+        }),
+        prisma.employeeProfile.findUnique({
+          where: { userId: existing.employeeId },
+          select: {
+            id: true,
+            policy: {
+              select: {
+                otEnabled: true,
+                otDailyThresholdMinutes: true,
+                otMethod: true,
+              },
+            },
+          },
+        }),
+      ])
+      const policyOtEnabled = employeeProfile?.policy?.otEnabled ?? true
+      const threshold = employeeProfile?.policy?.otDailyThresholdMinutes ?? 480
+      if (org?.otEnabled && policyOtEnabled && durationMin > threshold) {
+        const otMinutes = durationMin - threshold
+        const existingOt = await prisma.approvalRequest.findFirst({
+          where: {
+            employeeId: existing.employeeId,
+            date: existing.date,
+            kind: "OT",
+          },
+          select: { id: true },
+        })
+        if (!existingOt) {
+          const payout =
+            employeeProfile?.policy?.otEnabled &&
+            employeeProfile.policy.otMethod === "TIME_BANK"
+              ? "TIME_BANK"
+              : "CASH"
+          const otAutoApprove = await shouldAutoApprove({
+            employeeId: existing.employeeId,
+            role: existing.employee?.role,
+            projectId: existing.projectId ?? null,
+            kind: "OT",
+          })
+          const now = new Date()
+          await prisma.approvalRequest.create({
+            data: {
+              employeeId: existing.employeeId,
+              kind: "OT",
+              status: otAutoApprove ? "APPROVED" : "PENDING",
+              date: existing.date,
+              eventAt: now,
+              title: `OT • ${formatHm(otMinutes)}`,
+              detail: `Worked ${formatHm(durationMin)} (threshold ${formatHm(threshold)}). Excess of ${formatHm(otMinutes)} requested as OT.`,
+              project: existing.project ?? null,
+              otSubtype: null,
+              otPayoutMethod: payout,
+              ...(otAutoApprove
+                ? {
+                    reviewerId: existing.employeeId,
+                    reviewedAt: now,
+                    reviewNotes: "Auto-approved (supervisor self-attendance)",
+                  }
+                : {}),
+            },
+          })
+          if (otAutoApprove && payout === "TIME_BANK" && employeeProfile) {
+            await prisma.employeeProfile.update({
+              where: { id: employeeProfile.id },
+              data: { otTimeBalanceMin: { increment: otMinutes } },
+            })
+          }
+        }
+      }
+    }
+
     return { id: existing.id, timeIn: nextTimeIn, timeOut: nextTimeOut }
   },
 
@@ -2359,6 +2448,11 @@ export const attendanceRepository = {
         chainHistory: true,
         date: true,
         otPayoutMethod: true,
+        // Carry-forward time: each step that applies an override writes
+        // back to `eventAt`, so subsequent reviewers (and the final-step
+        // apply-to-AttendanceRecord branch below) see the latest proposed
+        // value, not the original submission.
+        eventAt: true,
       },
     })
     if (!request) throw new Error("Approval not found.")
@@ -2429,6 +2523,14 @@ export const attendanceRepository = {
         ? (ctx.chain[ctx.currentStep]?.approvers ?? []).map((a) => a.approverId)
         : []
 
+    // When the reviewer adjusted the time, persist it on the request so
+    // subsequent reviewers (and the final-step apply branch below) see the
+    // edit instead of the original submission. Skipped on rejection.
+    const carriesOverride =
+      status !== "REJECTED" &&
+      overrideEventAt != null &&
+      (request.kind === "CLOCK_IN" || request.kind === "CLOCK_OUT")
+
     await prisma.approvalRequest.update({
       where: { id: approvalId },
       data: {
@@ -2437,6 +2539,7 @@ export const attendanceRepository = {
         reviewedAt: now,
         reviewNotes: notes ?? null,
         chainHistory: nextHistory as unknown as object,
+        ...(carriesOverride ? { eventAt: overrideEventAt } : {}),
       },
     })
 
@@ -2483,33 +2586,45 @@ export const attendanceRepository = {
       }
     }
 
-    // Approve-with-override: when the supervisor adjusts the event time
-    // while approving a CLOCK_IN/CLOCK_OUT request, patch the underlying
-    // AttendanceRecord so the audit log + duration reflect the corrected
-    // timestamp instead of the originally-submitted `eventAt`.
+    // Apply-on-final-approval: when a CLOCK_IN/CLOCK_OUT chain reaches the
+    // last step, commit the **effective** time to the underlying
+    // AttendanceRecord. The effective time is THIS step's override if the
+    // reviewer adjusted, otherwise the carried-forward eventAt from a
+    // prior step that did. The no-op short-circuit (current time already
+    // equals the effective time) avoids creating an empty audit row when
+    // no edit ever happened anywhere in the chain.
     if (
       finalStatus === "APPROVED" &&
-      overrideEventAt &&
       (request.kind === "CLOCK_IN" || request.kind === "CLOCK_OUT") &&
       attendance
     ) {
-      const fullRecord = await prisma.attendanceRecord.findUnique({
-        where: {
-          employeeId_date: { employeeId: request.employeeId, date: request.date },
-        },
-        select: { id: true },
-      })
-      if (fullRecord) {
-        await this.overrideAttendanceTimes({
-          attendanceRecordId: fullRecord.id,
-          editorId: reviewerId,
-          editorRole: "SUPERVISOR",
-          source: "APPROVE_OVERRIDE",
-          ...(request.kind === "CLOCK_IN"
-            ? { timeIn: overrideEventAt }
-            : { timeOut: overrideEventAt }),
-          reason: notes ?? null,
+      const effectiveEventAt = overrideEventAt ?? request.eventAt
+      if (effectiveEventAt) {
+        const fullRecord = await prisma.attendanceRecord.findUnique({
+          where: {
+            employeeId_date: { employeeId: request.employeeId, date: request.date },
+          },
+          select: { id: true, timeIn: true, timeOut: true },
         })
+        if (fullRecord) {
+          const currentTime =
+            request.kind === "CLOCK_IN" ? fullRecord.timeIn : fullRecord.timeOut
+          const differs =
+            currentTime == null ||
+            currentTime.getTime() !== effectiveEventAt.getTime()
+          if (differs) {
+            await this.overrideAttendanceTimes({
+              attendanceRecordId: fullRecord.id,
+              editorId: reviewerId,
+              editorRole: "SUPERVISOR",
+              source: "APPROVE_OVERRIDE",
+              ...(request.kind === "CLOCK_IN"
+                ? { timeIn: effectiveEventAt }
+                : { timeOut: effectiveEventAt }),
+              reason: notes ?? null,
+            })
+          }
+        }
       }
     }
 
