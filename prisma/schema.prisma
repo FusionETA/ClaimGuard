@@ -1126,8 +1126,6 @@ model PayrollSettings {
   defaultEpfEmployerRate    Decimal         @default(13.00) @db.Decimal(5, 2)
   hrdfEnabled               Boolean         @default(false)
   hrdfRate                  Decimal?        @db.Decimal(5, 2)
-  employerIdNumber          String?
-  myCoOrSsmNumber           String?
   createdAt                 DateTime        @default(now())
   updatedAt                 DateTime        @updatedAt
   autoApplySocsoEisRelief   Boolean         @default(true)
