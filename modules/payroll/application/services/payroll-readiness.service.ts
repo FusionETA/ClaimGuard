@@ -4,6 +4,7 @@ import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
 import { loadStatutoryRunPayload } from "@/modules/payroll/application/services/report-renderers/shared"
 import { isMalaysianNationality } from "@/modules/payroll/domain/calc"
+import { PAYROLL_REQUIRED_COMPANY_INFO_FIELDS } from "@/modules/payroll/domain/settings"
 
 /**
  * Pre-submit readiness check for a payroll run.
@@ -58,12 +59,10 @@ export type RunReadiness = {
   totalMissingCount: number
 }
 
-const ORG_FIELDS: Array<{ key: RunReadinessOrgField; label: string }> = [
-  { key: "employerName", label: "Employer name" },
-  { key: "employerTin", label: "Employer No. (LHDN E No.)" },
-  { key: "registrationNo", label: "Registration No. (SSM / MyCoID)" },
-  { key: "perkesoEmployerCode", label: "PERKESO Employer Code" },
-]
+// Source of truth lives in `modules/payroll/domain/settings.ts` so the
+// settings UI tab pill checks the SAME list this service blocks on.
+const ORG_FIELDS: ReadonlyArray<{ key: RunReadinessOrgField; label: string }> =
+  PAYROLL_REQUIRED_COMPANY_INFO_FIELDS
 
 function isBlank(v: string | null | undefined): boolean {
   return !v || v.trim().length === 0

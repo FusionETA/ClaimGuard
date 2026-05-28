@@ -325,6 +325,50 @@ export type PayrollCompanyInfoData = {
   updatedAt: string
 }
 
+// ─── Required-field gate (shared by readiness service + settings tab) ────
+
+/**
+ * The PayrollCompanyInfoData fields that MUST be filled before a
+ * payroll run can be submitted for approval. Single source of truth
+ * for both the pre-submit readiness service (which blocks the submit)
+ * and the Form E tab pill in the settings UI (which shows red until
+ * these are filled) — so the two indicators can never disagree.
+ *
+ * Why these four:
+ *   - employerName       → every statutory document header
+ *   - employerTin        → PCB TXT, EPF CSV, CP8D, EA
+ *   - registrationNo     → SOCSO+EIS TXT, CP8D
+ *   - perkesoEmployerCode → SOCSO+EIS TXT employer code column
+ *
+ * Other Form E fields (correspondence address, declarant, tax agent,
+ * CP8D furnish type) are required at YEAR-END Form E generation time,
+ * not at monthly payroll submit, so they're not gated here.
+ */
+export const PAYROLL_REQUIRED_COMPANY_INFO_FIELDS = [
+  { key: "employerName", label: "Employer name" },
+  { key: "employerTin", label: "Employer No. (LHDN E No.)" },
+  { key: "registrationNo", label: "Registration No. (SSM / MyCoID)" },
+  { key: "perkesoEmployerCode", label: "PERKESO Employer Code" },
+] as const satisfies ReadonlyArray<{
+  key: keyof PayrollCompanyInfoData
+  label: string
+}>
+
+/**
+ * Pure helper — true when every `PAYROLL_REQUIRED_COMPANY_INFO_FIELDS`
+ * field is non-blank on the given company info. Drives the Form E tab
+ * pill colour in the settings UI.
+ */
+export function isCompanyInfoReadyForPayroll(
+  companyInfo: PayrollCompanyInfoData | null,
+): boolean {
+  if (!companyInfo) return false
+  return PAYROLL_REQUIRED_COMPANY_INFO_FIELDS.every((f) => {
+    const v = companyInfo[f.key]
+    return typeof v === "string" && v.trim().length > 0
+  })
+}
+
 // ─── Curated dropdowns for Form E (matches LHDN's published values) ──────
 
 /**

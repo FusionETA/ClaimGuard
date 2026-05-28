@@ -36,6 +36,7 @@ import {
   DEFAULT_PAYROLL_XERO_MAPPING,
   EMPLOYER_CATEGORY_OPTIONS,
   EMPLOYER_STATUS_OPTIONS,
+  isCompanyInfoReadyForPayroll,
   PAYROLL_XERO_ACCOUNT_GROUPS,
   PAYROLL_XERO_ACCOUNT_LABELS,
   PAYROLL_XERO_ALLOWANCE_CATEGORIES,
@@ -56,30 +57,6 @@ import {
 } from "@/modules/payroll/domain/settings"
 
 type Tab = "general" | "formE" | "xero"
-
-const FORM_E_COMPLETION_FIELDS: Array<keyof PayrollCompanyInfoData> = [
-  "employerName",
-  "employerTin",
-  "registrationNo",
-  // SOCSO+EIS document needs this; the Form E tab pill should flag
-  // incomplete until it's filled.
-  "perkesoEmployerCode",
-  "referenceType",
-  "referenceNo",
-  "employerCategory",
-  "employerStatus",
-  "cp8dFurnishType",
-  "addressLine1",
-  "postcode",
-  "city",
-  "state",
-  "country",
-  "email",
-  "declarantName",
-  "declarantIdType",
-  "declarantIdNumber",
-  "declarantPosition",
-]
 
 /**
  * Tabbed payroll settings form. Two tabs, two independent saves:
@@ -115,7 +92,10 @@ export function PayrollSettingsForm(props: {
   useEffect(() => {
     setLiveCompanyInfo(props.companyInfo)
   }, [props.companyInfo])
-  const formEComplete = isFormEComplete(liveCompanyInfo)
+  // Single source of truth — same helper the payroll-readiness service
+  // uses to decide whether to BLOCK a payroll-run submit. So "tab red"
+  // <-> "payroll submit blocked" can never disagree.
+  const formEComplete = isCompanyInfoReadyForPayroll(liveCompanyInfo)
   const xeroComplete = isXeroMappingComplete(props.settings)
 
   return (
@@ -228,16 +208,6 @@ function isXeroMappingComplete(settings: PayrollSettingsData | null): boolean {
 
 function isBlank(value: string | null | undefined): boolean {
   return !value || value.trim().length === 0
-}
-
-function hasValue(value: unknown) {
-  return typeof value === "string" ? value.trim().length > 0 : value != null
-}
-
-function isFormEComplete(companyInfo: PayrollCompanyInfoData | null) {
-  if (!companyInfo) return false
-
-  return FORM_E_COMPLETION_FIELDS.every((field) => hasValue(companyInfo[field]))
 }
 
 function TabPill({
