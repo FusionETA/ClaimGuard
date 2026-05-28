@@ -1497,7 +1497,18 @@ export const attendanceRepository = {
     timeIn?: Date | null
     timeOut?: Date | null
     reason?: string | null
-  }): Promise<{ id: string; timeIn: Date | null; timeOut: Date | null }> {
+  }): Promise<{
+    id: string
+    timeIn: Date | null
+    timeOut: Date | null
+    /// Approver IDs of the FIRST step of any OT ApprovalRequest this
+    /// override auto-created. The service publishes a realtime "refresh"
+    /// event to these so the next supervisor's badge updates live;
+    /// otherwise their sidebar pill stays stale until they navigate.
+    /// Empty when no OT was auto-created or when the OT was auto-
+    /// approved (no pending step).
+    pendingApproverIds: string[]
+  }> {
     const prisma = getClient()
     const existing = await prisma.attendanceRecord.findUnique({
       where: { id: args.attendanceRecordId },
@@ -1609,6 +1620,12 @@ export const attendanceRepository = {
     // minutes the same way an over-8h clock-out would. Conservative:
     // only CREATE when no OT request exists for this date; never
     // overwrite or delete an existing one.
+    //
+    // When an OT row is created and pending review, we resolve its
+    // first-step approvers and bubble them up so the calling service
+    // can publish a realtime refresh — without this, the next
+    // supervisor's sidebar badge stayed stale until page reload.
+    let pendingApproverIds: string[] = []
     const orgId = existing.employee?.organizationId ?? null
     if (durationMin && orgId) {
       const [org, employeeProfile] = await Promise.all([
@@ -1655,7 +1672,7 @@ export const attendanceRepository = {
             kind: "OT",
           })
           const now = new Date()
-          await prisma.approvalRequest.create({
+          const otApproval = await prisma.approvalRequest.create({
             data: {
               employeeId: existing.employeeId,
               kind: "OT",
@@ -1675,6 +1692,7 @@ export const attendanceRepository = {
                   }
                 : {}),
             },
+            select: { id: true },
           })
           if (otAutoApprove && payout === "TIME_BANK" && employeeProfile) {
             await prisma.employeeProfile.update({
@@ -1682,11 +1700,24 @@ export const attendanceRepository = {
               data: { otTimeBalanceMin: { increment: otMinutes } },
             })
           }
+          if (!otAutoApprove) {
+            pendingApproverIds = await resolveCurrentApproverIds(
+              otApproval.id,
+              existing.employeeId,
+              "OT",
+              existing.projectId ?? null,
+            )
+          }
         }
       }
     }
 
-    return { id: existing.id, timeIn: nextTimeIn, timeOut: nextTimeOut }
+    return {
+      id: existing.id,
+      timeIn: nextTimeIn,
+      timeOut: nextTimeOut,
+      pendingApproverIds,
+    }
   },
 
   /**

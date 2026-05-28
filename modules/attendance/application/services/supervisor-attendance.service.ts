@@ -107,7 +107,7 @@ export const supervisorAttendanceService = {
       supervisorId,
       args.employeeId,
     )
-    await attendanceRepository.overrideAttendanceTimes({
+    const result = await attendanceRepository.overrideAttendanceTimes({
       attendanceRecordId: args.attendanceRecordId,
       editorId: supervisorId,
       editorRole: "SUPERVISOR",
@@ -116,6 +116,19 @@ export const supervisorAttendanceService = {
       timeOut: args.timeOut,
       reason: args.reason,
     })
+    // If the override auto-created a pending OT request, nudge the
+    // first-step approvers so their sidebar badge updates live (same
+    // pattern as clock-in/out flows).
+    if (result.pendingApproverIds.length > 0) {
+      try {
+        await publishUserEvents(result.pendingApproverIds, {
+          type: "refresh",
+          scope: "attendance",
+        })
+      } catch {
+        // Realtime never blocks a successful edit.
+      }
+    }
   },
 
   /**
@@ -154,9 +167,13 @@ export const supervisorAttendanceService = {
     }
     const reason = args.reason.trim() || null
 
-    // 1) clock-in / clock-out (recomputes status, late, durationMin)
+    // 1) clock-in / clock-out (recomputes status, late, durationMin).
+    // Collect any auto-OT approver IDs returned so we can fan-out a
+    // realtime refresh below (the editor can also create a new OT
+    // request if the recomputed duration exceeds the daily threshold).
+    let otApproverIds: string[] = []
     if (args.timeIn !== undefined || args.timeOut !== undefined) {
-      await attendanceRepository.overrideAttendanceTimes({
+      const overrideResult = await attendanceRepository.overrideAttendanceTimes({
         attendanceRecordId: args.attendanceRecordId,
         editorId: supervisorId,
         editorRole: role,
@@ -165,6 +182,7 @@ export const supervisorAttendanceService = {
         timeOut: args.timeOut,
         reason,
       })
+      otApproverIds = overrideResult.pendingApproverIds
     }
 
     // 2) breaks — diff against current rows
@@ -211,6 +229,20 @@ export const supervisorAttendanceService = {
           endedAt: b.endedAt,
           reason,
         })
+      }
+    }
+
+    // 3) Realtime fan-out for any auto-OT request created above. Same
+    // pattern as clockIn/clockOut + reviewApproval — fail-soft so a
+    // Redis hiccup never blocks the edit itself.
+    if (otApproverIds.length > 0) {
+      try {
+        await publishUserEvents(otApproverIds, {
+          type: "refresh",
+          scope: "attendance",
+        })
+      } catch {
+        // Realtime never blocks a successful edit.
       }
     }
   },
