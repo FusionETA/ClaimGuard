@@ -4,6 +4,7 @@ import { buildSessionUserForEmail } from "@/lib/auth/authenticate"
 import { buildSessionCookie } from "@/lib/auth/session"
 import { verifySsoToken } from "@/lib/auth/sso-token"
 import { getRedis, key } from "@/lib/redis"
+import { getRequestOrigin } from "@/lib/request-origin"
 
 /**
  * GET /api/sso/altomate?token=<token>
@@ -26,7 +27,11 @@ import { getRedis, key } from "@/lib/redis"
  */
 
 function loginError(request: NextRequest, reason: string): NextResponse {
-  const url = new URL("/login", request.url)
+  // `request.url` is the internal listener address behind nginx /
+  // DO App Platform — building the redirect from it sends users to
+  // http://localhost:3000/login. Use the public origin from forwarded
+  // headers instead.
+  const url = new URL("/login", getRequestOrigin(request))
   url.searchParams.set("error", "sso")
   url.searchParams.set("reason", reason)
   return NextResponse.redirect(url)
@@ -70,7 +75,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const cookie = buildSessionCookie(result.user)
-  const response = NextResponse.redirect(new URL("/admin", request.url))
+  // Same reason as the login-error redirect above: use the public
+  // origin from forwarded headers, not the internal listener URL.
+  const response = NextResponse.redirect(
+    new URL("/admin", getRequestOrigin(request)),
+  )
   response.cookies.set(cookie.name, cookie.value, cookie.options)
   return response
 }
