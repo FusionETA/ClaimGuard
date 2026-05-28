@@ -389,16 +389,11 @@ export default async function AdminPayrollRunDetailPage({
                     <li key={i.field}>{i.label}</li>
                   ))}
                 </ul>
-                <p className="mt-1 text-xs">
-                  Open{" "}
-                  <Link
-                    href="/admin/payroll/settings"
-                    className="font-semibold text-primary hover:underline"
-                  >
-                    Payroll Settings → Company Info
-                  </Link>{" "}
-                  to fill these in.
-                </p>
+                <Button asChild size="sm" className="mt-2 rounded-xl">
+                  <Link href="/admin/payroll/settings">
+                    Go to Payroll Settings →
+                  </Link>
+                </Button>
               </div>
             ) : null}
             {readiness.employeeIssues.length > 0 ? (
