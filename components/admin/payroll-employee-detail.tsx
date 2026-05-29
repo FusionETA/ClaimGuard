@@ -368,7 +368,7 @@ function LhdnFormButton(props: {
   // renderer + service dispatch is wired up. Keep this list in sync
   // with the switch in `generateEmployeeForm()` — buttons for unwired
   // forms render as "Coming soon".
-  const implementedKinds: EmployeeFormKind[] = ["PCB2II", "CP22"]
+  const implementedKinds: EmployeeFormKind[] = ["PCB2II", "CP22", "TP3"]
   const implemented = implementedKinds.includes(props.kind)
   const enabled = available && implemented
 

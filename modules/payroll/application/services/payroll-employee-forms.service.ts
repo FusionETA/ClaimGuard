@@ -11,6 +11,7 @@ import {
 import { loadEmployeeFormPayload } from "@/modules/payroll/infrastructure/employee-form.repository"
 import { renderFormCp22Pdf } from "@/modules/payroll/application/services/report-renderers/form-cp22-pdf"
 import { renderFormPcb2IiPdf } from "@/modules/payroll/application/services/report-renderers/form-pcb2ii-pdf"
+import { renderFormTp3Pdf } from "@/modules/payroll/application/services/report-renderers/form-tp3-pdf"
 
 /**
  * Per-employee LHDN form generator. Mirrors the annual-reports
@@ -81,9 +82,14 @@ export async function generateEmployeeForm(input: {
         year: input.year,
       })
       break
+    case "TP3":
+      buffer = await renderFormTp3Pdf({
+        userId: input.userId,
+        year: input.year,
+      })
+      break
     case "CP22A":
     case "CP21":
-    case "TP3":
       // The remaining forms land in follow-up commits — guard rail
       // so we don't ship a broken button that 500s.
       throw new Error(`${input.kind} is not yet implemented.`)

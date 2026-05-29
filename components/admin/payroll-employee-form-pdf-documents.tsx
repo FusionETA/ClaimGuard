@@ -557,6 +557,200 @@ export function FormPcb2IiPdfDocument(props: FormPcb2IiPdfDocumentProps) {
   )
 }
 
+// ─── 3. TP3 — Handover to next employer (PCB/TP3) ───────────────────────
+
+export type FormTp3PdfDocumentProps = {
+  payload: EmployeeFormPayload
+  generatedAt: Date
+}
+
+/**
+ * TP3 — Individual tax deduction and rebate claim form for monthly
+ * tax deduction (PCB) purposes.
+ *
+ * Layout mirrors PCB FORM /TP3 (1/2026):
+ *
+ *   Section A: Employer information (our company as Previous Employer 1)
+ *   Section B: Employee information (name, IC, TIN)
+ *   Section C: Remuneration / EPF / Zakat / PCB (YTD figures from our
+ *              payroll for the calendar year)
+ *   Section D: Personal reliefs D1–D17 (LEFT BLANK — employee fills in
+ *              with their personal claims when they hand it to the
+ *              next employer)
+ *   Section E: Employee declaration (blank signature line + date)
+ *
+ * The leaving employee takes this form to their next employer so the
+ * new payroll calculates PCB correctly for the rest of the year.
+ */
+export function FormTp3PdfDocument(props: FormTp3PdfDocumentProps) {
+  const { payload } = props
+  const { employee, employer, year, ytd } = payload
+
+  const accumulatedGross =
+    ytd.grossSalary + ytd.bonusAndCommission + ytd.totalBik
+
+  return (
+    <Document title={`TP3 ${year} ${employee.name}`} author={payload.organizationName}>
+      <Page size="A4" style={styles.page}>
+        <BrandHeader
+          payload={payload}
+          formCode="PCB FORM / TP3"
+          formCodeSub="1/2026"
+        />
+
+        <View style={styles.titleBlock}>
+          <Text style={styles.formTitle}>
+            INDIVIDUAL TAX DEDUCTION AND REBATE CLAIM FORM
+          </Text>
+          <Text style={styles.formSubtitle}>For Monthly Tax Deduction (PCB) Purposes</Text>
+          <Text style={styles.formSubtitle}>
+            Income Tax (Deductions from Remuneration) Regulations 1994
+          </Text>
+          <Text style={[styles.formSubtitle, { marginTop: 4 }]}>
+            Year of Assessment: {year}
+          </Text>
+        </View>
+
+        <Text style={styles.sectionHeader}>SECTION A: Employer Information</Text>
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginBottom: 4 }}>
+          AltomateHR pre-fills our company as &ldquo;Previous Employer 1&rdquo;.
+          If the employee worked elsewhere earlier in the year, they
+          should add that employer in lines A3 / A4 by hand.
+        </Text>
+        <KvRow
+          label="A1. Previous Employer Name 1"
+          value={employer.employerName ?? payload.organizationName}
+        />
+        <KvRow
+          label="A2. Tax Identification Number (TIN)"
+          value={employer.employerTin ?? ""}
+        />
+        <KvRow label="A3. Previous Employer Name 2" value="" />
+        <KvRow label="A4. Tax Identification Number (TIN)" value="" />
+
+        <Text style={styles.sectionHeader}>SECTION B: Employee Information</Text>
+        <KvRow label="B1. Name" value={employee.name} />
+        <KvRow
+          label="B2. Identity Card / Passport Number"
+          value={employee.idNumber ?? ""}
+        />
+        <KvRow
+          label="B3. Tax Identification Number (TIN)"
+          value={employee.incomeTaxNumber ?? ""}
+        />
+
+        <Text style={styles.sectionHeader}>
+          SECTION C: Remuneration / EPF / Zakat / PCB
+        </Text>
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginBottom: 4 }}>
+          Accumulated deductions for the period worked at this employer
+          during {year}. RM.
+        </Text>
+        <AmtRow
+          label="C1. Total monthly gross + additional remuneration (incl. allowances / perquisites / gifts / BIK)"
+          amount={accumulatedGross}
+        />
+        <AmtRow label="C2. Tax-exempt allowances / perquisites / gifts / benefits" amount={null} />
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginLeft: 12, marginBottom: 4 }}>
+          C2 i–v: travel allowance, child-care allowance, employer&apos;s
+          discounted products, long-service awards, other tax-exempt
+          benefits. AltomateHR does not categorise tax-exempt portions
+          separately — the employee fills these in by hand if any.
+        </Text>
+        <AmtRow
+          label="C3. Total approved EPF contributions (employee share)"
+          amount={ytd.totalEpfEmployee}
+        />
+        <AmtRow label="C4 i). Total Zakat (via payroll)" amount={ytd.totalZakat} />
+        <AmtRow
+          label="C4 ii). Relief for departure levy (Umrah / religious travel)"
+          amount={null}
+        />
+        <AmtRow label="C5. Total PCB (excluding CP38)" amount={ytd.totalPcb} />
+
+        <Text style={styles.sectionHeader}>SECTION D: Personal Reliefs</Text>
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginBottom: 6 }}>
+          D1–D17 cover personal tax reliefs (medical / lifestyle / sport
+          / insurance / EPF / home-loan interest etc.). These are
+          self-declared by the employee — they should fill in any
+          relevant amounts in the official TP3 form before passing it
+          on. We leave them blank here because we don&apos;t hold the
+          underlying receipts.
+        </Text>
+        <View
+          style={{
+            borderWidth: 0.5,
+            borderColor: COLOURS.rule,
+            padding: 8,
+            marginBottom: 6,
+          }}
+        >
+          <Text style={{ fontSize: 8.5, lineHeight: 1.5 }}>
+            D1 Parents medical / dental / check-up (8,000){"\n"}
+            D2 Basic support equipment for disabled self/spouse/child/parents (6,000){"\n"}
+            D3 Self study fees / Master&apos;s / skills enhancement (7,000){"\n"}
+            D4 Serious illness / fertility / vaccination / dental / check-up (10,000){"\n"}
+            D5 Lifestyle — books / PC / smartphone / internet / self-improvement (2,500){"\n"}
+            D6 Lifestyle — sport equipment / gym / training / facility rental (1,000){"\n"}
+            D7 Breastfeeding equipment (1,000){"\n"}
+            D8 Childcare centre / kindergarten fees (3,000){"\n"}
+            D9 National Education Savings Scheme (8,000){"\n"}
+            D10 Alimony to ex-wife (4,000){"\n"}
+            D11 Voluntary EPF + life insurance (7,000 combined){"\n"}
+            D12 Private retirement schemes + deferred annuities (3,000){"\n"}
+            D13 Education and medical insurance (4,000){"\n"}
+            D14 Contributions to PERKESO / EIS (350){"\n"}
+            D15 EV charging equipment / food-waste composter (2,500){"\n"}
+            D16 First-home loan interest (7,000 or 5,000 by price band){"\n"}
+            D17 Domestic tourism — entry fees to tourist / cultural centres (1,000)
+          </Text>
+        </View>
+
+        <Text style={styles.sectionHeader}>SECTION E: Employee Declaration</Text>
+        <Text style={{ fontSize: 8.5, lineHeight: 1.5 }}>
+          I acknowledge that all the information stated in this form is
+          true, correct, and complete. If found false, legal action may
+          be taken under paragraph 113(1)(b) of the Income Tax Act 1967.
+        </Text>
+        <View style={[styles.signatureBlock, { marginTop: 28 }]}>
+          <View style={styles.signatureCol}>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted }}>
+              Employee signature:
+            </Text>
+            <Text style={styles.signatureLine}>{employee.name}</Text>
+          </View>
+          <View style={styles.signatureCol}>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted }}>
+              Date:
+            </Text>
+            <Text style={styles.signatureLine}></Text>
+          </View>
+        </View>
+
+        <Text style={styles.closingNote}>
+          Generated by AltomateHR on {fmtDate(props.generatedAt)} for the
+          year of assessment {year}. The employee should review Section
+          C, fill in any applicable Section D reliefs, sign Section E,
+          and hand to their next employer. The next employer keeps this
+          form for 7 years and submits to HASiL on request.
+        </Text>
+
+        <View style={styles.footer} fixed>
+          <Text>
+            TP3 · {year} · {employer.employerName ?? payload.organizationName} ·{" "}
+            {employee.name}
+          </Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `${pageNumber} / ${totalPages}`
+            }
+          />
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
 // ─── 2. CP22 — Notification of new employee ─────────────────────────────
 
 export type FormCp22PdfDocumentProps = {
