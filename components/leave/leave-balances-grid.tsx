@@ -91,17 +91,16 @@ export function LeaveBalancesGrid({ employees, year, emptyHint }: Props) {
               <CardContent className="p-4">
                 <div className="mb-3 flex items-baseline justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-foreground">
-                      {emp.name}{" "}
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-sm font-bold text-foreground">
+                        {emp.name}
+                      </span>
                       {emp.role === "SUPERVISOR" ? (
-                        <Badge
-                          variant="outline"
-                          className="ml-1 align-middle text-[10px]"
-                        >
+                        <Badge variant="outline" className="text-[10px]">
                           Supervisor
                         </Badge>
                       ) : null}
-                    </p>
+                    </div>
                     <p className="truncate text-xs text-muted-foreground">
                       {emp.jobTitle}
                       {emp.jobTitle ? " · " : ""}
