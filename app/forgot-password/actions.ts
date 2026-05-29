@@ -11,12 +11,12 @@ import {
   type ResetPasswordFormState,
 } from "@/app/forgot-password/form-state"
 import { hashPassword } from "@/lib/auth/password"
-import { sendEmail } from "@/lib/email"
 import {
   issuePasswordResetCode,
   verifyAndConsumePasswordResetCode,
 } from "@/lib/password-reset"
 import { rateLimit } from "@/lib/rate-limit"
+import { normalisePhone, sendWhatsApp } from "@/lib/whatsapp"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 /**
@@ -90,39 +90,40 @@ export async function requestPasswordResetAction(
 
   // Send-or-skip is intentionally silent on the response — both branches
   // return the SAME success below to defeat enumeration. We just don't
-  // actually email anyone unless the address is an employee.
+  // actually WhatsApp anyone unless the address belongs to an employee
+  // with a phone we can deliver to.
   void (async () => {
     try {
-      const user = await organizationRepository.findUserByEmail(email)
+      const user = await organizationRepository.findUserWithPhoneByEmail(email)
       if (!user) return
       // Employees + supervisors only. Admins / owners use a different
       // recovery path (SSO from Altomate; partner-side reprovisioning).
       if (user.role !== "EMPLOYEE" && user.role !== "SUPERVISOR") return
 
+      // No phone on file → no delivery path. Silently no-op so the
+      // generic success response above still hides whether the
+      // account exists. Admin will need to add a phone via the
+      // employee detail page.
+      const to = normalisePhone(user.phone)
+      if (!to) {
+        console.warn(
+          `[password-reset] employee ${user.email} has no usable phone; skipping send`,
+        )
+        return
+      }
+
       const code = await issuePasswordResetCode(email)
       if (!code) return // Redis not configured — caller already sees generic success.
 
-      await sendEmail({
-        to: email,
-        subject: "Your AltomateHR password reset code",
-        html: `
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-            <h2 style="margin: 0 0 12px 0; font-size: 20px;">Reset your password</h2>
-            <p style="color: #555; line-height: 1.5;">
-              Hi ${escapeHtml(user.name)}, use the code below to reset your AltomateHR password.
-              It expires in 10 minutes.
-            </p>
-            <div style="margin: 24px 0; padding: 20px 24px; background: #f4f4f6; border-radius: 12px; text-align: center;">
-              <div style="font-size: 32px; font-weight: 700; letter-spacing: 6px; color: #111;">${code}</div>
-            </div>
-            <p style="color: #888; font-size: 13px; line-height: 1.5;">
-              If you didn't request this, you can safely ignore this email — your
-              password won't change until someone enters this code.
-            </p>
-          </div>
-        `,
-        text: `Hi ${user.name},\n\nYour AltomateHR password reset code is: ${code}\n\nIt expires in 10 minutes. If you didn't request this, ignore this email.`,
+      const result = await sendWhatsApp({
+        to,
+        text: `Hi ${user.name}, your AltomateHR password reset code is: ${code}\n\nIt expires in 10 minutes. If you didn't request this, ignore this message.`,
       })
+      if (!result.delivered) {
+        console.warn(
+          `[password-reset] WhatsApp send to ${to} failed: ${result.reason}`,
+        )
+      }
     } catch (err) {
       console.error("[password-reset] background send failed:", err)
     }
@@ -251,14 +252,3 @@ export async function resetPasswordAction(
   return initialResetPasswordFormState
 }
 
-/// Minimal HTML escaper for embedding user-supplied strings (the
-/// employee name) into the email template. Belt + braces — names
-/// shouldn't contain HTML, but we defend in depth.
-function escapeHtml(input: string): string {
-  return input
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;")
-}

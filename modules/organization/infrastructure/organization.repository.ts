@@ -638,6 +638,50 @@ export const organizationRepository = {
   },
 
   /**
+   * Find a user by email PLUS their EmployeeProfile.phone — used by
+   * the WhatsApp-based password-reset flow to look up where to
+   * deliver the 6-digit code. `phone` is null when the user has no
+   * EmployeeProfile (admins / owners without one) or when the field
+   * is blank, so the caller can decide to skip / fall back.
+   */
+  async findUserWithPhoneByEmail(email: string): Promise<{
+    id: string
+    name: string
+    email: string
+    role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER"
+    phone: string | null
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    const user = await prisma.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        // Phone lives on PayrollProfile, NOT EmployeeProfile — chain
+        // through both relations. Returns null when the employee
+        // isn't enrolled in payroll yet.
+        employeeProfile: {
+          select: { payrollProfile: { select: { phone: true } } },
+        },
+      },
+    })
+    if (!user) return null
+    const rawPhone =
+      user.employeeProfile?.payrollProfile?.phone?.trim() ?? ""
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role as "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER",
+      phone: rawPhone.length > 0 ? rawPhone : null,
+    }
+  },
+
+  /**
    * Find a user by id. Same shape as `findUserByEmail` PLUS the
    * scrypt password hash for callers that need to verify or update
    * the user's password (currently the change-password and password-
