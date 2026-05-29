@@ -2629,15 +2629,16 @@ function Field({
   label: string
   children: React.ReactNode
   className?: string
-  /// Optional render-prop slot for a trailing element in the label
-  /// row (e.g. a "History" button next to the Monthly salary field).
-  /// Sits on the right edge of the label baseline so it doesn't
-  /// crowd the input below.
+  /// Optional render-prop slot for a trailing element rendered
+  /// INLINE next to the label text (small gap, no right-alignment).
+  /// Used for e.g. a tiny "History" button next to the Monthly
+  /// salary label — sits adjacent to the text so it reads as one
+  /// unit rather than floating at the far right of the input width.
   labelAction?: React.ReactNode
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2">
         <Label className="text-xs">{label}</Label>
         {labelAction}
       </div>
@@ -2807,26 +2808,40 @@ function SalaryChangeDialog(props: {
  * (the dialog handles the empty state) so an admin can confirm
  * whether changes exist without scrolling past the form.
  */
+/**
+ * Tiny inline trigger that sits NEXT to the salary label (not at the
+ * far right of the field). Styled as a subtle text link rather than
+ * a full button so it reads as "side info on this field" — not a
+ * primary action.
+ *
+ * Always visible (even at count = 0) so an admin can confirm "no
+ * history yet" without having to dig through a menu — the original
+ * problem the button solves. Visual weight scales with usefulness:
+ *   - count > 0  → primary-coloured, "History (N)"
+ *   - count = 0  → muted, "History" (dialog shows an empty-state hint)
+ */
 function SalaryHistoryButton(props: {
   count: number
   onClick: () => void
 }) {
+  const hasHistory = props.count > 0
   return (
-    <Button
+    <button
       type="button"
-      variant="ghost"
-      size="sm"
-      className="h-7 gap-1.5 px-2 text-[11px] font-medium text-muted-foreground hover:text-foreground"
       onClick={props.onClick}
+      className={cn(
+        "inline-flex items-center gap-1 text-[11px] font-medium hover:underline focus-visible:underline focus:outline-none",
+        hasHistory ? "text-primary" : "text-muted-foreground hover:text-foreground",
+      )}
     >
-      <History className="h-3.5 w-3.5" />
-      History
-      {props.count > 0 ? (
-        <span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
-          {props.count}
-        </span>
-      ) : null}
-    </Button>
+      <History className="h-3 w-3" />
+      <span>
+        History
+        {hasHistory ? (
+          <span className="ml-1 text-muted-foreground">({props.count})</span>
+        ) : null}
+      </span>
+    </button>
   )
 }
 
