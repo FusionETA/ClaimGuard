@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import {
   ChevronLeft,
   ClipboardList,
+  FileDown,
   Receipt,
 } from "lucide-react"
 
@@ -460,6 +461,35 @@ export default async function AdminPayrollRunDetailPage({
             or send it back to draft to make changes.
           </p>
           <div className="flex flex-wrap items-center gap-2">
+            {/* Approver workflow: lets the admin who submitted the run
+                send the summary PDF to the off-system approver (boss,
+                accountant, etc.) for sign-off before clicking Approve
+                here. The PDF route at /summary has no status gate of
+                its own — it just needs payslips to exist, which a
+                PENDING_APPROVAL run always has by the submit-flow
+                rule. `?download=1` forces the browser to save it
+                instead of opening inline. */}
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="rounded-xl"
+              title="Download a PDF summary to send to an off-system approver"
+            >
+              {/* Plain <a> instead of next/link — Link uses client-side
+                  router which hangs on a "Rendering…" indicator when
+                  the destination is a file stream (the navigation never
+                  resolves because the response is a PDF, not RSC). A
+                  bare <a> lets the browser handle it as a normal
+                  download click — Content-Disposition: attachment in
+                  the route forces save-to-disk. */}
+              <a
+                href={`/admin/payroll/runs/${data.run.id}/summary?download=1`}
+              >
+                <FileDown className="mr-1.5 h-4 w-4" />
+                Download summary PDF
+              </a>
+            </Button>
             <SendBackToDraftButton runId={data.run.id} />
             <ApprovePayrollRunButton runId={data.run.id} />
           </div>
