@@ -39,6 +39,8 @@ import {
   getLaterSubmittedRunsForRevert,
   getPayrollRunDetailWithPayslipsPageData,
 } from "@/modules/payroll/application/services/payroll-run.service"
+import { getSalaryChangeHintsForRun } from "@/modules/payroll/application/services/salary-change-hints.service"
+import { SalaryChangeHintsCard } from "@/components/admin/salary-change-hints-card"
 import {
   PAYROLL_RUN_STATUS_LABELS,
   periodLabel,
@@ -90,6 +92,15 @@ export default async function AdminPayrollRunDetailPage({
     data.run.status === "DRAFT"
       ? await getPayrollRunReadiness({ runId: id })
       : null
+
+  // Smart-hint banner data — only meaningful while the admin can
+  // still adjust the run. Once SUBMITTED the figures are frozen and
+  // any catch-up adjustment belongs on the next month's run, not this
+  // one.
+  const salaryChangeHints =
+    data.run.status === "SUBMITTED"
+      ? []
+      : ((await getSalaryChangeHintsForRun({ runId: id })) ?? [])
 
   const ready = data.employees.filter((e) => e.ready)
   // Excluded employees (salary = 0) are NOT in the "needs setup"
@@ -222,6 +233,13 @@ export default async function AdminPayrollRunDetailPage({
             </ul>
           </CardContent>
         </Card>
+      ) : null}
+
+      {salaryChangeHints.length > 0 ? (
+        <SalaryChangeHintsCard
+          runId={data.run.id}
+          hints={salaryChangeHints}
+        />
       ) : null}
 
       {data.payslips.length > 0 ? (

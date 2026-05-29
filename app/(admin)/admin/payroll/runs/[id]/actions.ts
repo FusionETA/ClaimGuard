@@ -1,6 +1,9 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
+
 import { safeErrorMessage } from "@/lib/errors"
+import { applySalaryChangeHint } from "@/modules/payroll/application/services/salary-change-hints.service"
 import { generatePayrollReport } from "@/modules/payroll/application/services/payroll-reports.service"
 import { getPayrollPayslipDetailPageData } from "@/modules/payroll/application/services/payroll-run.service"
 import type { PayrollReportKind } from "@/modules/payroll/domain/reports"
@@ -80,6 +83,38 @@ export async function generatePayrollReportAction(input: {
     return {
       status: "error",
       message: safeErrorMessage(err, "Could not generate this file."),
+    }
+  }
+}
+
+/**
+ * Apply a mid-cycle salary-change hint. Called from the smart-hint
+ * banner on the run-detail page. On success returns `{ status:
+ * "success", message }`; on failure returns `{ status: "error" }`.
+ * Caller wires the result through `useActionState` / a toast so the
+ * admin sees what happened.
+ *
+ * Revalidates the run-detail page so the banner self-hides (now that
+ * the marker is in the manualLineItems) and the payslip totals
+ * refresh on next render.
+ */
+export type ApplySalaryChangeHintActionResult =
+  | { status: "success"; message: string }
+  | { status: "error"; message: string }
+
+export async function applySalaryChangeHintAction(input: {
+  runId: string
+  payslipId: string
+  salaryChangeId: string
+}): Promise<ApplySalaryChangeHintActionResult> {
+  try {
+    const result = await applySalaryChangeHint(input)
+    revalidatePath(`/admin/payroll/runs/${input.runId}`)
+    return { status: "success", message: result.message }
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not apply this adjustment."),
     }
   }
 }

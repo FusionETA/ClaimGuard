@@ -75,6 +75,41 @@ export const salaryChangeRepository = {
 
     return rows.map(mapSalaryChange)
   },
+
+  /**
+   * Find every salary change whose `effectiveDate` falls inside a
+   * date range, scoped to an organisation (defence-in-depth — never
+   * leak another org's salary moves).
+   *
+   * Used by the smart-hint service to surface mid-cycle changes on
+   * a payroll run: passing `(periodStart, periodEnd)` returns
+   * changes that landed during that run's period.
+   */
+  async findInDateRangeForOrg(input: {
+    organizationId: string
+    fromDate: string // inclusive ISO yyyy-mm-dd
+    toDate: string // inclusive ISO yyyy-mm-dd
+  }): Promise<SalaryChangeData[]> {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+    const from = new Date(input.fromDate)
+    const to = new Date(input.toDate)
+    if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return []
+
+    const rows = await (prisma as any).salaryChange.findMany({
+      where: {
+        effectiveDate: { gte: from, lte: to },
+        employeeProfile: {
+          user: { organizationId: input.organizationId },
+        },
+      },
+      include: {
+        changedByUser: { select: { name: true } },
+      },
+      orderBy: [{ effectiveDate: "asc" }, { createdAt: "asc" }],
+    })
+    return rows.map(mapSalaryChange)
+  },
 }
 
 function mapSalaryChange(row: {
