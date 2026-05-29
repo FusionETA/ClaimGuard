@@ -10,6 +10,7 @@ import {
 } from "@/modules/payroll/domain/employee-forms"
 import { loadEmployeeFormPayload } from "@/modules/payroll/infrastructure/employee-form.repository"
 import { renderFormCp22Pdf } from "@/modules/payroll/application/services/report-renderers/form-cp22-pdf"
+import { renderFormCp22aPdf } from "@/modules/payroll/application/services/report-renderers/form-cp22a-pdf"
 import { renderFormPcb2IiPdf } from "@/modules/payroll/application/services/report-renderers/form-pcb2ii-pdf"
 import { renderFormTp3Pdf } from "@/modules/payroll/application/services/report-renderers/form-tp3-pdf"
 
@@ -89,8 +90,13 @@ export async function generateEmployeeForm(input: {
       })
       break
     case "CP22A":
+      buffer = await renderFormCp22aPdf({
+        userId: input.userId,
+        year: input.year,
+      })
+      break
     case "CP21":
-      // The remaining forms land in follow-up commits — guard rail
+      // The remaining form lands in the follow-up commit — guard rail
       // so we don't ship a broken button that 500s.
       throw new Error(`${input.kind} is not yet implemented.`)
   }

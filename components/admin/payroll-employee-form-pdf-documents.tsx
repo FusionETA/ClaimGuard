@@ -557,6 +557,311 @@ export function FormPcb2IiPdfDocument(props: FormPcb2IiPdfDocumentProps) {
   )
 }
 
+// ─── 4. CP22A — Notification of cessation (private sector) ──────────────
+
+export type FormCp22aPdfDocumentProps = {
+  payload: EmployeeFormPayload
+  generatedAt: Date
+}
+
+/**
+ * CP22A — Notification of cessation of employment for private-sector
+ * employees subject to tax.
+ *
+ * Layout mirrors CP22A [Pin.1/2023]:
+ *
+ *   A. Particulars of employee who ceased / retired / died
+ *   B. Remuneration particulars (YTD up to cessation date)
+ *   C. Unreported income from preceding years
+ *   D. Other particulars (withheld amount, MTD paid, zakat, EPF)
+ *   E. Authorised officer declaration
+ *
+ * Cessation type, retirement type, gratuity, ESOS, VSS offer, and the
+ * "amount withheld pending tax clearance" are admin-entered at
+ * submission time — they render as labelled blank lines because we
+ * don't yet model those as schema fields.
+ *
+ * Submit at least 30 days before cessation (or 30 days after death).
+ */
+export function FormCp22aPdfDocument(props: FormCp22aPdfDocumentProps) {
+  const { payload } = props
+  const { employee, employer, year, ytd } = payload
+
+  const totalRemuneration =
+    ytd.grossSalary + ytd.bonusAndCommission + ytd.totalBik
+
+  // Cessation type — derive a sensible default from the archive
+  // reason. The admin can ink-edit the [X] before submitting if
+  // they're sure.
+  const reasonLower = (employee.archiveReason ?? "").toLowerCase()
+  const probablyRetired = /retir|persaraan|bersara/i.test(reasonLower)
+  const probablyDied = /died|kematian|meninggal/i.test(reasonLower)
+  const probablyCeased = !probablyRetired && !probablyDied
+
+  return (
+    <Document title={`CP22A ${employee.name}`} author={payload.organizationName}>
+      <Page size="A4" style={styles.page}>
+        <BrandHeader
+          payload={payload}
+          formCode="CP22A"
+          formCodeSub="Pin.1/2023"
+        />
+
+        <View style={styles.titleBlock}>
+          <Text style={styles.formTitle}>
+            NOTIFICATION OF CESSATION OF EMPLOYMENT (PRIVATE SECTOR)
+          </Text>
+          <Text style={styles.formSubtitle}>
+            Borang Pemberitahuan Pemberhentian Kerja (Swasta)
+          </Text>
+          <Text style={styles.formSubtitle}>
+            Subsection 83(3) of the Income Tax Act 1967
+          </Text>
+          <Text style={[styles.formSubtitle, { marginTop: 4 }]}>
+            Submit at least 30 days before cessation or within 30 days of death notification
+          </Text>
+        </View>
+
+        <Text style={styles.sectionHeader}>
+          A. Particulars of Employee Who Ceased / Retired / Died
+        </Text>
+        <KvRow label="1. Full name / Nama penuh" value={employee.name} />
+
+        <View style={[styles.kvRow, { marginTop: 4 }]}>
+          <Text style={styles.kvLabel}>
+            2. Type of cessation / Jenis pemberhentian
+          </Text>
+          <View style={{ flex: 6 }}>
+            <CheckOptions
+              options={[
+                {
+                  label: "Berhenti kerja / Ceased",
+                  selected: probablyCeased,
+                },
+                {
+                  label: "Bersara / Retired",
+                  selected: probablyRetired,
+                },
+                {
+                  label: "Meninggal dunia / Died",
+                  selected: probablyDied,
+                },
+              ]}
+            />
+          </View>
+        </View>
+
+        <KvRowDual
+          leftLabel="3. Date commenced / Tarikh mula bekerja"
+          leftValue={employee.joinDate ? fmtDate(employee.joinDate) : ""}
+          rightLabel="4. Date of cessation / Tarikh berhenti"
+          rightValue={employee.leaveDate ? fmtDate(employee.leaveDate) : ""}
+        />
+        <KvRow
+          label="5. Date employer received notice of death (death cases only)"
+          value=""
+        />
+
+        <View style={[styles.kvRow, { marginTop: 4 }]}>
+          <Text style={styles.kvLabel}>6. Type of retirement</Text>
+          <View style={{ flex: 6 }}>
+            <CheckOptions
+              options={[
+                { label: "Wajib / Mandatory", selected: false },
+                { label: "Pilihan / Optional", selected: false },
+              ]}
+            />
+          </View>
+        </View>
+
+        <View style={[styles.kvRow, { marginTop: 4 }]}>
+          <Text style={styles.kvLabel}>7. Tax borne by employer</Text>
+          <View style={{ flex: 6 }}>
+            <CheckOptions
+              options={[
+                { label: "Ya / Yes", selected: false },
+                { label: "Tidak / No", selected: true },
+              ]}
+            />
+          </View>
+        </View>
+
+        <View style={[styles.kvRow, { marginTop: 4 }]}>
+          <Text style={styles.kvLabel}>
+            8. Received offer of VSS / Skim pemberhentian
+          </Text>
+          <View style={{ flex: 6 }}>
+            <CheckOptions
+              options={[
+                { label: "Ya / Yes", selected: false },
+                { label: "Tidak / No", selected: false },
+              ]}
+            />
+          </View>
+        </View>
+
+        <KvRowDual
+          leftLabel="9. ID / passport no."
+          leftValue={employee.idNumber ?? ""}
+          rightLabel="10. Tax Identification No. (TIN)"
+          rightValue={employee.incomeTaxNumber ?? ""}
+        />
+        <KvRowDual
+          leftLabel="11. Date of birth"
+          leftValue={employee.dateOfBirth ? fmtDate(employee.dateOfBirth) : ""}
+          rightLabel="12. Marital status"
+          rightValue={
+            employee.maritalStatus
+              ? (MARITAL_STATUS_LABELS_BILINGUAL[employee.maritalStatus] ??
+                employee.maritalStatus)
+              : ""
+          }
+        />
+        <KvRowDual
+          leftLabel="13a. Number of qualifying children"
+          leftValue=""
+          rightLabel="13b. Total child-relief claim (RM)"
+          rightValue=""
+        />
+        <KvRow label="14. Spouse full name (if married)" value="" />
+        <KvRowDual
+          leftLabel="15. Employee telephone no."
+          leftValue={employee.phone ?? ""}
+          rightLabel="16b. Employee e-mail"
+          rightValue={employee.alternateEmail ?? employee.email}
+        />
+        <KvRow
+          label="16a. Current correspondence address"
+          value={joinAddress([
+            employee.addressLine1,
+            employee.addressLine2,
+            employee.addressLine3,
+            [employee.postcode, employee.city]
+              .filter(Boolean)
+              .join(" ")
+              .trim() || null,
+            employee.state,
+          ])}
+        />
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginBottom: 4 }}>
+          17. Legal representative (for death cases) — name, ID, relationship,
+          address, phone. Fill in by hand if applicable.
+        </Text>
+
+        <Text style={styles.sectionHeader}>
+          B. Remuneration Particulars (YTD to Cessation Date) / Butir-butir Saraan
+        </Text>
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginBottom: 4 }}>
+          From 1 January {year} to{" "}
+          {employee.leaveDate ? fmtDate(employee.leaveDate) : "cessation date"}. RM.
+        </Text>
+        <AmtRow
+          label="1. Salary, wages, overtime"
+          amount={ytd.grossSalary}
+        />
+        <AmtRow
+          label="2-3. Leave pay / commission / bonus"
+          amount={ytd.bonusAndCommission}
+        />
+        <AmtRow label="4. Gratuity (incl. tax-exempt portion)" amount={null} />
+        <AmtRow
+          label="5. Compensation for loss of employment (incl. tax-exempt portion)"
+          amount={null}
+        />
+        <AmtRow label="6. Cash allowances incl. tax borne by employer" amount={null} />
+        <AmtRow label="7. Pension from employer" amount={null} />
+        <AmtRow label="8. BIK subject to tax" amount={ytd.totalBik} />
+        <AmtRow label="9. Value of employer-provided accommodation" amount={null} />
+        <AmtRow label="10. Allowances in kind (food, clothing, lodging, servants)" amount={null} />
+        <AmtRow label="11. Car and driver" amount={null} />
+        <AmtRow label="12. Other payments" amount={null} />
+        <AmtRow label="13. ESOS / ESPP share scheme benefits" amount={null} />
+        <AmtRow label="TOTAL / JUMLAH" amount={totalRemuneration} bold />
+
+        <Text style={styles.sectionHeader}>
+          C. Unreported Income from Preceding Years
+        </Text>
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginBottom: 4 }}>
+          Fill in by hand if any preceding-year income (e.g. backdated
+          bonus, arrears) was paid out in {year}.
+        </Text>
+        {[0, 1, 2].map((i) => (
+          <View key={i} style={styles.pcbTableRow}>
+            <Text style={{ flex: 2 }}>{i + 1}.</Text>
+            <Text style={{ flex: 3 }}>Type of Income</Text>
+            <Text style={{ flex: 2 }}>Period</Text>
+            <Text style={styles.colAmount}>Income (RM)</Text>
+            <Text style={styles.colAmount}>EPF (RM)</Text>
+          </View>
+        ))}
+
+        <Text style={styles.sectionHeader}>D. Other Particulars</Text>
+        <AmtRow
+          label="1. Amount withheld by employer pending tax clearance (RM)"
+          amount={null}
+        />
+        <AmtRow
+          label="2. Total MTD (PCB) paid to LHDNM this year"
+          amount={ytd.totalPcb}
+        />
+        <AmtRow label="3. Total zakat deducted this year" amount={ytd.totalZakat} />
+        <AmtRow
+          label="4. Employee EPF or approved-fund contributions"
+          amount={ytd.totalEpfEmployee}
+        />
+
+        <Text style={styles.sectionHeader}>E. Authorised Officer Declaration</Text>
+        <View style={styles.signatureBlock}>
+          <View style={styles.signatureCol}>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted }}>
+              Name / Nama:
+            </Text>
+            <Text style={styles.signatureLine}>
+              {employer.declarantName ?? ""}
+            </Text>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 6 }}>
+              Designation / Jawatan:
+            </Text>
+            <Text style={styles.signatureLine}>
+              {employer.declarantPosition ?? ""}
+            </Text>
+          </View>
+          <View style={styles.signatureCol}>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted }}>
+              E-mail address:
+            </Text>
+            <Text style={styles.signatureLine}>{employer.email ?? ""}</Text>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 6 }}>
+              Date / Tarikh:
+            </Text>
+            <Text style={styles.signatureLine}>{fmtDate(props.generatedAt)}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.closingNote}>
+          Generated by AltomateHR on {fmtDate(props.generatedAt)}.
+          Transcribe onto the official LHDN CP22A form before submission.
+          {" "}LHDN requires the final salary to be withheld for 90 days
+          OR until tax clearance is issued, whichever comes first — HR
+          handles the actual withholding outside the payroll system.
+        </Text>
+
+        <View style={styles.footer} fixed>
+          <Text>
+            CP22A · {employer.employerName ?? payload.organizationName} ·{" "}
+            {employee.name}
+          </Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `${pageNumber} / ${totalPages}`
+            }
+          />
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
 // ─── 3. TP3 — Handover to next employer (PCB/TP3) ───────────────────────
 
 export type FormTp3PdfDocumentProps = {
