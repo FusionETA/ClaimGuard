@@ -34,7 +34,7 @@ const createMemberSchema = z.object({
   name: z.string().min(2, "Employee name is required."),
   email: z.string().email("Enter a valid email address."),
   password: z.string().min(8, "Temporary password must be at least 8 characters."),
-  employeeId: z.string().min(2, "Employee ID is required."),
+  employeeId: z.string().min(1, "Employee ID is required."),
   role: z.enum(["EMPLOYEE", "SUPERVISOR"]),
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),

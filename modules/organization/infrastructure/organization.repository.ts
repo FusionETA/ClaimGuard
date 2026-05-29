@@ -8,6 +8,7 @@ import { parseAllowedCurrencies } from "@/lib/currencies"
 import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
 import { getXeroReauthVersion } from "@/lib/xero"
+import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 import { mapChartAccount } from "@/modules/organization/infrastructure/chart-account.mapper"
 import type {
   AdminOrganizationOption,
@@ -267,6 +268,110 @@ export const organizationRepository = {
     return options
   },
 
+  /**
+   * Seed the per-org defaults a brand-new tenant needs to be usable
+   * without the admin having to click through every Settings tab:
+   *
+   *   - Two `EmployeePolicy` rows ("Monthly Workers", "Hourly Workers").
+   *     The first one created (Monthly) becomes the org default via
+   *     `policyRepository.create`'s auto-default rule.
+   *   - One `XeroProject` named "<Org> Project (default)".
+   *   - One `Team` under that project, single-layer, named
+   *     "<Org> Team (default)".
+   *
+   * Idempotent on every aggregate: each block checks count first so
+   * re-runs (or calling from `upsertAdminOrganization` on update) are
+   * no-ops. Wrapped in try/catch so a partial seed never blocks org
+   * creation — the admin can still fix things from Settings.
+   */
+  async seedDefaultsForNewOrganization(
+    organizationId: string,
+    organizationName: string,
+  ): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) return
+    const trimmedName = organizationName.trim() || "Organization"
+
+    try {
+      const policyCount = await prisma.employeePolicy.count({
+        where: { organizationId },
+      })
+      if (policyCount === 0) {
+        const otRates = {
+          otRateNormalDay: 1.5,
+          otRateRestDay: 2.0,
+          otRatePublicHoliday: 3.0,
+          otRateRestDayInShift: 1.0,
+          otRatePublicHolidayInShift: 2.0,
+          otSalaryThreshold: null as number | null,
+          otDailyThresholdMinutes: 480,
+        }
+        const flags = {
+          canAccessAttendance: true,
+          canAccessClaims: true,
+          canAccessLeave: true,
+          otEnabled: true,
+          otMethod: "CASH" as const,
+          requireGeofence: true,
+          requireSelfie: false,
+          temporary: false,
+        }
+        // Create Monthly first so it becomes the auto-default policy.
+        await policyRepository.create({
+          organizationId,
+          name: "Monthly Workers",
+          salaryType: "MONTHLY_BASED",
+          ...flags,
+          ...otRates,
+        })
+        await policyRepository.create({
+          organizationId,
+          name: "Hourly Workers",
+          salaryType: "HOURLY",
+          ...flags,
+          ...otRates,
+        })
+      }
+
+      let projectId: string | null = null
+      const projectCount = await prisma.xeroProject.count({
+        where: { organizationId },
+      })
+      if (projectCount === 0) {
+        const project = await this.createManualProject({
+          organizationId,
+          name: `${trimmedName} Project (default)`,
+        })
+        projectId = project.id
+      } else {
+        const first = await prisma.xeroProject.findFirst({
+          where: { organizationId },
+          orderBy: { createdAt: "asc" },
+          select: { id: true },
+        })
+        projectId = first?.id ?? null
+      }
+
+      if (projectId) {
+        const teamCount = await prisma.team.count({
+          where: { project: { organizationId } },
+        })
+        if (teamCount === 0) {
+          await this.createTeam({
+            organizationId,
+            projectId,
+            name: `${trimmedName} Team (default)`,
+            layerCount: 1,
+          })
+        }
+      }
+    } catch (err) {
+      // Never block org creation on seeding — the admin can still fix
+      // any missing default from Settings.
+      console.warn("[seedDefaultsForNewOrganization] partial seed:", err)
+    }
+  },
+
   async createAdminOrganization(data: {
     adminId: string
     name: string
@@ -306,6 +411,8 @@ export const organizationRepository = {
         data: { organizationId: org.id },
       })
     }
+
+    await this.seedDefaultsForNewOrganization(org.id, org.name)
 
     return { id: org.id, name: org.name }
   },
@@ -447,6 +554,8 @@ export const organizationRepository = {
       },
       update: {},
     })
+
+    await this.seedDefaultsForNewOrganization(organization.id, organization.name)
 
     return mapOrganizationSummary(organization)!
   },
@@ -829,7 +938,7 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
         data: { name: input.organizationName },
         select: { id: true, name: true },
@@ -849,6 +958,12 @@ export const organizationRepository = {
 
       return { org, integration }
     })
+
+    // Seed defaults outside the tx so a seeding hiccup doesn't roll
+    // back the org + integration creation. The seeder is idempotent.
+    await this.seedDefaultsForNewOrganization(result.org.id, result.org.name)
+
+    return result
   },
 
   async updateOrganizationClaimCutoff(data: {
