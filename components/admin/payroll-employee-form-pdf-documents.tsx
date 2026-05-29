@@ -187,6 +187,27 @@ const MONTH_NAMES = [
   "December",
 ]
 
+const MARITAL_STATUS_LABELS_BILINGUAL: Record<string, string> = {
+  SINGLE: "Single / Bujang",
+  MARRIED: "Married / Berkahwin",
+  DIVORCED: "Divorced / Bercerai",
+  WIDOWED: "Widowed / Balu",
+  SEPARATED: "Separated / Berpisah",
+}
+
+const GENDER_LABELS_BILINGUAL: Record<string, string> = {
+  MALE: "Male / Lelaki",
+  FEMALE: "Female / Perempuan",
+  OTHER: "Other / Lain-lain",
+}
+
+const ID_TYPE_LABELS_BILINGUAL: Record<string, string> = {
+  NRIC: "NRIC / Kad Pengenalan",
+  PASSPORT: "Passport / Pasport",
+  ARMY_NO: "Army No. / No. Tentera",
+  POLICE_NO: "Police No. / No. Polis",
+}
+
 function fmtRm(v: number | null | undefined): string {
   if (v == null) return ""
   return new Intl.NumberFormat("en-MY", {
@@ -248,6 +269,106 @@ function KvRow(props: { label: string; value: string }) {
       <Text style={styles.kvValue}>{props.value || "—"}</Text>
     </View>
   )
+}
+
+/**
+ * Two-column KV row, used when LHDN's form lays out fields side by
+ * side (e.g. B12 Residential / B13 Correspondence on CP22).
+ */
+function KvRowDual(props: {
+  leftLabel: string
+  leftValue: string
+  rightLabel: string
+  rightValue: string
+}) {
+  return (
+    <View style={[styles.kvRow, { gap: 12 }]}>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: COLOURS.muted, fontSize: 8.5 }}>
+          {props.leftLabel}
+        </Text>
+        <Text style={{ fontFamily: "Helvetica-Bold", marginTop: 1 }}>
+          {props.leftValue || "—"}
+        </Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: COLOURS.muted, fontSize: 8.5 }}>
+          {props.rightLabel}
+        </Text>
+        <Text style={{ fontFamily: "Helvetica-Bold", marginTop: 1 }}>
+          {props.rightValue || "—"}
+        </Text>
+      </View>
+    </View>
+  )
+}
+
+/**
+ * Amount row used in the D-section remuneration breakdown on CP22 /
+ * CP22A / CP21. Left label, right RM amount. `bold` highlights the
+ * sub-total row.
+ */
+function AmtRow(props: {
+  label: string
+  amount: number | null
+  bold?: boolean
+}) {
+  const fmt = props.amount == null ? "" : fmtRm(props.amount)
+  return (
+    <View
+      style={[
+        styles.kvRow,
+        props.bold ? { borderTopWidth: 0.5, borderTopColor: COLOURS.rule } : {},
+      ]}
+    >
+      <Text
+        style={[
+          { flex: 5 },
+          props.bold ? { fontFamily: "Helvetica-Bold" } : {},
+        ]}
+      >
+        {props.label}
+      </Text>
+      <Text
+        style={[
+          { flex: 2, textAlign: "right" },
+          { fontFamily: "Helvetica-Bold" },
+        ]}
+      >
+        {fmt}
+      </Text>
+    </View>
+  )
+}
+
+/**
+ * Inline "[ ] Option A    [X] Option B" picker, used on CP22A / CP21
+ * for the Yes/No and Mandatory/Optional toggles. Selected option is
+ * drawn with a filled square; everything else stays empty.
+ */
+function CheckOptions(props: {
+  options: Array<{ label: string; selected: boolean }>
+}) {
+  return (
+    <View style={{ flexDirection: "row", gap: 14 }}>
+      {props.options.map((opt, i) => (
+        <Text key={i}>
+          {opt.selected ? "[X]" : "[ ]"} {opt.label}
+        </Text>
+      ))}
+    </View>
+  )
+}
+
+/**
+ * Multi-line address block — pulls together the address lines that
+ * exist, joined by line breaks. Empty when all parts are blank.
+ */
+function joinAddress(parts: Array<string | null | undefined>): string {
+  const cleaned = parts
+    .map((p) => (p ?? "").trim())
+    .filter((p) => p.length > 0)
+  return cleaned.length === 0 ? "" : cleaned.join("\n")
 }
 
 // ─── 1. PCB 2(II) — Statement of payment by employer ────────────────────
@@ -423,6 +544,243 @@ export function FormPcb2IiPdfDocument(props: FormPcb2IiPdfDocumentProps) {
         <View style={styles.footer} fixed>
           <Text>
             PCB 2(II) · {year} · {employer.employerName ?? payload.organizationName} ·{" "}
+            {employee.name}
+          </Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `${pageNumber} / ${totalPages}`
+            }
+          />
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
+// ─── 2. CP22 — Notification of new employee ─────────────────────────────
+
+export type FormCp22PdfDocumentProps = {
+  payload: EmployeeFormPayload
+  generatedAt: Date
+}
+
+/**
+ * CP22 — Notification by employer of new employee.
+ *
+ * LHDN-mandated within 30 days of the join date for any employee
+ * subject to tax. Layout mirrors CP22 [Pin.1/2021]:
+ *
+ *   A. Employer particulars (in BrandHeader)
+ *   B. New employee particulars (identification + contact + employment)
+ *   C. Spouse particulars (if married)
+ *   D. Monthly remuneration breakdown
+ *   E. Previous employer in Malaysia
+ *   F. Authorised officer declaration
+ *
+ * Fields like "Expected duration of employment" and "Nature of
+ * employment" are admin-entered and we don't store them — they render
+ * as labelled blank lines for HR to fill in by hand.
+ */
+export function FormCp22PdfDocument(props: FormCp22PdfDocumentProps) {
+  const { payload } = props
+  const { employee, employer } = payload
+
+  return (
+    <Document title={`CP22 ${employee.name}`} author={payload.organizationName}>
+      <Page size="A4" style={styles.page}>
+        <BrandHeader
+          payload={payload}
+          formCode="CP22"
+          formCodeSub="Pin.1/2021"
+        />
+
+        <View style={styles.titleBlock}>
+          <Text style={styles.formTitle}>
+            NOTIFICATION OF NEW EMPLOYEE BY EMPLOYER
+          </Text>
+          <Text style={styles.formSubtitle}>
+            Borang Pemberitahuan Oleh Majikan Bagi Pekerja Baharu
+          </Text>
+          <Text style={styles.formSubtitle}>
+            Subsection 83(2) of the Income Tax Act 1967
+          </Text>
+          <Text style={[styles.formSubtitle, { marginTop: 4 }]}>
+            Submit within 30 days from the date of commencement of employment
+          </Text>
+        </View>
+
+        <Text style={styles.sectionHeader}>
+          B. New Employee Particulars / Maklumat Pekerja Baharu
+        </Text>
+        <KvRow label="B1. Full name / Nama penuh" value={employee.name} />
+        <KvRowDual
+          leftLabel="B2. Income tax no. (TIN)"
+          leftValue={employee.incomeTaxNumber ?? ""}
+          rightLabel="B3. Identification no."
+          rightValue={employee.idNumber ?? ""}
+        />
+        <KvRowDual
+          leftLabel="B4. Current passport no."
+          leftValue={
+            employee.idType === "PASSPORT" ? (employee.idNumber ?? "") : ""
+          }
+          rightLabel="B5. Passport registered with IRBM"
+          rightValue=""
+        />
+        <KvRowDual
+          leftLabel="B6. Citizenship / Warganegara"
+          leftValue={employee.nationality ?? ""}
+          rightLabel="B7. Gender / Jantina"
+          rightValue={
+            employee.gender
+              ? (GENDER_LABELS_BILINGUAL[employee.gender] ?? employee.gender)
+              : ""
+          }
+        />
+        <KvRowDual
+          leftLabel="B8. Date of birth / Tarikh lahir"
+          leftValue={employee.dateOfBirth ? fmtDate(employee.dateOfBirth) : ""}
+          rightLabel="B9. Marital status / Status perkahwinan"
+          rightValue={
+            employee.maritalStatus
+              ? (MARITAL_STATUS_LABELS_BILINGUAL[employee.maritalStatus] ??
+                employee.maritalStatus)
+              : ""
+          }
+        />
+        <KvRowDual
+          leftLabel="B10. Telephone no."
+          leftValue={employee.phone ?? ""}
+          rightLabel="B11. E-mail"
+          rightValue={employee.alternateEmail ?? employee.email}
+        />
+        <KvRowDual
+          leftLabel="B12. Current residential address"
+          leftValue={joinAddress([
+            employee.addressLine1,
+            employee.addressLine2,
+            employee.addressLine3,
+            [employee.postcode, employee.city]
+              .filter(Boolean)
+              .join(" ")
+              .trim() || null,
+            employee.state,
+          ])}
+          rightLabel="B13. Correspondence address (same if blank)"
+          rightValue=""
+        />
+        <KvRowDual
+          leftLabel="B14. Commencement date"
+          leftValue={employee.joinDate ? fmtDate(employee.joinDate) : ""}
+          rightLabel="B15. Designation / Jawatan"
+          rightValue={employee.jobTitle ?? ""}
+        />
+        <KvRowDual
+          leftLabel="B16. Expected duration of employment"
+          leftValue=""
+          rightLabel="B17. Nature of employment / Jenis pekerjaan"
+          rightValue=""
+        />
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 3 }}>
+          B16/B17 are not tracked in payroll. Fill in by hand
+          (e.g. &quot;Permanent / Tetap&quot;, &quot;Contract / Kontrak&quot;).
+        </Text>
+
+        <Text style={styles.sectionHeader}>
+          C. Spouse Particulars (If Married) / Maklumat Suami Isteri
+        </Text>
+        <KvRow label="C1. Spouse full name" value="" />
+        <KvRowDual
+          leftLabel="C2. Spouse ID / passport no."
+          leftValue={employee.spouseIdNumber ?? ""}
+          rightLabel="C3. Spouse income tax no."
+          rightValue={employee.spousePcbNumber ?? ""}
+        />
+        <KvRow label="C4. Spouse telephone no." value="" />
+
+        <Text style={styles.sectionHeader}>
+          D. Monthly Remuneration / Maklumat Saraan Bulanan
+        </Text>
+        <AmtRow
+          label="D1. Salary, wages, overtime / Gaji, upah, kerja lebih masa"
+          amount={employee.monthlySalary}
+        />
+        <AmtRow label="D2. Leave pay / Gaji cuti" amount={null} />
+        <AmtRow label="D3. Commission and bonus / Komisen dan bonus" amount={null} />
+        <AmtRow
+          label="D4. Cash allowances incl. tax borne by employer"
+          amount={null}
+        />
+        <AmtRow
+          label="D5. Benefits-in-kind (BIK) subject to tax"
+          amount={null}
+        />
+        <AmtRow
+          label="D6. Value of employer-provided accommodation"
+          amount={null}
+        />
+        <AmtRow
+          label="D7. Allowances in kind (food, clothing, lodging, servants)"
+          amount={null}
+        />
+        <AmtRow label="D8. Other payments / Bayaran-bayaran lain" amount={null} />
+        <AmtRow
+          label="TOTAL / JUMLAH"
+          amount={employee.monthlySalary ?? 0}
+          bold
+        />
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 3 }}>
+          Only D1 is auto-filled from the employee&apos;s salary record.
+          Add D2–D8 by hand if applicable.
+        </Text>
+
+        <Text style={styles.sectionHeader}>
+          E. Previous Employer in Malaysia / Majikan Terdahulu
+        </Text>
+        <KvRow label="E1. Employer name" value="" />
+        <KvRow label="E2. Employer address" value="" />
+
+        <Text style={styles.sectionHeader}>
+          F. Authorised Officer Declaration / Akuan Pegawai
+        </Text>
+        <View style={styles.signatureBlock}>
+          <View style={styles.signatureCol}>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted }}>
+              Name / Nama:
+            </Text>
+            <Text style={styles.signatureLine}>
+              {employer.declarantName ?? ""}
+            </Text>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 6 }}>
+              ID / passport no.:
+            </Text>
+            <Text style={styles.signatureLine}>
+              {employer.declarantIdNumber ?? ""}
+            </Text>
+          </View>
+          <View style={styles.signatureCol}>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted }}>
+              Designation / Jawatan:
+            </Text>
+            <Text style={styles.signatureLine}>
+              {employer.declarantPosition ?? ""}
+            </Text>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 6 }}>
+              Date / Tarikh:
+            </Text>
+            <Text style={styles.signatureLine}>{fmtDate(props.generatedAt)}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.closingNote}>
+          Generated by AltomateHR on {fmtDate(props.generatedAt)}. Transcribe
+          onto the official LHDN CP22 form before submission. Submit
+          within 30 days of {employee.joinDate ? fmtDate(employee.joinDate) : "the commencement date"}.
+        </Text>
+
+        <View style={styles.footer} fixed>
+          <Text>
+            CP22 · {employer.employerName ?? payload.organizationName} ·{" "}
             {employee.name}
           </Text>
           <Text

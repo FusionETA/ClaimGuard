@@ -364,10 +364,12 @@ function LhdnFormButton(props: {
     kind: props.kind,
     isArchived: props.isArchived,
   })
-  // PCB2II is the only one implemented in this commit; the others land
-  // in follow-up commits. We still render their buttons so admins know
-  // what's coming, but mark them as not-yet-implemented.
-  const implemented = props.kind === "PCB2II"
+  // Each commit flips the relevant form's "implemented" flag once its
+  // renderer + service dispatch is wired up. Keep this list in sync
+  // with the switch in `generateEmployeeForm()` — buttons for unwired
+  // forms render as "Coming soon".
+  const implementedKinds: EmployeeFormKind[] = ["PCB2II", "CP22"]
+  const implemented = implementedKinds.includes(props.kind)
   const enabled = available && implemented
 
   const reason = !implemented
