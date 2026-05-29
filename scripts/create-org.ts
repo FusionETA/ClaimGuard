@@ -1,17 +1,22 @@
 /**
- * Create a new organisation + admin user, link them via
- * AdminOrganization, and seed the standard defaults (2 employee
- * policies + 1 project + 1 team).
+ * Create a new organisation + a primary user (OWNER by default), link
+ * them via AdminOrganization, and seed the standard defaults (2
+ * employee policies + 1 project + 1 team).
+ *
+ * Defaults to role OWNER because that's what a brand-new org's first
+ * user should be (OWNER is a superset of ADMIN — additional admins
+ * added later through the UI get plain ADMIN). Pass `--role ADMIN`
+ * to opt out.
  *
  * This is the canonical "give me a new org for testing" tool.
- * Idempotent: if the org/admin already exist, the script skips
+ * Idempotent: if the org/user already exist, the script skips
  * creation and just backfills any missing defaults.
  *
  * Usage:
  *   npx tsx scripts/create-org.ts \
  *     --org "Acme Inc" \
- *     --email admin@acme.test \
- *     --name "Acme Admin" \
+ *     --email owner@acme.test \
+ *     --name "Acme Owner" \
  *     --password "Acme12345!"
  *
  * All flags optional; defaults below.
@@ -38,6 +43,7 @@ function parseArgs(): {
   email: string
   name: string
   password: string
+  role: "OWNER" | "ADMIN"
 } {
   const argv = process.argv.slice(2)
   const get = (flag: string): string | undefined => {
@@ -47,11 +53,19 @@ function parseArgs(): {
     if (eq >= 0) return argv[i]!.slice(eq + 1)
     return argv[i + 1]
   }
+  // Default to OWNER — for a brand-new org we want the seed user to be
+  // the org's owner (a superset of ADMIN). Subsequent admins added
+  // through the UI get plain ADMIN.
+  const rawRole = (get("--role") ?? "OWNER").toUpperCase()
+  if (rawRole !== "OWNER" && rawRole !== "ADMIN") {
+    throw new Error(`--role must be OWNER or ADMIN, got "${rawRole}"`)
+  }
   return {
     orgName: get("--org") ?? "TestCo",
     email: get("--email") ?? "test@fusioneta.com",
-    name: get("--name") ?? "Test Admin",
+    name: get("--name") ?? "Test Owner",
     password: get("--password") ?? "Test12345!",
+    role: rawRole,
   }
 }
 
@@ -199,7 +213,7 @@ async function bustOrgConfigCaches(organizationId: string): Promise<void> {
 async function main() {
   const args = parseArgs()
   console.log(`Org:      ${args.orgName}`)
-  console.log(`Admin:    ${args.name} <${args.email}>`)
+  console.log(`${args.role}:    ${args.name} <${args.email}>`)
   console.log("")
 
   const config = getDatabaseConnectionConfig()
@@ -242,14 +256,14 @@ async function main() {
           name: args.name,
           email: args.email,
           passwordHash: hashPassword(args.password),
-          role: "ADMIN",
+          role: args.role,
           organizationId: org.id,
         },
         select: { id: true, email: true, organizationId: true },
       })
-      console.log(`Admin created:   ${admin.id} — ${admin.email}`)
+      console.log(`${args.role} created:   ${admin.id} — ${admin.email}`)
     } else {
-      console.log(`Admin exists:    ${admin.id} — ${admin.email}`)
+      console.log(`User exists:     ${admin.id} — ${admin.email}`)
       if (!admin.organizationId) {
         await prisma.user.update({
           where: { id: admin.id },
