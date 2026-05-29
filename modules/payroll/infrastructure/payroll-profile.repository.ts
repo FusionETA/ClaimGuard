@@ -325,7 +325,23 @@ export const payrollProfileRepository = {
     return rows
   },
 
-  async archive(employeeProfileId: string, reason: string): Promise<void> {
+  /**
+   * Archive an employee with a specific last-working-day date.
+   *
+   * `leaveDate` is the date the admin enters in the archive card. It's
+   * the employee's last day on payroll — the payroll calc engine reads
+   * this column to prorate the final pay run (e.g. someone with
+   * leaveDate = 20 May still gets paid for 1–20 May on the May run, and
+   * is excluded from June onwards).
+   *
+   * `archivedAt` is separately set to `now()` — it's the audit
+   * timestamp for "when did admin click archive", not the leave date.
+   */
+  async archive(
+    employeeProfileId: string,
+    reason: string,
+    leaveDate: Date,
+  ): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
     await prisma.payrollProfile.update({
@@ -334,10 +350,16 @@ export const payrollProfileRepository = {
         isArchived: true,
         archivedAt: new Date(),
         archiveReason: reason,
+        leaveDate,
       },
     })
   },
 
+  /**
+   * Restore an archived employee to active payroll. Also clears
+   * `leaveDate` since they're no longer leaving — otherwise the next
+   * run's proration would still think they're departing.
+   */
   async unarchive(employeeProfileId: string): Promise<void> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -347,6 +369,7 @@ export const payrollProfileRepository = {
         isArchived: false,
         archivedAt: null,
         archiveReason: null,
+        leaveDate: null,
       },
     })
   },

@@ -2321,19 +2321,43 @@ function ArchiveCard(props: {
             </Button>
           </form>
         ) : (
-          <form action={archiveAction} className="flex flex-wrap items-end gap-3">
+          <form action={archiveAction} className="space-y-3">
             <input type="hidden" name="userId" value={props.userId} hidden />
-            <Field label="Reason (optional)" className="flex-1 min-w-[240px]">
-              <Input name="reason" placeholder="Left company / contract ended" />
-            </Field>
-            <Button
-              type="submit"
-              variant="ghost"
-              className="text-destructive"
-              disabled={archivePending}
-            >
-              {archivePending ? "Archiving…" : "Archive from payroll"}
-            </Button>
+            <div className="flex flex-wrap items-end gap-3">
+              <Field label="Last working day" className="min-w-[180px]">
+                <Input
+                  name="leaveDate"
+                  type="date"
+                  required
+                  // Pre-fill from any existing leaveDate the admin set on
+                  // the Employment card, otherwise today. Admin can still
+                  // edit before submitting.
+                  defaultValue={
+                    props.profile.leaveDate ??
+                    new Date().toISOString().slice(0, 10)
+                  }
+                />
+              </Field>
+              <Field label="Reason (optional)" className="flex-1 min-w-[240px]">
+                <Input
+                  name="reason"
+                  placeholder="Left company / contract ended"
+                />
+              </Field>
+              <Button
+                type="submit"
+                variant="ghost"
+                className="text-destructive"
+                disabled={archivePending}
+              >
+                {archivePending ? "Archiving…" : "Archive from payroll"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              The final pay run is prorated to the last working day —
+              e.g. a 20 May leave date still pays for 1–20 May, then
+              excludes the employee from June onwards.
+            </p>
           </form>
         )}
       </CardContent>

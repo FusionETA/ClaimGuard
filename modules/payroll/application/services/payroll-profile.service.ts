@@ -204,6 +204,13 @@ export async function upsertPayrollProfile(input: {
 export async function archivePayrollProfile(input: {
   userId: string
   reason: string
+  /**
+   * Last day the employee is on payroll. The calc engine reads this
+   * to prorate the final pay run — e.g. leaveDate = 2026-05-20 means
+   * the May payslip is computed across 1–20 May only, and the
+   * employee is excluded from June+ runs.
+   */
+  leaveDate: Date
 }): Promise<void> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
@@ -223,7 +230,11 @@ export async function archivePayrollProfile(input: {
     throw new Error("Employee not found in this organisation.")
   }
 
-  await payrollProfileRepository.archive(user.employeeProfile.id, input.reason)
+  await payrollProfileRepository.archive(
+    user.employeeProfile.id,
+    input.reason,
+    input.leaveDate,
+  )
   await bustOrgConfigCaches({ organizationId: orgId })
   await bustPayrollCaches({ organizationId: orgId })
 }

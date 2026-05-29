@@ -443,10 +443,34 @@ export async function archivePayrollProfileAction(
 ): Promise<BaseFormState> {
   const userId = String(formData.get("userId") ?? "").trim()
   const reason = String(formData.get("reason") ?? "").trim()
+  // Last working day. Required — drives proration of the final
+  // payroll run. Browser `<input type="date">` posts ISO `YYYY-MM-DD`
+  // when set, "" otherwise.
+  const leaveDateRaw = String(formData.get("leaveDate") ?? "").trim()
   if (!userId) return { status: "error", message: "Missing employee id." }
+  if (!leaveDateRaw) {
+    return {
+      status: "error",
+      message: "Pick the employee's last working day before archiving.",
+    }
+  }
+  // Validate the date is parseable. `new Date('2026-05-20')` interprets
+  // the string in UTC, which is fine for a date-only value — the calc
+  // engine works in day units, not timestamps.
+  const leaveDate = new Date(leaveDateRaw)
+  if (Number.isNaN(leaveDate.getTime())) {
+    return {
+      status: "error",
+      message: "Last working day is not a valid date.",
+    }
+  }
 
   try {
-    await archivePayrollProfile({ userId, reason: reason || "Archived" })
+    await archivePayrollProfile({
+      userId,
+      reason: reason || "Archived",
+      leaveDate,
+    })
   } catch (err) {
     return {
       status: "error",
