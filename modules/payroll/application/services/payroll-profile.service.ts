@@ -228,6 +228,66 @@ export async function archivePayrollProfile(input: {
   await bustPayrollCaches({ organizationId: orgId })
 }
 
+/// Update the employee's primary (login) email. Validates that the new
+/// address is well-formed and unique across users — Prisma's unique
+/// constraint on `User.email` raises P2002 on collision, which we map
+/// to a friendly "Already in use" message so the form action can surface
+/// it as a toast. Same admin/org guard as the other helpers in this file.
+/// Returns `{ changed }` so the caller (the personal-tab action) can
+/// decide whether to revalidate aggressively.
+export async function updateEmployeeEmail(input: {
+  userId: string
+  newEmail: string
+}): Promise<{ changed: boolean }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    throw new Error("Session expired. Please log in again.")
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) throw new Error("No active organisation.")
+
+  const prisma = getPrismaClient()
+  if (!prisma) throw new Error("Database is not configured.")
+
+  // Normalise: strip whitespace + lower-case the local-part-and-domain
+  // so duplicate detection isn't case-sensitive. Login uses
+  // findUnique({ email }) so the stored value must match what the user
+  // will type — lower-case both sides.
+  const next = input.newEmail.trim().toLowerCase()
+  // Cheap RFC-5322-ish sanity check — the real validation already ran
+  // in the action's zod schema. This is a defensive backstop.
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next)) {
+    throw new Error("Email format looks invalid.")
+  }
+
+  const target = await prisma.user.findFirst({
+    where: { id: input.userId, organizationId: orgId },
+    select: { id: true, email: true },
+  })
+  if (!target) {
+    throw new Error("Employee not found in this organisation.")
+  }
+  if (target.email.toLowerCase() === next) {
+    return { changed: false }
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: target.id },
+      data: { email: next },
+    })
+  } catch (err) {
+    const code = (err as { code?: string }).code
+    if (code === "P2002") {
+      throw new Error("That email is already used by another user.")
+    }
+    throw err
+  }
+
+  await bustOrgConfigCaches({ organizationId: orgId })
+  return { changed: true }
+}
+
 export async function unarchivePayrollProfile(input: {
   userId: string
 }): Promise<void> {

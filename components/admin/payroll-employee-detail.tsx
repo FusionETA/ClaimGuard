@@ -236,6 +236,7 @@ export function PayrollEmployeeDetail(props: {
       {tab === "personal" && (
         <PersonalTab
           userId={props.userId}
+          email={props.identity.email}
           // Pass the LIVE mirror so the tab's own inline red helpers
           // also update as the admin types — not just the tab pill.
           profile={liveProfile}
@@ -331,6 +332,10 @@ function TabPill({
 
 function PersonalTab(props: {
   userId: string
+  /// Current primary (login) email. Rendered as an editable field below
+  /// — admins can change it; uniqueness is enforced server-side via the
+  /// `User.email` unique constraint.
+  email: string
   profile: PayrollProfileData | null
   /// Fires on every input/select change so the parent can mirror form
   /// values in state and update the tab-pill highlight live.
@@ -416,6 +421,18 @@ function PersonalTab(props: {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
+          <Field label="Email (login)">
+            <Input
+              name="email"
+              type="email"
+              defaultValue={props.email}
+              required
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Used to sign in. Changing it logs the employee out at next
+              session; the current session stays valid.
+            </p>
+          </Field>
           <Field label="Phone">
             <Input
               name="phone"

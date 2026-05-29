@@ -24,6 +24,7 @@ import { SALARY_CHANGE_REASONS } from "@/modules/payroll/domain/salary-change"
 import {
   archivePayrollProfile,
   unarchivePayrollProfile,
+  updateEmployeeEmail,
   upsertPayrollProfile,
 } from "@/modules/payroll/application/services/payroll-profile.service"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
@@ -40,6 +41,14 @@ import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-
 // ─── Personal tab ─────────────────────────────────────────────────────────
 
 const personalSchema = z.object({
+  /// Primary (login) email. Required + validated here; persistence is
+  /// split into a separate `updateEmployeeEmail` service call inside the
+  /// action because this field lives on `User`, not `PayrollProfile`.
+  email: z
+    .string()
+    .trim()
+    .min(1, "Email is required.")
+    .email("Enter a valid email."),
   phone: nullableString(),
   alternateEmail: nullableEmail(),
   gender: nullableEnum(genders),
@@ -79,6 +88,7 @@ export async function savePayrollPersonalAction(
   }
 
   const parsed = personalSchema.safeParse({
+    email: formData.get("email"),
     phone: formData.get("phone"),
     alternateEmail: formData.get("alternateEmail"),
     gender: formData.get("gender"),
@@ -115,11 +125,16 @@ export async function savePayrollPersonalAction(
   // Parse child relief from repeated form fields child0.age / child0.abilityStatus / ...
   const childRelief = parseChildReliefFromForm(formData)
 
+  // Strip `email` from the PayrollProfile patch — it lives on `User`
+  // and is persisted via the separate `updateEmployeeEmail` service
+  // below. The rest of `parsed.data` is shaped for PayrollProfile.
+  const { email: newEmail, ...payrollPatch } = parsed.data
+
   try {
     await upsertPayrollProfile({
       userId,
       patch: {
-        ...parsed.data,
+        ...payrollPatch,
         childRelief,
       },
     })
@@ -127,6 +142,20 @@ export async function savePayrollPersonalAction(
     return {
       status: "error",
       message: safeErrorMessage(err, "Could not save profile."),
+    }
+  }
+
+  // Persist the email change on User. Catches the friendly "already in
+  // use" message from the service when the new address collides with
+  // another user — that path returns an error toast without rolling
+  // back the PayrollProfile save (the profile data is still valid; only
+  // the email field is what wasn't accepted).
+  try {
+    await updateEmployeeEmail({ userId, newEmail })
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not update email."),
     }
   }
 
