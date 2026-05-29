@@ -1,7 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react"
-import { ArrowRight, Plus, Trash2 } from "lucide-react"
+import { ArrowRight, History, Plus, Trash2 } from "lucide-react"
 
 import {
   archivePayrollProfileAction,
@@ -1142,6 +1142,10 @@ function EmploymentTab(props: {
   //      classify as Typo (no audit row) or Real change (with reason
   //      + effective date + notes). The form submits after they pick.
   const [salaryDialogOpen, setSalaryDialogOpen] = useState(false)
+  // Read-only viewer for the existing salary change history.
+  // Distinct from `salaryDialogOpen` (which prompts admin to classify
+  // a NEW change before saving).
+  const [salaryHistoryOpen, setSalaryHistoryOpen] = useState(false)
   const [salaryChangeKind, setSalaryChangeKind] = useState<
     "TYPO" | SalaryChangeReason | null
   >(null)
@@ -1310,7 +1314,15 @@ function EmploymentTab(props: {
             )}
           </Field>
           {salaryType === "MONTHLY" ? (
-            <Field label="Monthly salary (MYR)">
+            <Field
+              label="Monthly salary (MYR)"
+              labelAction={
+                <SalaryHistoryButton
+                  count={props.salaryHistory.length}
+                  onClick={() => setSalaryHistoryOpen(true)}
+                />
+              }
+            >
               <Input
                 name="monthlySalary"
                 type="number"
@@ -1327,7 +1339,15 @@ function EmploymentTab(props: {
               ) : null}
             </Field>
           ) : (
-            <Field label="Hourly rate (MYR)">
+            <Field
+              label="Hourly rate (MYR)"
+              labelAction={
+                <SalaryHistoryButton
+                  count={props.salaryHistory.length}
+                  onClick={() => setSalaryHistoryOpen(true)}
+                />
+              }
+            >
               <Input
                 name="hourlyRate"
                 type="number"
@@ -1507,6 +1527,12 @@ function EmploymentTab(props: {
       <PayrollDocumentsCard
         userId={props.userId}
         documents={props.profile?.payrollDocuments ?? []}
+      />
+
+      <SalaryHistoryDialog
+        open={salaryHistoryOpen}
+        onOpenChange={setSalaryHistoryOpen}
+        history={props.salaryHistory}
       />
 
       <SalaryChangeDialog
@@ -2598,14 +2624,23 @@ function Field({
   label,
   children,
   className,
+  labelAction,
 }: {
   label: string
   children: React.ReactNode
   className?: string
+  /// Optional render-prop slot for a trailing element in the label
+  /// row (e.g. a "History" button next to the Monthly salary field).
+  /// Sits on the right edge of the label baseline so it doesn't
+  /// crowd the input below.
+  labelAction?: React.ReactNode
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <Label className="text-xs">{label}</Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label className="text-xs">{label}</Label>
+        {labelAction}
+      </div>
       {children}
     </div>
   )
@@ -2766,6 +2801,90 @@ function SalaryChangeDialog(props: {
  * Empty state: render nothing — admins don't need to see "no history
  * yet" noise on every new hire.
  */
+/**
+ * Tiny ghost button that sits next to the "Monthly salary" /
+ * "Hourly rate" label and opens the history dialog. Always visible
+ * (the dialog handles the empty state) so an admin can confirm
+ * whether changes exist without scrolling past the form.
+ */
+function SalaryHistoryButton(props: {
+  count: number
+  onClick: () => void
+}) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="h-7 gap-1.5 px-2 text-[11px] font-medium text-muted-foreground hover:text-foreground"
+      onClick={props.onClick}
+    >
+      <History className="h-3.5 w-3.5" />
+      History
+      {props.count > 0 ? (
+        <span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold text-foreground">
+          {props.count}
+        </span>
+      ) : null}
+    </Button>
+  )
+}
+
+/**
+ * Single salary-change row. Shared by `SalaryHistoryCard` (below the
+ * form, auto-hides when empty) and `SalaryHistoryDialog` (button-
+ * triggered, always shows even when empty). Keeping the row in one
+ * function guarantees the two viewers stay visually identical.
+ */
+function SalaryHistoryRow({ change }: { change: SalaryChangeData }) {
+  const pct = computeRaisePercent(change)
+  const oldText =
+    change.previousSalaryType === "MONTHLY"
+      ? `RM ${(change.previousMonthlySalary ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / mo`
+      : `RM ${(change.previousHourlyRate ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / hr`
+  const newText =
+    change.newSalaryType === "MONTHLY"
+      ? `RM ${(change.newMonthlySalary ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / mo`
+      : `RM ${(change.newHourlyRate ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / hr`
+  return (
+    <div className="rounded-2xl border border-border/70 bg-card p-3 text-sm">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div className="font-medium text-foreground">
+          {SALARY_CHANGE_REASON_LABELS[change.reason]}
+          <span className="ml-2 text-xs font-normal text-muted-foreground">
+            Effective {change.effectiveDate}
+          </span>
+        </div>
+        {pct !== null ? (
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+              pct >= 0
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                : "bg-destructive/15 text-destructive",
+            )}
+          >
+            {pct >= 0 ? "+" : ""}
+            {pct.toFixed(2)}%
+          </span>
+        ) : null}
+      </div>
+      <div className="mt-1 text-xs text-muted-foreground">
+        <span className="font-mono">{oldText}</span>
+        {" → "}
+        <span className="font-mono text-foreground">{newText}</span>
+      </div>
+      {change.notes ? (
+        <p className="mt-1 text-xs text-muted-foreground">{change.notes}</p>
+      ) : null}
+      <p className="mt-1 text-[11px] text-muted-foreground/80">
+        Recorded {new Date(change.createdAt).toLocaleDateString()} by{" "}
+        {change.changedByName ?? "system"}
+      </p>
+    </div>
+  )
+}
+
 function SalaryHistoryCard({ history }: { history: SalaryChangeData[] }) {
   if (history.length === 0) return null
 
@@ -2779,61 +2898,63 @@ function SalaryHistoryCard({ history }: { history: SalaryChangeData[] }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
-        {history.map((change) => {
-          const pct = computeRaisePercent(change)
-          const oldText =
-            change.previousSalaryType === "MONTHLY"
-              ? `RM ${(change.previousMonthlySalary ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / mo`
-              : `RM ${(change.previousHourlyRate ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / hr`
-          const newText =
-            change.newSalaryType === "MONTHLY"
-              ? `RM ${(change.newMonthlySalary ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / mo`
-              : `RM ${(change.newHourlyRate ?? 0).toLocaleString("en-MY", { minimumFractionDigits: 2 })} / hr`
-          return (
-            <div
-              key={change.id}
-              className="rounded-2xl border border-border/70 bg-card p-3 text-sm"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div className="font-medium text-foreground">
-                  {SALARY_CHANGE_REASON_LABELS[change.reason]}
-                  <span className="ml-2 text-xs font-normal text-muted-foreground">
-                    Effective {change.effectiveDate}
-                  </span>
-                </div>
-                {pct !== null ? (
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                      pct >= 0
-                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
-                        : "bg-destructive/15 text-destructive",
-                    )}
-                  >
-                    {pct >= 0 ? "+" : ""}
-                    {pct.toFixed(2)}%
-                  </span>
-                ) : null}
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                <span className="font-mono">{oldText}</span>
-                {" → "}
-                <span className="font-mono text-foreground">{newText}</span>
-              </div>
-              {change.notes ? (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {change.notes}
-                </p>
-              ) : null}
-              <p className="mt-1 text-[11px] text-muted-foreground/80">
-                Recorded {new Date(change.createdAt).toLocaleDateString()} by{" "}
-                {change.changedByName ?? "system"}
-              </p>
-            </div>
-          )
-        })}
+        {history.map((change) => (
+          <SalaryHistoryRow key={change.id} change={change} />
+        ))}
       </CardContent>
     </Card>
+  )
+}
+
+/**
+ * Salary history viewer launched from a button next to the salary
+ * input. Always available — even with zero changes — so admin can
+ * confirm "there's nothing here yet" rather than wondering whether
+ * the feature exists.
+ */
+function SalaryHistoryDialog(props: {
+  open: boolean
+  onOpenChange: (next: boolean) => void
+  history: SalaryChangeData[]
+}) {
+  return (
+    <Dialog open={props.open} onOpenChange={props.onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Salary history</DialogTitle>
+          <DialogDescription>
+            Audit trail of legitimate compensation changes. Typo
+            corrections are not listed here — only changes classified
+            as Raise, Promotion, Demotion, Cost-of-living etc. show
+            up.
+          </DialogDescription>
+        </DialogHeader>
+        {props.history.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border bg-muted/30 p-6 text-center text-sm text-muted-foreground">
+            No salary changes recorded yet.
+            <br />
+            The first time you save a new salary value, you&apos;ll be
+            asked to classify the change — that entry will then show
+            up here.
+          </p>
+        ) : (
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+            {props.history.map((change) => (
+              <SalaryHistoryRow key={change.id} change={change} />
+            ))}
+          </div>
+        )}
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => props.onOpenChange(false)}
+          >
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
