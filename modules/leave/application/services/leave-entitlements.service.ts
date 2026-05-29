@@ -7,6 +7,7 @@ import {
   getLeavePrismaClientSafe,
   leaveRepository,
 } from "@/modules/leave/infrastructure/leave-repository"
+import { attendanceRepository } from "@/modules/attendance/infrastructure/attendance.repository"
 
 /// Resolve the default entitlement days for an employee × leave type.
 /// Resolution order:
@@ -172,4 +173,93 @@ export async function resetEmployeeEntitlementToDefault(
 ) {
   const days = await resolveDefaultEntitledDays(employeeId, leaveTypeId)
   return setEmployeeEntitlement(employeeId, leaveTypeId, year, days)
+}
+
+/// Per-employee balance bundle used by the admin and supervisor list
+/// views. Carries enough identity info to render a row label without an
+/// extra round-trip.
+export type EmployeeLeaveBalances = {
+  userId: string
+  employeeProfileId: string
+  name: string
+  email: string
+  role: "EMPLOYEE" | "SUPERVISOR" | "ADMIN" | "OWNER"
+  jobTitle: string
+  balances: LeaveEntitlementView[]
+}
+
+/// All employees in an org with their leave balances for the given year.
+/// Admin view (`/admin/leave/balances`) consumes this. Iterates the
+/// per-employee balance fetcher so each row gets the same
+/// `ensureEntitlement` + availableDays computation it would as a single
+/// fetch — guaranteeing rows exist for every active leave type and
+/// avoiding "missing entitlement" gaps after the year rollover.
+export async function listAllEmployeeBalancesForOrg(
+  organizationId: string,
+  year: number,
+): Promise<EmployeeLeaveBalances[]> {
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return []
+
+  const employees = await prisma.employeeProfile.findMany({
+    where: {
+      user: { organizationId, role: { in: ["EMPLOYEE", "SUPERVISOR"] } },
+    },
+    select: {
+      id: true,
+      jobTitle: true,
+      user: { select: { id: true, name: true, email: true, role: true } },
+    },
+    orderBy: { user: { name: "asc" } },
+  })
+
+  return Promise.all(
+    employees.map(async (e) => ({
+      userId: e.user.id,
+      employeeProfileId: e.id,
+      name: e.user.name,
+      email: e.user.email,
+      role: e.user.role as EmployeeLeaveBalances["role"],
+      jobTitle: e.jobTitle,
+      balances: await listEmployeeBalances(e.id, year),
+    })),
+  )
+}
+
+/// Direct-reports view for supervisors. Returns balances only for the
+/// employees the supervisor is in the approval chain for (any module),
+/// reusing the existing `attendanceRepository.getTeamMemberIds()` lookup
+/// so "who reports to me" stays in one place. Returns [] when the
+/// supervisor has no direct reports configured.
+export async function listTeamBalancesForSupervisor(
+  supervisorUserId: string,
+  year: number,
+): Promise<EmployeeLeaveBalances[]> {
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return []
+
+  const memberIds = await attendanceRepository.getTeamMemberIds(supervisorUserId)
+  if (memberIds.length === 0) return []
+
+  const employees = await prisma.employeeProfile.findMany({
+    where: { userId: { in: memberIds } },
+    select: {
+      id: true,
+      jobTitle: true,
+      user: { select: { id: true, name: true, email: true, role: true } },
+    },
+    orderBy: { user: { name: "asc" } },
+  })
+
+  return Promise.all(
+    employees.map(async (e) => ({
+      userId: e.user.id,
+      employeeProfileId: e.id,
+      name: e.user.name,
+      email: e.user.email,
+      role: e.user.role as EmployeeLeaveBalances["role"],
+      jobTitle: e.jobTitle,
+      balances: await listEmployeeBalances(e.id, year),
+    })),
+  )
 }

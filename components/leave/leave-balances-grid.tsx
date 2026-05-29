@@ -1,0 +1,170 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import { Search } from "lucide-react"
+
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import type { EmployeeLeaveBalances } from "@/modules/leave/application/services/leave-entitlements.service"
+import { cn } from "@/lib/utils"
+
+type Props = {
+  /// All employees in scope (org-wide for admin; direct reports only for
+  /// supervisor). Pre-sorted by name from the service.
+  employees: EmployeeLeaveBalances[]
+  year: number
+  /// Optional: an explanatory empty-state message shown when `employees`
+  /// is []. Supervisor view uses this to say "you don't have any direct
+  /// reports" rather than the generic "no results".
+  emptyHint?: string
+}
+
+function formatDays(n: number): string {
+  // Half-days are stored as 0.5; everything else lands on integers.
+  if (n === 0) return "0"
+  if (Number.isInteger(n)) return String(n)
+  return n.toFixed(1)
+}
+
+export function LeaveBalancesGrid({ employees, year, emptyHint }: Props) {
+  const [query, setQuery] = useState("")
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return employees
+    return employees.filter(
+      (e) =>
+        e.name.toLowerCase().includes(q) ||
+        e.email.toLowerCase().includes(q) ||
+        e.jobTitle.toLowerCase().includes(q),
+    )
+  }, [employees, query])
+
+  if (employees.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <p className="text-sm font-semibold text-foreground">
+            No employees in scope
+          </p>
+          {emptyHint ? (
+            <p className="mt-1 text-xs text-muted-foreground">{emptyHint}</p>
+          ) : null}
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, email, or job title…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {filtered.length === employees.length
+            ? `${employees.length} employees`
+            : `${filtered.length} of ${employees.length}`}
+          {" · "}Year {year}
+        </p>
+      </div>
+
+      {filtered.length === 0 ? (
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              No employees match &ldquo;{query}&rdquo;.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((emp) => (
+            <Card key={emp.userId}>
+              <CardContent className="p-4">
+                <div className="mb-3 flex items-baseline justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-foreground">
+                      {emp.name}{" "}
+                      {emp.role === "SUPERVISOR" ? (
+                        <Badge
+                          variant="outline"
+                          className="ml-1 align-middle text-[10px]"
+                        >
+                          Supervisor
+                        </Badge>
+                      ) : null}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {emp.jobTitle}
+                      {emp.jobTitle ? " · " : ""}
+                      {emp.email}
+                    </p>
+                  </div>
+                </div>
+                {emp.balances.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    No leave types configured for this employee.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                    {emp.balances.map((b) => {
+                      const low =
+                        b.entitledDays > 0 &&
+                        b.availableDays / b.entitledDays < 0.25
+                      const usedAll =
+                        b.entitledDays > 0 && b.availableDays === 0
+                      return (
+                        <div
+                          key={b.id}
+                          className={cn(
+                            "rounded-lg border bg-surface-low/40 p-2.5",
+                            usedAll
+                              ? "border-destructive/40 bg-destructive/5"
+                              : low
+                                ? "border-amber-300/60 bg-amber-50/60"
+                                : "border-border/60",
+                          )}
+                        >
+                          <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            {b.leaveTypeName}
+                          </p>
+                          <p className="mt-0.5 text-base font-bold tabular-nums text-foreground">
+                            {b.paid
+                              ? formatDays(b.availableDays)
+                              : formatDays(b.usedDays)}
+                            <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+                              {b.paid
+                                ? `/ ${formatDays(b.entitledDays + b.carriedDays)} avail`
+                                : "used"}
+                            </span>
+                          </p>
+                          <p className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
+                            entitled {formatDays(b.entitledDays)}
+                            {b.carriedDays > 0
+                              ? ` · carried ${formatDays(b.carriedDays)}`
+                              : ""}
+                            {b.usedDays > 0 && b.paid
+                              ? ` · used ${formatDays(b.usedDays)}`
+                              : ""}
+                          </p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}

@@ -119,6 +119,7 @@ const adminNav: ReadonlyArray<AdminNavItem> = [
     icon: CalendarDays,
     children: [
       { href: "/admin/leave" as Route, label: "Overview" },
+      { href: "/admin/leave/balances" as Route, label: "Balances" },
       { href: "/admin/leave/settings" as Route, label: "Settings" },
     ],
   },
