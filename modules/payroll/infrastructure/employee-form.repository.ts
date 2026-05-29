@@ -1,6 +1,9 @@
 import "server-only"
 
 import { toNumber } from "@/lib/decimal"
+import { sumAllowances } from "@/modules/payroll/domain/calc"
+import type { ChildRelief, FixedAllowance } from "@/modules/payroll/domain/models"
+import { reliefForChild } from "@/modules/payroll/domain/pcb"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 
 /**
@@ -79,6 +82,25 @@ export type EmployeeFormPayload = {
     salaryType: "MONTHLY" | "HOURLY" | null
     monthlySalary: number | null
     hourlyRate: number | null
+    /// Whether PCB is borne by the employer rather than withheld from
+    /// the employee. Drives the CP22A "Tax borne by employer" toggle.
+    pcbBorneByEmployer: boolean
+    /// Sum of fixed monthly cash allowances from the JSON column.
+    /// Used in CP22 D4 / CP22A B6 ("Cash allowances incl. tax borne
+    /// by employer"). Null when no fixed allowances are configured.
+    fixedAllowancesTotal: number | null
+    /// Qualifying-children count (excludes children with
+    /// pcbDeduction = NONE). Drives CP22A line 13a.
+    qualifyingChildren: number
+    /// Annual child-relief amount (RM) computed via the PCB helper.
+    /// Drives CP22A line 13b. 0 when no qualifying children.
+    annualChildRelief: number
+    /// Carry-over figures from previous employment in the same tax
+    /// year. Used in CP22 Section E and as TP3 hints. Employer name +
+    /// address still admin-entered (not stored on PayrollProfile).
+    prevEmploymentYear: number | null
+    prevRemuneration: number | null
+    prevEpf: number | null
   }
   /// Per-month PCB / CP38 / zakat from this employee's payslips in the
   /// requested calendar year. Months without a SUBMITTED run are
@@ -197,6 +219,32 @@ export async function loadEmployeeFormPayload(input: {
   if (!user || !user.employeeProfile) return null
   const ep = user.employeeProfile
   const pp = ep.payrollProfile
+
+  // Compute child-relief aggregates from the JSON column. Mirrors the
+  // EA loader (`annual-shared.ts`) — children with `pcbDeduction = NONE`
+  // don't count toward the qualifying count.
+  let qualifyingChildren = 0
+  let annualChildRelief = 0
+  if (pp && Array.isArray(pp.childRelief)) {
+    const children = pp.childRelief as ChildRelief[]
+    for (const c of children) {
+      if (!c || typeof c !== "object") continue
+      if (c.pcbDeduction === "NONE") continue
+      qualifyingChildren += 1
+      annualChildRelief += reliefForChild(c)
+    }
+  }
+
+  // Sum recurring positive earnings from `fixedAllowances` JSON via
+  // the canonical helper. Same source the calc engine uses for monthly
+  // pay, so the figure matches what payslips actually pay out.
+  let fixedAllowancesTotal: number | null = null
+  if (pp && Array.isArray(pp.fixedAllowances)) {
+    const items = pp.fixedAllowances as FixedAllowance[]
+    if (items.length > 0) {
+      fixedAllowancesTotal = sumAllowances(items)
+    }
+  }
 
   // Build the per-month MTD/CP38/zakat array. Initialise with nulls so
   // months without a submitted run print as blank rows in the PCB2(II)
@@ -340,6 +388,13 @@ export async function loadEmployeeFormPayload(input: {
         null,
       monthlySalary: toNumber(pp?.monthlySalary, 0) ?? null,
       hourlyRate: toNumber(pp?.hourlyRate, 0) ?? null,
+      pcbBorneByEmployer: pp?.pcbBorneByEmployer ?? false,
+      fixedAllowancesTotal,
+      qualifyingChildren,
+      annualChildRelief,
+      prevEmploymentYear: pp?.prevEmploymentYear ?? null,
+      prevRemuneration: toNumber(pp?.prevRemuneration, 0) ?? null,
+      prevEpf: toNumber(pp?.prevEpf, 0) ?? null,
     },
     perMonth,
     year: input.year,

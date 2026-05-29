@@ -694,7 +694,10 @@ export function FormCp21PdfDocument(props: FormCp21PdfDocumentProps) {
           label="5. Compensation for loss of employment"
           amount={null}
         />
-        <AmtRow label="6. Cash allowances incl. tax borne by employer" amount={null} />
+        <AmtRow
+          label="6. Cash allowances incl. tax borne by employer"
+          amount={employee.fixedAllowancesTotal}
+        />
         <AmtRow label="7. Pension from employer" amount={null} />
         <AmtRow label="8. BIK subject to tax" amount={ytd.totalBik} />
         <AmtRow label="9. Value of employer-provided accommodation" amount={null} />
@@ -907,8 +910,8 @@ export function FormCp22aPdfDocument(props: FormCp22aPdfDocumentProps) {
           <View style={{ flex: 6 }}>
             <CheckOptions
               options={[
-                { label: "Ya / Yes", selected: false },
-                { label: "Tidak / No", selected: true },
+                { label: "Ya / Yes", selected: employee.pcbBorneByEmployer },
+                { label: "Tidak / No", selected: !employee.pcbBorneByEmployer },
               ]}
             />
           </View>
@@ -947,9 +950,17 @@ export function FormCp22aPdfDocument(props: FormCp22aPdfDocumentProps) {
         />
         <KvRowDual
           leftLabel="13a. Number of qualifying children"
-          leftValue=""
+          leftValue={
+            employee.qualifyingChildren > 0
+              ? String(employee.qualifyingChildren)
+              : ""
+          }
           rightLabel="13b. Total child-relief claim (RM)"
-          rightValue=""
+          rightValue={
+            employee.annualChildRelief > 0
+              ? fmtRm(employee.annualChildRelief)
+              : ""
+          }
         />
         <KvRow label="14. Spouse full name (if married)" value="" />
         <KvRowDual
@@ -996,7 +1007,10 @@ export function FormCp22aPdfDocument(props: FormCp22aPdfDocumentProps) {
           label="5. Compensation for loss of employment (incl. tax-exempt portion)"
           amount={null}
         />
-        <AmtRow label="6. Cash allowances incl. tax borne by employer" amount={null} />
+        <AmtRow
+          label="6. Cash allowances incl. tax borne by employer"
+          amount={employee.fixedAllowancesTotal}
+        />
         <AmtRow label="7. Pension from employer" amount={null} />
         <AmtRow label="8. BIK subject to tax" amount={ytd.totalBik} />
         <AmtRow label="9. Value of employer-provided accommodation" amount={null} />
@@ -1436,7 +1450,7 @@ export function FormCp22PdfDocument(props: FormCp22PdfDocumentProps) {
         <AmtRow label="D3. Commission and bonus / Komisen dan bonus" amount={null} />
         <AmtRow
           label="D4. Cash allowances incl. tax borne by employer"
-          amount={null}
+          amount={employee.fixedAllowancesTotal}
         />
         <AmtRow
           label="D5. Benefits-in-kind (BIK) subject to tax"
@@ -1453,12 +1467,15 @@ export function FormCp22PdfDocument(props: FormCp22PdfDocumentProps) {
         <AmtRow label="D8. Other payments / Bayaran-bayaran lain" amount={null} />
         <AmtRow
           label="TOTAL / JUMLAH"
-          amount={employee.monthlySalary ?? 0}
+          amount={
+            (employee.monthlySalary ?? 0) + (employee.fixedAllowancesTotal ?? 0)
+          }
           bold
         />
         <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 3 }}>
-          Only D1 is auto-filled from the employee&apos;s salary record.
-          Add D2–D8 by hand if applicable.
+          D1 (basic salary) and D4 (cash allowances from the
+          employee&apos;s recurring fixed allowances) are auto-filled.
+          Add D2, D3, D5–D8 by hand if applicable.
         </Text>
 
         <Text style={styles.sectionHeader}>
@@ -1466,6 +1483,24 @@ export function FormCp22PdfDocument(props: FormCp22PdfDocumentProps) {
         </Text>
         <KvRow label="E1. Employer name" value="" />
         <KvRow label="E2. Employer address" value="" />
+        {employee.prevEmploymentYear &&
+        (employee.prevRemuneration != null || employee.prevEpf != null) ? (
+          <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 3 }}>
+            On-file previous-employer carry-over for{" "}
+            {employee.prevEmploymentYear}:{" "}
+            {employee.prevRemuneration != null
+              ? `gross RM ${fmtRm(employee.prevRemuneration)}`
+              : ""}
+            {employee.prevRemuneration != null && employee.prevEpf != null
+              ? ", "
+              : ""}
+            {employee.prevEpf != null
+              ? `EPF RM ${fmtRm(employee.prevEpf)}`
+              : ""}
+            . Fill in the previous employer&apos;s name and address by
+            hand — only the YTD figures are stored on the profile.
+          </Text>
+        ) : null}
 
         <Text style={styles.sectionHeader}>
           F. Authorised Officer Declaration / Akuan Pegawai
