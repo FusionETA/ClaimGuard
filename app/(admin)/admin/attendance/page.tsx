@@ -438,7 +438,13 @@ function RollCallCard({
   showLateMeta?: boolean
 }) {
   return (
-    <Card>
+    // Nested inside an outer "Roll call" Card. Both the outer and the
+    // primitive Card default to `bg-card/94 backdrop-blur-sm`, and
+    // stacking two translucent + backdrop-blurred layers on the page's
+    // purple gradient triggers a Safari compositing bug (the gradient
+    // bleeds through as a dark purple band). Override to an opaque
+    // surface here so Safari + Chrome render the same.
+    <Card className="bg-card backdrop-blur-none dark:bg-card">
       <CardHeader className="flex-row items-center justify-between gap-3 pb-3">
         <div className="flex items-center gap-3">
           <div className={`rounded-2xl p-2.5 ${ACCENT_CLASSES[accent]}`}>
