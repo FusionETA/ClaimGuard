@@ -88,6 +88,12 @@ import {
   type PayrollDocument,
   type PayrollProfileData,
 } from "@/modules/payroll/domain/models"
+import {
+  EMPLOYEE_FORM_KINDS,
+  EMPLOYEE_FORM_META,
+  isEmployeeFormAvailable,
+  type EmployeeFormKind,
+} from "@/modules/payroll/domain/employee-forms"
 
 type Tab = "personal" | "employment" | "statutory" | "company"
 
@@ -268,7 +274,156 @@ export function PayrollEmployeeDetail(props: {
         <EmployeeCompanyForm {...props.company} />
       ) : null}
 
+      <LhdnFormsCard userId={props.userId} profile={props.profile} />
       <ArchiveCard userId={props.userId} profile={props.profile} />
+    </div>
+  )
+}
+
+/**
+ * LHDN Forms card — per-employee statutory PDFs generated on demand.
+ *
+ * The five forms surfaced here are independent of the org-wide annual
+ * forms tab (which handles Form EA / Form E / CP8D). These are the
+ * per-employee events: new-hire notification (CP22), cessation
+ * (CP22A), leaving Malaysia (CP21), handover to next employer (TP3),
+ * and the on-request PCB statement (PCB 2(II)).
+ *
+ * Buttons download directly via a plain `<a href download>` pointing
+ * at the API route; no client-side state mutation, no `<Link>` (which
+ * would hang on a file response with no RSC payload).
+ *
+ * Year picker only shows for forms whose `needsYearPicker` is true.
+ * Active/archived gating is enforced both in the UI (button disabled)
+ * AND server-side in `generateEmployeeForm` — UI is a hint, the
+ * service is the authority.
+ */
+function LhdnFormsCard(props: {
+  userId: string
+  profile: PayrollProfileData | null
+}) {
+  const [year, setYear] = useState<number>(new Date().getFullYear())
+  if (!props.profile) return null
+  const isArchived = props.profile.isArchived
+
+  return (
+    <Card className="border-border/40">
+      <CardHeader>
+        <CardTitle className="text-base">LHDN Forms</CardTitle>
+        <CardDescription>
+          Per-employee statutory PDFs. Each summarises the LHDN-required
+          fields in an AltomateHR layout — transcribe onto the official
+          LHDN form before submission, or paste values into e-PCB.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-end gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="lhdn-form-year" className="text-xs">
+              Year (for year-scoped forms)
+            </Label>
+            <Input
+              id="lhdn-form-year"
+              type="number"
+              min={2000}
+              max={2100}
+              step={1}
+              value={year}
+              onChange={(e) => {
+                const next = Number.parseInt(e.target.value, 10)
+                if (Number.isFinite(next)) setYear(next)
+              }}
+              className="w-32"
+            />
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {EMPLOYEE_FORM_KINDS.map((kind) => (
+            <LhdnFormButton
+              key={kind}
+              kind={kind}
+              userId={props.userId}
+              year={year}
+              isArchived={isArchived}
+            />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function LhdnFormButton(props: {
+  kind: EmployeeFormKind
+  userId: string
+  year: number
+  isArchived: boolean
+}) {
+  const meta = EMPLOYEE_FORM_META[props.kind]
+  const available = isEmployeeFormAvailable({
+    kind: props.kind,
+    isArchived: props.isArchived,
+  })
+  // PCB2II is the only one implemented in this commit; the others land
+  // in follow-up commits. We still render their buttons so admins know
+  // what's coming, but mark them as not-yet-implemented.
+  const implemented = props.kind === "PCB2II"
+  const enabled = available && implemented
+
+  const reason = !implemented
+    ? "Coming soon"
+    : !available
+      ? meta.requires === "ARCHIVED_ONLY"
+        ? "Available after archiving"
+        : "Available only for active employees"
+      : null
+
+  const href = enabled
+    ? `/api/admin/payroll/employee-forms/${props.userId}?kind=${props.kind}&year=${props.year}`
+    : undefined
+
+  return (
+    <div
+      className={cn(
+        "rounded-lg border border-border/60 bg-card p-3",
+        enabled ? "" : "opacity-60",
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm">{meta.code}</span>
+            <Badge variant="outline" className="text-[10px]">
+              {meta.title}
+            </Badge>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {meta.description}
+          </p>
+          {reason ? (
+            <p className="mt-1.5 text-[11px] font-medium text-amber-600">
+              {reason}
+            </p>
+          ) : null}
+        </div>
+        <Button
+          asChild={enabled}
+          variant="outline"
+          size="sm"
+          disabled={!enabled}
+          className="shrink-0"
+        >
+          {enabled ? (
+            // Plain anchor — file downloads must not go through Next's
+            // <Link> (no RSC payload to mount = infinite "Rendering…").
+            <a href={href} download>
+              Download PDF
+            </a>
+          ) : (
+            <span>Download PDF</span>
+          )}
+        </Button>
+      </div>
     </div>
   )
 }
