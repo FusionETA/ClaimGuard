@@ -1002,7 +1002,13 @@ function RemarkPanel({
         onChange={(e) => onChange(e.target.value)}
         placeholder="e.g. Stuck in traffic, on-site at client office"
         rows={3}
-        className="mt-2 block w-full rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+        // 16px (`text-base`) on mobile prevents iOS Safari from
+        // auto-zooming the viewport when the textarea is focused —
+        // and Safari never zooms back out on blur, so a 14px input
+        // leaves the whole page stuck at the zoomed level after the
+        // user clicks Confirm/Cancel. Tighten back to 14px on sm+
+        // where the iOS rule doesn't apply.
+        className="mt-2 block w-full rounded-[14px] border border-amber-300 bg-white px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 sm:text-sm"
       />
       {error ? <p className="mt-1 text-xs font-semibold text-destructive">{error}</p> : null}
       <div className="mt-3 flex gap-2">
