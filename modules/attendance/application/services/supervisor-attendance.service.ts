@@ -86,17 +86,20 @@ export const supervisorAttendanceService = {
         // shows — push them an SSE event so the page hot-refreshes.
         refreshTargets.push(result.employeeUserId)
       }
+      // Bust the requesting employee's per-user attendance cache BEFORE
+      // publishing — otherwise the SSE message reaches the browser,
+      // fires `router.refresh()`, and the server hits Redis while the
+      // bust is still in flight, returning the cached "Waiting on
+      // supervisor" payload. The action layer only knows the
+      // supervisor's org id, so without this the employee's
+      // `user:{id}:attendance:dashboard:{date}` cache (60s TTL)
+      // survives the approval and the page would otherwise show the
+      // stale state until the TTL expires.
+      await bustAttendanceCaches({ employeeUserId: result.employeeUserId })
       await publishUserEvents(refreshTargets, {
         type: "refresh",
         scope: "attendance",
       })
-      // Bust the requesting employee's per-user attendance cache. The
-      // action layer only knows the supervisor's org id, so without this
-      // the employee's `user:{id}:attendance:dashboard:{date}` cache
-      // (60s TTL) survives the approval — `router.refresh()` on SSE
-      // re-renders the page with stale "Waiting on supervisor" state
-      // until the TTL expires. Busting here closes that gap.
-      await bustAttendanceCaches({ employeeUserId: result.employeeUserId })
       if (result.finalStatus !== "PENDING") {
         const approved = result.finalStatus === "APPROVED"
         await notify({
