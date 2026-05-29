@@ -156,4 +156,80 @@ export const apiIntegrationRepository = {
     })
     return { ok: result.count > 0 }
   },
+
+  /**
+   * List EVERY token across EVERY organisation. Joins the org name in
+   * so the internal admin page can show "token <name> · org <orgName>".
+   *
+   * Only the gated `/internal/api-scopes` page calls this — there is no
+   * tenant scoping by design (that's the whole point of the internal
+   * page). Don't call this from anywhere else.
+   */
+  async listAllTokensWithOrg(): Promise<
+    Array<
+      ApiIntegrationListItem & {
+        organizationId: string
+        organizationName: string
+      }
+    >
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return []
+
+    type Row = {
+      id: string
+      name: string
+      tokenPrefix: string
+      scopes: unknown
+      active: boolean
+      createdAt: Date
+      lastUsedAt: Date | null
+      organizationId: string
+      organization: { name: string }
+    }
+
+    const rows = (await prisma.apiIntegration.findMany({
+      orderBy: [
+        { organization: { name: "asc" } },
+        { createdAt: "desc" },
+      ],
+      include: { organization: { select: { name: true } } },
+    })) as Row[]
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      tokenPrefix: row.tokenPrefix,
+      scopes: Array.isArray(row.scopes)
+        ? row.scopes.filter(
+            (s: unknown): s is string => typeof s === "string",
+          )
+        : [],
+      active: row.active,
+      createdAt: row.createdAt.toISOString(),
+      lastUsedAt: row.lastUsedAt?.toISOString() ?? null,
+      organizationId: row.organizationId,
+      organizationName: row.organization.name,
+    }))
+  },
+
+  /**
+   * Overwrite the scope set on a single token (any org). Used by the
+   * internal admin page's per-token editor.
+   *
+   * The caller is responsible for validating the scope strings against
+   * `API_SCOPE_CATALOG` — this repo just persists what it's given.
+   */
+  async setScopes(input: {
+    integrationId: string
+    scopes: string[]
+  }): Promise<{ ok: boolean }> {
+    const prisma = getPrismaClient()
+    if (!prisma) return { ok: false }
+    const result = await prisma.apiIntegration.updateMany({
+      where: { id: input.integrationId },
+      data: { scopes: input.scopes },
+    })
+    return { ok: result.count > 0 }
+  },
 }
