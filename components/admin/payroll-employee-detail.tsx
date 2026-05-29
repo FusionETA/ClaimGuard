@@ -364,17 +364,10 @@ function LhdnFormButton(props: {
     kind: props.kind,
     isArchived: props.isArchived,
   })
-  // Each commit flips the relevant form's "implemented" flag once its
-  // renderer + service dispatch is wired up. Keep this list in sync
-  // with the switch in `generateEmployeeForm()` — buttons for unwired
-  // forms render as "Coming soon".
-  const implementedKinds: EmployeeFormKind[] = [
-    "PCB2II",
-    "CP22",
-    "TP3",
-    "CP22A",
-  ]
-  const implemented = implementedKinds.includes(props.kind)
+  // All five forms are now wired up end-to-end. `implemented` stays
+  // as an explicit flag so we can flip it back off here if a renderer
+  // ever needs to be reverted without ripping out the UI plumbing.
+  const implemented = true
   const enabled = available && implemented
 
   const reason = !implemented

@@ -9,6 +9,7 @@ import {
   isEmployeeFormAvailable,
 } from "@/modules/payroll/domain/employee-forms"
 import { loadEmployeeFormPayload } from "@/modules/payroll/infrastructure/employee-form.repository"
+import { renderFormCp21Pdf } from "@/modules/payroll/application/services/report-renderers/form-cp21-pdf"
 import { renderFormCp22Pdf } from "@/modules/payroll/application/services/report-renderers/form-cp22-pdf"
 import { renderFormCp22aPdf } from "@/modules/payroll/application/services/report-renderers/form-cp22a-pdf"
 import { renderFormPcb2IiPdf } from "@/modules/payroll/application/services/report-renderers/form-pcb2ii-pdf"
@@ -96,9 +97,11 @@ export async function generateEmployeeForm(input: {
       })
       break
     case "CP21":
-      // The remaining form lands in the follow-up commit — guard rail
-      // so we don't ship a broken button that 500s.
-      throw new Error(`${input.kind} is not yet implemented.`)
+      buffer = await renderFormCp21Pdf({
+        userId: input.userId,
+        year: input.year,
+      })
+      break
   }
 
   return {

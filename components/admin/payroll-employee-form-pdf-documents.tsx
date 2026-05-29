@@ -557,6 +557,234 @@ export function FormPcb2IiPdfDocument(props: FormPcb2IiPdfDocumentProps) {
   )
 }
 
+// ─── 5. CP21 — Notification of employee leaving Malaysia ────────────────
+
+export type FormCp21PdfDocumentProps = {
+  payload: EmployeeFormPayload
+  generatedAt: Date
+}
+
+/**
+ * CP21 — Notification by employer of an employee leaving Malaysia for
+ * more than 3 months.
+ *
+ * Layout mirrors CP21 [Pin.1/2021]:
+ *
+ *   A. Employee particulars (10–14 are travel-specific)
+ *   B. Remuneration particulars (YTD up to expected departure)
+ *   C. Income of preceding years not declared
+ *   D. Other particulars (withheld, MTD, zakat, EPF)
+ *   E. Authorised officer declaration
+ *
+ * Travel-specific fields — expected departure date, place of birth,
+ * reason for departure, overseas correspondence address, expected
+ * return date — are admin-entered. They render as blank lines because
+ * we don't model passport/travel data in the payroll profile.
+ *
+ * Submit at least 30 days before the expected departure date.
+ */
+export function FormCp21PdfDocument(props: FormCp21PdfDocumentProps) {
+  const { payload } = props
+  const { employee, employer, year, ytd } = payload
+
+  const totalRemuneration =
+    ytd.grossSalary + ytd.bonusAndCommission + ytd.totalBik
+
+  return (
+    <Document title={`CP21 ${employee.name}`} author={payload.organizationName}>
+      <Page size="A4" style={styles.page}>
+        <BrandHeader
+          payload={payload}
+          formCode="CP21"
+          formCodeSub="Pin.1/2021"
+        />
+
+        <View style={styles.titleBlock}>
+          <Text style={styles.formTitle}>
+            NOTIFICATION OF EMPLOYEE&apos;S DEPARTURE FROM MALAYSIA
+          </Text>
+          <Text style={styles.formSubtitle}>
+            Borang Pemberitahuan Pekerja Yang Hendak Meninggalkan Malaysia
+          </Text>
+          <Text style={styles.formSubtitle}>
+            Subsection 83(4) of the Income Tax Act 1967
+          </Text>
+          <Text style={[styles.formSubtitle, { marginTop: 4 }]}>
+            Submit at least 30 days before expected date of departure
+          </Text>
+        </View>
+
+        <Text style={styles.sectionHeader}>
+          A. Employee Particulars / Butir-butir Pekerja
+        </Text>
+        <KvRow label="1. Full name / Nama Penuh" value={employee.name} />
+        <KvRowDual
+          leftLabel="2. Date commenced / Tarikh Mula Bekerja"
+          leftValue={employee.joinDate ? fmtDate(employee.joinDate) : ""}
+          rightLabel="3. Expected date to leave Malaysia"
+          rightValue=""
+        />
+        <KvRowDual
+          leftLabel="4. ID no. (IC / Police / Army / Passport)"
+          leftValue={employee.idNumber ?? ""}
+          rightLabel="5. Income tax no. (TIN)"
+          rightValue={employee.incomeTaxNumber ?? ""}
+        />
+        <KvRowDual
+          leftLabel="6. Citizenship / Warganegara"
+          leftValue={employee.nationality ?? ""}
+          rightLabel="7. Date of birth / Tarikh Lahir"
+          rightValue={employee.dateOfBirth ? fmtDate(employee.dateOfBirth) : ""}
+        />
+        <KvRowDual
+          leftLabel="8. Place of birth / Tempat Lahir"
+          leftValue=""
+          rightLabel="9. Nature of employment / Jenis Pekerjaan"
+          rightValue={employee.jobTitle ?? ""}
+        />
+        <KvRowDual
+          leftLabel="10. Telephone no."
+          leftValue={employee.phone ?? ""}
+          rightLabel="12. Reason for departure / Alasan Meninggalkan"
+          rightValue=""
+        />
+        <KvRow
+          label="11. Current address in Malaysia"
+          value={joinAddress([
+            employee.addressLine1,
+            employee.addressLine2,
+            employee.addressLine3,
+            [employee.postcode, employee.city]
+              .filter(Boolean)
+              .join(" ")
+              .trim() || null,
+            employee.state,
+          ])}
+        />
+        <KvRow
+          label="13. Correspondence address outside Malaysia"
+          value=""
+        />
+        <KvRow
+          label="14. If returning to Malaysia, expected date of return"
+          value=""
+        />
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 3 }}>
+          Lines 3, 8, 12–14 are travel-specific and not stored on the
+          payroll profile. Fill in by hand before submitting.
+        </Text>
+
+        <Text style={styles.sectionHeader}>
+          B. Remuneration Particulars / Butir-butir Saraan
+        </Text>
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginBottom: 4 }}>
+          If not returning, state emoluments + approved-fund
+          contributions for the year of departure ({year}). RM.
+        </Text>
+        <AmtRow
+          label="1. Salary, wages, overtime / Gaji, upah, kerja lebih masa"
+          amount={ytd.grossSalary}
+        />
+        <AmtRow
+          label="2-3. Leave pay / commission / bonus"
+          amount={ytd.bonusAndCommission}
+        />
+        <AmtRow label="4. Gratuity / Ganjaran" amount={null} />
+        <AmtRow
+          label="5. Compensation for loss of employment"
+          amount={null}
+        />
+        <AmtRow label="6. Cash allowances incl. tax borne by employer" amount={null} />
+        <AmtRow label="7. Pension from employer" amount={null} />
+        <AmtRow label="8. BIK subject to tax" amount={ytd.totalBik} />
+        <AmtRow label="9. Value of employer-provided accommodation" amount={null} />
+        <AmtRow label="10. Allowances in kind (food, clothing, lodging, servants)" amount={null} />
+        <AmtRow label="11. Other payments" amount={null} />
+        <AmtRow label="TOTAL / JUMLAH" amount={totalRemuneration} bold />
+
+        <Text style={styles.sectionHeader}>
+          C. Income of Preceding Years Not Declared
+        </Text>
+        <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginBottom: 4 }}>
+          Fill in by hand if any preceding-year income was paid out in {year}.
+        </Text>
+        {[0, 1, 2].map((i) => (
+          <View key={i} style={styles.pcbTableRow}>
+            <Text style={{ flex: 2 }}>{i + 1}.</Text>
+            <Text style={{ flex: 3 }}>Type of Income</Text>
+            <Text style={{ flex: 2 }}>Year for which Paid</Text>
+            <Text style={styles.colAmount}>Income (RM)</Text>
+            <Text style={styles.colAmount}>EPF (RM)</Text>
+          </View>
+        ))}
+
+        <Text style={styles.sectionHeader}>D. Other Particulars</Text>
+        <AmtRow
+          label="1. Amount withheld by employer pending tax clearance (RM)"
+          amount={null}
+        />
+        <AmtRow
+          label="2. Total MTD (PCB) paid to LHDNM this year"
+          amount={ytd.totalPcb}
+        />
+        <AmtRow label="3. Total zakat deducted this year" amount={ytd.totalZakat} />
+        <AmtRow
+          label="4. Employee EPF or approved-fund contributions"
+          amount={ytd.totalEpfEmployee}
+        />
+
+        <Text style={styles.sectionHeader}>E. Authorised Officer Declaration</Text>
+        <View style={styles.signatureBlock}>
+          <View style={styles.signatureCol}>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted }}>
+              Name / Nama:
+            </Text>
+            <Text style={styles.signatureLine}>
+              {employer.declarantName ?? ""}
+            </Text>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 6 }}>
+              Designation / Jawatan:
+            </Text>
+            <Text style={styles.signatureLine}>
+              {employer.declarantPosition ?? ""}
+            </Text>
+          </View>
+          <View style={styles.signatureCol}>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted }}>
+              E-mail address:
+            </Text>
+            <Text style={styles.signatureLine}>{employer.email ?? ""}</Text>
+            <Text style={{ fontSize: 8.5, color: COLOURS.muted, marginTop: 6 }}>
+              Date / Tarikh:
+            </Text>
+            <Text style={styles.signatureLine}>{fmtDate(props.generatedAt)}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.closingNote}>
+          Generated by AltomateHR on {fmtDate(props.generatedAt)}.
+          Transcribe onto the official LHDN CP21 form before submission.
+          {" "}LHDN requires the final salary to be withheld for 90 days
+          OR until tax clearance is issued, whichever comes first — HR
+          handles the actual withholding outside the payroll system.
+        </Text>
+
+        <View style={styles.footer} fixed>
+          <Text>
+            CP21 · {employer.employerName ?? payload.organizationName} ·{" "}
+            {employee.name}
+          </Text>
+          <Text
+            render={({ pageNumber, totalPages }) =>
+              `${pageNumber} / ${totalPages}`
+            }
+          />
+        </View>
+      </Page>
+    </Document>
+  )
+}
+
 // ─── 4. CP22A — Notification of cessation (private sector) ──────────────
 
 export type FormCp22aPdfDocumentProps = {
