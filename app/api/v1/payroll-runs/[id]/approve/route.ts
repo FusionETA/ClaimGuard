@@ -1,0 +1,140 @@
+import { NextResponse } from "next/server"
+import { z } from "zod"
+
+import { handleApiRequest } from "@/lib/api-auth"
+import { safeErrorMessage } from "@/lib/errors"
+import { isAdminRole } from "@/lib/auth/types"
+import { approvePayrollRunAsUser } from "@/modules/payroll/application/services/payroll-run.service"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+
+/**
+ * POST /api/v1/payroll-runs/[id]/approve
+ *
+ * Required scope: `payroll:write`.
+ *
+ * Body:
+ *   {
+ *     "approvedByUserId": "ckxxxxxxxxxxxxxxxxxx"
+ *   }
+ *
+ * Transitions the run PENDING_APPROVAL → SUBMITTED. The
+ * `approvedByUserId` is the human user that authorised the approval —
+ * the external system passes this back so the audit trail records a
+ * real person rather than an opaque API token. We validate the user:
+ *   1. exists in the integration's organisation
+ *   2. has role ADMIN or OWNER (the same gate the in-app UI uses)
+ *
+ * If the org has `syncPayrollToXeroOnSubmit` enabled, the journal post
+ * happens best-effort after the status flip — the run still ends up
+ * SUBMITTED even if Xero is unreachable. The Xero outcome is returned
+ * in the response so callers can surface it to their own users.
+ *
+ * Error responses:
+ *   400 — malformed body / missing approvedByUserId
+ *   404 — run not found in this org
+ *   403 — approvedByUserId not in this org, or not an admin/owner
+ *   409 — run is not in PENDING_APPROVAL state
+ *   500 — unexpected server error
+ */
+const bodySchema = z.object({
+  approvedByUserId: z
+    .string()
+    .trim()
+    .min(1, "approvedByUserId is required."),
+})
+
+export const POST = handleApiRequest<{ id: string }>(
+  ["payroll:write"],
+  async (request, ctx) => {
+    const { id: runId } = ctx.params
+
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        { error: { status: 400, message: "Invalid JSON body." } },
+        { status: 400 },
+      )
+    }
+    const parsed = bodySchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          error: {
+            status: 400,
+            message: "Validation failed.",
+            details: parsed.error.flatten(),
+          },
+        },
+        { status: 400 },
+      )
+    }
+
+    // Approver must be a real user in the integration's org. We accept
+    // ADMIN or OWNER — same gate the session-based UI applies via
+    // `isAdminRole`.
+    const approver = await organizationRepository.findOrgMemberById({
+      userId: parsed.data.approvedByUserId,
+      organizationId: ctx.integration.organizationId,
+    })
+    if (!approver) {
+      return NextResponse.json(
+        {
+          error: {
+            status: 403,
+            message:
+              "approvedByUserId does not belong to this organisation.",
+          },
+        },
+        { status: 403 },
+      )
+    }
+    if (!isAdminRole(approver.role)) {
+      return NextResponse.json(
+        {
+          error: {
+            status: 403,
+            message:
+              "approvedByUserId must be a user with ADMIN or OWNER role.",
+          },
+        },
+        { status: 403 },
+      )
+    }
+
+    try {
+      const result = await approvePayrollRunAsUser({
+        organizationId: ctx.integration.organizationId,
+        runId,
+        approverId: approver.id,
+      })
+      return NextResponse.json({
+        data: {
+          runId,
+          status: "SUBMITTED",
+          approvedBy: {
+            id: approver.id,
+            name: approver.name,
+            email: approver.email,
+            role: approver.role,
+          },
+          xeroSync: result.xeroSync ?? null,
+        },
+      })
+    } catch (err) {
+      const message = safeErrorMessage(err, "Could not approve this run.")
+      const lower = message.toLowerCase()
+      const status = lower.includes("not found")
+        ? 404
+        : lower.includes("awaiting approval") ||
+            lower.includes("only runs awaiting")
+          ? 409
+          : 500
+      return NextResponse.json(
+        { error: { status, message } },
+        { status },
+      )
+    }
+  },
+)

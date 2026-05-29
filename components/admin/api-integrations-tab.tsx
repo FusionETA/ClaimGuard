@@ -56,6 +56,8 @@ const SCOPE_DESCRIPTIONS: Record<ApiScope, string> = {
   "policies:read": "List & view employee policies",
   "policies:write": "Create, edit, archive employee policies",
   "approvals:write": "Approve / reject claims & attendance approvals",
+  "payroll:read": "List payroll runs, view run details, headcount",
+  "payroll:write": "Approve payroll runs (PENDING_APPROVAL → SUBMITTED)",
 }
 
 /**

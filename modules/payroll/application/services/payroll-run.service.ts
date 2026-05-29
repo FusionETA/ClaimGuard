@@ -371,21 +371,63 @@ export async function submitPayrollRunForApproval(input: {
  *   - `error`   → "Approved. Xero sync failed: <message>. [Retry]"
  *   - undefined → admin disabled Xero sync; run approved silently.
  */
-export async function approvePayrollRun(input: {
-  runId: string
-}): Promise<{
+export type ApprovePayrollRunResult = {
   xeroSync?:
     | { status: "synced"; manualJournalId: string; narration: string }
     | { status: "skipped"; message: string }
     | { status: "error"; message: string }
-}> {
+}
+
+export async function approvePayrollRun(input: {
+  runId: string
+}): Promise<ApprovePayrollRunResult> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
     throw new Error("Session expired. Please log in again.")
   }
   const orgId = resolveActiveOrgId(session)
   if (!orgId) throw new Error("No active organisation.")
+  return approvePayrollRunCore({
+    orgId,
+    runId: input.runId,
+    approverId: session.userId,
+  })
+}
 
+/**
+ * External-API variant of `approvePayrollRun`. Used by the partner
+ * endpoint `POST /api/v1/payroll-runs/[id]/approve` where the caller
+ * supplies the approving user's id (the `approvedByUserId` body field)
+ * in lieu of a session.
+ *
+ * The route handler must already have validated:
+ *   - `approverId` belongs to `organizationId`
+ *   - The user has role ADMIN or OWNER
+ * This service trusts those checks and just runs the same core flow.
+ */
+export async function approvePayrollRunAsUser(input: {
+  organizationId: string
+  runId: string
+  approverId: string
+}): Promise<ApprovePayrollRunResult> {
+  return approvePayrollRunCore({
+    orgId: input.organizationId,
+    runId: input.runId,
+    approverId: input.approverId,
+  })
+}
+
+/**
+ * Shared core for the two approval entry points. Validates that the
+ * run exists, is in PENDING_APPROVAL, flips it to SUBMITTED, busts
+ * caches, then best-effort-posts to Xero.
+ */
+async function approvePayrollRunCore(input: {
+  orgId: string
+  runId: string
+  approverId: string
+}): Promise<ApprovePayrollRunResult> {
+  const orgId = input.orgId
   const run = await payrollRunRepository.getByIdForOrg({
     id: input.runId,
     organizationId: orgId,
@@ -398,7 +440,7 @@ export async function approvePayrollRun(input: {
   await payrollRunRepository.approve({
     id: run.id,
     organizationId: orgId,
-    approvedById: session.userId,
+    approvedById: input.approverId,
   })
   // Bust early — Xero sync below also mutates the run (xeroSyncStatus),
   // and any errors there bust again. The early bust guarantees the
@@ -415,7 +457,7 @@ export async function approvePayrollRun(input: {
   // Best-effort Xero sync. Lazy-imported to keep the payroll-run
   // service light when Xero isn't configured.
   const settings = await payrollSettingsRepository.getByOrgId(orgId)
-  const result: Awaited<ReturnType<typeof approvePayrollRun>> = {}
+  const result: ApprovePayrollRunResult = {}
 
   // NOTE: Claims attached to this run are NO LONGER posted as separate
   // Xero bills here. They're reimbursements paid out *through* payroll,

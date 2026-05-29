@@ -1560,6 +1560,71 @@ export const organizationRepository = {
     return true
   },
 
+  /**
+   * Find a user by id, scoped to the given org. Used by external API
+   * endpoints that accept an `actingUserId` from the caller (e.g. the
+   * payroll-run approve endpoint) — we have to verify the user
+   * belongs to the integration's organisation before trusting them.
+   *
+   * Returns null when the user doesn't exist OR belongs to a
+   * different org. Both cases collapse to a single "user not found"
+   * response on the API surface to avoid leaking which-org-is-which.
+   */
+  async findOrgMemberById(input: {
+    userId: string
+    organizationId: string
+  }): Promise<{
+    id: string
+    name: string
+    email: string
+    role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER"
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const user = await prisma.user.findFirst({
+      where: { id: input.userId, organizationId: input.organizationId },
+      select: { id: true, name: true, email: true, role: true },
+    })
+    return user
+      ? {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role as "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER",
+        }
+      : null
+  },
+
+  /**
+   * Headcount of "active" employees in the org, used by the external
+   * `/api/v1/employees/active-count` endpoint.
+   *
+   * "Active" = EMPLOYEE or SUPERVISOR role, NOT archived from payroll.
+   * Specifically:
+   *   - Users without a PayrollProfile yet (just-added, pre-payroll
+   *     onboarding) count as active.
+   *   - Users with PayrollProfile.isArchived = true are EXCLUDED.
+   *
+   * The query uses `NOT { ... isArchived: true }` rather than the
+   * inverse OR clause because the negation naturally covers the
+   * "no profile" branch and reads cleanly.
+   */
+  async countActiveEmployees(organizationId: string): Promise<number> {
+    const prisma = getPrismaClient()
+    if (!prisma) return 0
+    return prisma.user.count({
+      where: {
+        organizationId,
+        role: { in: ["EMPLOYEE", "SUPERVISOR"] },
+        NOT: {
+          employeeProfile: {
+            payrollProfile: { isArchived: true },
+          },
+        },
+      },
+    })
+  },
+
   async createOrganizationMember(data: {
     name: string
     email: string

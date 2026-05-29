@@ -27,6 +27,13 @@ export const API_SCOPE_CATALOG = [
   "policies:read",
   "policies:write",
   "approvals:write",
+  // Payroll surface. `:read` covers active-employee count + payroll
+  // run list / detail. `:write` covers the PENDING_APPROVAL → SUBMITTED
+  // approval transition. Distinct from `employees:*` because an
+  // integration may legitimately want headcount without seeing dollar
+  // figures, or vice versa.
+  "payroll:read",
+  "payroll:write",
 ] as const
 
 export type ApiScope = (typeof API_SCOPE_CATALOG)[number]
