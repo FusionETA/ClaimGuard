@@ -304,7 +304,10 @@ function LhdnFormsCard(props: {
 }) {
   const [year, setYear] = useState<number>(new Date().getFullYear())
   if (!props.profile) return null
-  const isArchived = props.profile.isArchived
+  // Local capture — TS loses narrowing through the `.map()` closure
+  // below, so we pin the non-null profile here.
+  const profile = props.profile
+  const isArchived = profile.isArchived
 
   return (
     <Card className="border-border/40">
@@ -345,6 +348,7 @@ function LhdnFormsCard(props: {
               userId={props.userId}
               year={year}
               isArchived={isArchived}
+              joinDate={profile.joinDate}
             />
           ))}
         </div>
@@ -353,11 +357,63 @@ function LhdnFormsCard(props: {
   )
 }
 
+/**
+ * CP22 deadline tracker — LHDN requires submission within 30 days of
+ * the employee's commencement date. We compute the badge live from
+ * `joinDate` so admins see the urgency without opening a separate
+ * dashboard.
+ *
+ * Tones:
+ *   - green  > 7 days remaining
+ *   - amber  ≤ 7 days remaining (file ASAP)
+ *   - red    overdue 1–365 days
+ *   - grey   overdue > 365 days (file late if it slipped through)
+ *
+ * Returns `null` when the badge shouldn't render — no join date on
+ * file, or the date is unparseable.
+ */
+function computeCp22DeadlineBadge(joinDate: string | null): {
+  text: string
+  variant: "success" | "pending" | "rejected" | "outline"
+} | null {
+  if (!joinDate) return null
+  const join = new Date(joinDate)
+  if (Number.isNaN(join.getTime())) return null
+
+  const msPerDay = 24 * 60 * 60 * 1000
+  // Compute day-level difference, ignoring time-of-day. Floor to today
+  // start so "joined today" reads as day 0 (30 days remaining).
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const joinStart = new Date(join)
+  joinStart.setHours(0, 0, 0, 0)
+  const daysSinceJoin = Math.floor(
+    (todayStart.getTime() - joinStart.getTime()) / msPerDay,
+  )
+  const daysRemaining = 30 - daysSinceJoin
+
+  if (daysRemaining > 7) {
+    return { text: `Due in ${daysRemaining} days`, variant: "success" }
+  }
+  if (daysRemaining >= 0) {
+    return {
+      text: `Due in ${daysRemaining} day${daysRemaining === 1 ? "" : "s"}`,
+      variant: "pending",
+    }
+  }
+  const daysOverdue = -daysRemaining
+  if (daysOverdue > 365) {
+    return { text: "Overdue — file late", variant: "outline" }
+  }
+  return { text: `Overdue by ${daysOverdue} days`, variant: "rejected" }
+}
+
 function LhdnFormButton(props: {
   kind: EmployeeFormKind
   userId: string
   year: number
   isArchived: boolean
+  joinDate: string | null
 }) {
   const meta = EMPLOYEE_FORM_META[props.kind]
   const available = isEmployeeFormAvailable({
@@ -382,6 +438,14 @@ function LhdnFormButton(props: {
     ? `/api/admin/payroll/employee-forms/${props.userId}?kind=${props.kind}&year=${props.year}`
     : undefined
 
+  // CP22 is the only form with a hard LHDN deadline tied to a stored
+  // date (joinDate + 30 days). For the others, the timing is
+  // event-driven (cessation / departure / on-request) and badge-less.
+  const deadlineBadge =
+    props.kind === "CP22" && enabled
+      ? computeCp22DeadlineBadge(props.joinDate)
+      : null
+
   return (
     <div
       className={cn(
@@ -391,11 +455,19 @@ function LhdnFormButton(props: {
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-semibold text-sm">{meta.code}</span>
             <Badge variant="outline" className="text-[10px]">
               {meta.title}
             </Badge>
+            {deadlineBadge ? (
+              <Badge
+                variant={deadlineBadge.variant}
+                className="text-[10px] uppercase"
+              >
+                {deadlineBadge.text}
+              </Badge>
+            ) : null}
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
             {meta.description}
