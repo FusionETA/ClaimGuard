@@ -2719,12 +2719,17 @@ export const attendanceRepository = {
   },
 
   async countPendingApprovalsForSupervisor(supervisorId: string): Promise<number> {
-    const prisma = getClient()
-    const memberIds = await this.getTeamMemberIds(supervisorId)
-    if (memberIds.length === 0) return 0
-    return prisma.approvalRequest.count({
-      where: { employeeId: { in: memberIds }, status: "PENDING" },
-    })
+    // Delegate to the queue query so the count CANNOT diverge from what
+    // the supervisor actually sees. A naive
+    // `approvalRequest.count({ status: "PENDING" })` over team members
+    // counts requests that are pending the NEXT step's approvers too —
+    // leaving a stuck red dot when the supervisor's own queue is empty.
+    // The queue method applies the same multi-step chain filter
+    // (`currentStepApproverIds.includes(supervisorId)`) so this guarantees
+    // badge == queue length. Capped at 100 by the queue's `take` —
+    // acceptable for a sidebar badge.
+    const queue = await this.getPendingApprovalsForSupervisor(supervisorId)
+    return queue.length
   },
 
   async reviewApproval(
