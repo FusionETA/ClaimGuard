@@ -39,6 +39,18 @@ const createMemberSchema = z.object({
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
   policyId: z.string().min(1, "Employee policy is required."),
+  /// Mandatory for EMPLOYEE / SUPERVISOR so the forgot-password flow has
+  /// a WhatsApp delivery target. Stored on `PayrollProfile.phone` — the
+  /// repository auto-creates the PayrollProfile at member-creation time
+  /// with just this field set so the password-reset lookup works even
+  /// before payroll onboarding.
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Phone number is required (at least 7 digits).")
+    .refine((v) => v.replace(/\D/g, "").length >= 7, {
+      message: "Phone number must contain at least 7 digits.",
+    }),
 })
 
 /// Pull the per-project routing config out of FormData. Each project section
@@ -248,6 +260,7 @@ export async function createHierarchyMemberAction(
     role,
     organizationId: "",
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
+    phone: String(formData.get("phone") ?? "").trim(),
     xeroConnectionId: xeroConnectionId ?? "",
   }
   const session = await getCurrentSession()
@@ -299,6 +312,7 @@ export async function createHierarchyMemberAction(
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
       policyId: parsed.data.policyId,
+      phone: parsed.data.phone,
       projectAssignments,
     })
   } catch (error) {

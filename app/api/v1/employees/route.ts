@@ -69,6 +69,15 @@ const createEmployeeSchema = z.object({
   /// Required employee policy. Its salaryType and otMethod drive
   /// compensation/OT behavior.
   policyId: z.string().min(1, "Employee policy is required."),
+  /// Required: backs the forgot-password WhatsApp delivery. Stored on
+  /// `PayrollProfile.phone`.
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Phone number is required (at least 7 digits).")
+    .refine((v) => v.replace(/\D/g, "").length >= 7, {
+      message: "Phone number must contain at least 7 digits.",
+    }),
   projectIds: z.array(z.string()).default([]),
   projectAssignments: z.array(projectAssignmentSchema).default([]),
 })
@@ -130,6 +139,7 @@ export const POST = handleApiRequest(["employees:write"], async (request, ctx) =
       projectIds: parsed.data.projectIds,
       jobTitle: parsed.data.jobTitle,
       policyId: parsed.data.policyId,
+      phone: parsed.data.phone,
       projectAssignments: parsed.data.projectAssignments,
     })
   } catch (error) {

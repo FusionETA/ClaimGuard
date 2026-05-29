@@ -58,7 +58,7 @@ const COLUMNS: Column[] = [
   { key: "idType", required: false, description: "NRIC | PASSPORT | ARMY_NO | POLICE_NO" },
   { key: "idNumber", required: false, description: "Identification number" },
   { key: "alternateEmail", required: false, description: "Personal / alternate email" },
-  { key: "phone", required: false, description: "Contact phone" },
+  { key: "phone", required: true, description: "Contact phone — used for forgot-password WhatsApp code; at least 7 digits" },
   { key: "addressLine1", required: false, description: "Street address line 1" },
   { key: "addressLine2", required: false, description: "Street address line 2" },
   { key: "addressLine3", required: false, description: "Street address line 3" },

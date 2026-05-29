@@ -10,6 +10,9 @@ export type AddHierarchyMemberFormValues = HierarchyFormValues & {
   email: string
   employeeId: string
   password: string
+  /// Required for the forgot-password WhatsApp delivery. Stored on
+  /// `PayrollProfile.phone` server-side.
+  phone: string
 }
 
 export type HierarchyFormState = {
@@ -50,6 +53,7 @@ export function createInitialAddHierarchyMemberFormState(
       email: values?.email ?? "",
       employeeId: values?.employeeId ?? "",
       password: values?.password ?? "",
+      phone: values?.phone ?? "",
       role: values?.role ?? "EMPLOYEE",
       organizationId: values?.organizationId ?? "",
       jobTitle: values?.jobTitle ?? "",

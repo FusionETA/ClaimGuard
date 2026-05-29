@@ -137,6 +137,17 @@ function AddEmployeeDialog({ policies }: { policies: EmployeePolicy[] }) {
               required
             />
           </Labelled>
+          <Labelled label="Phone (for password reset)">
+            <Input
+              name="phone"
+              type="tel"
+              inputMode="tel"
+              defaultValue={state.values.phone}
+              disabled={pending}
+              placeholder="e.g. 0123456789"
+              required
+            />
+          </Labelled>
           <Labelled label="Temporary password">
             <Input
               name="password"

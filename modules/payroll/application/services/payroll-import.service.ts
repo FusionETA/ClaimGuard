@@ -174,7 +174,16 @@ const rowSchema = z
     idType: nullableEnum(idTypes),
     idNumber: nullableString,
     alternateEmail: nullableString,
-    phone: nullableString,
+    // Mandatory: backs the forgot-password WhatsApp delivery. Same
+    // validation as the Add-employee dialog — at least 7 digits after
+    // stripping non-digit characters.
+    phone: requiredString.pipe(
+      z
+        .string()
+        .refine((v) => v.replace(/\D/g, "").length >= 7, {
+          message: "Phone number must contain at least 7 digits",
+        }),
+    ),
     addressLine1: nullableString,
     addressLine2: nullableString,
     addressLine3: nullableString,

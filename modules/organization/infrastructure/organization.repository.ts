@@ -1572,6 +1572,12 @@ export const organizationRepository = {
     /// Employee policy assignment. Required: the policy's salaryType
     /// and otMethod drive compensation/OT behavior.
     policyId: string
+    /// Mandatory phone — used by the forgot-password WhatsApp delivery.
+    /// Stored on PayrollProfile.phone, which we eagerly create here even
+    /// though payroll-onboarding hasn't happened yet, so the
+    /// password-reset lookup works from day one. The rest of the
+    /// PayrollProfile stays empty until payroll enrollment.
+    phone: string
     /// One entry per project the employee belongs to. Each entry pins the
     /// employee to a team in that project at a specific layer, plus an
     /// explicit per-layer chain (one approver per layer above the
@@ -1727,6 +1733,13 @@ export const organizationRepository = {
     if (policy.archivedAt) {
       throw new Error("Selected employee policy is archived.")
     }
+    // Eagerly create the PayrollProfile so the forgot-password lookup
+    // (which traverses EmployeeProfile → PayrollProfile.phone) succeeds
+    // for newly-added employees who haven't been onboarded into payroll
+    // yet. Everything except `phone` stays empty/default — the run
+    // readiness checks still treat the profile as incomplete until
+    // payroll enrolment populates the rest of the fields.
+    const phoneTrimmed = data.phone.trim()
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -1755,6 +1768,24 @@ export const organizationRepository = {
                   },
                 }
               : {}),
+            payrollProfile: {
+              create: {
+                phone: phoneTrimmed,
+                // PayrollProfile requires `salaryType` and
+                // `payrollDocuments` on first create. Seed `salaryType`
+                // from the chosen policy so it matches what the admin
+                // selected; `payrollDocuments` is an empty JSON array
+                // until the admin uploads contracts during payroll
+                // onboarding. `monthlySalary` / `hourlyRate` stay null
+                // — the payroll-readiness service treats that as "not
+                // yet enrolled in payroll".
+                // EmployeePolicy.salaryType is the PayoutMethod enum
+                // (HOURLY | MONTHLY_BASED), while PayrollProfile.salaryType
+                // is the SalaryType enum (HOURLY | MONTHLY). Translate.
+                salaryType: policy.salaryType === "HOURLY" ? "HOURLY" : "MONTHLY",
+                payrollDocuments: [],
+              },
+            },
           },
         },
       },
