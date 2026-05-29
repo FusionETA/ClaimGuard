@@ -1,5 +1,6 @@
 import "server-only"
 
+import { bustAttendanceCaches } from "@/lib/cache-invalidation"
 import { publishUserEvents } from "@/lib/realtime"
 import { writeAuditByUserId } from "@/modules/audit/application/services/audit-log.service"
 import { notify } from "@/modules/notifications/application/services/notification.service"
@@ -89,6 +90,13 @@ export const supervisorAttendanceService = {
         type: "refresh",
         scope: "attendance",
       })
+      // Bust the requesting employee's per-user attendance cache. The
+      // action layer only knows the supervisor's org id, so without this
+      // the employee's `user:{id}:attendance:dashboard:{date}` cache
+      // (60s TTL) survives the approval — `router.refresh()` on SSE
+      // re-renders the page with stale "Waiting on supervisor" state
+      // until the TTL expires. Busting here closes that gap.
+      await bustAttendanceCaches({ employeeUserId: result.employeeUserId })
       if (result.finalStatus !== "PENDING") {
         const approved = result.finalStatus === "APPROVED"
         await notify({
