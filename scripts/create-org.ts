@@ -1,12 +1,11 @@
 /**
- * Create a new organisation + a primary user (OWNER by default), link
- * them via AdminOrganization, and seed the standard defaults (2
- * employee policies + 1 project + 1 team).
+ * Create a new organisation + its OWNER user, link them via
+ * AdminOrganization, and seed the standard defaults (2 employee
+ * policies + 1 project + 1 team).
  *
- * Defaults to role OWNER because that's what a brand-new org's first
- * user should be (OWNER is a superset of ADMIN — additional admins
- * added later through the UI get plain ADMIN). Pass `--role ADMIN`
- * to opt out.
+ * The seed user is always OWNER — that's what a brand-new org's first
+ * account should be. Subsequent ADMIN users belong to the in-app
+ * Settings UI, not to this script.
  *
  * This is the canonical "give me a new org for testing" tool.
  * Idempotent: if the org/user already exist, the script skips
@@ -43,7 +42,6 @@ function parseArgs(): {
   email: string
   name: string
   password: string
-  role: "OWNER" | "ADMIN"
 } {
   const argv = process.argv.slice(2)
   const get = (flag: string): string | undefined => {
@@ -53,19 +51,11 @@ function parseArgs(): {
     if (eq >= 0) return argv[i]!.slice(eq + 1)
     return argv[i + 1]
   }
-  // Default to OWNER — for a brand-new org we want the seed user to be
-  // the org's owner (a superset of ADMIN). Subsequent admins added
-  // through the UI get plain ADMIN.
-  const rawRole = (get("--role") ?? "OWNER").toUpperCase()
-  if (rawRole !== "OWNER" && rawRole !== "ADMIN") {
-    throw new Error(`--role must be OWNER or ADMIN, got "${rawRole}"`)
-  }
   return {
     orgName: get("--org") ?? "TestCo",
     email: get("--email") ?? "test@fusioneta.com",
     name: get("--name") ?? "Test Owner",
     password: get("--password") ?? "Test12345!",
-    role: rawRole,
   }
 }
 
@@ -213,7 +203,7 @@ async function bustOrgConfigCaches(organizationId: string): Promise<void> {
 async function main() {
   const args = parseArgs()
   console.log(`Org:      ${args.orgName}`)
-  console.log(`${args.role}:    ${args.name} <${args.email}>`)
+  console.log(`Owner:    ${args.name} <${args.email}>`)
   console.log("")
 
   const config = getDatabaseConnectionConfig()
@@ -256,12 +246,12 @@ async function main() {
           name: args.name,
           email: args.email,
           passwordHash: hashPassword(args.password),
-          role: args.role,
+          role: "OWNER",
           organizationId: org.id,
         },
         select: { id: true, email: true, organizationId: true },
       })
-      console.log(`${args.role} created:   ${admin.id} — ${admin.email}`)
+      console.log(`Owner created:   ${admin.id} — ${admin.email}`)
     } else {
       console.log(`User exists:     ${admin.id} — ${admin.email}`)
       if (!admin.organizationId) {
