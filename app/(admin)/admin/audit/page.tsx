@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
@@ -5,22 +6,40 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
 import { listAuditEntries } from "@/modules/audit/application/services/audit-log.service"
-import { OPERATIONAL_ACTION_PREFIXES } from "@/modules/audit/domain/models"
+import {
+  humanizeAuditAction,
+  OPERATIONAL_ACTION_PREFIXES,
+} from "@/modules/audit/domain/models"
 
-const PAGE_SIZE = 100
+const PAGE_SIZE = 15
 
 /**
  * /admin/audit — per-organization Activity log.
  *
- * Shows the last ~7 days of audit rows for the active org, newest first.
- * Retention is enforced by the daily prune cron at
- * /api/cron/audit-prune.
+ * Shows config-changing audit rows for the active org, newest first,
+ * 15 per page. Retention is 7 days enforced by the daily prune cron
+ * at /api/cron/audit-prune.
+ *
+ * Pagination is cursor-based on the repo: pass the last entry's `id`
+ * back as `?cursor=...` to get the next 15 older rows. We don't
+ * support jumping to an arbitrary page because cursor pagination
+ * over `(createdAt DESC, id DESC)` makes that expensive — instead
+ * we offer "Older →" and a "← Back to latest" reset link.
  */
-export default async function AdminAuditPage() {
+export default async function AdminAuditPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) redirect("/login")
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) redirect("/admin")
+
+  // Opaque cursor — last entry id from the previous page. Empty
+  // string / missing = first page (latest events).
+  const sp = await searchParams
+  const cursor = typeof sp.cursor === "string" ? sp.cursor : undefined
 
   // Operational events (claim / attendance / leave / payroll
   // approvals etc.) already have their own per-module log on each
@@ -29,10 +48,12 @@ export default async function AdminAuditPage() {
   // OAuth grants, password resets, etc. Operational events are still
   // WRITTEN to OrganizationAuditLog — they just don't show up in this
   // view.
-  const { entries } = await listAuditEntries(organizationId, {
+  const { entries, nextCursor } = await listAuditEntries(organizationId, {
     limit: PAGE_SIZE,
+    cursor,
     excludeActionPrefixes: [...OPERATIONAL_ACTION_PREFIXES],
   })
+  const onFirstPage = !cursor
 
   return (
     <div className="space-y-6">
@@ -52,8 +73,9 @@ export default async function AdminAuditPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Last {Math.min(PAGE_SIZE, entries.length)} event
-            {entries.length === 1 ? "" : "s"}
+            {onFirstPage
+              ? `Latest ${entries.length} event${entries.length === 1 ? "" : "s"}`
+              : `Older events (${entries.length})`}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -94,7 +116,9 @@ export default async function AdminAuditPage() {
                       </p>
                     ) : null}
                     <div className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground">
-                      <span className="font-mono">{e.action}</span>
+                      <span title={e.action /* raw code for forensics */}>
+                        {humanizeAuditAction(e.action)}
+                      </span>
                       <time
                         dateTime={e.createdAt}
                         className="shrink-0"
@@ -142,8 +166,21 @@ export default async function AdminAuditPage() {
                             {e.partnerInitiated ? " · partner API" : ""}
                           </p>
                         </td>
-                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                          {e.action}
+                        <td className="px-4 py-3">
+                          <p className="text-foreground">
+                            {humanizeAuditAction(e.action)}
+                          </p>
+                          {/* Raw module.verb code, surfaced small +
+                              monospaced so an auditor / Zi Rong can
+                              still grep by it. Tooltip keeps long
+                              codes readable without bloating the
+                              column. */}
+                          <p
+                            className="mt-0.5 font-mono text-[10px] text-muted-foreground/70"
+                            title={e.action}
+                          >
+                            {e.action}
+                          </p>
                         </td>
                         <td className="px-4 py-3">
                           <p className="text-foreground">{e.summary}</p>
@@ -169,6 +206,37 @@ export default async function AdminAuditPage() {
               </div>
             </>
           )}
+
+          {/* Cursor-based pagination footer. Hidden when neither
+              direction is available (everything fits on one page). */}
+          {(nextCursor || !onFirstPage) && entries.length > 0 ? (
+            <div className="flex items-center justify-between gap-2 border-t border-border/40 px-4 py-3">
+              {onFirstPage ? (
+                <span className="text-xs text-muted-foreground">
+                  Showing latest {entries.length}.
+                </span>
+              ) : (
+                <Link
+                  href="/admin/audit"
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  ← Back to latest
+                </Link>
+              )}
+              {nextCursor ? (
+                <Link
+                  href={`/admin/audit?cursor=${encodeURIComponent(nextCursor)}`}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Older →
+                </Link>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  Reached the end of the 7-day window.
+                </span>
+              )}
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </div>
