@@ -154,6 +154,22 @@ export async function saveOrganizationSettingsAction(
         }
   )
 
+  void writeAudit({
+    organizationId: organization.id,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "settings.org.update",
+    status: "SUCCESS",
+    summary: `Updated organization name to "${parsed.data.organizationName!}"`,
+    targetType: "organization",
+    targetId: organization.id,
+    metadata: { organizationName: parsed.data.organizationName },
+  })
+
   await revalidateAdminSurfaces(organizationId)
 
   return {
@@ -950,6 +966,22 @@ export async function saveClaimRunSettingsAction(
     claimCutoffDay: parsed.data.claimCutoffDay,
   })
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "settings.claim-run.update",
+    status: "SUCCESS",
+    summary: `Set claim-run cutoff to day ${parsed.data.claimCutoffDay} of the month`,
+    targetType: "organization",
+    targetId: organizationId,
+    metadata: { claimCutoffDay: parsed.data.claimCutoffDay },
+  })
+
   await revalidateAdminSurfaces(organizationId)
 
   return {
@@ -1006,6 +1038,25 @@ export async function saveCurrencySettingsAction(
     organizationId,
     allowedCurrencies: parsed.data.allowedCurrencies,
     defaultCurrency: parsed.data.defaultCurrency,
+  })
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "settings.currency.update",
+    status: "SUCCESS",
+    summary: `Set currencies: default ${parsed.data.defaultCurrency}; allowed ${parsed.data.allowedCurrencies.join(", ")}`,
+    targetType: "organization",
+    targetId: organizationId,
+    metadata: {
+      defaultCurrency: parsed.data.defaultCurrency,
+      allowedCurrencies: parsed.data.allowedCurrencies,
+    },
   })
 
   await revalidateAdminSurfaces(organizationId)
@@ -1075,6 +1126,25 @@ export async function saveMileageDefaultsAction(
       message: safeErrorMessage(error, "Unable to save mileage defaults."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "settings.mileage.update",
+    status: "SUCCESS",
+    summary: `Set default mileage rate to RM ${parsed.data.defaultMileageRate ?? 0}/${parsed.data.mileageUnit}`,
+    targetType: "organization",
+    targetId: organizationId,
+    metadata: {
+      defaultMileageRate: parsed.data.defaultMileageRate,
+      mileageUnit: parsed.data.mileageUnit,
+    },
+  })
 
   await revalidateAdminSurfaces(organizationId)
 
@@ -1284,6 +1354,22 @@ export async function saveOrgWorkingHoursAction(
     }
   }
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "settings.working-hours.update",
+    status: "SUCCESS",
+    summary: `Set org working hours to ${start}–${end}`,
+    targetType: "organization",
+    targetId: organizationId,
+    metadata: { start, end },
+  })
+
   await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Default working hours saved." }
 }
@@ -1314,6 +1400,22 @@ export async function saveOrgTimezoneAction(
     }
   }
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "settings.timezone.update",
+    status: "SUCCESS",
+    summary: `Set org timezone to ${timezone}`,
+    targetType: "organization",
+    targetId: organizationId,
+    metadata: { timezone },
+  })
+
   await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Timezone saved." }
 }
@@ -1336,6 +1438,21 @@ export async function toggleOrgOtAction(
       message: safeErrorMessage(error, "Unable to update OT setting."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: enabled ? "settings.ot.enable" : "settings.ot.disable",
+    status: "SUCCESS",
+    summary: enabled ? "Enabled organisation OT" : "Disabled organisation OT",
+    targetType: "organization",
+    targetId: organizationId,
+  })
 
   await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: enabled ? "Overtime enabled." : "Overtime disabled." }
@@ -1369,6 +1486,22 @@ export async function saveSupervisorReportSettingsAction(
     }
   }
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "settings.supervisor-reports.update",
+    status: "SUCCESS",
+    summary: `Supervisor reports ${enabled ? "enabled" : "disabled"} (SLA ${Math.round(slaMinutes)} min)`,
+    targetType: "organization",
+    targetId: organizationId,
+    metadata: { enabled, slaMinutes: Math.round(slaMinutes) },
+  })
+
   await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Supervisor report settings saved." }
 }
@@ -1397,6 +1530,22 @@ export async function saveGeofenceRadiusAction(
       message: safeErrorMessage(error, "Unable to update geofence radius."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "settings.geofence-radius.update",
+    status: "SUCCESS",
+    summary: `Set geofence radius to ${Math.round(meters)}m`,
+    targetType: "organization",
+    targetId: organizationId,
+    metadata: { meters: Math.round(meters) },
+  })
 
   await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: `Geofence radius set to ${Math.round(meters)} m.` }
