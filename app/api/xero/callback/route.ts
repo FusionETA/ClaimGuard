@@ -6,6 +6,7 @@ import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/l
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { getRequestOrigin } from "@/lib/request-origin"
 import { exchangeXeroCodeForTokens, getXeroTenants } from "@/lib/xero"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
 const XERO_STATE_COOKIE = "claimguard_xero_oauth_state"
@@ -152,6 +153,26 @@ export async function GET(request: NextRequest) {
       tokenType: tokenSet.tokenType,
       accessTokenExpiresAt: tokenSet.expiresAt,
       connectedByAdminId: session.userId,
+    })
+
+    void writeAudit({
+      organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "xero.connect",
+      status: "SUCCESS",
+      summary: `Connected Xero tenant "${tenant.tenantName}"${isFirstXeroConnect ? " (first connect — custom COA + projects disabled)" : ""}`,
+      targetType: "xero-tenant",
+      targetId: tenant.tenantId,
+      metadata: {
+        tenantName: tenant.tenantName,
+        tenantType: tenant.tenantType,
+        firstConnect: isFirstXeroConnect,
+      },
     })
 
     // On first Xero connect, disable any custom COA and projects so Xero takes over

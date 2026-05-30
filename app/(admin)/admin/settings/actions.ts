@@ -18,6 +18,7 @@ import { isKnownCurrency } from "@/lib/currencies"
 import type { XeroTenant } from "@/lib/xero"
 import { deleteXeroConnection } from "@/lib/xero"
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import {
   disconnectXeroConnection,
   setXeroTrackingCategoryForConnection,
@@ -647,7 +648,37 @@ export async function disconnectXeroAction(
   })
 
   if (result.ok) {
+      void writeAudit({
+        organizationId,
+        actor: {
+          userId: session.userId,
+          email: session.email,
+          name: session.name,
+          role: session.role,
+        },
+        action: "xero.disconnect",
+        status: "SUCCESS",
+        summary: "Disconnected Xero",
+        targetType: "xero-connection",
+        targetId: connectionId,
+      })
       await revalidateAdminSurfaces(organizationId)
+  } else {
+    void writeAudit({
+      organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "xero.disconnect",
+      status: "FAILED",
+      summary: "Tried to disconnect Xero",
+      errorReason: result.message,
+      targetType: "xero-connection",
+      targetId: connectionId,
+    })
   }
 
   return result
@@ -1929,12 +1960,42 @@ export async function createApiTokenAction(formData: FormData): Promise<{
       scopes: parsed.data.scopes as ApiScope[],
     })
   } catch (error) {
+    void writeAudit({
+      organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "api.token.create",
+      status: "FAILED",
+      summary: `Tried to mint API token "${parsed.data.name}"`,
+      errorReason: safeErrorMessage(error, "Unknown DB error"),
+      metadata: { prefix, scopes: parsed.data.scopes },
+    })
     return {
       ok: false,
       message:
         safeErrorMessage(error, "Could not create token."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "api.token.create",
+    status: "SUCCESS",
+    summary: `Minted API token "${parsed.data.name}" (${prefix}…)`,
+    targetType: "api-token",
+    targetId: prefix,
+    metadata: { scopes: parsed.data.scopes },
+  })
 
   await revalidateAdminSurfaces(organizationId)
 
@@ -1973,6 +2034,23 @@ export async function setApiTokenActiveAction(input: {
     return { ok: false, message: "Token not found." }
   }
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: input.active ? "api.token.enable" : "api.token.revoke",
+    status: "SUCCESS",
+    summary: input.active
+      ? "Re-enabled API token"
+      : "Revoked API token",
+    targetType: "api-token",
+    targetId: input.integrationId,
+  })
+
   await revalidateAdminSurfaces(organizationId)
   return {
     ok: true,
@@ -2004,6 +2082,21 @@ export async function deleteApiTokenAction(input: {
   if (!result.ok) {
     return { ok: false, message: "Token not found." }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "api.token.delete",
+    status: "SUCCESS",
+    summary: "Permanently deleted API token (audit logs preserved by cascade)",
+    targetType: "api-token",
+    targetId: input.integrationId,
+  })
 
   await revalidateAdminSurfaces(organizationId)
   return { ok: true, message: "Token deleted." }

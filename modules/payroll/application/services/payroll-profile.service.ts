@@ -11,6 +11,7 @@ import type {
   PayrollProfileData,
 } from "@/modules/payroll/domain/models"
 import type { SalaryChangeData } from "@/modules/payroll/domain/salary-change"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { payrollProfileRepository } from "@/modules/payroll/infrastructure/payroll-profile.repository"
 import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payroll-settings.repository"
 import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-change.repository"
@@ -235,6 +236,26 @@ export async function archivePayrollProfile(input: {
     input.reason,
     input.leaveDate,
   )
+
+  void writeAudit({
+    organizationId: orgId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "employee.archive",
+    status: "SUCCESS",
+    summary: `Archived employee (last working day ${input.leaveDate.toISOString().slice(0, 10)})${input.reason ? ` — ${input.reason}` : ""}`,
+    targetType: "user",
+    targetId: input.userId,
+    metadata: {
+      leaveDate: input.leaveDate.toISOString().slice(0, 10),
+      reason: input.reason,
+    },
+  })
+
   await bustOrgConfigCaches({ organizationId: orgId })
   await bustPayrollCaches({ organizationId: orgId })
 }
@@ -321,6 +342,22 @@ export async function unarchivePayrollProfile(input: {
   }
 
   await payrollProfileRepository.unarchive(user.employeeProfile.id)
+
+  void writeAudit({
+    organizationId: orgId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "employee.restore",
+    status: "SUCCESS",
+    summary: "Restored employee to active payroll",
+    targetType: "user",
+    targetId: input.userId,
+  })
+
   await bustOrgConfigCaches({ organizationId: orgId })
   await bustPayrollCaches({ organizationId: orgId })
 }

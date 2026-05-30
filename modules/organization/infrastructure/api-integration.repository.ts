@@ -223,13 +223,41 @@ export const apiIntegrationRepository = {
   async setScopes(input: {
     integrationId: string
     scopes: string[]
-  }): Promise<{ ok: boolean }> {
+  }): Promise<{
+    ok: boolean
+    /// The token's organisationId — needed by the caller to write an
+    /// audit row to the right org. Null when the token doesn't exist
+    /// (ok: false) or the DB isn't reachable.
+    organizationId: string | null
+    /// Existing scopes BEFORE the update. Used by the audit caller to
+    /// describe what changed (which scopes were granted vs revoked).
+    previousScopes: string[]
+  }> {
     const prisma = getPrismaClient()
-    if (!prisma) return { ok: false }
+    if (!prisma) return { ok: false, organizationId: null, previousScopes: [] }
+    // Load the existing row first so we can return the previous scopes
+    // + org context for the audit caller. Two queries instead of one is
+    // fine — this endpoint is admin-only and very low traffic.
+    const existing = await prisma.apiIntegration.findUnique({
+      where: { id: input.integrationId },
+      select: { organizationId: true, scopes: true },
+    })
+    if (!existing) {
+      return { ok: false, organizationId: null, previousScopes: [] }
+    }
     const result = await prisma.apiIntegration.updateMany({
       where: { id: input.integrationId },
       data: { scopes: input.scopes },
     })
-    return { ok: result.count > 0 }
+    const previousScopes = Array.isArray(existing.scopes)
+      ? (existing.scopes as unknown[]).filter(
+          (s): s is string => typeof s === "string",
+        )
+      : []
+    return {
+      ok: result.count > 0,
+      organizationId: existing.organizationId,
+      previousScopes,
+    }
   },
 }

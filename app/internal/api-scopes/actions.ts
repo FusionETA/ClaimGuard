@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 
 import { API_SCOPE_CATALOG, isKnownApiScope } from "@/lib/api-scopes"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import {
   clearInternalUnlockedCookie,
@@ -100,6 +101,38 @@ export async function updateTokenScopesAction(
       message: "Token not found or DB unreachable.",
       tokenId,
     }
+  }
+
+  // Write an audit row to whichever org the token belongs to, so an
+  // ADMIN of that org can see in their Activity log that an internal
+  // FusionETA admin changed the token's scopes. Actor is SYSTEM
+  // (named "Internal admin") because the internal page is gated by a
+  // shared password, not a per-user session — there's no real user
+  // identity to attribute to.
+  if (result.organizationId) {
+    const added = ordered.filter((s) => !result.previousScopes.includes(s))
+    const removed = result.previousScopes.filter(
+      (s) => !(ordered as string[]).includes(s),
+    )
+    const changes: string[] = []
+    if (added.length > 0) changes.push(`+${added.join(", ")}`)
+    if (removed.length > 0) changes.push(`-${removed.join(", ")}`)
+    void writeAudit({
+      organizationId: result.organizationId,
+      actor: { kind: "SYSTEM", name: "Internal admin" },
+      action: "api.token.scopes.update",
+      status: "SUCCESS",
+      summary:
+        changes.length > 0
+          ? `Updated API token scopes (${changes.join("; ")})`
+          : `Saved API token scopes (no change — ${ordered.length} scope${ordered.length === 1 ? "" : "s"})`,
+      targetType: "api-token",
+      targetId: tokenId,
+      metadata: {
+        previousScopes: result.previousScopes,
+        nextScopes: ordered,
+      },
+    })
   }
 
   revalidatePath("/internal/api-scopes")
