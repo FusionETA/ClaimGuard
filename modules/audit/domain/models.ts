@@ -41,6 +41,14 @@ export type AuditLogEntry = {
 export type AuditLogFilter = {
   /// "claim.approve" exact match, or just "claim" prefix.
   actionPrefix?: string
+  /// Prefix block-list — anything starting with one of these is
+  /// dropped at the DB level. Used by the admin Activity log page
+  /// to hide operational module events (claims / attendance / leave
+  /// / payroll) so the feed reads as a "who changed the org config"
+  /// audit rather than a stream of every approval click. Note the
+  /// events are still WRITTEN — they're just filtered out of this
+  /// reader.
+  excludeActionPrefixes?: string[]
   status?: AuditStatus
   actorUserId?: string
   /// Date range — INCLUSIVE start, EXCLUSIVE end (ISO).
@@ -49,3 +57,19 @@ export type AuditLogFilter = {
   limit?: number
   cursor?: string // opaque — the last `id` from the previous page
 }
+
+/**
+ * Canonical "operational" prefix list — the modules whose per-module
+ * page already shows its own audit trail (Claims queue, Attendance
+ * approvals, Leave approvals, Payroll runs) and so don't belong on
+ * the org-wide Activity log.
+ *
+ * Centralised so the page can import it without re-stating the list
+ * inline, and any future addition stays in one place.
+ */
+export const OPERATIONAL_ACTION_PREFIXES = [
+  "claim.",
+  "attendance.",
+  "leave.",
+  "payroll.",
+] as const

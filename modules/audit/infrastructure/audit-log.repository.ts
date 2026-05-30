@@ -101,6 +101,15 @@ export const auditLogRepository = {
     if (filter.actionPrefix) {
       where.action = { startsWith: filter.actionPrefix }
     }
+    // Block-list of prefixes to hide entirely. Applied as an AND of
+    // NOT-startsWith clauses so the DB pages over actually-visible
+    // rows — without this we'd pull (say) 100 attendance rows, throw
+    // 95 away in JS, and show the admin a near-empty page.
+    if (filter.excludeActionPrefixes && filter.excludeActionPrefixes.length > 0) {
+      where.AND = filter.excludeActionPrefixes.map((prefix) => ({
+        NOT: { action: { startsWith: prefix } },
+      }))
+    }
     if (filter.status) where.status = filter.status
     if (filter.actorUserId) where.actorUserId = filter.actorUserId
     if (filter.fromIso || filter.toIso) {

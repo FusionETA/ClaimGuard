@@ -191,6 +191,14 @@ function getTitle(pathname: string) {
     return "Attendance"
   }
 
+  if (pathname.startsWith("/admin/audit")) {
+    return "Activity Log"
+  }
+
+  if (pathname.startsWith("/admin/payroll")) {
+    return "Payroll"
+  }
+
   return "Executive Overview"
 }
 

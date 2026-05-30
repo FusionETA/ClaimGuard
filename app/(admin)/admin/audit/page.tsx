@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { isAdminRole } from "@/lib/auth/types"
 import { listAuditEntries } from "@/modules/audit/application/services/audit-log.service"
+import { OPERATIONAL_ACTION_PREFIXES } from "@/modules/audit/domain/models"
 
 const PAGE_SIZE = 100
 
@@ -21,8 +22,16 @@ export default async function AdminAuditPage() {
   const organizationId = resolveActiveOrgId(session)
   if (!organizationId) redirect("/admin")
 
+  // Operational events (claim / attendance / leave / payroll
+  // approvals etc.) already have their own per-module log on each
+  // module's page, so we hide them here. The page focuses on org-
+  // governance: who changed settings, admin roster, API tokens,
+  // OAuth grants, password resets, etc. Operational events are still
+  // WRITTEN to OrganizationAuditLog — they just don't show up in this
+  // view.
   const { entries } = await listAuditEntries(organizationId, {
     limit: PAGE_SIZE,
+    excludeActionPrefixes: [...OPERATIONAL_ACTION_PREFIXES],
   })
 
   return (
@@ -32,8 +41,11 @@ export default async function AdminAuditPage() {
           Activity log
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Recent activity in this organization — kept for 7 days. Failed
-          attempts are flagged so you can spot misuse early.
+          Who changed the org configuration — admin roster, settings,
+          API tokens, OAuth grants, password resets. Kept for 7 days.
+          Failed attempts are flagged so you can spot misuse early.
+          Module-level activity (claim, attendance, leave, payroll
+          approvals) lives on each module&apos;s own page.
         </p>
       </div>
 
@@ -47,9 +59,9 @@ export default async function AdminAuditPage() {
         <CardContent className="p-0">
           {entries.length === 0 ? (
             <p className="px-6 pb-6 text-sm text-muted-foreground">
-              No activity recorded yet. Anything an admin / supervisor /
-              partner does — claim reviews, admin invites, etc. — will
-              appear here.
+              No configuration changes recorded yet. Adding/removing
+              admins, editing settings, minting API tokens, or
+              connecting Xero will appear here as they happen.
             </p>
           ) : (
             <>
