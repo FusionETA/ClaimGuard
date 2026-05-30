@@ -316,6 +316,21 @@ export async function saveSelectableAccountsAction(
     chartAccountIds,
   })
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "coa.selectable.update",
+    status: "SUCCESS",
+    summary: `Set ${chartAccountIds.length} chart account${chartAccountIds.length === 1 ? "" : "s"} as selectable for claims`,
+    targetType: "chart-account",
+    metadata: { chartAccountIds, xeroConnectionId: connectionId },
+  })
+
   await revalidateAdminSurfaces(organizationId)
 
   return {
@@ -396,6 +411,21 @@ export async function createCustomAccountAction(
       message: safeErrorMessage(error, "Unable to create account."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "coa.create",
+    status: "SUCCESS",
+    summary: `Created custom chart-of-account ${code} "${name}"${type ? ` (${type})` : ""}`,
+    targetType: "chart-account",
+    metadata: { code, name, type, isSelectable },
+  })
 
   await revalidateAdminSurfaces(organizationId)
 
@@ -530,6 +560,21 @@ export async function deleteCustomAccountAction(
       message: safeErrorMessage(error, "Unable to delete account."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "coa.delete",
+    status: "SUCCESS",
+    summary: "Deleted custom chart-of-account",
+    targetType: "chart-account",
+    targetId: id,
+  })
 
   await revalidateAdminSurfaces(organizationId)
 
@@ -778,6 +823,21 @@ export async function saveSelectedBankAccountsAction(
     chartAccountIds,
   })
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "coa.bank.update",
+    status: "SUCCESS",
+    summary: `Set ${chartAccountIds.length} bank account${chartAccountIds.length === 1 ? "" : "s"}`,
+    targetType: "chart-account",
+    metadata: { chartAccountIds, xeroConnectionId: connectionId },
+  })
+
   await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Bank accounts updated." }
@@ -840,6 +900,27 @@ export async function createManualProjectAction(
     }
   }
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "project.create",
+    status: "SUCCESS",
+    summary: `Created manual project "${name}"`,
+    targetType: "project",
+    metadata: {
+      name,
+      projectManagerIds,
+      location,
+      latitude,
+      longitude,
+    },
+  })
+
   await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Project created." }
@@ -893,6 +974,27 @@ export async function updateProjectAction(
     }
   }
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "project.update",
+    status: "SUCCESS",
+    summary: "Updated project details",
+    targetType: "project",
+    targetId: projectId,
+    metadata: {
+      projectManagerIds,
+      location: derivedLocation,
+      latitude,
+      longitude,
+    },
+  })
+
   await revalidateAdminSurfaces(organizationId)
 
   return { ok: true, message: "Project updated." }
@@ -923,6 +1025,21 @@ export async function deleteManualProjectAction(
       message: safeErrorMessage(error, "Unable to delete project."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "project.delete",
+    status: "SUCCESS",
+    summary: "Deleted manual project",
+    targetType: "project",
+    targetId: projectId,
+  })
 
   await revalidateAdminSurfaces(organizationId)
 
@@ -1209,6 +1326,21 @@ export async function saveMileageAccountsAction(
     }
   }
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "coa.mileage.update",
+    status: "SUCCESS",
+    summary: `Set ${selectedAccounts.length} mileage-eligible account${selectedAccounts.length === 1 ? "" : "s"}`,
+    targetType: "chart-account",
+    metadata: { selectedAccounts, xeroConnectionId: connectionId },
+  })
+
   await revalidateAdminSurfaces(organizationId)
 
   return { status: "success", message: "Mileage claim accounts saved." }
@@ -1291,6 +1423,28 @@ export async function saveAccountLimitAction(
       limitAmount: parsed.data.limitAmount,
       limitPeriod: parsed.data.limitPeriod,
       limitScope: parsed.data.limitScope,
+    })
+    void writeAudit({
+      organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "coa.limit.update",
+      status: "SUCCESS",
+      summary:
+        parsed.data.limitAmount == null
+          ? "Cleared spend limit on chart-account"
+          : `Set spend limit RM ${parsed.data.limitAmount} (${parsed.data.limitPeriod ?? "?"} / ${parsed.data.limitScope ?? "?"})`,
+      targetType: "chart-account",
+      targetId: parsed.data.chartOfAccountId,
+      metadata: {
+        limitAmount: parsed.data.limitAmount,
+        limitPeriod: parsed.data.limitPeriod,
+        limitScope: parsed.data.limitScope,
+      },
     })
   } catch (error) {
     return {

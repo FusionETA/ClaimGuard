@@ -6,8 +6,10 @@ import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import type { AuthenticatedSession } from "@/lib/auth/types"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { employeePayoutMethods } from "@/modules/organization/domain/models"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 
 const baseSchema = z.object({
@@ -46,7 +48,10 @@ export type PolicyActionState = {
   message: string
 }
 
-async function requireOrgId(): Promise<string | { error: PolicyActionState }> {
+async function requireOrgId(): Promise<
+  | { session: AuthenticatedSession; organizationId: string }
+  | { error: PolicyActionState }
+> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
     return { error: { status: "error", message: "Session expired. Please log in again." } }
@@ -55,7 +60,7 @@ async function requireOrgId(): Promise<string | { error: PolicyActionState }> {
   if (!organizationId) {
     return { error: { status: "error", message: "Set up your organization in settings first." } }
   }
-  return organizationId
+  return { session, organizationId }
 }
 
 function parseBoolFlag(formData: FormData, name: string): boolean {
@@ -122,7 +127,8 @@ export async function createPolicyAction(
   formData: FormData,
 ): Promise<PolicyActionState> {
   const orgIdOrError = await requireOrgId()
-  if (typeof orgIdOrError !== "string") return orgIdOrError.error
+  if ("error" in orgIdOrError) return orgIdOrError.error
+  const { session, organizationId } = orgIdOrError
 
   const parsed = baseSchema.safeParse({
     name: String(formData.get("name") ?? ""),
@@ -145,7 +151,7 @@ export async function createPolicyAction(
   const ot = splitOtMode(parsed.data.otMode)
   try {
     await policyRepository.create({
-      organizationId: orgIdOrError,
+      organizationId,
       name: parsed.data.name,
       description: parsed.data.description,
       canAccessAttendance: parsed.data.canAccessAttendance,
@@ -172,7 +178,22 @@ export async function createPolicyAction(
     }
   }
 
-  await bustOrgConfigCaches({ organizationId: orgIdOrError })
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "policy.create",
+    status: "SUCCESS",
+    summary: `Created employee policy "${parsed.data.name}"`,
+    targetType: "policy",
+    metadata: { name: parsed.data.name, salaryType: parsed.data.salaryType, otMode: parsed.data.otMode },
+  })
+
+  await bustOrgConfigCaches({ organizationId })
   revalidatePath("/admin/settings")
   revalidatePath("/admin/hierarchy")
   return { status: "success", message: "Policy created." }
@@ -183,7 +204,8 @@ export async function updatePolicyAction(
   formData: FormData,
 ): Promise<PolicyActionState> {
   const orgIdOrError = await requireOrgId()
-  if (typeof orgIdOrError !== "string") return orgIdOrError.error
+  if ("error" in orgIdOrError) return orgIdOrError.error
+  const { session, organizationId } = orgIdOrError
 
   const id = String(formData.get("id") ?? "").trim()
   if (!id) return { status: "error", message: "Missing policy id." }
@@ -210,7 +232,7 @@ export async function updatePolicyAction(
   try {
     await policyRepository.update({
       id,
-      organizationId: orgIdOrError,
+      organizationId,
       name: parsed.data.name,
       description: parsed.data.description ?? null,
       canAccessAttendance: parsed.data.canAccessAttendance,
@@ -237,7 +259,23 @@ export async function updatePolicyAction(
     }
   }
 
-  await bustOrgConfigCaches({ organizationId: orgIdOrError })
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "policy.update",
+    status: "SUCCESS",
+    summary: `Updated employee policy "${parsed.data.name}"`,
+    targetType: "policy",
+    targetId: id,
+    metadata: { name: parsed.data.name, salaryType: parsed.data.salaryType, otMode: parsed.data.otMode },
+  })
+
+  await bustOrgConfigCaches({ organizationId })
   revalidatePath("/admin/settings")
   revalidatePath("/admin/hierarchy")
   revalidatePath("/employee")
@@ -249,19 +287,35 @@ export async function setDefaultPolicyAction(
   formData: FormData,
 ): Promise<PolicyActionState> {
   const orgIdOrError = await requireOrgId()
-  if (typeof orgIdOrError !== "string") return orgIdOrError.error
+  if ("error" in orgIdOrError) return orgIdOrError.error
+  const { session, organizationId } = orgIdOrError
 
   const id = String(formData.get("id") ?? "").trim()
   if (!id) return { status: "error", message: "Missing policy id." }
 
   try {
-    await policyRepository.setDefault(id, orgIdOrError)
+    await policyRepository.setDefault(id, organizationId)
   } catch (error) {
     return {
       status: "error",
       message: safeErrorMessage(error, "Unable to set default."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "policy.set-default",
+    status: "SUCCESS",
+    summary: "Set default employee policy",
+    targetType: "policy",
+    targetId: id,
+  })
 
   revalidatePath("/admin/settings")
   return { status: "success", message: "Default policy updated." }
@@ -272,19 +326,35 @@ export async function archivePolicyAction(
   formData: FormData,
 ): Promise<PolicyActionState> {
   const orgIdOrError = await requireOrgId()
-  if (typeof orgIdOrError !== "string") return orgIdOrError.error
+  if ("error" in orgIdOrError) return orgIdOrError.error
+  const { session, organizationId } = orgIdOrError
 
   const id = String(formData.get("id") ?? "").trim()
   if (!id) return { status: "error", message: "Missing policy id." }
 
   try {
-    await policyRepository.archive(id, orgIdOrError)
+    await policyRepository.archive(id, organizationId)
   } catch (error) {
     return {
       status: "error",
       message: safeErrorMessage(error, "Unable to archive policy."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "policy.archive",
+    status: "SUCCESS",
+    summary: "Archived employee policy",
+    targetType: "policy",
+    targetId: id,
+  })
 
   revalidatePath("/admin/settings")
   return { status: "success", message: "Policy archived." }

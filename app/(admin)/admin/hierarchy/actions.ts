@@ -13,6 +13,7 @@ import {
 } from "@/app/(admin)/admin/hierarchy/form-state"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { upsertPayrollProfile } from "@/modules/payroll/application/services/payroll-profile.service"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
@@ -323,6 +324,28 @@ export async function createHierarchyMemberAction(
         safeErrorMessage(error, "Unable to create employee right now."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "employee.create",
+    status: "SUCCESS",
+    summary: `Added ${parsed.data.role.toLowerCase()} ${parsed.data.name} (${parsed.data.email})`,
+    targetType: "user",
+    metadata: {
+      employeeId: parsed.data.employeeId,
+      role: parsed.data.role,
+      email: parsed.data.email,
+      name: parsed.data.name,
+      jobTitle: parsed.data.jobTitle,
+      policyId: parsed.data.policyId,
+    },
+  })
 
   revalidatePath("/admin")
   revalidatePath("/admin/hierarchy")

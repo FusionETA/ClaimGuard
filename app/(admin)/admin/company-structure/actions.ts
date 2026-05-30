@@ -8,6 +8,7 @@ import { z } from "zod"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import type { BaseFormState } from "@/lib/form-state"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import {
   defaultModuleConfig,
   teamModules,
@@ -120,6 +121,26 @@ export async function createTeamAction(
     }
   }
 
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "team.create",
+    status: "SUCCESS",
+    summary: `Created team "${parsed.data.name}" (${parsed.data.layerCount} layer${parsed.data.layerCount === 1 ? "" : "s"})`,
+    targetType: "team",
+    targetId: created.id,
+    metadata: {
+      projectId: parsed.data.projectId,
+      name: parsed.data.name,
+      layerCount: parsed.data.layerCount,
+    },
+  })
+
   // Bust the org-config Redis caches — the company-structure +
   // hierarchy page-data services cache the team list at
   // `org:{orgId}:config:page:*`, so without this the new team
@@ -196,6 +217,25 @@ export async function updateTeamAction(
       message: safeErrorMessage(error, "Unable to update team."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "team.update",
+    status: "SUCCESS",
+    summary: `Updated team "${parsed.data.name}"`,
+    targetType: "team",
+    targetId: parsed.data.teamId,
+    metadata: {
+      name: parsed.data.name,
+      layerCount: parsed.data.layerCount,
+    },
+  })
 
   revalidatePath("/admin")
   revalidatePath("/admin/company-structure")
@@ -524,6 +564,21 @@ export async function deleteTeamAction(
       message: safeErrorMessage(error, "Unable to delete team."),
     }
   }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "team.delete",
+    status: "SUCCESS",
+    summary: "Deleted team",
+    targetType: "team",
+    targetId: teamId,
+  })
 
   // Mirror every other team mutation in this file: bust the
   // org-config Redis caches so the company-structure + hierarchy
