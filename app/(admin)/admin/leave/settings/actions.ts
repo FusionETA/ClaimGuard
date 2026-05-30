@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache"
 import { isAdminRole } from "@/lib/auth/types"
+import type { AuthenticatedSession } from "@/lib/auth/types"
 import { redirect } from "next/navigation"
 
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import {
   archiveLeaveType,
   createLeaveType,
@@ -20,12 +22,15 @@ import {
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
 import type { LeaveAccrualMethod } from "@/modules/leave/domain/models"
 
-async function requireAdminOrg(): Promise<string> {
+async function requireAdminOrg(): Promise<{
+  session: AuthenticatedSession
+  orgId: string
+}> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) redirect("/login")
   const orgId = resolveActiveOrgId(session)
   if (!orgId) redirect("/admin")
-  return orgId
+  return { session, orgId }
 }
 
 function parseTypeFormData(formData: FormData): LeaveTypeInput {
@@ -48,10 +53,24 @@ function parseTypeFormData(formData: FormData): LeaveTypeInput {
 }
 
 export async function createLeaveTypeAction(formData: FormData) {
-  const orgId = await requireAdminOrg()
+  const { session, orgId } = await requireAdminOrg()
   const input = parseTypeFormData(formData)
   const res = await createLeaveType(orgId, input)
   if (!res.ok) return { ok: false as const, error: res.error }
+  void writeAudit({
+    organizationId: orgId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "leave.type.create",
+    status: "SUCCESS",
+    summary: `Created leave type ${input.code} "${input.name}" (${input.defaultDays}d default${input.paid ? "" : ", unpaid"})`,
+    targetType: "leave-type",
+    metadata: { code: input.code, name: input.name, paid: input.paid, defaultDays: input.defaultDays },
+  })
   revalidatePath("/admin/leave/settings")
   return { ok: true as const }
 }
@@ -62,28 +81,71 @@ async function leaveTypeIsProtected(orgId: string, id: string): Promise<boolean>
 }
 
 export async function updateLeaveTypeAction(id: string, formData: FormData) {
-  const orgId = await requireAdminOrg()
+  const { session, orgId } = await requireAdminOrg()
   if (await leaveTypeIsProtected(orgId, id)) {
     return { ok: false as const, error: "This leave type cannot be edited" }
   }
   const input = parseTypeFormData(formData)
   const res = await updateLeaveType(orgId, id, input)
   if (!res.ok) return { ok: false as const, error: res.error }
+  void writeAudit({
+    organizationId: orgId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "leave.type.update",
+    status: "SUCCESS",
+    summary: `Updated leave type "${input.name}"`,
+    targetType: "leave-type",
+    targetId: id,
+    metadata: { code: input.code, name: input.name, defaultDays: input.defaultDays },
+  })
   revalidatePath("/admin/leave/settings")
   return { ok: true as const }
 }
 
 export async function archiveLeaveTypeAction(id: string) {
-  const orgId = await requireAdminOrg()
+  const { session, orgId } = await requireAdminOrg()
   if (await leaveTypeIsProtected(orgId, id)) return
   await archiveLeaveType(orgId, id)
+  void writeAudit({
+    organizationId: orgId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "leave.type.archive",
+    status: "SUCCESS",
+    summary: "Archived leave type",
+    targetType: "leave-type",
+    targetId: id,
+  })
   revalidatePath("/admin/leave/settings")
 }
 
 export async function unarchiveLeaveTypeAction(id: string) {
-  const orgId = await requireAdminOrg()
+  const { session, orgId } = await requireAdminOrg()
   if (await leaveTypeIsProtected(orgId, id)) return
   await unarchiveLeaveType(orgId, id)
+  void writeAudit({
+    organizationId: orgId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: "leave.type.unarchive",
+    status: "SUCCESS",
+    summary: "Restored leave type",
+    targetType: "leave-type",
+    targetId: id,
+  })
   revalidatePath("/admin/leave/settings")
 }
 
@@ -92,7 +154,7 @@ export async function setPolicyDefaultAction(input: {
   leaveTypeId: string
   defaultDays: number
 }) {
-  const orgId = await requireAdminOrg()
+  const { orgId } = await requireAdminOrg()
   await leaveRepository.upsertPolicyDefault(
     orgId,
     input.policyId,
@@ -106,7 +168,7 @@ export async function clearPolicyDefaultAction(input: {
   policyId: string
   leaveTypeId: string
 }) {
-  const orgId = await requireAdminOrg()
+  const { orgId } = await requireAdminOrg()
   await leaveRepository.clearPolicyDefault(orgId, input.policyId, input.leaveTypeId)
   revalidatePath("/admin/leave/settings")
 }
@@ -117,7 +179,7 @@ export async function setEmployeeEntitlementAction(input: {
   year: number
   entitledDays: number
 }) {
-  const adminOrgId = await requireAdminOrg()
+  const { orgId: adminOrgId } = await requireAdminOrg()
   // Scope-check the target employee belongs to the admin's active org.
   const employeeOrgId = await leaveRepository.getEmployeeOrgId(input.employeeId)
   if (!employeeOrgId || employeeOrgId !== adminOrgId) return

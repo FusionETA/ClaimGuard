@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache"
 import { safeErrorMessage } from "@/lib/errors"
 import { z } from "zod"
 
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { isAdminRole } from "@/lib/auth/types"
 import type { BaseFormState } from "@/lib/form-state"
+import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import {
   idTypes,
   payrollAdjustmentCategories,
@@ -85,6 +88,28 @@ export async function savePayrollSettingsAction(
       status: "error",
       message: safeErrorMessage(err, "Could not save settings."),
     }
+  }
+
+  // Audit AFTER the write succeeds. The service did its own session
+  // check upstream — we just look up the same context for the
+  // audit-row actor (cheap; cached in the request).
+  const session = await getCurrentSession()
+  const organizationId = session ? resolveActiveOrgId(session) : null
+  if (session && organizationId && isAdminRole(session.role)) {
+    void writeAudit({
+      organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "payroll.settings.update",
+      status: "SUCCESS",
+      summary: `Updated payroll settings (EPF ${parsed.data.defaultEpfEmployeeRate}% / ${parsed.data.defaultEpfEmployerRate}%, HRDF ${parsed.data.hrdfEnabled ? "on" : "off"})`,
+      targetType: "payroll-settings",
+      metadata: parsed.data,
+    })
   }
 
   revalidatePath("/admin/payroll/settings")
@@ -198,6 +223,29 @@ export async function savePayrollCompanyInfoAction(
       message:
         safeErrorMessage(err, "Could not save company info."),
     }
+  }
+
+  const session = await getCurrentSession()
+  const organizationId = session ? resolveActiveOrgId(session) : null
+  if (session && organizationId && isAdminRole(session.role)) {
+    void writeAudit({
+      organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "payroll.company-info.update",
+      status: "SUCCESS",
+      summary: `Updated payroll company info (employer "${parsed.data.employerName ?? "—"}")`,
+      targetType: "payroll-company-info",
+      metadata: {
+        employerName: parsed.data.employerName,
+        employerTin: parsed.data.employerTin,
+        registrationNo: parsed.data.registrationNo,
+      },
+    })
   }
 
   revalidatePath("/admin/payroll/settings")
