@@ -83,30 +83,51 @@ export const GET = handleApiRequest<{ id: string }>(
 )
 
 /**
- * Compact per-employee payslip projection. We drop the full
- * `lineItems` array (~10 line items per employee can balloon the
- * payload to many KB) — the external use case here is just verifying
- * totals before approval, so the aggregates are what matters. Line
- * items can be added later if a consumer needs the breakdown.
+ * Per-employee payslip projection. Returns the FULL breakdown so
+ * external consumers can reconstruct the payslip exactly: every line
+ * item with its category + amount + statutory flags, the frozen
+ * snapshot rates, the OT hour split, and audit timestamps.
+ *
+ * Trade-off: a 100-employee run with ~20 line items each lands at
+ * ~240 KB of JSON. Still fine for a single GET. If we ever need to
+ * shrink it we can add a `?slim=true` query param to fall back to
+ * aggregates only.
  */
 function toExternalPayslip(p: PayslipRow) {
   return {
     id: p.id,
     employeeProfileId: p.employeeProfileId,
+    payrollProfileId: p.payrollProfileId,
     employee: {
       name: p.snapshotName,
       employeeId: p.snapshotEmployeeId,
       position: p.snapshotPosition,
       salaryType: p.snapshotSalaryType,
+      monthlySalary: p.snapshotMonthlySalary,
+      hourlyRate: p.snapshotHourlyRate,
       nationality: p.snapshotNationality,
       isResident: p.snapshotIsResident,
+    },
+    /// Attendance / hours context used in the calc.
+    attendance: {
+      workedHours: p.workedHours,
+      expectedHours: p.expectedHours,
+      unpaidLeaveDays: p.unpaidLeaveDays,
+      proratedDays: p.proratedDays,
+      totalWorkingDays: p.totalWorkingDays,
+    },
+    /// Overtime hour breakdown by type — useful when reconciling
+    /// attendance reports against payroll. `otPay` (under `pay`) is
+    /// the total RM resulting from these hours.
+    overtime: {
+      normalHours: p.otNormalHours,
+      restHours: p.otRestHours,
+      publicHours: p.otPublicHours,
     },
     pay: {
       basic: p.basicPay,
       prorated: p.proratedPay,
       proratedFactor: p.proratedFactor,
-      proratedDays: p.proratedDays,
-      totalWorkingDays: p.totalWorkingDays,
       otPay: p.otPay,
       totalAllowances: p.totalAllowances,
       totalBenefitsInKind: p.totalBenefitsInKind,
@@ -119,14 +140,39 @@ function toExternalPayslip(p: PayslipRow) {
     statutory: {
       epfEmployee: p.epfEmployee,
       epfEmployer: p.epfEmployer,
+      epfRates: p.snapshotEpfRates,
       socsoEmployee: p.socsoEmployee,
       socsoEmployer: p.socsoEmployer,
       eisEmployee: p.eisEmployee,
       eisEmployer: p.eisEmployer,
       pcb: p.pcb,
       hrdf: p.hrdf,
+      hrdfWage: p.hrdfWage,
       zakat: p.zakat,
     },
+    /// Full line-item breakdown. Every allowance, deduction,
+    /// reimbursement, and benefit-in-kind is its own row with the
+    /// statutory flags (subjectToEpf etc.) that the calc engine used.
+    /// Sorted in the order the calc engine produced them — typically
+    /// fixed allowances first, then OT, then manual adjustments, then
+    /// reimbursements at the end.
+    lineItems: p.lineItems.map((li) => ({
+      id: li.id,
+      kind: li.kind,
+      label: li.label,
+      amount: li.amount,
+      category: li.category,
+      claimId: li.claimId,
+      subjectToEpf: li.subjectToEpf,
+      subjectToSocso: li.subjectToSocso,
+      subjectToEis: li.subjectToEis,
+      subjectToPcb: li.subjectToPcb,
+    })),
+    /// Convenience count — same as `lineItems.length`, but a single
+    /// integer for consumers that only want the size without parsing
+    /// the array.
     lineItemCount: p.lineItemCount,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
   }
 }
