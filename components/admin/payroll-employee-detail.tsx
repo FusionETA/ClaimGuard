@@ -252,7 +252,17 @@ export function PayrollEmployeeDetail(props: {
       {tab === "employment" && (
         <EmploymentTab
           userId={props.userId}
-          profile={liveProfile}
+          // Pass the ORIGINAL server-side profile (NOT liveProfile)
+          // because EmploymentTab's salaryHasChanged() needs to
+          // compare the typed value against the LAST-SAVED value to
+          // decide whether to pop the salary-change classification
+          // dialog. liveProfile mutates on every keystroke (the
+          // mirror that drives tab-pill completeness checks), so
+          // using it here makes the "saved" side track the typed
+          // value and the diff is always zero — dialog never opens.
+          // Personal / Statutory tabs keep liveProfile because they
+          // don't have a similar saved-vs-live comparison.
+          profile={props.profile}
           salaryHistory={props.salaryHistory}
           policySalaryType={policySalaryType}
           policyName={assignedPolicy?.name ?? null}
