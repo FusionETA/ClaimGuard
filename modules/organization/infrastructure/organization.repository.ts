@@ -1596,6 +1596,69 @@ export const organizationRepository = {
   },
 
   /**
+   * Multi-tenant aware lookup for an ADMIN / OWNER who has access to a
+   * given organisation. Used by external API endpoints that accept a
+   * `acting userId` from the caller (currently the payroll-run approve
+   * endpoint) and need to confirm the user can legitimately authorise
+   * the action AGAINST THAT ORG.
+   *
+   * Differs from `findOrgMemberById` in that it accepts BOTH paths an
+   * admin uses to gain access to an org:
+   *
+   *   1. Primary org    — `User.organizationId === orgId`
+   *   2. Linked admin   — `AdminOrganization { adminId, organizationId }`
+   *   3. Xero connector — the admin who connected Xero for the org
+   *
+   * (Same three checks the in-app `isAdminOfOrganization()` helper
+   * uses for session-based access decisions, so admins see consistent
+   * behaviour between the UI and the partner API.)
+   *
+   * Returns null when the user doesn't exist, isn't an admin/owner,
+   * or has no access to the org. The caller maps null → 403 with a
+   * single generic message (don't enumerate which condition failed —
+   * leaks org membership).
+   */
+  async findAdminWithAccessToOrg(input: {
+    userId: string
+    organizationId: string
+  }): Promise<{
+    id: string
+    name: string
+    email: string
+    role: "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER"
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+
+    // Look up the user by id (no org filter yet — the user might be
+    // an admin whose primary org is X but who has been linked to Y).
+    const user = await prisma.user.findUnique({
+      where: { id: input.userId },
+      select: { id: true, name: true, email: true, role: true },
+    })
+    if (!user) return null
+
+    const role = user.role as "ADMIN" | "EMPLOYEE" | "SUPERVISOR" | "OWNER"
+    if (!isAdminRole(role)) return null
+
+    // Reuse the canonical access check so the partner API and the
+    // in-app session-based checks stay in lockstep (including the
+    // Xero-connector path).
+    const hasAccess = await this.isAdminOfOrganization(
+      input.userId,
+      input.organizationId,
+    )
+    if (!hasAccess) return null
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role,
+    }
+  },
+
+  /**
    * Headcount of "active" employees in the org, used by the external
    * `/api/v1/employees/active-count` endpoint.
    *

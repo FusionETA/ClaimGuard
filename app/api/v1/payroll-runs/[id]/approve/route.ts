@@ -3,7 +3,6 @@ import { z } from "zod"
 
 import { handleApiRequest } from "@/lib/api-auth"
 import { safeErrorMessage } from "@/lib/errors"
-import { isAdminRole } from "@/lib/auth/types"
 import { approvePayrollRunAsUser } from "@/modules/payroll/application/services/payroll-run.service"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 
@@ -71,32 +70,29 @@ export const POST = handleApiRequest<{ id: string }>(
       )
     }
 
-    // Approver must be a real user in the integration's org. We accept
-    // ADMIN or OWNER — same gate the session-based UI applies via
-    // `isAdminRole`.
-    const approver = await organizationRepository.findOrgMemberById({
+    // Approver must be an ADMIN / OWNER with access to the
+    // integration's org. `findAdminWithAccessToOrg` accepts BOTH
+    // routes an admin uses to gain access:
+    //   - their primary org (`User.organizationId === orgId`), or
+    //   - a linked admin row (`AdminOrganization { adminId, orgId }`)
+    // so multi-tenant admins (whose home org differs from the org
+    // being approved) are recognised. Prior implementation called
+    // `findOrgMemberById` which only matched the primary path, and
+    // 403'd legitimate multi-org admins.
+    const approver = await organizationRepository.findAdminWithAccessToOrg({
       userId: parsed.data.approvedByUserId,
       organizationId: ctx.integration.organizationId,
     })
     if (!approver) {
+      // Collapse "user not found", "not an admin", and "no access to
+      // this org" into a single message — don't enumerate which
+      // condition failed, that leaks org membership.
       return NextResponse.json(
         {
           error: {
             status: 403,
             message:
-              "approvedByUserId does not belong to this organisation.",
-          },
-        },
-        { status: 403 },
-      )
-    }
-    if (!isAdminRole(approver.role)) {
-      return NextResponse.json(
-        {
-          error: {
-            status: 403,
-            message:
-              "approvedByUserId must be a user with ADMIN or OWNER role.",
+              "approvedByUserId does not have admin access to this organisation. The user must have role ADMIN or OWNER and be linked to this org as their primary or via AdminOrganization.",
           },
         },
         { status: 403 },
