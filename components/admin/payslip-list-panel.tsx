@@ -73,16 +73,36 @@ function fmtHoursValue(value: number | null): string {
 }
 
 /** DAYS column (MONTHLY only): actual working days / company working
- * days, e.g. "22/26". Actual = totalWorkingDays − unpaid leave days.
- * "—" when the working-days basis isn't known. */
+ * days, e.g. "10/26" for someone who joined mid-month.
+ *
+ * Actual = `proratedDays − unpaidLeaveDays`. We read from
+ * `proratedDays` (NOT `totalWorkingDays`) because that's the field
+ * the calc engine populates with the join/leave-date-aware count: a
+ * late joiner who started on the 15th of a 26-working-day month has
+ * `proratedDays = 10` and `totalWorkingDays = 26`. Using
+ * `totalWorkingDays` for the numerator would mis-report a late joiner
+ * as "26/26" even though their basicPay was correctly prorated.
+ *
+ * Falls back to `totalWorkingDays − unpaid` for backwards
+ * compatibility with older payslips written before `proratedDays`
+ * was stored.
+ */
 function fmtDays(payslip: {
   totalWorkingDays: number | null
+  proratedDays: number | null
   unpaidLeaveDays: number | null
 }): string {
   const total = payslip.totalWorkingDays == null ? null : Number(payslip.totalWorkingDays)
   if (total == null || !Number.isFinite(total) || total <= 0) return "—"
+  const prorated =
+    payslip.proratedDays == null ? null : Number(payslip.proratedDays)
+  const numeratorBase =
+    prorated != null && Number.isFinite(prorated) ? prorated : total
   const unpaid = payslip.unpaidLeaveDays == null ? 0 : Number(payslip.unpaidLeaveDays)
-  const actual = Math.max(0, total - (Number.isFinite(unpaid) ? unpaid : 0))
+  const actual = Math.max(
+    0,
+    numeratorBase - (Number.isFinite(unpaid) ? unpaid : 0),
+  )
   const fmt = (n: number) =>
     n.toLocaleString("en-MY", { minimumFractionDigits: 0, maximumFractionDigits: 2 })
   return `${fmt(actual)}/${fmt(total)}`

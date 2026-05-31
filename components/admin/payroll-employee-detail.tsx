@@ -1155,19 +1155,42 @@ function EmploymentTab(props: {
   const [salaryChangeNotes, setSalaryChangeNotes] = useState("")
   const pendingFormRef = useRef<HTMLFormElement | null>(null)
 
+  /**
+   * Compare the live form state against the saved profile snapshot
+   * NUMERICALLY (parse both sides, compare as floats with a 1¢
+   * tolerance). String comparison broke down on edge cases like
+   * `String(6000.00) === "6000"` mismatching admin-typed "6000.00"
+   * (trailing zeros), or a Decimal wrapper sneaking through and
+   * comparing as `"[object Object]"` against the typed value.
+   *
+   * Returns true on:
+   *   - Salary-type switch
+   *   - MONTHLY: monthlySalary differs from saved by more than 1¢
+   *   - HOURLY: hourlyRate differs from saved by more than 1¢
+   *   - Going from a non-null saved value to empty / cleared input
+   */
   function salaryHasChanged(): boolean {
     const savedType = props.profile?.salaryType ?? "MONTHLY"
     if (salaryType !== savedType) return true
-    const savedMonthly =
-      props.profile?.monthlySalary != null
-        ? String(props.profile.monthlySalary)
-        : ""
-    if (salaryType === "MONTHLY" && monthlySalary !== savedMonthly) return true
-    const savedHourly =
-      props.profile?.hourlyRate != null
-        ? String(props.profile.hourlyRate)
-        : ""
-    if (salaryType === "HOURLY" && hourlyRate !== savedHourly) return true
+
+    if (salaryType === "MONTHLY") {
+      const saved = props.profile?.monthlySalary ?? null
+      const live = monthlySalary.trim() === "" ? null : Number(monthlySalary)
+      if (saved == null && live == null) return false
+      if (saved == null || live == null) return true
+      if (!Number.isFinite(live)) return true
+      return Math.abs(saved - live) > 0.005
+    }
+
+    if (salaryType === "HOURLY") {
+      const saved = props.profile?.hourlyRate ?? null
+      const live = hourlyRate.trim() === "" ? null : Number(hourlyRate)
+      if (saved == null && live == null) return false
+      if (saved == null || live == null) return true
+      if (!Number.isFinite(live)) return true
+      return Math.abs(saved - live) > 0.005
+    }
+
     return false
   }
 
