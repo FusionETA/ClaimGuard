@@ -408,20 +408,23 @@ function normaliseChildPcbDeduction(
 
 /**
  * SOCSO scheme to write: caller-supplied value when present;
- * otherwise derived from `dateOfBirth` + `socsoNumber` via the
- * domain recommender. Lets HR upload a CSV without the column and
- * still get the right scheme per PERKESO rules.
+ * otherwise derived from `dateOfBirth` via the domain recommender.
+ * Lets HR upload a CSV without the column and still get the right
+ * scheme for the unambiguous age brackets.
+ *
+ * Returns null for the age 55–59 window — that case depends on whether
+ * the employee is a first-time PERKESO registrant, which a blank field
+ * in the CSV does NOT reliably indicate (admin may have just left the
+ * column out). The admin is expected to pick manually in the
+ * Statutory tab after import; the missing-required-field guard will
+ * block payroll runs until they do.
  */
 function resolveSocsoSchemeForImport(
   row: RowWithChildren,
 ): "EMPLOYMENT_INJURY_INVALIDITY" | "EMPLOYMENT_INJURY_ONLY" | null {
   if (row.socsoScheme !== null) return row.socsoScheme
-  // Recommend from age + first-time-registrant heuristic. Returns null
-  // if dateOfBirth is missing — the upsert below will write null and
-  // the admin can correct it from the Statutory tab.
   return recommendSocsoScheme({
     dateOfBirth: row.dateOfBirth ? new Date(row.dateOfBirth) : null,
-    socsoNumber: row.socsoNumber,
   })
 }
 

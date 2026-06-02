@@ -278,34 +278,49 @@ export function calculateAge(dob: Date, asOf: Date = new Date()): number {
 /**
  * Recommend a SOCSO scheme based on PERKESO's classification rules.
  *
- * Rules (per the FusionETA accountant — these supersede my earlier
- * understanding that nationality matters; under-60 foreign workers
- * are eligible for Scheme 1 just like locals):
+ * Rules (per the FusionETA accountant):
  *
- *   1. Age ≥ 60                       → Scheme 2 (Employment Injury only)
- *   2. Age 55–59 AND first-time SOCSO → Scheme 2
- *   3. Otherwise (any nationality)    → Scheme 1 (Injury + Invalidity)
+ *   1. Age < 55                    → Scheme 1 (Injury + Invalidity)
+ *   2. Age ≥ 60                    → Scheme 2 (Employment Injury only)
+ *   3. Age 55–59                   → null (AMBIGUOUS — depends on whether
+ *                                          the employee is a first-time
+ *                                          SOCSO registrant, which the
+ *                                          system cannot reliably detect)
  *
- * "First-time SOCSO registrant" is derived from `socsoNumber` being
- * empty — PERKESO issues the number on first registration, so anyone
- * with a number from a previous job is NOT first-time.
+ * We deliberately do NOT try to guess the 55–59 case from a blank
+ * `socsoNumber` field — an admin who forgot to key it in would be
+ * silently misclassified, and the misclassification only surfaces
+ * when PERKESO rejects the contribution. Better to leave the
+ * dropdown unset and prompt the admin to pick manually.
  *
- * Returns null when we can't recommend (missing DOB). Caller should
- * leave the dropdown unset rather than guessing.
+ * Use `socsoSchemeNeedsManualChoice(dateOfBirth)` to detect the 55–59
+ * window in the UI so you can render an appropriate hint.
+ *
+ * Returns null when we can't recommend (missing DOB, or ambiguous age).
  */
 export function recommendSocsoScheme(input: {
   dateOfBirth: Date | null
-  socsoNumber: string | null
   asOf?: Date
 }): "EMPLOYMENT_INJURY_INVALIDITY" | "EMPLOYMENT_INJURY_ONLY" | null {
   if (input.dateOfBirth == null) return null
   const age = calculateAge(input.dateOfBirth, input.asOf ?? new Date())
 
   if (age >= 60) return "EMPLOYMENT_INJURY_ONLY"
-
-  const isFirstTimeRegistrant =
-    input.socsoNumber == null || input.socsoNumber.trim() === ""
-  if (age >= 55 && isFirstTimeRegistrant) return "EMPLOYMENT_INJURY_ONLY"
-
+  if (age >= 55) return null // 55–59: admin must pick manually
   return "EMPLOYMENT_INJURY_INVALIDITY"
+}
+
+/**
+ * True when the employee falls in the age 55–59 window where the SOCSO
+ * scheme depends on whether they're a first-time PERKESO registrant.
+ * The UI should surface a hint asking the admin to pick manually rather
+ * than auto-filling the dropdown.
+ */
+export function socsoSchemeNeedsManualChoice(input: {
+  dateOfBirth: Date | null
+  asOf?: Date
+}): boolean {
+  if (input.dateOfBirth == null) return false
+  const age = calculateAge(input.dateOfBirth, input.asOf ?? new Date())
+  return age >= 55 && age < 60
 }
