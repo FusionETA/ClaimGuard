@@ -54,6 +54,7 @@ import {
 import {
   lookupEis,
   lookupSocso,
+  recommendSocsoScheme,
 } from "@/modules/payroll/domain/statutory-tables"
 import {
   SALARY_CHANGE_REASONS,
@@ -1792,8 +1793,23 @@ function StatutoryTab(props: {
   // toggling + saving). `socsoScheme` is controlled via NativeSelect
   // so the SOCSO-number requirement reacts immediately.
   const contributeToEpfInitial = props.profile?.contributeToEpf ?? true
+
+  // SOCSO scheme recommendation based on PERKESO's age + first-time
+  // rules (see `recommendSocsoScheme` in domain/statutory-tables.ts).
+  // Used in two places below:
+  //   - If the saved scheme is blank AND we can recommend, pre-fill
+  //     the dropdown so admin doesn't have to make the choice for
+  //     standard cases.
+  //   - If the saved scheme disagrees with the recommendation, show
+  //     a yellow warning hint so admin can review.
+  const recommendedScheme = recommendSocsoScheme({
+    dateOfBirth: props.profile?.dateOfBirth
+      ? new Date(props.profile.dateOfBirth)
+      : null,
+    socsoNumber: props.profile?.socsoNumber ?? null,
+  })
   const [socsoScheme, setSocsoScheme] = useState<string>(
-    props.profile?.socsoScheme ?? "",
+    props.profile?.socsoScheme ?? recommendedScheme ?? "",
   )
   const [epfNumber, setEpfNumber] = useState(props.profile?.epfNumber ?? "")
   const [socsoNumber, setSocsoNumber] = useState(
@@ -1982,6 +1998,37 @@ function StatutoryTab(props: {
                 </option>
               ))}
             </NativeSelect>
+            {/* Recommendation hint based on PERKESO rules. Two cases:
+                  - Saved scheme is blank but admin picked the
+                    recommended value (default) → grey hint "Auto-set
+                    from age / SOCSO number".
+                  - Saved scheme disagrees with recommendation → yellow
+                    warning so admin can review.
+                  No hint at all when DOB is missing (can't recommend). */}
+            {recommendedScheme && socsoScheme === recommendedScheme &&
+            !props.profile?.socsoScheme ? (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Auto-selected from age{employeeAge ? ` (${employeeAge})` : ""}.
+                Override above if needed.
+              </p>
+            ) : null}
+            {recommendedScheme &&
+            socsoScheme !== "" &&
+            socsoScheme !== recommendedScheme ? (
+              <p className="mt-1 text-[11px] font-medium text-amber-600">
+                ⚠️ PERKESO would normally recommend{" "}
+                <span className="font-semibold">
+                  {SOCSO_SCHEME_LABELS[recommendedScheme]}
+                </span>{" "}
+                for this employee (age{" "}
+                {employeeAge}
+                {recommendedScheme === "EMPLOYMENT_INJURY_ONLY" &&
+                employeeAge < 60
+                  ? ", first-time registrant"
+                  : ""}
+                ). Confirm before saving.
+              </p>
+            ) : null}
           </Field>
           <Field label="SOCSO number">
             <Input

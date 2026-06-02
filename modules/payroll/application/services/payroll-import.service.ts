@@ -18,6 +18,7 @@ import {
   salaryTypes,
   socsoSchemes,
 } from "@/modules/payroll/domain/models"
+import { recommendSocsoScheme } from "@/modules/payroll/domain/statutory-tables"
 import {
   CATEGORICAL_TARGETS,
   getCategoricalTargetSpec,
@@ -405,6 +406,25 @@ function normaliseChildPcbDeduction(
 // list is ~60 long, so we centralise it here to avoid the two call
 // sites drifting apart.
 
+/**
+ * SOCSO scheme to write: caller-supplied value when present;
+ * otherwise derived from `dateOfBirth` + `socsoNumber` via the
+ * domain recommender. Lets HR upload a CSV without the column and
+ * still get the right scheme per PERKESO rules.
+ */
+function resolveSocsoSchemeForImport(
+  row: RowWithChildren,
+): "EMPLOYMENT_INJURY_INVALIDITY" | "EMPLOYMENT_INJURY_ONLY" | null {
+  if (row.socsoScheme !== null) return row.socsoScheme
+  // Recommend from age + first-time-registrant heuristic. Returns null
+  // if dateOfBirth is missing — the upsert below will write null and
+  // the admin can correct it from the Statutory tab.
+  return recommendSocsoScheme({
+    dateOfBirth: row.dateOfBirth ? new Date(row.dateOfBirth) : null,
+    socsoNumber: row.socsoNumber,
+  })
+}
+
 function buildPayrollProfileCreate(
   row: RowWithChildren,
   employeeProfileId: string,
@@ -459,7 +479,7 @@ function buildPayrollProfileCreate(
       : {}),
     pcbBorneByEmployer: row.pcbBorneByEmployer ?? false,
     incomeTaxNumber: row.incomeTaxNumber,
-    socsoScheme: row.socsoScheme,
+    socsoScheme: resolveSocsoSchemeForImport(row),
     socsoNumber: row.socsoNumber,
     contributeToEis: row.contributeToEis ?? true,
     ssfwNumber: row.ssfwNumber,
@@ -552,7 +572,14 @@ function buildPayrollProfileUpdate(row: RowWithChildren) {
     ...(row.incomeTaxNumber !== null
       ? { incomeTaxNumber: row.incomeTaxNumber }
       : {}),
-    ...(row.socsoScheme !== null ? { socsoScheme: row.socsoScheme } : {}),
+    // SOCSO scheme: take CSV value if present, else derive from
+    // age + socsoNumber. Falls back to omitting the field (preserve
+    // existing DB value) when even the derive fails (e.g. DOB
+    // missing from this row's CSV).
+    ...(() => {
+      const resolved = resolveSocsoSchemeForImport(row)
+      return resolved !== null ? { socsoScheme: resolved } : {}
+    })(),
     ...(row.socsoNumber !== null ? { socsoNumber: row.socsoNumber } : {}),
     ...(row.contributeToEis !== null
       ? { contributeToEis: row.contributeToEis }

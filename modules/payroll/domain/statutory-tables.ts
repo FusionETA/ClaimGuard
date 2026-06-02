@@ -260,3 +260,52 @@ export function lookupEpfBand(input: {
     employee: Math.ceil(upper * employeeRate / 100),
   }
 }
+
+// ─── SOCSO scheme recommender ────────────────────────────────────────────
+
+/**
+ * Years between two dates, accounting for whether the birthday has
+ * already passed in the reference year. Returns 0 when dob is in the
+ * future (defensive).
+ */
+export function calculateAge(dob: Date, asOf: Date = new Date()): number {
+  let age = asOf.getFullYear() - dob.getFullYear()
+  const m = asOf.getMonth() - dob.getMonth()
+  if (m < 0 || (m === 0 && asOf.getDate() < dob.getDate())) age--
+  return Math.max(0, age)
+}
+
+/**
+ * Recommend a SOCSO scheme based on PERKESO's classification rules.
+ *
+ * Rules (per the FusionETA accountant — these supersede my earlier
+ * understanding that nationality matters; under-60 foreign workers
+ * are eligible for Scheme 1 just like locals):
+ *
+ *   1. Age ≥ 60                       → Scheme 2 (Employment Injury only)
+ *   2. Age 55–59 AND first-time SOCSO → Scheme 2
+ *   3. Otherwise (any nationality)    → Scheme 1 (Injury + Invalidity)
+ *
+ * "First-time SOCSO registrant" is derived from `socsoNumber` being
+ * empty — PERKESO issues the number on first registration, so anyone
+ * with a number from a previous job is NOT first-time.
+ *
+ * Returns null when we can't recommend (missing DOB). Caller should
+ * leave the dropdown unset rather than guessing.
+ */
+export function recommendSocsoScheme(input: {
+  dateOfBirth: Date | null
+  socsoNumber: string | null
+  asOf?: Date
+}): "EMPLOYMENT_INJURY_INVALIDITY" | "EMPLOYMENT_INJURY_ONLY" | null {
+  if (input.dateOfBirth == null) return null
+  const age = calculateAge(input.dateOfBirth, input.asOf ?? new Date())
+
+  if (age >= 60) return "EMPLOYMENT_INJURY_ONLY"
+
+  const isFirstTimeRegistrant =
+    input.socsoNumber == null || input.socsoNumber.trim() === ""
+  if (age >= 55 && isFirstTimeRegistrant) return "EMPLOYMENT_INJURY_ONLY"
+
+  return "EMPLOYMENT_INJURY_INVALIDITY"
+}
