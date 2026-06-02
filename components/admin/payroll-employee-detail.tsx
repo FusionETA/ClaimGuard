@@ -1165,6 +1165,25 @@ function EmploymentTab(props: {
   const [salaryChangeNotes, setSalaryChangeNotes] = useState("")
   const pendingFormRef = useRef<HTMLFormElement | null>(null)
 
+  // Reset the salary-change classification after every successful
+  // save. Without this, a second edit in the same session bypasses
+  // the dialog: the intercept at the form's onSubmit only opens the
+  // dialog when `salaryChangeKind === null`, but a previous save
+  // left it set to "RAISE" / "TYPO" / etc. We also clear the notes
+  // and reset the effective-date to today so the dialog starts fresh
+  // next time.
+  //
+  // Dep is `state` (the whole object, not just `.status`) because
+  // `useActionState` returns a new state reference on every action
+  // result — so this fires once per save, even back-to-back successes.
+  useEffect(() => {
+    if (state.status === "success") {
+      setSalaryChangeKind(null)
+      setSalaryChangeNotes("")
+      setSalaryChangeEffectiveDate(new Date().toISOString().slice(0, 10))
+    }
+  }, [state])
+
   /**
    * Compare the live form state against the saved profile snapshot
    * NUMERICALLY (parse both sides, compare as floats with a 1¢
