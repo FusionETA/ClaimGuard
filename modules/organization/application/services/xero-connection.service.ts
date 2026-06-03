@@ -73,14 +73,29 @@ export async function getUsableXeroAccessToken(connectionId: string) {
       tenantId: connection.tenantId,
     }
   } catch {
-    // Xero rejected the refresh (refresh token already used by a concurrent request).
-    // Re-read the token that the winning request stored in DB.
+    // The refresh failed. This is EITHER benign (a concurrent request already
+    // rotated the refresh token, so ours was stale) OR terminal (the refresh
+    // token / OAuth grant is dead — e.g. the org was disconnected on Xero's
+    // side). We re-read the row to tell them apart:
+    //   • If another request stored a *different, still-valid* token, use it.
+    //   • Otherwise the connection genuinely needs re-authorisation. Return
+    //     null so callers report "reconnect Xero" instead of handing back an
+    //     expired token that Xero rejects with a confusing 403
+    //     "AuthenticationUnsuccessful".
     const fresh = await organizationRepository.getXeroConnectionById(connectionId)
     if (!fresh) return null
-    return {
-      accessToken: fresh.accessToken,
-      tenantId: fresh.tenantId,
+
+    const tokenWasRotatedByOther = fresh.refreshToken !== connection.refreshToken
+    const stillValid = fresh.accessTokenExpiresAt.getTime() > Date.now() + 60_000
+
+    if (tokenWasRotatedByOther && stillValid) {
+      return {
+        accessToken: fresh.accessToken,
+        tenantId: fresh.tenantId,
+      }
     }
+
+    return null
   }
 }
 
