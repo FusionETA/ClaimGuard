@@ -147,8 +147,8 @@ function AddEmployeeDialog({
           Add employee
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 sm:max-w-md">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Add employee</DialogTitle>
           <DialogDescription>
             Create the employee with their basic details. You can set
@@ -156,7 +156,14 @@ function AddEmployeeDialog({
             their profile tabs afterwards.
           </DialogDescription>
         </DialogHeader>
-        <form action={formAction} className="space-y-4">
+        {/* Form is a flex column so the body scrolls and the footer
+            stays pinned. min-h-0 lets the inner scroll container shrink
+            below its content height in the flex layout. */}
+        <form
+          action={formAction}
+          className="mt-4 flex min-h-0 flex-1 flex-col gap-4"
+        >
+          <div className="flex-1 space-y-4 overflow-y-auto pr-1">
           <input type="hidden" name="policyId" value={policyId} />
           <input type="hidden" name="role" value="EMPLOYEE" />
           <Labelled label="Full name">
@@ -268,7 +275,8 @@ function AddEmployeeDialog({
               )}
             </>
           )}
-          <DialogFooter>
+          </div>
+          <DialogFooter className="shrink-0 border-t border-border/40 pt-4">
             <Button
               type="button"
               variant="outline"
