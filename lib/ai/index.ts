@@ -1,6 +1,9 @@
 import "server-only"
 
-import { analyzeReceiptTextWithGemini } from "@/lib/ai/providers/gemini"
+import {
+  analyzeReceiptFileWithGemini,
+  analyzeReceiptTextWithGemini,
+} from "@/lib/ai/providers/gemini"
 import { analyzeReceiptTextWithGroq } from "@/lib/ai/providers/groq"
 
 /**
@@ -51,6 +54,16 @@ export type AnalyzeReceiptOptions = {
   provider?: "groq" | "gemini"
 }
 
+export type AnalyzeReceiptFileOptions = {
+  /** Raw file bytes (image or PDF). */
+  fileBytes: Buffer
+  /** MIME type — used as Gemini's inlineData.mimeType. Must be one of
+   *  Gemini's supported types (image/* or application/pdf). */
+  mimeType: string
+  /** Subset of chart-of-accounts the user is allowed to pick from. */
+  candidateAccounts?: CandidateAccount[]
+}
+
 /**
  * Single entry-point used by API routes. Picks a provider and dispatches.
  * Provider selection precedence: explicit `options.provider` arg → env
@@ -84,6 +97,21 @@ export async function analyzeReceipt(
       throw new Error(`Unknown AI provider: ${provider as string}`)
     }
   }
+}
+
+/**
+ * Vision variant — used when the client uploads the raw receipt (PDF or
+ * image) instead of running Tesseract first. Always dispatches to Gemini:
+ * Groq's chat completion API doesn't accept inline image/PDF data in this
+ * codebase. Throws if `GEMINI_API_KEY` is missing.
+ */
+export async function analyzeReceiptFromFile(
+  options: AnalyzeReceiptFileOptions,
+): Promise<ReceiptExtraction> {
+  if (options.fileBytes.length === 0) {
+    throw new Error("Cannot analyze an empty file.")
+  }
+  return analyzeReceiptFileWithGemini(options)
 }
 
 function resolveProviderFromEnv(): "groq" | "gemini" {

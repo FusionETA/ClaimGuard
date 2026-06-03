@@ -104,6 +104,56 @@ export function buildReceiptPrompt(opts: {
   ].join("\n")
 }
 
+/**
+ * Variant for multimodal (vision) providers. The model is shown the
+ * raw receipt image/PDF directly via inlineData, so we skip the "OCR
+ * text" hand-off and instead instruct the model to read the document
+ * itself. Same output shape as `buildReceiptPrompt`.
+ */
+export function buildReceiptVisionPrompt(opts: {
+  candidateAccounts?: CandidateAccount[]
+}): string {
+  const accountsBlock = (opts.candidateAccounts ?? []).length
+    ? renderCandidateAccountsBlock(opts.candidateAccounts!)
+    : "No candidate accounts provided. Set suggestedAccountId to null and suggestedAccountConfidence to 0."
+
+  return [
+    "You are a receipt and invoice parser. Read the attached receipt or invoice (image or PDF) and extract the canonical fields. Multi-page PDFs may contain a single invoice spanning pages — read all pages before deciding the totals.",
+    "",
+    "Return ONLY a single JSON object matching this exact shape (no prose, no markdown fences):",
+    "",
+    "{",
+    '  "supplier": "Merchant or vendor name, or null",',
+    '  "currency": "ISO 4217 uppercase (MYR, USD, SGD, EUR, ...) or null if unreadable",',
+    '  "total": <final total payable as a number, or null>,',
+    '  "date": "yyyy-mm-dd or null",',
+    '  "description": "One short sentence summarising the spend, or null",',
+    '  "suggestedAccountId": "id from the candidate list, or null",',
+    '  "suggestedAccountConfidence": <number between 0 and 1>',
+    "}",
+    "",
+    "FIELD-BY-FIELD GUIDANCE:",
+    "",
+    "supplier — the BUSINESS NAME, almost always at the top of the document. NEVER a cashier/server/host name, table number, invoice number, or generic word like 'RECEIPT' or 'TAX INVOICE'. If you really can't tell, return null.",
+    "",
+    "total — the GRAND TOTAL the customer paid. Often labeled 'TOTAL', 'AMOUNT', 'GRAND TOTAL', 'AMOUNT DUE', 'BALANCE DUE'. Pick the LAST/largest monetary value before any tip line; never a subtotal or single line item. Return as a plain number (no currency symbol).",
+    "",
+    "date — the transaction or invoice date. Convert to ISO yyyy-mm-dd. For ambiguous dd/mm vs mm/dd: if either part is >12, it's the day; otherwise assume dd/mm/yyyy.",
+    "",
+    "currency — ISO 4217 code. RM → MYR, S$ → SGD, HK$ → HKD, NT$ → TWD, A$ → AUD, NZ$ → NZD, C$ → CAD, € → EUR, £ → GBP, ¥ → JPY (or CNY in China). Bare $ is ambiguous → null.",
+    "",
+    "description — 8 words or less. Lead with WHAT was bought, e.g. 'Coffee and tea at Coffee Shop', 'Lunch at KFC', 'Office stationery'.",
+    "",
+    "suggestedAccountId — only set when you are clearly confident the spend matches one of the listed accounts. Otherwise null with confidence 0.",
+    "",
+    "GENERAL RULES:",
+    "- Return null for any field you can't read confidently. Do NOT guess wildly.",
+    "- Numbers must be plain JSON numbers (no quotes, no currency symbols).",
+    "",
+    accountsBlock,
+  ].join("\n")
+}
+
 function renderCandidateAccountsBlock(accounts: CandidateAccount[]): string {
   const lines = accounts.map((a) => {
     const hint = a.hint ? ` (${a.hint})` : ""

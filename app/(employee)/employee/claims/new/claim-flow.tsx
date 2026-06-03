@@ -341,42 +341,73 @@ function ReceiptStep({
     if (!receiptFile) return
 
     try {
-      // 1. OCR via Tesseract.js (browser-side, free).
-      setStatus({ phase: "ocr", progress: 0 })
-      const Tesseract = await loadTesseract()
+      const isPdf = receiptFile.type === "application/pdf"
 
-      const ocr = await Tesseract.recognize(receiptFile, "eng", {
-        logger: (m: { status: string; progress: number }) => {
-          if (m.status === "recognizing text") {
-            setStatus({ phase: "ocr", progress: m.progress })
-          }
-        },
-      })
+      let payload: AnalyzeApiResponse
 
-      const text = ocr.data?.text?.trim() ?? ""
-      if (!text) {
-        setStatus({
-          phase: "error",
-          message:
-            "Couldn't read any text from the photo. Try a sharper or better-lit shot, or skip and fill manually.",
+      if (isPdf) {
+        // PDFs skip Tesseract entirely — we upload the file and let
+        // Gemini's multimodal endpoint do OCR + extraction in one call.
+        // Tesseract.js doesn't render PDFs out-of-the-box, and PDFs
+        // usually have selectable text + structure that Gemini reads
+        // far more accurately than rasterise-then-OCR would.
+        setStatus({ phase: "ai" })
+
+        const formData = new FormData()
+        formData.append("file", receiptFile)
+
+        const response = await fetch("/api/ocr/analyze-receipt-file", {
+          method: "POST",
+          body: formData,
         })
-        return
-      }
 
-      // 2. AI extraction via the server route.
-      setStatus({ phase: "ai" })
-      const response = await fetch("/api/ocr/analyze-receipt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      })
+        payload = (await response.json().catch(() => ({}))) as AnalyzeApiResponse
+        if (!response.ok || !payload.extraction) {
+          const fallbackMessage =
+            payload.error ??
+            "AI extraction failed. You can still continue and fill the form manually."
+          setStatus({ phase: "error", message: fallbackMessage })
+          return
+        }
+      } else {
+        // 1. OCR via Tesseract.js (browser-side, free).
+        setStatus({ phase: "ocr", progress: 0 })
+        const Tesseract = await loadTesseract()
 
-      const payload = (await response.json().catch(() => ({}))) as AnalyzeApiResponse
-      if (!response.ok || !payload.extraction) {
-        const fallbackMessage =
-          payload.error ?? "AI extraction failed. You can still continue and fill the form manually."
-        setStatus({ phase: "error", message: fallbackMessage })
-        return
+        const ocr = await Tesseract.recognize(receiptFile, "eng", {
+          logger: (m: { status: string; progress: number }) => {
+            if (m.status === "recognizing text") {
+              setStatus({ phase: "ocr", progress: m.progress })
+            }
+          },
+        })
+
+        const text = ocr.data?.text?.trim() ?? ""
+        if (!text) {
+          setStatus({
+            phase: "error",
+            message:
+              "Couldn't read any text from the photo. Try a sharper or better-lit shot, or skip and fill manually.",
+          })
+          return
+        }
+
+        // 2. AI extraction via the server route.
+        setStatus({ phase: "ai" })
+        const response = await fetch("/api/ocr/analyze-receipt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        })
+
+        payload = (await response.json().catch(() => ({}))) as AnalyzeApiResponse
+        if (!response.ok || !payload.extraction) {
+          const fallbackMessage =
+            payload.error ??
+            "AI extraction failed. You can still continue and fill the form manually."
+          setStatus({ phase: "error", message: fallbackMessage })
+          return
+        }
       }
 
       const e = payload.extraction
@@ -429,12 +460,24 @@ function ReceiptStep({
         )}
       >
         {receiptPreview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={receiptPreview}
-            alt="Receipt preview"
-            className="max-h-64 rounded-xl object-contain"
-          />
+          receiptFile?.type === "application/pdf" ? (
+            <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+              <FileText className="h-10 w-10 text-muted-foreground" aria-hidden />
+              <p className="text-sm font-semibold text-foreground">
+                {receiptFile.name || "PDF receipt"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                PDF will be read by AI — no on-device preview.
+              </p>
+            </div>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={receiptPreview}
+              alt="Receipt preview"
+              className="max-h-64 rounded-xl object-contain"
+            />
+          )
         ) : (
           <>
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -445,7 +488,7 @@ function ReceiptStep({
               <span>take photo</span>
             </div>
             <p className="text-xs leading-5 text-muted-foreground">
-              JPG, PNG, WEBP, or HEIC up to 8 MB
+              JPG, PNG, WEBP, HEIC, or PDF up to 8 MB
             </p>
           </>
         )}
@@ -453,7 +496,7 @@ function ReceiptStep({
       <input
         id="receiptScanFile"
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
         // NB: no `capture` attribute. iOS Safari and most Android
         // browsers treat `capture` as "open camera directly, hide
         // library" — so users couldn't pick an existing photo. With
