@@ -209,16 +209,34 @@ export function getXeroReauthVersion(): string | null {
 export function getXeroRuntimeConfigStatus() {
   return {
     configured: Boolean(
-      process.env.XERO_CLIENT_ID &&
-        process.env.XERO_CLIENT_SECRET &&
-        process.env.XERO_REDIRECT_URI
+      process.env.XERO_CLIENT_ID && process.env.XERO_CLIENT_SECRET
     ),
     missing: [
       !process.env.XERO_CLIENT_ID ? "XERO_CLIENT_ID" : null,
       !process.env.XERO_CLIENT_SECRET ? "XERO_CLIENT_SECRET" : null,
-      !process.env.XERO_REDIRECT_URI ? "XERO_REDIRECT_URI" : null,
     ].filter(Boolean) as string[],
   }
+}
+
+/**
+ * Build the OAuth callback URI for a given request origin. Both the
+ * initial auth-request URI and the token-exchange URI must be byte
+ * identical, or Xero rejects the token call with `invalid_grant`.
+ * Centralising the construction here means there's exactly one shape
+ * we ever send to Xero (`{origin}/api/xero/callback`).
+ *
+ * Both routes derive `requestOrigin` from `getRequestOrigin(request)`,
+ * which honours `x-forwarded-host` so it picks up the public hostname
+ * (e.g. `hr.altomate.io`) behind the proxy rather than `localhost:3000`.
+ * Xero only redirects the user back to the URI we sent in step 1, so
+ * the callback request lands on the same host and step 2 produces the
+ * identical URI automatically.
+ *
+ * Every host you serve from must be registered as an allowed redirect
+ * URI in the Xero Developer Portal — Xero supports multiple per app.
+ */
+export function buildXeroRedirectUri(requestOrigin: string): string {
+  return `${requestOrigin.replace(/\/+$/, "")}/api/xero/callback`
 }
 
 function getClientCredentialsHeader() {
@@ -306,27 +324,41 @@ export function createXeroOauthState() {
   return randomUUID()
 }
 
-export function getXeroAuthorizationUrl(state: string) {
-  const redirectUri = getRequiredEnv("XERO_REDIRECT_URI")
+export function getXeroAuthorizationUrl(input: {
+  state: string
+  /** Host-aware origin from `getRequestOrigin(request)`. The redirect
+   *  URI we hand to Xero is built from this so multi-domain deployments
+   *  (e.g. `hr.altomate.io` AND `altomatehr.fusioneta.com.my`) all work
+   *  with one app config. */
+  requestOrigin: string
+}) {
+  const redirectUri = buildXeroRedirectUri(input.requestOrigin)
   const clientId = getRequiredEnv("XERO_CLIENT_ID")
   const params = new URLSearchParams({
     response_type: "code",
     client_id: clientId,
     redirect_uri: redirectUri,
     scope: getXeroScopes(),
-    state,
+    state: input.state,
   })
 
   return `${XERO_AUTHORIZE_URL}?${params.toString()}`
 }
 
-export async function exchangeXeroCodeForTokens(code: string) {
-  const redirectUri = getRequiredEnv("XERO_REDIRECT_URI")
+export async function exchangeXeroCodeForTokens(input: {
+  code: string
+  /** Same `getRequestOrigin(request)` value as the auth-URL build. Xero
+   *  redirects the user back to the URI we sent in step 1, so the
+   *  callback request lands on that same host — passing it here keeps
+   *  the URIs byte-identical, which Xero requires. */
+  requestOrigin: string
+}) {
+  const redirectUri = buildXeroRedirectUri(input.requestOrigin)
 
   return requestToken(
     new URLSearchParams({
       grant_type: "authorization_code",
-      code,
+      code: input.code,
       redirect_uri: redirectUri,
     })
   )

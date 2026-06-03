@@ -139,7 +139,9 @@ SESSION_SECRET=                  # min 32 chars
 # Xero OAuth (optional — app works without Xero)
 XERO_CLIENT_ID=
 XERO_CLIENT_SECRET=
-XERO_REDIRECT_URI=               # e.g. https://yourdomain.com/api/xero/callback
+# Note: redirect URI is derived from the incoming request host
+# (`{origin}/api/xero/callback`). Register every host you serve from
+# in the Xero Developer Portal — Xero supports multiple per app.
 XERO_SCOPES=offline_access accounting.transactions accounting.contacts projects
 XERO_DEFAULT_ACCOUNT_CODE=       # fallback account code for bill creation
 

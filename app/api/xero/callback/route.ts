@@ -55,7 +55,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const tokenSet = await exchangeXeroCodeForTokens(code)
+    const tokenSet = await exchangeXeroCodeForTokens({
+      code,
+      requestOrigin: origin,
+    })
     const tenants = await getXeroTenants(tokenSet.accessToken)
 
     if (!tenants.length) {
