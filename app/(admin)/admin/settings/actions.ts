@@ -16,7 +16,6 @@ import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
 import { isKnownCurrency } from "@/lib/currencies"
 import type { XeroTenant } from "@/lib/xero"
-import { deleteXeroConnection } from "@/lib/xero"
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import {
@@ -675,13 +674,17 @@ export async function selectXeroTenantAction(
     connectedByAdminId: session.userId,
   })
 
-  // Revoke the non-selected connections from Xero so they no longer appear in
-  // the developer portal's Connection management and can't be used to call the API.
-  const othersToRevoke = pending.tenants.filter((t) => t.tenantId !== tenant.tenantId)
-  await Promise.allSettled(
-    othersToRevoke.map((t) => deleteXeroConnection(pending.accessToken, t.connectionId))
-  )
-
+  // NOTE: we deliberately do NOT revoke the non-selected tenants here.
+  // A single Xero login can authorise multiple organisations, and those
+  // other tenants are very likely connected to *different* AltomateHR
+  // organisations under the same login. Revoking them (the previous
+  // behaviour) deleted the OAuth grant on Xero's side, which silently
+  // broke the sibling org's connection — its token would refresh into a
+  // grant that no longer covered its tenant, surfacing as a 403
+  // "AuthenticationUnsuccessful". Leaving the other grants intact lets
+  // each org keep its own working connection. The only downside is an
+  // unused grant lingering in Xero if a user authorised an org they
+  // never connect here — harmless, and removable from the Xero side.
   cookieStore.delete(XERO_PENDING_COOKIE)
 
   await revalidateAdminSurfaces(organizationId)
