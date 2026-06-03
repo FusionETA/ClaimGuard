@@ -7,7 +7,10 @@ import {
   unusedCarriedAtExpiry,
 } from "@/modules/leave/domain/accrual"
 import type { LeaveAccrualMethod } from "@/modules/leave/domain/models"
-import { resolveDefaultEntitledDays } from "./leave-entitlements.service"
+import {
+  resolveAccrualMethodFromLayers,
+  resolveDefaultEntitledDays,
+} from "./leave-entitlements.service"
 
 /// Year-rollover: for each active employee × non-archived leave type,
 /// create next-year's LeaveEntitlement row using:
@@ -34,6 +37,23 @@ export async function runYearRollover(targetYear: number): Promise<{
   let updated = 0
   let skipped = 0
 
+  // Pre-load per-policy method overrides for the eligible orgs so we
+  // can resolve the effective accrual method per (employee × type)
+  // without N+1 queries. Keyed as `${policyId}:${leaveTypeId}`.
+  const policyMethodOverrides = await prisma.policyLeaveEntitlement.findMany({
+    where: { accrualMethod: { not: null } },
+    select: { policyId: true, leaveTypeId: true, accrualMethod: true },
+  })
+  const policyMethodIndex = new Map<string, LeaveAccrualMethod>()
+  for (const row of policyMethodOverrides) {
+    if (row.accrualMethod) {
+      policyMethodIndex.set(
+        `${row.policyId}:${row.leaveTypeId}`,
+        row.accrualMethod as LeaveAccrualMethod,
+      )
+    }
+  }
+
   for (const t of types) {
     // Employees in the same org as this leave type.
     const eligible = employees.filter((e) => e.user.organizationId === t.organizationId)
@@ -49,11 +69,27 @@ export async function runYearRollover(targetYear: number): Promise<{
       })
 
       const entitledDays = await resolveDefaultEntitledDays(emp.id, t.id)
+
+      // Effective method for the carry-forward computation: walk the
+      // employee row (prev year's `accrualMethod`) → policy override →
+      // type. The new row's own `accrualMethod` mirrors the prev row's
+      // so per-employee overrides survive the rollover.
+      const policyMethod = emp.policyId
+        ? (policyMethodIndex.get(`${emp.policyId}:${t.id}`) ?? null)
+        : null
+      const employeeMethod =
+        (prev?.accrualMethod ?? null) as LeaveAccrualMethod | null
+      const effectiveMethod = resolveAccrualMethodFromLayers({
+        employeeMethod,
+        policyMethod,
+        typeMethod: t.accrualMethod as LeaveAccrualMethod,
+      })
+
       let carriedDays = 0
       let carriedExpiresAt: Date | null = null
       if (t.carryForward && prev) {
         carriedDays = carryForwardAmount({
-          accrualMethod: t.accrualMethod as LeaveAccrualMethod,
+          accrualMethod: effectiveMethod,
           entitledDays: prev.entitledDays,
           accruedDays: prev.accruedDays,
           carriedDays: prev.carriedExpired ? 0 : prev.carriedDays,
@@ -66,7 +102,7 @@ export async function runYearRollover(targetYear: number): Promise<{
         }
       }
 
-      const accruedDays = t.accrualMethod === "PRO_RATED" ? 0 : entitledDays
+      const accruedDays = effectiveMethod === "PRO_RATED" ? 0 : entitledDays
 
       const existing = await prisma.leaveEntitlement.findUnique({
         where: {
@@ -91,6 +127,10 @@ export async function runYearRollover(targetYear: number): Promise<{
             accruedDays,
             carriedDays,
             carriedExpiresAt,
+            // Propagate the previous year's employee-layer override
+            // onto the new row so explicit per-employee customisations
+            // survive the rollover.
+            accrualMethod: employeeMethod,
           },
         })
         created += 1
@@ -131,16 +171,44 @@ export async function runMonthlyAccrual(now: Date = new Date()): Promise<{
     }).format(now),
   )
 
-  // 1) Accrue PRO_RATED entitlements.
-  const proRated = await prisma.leaveEntitlement.findMany({
-    where: {
-      year,
-      leaveType: { accrualMethod: "PRO_RATED", archivedAt: null },
+  // Pre-load per-policy method overrides so we resolve the effective
+  // accrual method per row without N+1 queries.
+  const policyMethodOverrides = await prisma.policyLeaveEntitlement.findMany({
+    where: { accrualMethod: { not: null } },
+    select: { policyId: true, leaveTypeId: true, accrualMethod: true },
+  })
+  const policyMethodIndex = new Map<string, LeaveAccrualMethod>()
+  for (const row of policyMethodOverrides) {
+    if (row.accrualMethod) {
+      policyMethodIndex.set(
+        `${row.policyId}:${row.leaveTypeId}`,
+        row.accrualMethod as LeaveAccrualMethod,
+      )
+    }
+  }
+
+  // 1) Accrue rows whose EFFECTIVE method is PRO_RATED. We can no
+  // longer pre-filter on `leaveType.accrualMethod` because per-policy
+  // and per-employee overrides may flip the method either way. Fetch
+  // every active entitlement and resolve per row.
+  const all = await prisma.leaveEntitlement.findMany({
+    where: { year, leaveType: { archivedAt: null } },
+    include: {
+      leaveType: { select: { accrualMethod: true } },
+      employee: { select: { policyId: true } },
     },
-    include: { leaveType: true },
   })
   let accruedCount = 0
-  for (const e of proRated) {
+  for (const e of all) {
+    const policyMethod = e.employee.policyId
+      ? (policyMethodIndex.get(`${e.employee.policyId}:${e.leaveTypeId}`) ?? null)
+      : null
+    const effectiveMethod = resolveAccrualMethodFromLayers({
+      employeeMethod: (e.accrualMethod ?? null) as LeaveAccrualMethod | null,
+      policyMethod,
+      typeMethod: e.leaveType.accrualMethod as LeaveAccrualMethod,
+    })
+    if (effectiveMethod !== "PRO_RATED") continue
     const next = nextAccruedDays(e.entitledDays, e.accruedDays)
     if (next === e.accruedDays) continue
     await prisma.leaveEntitlement.update({
@@ -150,19 +218,32 @@ export async function runMonthlyAccrual(now: Date = new Date()): Promise<{
     accruedCount += 1
   }
 
-  // 2) Expire carry-forward whose expiry is in the past.
+  // 2) Expire carry-forward whose expiry is in the past. Effective
+  // method matters here too — `unusedCarriedAtExpiry` returns different
+  // results for LUMP_SUM vs PRO_RATED.
   const expiring = await prisma.leaveEntitlement.findMany({
     where: {
       carriedExpired: false,
       carriedExpiresAt: { lte: now },
       carriedDays: { gt: 0 },
     },
-    include: { leaveType: true },
+    include: {
+      leaveType: { select: { accrualMethod: true } },
+      employee: { select: { policyId: true } },
+    },
   })
   let expiredCount = 0
   for (const e of expiring) {
+    const policyMethod = e.employee.policyId
+      ? (policyMethodIndex.get(`${e.employee.policyId}:${e.leaveTypeId}`) ?? null)
+      : null
+    const effectiveMethod = resolveAccrualMethodFromLayers({
+      employeeMethod: (e.accrualMethod ?? null) as LeaveAccrualMethod | null,
+      policyMethod,
+      typeMethod: e.leaveType.accrualMethod as LeaveAccrualMethod,
+    })
     const unused = unusedCarriedAtExpiry({
-      accrualMethod: e.leaveType.accrualMethod as LeaveAccrualMethod,
+      accrualMethod: effectiveMethod,
       entitledDays: e.entitledDays,
       accruedDays: e.accruedDays,
       carriedDays: e.carriedDays,

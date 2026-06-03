@@ -43,6 +43,7 @@ export type PolicyLeaveEntitlementMinAggregateOutputType = {
   policyId: string | null
   leaveTypeId: string | null
   defaultDays: number | null
+  accrualMethod: $Enums.LeaveAccrualMethod | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -52,6 +53,7 @@ export type PolicyLeaveEntitlementMaxAggregateOutputType = {
   policyId: string | null
   leaveTypeId: string | null
   defaultDays: number | null
+  accrualMethod: $Enums.LeaveAccrualMethod | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -61,6 +63,7 @@ export type PolicyLeaveEntitlementCountAggregateOutputType = {
   policyId: number
   leaveTypeId: number
   defaultDays: number
+  accrualMethod: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -80,6 +83,7 @@ export type PolicyLeaveEntitlementMinAggregateInputType = {
   policyId?: true
   leaveTypeId?: true
   defaultDays?: true
+  accrualMethod?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -89,6 +93,7 @@ export type PolicyLeaveEntitlementMaxAggregateInputType = {
   policyId?: true
   leaveTypeId?: true
   defaultDays?: true
+  accrualMethod?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -98,6 +103,7 @@ export type PolicyLeaveEntitlementCountAggregateInputType = {
   policyId?: true
   leaveTypeId?: true
   defaultDays?: true
+  accrualMethod?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -194,6 +200,7 @@ export type PolicyLeaveEntitlementGroupByOutputType = {
   policyId: string
   leaveTypeId: string
   defaultDays: number
+  accrualMethod: $Enums.LeaveAccrualMethod | null
   createdAt: Date
   updatedAt: Date
   _count: PolicyLeaveEntitlementCountAggregateOutputType | null
@@ -226,6 +233,7 @@ export type PolicyLeaveEntitlementWhereInput = {
   policyId?: Prisma.StringFilter<"PolicyLeaveEntitlement"> | string
   leaveTypeId?: Prisma.StringFilter<"PolicyLeaveEntitlement"> | string
   defaultDays?: Prisma.FloatFilter<"PolicyLeaveEntitlement"> | number
+  accrualMethod?: Prisma.EnumLeaveAccrualMethodNullableFilter<"PolicyLeaveEntitlement"> | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
   leaveType?: Prisma.XOR<Prisma.LeaveTypeScalarRelationFilter, Prisma.LeaveTypeWhereInput>
@@ -237,6 +245,7 @@ export type PolicyLeaveEntitlementOrderByWithRelationInput = {
   policyId?: Prisma.SortOrder
   leaveTypeId?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
+  accrualMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   leaveType?: Prisma.LeaveTypeOrderByWithRelationInput
@@ -253,6 +262,7 @@ export type PolicyLeaveEntitlementWhereUniqueInput = Prisma.AtLeast<{
   policyId?: Prisma.StringFilter<"PolicyLeaveEntitlement"> | string
   leaveTypeId?: Prisma.StringFilter<"PolicyLeaveEntitlement"> | string
   defaultDays?: Prisma.FloatFilter<"PolicyLeaveEntitlement"> | number
+  accrualMethod?: Prisma.EnumLeaveAccrualMethodNullableFilter<"PolicyLeaveEntitlement"> | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
   leaveType?: Prisma.XOR<Prisma.LeaveTypeScalarRelationFilter, Prisma.LeaveTypeWhereInput>
@@ -264,6 +274,7 @@ export type PolicyLeaveEntitlementOrderByWithAggregationInput = {
   policyId?: Prisma.SortOrder
   leaveTypeId?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
+  accrualMethod?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.PolicyLeaveEntitlementCountOrderByAggregateInput
@@ -281,6 +292,7 @@ export type PolicyLeaveEntitlementScalarWhereWithAggregatesInput = {
   policyId?: Prisma.StringWithAggregatesFilter<"PolicyLeaveEntitlement"> | string
   leaveTypeId?: Prisma.StringWithAggregatesFilter<"PolicyLeaveEntitlement"> | string
   defaultDays?: Prisma.FloatWithAggregatesFilter<"PolicyLeaveEntitlement"> | number
+  accrualMethod?: Prisma.EnumLeaveAccrualMethodNullableWithAggregatesFilter<"PolicyLeaveEntitlement"> | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PolicyLeaveEntitlement"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"PolicyLeaveEntitlement"> | Date | string
 }
@@ -288,6 +300,7 @@ export type PolicyLeaveEntitlementScalarWhereWithAggregatesInput = {
 export type PolicyLeaveEntitlementCreateInput = {
   id?: string
   defaultDays?: number
+  accrualMethod?: $Enums.LeaveAccrualMethod | null
   createdAt?: Date | string
   updatedAt?: Date | string
   leaveType: Prisma.LeaveTypeCreateNestedOneWithoutPolicyDefaultsInput
@@ -299,6 +312,7 @@ export type PolicyLeaveEntitlementUncheckedCreateInput = {
   policyId: string
   leaveTypeId: string
   defaultDays?: number
+  accrualMethod?: $Enums.LeaveAccrualMethod | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -306,6 +320,7 @@ export type PolicyLeaveEntitlementUncheckedCreateInput = {
 export type PolicyLeaveEntitlementUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leaveType?: Prisma.LeaveTypeUpdateOneRequiredWithoutPolicyDefaultsNestedInput
@@ -317,6 +332,7 @@ export type PolicyLeaveEntitlementUncheckedUpdateInput = {
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
   leaveTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -326,6 +342,7 @@ export type PolicyLeaveEntitlementCreateManyInput = {
   policyId: string
   leaveTypeId: string
   defaultDays?: number
+  accrualMethod?: $Enums.LeaveAccrualMethod | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -333,6 +350,7 @@ export type PolicyLeaveEntitlementCreateManyInput = {
 export type PolicyLeaveEntitlementUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -342,6 +360,7 @@ export type PolicyLeaveEntitlementUncheckedUpdateManyInput = {
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
   leaveTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -372,6 +391,7 @@ export type PolicyLeaveEntitlementCountOrderByAggregateInput = {
   policyId?: Prisma.SortOrder
   leaveTypeId?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
+  accrualMethod?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -385,6 +405,7 @@ export type PolicyLeaveEntitlementMaxOrderByAggregateInput = {
   policyId?: Prisma.SortOrder
   leaveTypeId?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
+  accrualMethod?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -394,6 +415,7 @@ export type PolicyLeaveEntitlementMinOrderByAggregateInput = {
   policyId?: Prisma.SortOrder
   leaveTypeId?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
+  accrualMethod?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -486,9 +508,14 @@ export type PolicyLeaveEntitlementUncheckedUpdateManyWithoutLeaveTypeNestedInput
   deleteMany?: Prisma.PolicyLeaveEntitlementScalarWhereInput | Prisma.PolicyLeaveEntitlementScalarWhereInput[]
 }
 
+export type NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput = {
+  set?: $Enums.LeaveAccrualMethod | null
+}
+
 export type PolicyLeaveEntitlementCreateWithoutPolicyInput = {
   id?: string
   defaultDays?: number
+  accrualMethod?: $Enums.LeaveAccrualMethod | null
   createdAt?: Date | string
   updatedAt?: Date | string
   leaveType: Prisma.LeaveTypeCreateNestedOneWithoutPolicyDefaultsInput
@@ -498,6 +525,7 @@ export type PolicyLeaveEntitlementUncheckedCreateWithoutPolicyInput = {
   id?: string
   leaveTypeId: string
   defaultDays?: number
+  accrualMethod?: $Enums.LeaveAccrualMethod | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -536,6 +564,7 @@ export type PolicyLeaveEntitlementScalarWhereInput = {
   policyId?: Prisma.StringFilter<"PolicyLeaveEntitlement"> | string
   leaveTypeId?: Prisma.StringFilter<"PolicyLeaveEntitlement"> | string
   defaultDays?: Prisma.FloatFilter<"PolicyLeaveEntitlement"> | number
+  accrualMethod?: Prisma.EnumLeaveAccrualMethodNullableFilter<"PolicyLeaveEntitlement"> | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"PolicyLeaveEntitlement"> | Date | string
 }
@@ -543,6 +572,7 @@ export type PolicyLeaveEntitlementScalarWhereInput = {
 export type PolicyLeaveEntitlementCreateWithoutLeaveTypeInput = {
   id?: string
   defaultDays?: number
+  accrualMethod?: $Enums.LeaveAccrualMethod | null
   createdAt?: Date | string
   updatedAt?: Date | string
   policy: Prisma.EmployeePolicyCreateNestedOneWithoutLeaveDefaultsInput
@@ -552,6 +582,7 @@ export type PolicyLeaveEntitlementUncheckedCreateWithoutLeaveTypeInput = {
   id?: string
   policyId: string
   defaultDays?: number
+  accrualMethod?: $Enums.LeaveAccrualMethod | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -586,6 +617,7 @@ export type PolicyLeaveEntitlementCreateManyPolicyInput = {
   id?: string
   leaveTypeId: string
   defaultDays?: number
+  accrualMethod?: $Enums.LeaveAccrualMethod | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -593,6 +625,7 @@ export type PolicyLeaveEntitlementCreateManyPolicyInput = {
 export type PolicyLeaveEntitlementUpdateWithoutPolicyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   leaveType?: Prisma.LeaveTypeUpdateOneRequiredWithoutPolicyDefaultsNestedInput
@@ -602,6 +635,7 @@ export type PolicyLeaveEntitlementUncheckedUpdateWithoutPolicyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   leaveTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -610,6 +644,7 @@ export type PolicyLeaveEntitlementUncheckedUpdateManyWithoutPolicyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   leaveTypeId?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -618,6 +653,7 @@ export type PolicyLeaveEntitlementCreateManyLeaveTypeInput = {
   id?: string
   policyId: string
   defaultDays?: number
+  accrualMethod?: $Enums.LeaveAccrualMethod | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -625,6 +661,7 @@ export type PolicyLeaveEntitlementCreateManyLeaveTypeInput = {
 export type PolicyLeaveEntitlementUpdateWithoutLeaveTypeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   policy?: Prisma.EmployeePolicyUpdateOneRequiredWithoutLeaveDefaultsNestedInput
@@ -634,6 +671,7 @@ export type PolicyLeaveEntitlementUncheckedUpdateWithoutLeaveTypeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -642,6 +680,7 @@ export type PolicyLeaveEntitlementUncheckedUpdateManyWithoutLeaveTypeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   policyId?: Prisma.StringFieldUpdateOperationsInput | string
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
+  accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -653,6 +692,7 @@ export type PolicyLeaveEntitlementSelect<ExtArgs extends runtime.Types.Extension
   policyId?: boolean
   leaveTypeId?: boolean
   defaultDays?: boolean
+  accrualMethod?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   leaveType?: boolean | Prisma.LeaveTypeDefaultArgs<ExtArgs>
@@ -666,11 +706,12 @@ export type PolicyLeaveEntitlementSelectScalar = {
   policyId?: boolean
   leaveTypeId?: boolean
   defaultDays?: boolean
+  accrualMethod?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type PolicyLeaveEntitlementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "policyId" | "leaveTypeId" | "defaultDays" | "createdAt" | "updatedAt", ExtArgs["result"]["policyLeaveEntitlement"]>
+export type PolicyLeaveEntitlementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "policyId" | "leaveTypeId" | "defaultDays" | "accrualMethod" | "createdAt" | "updatedAt", ExtArgs["result"]["policyLeaveEntitlement"]>
 export type PolicyLeaveEntitlementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   leaveType?: boolean | Prisma.LeaveTypeDefaultArgs<ExtArgs>
   policy?: boolean | Prisma.EmployeePolicyDefaultArgs<ExtArgs>
@@ -687,6 +728,12 @@ export type $PolicyLeaveEntitlementPayload<ExtArgs extends runtime.Types.Extensi
     policyId: string
     leaveTypeId: string
     defaultDays: number
+    /**
+     * Per-policy override of `LeaveType.accrualMethod`. Null = inherit
+     * the type's method. See resolveAccrualMethod() in
+     * modules/leave/application/services/leave-entitlements.service.ts.
+     */
+    accrualMethod: $Enums.LeaveAccrualMethod | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["policyLeaveEntitlement"]>
@@ -1064,6 +1111,7 @@ export interface PolicyLeaveEntitlementFieldRefs {
   readonly policyId: Prisma.FieldRef<"PolicyLeaveEntitlement", 'String'>
   readonly leaveTypeId: Prisma.FieldRef<"PolicyLeaveEntitlement", 'String'>
   readonly defaultDays: Prisma.FieldRef<"PolicyLeaveEntitlement", 'Float'>
+  readonly accrualMethod: Prisma.FieldRef<"PolicyLeaveEntitlement", 'LeaveAccrualMethod'>
   readonly createdAt: Prisma.FieldRef<"PolicyLeaveEntitlement", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"PolicyLeaveEntitlement", 'DateTime'>
 }

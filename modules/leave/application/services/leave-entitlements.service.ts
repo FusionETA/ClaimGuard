@@ -4,7 +4,10 @@ import {
   availableDaysFor,
   initialProRatedAccrual,
 } from "@/modules/leave/domain/accrual"
-import type { LeaveEntitlementView } from "@/modules/leave/domain/models"
+import type {
+  LeaveAccrualMethod,
+  LeaveEntitlementView,
+} from "@/modules/leave/domain/models"
 import {
   getLeavePrismaClient,
   getLeavePrismaClientSafe,
@@ -43,6 +46,82 @@ export async function resolveDefaultEntitledDays(
   return type.defaultDays
 }
 
+/// Resolve the effective `accrualMethod` for an employee × leave type by
+/// walking the 3-layer chain:
+///   1. `LeaveEntitlement.accrualMethod` for the requested year — if
+///      non-null, return it.
+///   2. `PolicyLeaveEntitlement.accrualMethod` for the employee's policy
+///      — if non-null, return it.
+///   3. `LeaveType.accrualMethod` (always non-null).
+///
+/// Mirrors `resolveDefaultEntitledDays` above but for the method. Used
+/// by every consumer that previously read `LeaveType.accrualMethod`
+/// directly (the monthly cron, year rollover, balance view-mapper).
+export async function resolveAccrualMethod(
+  employeeId: string,
+  leaveTypeId: string,
+  year: number = currentYearMYT(),
+): Promise<LeaveAccrualMethod> {
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return "LUMP_SUM"
+
+  const [entitlement, type, employee] = await Promise.all([
+    prisma.leaveEntitlement.findUnique({
+      where: {
+        employeeId_leaveTypeId_year: { employeeId, leaveTypeId, year },
+      },
+      select: { accrualMethod: true },
+    }),
+    prisma.leaveType.findUnique({
+      where: { id: leaveTypeId },
+      select: { accrualMethod: true },
+    }),
+    prisma.employeeProfile.findUnique({
+      where: { id: employeeId },
+      select: { policyId: true },
+    }),
+  ])
+
+  if (entitlement?.accrualMethod) {
+    return entitlement.accrualMethod as LeaveAccrualMethod
+  }
+  if (employee?.policyId) {
+    const policyOverride = await prisma.policyLeaveEntitlement.findUnique({
+      where: {
+        policyId_leaveTypeId: { policyId: employee.policyId, leaveTypeId },
+      },
+      select: { accrualMethod: true },
+    })
+    if (policyOverride?.accrualMethod) {
+      return policyOverride.accrualMethod as LeaveAccrualMethod
+    }
+  }
+  return (type?.accrualMethod ?? "LUMP_SUM") as LeaveAccrualMethod
+}
+
+/// Same as `resolveAccrualMethod` but operates on already-loaded layer
+/// values. Use this when batch-resolving many (employee, type) pairs to
+/// avoid N+1 queries.
+export function resolveAccrualMethodFromLayers(layers: {
+  employeeMethod: LeaveAccrualMethod | null
+  policyMethod: LeaveAccrualMethod | null
+  typeMethod: LeaveAccrualMethod
+}): LeaveAccrualMethod {
+  return layers.employeeMethod ?? layers.policyMethod ?? layers.typeMethod
+}
+
+/// The current year in Asia/Kuala_Lumpur, used as the default year for
+/// resolver lookups. Matches the cron's timezone choice so a Jan 1
+/// firing crosses the year boundary at MYT midnight, not UTC midnight.
+function currentYearMYT(now: Date = new Date()): number {
+  return Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Kuala_Lumpur",
+      year: "numeric",
+    }).format(now),
+  )
+}
+
 /// Ensure a LeaveEntitlement row exists for (employee, leaveType, year),
 /// creating one with the resolved default if missing. Returns the row.
 ///
@@ -61,6 +140,12 @@ export async function ensureEntitlement(
   const type = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } })
   if (!type) throw new Error("Leave type not found")
   const entitledDays = await resolveDefaultEntitledDays(employeeId, leaveTypeId)
+  // Resolve the effective accrual method. No `LeaveEntitlement` row
+  // exists at this point by definition, so the employee layer is
+  // skipped — we walk policy → type. The created row carries
+  // `accrualMethod = null` (inherit) so any future change at the
+  // policy/type layer is picked up automatically.
+  const effectiveMethod = await resolveAccrualMethod(employeeId, leaveTypeId, year)
   // For LUMP_SUM, accrued mirrors entitled (full availability immediately).
   // For PRO_RATED, seed with a join-date-aware backfill so an
   // employee who joined mid-year (or whose row is being created
@@ -69,7 +154,7 @@ export async function ensureEntitlement(
   // the cron only adds 1/12 going forward and the employee silently
   // loses every accrual that fired before their row existed.
   let accruedDays: number
-  if (type.accrualMethod === "PRO_RATED") {
+  if (effectiveMethod === "PRO_RATED") {
     const joinDate = await leaveRepository.getEmployeeJoinDate(employeeId)
     accruedDays = initialProRatedAccrual({
       entitledDays,
@@ -154,23 +239,34 @@ export async function listEmployeeBalances(
   }))
 }
 
-/// Admin override of a single employee's annual entitlement for the year.
+/// Admin override of a single employee's entitlement for the year.
+/// `entitledDays` is required; `accrualMethod` is optional — pass null
+/// to clear the override (resolver walks up to policy/type), pass a
+/// value to set the override, or omit (`undefined`) to leave the
+/// existing per-employee override untouched.
 export async function setEmployeeEntitlement(
   employeeId: string,
   leaveTypeId: string,
   year: number,
   entitledDays: number,
+  accrualMethod?: LeaveAccrualMethod | null,
 ) {
   if (entitledDays < 0) throw new Error("Entitled days cannot be negative")
   const existing = await ensureEntitlement(employeeId, leaveTypeId, year)
-  const prisma = getLeavePrismaClient()
-  const type = await prisma.leaveType.findUnique({ where: { id: leaveTypeId } })
-  if (!type) throw new Error("Leave type not found")
+
+  // Resolve the effective method AFTER any update we're about to make,
+  // so the accrued-days recompute matches what consumers will see going
+  // forward. If the caller passed an explicit method, use that;
+  // otherwise re-resolve via the chain.
+  const effectiveMethod =
+    accrualMethod !== undefined && accrualMethod !== null
+      ? accrualMethod
+      : await resolveAccrualMethod(employeeId, leaveTypeId, year)
 
   // For LUMP_SUM the accrued mirrors entitled; for PRO_RATED accrued is
   // capped at the new entitled (don't go above the new ceiling).
   const accruedDays =
-    type.accrualMethod === "PRO_RATED"
+    effectiveMethod === "PRO_RATED"
       ? Math.min(existing.accruedDays, entitledDays)
       : entitledDays
 
@@ -180,18 +276,21 @@ export async function setEmployeeEntitlement(
     year,
     entitledDays,
     accruedDays,
+    accrualMethod,
   })
 }
 
 /// Reset an employee's entitlement back to the resolved default
-/// (policy override → leave type default).
+/// (policy override → leave type default). Clears BOTH `entitledDays`
+/// override and `accrualMethod` override so the row inherits from the
+/// next layer up for every field.
 export async function resetEmployeeEntitlementToDefault(
   employeeId: string,
   leaveTypeId: string,
   year: number,
 ) {
   const days = await resolveDefaultEntitledDays(employeeId, leaveTypeId)
-  return setEmployeeEntitlement(employeeId, leaveTypeId, year, days)
+  return setEmployeeEntitlement(employeeId, leaveTypeId, year, days, null)
 }
 
 /// Per-employee balance bundle used by the admin and supervisor list

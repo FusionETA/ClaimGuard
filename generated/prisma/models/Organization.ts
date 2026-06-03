@@ -314,12 +314,12 @@ export type OrganizationWhereInput = {
   supervisorSlaMinutes?: Prisma.IntFilter<"Organization"> | number
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
-  auditLog?: Prisma.OrganizationAuditLogListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   employeeImportDrafts?: Prisma.EmployeeImportDraftListRelationFilter
   employeePolicies?: Prisma.EmployeePolicyListRelationFilter
   leaveTypes?: Prisma.LeaveTypeListRelationFilter
+  auditLog?: Prisma.OrganizationAuditLogListRelationFilter
   payrollAnnualReports?: Prisma.PayrollAnnualReportListRelationFilter
   payrollCompanyInfo?: Prisma.XOR<Prisma.PayrollCompanyInfoNullableScalarRelationFilter, Prisma.PayrollCompanyInfoWhereInput> | null
   payrollRuns?: Prisma.PayrollRunListRelationFilter
@@ -348,12 +348,12 @@ export type OrganizationOrderByWithRelationInput = {
   supervisorSlaMinutes?: Prisma.SortOrder
   adminMembers?: Prisma.AdminOrganizationOrderByRelationAggregateInput
   apiIntegrations?: Prisma.ApiIntegrationOrderByRelationAggregateInput
-  auditLog?: Prisma.OrganizationAuditLogOrderByRelationAggregateInput
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
   claims?: Prisma.ClaimOrderByRelationAggregateInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftOrderByRelationAggregateInput
   employeePolicies?: Prisma.EmployeePolicyOrderByRelationAggregateInput
   leaveTypes?: Prisma.LeaveTypeOrderByRelationAggregateInput
+  auditLog?: Prisma.OrganizationAuditLogOrderByRelationAggregateInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportOrderByRelationAggregateInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoOrderByWithRelationInput
   payrollRuns?: Prisma.PayrollRunOrderByRelationAggregateInput
@@ -386,12 +386,12 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   supervisorSlaMinutes?: Prisma.IntFilter<"Organization"> | number
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
-  auditLog?: Prisma.OrganizationAuditLogListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
   claims?: Prisma.ClaimListRelationFilter
   employeeImportDrafts?: Prisma.EmployeeImportDraftListRelationFilter
   employeePolicies?: Prisma.EmployeePolicyListRelationFilter
   leaveTypes?: Prisma.LeaveTypeListRelationFilter
+  auditLog?: Prisma.OrganizationAuditLogListRelationFilter
   payrollAnnualReports?: Prisma.PayrollAnnualReportListRelationFilter
   payrollCompanyInfo?: Prisma.XOR<Prisma.PayrollCompanyInfoNullableScalarRelationFilter, Prisma.PayrollCompanyInfoWhereInput> | null
   payrollRuns?: Prisma.PayrollRunListRelationFilter
@@ -466,12 +466,12 @@ export type OrganizationCreateInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -500,12 +500,12 @@ export type OrganizationUncheckedCreateInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -534,12 +534,12 @@ export type OrganizationUpdateInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -568,12 +568,12 @@ export type OrganizationUncheckedUpdateInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -982,12 +982,12 @@ export type OrganizationCreateWithoutUsersInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -1015,12 +1015,12 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1064,12 +1064,12 @@ export type OrganizationUpdateWithoutUsersInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -1097,12 +1097,12 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1130,11 +1130,11 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -1163,11 +1163,11 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1212,11 +1212,11 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -1245,11 +1245,11 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1277,12 +1277,12 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -1310,12 +1310,12 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1359,12 +1359,12 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -1392,12 +1392,12 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1425,12 +1425,12 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -1458,12 +1458,12 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1507,12 +1507,12 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -1540,12 +1540,12 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1574,11 +1574,11 @@ export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -1607,11 +1607,11 @@ export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1656,11 +1656,11 @@ export type OrganizationUpdateWithoutEmployeeImportDraftsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -1689,11 +1689,11 @@ export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1722,11 +1722,11 @@ export type OrganizationCreateWithoutClaimsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -1755,11 +1755,11 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1804,11 +1804,11 @@ export type OrganizationUpdateWithoutClaimsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -1837,11 +1837,11 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1870,11 +1870,11 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -1903,11 +1903,11 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1952,11 +1952,11 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -1985,11 +1985,11 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2018,12 +2018,12 @@ export type OrganizationCreateWithoutXeroConnectionInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -2051,12 +2051,12 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2100,12 +2100,12 @@ export type OrganizationUpdateWithoutXeroConnectionInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -2133,12 +2133,12 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2166,12 +2166,12 @@ export type OrganizationCreateWithoutProjectsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -2199,12 +2199,12 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2248,12 +2248,12 @@ export type OrganizationUpdateWithoutProjectsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -2281,12 +2281,12 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2314,12 +2314,12 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -2347,12 +2347,12 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2396,12 +2396,12 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -2429,12 +2429,12 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2462,12 +2462,12 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
@@ -2495,12 +2495,12 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2544,12 +2544,12 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
@@ -2577,12 +2577,12 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -2610,12 +2610,12 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
@@ -2643,12 +2643,12 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2692,12 +2692,12 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
@@ -2725,12 +2725,12 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -2758,12 +2758,12 @@ export type OrganizationCreateWithoutPayrollAnnualReportsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsCreateNestedOneWithoutOrganizationInput
@@ -2791,12 +2791,12 @@ export type OrganizationUncheckedCreateWithoutPayrollAnnualReportsInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
   leaveTypes?: Prisma.LeaveTypeUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedCreateNestedOneWithoutOrganizationInput
@@ -2840,12 +2840,12 @@ export type OrganizationUpdateWithoutPayrollAnnualReportsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUpdateOneWithoutOrganizationNestedInput
@@ -2873,12 +2873,12 @@ export type OrganizationUncheckedUpdateWithoutPayrollAnnualReportsInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
   leaveTypes?: Prisma.LeaveTypeUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollSettings?: Prisma.PayrollSettingsUncheckedUpdateOneWithoutOrganizationNestedInput
@@ -2906,11 +2906,11 @@ export type OrganizationCreateWithoutLeaveTypesInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunCreateNestedManyWithoutOrganizationInput
@@ -2939,11 +2939,11 @@ export type OrganizationUncheckedCreateWithoutLeaveTypesInput = {
   supervisorSlaMinutes?: number
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedCreateNestedManyWithoutOrganizationInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedCreateNestedManyWithoutOrganizationInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedCreateNestedManyWithoutOrganizationInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedCreateNestedOneWithoutOrganizationInput
   payrollRuns?: Prisma.PayrollRunUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2988,11 +2988,11 @@ export type OrganizationUpdateWithoutLeaveTypesInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUpdateManyWithoutOrganizationNestedInput
@@ -3021,11 +3021,11 @@ export type OrganizationUncheckedUpdateWithoutLeaveTypesInput = {
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
-  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
   employeeImportDrafts?: Prisma.EmployeeImportDraftUncheckedUpdateManyWithoutOrganizationNestedInput
   employeePolicies?: Prisma.EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLog?: Prisma.OrganizationAuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollAnnualReports?: Prisma.PayrollAnnualReportUncheckedUpdateManyWithoutOrganizationNestedInput
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoUncheckedUpdateOneWithoutOrganizationNestedInput
   payrollRuns?: Prisma.PayrollRunUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -3191,12 +3191,12 @@ export type OrganizationUncheckedUpdateWithoutAuditLogInput = {
 export type OrganizationCountOutputType = {
   adminMembers: number
   apiIntegrations: number
-  auditLog: number
   chartAccounts: number
   claims: number
   employeeImportDrafts: number
   employeePolicies: number
   leaveTypes: number
+  auditLog: number
   payrollAnnualReports: number
   payrollRuns: number
   users: number
@@ -3206,12 +3206,12 @@ export type OrganizationCountOutputType = {
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | OrganizationCountOutputTypeCountAdminMembersArgs
   apiIntegrations?: boolean | OrganizationCountOutputTypeCountApiIntegrationsArgs
-  auditLog?: boolean | OrganizationCountOutputTypeCountAuditLogArgs
   chartAccounts?: boolean | OrganizationCountOutputTypeCountChartAccountsArgs
   claims?: boolean | OrganizationCountOutputTypeCountClaimsArgs
   employeeImportDrafts?: boolean | OrganizationCountOutputTypeCountEmployeeImportDraftsArgs
   employeePolicies?: boolean | OrganizationCountOutputTypeCountEmployeePoliciesArgs
   leaveTypes?: boolean | OrganizationCountOutputTypeCountLeaveTypesArgs
+  auditLog?: boolean | OrganizationCountOutputTypeCountAuditLogArgs
   payrollAnnualReports?: boolean | OrganizationCountOutputTypeCountPayrollAnnualReportsArgs
   payrollRuns?: boolean | OrganizationCountOutputTypeCountPayrollRunsArgs
   users?: boolean | OrganizationCountOutputTypeCountUsersArgs
@@ -3240,13 +3240,6 @@ export type OrganizationCountOutputTypeCountAdminMembersArgs<ExtArgs extends run
  */
 export type OrganizationCountOutputTypeCountApiIntegrationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.ApiIntegrationWhereInput
-}
-
-/**
- * OrganizationCountOutputType without action
- */
-export type OrganizationCountOutputTypeCountAuditLogArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.OrganizationAuditLogWhereInput
 }
 
 /**
@@ -3282,6 +3275,13 @@ export type OrganizationCountOutputTypeCountEmployeePoliciesArgs<ExtArgs extends
  */
 export type OrganizationCountOutputTypeCountLeaveTypesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.LeaveTypeWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountAuditLogArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrganizationAuditLogWhereInput
 }
 
 /**
@@ -3332,12 +3332,12 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   supervisorSlaMinutes?: boolean
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
-  auditLog?: boolean | Prisma.Organization$auditLogArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   employeeImportDrafts?: boolean | Prisma.Organization$employeeImportDraftsArgs<ExtArgs>
   employeePolicies?: boolean | Prisma.Organization$employeePoliciesArgs<ExtArgs>
   leaveTypes?: boolean | Prisma.Organization$leaveTypesArgs<ExtArgs>
+  auditLog?: boolean | Prisma.Organization$auditLogArgs<ExtArgs>
   payrollAnnualReports?: boolean | Prisma.Organization$payrollAnnualReportsArgs<ExtArgs>
   payrollCompanyInfo?: boolean | Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>
   payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
@@ -3373,12 +3373,12 @@ export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalAr
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
-  auditLog?: boolean | Prisma.Organization$auditLogArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
   claims?: boolean | Prisma.Organization$claimsArgs<ExtArgs>
   employeeImportDrafts?: boolean | Prisma.Organization$employeeImportDraftsArgs<ExtArgs>
   employeePolicies?: boolean | Prisma.Organization$employeePoliciesArgs<ExtArgs>
   leaveTypes?: boolean | Prisma.Organization$leaveTypesArgs<ExtArgs>
+  auditLog?: boolean | Prisma.Organization$auditLogArgs<ExtArgs>
   payrollAnnualReports?: boolean | Prisma.Organization$payrollAnnualReportsArgs<ExtArgs>
   payrollCompanyInfo?: boolean | Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>
   payrollRuns?: boolean | Prisma.Organization$payrollRunsArgs<ExtArgs>
@@ -3394,12 +3394,12 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
   objects: {
     adminMembers: Prisma.$AdminOrganizationPayload<ExtArgs>[]
     apiIntegrations: Prisma.$ApiIntegrationPayload<ExtArgs>[]
-    auditLog: Prisma.$OrganizationAuditLogPayload<ExtArgs>[]
     chartAccounts: Prisma.$ChartOfAccountPayload<ExtArgs>[]
     claims: Prisma.$ClaimPayload<ExtArgs>[]
     employeeImportDrafts: Prisma.$EmployeeImportDraftPayload<ExtArgs>[]
     employeePolicies: Prisma.$EmployeePolicyPayload<ExtArgs>[]
     leaveTypes: Prisma.$LeaveTypePayload<ExtArgs>[]
+    auditLog: Prisma.$OrganizationAuditLogPayload<ExtArgs>[]
     payrollAnnualReports: Prisma.$PayrollAnnualReportPayload<ExtArgs>[]
     payrollCompanyInfo: Prisma.$PayrollCompanyInfoPayload<ExtArgs> | null
     payrollRuns: Prisma.$PayrollRunPayload<ExtArgs>[]
@@ -3788,12 +3788,12 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   readonly [Symbol.toStringTag]: "PrismaPromise"
   adminMembers<T extends Prisma.Organization$adminMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$adminMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminOrganizationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   apiIntegrations<T extends Prisma.Organization$apiIntegrationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$apiIntegrationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ApiIntegrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  auditLog<T extends Prisma.Organization$auditLogArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$auditLogArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   chartAccounts<T extends Prisma.Organization$chartAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$chartAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChartOfAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   claims<T extends Prisma.Organization$claimsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$claimsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClaimPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employeeImportDrafts<T extends Prisma.Organization$employeeImportDraftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$employeeImportDraftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeImportDraftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employeePolicies<T extends Prisma.Organization$employeePoliciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$employeePoliciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeePolicyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   leaveTypes<T extends Prisma.Organization$leaveTypesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$leaveTypesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$LeaveTypePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  auditLog<T extends Prisma.Organization$auditLogArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$auditLogArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payrollAnnualReports<T extends Prisma.Organization$payrollAnnualReportsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollAnnualReportsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollAnnualReportPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   payrollCompanyInfo<T extends Prisma.Organization$payrollCompanyInfoArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollCompanyInfoArgs<ExtArgs>>): Prisma.Prisma__PayrollCompanyInfoClient<runtime.Types.Result.GetResult<Prisma.$PayrollCompanyInfoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   payrollRuns<T extends Prisma.Organization$payrollRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$payrollRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PayrollRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4242,30 +4242,6 @@ export type Organization$apiIntegrationsArgs<ExtArgs extends runtime.Types.Exten
 }
 
 /**
- * Organization.auditLog
- */
-export type Organization$auditLogArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the OrganizationAuditLog
-   */
-  select?: Prisma.OrganizationAuditLogSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the OrganizationAuditLog
-   */
-  omit?: Prisma.OrganizationAuditLogOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.OrganizationAuditLogInclude<ExtArgs> | null
-  where?: Prisma.OrganizationAuditLogWhereInput
-  orderBy?: Prisma.OrganizationAuditLogOrderByWithRelationInput | Prisma.OrganizationAuditLogOrderByWithRelationInput[]
-  cursor?: Prisma.OrganizationAuditLogWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.OrganizationAuditLogScalarFieldEnum | Prisma.OrganizationAuditLogScalarFieldEnum[]
-}
-
-/**
  * Organization.chartAccounts
  */
 export type Organization$chartAccountsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4383,6 +4359,30 @@ export type Organization$leaveTypesArgs<ExtArgs extends runtime.Types.Extensions
   take?: number
   skip?: number
   distinct?: Prisma.LeaveTypeScalarFieldEnum | Prisma.LeaveTypeScalarFieldEnum[]
+}
+
+/**
+ * Organization.auditLog
+ */
+export type Organization$auditLogArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrganizationAuditLog
+   */
+  select?: Prisma.OrganizationAuditLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrganizationAuditLog
+   */
+  omit?: Prisma.OrganizationAuditLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganizationAuditLogInclude<ExtArgs> | null
+  where?: Prisma.OrganizationAuditLogWhereInput
+  orderBy?: Prisma.OrganizationAuditLogOrderByWithRelationInput | Prisma.OrganizationAuditLogOrderByWithRelationInput[]
+  cursor?: Prisma.OrganizationAuditLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrganizationAuditLogScalarFieldEnum | Prisma.OrganizationAuditLogScalarFieldEnum[]
 }
 
 /**

@@ -152,14 +152,29 @@ export async function unarchiveLeaveTypeAction(id: string) {
 export async function setPolicyDefaultAction(input: {
   policyId: string
   leaveTypeId: string
-  defaultDays: number
+  /// Omit to leave the per-policy days override untouched.
+  defaultDays?: number
+  /// Omit to leave the per-policy method override untouched.
+  /// Pass `null` to clear the override.
+  /// Pass `"LUMP_SUM"` / `"PRO_RATED"` to set it.
+  accrualMethod?: "LUMP_SUM" | "PRO_RATED" | null
 }) {
   const { orgId } = await requireAdminOrg()
+  const patch: {
+    defaultDays?: number
+    accrualMethod?: "LUMP_SUM" | "PRO_RATED" | null
+  } = {}
+  if (input.defaultDays !== undefined) {
+    patch.defaultDays = Math.max(0, Number(input.defaultDays) || 0)
+  }
+  if (input.accrualMethod !== undefined) {
+    patch.accrualMethod = input.accrualMethod
+  }
   await leaveRepository.upsertPolicyDefault(
     orgId,
     input.policyId,
     input.leaveTypeId,
-    Math.max(0, Number(input.defaultDays) || 0),
+    patch,
   )
   revalidatePath("/admin/leave/settings")
 }
@@ -177,18 +192,39 @@ export async function setEmployeeEntitlementAction(input: {
   employeeId: string
   leaveTypeId: string
   year: number
-  entitledDays: number
+  /// Omit to leave the per-employee days override untouched.
+  entitledDays?: number
+  /// Omit to leave the per-employee method override untouched.
+  /// Pass `null` to clear the override (resolver walks up to
+  /// policy/type). Pass `"LUMP_SUM"` / `"PRO_RATED"` to set it.
+  accrualMethod?: "LUMP_SUM" | "PRO_RATED" | null
 }) {
   const { orgId: adminOrgId } = await requireAdminOrg()
   // Scope-check the target employee belongs to the admin's active org.
   const employeeOrgId = await leaveRepository.getEmployeeOrgId(input.employeeId)
   if (!employeeOrgId || employeeOrgId !== adminOrgId) return
 
+  // The service requires an `entitledDays` value. When the caller is
+  // only changing the method (omitting `entitledDays`), we re-use the
+  // currently-stored value so we don't accidentally reset it.
+  let days: number
+  if (input.entitledDays !== undefined) {
+    days = Math.max(0, Number(input.entitledDays) || 0)
+  } else {
+    const existing = await leaveRepository.getEntitlement(
+      input.employeeId,
+      input.leaveTypeId,
+      input.year,
+    )
+    days = existing?.entitledDays ?? 0
+  }
+
   await setEmployeeEntitlement(
     input.employeeId,
     input.leaveTypeId,
     input.year,
-    Math.max(0, Number(input.entitledDays) || 0),
+    days,
+    input.accrualMethod,
   )
   revalidatePath("/admin/leave/settings")
 }

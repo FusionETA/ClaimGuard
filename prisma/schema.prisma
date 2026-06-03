@@ -8,55 +8,55 @@ datasource db {
 }
 
 model User {
-  id                              String                @id @default(cuid())
-  email                           String                @unique
+  id                              String                 @id @default(cuid())
+  email                           String                 @unique
   name                            String
   role                            UserRole
   organizationId                  String?
   passwordHash                    String
   avatarUrl                       String?
-  createdAt                       DateTime              @default(now())
-  updatedAt                       DateTime              @updatedAt
-  adminOrganizations              AdminOrganization[]   @relation("AdminOrganizations")
-  auditLogActor                   OrganizationAuditLog[] @relation("OrgAuditLogActor")
-  approvalChainApprovals          ApprovalChainStep[]   @relation("ApproverChain")
-  approvalChainSteps              ApprovalChainStep[]   @relation("EmployeeChain")
-  approvals                       ApprovalRequest[]     @relation("EmployeeApprovals")
-  approvalReviews                 ApprovalRequest[]     @relation("ReviewerApprovals")
-  attendanceEdits                 AttendanceEditLog[]   @relation("AttendanceEditLogActor")
-  attendance                      AttendanceRecord[]    @relation("EmployeeAttendance")
-  breakSessionEdits               BreakSessionEditLog[] @relation("BreakSessionEditLogActor")
-  claims                          Claim[]               @relation("EmployeeClaims")
-  reviews                         Claim[]               @relation("AdminReviews")
-  claimApprovalEntries            ClaimApprovalEntry[]  @relation("UserApprovalEntries")
+  createdAt                       DateTime               @default(now())
+  updatedAt                       DateTime               @updatedAt
+  adminOrganizations              AdminOrganization[]    @relation("AdminOrganizations")
+  approvalChainApprovals          ApprovalChainStep[]    @relation("ApproverChain")
+  approvalChainSteps              ApprovalChainStep[]    @relation("EmployeeChain")
+  approvals                       ApprovalRequest[]      @relation("EmployeeApprovals")
+  approvalReviews                 ApprovalRequest[]      @relation("ReviewerApprovals")
+  attendanceEdits                 AttendanceEditLog[]    @relation("AttendanceEditLogActor")
+  attendance                      AttendanceRecord[]     @relation("EmployeeAttendance")
+  breakSessionEdits               BreakSessionEditLog[]  @relation("BreakSessionEditLogActor")
+  claims                          Claim[]                @relation("EmployeeClaims")
+  reviews                         Claim[]                @relation("AdminReviews")
+  claimApprovalEntries            ClaimApprovalEntry[]   @relation("UserApprovalEntries")
   employeeImportDrafts            EmployeeImportDraft[]
-  employeeProfile                 EmployeeProfile?      @relation("EmployeeProfileUser")
+  employeeProfile                 EmployeeProfile?       @relation("EmployeeProfileUser")
   notifications                   Notification[]
-  submittedPayrollRuns            PayrollRun[]          @relation("PayrollRunSubmittedBy")
-  submittedForApprovalPayrollRuns PayrollRun[]          @relation("PayrollRunSubmittedForApprovalBy")
-  projectManagerOf                ProjectManager[]      @relation("ProjectManagerOf")
+  auditLogActor                   OrganizationAuditLog[] @relation("OrgAuditLogActor")
+  submittedPayrollRuns            PayrollRun[]           @relation("PayrollRunSubmittedBy")
+  submittedForApprovalPayrollRuns PayrollRun[]           @relation("PayrollRunSubmittedForApprovalBy")
+  projectManagerOf                ProjectManager[]       @relation("ProjectManagerOf")
   pushSubscriptions               PushSubscription[]
-  salaryChangesAuthored           SalaryChange[]        @relation("salaryChangeAuthor")
-  organization                    Organization?         @relation(fields: [organizationId], references: [id])
-  xeroConnections                 XeroConnection[]      @relation("XeroConnectedBy")
-  managedProjects                 XeroProject[]         @relation("ProjectManager")
+  salaryChangesAuthored           SalaryChange[]         @relation("salaryChangeAuthor")
+  organization                    Organization?          @relation(fields: [organizationId], references: [id])
+  xeroConnections                 XeroConnection[]       @relation("XeroConnectedBy")
+  managedProjects                 XeroProject[]          @relation("ProjectManager")
 
   @@index([organizationId])
 }
 
 model Organization {
-  id                      String                @id @default(cuid())
-  name                    String                @unique
-  claimCutoffDay          Int                   @default(25)
-  createdAt               DateTime              @default(now())
-  updatedAt               DateTime              @updatedAt
-  workingHoursEnd         String                @default("18:00")
-  workingHoursStart       String                @default("09:00")
-  geofenceRadiusMeters    Int                   @default(200)
-  defaultMileageRate      Decimal?              @db.Decimal(10, 4)
-  mileageUnit             MileageUnit           @default(KM)
-  otEnabled               Boolean               @default(true)
-  timezone                String                @default("Asia/Kuala_Lumpur")
+  id                      String                 @id @default(cuid())
+  name                    String                 @unique
+  claimCutoffDay          Int                    @default(25)
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  workingHoursEnd         String                 @default("18:00")
+  workingHoursStart       String                 @default("09:00")
+  geofenceRadiusMeters    Int                    @default(200)
+  defaultMileageRate      Decimal?               @db.Decimal(10, 4)
+  mileageUnit             MileageUnit            @default(KM)
+  otEnabled               Boolean                @default(true)
+  timezone                String                 @default("Asia/Kuala_Lumpur")
   /// JSON array of ISO 4217 currency codes the admin has enabled for
   /// expense claims (e.g. ["MYR","USD","SGD"]). Empty/null falls back to
   /// just defaultCurrency. The employee claim form picker shows only
@@ -70,18 +70,18 @@ model Organization {
   /// When true, the admin attendance Trends tab renders the supervisor
   /// performance card listing supervisors with slow approvals (any
   /// decision exceeding `supervisorSlaMinutes`) and any rejections.
-  supervisorReportEnabled Boolean               @default(true)
+  supervisorReportEnabled Boolean                @default(true)
   /// SLA threshold (in minutes) used to flag a supervisor approval as
   /// "slow" in the supervisor performance card. Defaults to 60.
-  supervisorSlaMinutes    Int                   @default(60)
+  supervisorSlaMinutes    Int                    @default(60)
   adminMembers            AdminOrganization[]
   apiIntegrations         ApiIntegration[]
-  auditLog                OrganizationAuditLog[]
   chartAccounts           ChartOfAccount[]
   claims                  Claim[]
   employeeImportDrafts    EmployeeImportDraft[]
   employeePolicies        EmployeePolicy[]
   leaveTypes              LeaveType[]
+  auditLog                OrganizationAuditLog[]
   payrollAnnualReports    PayrollAnnualReport[]
   payrollCompanyInfo      PayrollCompanyInfo?
   payrollRuns             PayrollRun[]
@@ -913,12 +913,16 @@ model ApprovalChainStep {
 /// Employees join a team at a specific layer; their effective approval chain
 /// for a given module is filtered by the team's moduleConfig.
 model Team {
-  id           String                   @id @default(cuid())
-  projectId    String
-  name         String
-  layerCount   Int                      @default(1)
-  layerLabels  Json?
-  moduleConfig Json
+  id                        String                   @id @default(cuid())
+  projectId                 String
+  name                      String
+  layerCount                Int                      @default(1)
+  layerLabels               Json?
+  moduleConfig              Json
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+  requireBreakEndApproval   Boolean                  @default(true)
+  requireBreakStartApproval Boolean                  @default(true)
   /// Per-event approval gates for attendance kinds. When false, the
   /// corresponding clock/break event auto-approves at creation time
   /// (no chain). When true, the event flows through the team's
@@ -927,15 +931,11 @@ model Team {
   /// BREAK is split here even though the underlying ApprovalKind stays
   /// "BREAK" — the request's `breakSubtype` ('start'/'end') decides
   /// which of these two flags applies.
-  requireClockInApproval     Boolean @default(true)
-  requireClockOutApproval    Boolean @default(true)
-  requireBreakStartApproval  Boolean @default(true)
-  requireBreakEndApproval    Boolean @default(true)
-  createdAt    DateTime                 @default(now())
-  updatedAt    DateTime                 @updatedAt
-  chainSteps   ApprovalChainStep[]
-  memberships  EmployeeTeamMembership[]
-  project      XeroProject              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requireClockInApproval    Boolean                  @default(true)
+  requireClockOutApproval   Boolean                  @default(true)
+  chainSteps                ApprovalChainStep[]
+  memberships               EmployeeTeamMembership[]
+  project                   XeroProject              @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, name])
   @@index([projectId])
@@ -1648,14 +1648,18 @@ model LeaveType {
 /// 2. PolicyLeaveEntitlement (if a row exists for the employee's policy)
 /// 3. LeaveType.defaultDays
 model PolicyLeaveEntitlement {
-  id          String         @id @default(cuid())
-  policyId    String
-  leaveTypeId String
-  defaultDays Float          @default(0)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  leaveType   LeaveType      @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
-  policy      EmployeePolicy @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  id             String              @id @default(cuid())
+  policyId       String
+  leaveTypeId    String
+  defaultDays    Float               @default(0)
+  /// Per-policy override of `LeaveType.accrualMethod`. Null = inherit
+  /// the type's method. See resolveAccrualMethod() in
+  /// modules/leave/application/services/leave-entitlements.service.ts.
+  accrualMethod  LeaveAccrualMethod?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  leaveType      LeaveType           @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  policy         EmployeePolicy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
 
   @@unique([policyId, leaveTypeId])
   @@index([leaveTypeId])
@@ -1665,21 +1669,26 @@ model PolicyLeaveEntitlement {
 /// year-rollover cron. For LUMP_SUM the full entitledDays is available
 /// immediately; for PRO_RATED only accruedDays is available.
 model LeaveEntitlement {
-  id               String          @id @default(cuid())
+  id               String              @id @default(cuid())
   employeeId       String
   leaveTypeId      String
   year             Int
   entitledDays     Float
-  carriedDays      Float           @default(0)
+  carriedDays      Float               @default(0)
   carriedExpiresAt DateTime?
-  carriedExpired   Boolean         @default(false)
+  carriedExpired   Boolean             @default(false)
   /// PRO_RATED: monthly accumulated. LUMP_SUM: equals entitledDays.
-  accruedDays      Float           @default(0)
-  usedDays         Float           @default(0)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  employee         EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  leaveType        LeaveType       @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  accruedDays      Float               @default(0)
+  usedDays         Float               @default(0)
+  /// Per-employee override of accrualMethod. Null = inherit from
+  /// PolicyLeaveEntitlement (if set) or LeaveType. See
+  /// resolveAccrualMethod() in
+  /// modules/leave/application/services/leave-entitlements.service.ts.
+  accrualMethod    LeaveAccrualMethod?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  employee         EmployeeProfile     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType        LeaveType           @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, leaveTypeId, year])
   @@index([leaveTypeId])
@@ -1743,7 +1752,7 @@ model LeaveApplication {
 /// the admin portal. The actor is still the human if SSO; the flag
 /// just notes the entry point.
 model OrganizationAuditLog {
-  id               String   @id @default(cuid())
+  id               String       @id @default(cuid())
   organizationId   String
   actorUserId      String?
   actorRole        String?
@@ -1751,20 +1760,20 @@ model OrganizationAuditLog {
   actorName        String
   action           String
   status           String
-  summary          String   @db.Text
-  errorReason      String?  @db.Text
+  summary          String       @db.Text
+  errorReason      String?      @db.Text
   targetType       String?
   targetId         String?
   metadata         Json?
   ipAddress        String?
-  partnerInitiated Boolean  @default(false)
-  createdAt        DateTime @default(now())
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  actor        User?        @relation("OrgAuditLogActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  partnerInitiated Boolean      @default(false)
+  createdAt        DateTime     @default(now())
+  actor            User?        @relation("OrgAuditLogActor", fields: [actorUserId], references: [id])
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, createdAt(sort: Desc)])
   @@index([createdAt])
+  @@index([actorUserId], map: "OrganizationAuditLog_actorUserId_fkey")
 }
 
 enum NotificationType {
