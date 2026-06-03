@@ -2,6 +2,7 @@ import { z } from "zod"
 import { type NextRequest, NextResponse } from "next/server"
 
 const SESSION_COOKIE = "claimguard_session"
+const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7
 const PROTECTED_PREFIXES = ["/employee", "/admin"] as const
 
 const ROLE_PATHS: Record<string, string> = {
@@ -96,6 +97,14 @@ async function signValue(value: string) {
   return encodeBase64Url(new Uint8Array(signature))
 }
 
+async function encodeSession(session: z.infer<typeof sessionSchema>) {
+  const json = JSON.stringify(session)
+  const payloadBytes = new TextEncoder().encode(json)
+  const payload = encodeBase64Url(payloadBytes)
+  const signature = await signValue(payload)
+  return `${payload}.${signature}`
+}
+
 async function decodeSession(token: string) {
   const [payload, signature] = token.split(".")
 
@@ -174,7 +183,27 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(correctBase, request.url))
   }
 
-  return NextResponse.next()
+  const response = NextResponse.next()
+
+  // Rolling session — when less than half the duration remains, extend
+  // the cookie by the full duration. We do this here (not in the layout)
+  // because Next 16 forbids `cookies().set(...)` during render. Middleware
+  // can write Set-Cookie on the response freely.
+  const renewThreshold = SESSION_DURATION_MS / 2
+  if (session.expiresAt - Date.now() < renewThreshold) {
+    const newExpiresAt = Date.now() + SESSION_DURATION_MS
+    const renewed = { ...session, expiresAt: newExpiresAt }
+    const newToken = await encodeSession(renewed)
+    response.cookies.set(SESSION_COOKIE, newToken, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      expires: new Date(newExpiresAt),
+    })
+  }
+
+  return response
 }
 
 export const config = {

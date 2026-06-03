@@ -241,15 +241,10 @@ export async function requirePortalSession(role: AppRole) {
     redirect(getHomePath(session.role))
   }
 
-  // Rolling session — extend expiry by the full duration on every authenticated visit
-  // so active users are never logged out unexpectedly.
-  const renewThreshold = SESSION_DURATION_MS / 2
-  if (session.expiresAt - Date.now() < renewThreshold) {
-    const cookieStore = await cookies()
-    const newExpiresAt = Date.now() + SESSION_DURATION_MS
-    const renewed = { ...session, expiresAt: newExpiresAt }
-    cookieStore.set(SESSION_COOKIE_NAME, encodeSession(renewed), getCookieOptions(newExpiresAt))
-  }
+  // Note: rolling-session renewal happens in `middleware.ts`. Next.js 16
+  // forbids `cookies().set(...)` during page/layout rendering — layouts
+  // call this function, so the renewal can't live here. Middleware runs
+  // before the render and can attach Set-Cookie to the response freely.
 
   return session
 }
