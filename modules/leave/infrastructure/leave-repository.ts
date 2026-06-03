@@ -93,6 +93,21 @@ export const leaveRepository = {
     return row?.id ?? null
   },
 
+  /// Read the employee's joinDate from their PayrollProfile (the
+  /// single source of truth for hire date). Returns null when no
+  /// PayrollProfile or no joinDate is set. The leave-accrual code
+  /// uses this to seed PRO_RATED entitlements with a join-date-aware
+  /// backfill (see domain/accrual.ts → initialProRatedAccrual).
+  async getEmployeeJoinDate(employeeProfileId: string): Promise<Date | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.employeeProfile.findUnique({
+      where: { id: employeeProfileId },
+      select: { payrollProfile: { select: { joinDate: true } } },
+    })
+    return row?.payrollProfile?.joinDate ?? null
+  },
+
   /**
    * Lightweight employee list used by the leave settings page — just
    * profile id, policy id, name, email. Filtered to a single org.

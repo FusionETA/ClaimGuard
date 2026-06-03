@@ -1,6 +1,9 @@
 import "server-only"
 
-import { availableDaysFor } from "@/modules/leave/domain/accrual"
+import {
+  availableDaysFor,
+  initialProRatedAccrual,
+} from "@/modules/leave/domain/accrual"
 import type { LeaveEntitlementView } from "@/modules/leave/domain/models"
 import {
   getLeavePrismaClient,
@@ -59,8 +62,24 @@ export async function ensureEntitlement(
   if (!type) throw new Error("Leave type not found")
   const entitledDays = await resolveDefaultEntitledDays(employeeId, leaveTypeId)
   // For LUMP_SUM, accrued mirrors entitled (full availability immediately).
-  // For PRO_RATED, accrued starts at 0 — the monthly job increments it.
-  const accruedDays = type.accrualMethod === "PRO_RATED" ? 0 : entitledDays
+  // For PRO_RATED, seed with a join-date-aware backfill so an
+  // employee who joined mid-year (or whose row is being created
+  // lazily after several months have already elapsed) starts with
+  // the accrual they *should* have had on day one. Without this,
+  // the cron only adds 1/12 going forward and the employee silently
+  // loses every accrual that fired before their row existed.
+  let accruedDays: number
+  if (type.accrualMethod === "PRO_RATED") {
+    const joinDate = await leaveRepository.getEmployeeJoinDate(employeeId)
+    accruedDays = initialProRatedAccrual({
+      entitledDays,
+      joinDate,
+      targetYear: year,
+      now: new Date(),
+    })
+  } else {
+    accruedDays = entitledDays
+  }
   try {
     return await leaveRepository.upsertEntitlement({
       employeeId,
