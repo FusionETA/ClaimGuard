@@ -22,7 +22,9 @@ export async function GET(request: Request) {
   }
 
   const state = createXeroOauthState()
-  const response = NextResponse.redirect(new URL(getXeroAuthorizationUrl(state)))
+  const response = NextResponse.redirect(
+    new URL(getXeroAuthorizationUrl({ state, requestOrigin: origin }))
+  )
 
   response.cookies.set(XERO_STATE_COOKIE, state, {
     httpOnly: true,

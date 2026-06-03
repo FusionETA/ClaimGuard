@@ -44,6 +44,7 @@ const allowedMimeTypes = new Set([
   "image/webp",
   "image/heic",
   "image/heif",
+  "application/pdf",
 ])
 
 function getReceiptExtension(file: File): string {
@@ -53,6 +54,7 @@ function getReceiptExtension(file: File): string {
     "image/webp": ".webp",
     "image/heic": ".heic",
     "image/heif": ".heif",
+    "application/pdf": ".pdf",
   }
   const ext = map[file.type]
   if (ext) return ext
@@ -66,6 +68,7 @@ function generateLocalFilename(originalName: string, mimeType: string): string {
     "image/webp": ".webp",
     "image/heic": ".heic",
     "image/heif": ".heif",
+    "application/pdf": ".pdf",
   }
   const fallbackExt = map[mimeType] ?? (path.extname(originalName) || ".jpg")
   return `${Date.now()}-${crypto.randomUUID()}${fallbackExt}`
@@ -85,7 +88,7 @@ export async function storeReceiptForClaim(input: {
   const file = input.receiptFile
 
   if (!allowedMimeTypes.has(file.type)) {
-    throw new Error("Upload a JPG, PNG, WEBP, or HEIC receipt photo.")
+    throw new Error("Upload a JPG, PNG, WEBP, HEIC, or PDF receipt.")
   }
   if (file.size <= 0) {
     throw new Error("Receipt file is empty.")

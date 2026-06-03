@@ -16,7 +16,6 @@ import { bustOrgConfigCaches } from "@/lib/cache-invalidation"
 import { getCurrentSession, resolveActiveOrgId, updateCurrentSession } from "@/lib/auth/session"
 import { isKnownCurrency } from "@/lib/currencies"
 import type { XeroTenant } from "@/lib/xero"
-import { deleteXeroConnection } from "@/lib/xero"
 import { apiIntegrationRepository } from "@/modules/organization/infrastructure/api-integration.repository"
 import { writeAudit } from "@/modules/audit/application/services/audit-log.service"
 import {
@@ -644,22 +643,15 @@ export async function selectXeroTenantAction(
   if (inUse.length > 0) {
     return {
       status: "error",
-      message: `"${tenant.tenantName}" is already connected to another organisation. Please select a different one.`,
+      message: `"${tenant.tenantName}" is already connected to a different company in AltomateHR. Pick a different organisation, or ask the other company's admin to disconnect it first.`,
     }
   }
 
-  const existingConnections = await organizationRepository.getXeroConnections(organizationId)
-  const hasDifferentExistingConnection = existingConnections.some(
-    (connection) => connection.tenantId !== tenant.tenantId
-  )
-
-  if (hasDifferentExistingConnection) {
-    return {
-      status: "error",
-      message:
-        "This company is already connected to a different Xero organization. Disconnect the current one before connecting a new one.",
-    }
-  }
+  // The callback route only sends users to the picker when there's no
+  // existing connection on this company AND multiple tenants are
+  // selectable, so the "company already has a different Xero connection"
+  // case is unreachable here. (Re-auth flows in the callback now match
+  // the existing tenant directly and never show this picker.)
 
   await organizationRepository.upsertXeroConnection({
     organizationId,
@@ -675,13 +667,17 @@ export async function selectXeroTenantAction(
     connectedByAdminId: session.userId,
   })
 
-  // Revoke the non-selected connections from Xero so they no longer appear in
-  // the developer portal's Connection management and can't be used to call the API.
-  const othersToRevoke = pending.tenants.filter((t) => t.tenantId !== tenant.tenantId)
-  await Promise.allSettled(
-    othersToRevoke.map((t) => deleteXeroConnection(pending.accessToken, t.connectionId))
-  )
-
+  // NOTE: we deliberately do NOT revoke the non-selected tenants here.
+  // A single Xero login can authorise multiple organisations, and those
+  // other tenants are very likely connected to *different* AltomateHR
+  // organisations under the same login. Revoking them (the previous
+  // behaviour) deleted the OAuth grant on Xero's side, which silently
+  // broke the sibling org's connection — its token would refresh into a
+  // grant that no longer covered its tenant, surfacing as a 403
+  // "AuthenticationUnsuccessful". Leaving the other grants intact lets
+  // each org keep its own working connection. The only downside is an
+  // unused grant lingering in Xero if a user authorised an org they
+  // never connect here — harmless, and removable from the Xero side.
   cookieStore.delete(XERO_PENDING_COOKIE)
 
   await revalidateAdminSurfaces(organizationId)

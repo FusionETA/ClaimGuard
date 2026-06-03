@@ -1,7 +1,7 @@
 import "server-only"
 
-import type { AnalyzeReceiptOptions, ReceiptExtraction } from "@/lib/ai"
-import { buildReceiptPrompt, parseReceiptResponse } from "@/lib/ai/prompt"
+import type { AnalyzeReceiptFileOptions, ReceiptExtraction } from "@/lib/ai"
+import { buildReceiptVisionPrompt, parseReceiptResponse } from "@/lib/ai/prompt"
 
 /**
  * Default Gemini model. 2.5 Flash is the current GA flash model — fast,
@@ -13,19 +13,22 @@ const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 
 const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
-export async function analyzeReceiptTextWithGemini(
-  options: AnalyzeReceiptOptions,
+/**
+ * Sends the raw receipt file (image or PDF) to Gemini as inlineData and
+ * asks it to OCR + extract in one shot. Gemini's documented inlineData
+ * limit is 20 MB per part on v1beta — we cap uploads at 8 MB upstream,
+ * well under that.
+ */
+export async function analyzeReceiptFileWithGemini(
+  options: AnalyzeReceiptFileOptions,
 ): Promise<ReceiptExtraction> {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    throw new Error(
-      "GEMINI_API_KEY is not configured. Add it to your env or set AI_PROVIDER=groq.",
-    )
+    throw new Error("GEMINI_API_KEY is not configured.")
   }
 
   const model = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL
-  const prompt = buildReceiptPrompt({
-    ocrText: options.text,
+  const prompt = buildReceiptVisionPrompt({
     candidateAccounts: options.candidateAccounts,
   })
 
@@ -38,14 +41,20 @@ export async function analyzeReceiptTextWithGemini(
       contents: [
         {
           role: "user",
-          parts: [{ text: prompt }],
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: options.mimeType,
+                data: options.fileBytes.toString("base64"),
+              },
+            },
+          ],
         },
       ],
       generationConfig: {
-        // Keep extraction deterministic across retries.
         temperature: 0.1,
         maxOutputTokens: 800,
-        // Force JSON output. Gemini honors this on 2.x Flash and Pro.
         responseMimeType: "application/json",
         // Disable "thinking" — on 2.5 models it's on by default and can
         // silently eat the entire maxOutputTokens budget, returning an
@@ -58,7 +67,7 @@ export async function analyzeReceiptTextWithGemini(
   if (!response.ok) {
     const errorBody = await response.text().catch(() => "")
     throw new Error(
-      `Gemini request failed (${response.status}): ${errorBody.slice(0, 300)}`,
+      `Gemini vision request failed (${response.status}): ${errorBody.slice(0, 300)}`,
     )
   }
 
@@ -70,7 +79,7 @@ export async function analyzeReceiptTextWithGemini(
 
   const content = payload.candidates?.[0]?.content?.parts?.[0]?.text
   if (!content) {
-    throw new Error("Gemini returned an empty completion.")
+    throw new Error("Gemini vision returned an empty completion.")
   }
 
   return parseReceiptResponse(content, "gemini")

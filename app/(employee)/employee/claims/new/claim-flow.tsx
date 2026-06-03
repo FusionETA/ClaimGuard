@@ -49,22 +49,11 @@ type AnalyzeApiResponse = {
   error?: string
 }
 
-/** Module-level lazy load for Tesseract.js. The library is ~2 MB so we
- *  only fetch it once the user lands on the receipt step, and cache the
- *  promise so subsequent uploads reuse the same instance. */
-let tesseractLoader: Promise<typeof import("tesseract.js")> | null = null
-function loadTesseract() {
-  if (!tesseractLoader) {
-    tesseractLoader = import("tesseract.js")
-  }
-  return tesseractLoader
-}
-
 /**
  * Wizard:
  *   1. payment → pick Personal (own money) or Company money.
  *   2. type → pick Expense or Mileage.
- *   3. receipt → (Expense only) upload, OCR with Tesseract, AI extraction.
+ *   3. receipt → (Expense only) upload, Gemini vision extraction.
  *   4. form → render the existing ClaimForm with prefilled values.
  *
  * Mileage skips the receipt step. The user can also "Skip and fill
@@ -302,7 +291,6 @@ function TypeCard({
 
 type ReceiptStatus =
   | { phase: "idle" }
-  | { phase: "ocr"; progress: number }
   | { phase: "ai" }
   | { phase: "error"; message: string }
 
@@ -341,40 +329,28 @@ function ReceiptStep({
     if (!receiptFile) return
 
     try {
-      // 1. OCR via Tesseract.js (browser-side, free).
-      setStatus({ phase: "ocr", progress: 0 })
-      const Tesseract = await loadTesseract()
-
-      const ocr = await Tesseract.recognize(receiptFile, "eng", {
-        logger: (m: { status: string; progress: number }) => {
-          if (m.status === "recognizing text") {
-            setStatus({ phase: "ocr", progress: m.progress })
-          }
-        },
-      })
-
-      const text = ocr.data?.text?.trim() ?? ""
-      if (!text) {
-        setStatus({
-          phase: "error",
-          message:
-            "Couldn't read any text from the photo. Try a sharper or better-lit shot, or skip and fill manually.",
-        })
-        return
-      }
-
-      // 2. AI extraction via the server route.
+      // Single path for every supported file type — image or PDF.
+      // The file uploads as multipart to Gemini's multimodal endpoint,
+      // which does OCR + structured-field extraction in one shot. This
+      // replaces the old client-side Tesseract pass, which struggled on
+      // non-English text (Vietnamese, Malay, Chinese) and thermal-printer
+      // fonts — failure mode was an empty-text bail-out before the AI
+      // even saw the receipt.
       setStatus({ phase: "ai" })
-      const response = await fetch("/api/ocr/analyze-receipt", {
+
+      const formData = new FormData()
+      formData.append("file", receiptFile)
+
+      const response = await fetch("/api/ocr/analyze-receipt-file", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: formData,
       })
 
       const payload = (await response.json().catch(() => ({}))) as AnalyzeApiResponse
       if (!response.ok || !payload.extraction) {
         const fallbackMessage =
-          payload.error ?? "AI extraction failed. You can still continue and fill the form manually."
+          payload.error ??
+          "AI extraction failed. You can still continue and fill the form manually."
         setStatus({ phase: "error", message: fallbackMessage })
         return
       }
@@ -395,8 +371,7 @@ function ReceiptStep({
       lastProcessedRef.current = receiptFile.name
       onComplete(prefill, receiptFile)
     } catch (error) {
-      const message =
-        safeErrorMessage(error, "Receipt scan failed.")
+      const message = safeErrorMessage(error, "Receipt scan failed.")
       setStatus({ phase: "error", message })
     }
   }
@@ -429,12 +404,24 @@ function ReceiptStep({
         )}
       >
         {receiptPreview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={receiptPreview}
-            alt="Receipt preview"
-            className="max-h-64 rounded-xl object-contain"
-          />
+          receiptFile?.type === "application/pdf" ? (
+            <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+              <FileText className="h-10 w-10 text-muted-foreground" aria-hidden />
+              <p className="text-sm font-semibold text-foreground">
+                {receiptFile.name || "PDF receipt"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                PDF will be read by AI — no on-device preview.
+              </p>
+            </div>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={receiptPreview}
+              alt="Receipt preview"
+              className="max-h-64 rounded-xl object-contain"
+            />
+          )
         ) : (
           <>
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
@@ -445,7 +432,7 @@ function ReceiptStep({
               <span>take photo</span>
             </div>
             <p className="text-xs leading-5 text-muted-foreground">
-              JPG, PNG, WEBP, or HEIC up to 8 MB
+              JPG, PNG, WEBP, HEIC, or PDF up to 8 MB
             </p>
           </>
         )}
@@ -453,7 +440,7 @@ function ReceiptStep({
       <input
         id="receiptScanFile"
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
         // NB: no `capture` attribute. iOS Safari and most Android
         // browsers treat `capture` as "open camera directly, hide
         // library" — so users couldn't pick an existing photo. With
@@ -467,18 +454,10 @@ function ReceiptStep({
         }}
       />
 
-      {status.phase === "ocr" ? (
-        <ProgressRow
-          icon={<FileText className="h-4 w-4" />}
-          label={`Reading text from photo… ${Math.round(status.progress * 100)}%`}
-          progress={status.progress}
-        />
-      ) : null}
-
       {status.phase === "ai" ? (
         <ProgressRow
           icon={<Sparkles className="h-4 w-4" />}
-          label="AI is extracting the bill details…"
+          label="AI is reading the receipt…"
         />
       ) : null}
 
@@ -494,7 +473,7 @@ function ReceiptStep({
           Skip — fill manually
         </Button>
         <div className="flex gap-2">
-          {receiptFile && status.phase !== "ocr" && status.phase !== "ai" ? (
+          {receiptFile && status.phase !== "ai" ? (
             <Button
               type="button"
               onClick={runExtraction}
@@ -513,7 +492,7 @@ function ReceiptStep({
               )}
             </Button>
           ) : null}
-          {status.phase === "ocr" || status.phase === "ai" ? (
+          {status.phase === "ai" ? (
             <Button type="button" disabled className="rounded-xl">
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
               Working…
