@@ -65,17 +65,45 @@ export async function GET(request: NextRequest) {
       return finish("/admin/settings?xero=no-tenant")
     }
 
-    // Narrow the authorised orgs down to the ones actually connectable to the
-    // currently-selected company. An org already connected to a DIFFERENT
-    // AltomateHR company can't be chosen here, so filtering those out lets us
-    // skip the picker when only one real choice remains (e.g. an "Update
-    // permissions" re-auth where the consent returns every org the login can
-    // see, but all-but-one are already attached elsewhere). Only applies when
-    // an org is already active; with no active org there are no sibling
-    // connections to collide with, so the original behaviour stands.
+    // Decide which tenant(s) the OAuth result is allowed to attach to.
+    //
+    // RE-AUTH PATH — the active company already has an existing Xero
+    // connection. The user clicked "Update permissions" to refresh
+    // tokens/scope, NOT to switch tenants. So we look in Xero's
+    // response for the existing tenantId and stick with it. If Xero
+    // didn't return that tenant (e.g. the user was logged into the
+    // wrong Xero account), we refuse to auto-connect a different one
+    // and explain what to do.
+    //
+    // FRESH-CONNECT PATH — no existing connection on the active org
+    // (or no active org at all). Drop tenants already taken by sibling
+    // AltomateHR companies; whatever's left feeds the picker / auto-
+    // connect downstream.
     const activeOrgId = resolveActiveOrgId(session)
+    const existingConnections = activeOrgId
+      ? await organizationRepository.getXeroConnections(activeOrgId)
+      : []
+    const isReauth = existingConnections.length > 0
+
     let selectableTenants = tenants
-    if (activeOrgId && tenants.length > 1) {
+
+    if (isReauth) {
+      const existingTenantIds = new Set(
+        existingConnections.map((c) => c.tenantId)
+      )
+      const matched = tenants.find((t) => existingTenantIds.has(t.tenantId))
+      if (!matched) {
+        const existingNames = existingConnections
+          .map((c) => `"${c.tenantName}"`)
+          .join(", ")
+        return finish(
+          `/admin/settings?xero=error&reason=${encodeURIComponent(
+            `The Xero account you signed in with doesn't include ${existingNames}. Sign out of Xero in another tab (or use an incognito window), then click "Update permissions" again with the Xero account that owns ${existingNames}.`
+          )}`
+        )
+      }
+      selectableTenants = [matched]
+    } else if (activeOrgId && tenants.length > 1) {
       const takenTenantIds = new Set(
         await organizationRepository.getInUseTenantIds(
           tenants.map((t) => t.tenantId),
@@ -86,7 +114,7 @@ export async function GET(request: NextRequest) {
       if (available.length === 0) {
         return finish(
           `/admin/settings?xero=error&reason=${encodeURIComponent(
-            "Every Xero organisation you authorised is already connected to another company. Disconnect one first, or authorise a different organisation."
+            "Every Xero organisation you authorised is already connected to another company in AltomateHR. Disconnect from the other company first, or sign in with a Xero account that has access to an unconnected organisation."
           )}`
         )
       }
@@ -145,6 +173,11 @@ export async function GET(request: NextRequest) {
       await updateCurrentSession({ organizationId: org.id, organizationName: org.name })
     }
 
+    // Cross-company conflict double-check. The re-auth and fresh-connect
+    // branches above already filter most of this, but it's still possible
+    // for a fresh connect where Xero returned exactly one tenant (so the
+    // multi-tenant filter never ran) and that tenant is owned by a
+    // sibling AltomateHR company.
     const inUse = await organizationRepository.getInUseTenantIds(
       [tenant.tenantId],
       organizationId
@@ -152,26 +185,12 @@ export async function GET(request: NextRequest) {
     if (inUse.length > 0) {
       return finish(
         `/admin/settings?xero=error&reason=${encodeURIComponent(
-          `"${tenant.tenantName}" is already connected to another organisation. Please contact your administrator.`
+          `"${tenant.tenantName}" is already connected to a different company in AltomateHR. To move it here, ask the other company's admin to disconnect it first, or sign in with a Xero account that has access to an unconnected organisation.`
         )}`
       )
     }
 
-    // Check if this org had no Xero connections before (first connect)
-    const existingConnections = await organizationRepository.getXeroConnections(organizationId)
-    const hasDifferentExistingConnection = existingConnections.some(
-      (connection) => connection.tenantId !== tenant.tenantId
-    )
-
-    if (hasDifferentExistingConnection) {
-      return finish(
-        `/admin/settings?xero=error&reason=${encodeURIComponent(
-          "This company is already connected to a different Xero organization. Disconnect the current one before connecting a new one."
-        )}`
-      )
-    }
-
-    const isFirstXeroConnect = existingConnections.length === 0
+    const isFirstXeroConnect = !isReauth
 
     await organizationRepository.upsertXeroConnection({
       organizationId,

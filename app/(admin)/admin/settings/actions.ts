@@ -643,22 +643,15 @@ export async function selectXeroTenantAction(
   if (inUse.length > 0) {
     return {
       status: "error",
-      message: `"${tenant.tenantName}" is already connected to another organisation. Please select a different one.`,
+      message: `"${tenant.tenantName}" is already connected to a different company in AltomateHR. Pick a different organisation, or ask the other company's admin to disconnect it first.`,
     }
   }
 
-  const existingConnections = await organizationRepository.getXeroConnections(organizationId)
-  const hasDifferentExistingConnection = existingConnections.some(
-    (connection) => connection.tenantId !== tenant.tenantId
-  )
-
-  if (hasDifferentExistingConnection) {
-    return {
-      status: "error",
-      message:
-        "This company is already connected to a different Xero organization. Disconnect the current one before connecting a new one.",
-    }
-  }
+  // The callback route only sends users to the picker when there's no
+  // existing connection on this company AND multiple tenants are
+  // selectable, so the "company already has a different Xero connection"
+  // case is unreachable here. (Re-auth flows in the callback now match
+  // the existing tenant directly and never show this picker.)
 
   await organizationRepository.upsertXeroConnection({
     organizationId,
