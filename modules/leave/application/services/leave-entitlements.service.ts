@@ -293,6 +293,137 @@ export async function resetEmployeeEntitlementToDefault(
   return setEmployeeEntitlement(employeeId, leaveTypeId, year, days, null)
 }
 
+/// Count non-archived leave types for an org. The Add Employee dialog
+/// uses this to guard against creating employees in an org with no
+/// leave types configured — the seeder below would silently create
+/// zero rows otherwise, and the employee would have no leave
+/// entitlements at all.
+export async function countActiveLeaveTypesForOrg(
+  organizationId: string,
+): Promise<number> {
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return 0
+  return prisma.leaveType.count({
+    where: { organizationId, archivedAt: null },
+  })
+}
+
+/// Seed one `LeaveEntitlement` row per active leave type for a
+/// newly-created employee. Called from `createOrganizationMember`
+/// after the User + EmployeeProfile commit.
+///
+/// `mode = "DEFAULT"` ⇒ each row uses the resolved default (per-policy
+/// → type fallback). No employee-layer override is stored.
+///
+/// `mode = "CUSTOM"` ⇒ each row uses the admin-supplied per-type
+/// `entitledDays` and (optional) `accrualMethod`. Per-type overrides
+/// not present in the input fall back to the resolved default for that
+/// type, so the admin can override only the rows that matter.
+///
+/// Idempotent on every aggregate: re-runs hit `ensureEntitlement`'s
+/// existing-row short-circuit and become no-ops. Safe for retried
+/// form submissions.
+export async function seedEmployeeLeaveEntitlements(args: {
+  employeeProfileId: string
+  leaveSeed: LeaveSeedInput
+  year?: number
+}): Promise<void> {
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return
+  const year = args.year ?? currentYearMYT()
+
+  // Scope leave types to the employee's organisation. An employee's
+  // org is reachable via `employeeProfile.user.organizationId`.
+  const employee = await prisma.employeeProfile.findUnique({
+    where: { id: args.employeeProfileId },
+    select: { user: { select: { organizationId: true } } },
+  })
+  const orgId = employee?.user.organizationId
+  if (!orgId) return
+
+  const types = await prisma.leaveType.findMany({
+    where: { organizationId: orgId, archivedAt: null },
+    select: { id: true, accrualMethod: true, defaultDays: true },
+  })
+  if (types.length === 0) return
+
+  const overrides =
+    args.leaveSeed.method === "CUSTOM" ? args.leaveSeed.overrides : null
+
+  for (const t of types) {
+    // Days: explicit override if provided, else resolved default.
+    let entitledDays: number
+    if (overrides && overrides.days[t.id] !== undefined) {
+      entitledDays = Math.max(0, overrides.days[t.id])
+    } else {
+      entitledDays = await resolveDefaultEntitledDays(
+        args.employeeProfileId,
+        t.id,
+      )
+    }
+
+    // Method: only stored on the employee row if the admin explicitly
+    // chose one in Custom mode (otherwise null = inherit from policy
+    // / type, which is what we want by default).
+    const explicitMethod =
+      overrides?.methods[t.id] !== undefined ? overrides.methods[t.id] : null
+
+    // Effective method for the accrued-days seed: explicit choice wins,
+    // else walk the policy → type chain.
+    const effectiveMethod =
+      explicitMethod ??
+      (await resolveAccrualMethod(args.employeeProfileId, t.id, year))
+
+    // For PRO_RATED, seed accruedDays with join-date-aware backfill.
+    // For LUMP_SUM, accrued mirrors entitled.
+    let accruedDays: number
+    if (effectiveMethod === "PRO_RATED") {
+      const joinDate = await leaveRepository.getEmployeeJoinDate(
+        args.employeeProfileId,
+      )
+      accruedDays = initialProRatedAccrual({
+        entitledDays,
+        joinDate,
+        targetYear: year,
+        now: new Date(),
+      })
+    } else {
+      accruedDays = entitledDays
+    }
+
+    try {
+      await leaveRepository.upsertEntitlement({
+        employeeId: args.employeeProfileId,
+        leaveTypeId: t.id,
+        year,
+        entitledDays,
+        accruedDays,
+        carriedDays: 0,
+        carriedExpiresAt: null,
+        accrualMethod: explicitMethod,
+      })
+    } catch (err) {
+      // Concurrent creation already inserted this row — accept and
+      // move on. The other writer has the same data we'd write.
+      if (!isUniqueConstraintError(err)) throw err
+    }
+  }
+}
+
+/// Input shape for `seedEmployeeLeaveEntitlements`. Kept narrow on
+/// purpose so the action layer can construct it from FormData without
+/// branching, and so future callers (bulk import, partner API) can
+/// reuse the same surface.
+export type LeaveSeedInput =
+  | { method: "DEFAULT" }
+  | {
+      method: "CUSTOM"
+      overrides: {
+        days: Record<string, number>
+        methods: Record<string, LeaveAccrualMethod>
+      }
+    }
+
 /// Per-employee balance bundle used by the admin and supervisor list
 /// views. Carries enough identity info to render a row label without an
 /// extra round-trip.

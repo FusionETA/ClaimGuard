@@ -17,6 +17,9 @@ import { payrollSettingsRepository } from "@/modules/payroll/infrastructure/payr
 import { salaryChangeRepository } from "@/modules/payroll/infrastructure/salary-change.repository"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 import type { EmployeePolicy } from "@/modules/policy/domain/models"
+import type { LeaveTypeView } from "@/modules/leave/domain/models"
+import { listLeaveTypes } from "@/modules/leave/application/services/leave-types.service"
+import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
 
 /**
  * Page-data + action services for the admin payroll module.
@@ -40,10 +43,38 @@ import type { EmployeePolicy } from "@/modules/policy/domain/models"
  * approval-chain are then filled in via the detail editor's Company
  * tab).
  */
+/// View-model row passed into the Add Employee dialog so it can render
+/// the per-type Leave Method inputs without an extra round-trip.
+export type AddEmployeeLeaveType = {
+  id: string
+  code: string
+  name: string
+  paid: boolean
+  /// Resolved by the policy → type chain. The Add Employee dialog
+  /// shows the policy-layer override if one exists for the policy
+  /// the admin picks; otherwise this is the type default.
+  defaultDays: number
+  /// Same idea for accrualMethod.
+  accrualMethod: "LUMP_SUM" | "PRO_RATED"
+}
+
 export async function getManageEmployeesPageData(): Promise<{
   organizationName: string
   employees: PayrollEmployeeRow[]
   policies: EmployeePolicy[]
+  /// Non-archived leave types in this org. Drives the Add Employee
+  /// dialog's Custom-mode per-type inputs and the empty-state guard
+  /// ("Set up Settings → Leave first" when this is empty).
+  leaveTypes: AddEmployeeLeaveType[]
+  /// Per-policy overrides — the dialog uses these to pre-fill the
+  /// Custom-mode inputs with the right inherited values for the
+  /// selected policy.
+  policyDefaults: Array<{
+    policyId: string
+    leaveTypeId: string
+    defaultDays: number
+    accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+  }>
 } | null> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) return null
@@ -65,23 +96,49 @@ async function loadManageEmployeesPageData(orgId: string): Promise<{
   organizationName: string
   employees: PayrollEmployeeRow[]
   policies: EmployeePolicy[]
+  leaveTypes: AddEmployeeLeaveType[]
+  policyDefaults: Array<{
+    policyId: string
+    leaveTypeId: string
+    defaultDays: number
+    accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+  }>
 } | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
 
-  const [org, employees, policies] = await Promise.all([
-    prisma.organization.findUnique({
-      where: { id: orgId },
-      select: { name: true },
-    }),
-    payrollProfileRepository.listForOrganization(orgId),
-    policyRepository.listForOrganization(orgId),
-  ])
+  const [org, employees, policies, leaveTypesRaw, policyDefaults] =
+    await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: orgId },
+        select: { name: true },
+      }),
+      payrollProfileRepository.listForOrganization(orgId),
+      policyRepository.listForOrganization(orgId),
+      listLeaveTypes(orgId, false),
+      leaveRepository.listPolicyDefaults(orgId),
+    ])
+
+  // Strip the leave-type rows down to what the dialog actually needs
+  // — keeps the cached payload small and decouples the view from
+  // future leave-type column additions.
+  const leaveTypes: AddEmployeeLeaveType[] = (leaveTypesRaw as LeaveTypeView[])
+    .filter((t) => !t.archivedAt)
+    .map((t) => ({
+      id: t.id,
+      code: t.code,
+      name: t.name,
+      paid: t.paid,
+      defaultDays: t.defaultDays,
+      accrualMethod: t.accrualMethod,
+    }))
 
   return {
     organizationName: org?.name ?? "",
     employees,
     policies,
+    leaveTypes,
+    policyDefaults,
   }
 }
 
