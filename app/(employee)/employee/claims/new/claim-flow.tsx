@@ -49,22 +49,11 @@ type AnalyzeApiResponse = {
   error?: string
 }
 
-/** Module-level lazy load for Tesseract.js. The library is ~2 MB so we
- *  only fetch it once the user lands on the receipt step, and cache the
- *  promise so subsequent uploads reuse the same instance. */
-let tesseractLoader: Promise<typeof import("tesseract.js")> | null = null
-function loadTesseract() {
-  if (!tesseractLoader) {
-    tesseractLoader = import("tesseract.js")
-  }
-  return tesseractLoader
-}
-
 /**
  * Wizard:
  *   1. payment → pick Personal (own money) or Company money.
  *   2. type → pick Expense or Mileage.
- *   3. receipt → (Expense only) upload, OCR with Tesseract, AI extraction.
+ *   3. receipt → (Expense only) upload, Gemini vision extraction.
  *   4. form → render the existing ClaimForm with prefilled values.
  *
  * Mileage skips the receipt step. The user can also "Skip and fill
@@ -302,7 +291,6 @@ function TypeCard({
 
 type ReceiptStatus =
   | { phase: "idle" }
-  | { phase: "ocr"; progress: number }
   | { phase: "ai" }
   | { phase: "error"; message: string }
 
@@ -341,73 +329,30 @@ function ReceiptStep({
     if (!receiptFile) return
 
     try {
-      const isPdf = receiptFile.type === "application/pdf"
+      // Single path for every supported file type — image or PDF.
+      // The file uploads as multipart to Gemini's multimodal endpoint,
+      // which does OCR + structured-field extraction in one shot. This
+      // replaces the old client-side Tesseract pass, which struggled on
+      // non-English text (Vietnamese, Malay, Chinese) and thermal-printer
+      // fonts — failure mode was an empty-text bail-out before the AI
+      // even saw the receipt.
+      setStatus({ phase: "ai" })
 
-      let payload: AnalyzeApiResponse
+      const formData = new FormData()
+      formData.append("file", receiptFile)
 
-      if (isPdf) {
-        // PDFs skip Tesseract entirely — we upload the file and let
-        // Gemini's multimodal endpoint do OCR + extraction in one call.
-        // Tesseract.js doesn't render PDFs out-of-the-box, and PDFs
-        // usually have selectable text + structure that Gemini reads
-        // far more accurately than rasterise-then-OCR would.
-        setStatus({ phase: "ai" })
+      const response = await fetch("/api/ocr/analyze-receipt-file", {
+        method: "POST",
+        body: formData,
+      })
 
-        const formData = new FormData()
-        formData.append("file", receiptFile)
-
-        const response = await fetch("/api/ocr/analyze-receipt-file", {
-          method: "POST",
-          body: formData,
-        })
-
-        payload = (await response.json().catch(() => ({}))) as AnalyzeApiResponse
-        if (!response.ok || !payload.extraction) {
-          const fallbackMessage =
-            payload.error ??
-            "AI extraction failed. You can still continue and fill the form manually."
-          setStatus({ phase: "error", message: fallbackMessage })
-          return
-        }
-      } else {
-        // 1. OCR via Tesseract.js (browser-side, free).
-        setStatus({ phase: "ocr", progress: 0 })
-        const Tesseract = await loadTesseract()
-
-        const ocr = await Tesseract.recognize(receiptFile, "eng", {
-          logger: (m: { status: string; progress: number }) => {
-            if (m.status === "recognizing text") {
-              setStatus({ phase: "ocr", progress: m.progress })
-            }
-          },
-        })
-
-        const text = ocr.data?.text?.trim() ?? ""
-        if (!text) {
-          setStatus({
-            phase: "error",
-            message:
-              "Couldn't read any text from the photo. Try a sharper or better-lit shot, or skip and fill manually.",
-          })
-          return
-        }
-
-        // 2. AI extraction via the server route.
-        setStatus({ phase: "ai" })
-        const response = await fetch("/api/ocr/analyze-receipt", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
-        })
-
-        payload = (await response.json().catch(() => ({}))) as AnalyzeApiResponse
-        if (!response.ok || !payload.extraction) {
-          const fallbackMessage =
-            payload.error ??
-            "AI extraction failed. You can still continue and fill the form manually."
-          setStatus({ phase: "error", message: fallbackMessage })
-          return
-        }
+      const payload = (await response.json().catch(() => ({}))) as AnalyzeApiResponse
+      if (!response.ok || !payload.extraction) {
+        const fallbackMessage =
+          payload.error ??
+          "AI extraction failed. You can still continue and fill the form manually."
+        setStatus({ phase: "error", message: fallbackMessage })
+        return
       }
 
       const e = payload.extraction
@@ -426,8 +371,7 @@ function ReceiptStep({
       lastProcessedRef.current = receiptFile.name
       onComplete(prefill, receiptFile)
     } catch (error) {
-      const message =
-        safeErrorMessage(error, "Receipt scan failed.")
+      const message = safeErrorMessage(error, "Receipt scan failed.")
       setStatus({ phase: "error", message })
     }
   }
@@ -510,18 +454,10 @@ function ReceiptStep({
         }}
       />
 
-      {status.phase === "ocr" ? (
-        <ProgressRow
-          icon={<FileText className="h-4 w-4" />}
-          label={`Reading text from photo… ${Math.round(status.progress * 100)}%`}
-          progress={status.progress}
-        />
-      ) : null}
-
       {status.phase === "ai" ? (
         <ProgressRow
           icon={<Sparkles className="h-4 w-4" />}
-          label="AI is extracting the bill details…"
+          label="AI is reading the receipt…"
         />
       ) : null}
 
@@ -537,7 +473,7 @@ function ReceiptStep({
           Skip — fill manually
         </Button>
         <div className="flex gap-2">
-          {receiptFile && status.phase !== "ocr" && status.phase !== "ai" ? (
+          {receiptFile && status.phase !== "ai" ? (
             <Button
               type="button"
               onClick={runExtraction}
@@ -556,7 +492,7 @@ function ReceiptStep({
               )}
             </Button>
           ) : null}
-          {status.phase === "ocr" || status.phase === "ai" ? (
+          {status.phase === "ai" ? (
             <Button type="button" disabled className="rounded-xl">
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
               Working…

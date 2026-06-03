@@ -1,10 +1,6 @@
 import "server-only"
 
-import {
-  analyzeReceiptFileWithGemini,
-  analyzeReceiptTextWithGemini,
-} from "@/lib/ai/providers/gemini"
-import { analyzeReceiptTextWithGroq } from "@/lib/ai/providers/groq"
+import { analyzeReceiptFileWithGemini } from "@/lib/ai/providers/gemini"
 
 /**
  * Strict shape returned by every provider. Lossy on purpose — the LLM is
@@ -33,7 +29,7 @@ export type ReceiptExtraction = {
   suggestedAccountId: string | null
   suggestedAccountConfidence: number
   /** The provider used for this call (returned for logging / debugging). */
-  provider: "groq" | "gemini"
+  provider: "gemini"
 }
 
 export type CandidateAccount = {
@@ -43,67 +39,23 @@ export type CandidateAccount = {
   hint?: string
 }
 
-export type AnalyzeReceiptOptions = {
-  /** Plain OCR text from Tesseract or any other OCR engine. */
-  text: string
-  /** Subset of chart-of-accounts the user is allowed to pick from. The
-   *  model is instructed to ONLY suggest from this list (or null). */
-  candidateAccounts?: CandidateAccount[]
-  /** Force a provider override. Otherwise uses AI_PROVIDER env (default
-   *  "gemini"). */
-  provider?: "groq" | "gemini"
-}
-
 export type AnalyzeReceiptFileOptions = {
   /** Raw file bytes (image or PDF). */
   fileBytes: Buffer
   /** MIME type — used as Gemini's inlineData.mimeType. Must be one of
    *  Gemini's supported types (image/* or application/pdf). */
   mimeType: string
-  /** Subset of chart-of-accounts the user is allowed to pick from. */
+  /** Subset of chart-of-accounts the user is allowed to pick from. The
+   *  model is instructed to ONLY suggest from this list (or null). */
   candidateAccounts?: CandidateAccount[]
 }
 
 /**
- * Single entry-point used by API routes. Picks a provider and dispatches.
- * Provider selection precedence: explicit `options.provider` arg → env
- * `AI_PROVIDER` → "gemini".
- *
- * Throws on:
- *  - missing API key for the chosen provider
- *  - LLM returning unparseable / non-JSON output (after retries handled
- *    inside the provider impl)
- *
- * Does NOT throw on:
- *  - low-confidence extractions; the caller decides what to pre-fill.
- */
-export async function analyzeReceipt(
-  options: AnalyzeReceiptOptions,
-): Promise<ReceiptExtraction> {
-  const provider = options.provider ?? resolveProviderFromEnv()
-
-  if (!options.text || options.text.trim().length === 0) {
-    throw new Error("Cannot analyze an empty OCR text payload.")
-  }
-
-  switch (provider) {
-    case "groq":
-      return analyzeReceiptTextWithGroq(options)
-    case "gemini":
-      return analyzeReceiptTextWithGemini(options)
-    default: {
-      const _exhaustive: never = provider
-      void _exhaustive
-      throw new Error(`Unknown AI provider: ${provider as string}`)
-    }
-  }
-}
-
-/**
- * Vision variant — used when the client uploads the raw receipt (PDF or
- * image) instead of running Tesseract first. Always dispatches to Gemini:
- * Groq's chat completion API doesn't accept inline image/PDF data in this
- * codebase. Throws if `GEMINI_API_KEY` is missing.
+ * Single entry point for receipt extraction. Uploads the raw file to
+ * Gemini's multimodal endpoint, which does OCR + structured-field
+ * extraction in one shot — replaces an earlier two-stage flow (client
+ * Tesseract → server Gemini text parse) that was unreliable on
+ * non-English receipts and thermal-printer fonts.
  */
 export async function analyzeReceiptFromFile(
   options: AnalyzeReceiptFileOptions,
@@ -112,12 +64,4 @@ export async function analyzeReceiptFromFile(
     throw new Error("Cannot analyze an empty file.")
   }
   return analyzeReceiptFileWithGemini(options)
-}
-
-function resolveProviderFromEnv(): "groq" | "gemini" {
-  const raw = process.env.AI_PROVIDER?.trim().toLowerCase()
-  if (raw === "groq") return "groq"
-  // Default to Gemini for receipt OCR — better at reading messy receipt
-  // OCR text. Set AI_PROVIDER=groq to switch back.
-  return "gemini"
 }
