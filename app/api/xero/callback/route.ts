@@ -62,18 +62,45 @@ export async function GET(request: NextRequest) {
       return finish("/admin/settings?xero=no-tenant")
     }
 
-    // If the user authorised more than one Xero organisation, let them pick which
-    // one to connect. Store the token set in a short-lived pending cookie and
-    // redirect to the selection screen. The selected tenant will be saved there;
-    // the rest are simply not stored (effectively disconnected).
-    if (tenants.length > 1) {
+    // Narrow the authorised orgs down to the ones actually connectable to the
+    // currently-selected company. An org already connected to a DIFFERENT
+    // AltomateHR company can't be chosen here, so filtering those out lets us
+    // skip the picker when only one real choice remains (e.g. an "Update
+    // permissions" re-auth where the consent returns every org the login can
+    // see, but all-but-one are already attached elsewhere). Only applies when
+    // an org is already active; with no active org there are no sibling
+    // connections to collide with, so the original behaviour stands.
+    const activeOrgId = resolveActiveOrgId(session)
+    let selectableTenants = tenants
+    if (activeOrgId && tenants.length > 1) {
+      const takenTenantIds = new Set(
+        await organizationRepository.getInUseTenantIds(
+          tenants.map((t) => t.tenantId),
+          activeOrgId
+        )
+      )
+      const available = tenants.filter((t) => !takenTenantIds.has(t.tenantId))
+      if (available.length === 0) {
+        return finish(
+          `/admin/settings?xero=error&reason=${encodeURIComponent(
+            "Every Xero organisation you authorised is already connected to another company. Disconnect one first, or authorise a different organisation."
+          )}`
+        )
+      }
+      selectableTenants = available
+    }
+
+    // More than one connectable org → let the admin pick. Store the token set +
+    // the connectable tenants in a short-lived cookie and redirect to the
+    // selection screen.
+    if (selectableTenants.length > 1) {
       const pendingPayload = JSON.stringify({
         accessToken: tokenSet.accessToken,
         refreshToken: tokenSet.refreshToken,
         scope: tokenSet.scope,
         tokenType: tokenSet.tokenType,
         expiresAt: tokenSet.expiresAt.toISOString(),
-        tenants,
+        tenants: selectableTenants,
       })
 
       revalidatePath("/admin/settings")
@@ -98,7 +125,9 @@ export async function GET(request: NextRequest) {
       return response
     }
 
-    const tenant = tenants[0]
+    // Exactly one connectable org (only one authorised, or all but one already
+    // taken) → connect it directly without showing the picker.
+    const tenant = selectableTenants[0]
 
     // Auto-create org from Xero tenant name if admin hasn't set one yet.
     // Respect activeOrganizationId so the connection attaches to whichever
