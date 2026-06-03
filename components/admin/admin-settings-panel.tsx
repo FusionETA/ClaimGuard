@@ -91,6 +91,30 @@ export type SettingsTabKey =
   | "api"
 type WorkScheduleSection = "ot-rates" | "calendar" | "attendance"
 
+/**
+ * Bulk-toggle every checkbox with a given `name` inside a form. Used by
+ * the "Select all" / "Clear" buttons on the COA Selectable, Bank
+ * accounts, and Mileage sections — those forms use uncontrolled
+ * checkboxes (`defaultChecked={...}`), so we mutate the DOM directly
+ * instead of threading a controlled Set through React state. Setting
+ * `.checked` doesn't notify React, but it doesn't need to: nothing
+ * reads the checkbox state until form submission, which reads `.checked`
+ * directly via FormData.
+ */
+function setAllCheckedByName(
+  form: HTMLFormElement | null,
+  name: string,
+  value: boolean,
+) {
+  if (!form) return
+  const inputs = form.querySelectorAll<HTMLInputElement>(
+    `input[type="checkbox"][name="${name}"]`,
+  )
+  inputs.forEach((el) => {
+    el.checked = value
+  })
+}
+
 /** Lat/Lng pair inputs used for project geofence setup.
  *  - In edit (controlled) mode: pass defaultLat/defaultLng + onChange.
  *  - In create-form (uncontrolled) mode: omit onChange — the inputs submit
@@ -746,6 +770,15 @@ export function AdminSettingsPanel({
   const BANKS_PER_PAGE = 20
   const [bankPage, setBankPage] = useState(1)
 
+  // Form refs for the three "Select all / Clear" toolbars (COA
+  // Selectable, Bank accounts, Mileage). `setAllCheckedByName` mutates
+  // the uncontrolled checkboxes inside the referenced form — see the
+  // helper's docstring for why DOM access is safe here.
+  const selectableFormRef = useRef<HTMLFormElement | null>(null)
+  const bankFormRef = useRef<HTMLFormElement | null>(null)
+  const bankFormCustomRef = useRef<HTMLFormElement | null>(null)
+  const mileageFormRef = useRef<HTMLFormElement | null>(null)
+
   const [organizationState, organizationAction, organizationPending] = useActionState(
     saveOrganizationSettingsAction,
     initialSettingsActionState
@@ -1326,8 +1359,32 @@ export function AdminSettingsPanel({
                     </div>
                   ) : null}
 
-                  <form action={accountsAction} className="space-y-4">
+                  <form ref={selectableFormRef} action={accountsAction} className="space-y-4">
                     <input type="hidden" name="connectionId" value={activeXeroConnectionId ?? ""} />
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 rounded-lg text-xs"
+                        onClick={() =>
+                          setAllCheckedByName(selectableFormRef.current, "chartAccountIds", true)
+                        }
+                      >
+                        Select all
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 rounded-lg text-xs"
+                        onClick={() =>
+                          setAllCheckedByName(selectableFormRef.current, "chartAccountIds", false)
+                        }
+                      >
+                        Clear
+                      </Button>
+                    </div>
                     <div className="grid gap-3 md:grid-cols-2">
                       {displayAccounts.map((account) => {
                         // Visible only when it matches the filter AND falls
@@ -1753,7 +1810,7 @@ export function AdminSettingsPanel({
                       Add or sync accounts first from the Claim accounts tab.
                     </div>
                   ) : (
-                    <form action={mileageAccountsAction} className="space-y-4">
+                    <form ref={mileageFormRef} action={mileageAccountsAction} className="space-y-4">
                       <input
                         type="hidden"
                         name="connectionId"
@@ -1820,6 +1877,31 @@ export function AdminSettingsPanel({
                             : "No accounts match your search."}
                         </div>
                       ) : null}
+
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 rounded-lg text-xs"
+                          onClick={() =>
+                            setAllCheckedByName(mileageFormRef.current, "mileageAccountIds", true)
+                          }
+                        >
+                          Select all
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 rounded-lg text-xs"
+                          onClick={() =>
+                            setAllCheckedByName(mileageFormRef.current, "mileageAccountIds", false)
+                          }
+                        >
+                          Clear
+                        </Button>
+                      </div>
 
                       <div className="grid gap-3 md:grid-cols-2">
                         {displayAccounts.map((account) => {
@@ -2009,7 +2091,31 @@ export function AdminSettingsPanel({
                       No custom BANK accounts yet. Add one from the Claim accounts tab using type <span className="font-semibold text-foreground">BANK</span>, then select it here.
                     </div>
                   ) : (
-                    <form action={selectedBankAction} className="space-y-4">
+                    <form ref={bankFormCustomRef} action={selectedBankAction} className="space-y-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 rounded-lg text-xs"
+                          onClick={() =>
+                            setAllCheckedByName(bankFormCustomRef.current, "bankAccountIds", true)
+                          }
+                        >
+                          Select all
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 rounded-lg text-xs"
+                          onClick={() =>
+                            setAllCheckedByName(bankFormCustomRef.current, "bankAccountIds", false)
+                          }
+                        >
+                          Clear
+                        </Button>
+                      </div>
                       <div className="grid gap-3 md:grid-cols-2">
                         {bankAccounts.map((account) => (
                           <label
@@ -2079,8 +2185,32 @@ export function AdminSettingsPanel({
                     </div>
                   </div>
                 ) : (
-                  <form action={selectedBankAction} className="space-y-4">
+                  <form ref={bankFormRef} action={selectedBankAction} className="space-y-4">
                     <input type="hidden" name="connectionId" value={activeXeroConnectionId ?? ""} />
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 rounded-lg text-xs"
+                        onClick={() =>
+                          setAllCheckedByName(bankFormRef.current, "bankAccountIds", true)
+                        }
+                      >
+                        Select all
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 rounded-lg text-xs"
+                        onClick={() =>
+                          setAllCheckedByName(bankFormRef.current, "bankAccountIds", false)
+                        }
+                      >
+                        Clear
+                      </Button>
+                    </div>
                     <div className="grid gap-3 md:grid-cols-2">
                       {bankAccounts.map((account) => (
                         <label
