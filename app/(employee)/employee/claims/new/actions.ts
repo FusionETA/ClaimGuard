@@ -18,6 +18,7 @@ const allowedReceiptTypes = new Set([
   "image/webp",
   "image/heic",
   "image/heif",
+  "application/pdf",
 ])
 
 export async function submitClaimAction(
@@ -103,7 +104,7 @@ export async function submitClaimAction(
   const receiptError =
     receiptFile instanceof File && receiptFile.size > 0
       ? !allowedReceiptTypes.has(receiptFile.type)
-        ? "Upload a JPG, PNG, WEBP, or HEIC receipt photo."
+        ? "Upload a JPG, PNG, WEBP, HEIC, or PDF receipt."
         : receiptFile.size > MAX_RECEIPT_SIZE
           ? "Receipt photo must be 8 MB or smaller."
           : undefined

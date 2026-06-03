@@ -861,7 +861,7 @@ export function ClaimForm({
             <span>take photo</span>
           </div>
           <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            JPG, PNG, WEBP, or HEIC up to 8 MB
+            JPG, PNG, WEBP, HEIC, or PDF up to 8 MB
           </p>
           {selectedReceiptName ? (
             <p className="mt-3 rounded-full bg-background px-3 py-1 text-xs font-medium text-foreground">
@@ -877,7 +877,7 @@ export function ClaimForm({
         id="receiptFile"
         name="receiptFile"
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf"
         // NB: no `capture` attribute — see claim-flow.tsx for the
         // rationale. Lets phone users pick from their photo library
         // instead of being forced into the camera.
