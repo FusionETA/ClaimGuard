@@ -171,7 +171,11 @@ const employmentSchema = z.object({
   monthlySalary: nullableNumber(),
   hourlyRate: nullableNumber(),
   joinDate: nullableDateString(),
-  leaveDate: nullableDateString(),
+  // `leaveDate` intentionally NOT here — it's owned by the Archive
+  // section (see `archivePayrollProfileAction` below). Saving the
+  // Employment form must never touch leaveDate, otherwise a re-save
+  // would clear an existing archive date because this form has no
+  // input for it anymore.
   department: nullableString(),
   location: nullableString(),
   workSchedule: nullableString(),
@@ -220,7 +224,7 @@ export async function savePayrollEmploymentAction(
     monthlySalary: formData.get("monthlySalary"),
     hourlyRate: formData.get("hourlyRate"),
     joinDate: formData.get("joinDate"),
-    leaveDate: formData.get("leaveDate"),
+    // leaveDate intentionally omitted — see schema comment above.
     department: formData.get("department"),
     location: formData.get("location"),
     workSchedule: formData.get("workSchedule"),

@@ -1475,31 +1475,35 @@ function EmploymentTab(props: {
         <CardHeader>
           <CardTitle className="text-base">Employment dates</CardTitle>
           <CardDescription>
-            Join date is required for proration on partial months.
+            Join date is required for proration on partial months. To set
+            an end date, use the Archive section at the bottom of this
+            tab — leaveDate is the canonical archive trigger and there&apos;s
+            only one place to set it now.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <Field label="Join date">
-            <Input
-              name="joinDate"
-              type="date"
-              value={joinDate}
-              onChange={(e) => setJoinDate(e.target.value)}
-              aria-invalid={joinDateMissing || undefined}
-            />
-            {joinDateMissing ? (
-              <p className="mt-1 text-xs font-medium text-destructive">
-                Required — drives proration on first-month payroll.
-              </p>
-            ) : null}
-          </Field>
-          <Field label="Leave date (last day)">
-            <Input
-              name="leaveDate"
-              type="date"
-              defaultValue={props.profile?.leaveDate ?? ""}
-            />
-          </Field>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Join date">
+              <Input
+                name="joinDate"
+                type="date"
+                value={joinDate}
+                onChange={(e) => setJoinDate(e.target.value)}
+                aria-invalid={joinDateMissing || undefined}
+              />
+              {joinDateMissing ? (
+                <p className="mt-1 text-xs font-medium text-destructive">
+                  Required — drives proration on first-month payroll.
+                </p>
+              ) : null}
+            </Field>
+          </div>
+          {props.profile?.leaveDate ? (
+            <p className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+              🏁 Last working day: {props.profile.leaveDate} — see Archive
+              section below to change.
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 
