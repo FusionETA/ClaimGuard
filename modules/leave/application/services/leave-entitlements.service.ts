@@ -549,6 +549,16 @@ export type EmployeeLeaveBalances = {
   role: "EMPLOYEE" | "SUPERVISOR" | "ADMIN" | "OWNER"
   jobTitle: string
   balances: LeaveEntitlementView[]
+  /// Where this employee's leave config resolves from, overall:
+  ///   "custom"  — any per-employee LeaveEntitlement override is set
+  ///   "policy"  — no per-employee override, but their policy has
+  ///               at least one PolicyLeaveEntitlement override
+  ///   "default" — both layers empty; type defaults all the way
+  ///
+  /// Pre-computed server-side so the admin balances grid doesn't
+  /// have to re-derive it per render. The supervisor view ignores
+  /// this field.
+  leaveSource: "default" | "policy" | "custom"
 }
 
 /// All employees in an org with their leave balances for the given year.
@@ -570,11 +580,16 @@ export async function listAllEmployeeBalancesForOrg(
     },
     select: {
       id: true,
+      policyId: true,
       jobTitle: true,
       user: { select: { id: true, name: true, email: true, role: true } },
     },
     orderBy: { user: { name: "asc" } },
   })
+
+  // Pre-load type-defaults and policy-overrides once for the org so
+  // computeLeaveSource doesn't need N×T extra queries.
+  const ctx = await loadLeaveSourceContext(prisma, organizationId)
 
   return Promise.all(
     employees.map(async (e) => ({
@@ -585,8 +600,87 @@ export async function listAllEmployeeBalancesForOrg(
       role: e.user.role as EmployeeLeaveBalances["role"],
       jobTitle: e.jobTitle,
       balances: await listEmployeeBalances(e.id, year),
+      leaveSource: await computeLeaveSourceForEmployee({
+        prisma,
+        employeeProfileId: e.id,
+        employeePolicyId: e.policyId,
+        year,
+        ctx,
+      }),
     })),
   )
+}
+
+/// Loads the per-org data needed to classify each employee's
+/// leave source. Shared by both balance list endpoints so the
+/// supervisor view also gets the same labelling for the (yet-unused)
+/// leaveSource field.
+async function loadLeaveSourceContext(
+  prisma: NonNullable<ReturnType<typeof getLeavePrismaClientSafe>>,
+  organizationId: string,
+) {
+  const [types, policyDefaults] = await Promise.all([
+    prisma.leaveType.findMany({
+      where: { organizationId, archivedAt: null },
+      select: { id: true, paid: true, defaultDays: true, accrualMethod: true },
+    }),
+    prisma.policyLeaveEntitlement.findMany({
+      where: { policy: { organizationId } },
+      select: {
+        policyId: true,
+        leaveTypeId: true,
+        defaultDays: true,
+        accrualMethod: true,
+      },
+    }),
+  ])
+  return {
+    typesById: new Map(types.map((t) => [t.id, t])),
+    policyDefaults,
+  }
+}
+
+async function computeLeaveSourceForEmployee(args: {
+  prisma: NonNullable<ReturnType<typeof getLeavePrismaClientSafe>>
+  employeeProfileId: string
+  employeePolicyId: string | null
+  year: number
+  ctx: Awaited<ReturnType<typeof loadLeaveSourceContext>>
+}): Promise<"default" | "policy" | "custom"> {
+  const entitlements = await args.prisma.leaveEntitlement.findMany({
+    where: { employeeId: args.employeeProfileId, year: args.year },
+    select: {
+      leaveTypeId: true,
+      entitledDays: true,
+      accrualMethod: true,
+    },
+  })
+
+  // Pass 1 — any per-employee override on a paid type?
+  for (const e of entitlements) {
+    const t = args.ctx.typesById.get(e.leaveTypeId)
+    if (!t || !t.paid) continue
+    if (e.accrualMethod !== null) return "custom"
+    const policyForThis = args.ctx.policyDefaults.find(
+      (d) =>
+        d.policyId === args.employeePolicyId &&
+        d.leaveTypeId === e.leaveTypeId,
+    )
+    const resolvedDefault = policyForThis?.defaultDays ?? t.defaultDays
+    if (Math.abs(e.entitledDays - resolvedDefault) > 0.001) return "custom"
+  }
+
+  // Pass 2 — any policy override on the employee's policy?
+  if (args.employeePolicyId) {
+    for (const d of args.ctx.policyDefaults) {
+      if (d.policyId !== args.employeePolicyId) continue
+      const t = args.ctx.typesById.get(d.leaveTypeId)
+      if (!t || !t.paid) continue
+      if (d.accrualMethod !== null) return "policy"
+      if (Math.abs(d.defaultDays - t.defaultDays) > 0.001) return "policy"
+    }
+  }
+  return "default"
 }
 
 /// Direct-reports view for supervisors. Returns balances only for the
@@ -608,11 +702,25 @@ export async function listTeamBalancesForSupervisor(
     where: { userId: { in: memberIds } },
     select: {
       id: true,
+      policyId: true,
       jobTitle: true,
-      user: { select: { id: true, name: true, email: true, role: true } },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          organizationId: true,
+        },
+      },
     },
     orderBy: { user: { name: "asc" } },
   })
+
+  // Use whichever org the team members belong to (they all share one
+  // — supervisor + reports are always in the same org).
+  const orgId = employees[0]?.user.organizationId
+  const ctx = orgId ? await loadLeaveSourceContext(prisma, orgId) : null
 
   return Promise.all(
     employees.map(async (e) => ({
@@ -623,6 +731,15 @@ export async function listTeamBalancesForSupervisor(
       role: e.user.role as EmployeeLeaveBalances["role"],
       jobTitle: e.jobTitle,
       balances: await listEmployeeBalances(e.id, year),
+      leaveSource: ctx
+        ? await computeLeaveSourceForEmployee({
+            prisma,
+            employeeProfileId: e.id,
+            employeePolicyId: e.policyId,
+            year,
+            ctx,
+          })
+        : ("default" as const),
     })),
   )
 }

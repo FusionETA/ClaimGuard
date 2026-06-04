@@ -18,6 +18,10 @@ type Props = {
   /// is []. Supervisor view uses this to say "you don't have any direct
   /// reports" rather than the generic "no results".
   emptyHint?: string
+  /// Show the per-employee Default/Policy/Custom pill next to each
+  /// name. Admin-only — supervisors don't need to see leave
+  /// configuration sources at this level.
+  showSource?: boolean
 }
 
 /// Collapsible card for one employee. Header is the click target —
@@ -28,8 +32,12 @@ type Props = {
 /// quickly on orgs with many employees.
 function EmployeeBalancesCard({
   employee,
+  showSource,
 }: {
   employee: EmployeeLeaveBalances
+  /// Admin-only: render the Default/Policy/Custom pill next to the
+  /// employee name.
+  showSource?: boolean
 }) {
   const [open, setOpen] = useState(false)
 
@@ -59,6 +67,32 @@ function EmployeeBalancesCard({
             {employee.role === "SUPERVISOR" ? (
               <Badge variant="outline" className="text-[10px]">
                 Supervisor
+              </Badge>
+            ) : null}
+            {showSource ? (
+              <Badge
+                variant={
+                  employee.leaveSource === "custom" ? "default" : "outline"
+                }
+                className={
+                  "text-[10px] " +
+                  (employee.leaveSource === "default"
+                    ? "text-muted-foreground"
+                    : "")
+                }
+                title={
+                  employee.leaveSource === "custom"
+                    ? "Has at least one per-employee leave override."
+                    : employee.leaveSource === "policy"
+                      ? "Inherits from their policy. No per-employee overrides."
+                      : "Inherits type defaults. No policy or employee overrides."
+                }
+              >
+                {employee.leaveSource === "custom"
+                  ? "Custom"
+                  : employee.leaveSource === "policy"
+                    ? "Policy"
+                    : "Default"}
               </Badge>
             ) : null}
             {outCount > 0 ? (
@@ -147,7 +181,7 @@ function EmployeeBalancesCard({
   )
 }
 
-export function LeaveBalancesGrid({ employees, year, emptyHint }: Props) {
+export function LeaveBalancesGrid({ employees, year, emptyHint, showSource }: Props) {
   const [query, setQuery] = useState("")
 
   const filtered = useMemo(() => {
@@ -207,7 +241,11 @@ export function LeaveBalancesGrid({ employees, year, emptyHint }: Props) {
       ) : (
         <div className="space-y-3">
           {filtered.map((emp) => (
-            <EmployeeBalancesCard key={emp.userId} employee={emp} />
+            <EmployeeBalancesCard
+              key={emp.userId}
+              employee={emp}
+              showSource={showSource}
+            />
           ))}
         </div>
       )}

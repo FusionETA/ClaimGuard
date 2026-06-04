@@ -846,6 +846,31 @@ function EmployeeEntitlementsTab(props: {
   // method, if any). Used to compute the inherited values per row
   // when the selected employee has a policy. Combined into one map so
   // we don't pay two lookups per row.
+  // Per-employee LeaveEntitlement rows, indexed by employee id, so
+  // the picker can show an at-a-glance "Default / Policy / Custom"
+  // pill next to each name. Built once per render and consumed by
+  // both the picker (left pane) and the parent SelectedHeader.
+  const entitlementsByEmployee = useMemo(() => {
+    const map = new Map<
+      string,
+      Array<{
+        leaveTypeId: string
+        entitledDays: number
+        accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+      }>
+    >()
+    for (const e of props.entitlements) {
+      const list = map.get(e.employeeId) ?? []
+      list.push({
+        leaveTypeId: e.leaveTypeId,
+        entitledDays: e.entitledDays,
+        accrualMethod: e.accrualMethod,
+      })
+      map.set(e.employeeId, list)
+    }
+    return map
+  }, [props.entitlements])
+
   const policyOverrideLookup = useMemo(() => {
     const map = new Map<
       string,
@@ -906,20 +931,31 @@ function EmployeeEntitlementsTab(props: {
             {filteredEmployees.length === 0 ? (
               <div className="p-3 text-sm text-muted-foreground">No matches.</div>
             ) : (
-              filteredEmployees.map((e) => (
-                <button
-                  key={e.id}
-                  type="button"
-                  onClick={() => setSelectedEmployeeId(e.id)}
-                  className={
-                    "w-full text-left px-3 py-2 text-sm transition-colors hover:bg-muted " +
-                    (selectedEmployeeId === e.id ? "bg-muted font-medium" : "")
-                  }
-                >
-                  <div>{e.name}</div>
-                  <div className="text-xs text-muted-foreground">{e.email}</div>
-                </button>
-              ))
+              filteredEmployees.map((e) => {
+                const source = resolveEmployeeLeaveSource({
+                  employeePolicyId: e.policyId,
+                  leaveTypes: props.leaveTypes,
+                  policyDefaults: props.policyDefaults,
+                  employeeEntitlements: entitlementsByEmployee.get(e.id) ?? [],
+                })
+                return (
+                  <button
+                    key={e.id}
+                    type="button"
+                    onClick={() => setSelectedEmployeeId(e.id)}
+                    className={
+                      "w-full text-left px-3 py-2 text-sm transition-colors hover:bg-muted " +
+                      (selectedEmployeeId === e.id ? "bg-muted font-medium" : "")
+                    }
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate">{e.name}</span>
+                      <LeaveSourceBadge source={source} />
+                    </div>
+                    <div className="text-xs text-muted-foreground">{e.email}</div>
+                  </button>
+                )
+              })
             )}
           </div>
         </CardContent>
@@ -948,7 +984,6 @@ function EmployeeEntitlementsTab(props: {
                   <TableHead>Leave type</TableHead>
                   <TableHead className="w-32">Days</TableHead>
                   <TableHead className="w-48">Accrual method</TableHead>
-                  <TableHead className="w-32">Source</TableHead>
                   <TableHead className="w-12 text-right"> </TableHead>
                 </TableRow>
               </TableHeader>
@@ -968,26 +1003,6 @@ function EmployeeEntitlementsTab(props: {
                   // falling back to.
                   const inheritedFrom: "policy" | "type" =
                     policyOverride?.method != null ? "policy" : "type"
-
-                  // Source resolution per dimension. Days and method
-                  // are independent — an employee might override days
-                  // but inherit method, or vice versa.
-                  //   employee: per-employee LeaveEntitlement override
-                  //   policy:   PolicyLeaveEntitlement override
-                  //   type:     LeaveType default
-                  const daysSource: "employee" | "policy" | "type" =
-                    cell?.days != null
-                      ? "employee"
-                      : policyOverride?.days != null
-                        ? "policy"
-                        : "type"
-                  const methodSource: "employee" | "policy" | "type" =
-                    cell?.method != null
-                      ? "employee"
-                      : policyOverride?.method != null
-                        ? "policy"
-                        : "type"
-
                   return (
                     <EmployeeEntitlementRow
                       key={t.id}
@@ -998,8 +1013,6 @@ function EmployeeEntitlementsTab(props: {
                       currentMethod={cell?.method ?? null}
                       inheritedMethod={inheritedMethod}
                       inheritedFrom={inheritedFrom}
-                      daysSource={daysSource}
-                      methodSource={methodSource}
                     />
                   )
                 })}
@@ -1012,78 +1025,105 @@ function EmployeeEntitlementsTab(props: {
   )
 }
 
-/// Single pill summarising where this row's values resolve from.
-/// Picks the *highest-priority* source across the days and method
-/// dimensions:
-///   - Any per-employee override (days OR method) → "Custom"
-///   - Otherwise any policy override → "Policy"
-///   - Both fall through to type → "Default"
+/// What source layer is "in effect" for this employee, summarised
+/// across every paid leave type in the org.
 ///
-/// Tooltip spells out the per-dimension detail for admins who want
-/// to know exactly where each value came from.
-function SourceBadges({
-  daysSource,
-  methodSource,
-  showMethod,
+///   - "custom"  → at least one LeaveEntitlement row has a per-
+///                 employee override (days differ from the resolved
+///                 default, OR accrualMethod is non-null).
+///   - "policy"  → no per-employee override anywhere, but the
+///                 employee's policy has at least one
+///                 PolicyLeaveEntitlement override (days or method).
+///   - "default" → both layers are empty; resolves entirely to the
+///                 leave type's `defaultDays` / `accrualMethod`.
+export type EmployeeLeaveSource = "default" | "policy" | "custom"
+
+/// Compute the overall source for a single employee. Pure function
+/// so we can call it from both the Settings → Per-employee picker
+/// (with policyDefaults + employeeEntitlements props in scope) and
+/// the admin balances grid (server pre-computes it on the
+/// EmployeeLeaveBalances payload).
+export function resolveEmployeeLeaveSource({
+  employeePolicyId,
+  leaveTypes,
+  policyDefaults,
+  employeeEntitlements,
 }: {
-  daysSource: "employee" | "policy" | "type"
-  methodSource: "employee" | "policy" | "type"
-  /// When false (non-ANNUAL rows), method is always locked at the
-  /// type default — we ignore it in the rollup so the pill doesn't
-  /// stay stuck on "Default" even when the admin has a per-employee
-  /// days override.
-  showMethod: boolean
-}) {
-  const sources: Array<"employee" | "policy" | "type"> = [daysSource]
-  if (showMethod) sources.push(methodSource)
-
-  const effective: "employee" | "policy" | "type" = sources.includes(
-    "employee",
+  employeePolicyId: string | null
+  leaveTypes: Array<{ id: string; defaultDays: number; accrualMethod: "LUMP_SUM" | "PRO_RATED"; paid: boolean }>
+  /// All policy-default rows for this org (we filter by policy below).
+  policyDefaults: Array<{
+    policyId: string
+    leaveTypeId: string
+    defaultDays: number
+    accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+  }>
+  /// Per-employee LeaveEntitlement rows for *this* employee only.
+  employeeEntitlements: Array<{
+    leaveTypeId: string
+    entitledDays: number
+    accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+  }>
+}): EmployeeLeaveSource {
+  const typesById = new Map(leaveTypes.map((t) => [t.id, t]))
+  const policyByLeaveTypeId = new Map(
+    policyDefaults
+      .filter((d) => d.policyId === employeePolicyId)
+      .map((d) => [d.leaveTypeId, d]),
   )
-    ? "employee"
-    : sources.includes("policy")
-      ? "policy"
-      : "type"
 
+  // Pass 1 — any per-employee override on a paid leave type?
+  for (const e of employeeEntitlements) {
+    const t = typesById.get(e.leaveTypeId)
+    if (!t || !t.paid) continue
+    if (e.accrualMethod !== null) return "custom"
+    const resolvedDefault =
+      policyByLeaveTypeId.get(e.leaveTypeId)?.defaultDays ?? t.defaultDays
+    if (Math.abs(e.entitledDays - resolvedDefault) > 0.001) return "custom"
+  }
+
+  // Pass 2 — any policy override (for the employee's policy)?
+  if (employeePolicyId) {
+    for (const d of policyDefaults) {
+      if (d.policyId !== employeePolicyId) continue
+      const t = typesById.get(d.leaveTypeId)
+      if (!t || !t.paid) continue
+      if (d.accrualMethod !== null) return "policy"
+      if (Math.abs(d.defaultDays - t.defaultDays) > 0.001) return "policy"
+    }
+  }
+
+  return "default"
+}
+
+/// Small pill with the appropriate colour for a given source.
+function LeaveSourceBadge({
+  source,
+  className,
+}: {
+  source: EmployeeLeaveSource
+  className?: string
+}) {
   const label =
-    effective === "employee"
+    source === "custom"
       ? "Custom"
-      : effective === "policy"
+      : source === "policy"
         ? "Policy"
         : "Default"
-  const variant = effective === "employee" ? "default" : "outline"
-
-  // Tooltip: only spells out the per-dimension detail when there's
-  // something useful to say (i.e. when sources differ).
-  const tooltip = (() => {
-    if (!showMethod) {
-      return effective === "type"
-        ? "Falls through to the leave type's default."
-        : effective === "policy"
-          ? "Days come from the policy override."
-          : "Days are overridden for this employee."
-    }
-    const dWord =
-      daysSource === "employee"
-        ? "this employee"
-        : daysSource === "policy"
-          ? "the policy"
-          : "the leave type"
-    const mWord =
-      methodSource === "employee"
-        ? "this employee"
-        : methodSource === "policy"
-          ? "the policy"
-          : "the leave type"
-    return `Days from ${dWord} · Method from ${mWord}`
-  })()
-
+  const variant = source === "custom" ? "default" : "outline"
+  const tooltip =
+    source === "custom"
+      ? "This employee has at least one per-employee leave override."
+      : source === "policy"
+        ? "Inherits from their policy. No per-employee overrides set."
+        : "Inherits the type defaults. No policy or employee overrides."
   return (
     <Badge
       variant={variant}
       className={
         "text-[10px] font-normal " +
-        (effective === "type" ? "text-muted-foreground" : "")
+        (source === "default" ? "text-muted-foreground" : "") +
+        (className ? ` ${className}` : "")
       }
       title={tooltip}
     >
@@ -1105,14 +1145,6 @@ function EmployeeEntitlementRow(props: {
   /// label so the admin knows whether they'd inherit from the policy
   /// or all the way up to the leave type.
   inheritedFrom: "policy" | "type"
-  /// Which layer the EFFECTIVE days come from. Computed by the parent
-  /// from the same overrides; surfaced here as a small badge so admins
-  /// can scan "where is this value coming from?" without inspecting
-  /// the inputs themselves. Days and method are independent — an
-  /// employee can override days while inheriting the method, or vice
-  /// versa.
-  daysSource: "employee" | "policy" | "type"
-  methodSource: "employee" | "policy" | "type"
 }) {
   const [val, setVal] = useState(
     props.currentDays !== null ? String(props.currentDays) : "",
@@ -1221,16 +1253,6 @@ function EmployeeEntitlementRow(props: {
             </SelectContent>
           </Select>
         ) : null}
-      </TableCell>
-      <TableCell>
-        <SourceBadges
-          daysSource={props.daysSource}
-          methodSource={props.methodSource}
-          // ANNUAL is the only type with a settable method, so for
-          // every other row the method-source pill is redundant
-          // (it'd always say "type"). Hide it to reduce noise.
-          showMethod={props.leaveType.code.toUpperCase() === "ANNUAL"}
-        />
       </TableCell>
       <TableCell className="text-right">
         <Button
