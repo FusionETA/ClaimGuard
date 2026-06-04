@@ -93,7 +93,7 @@ export function DashboardQuickActions({
           </DialogHeader>
 
           <div
-            className="flex-1 overflow-y-auto pr-1 pt-4"
+            className="flex-1 overflow-y-auto px-1 pt-4"
             style={{ scrollbarGutter: "stable both-edges" }}
           >
             <ClaimFlow
