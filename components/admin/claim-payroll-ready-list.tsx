@@ -163,6 +163,13 @@ function ClaimGroup({
   const [pending, startTransition] = useTransition()
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [selectedRunId, setSelectedRunId] = useState<string>(draftRuns[0]?.id ?? "")
+  // Bill status Xero will assign on sync. AUTHORISED = Awaiting Payment
+  // (the safe default — bills land in Bills-to-pay and accountants
+  // approve them out-of-band). DRAFT lets the admin review in Xero before
+  // approval. Local state because it's a per-batch choice, not org-wide.
+  const [billStatus, setBillStatus] = useState<"AUTHORISED" | "DRAFT">(
+    "AUTHORISED",
+  )
 
   const allSelected = claims.length > 0 && selectedIds.size === claims.length
   const selectedCount = selectedIds.size
@@ -199,7 +206,9 @@ function ClaimGroup({
     )
   }
   function handleSyncToXero() {
-    runBulk(() => bulkSyncClaimsToXeroAction(Array.from(selectedIds)))
+    runBulk(() =>
+      bulkSyncClaimsToXeroAction(Array.from(selectedIds), billStatus),
+    )
   }
 
   if (claims.length === 0) {
@@ -260,17 +269,39 @@ function ClaimGroup({
                 Add to payroll
               </Button>
               {xeroConnected ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={pending || selectedCount === 0}
-                  onClick={handleSyncToXero}
-                  className="gap-1.5"
-                >
-                  <Upload className="h-3.5 w-3.5" />
-                  Sync to Xero (bill)
-                </Button>
+                <>
+                  {/* Status applied to the bill at create-time in Xero.
+                      Lives here (not in Settings) so the admin can pick
+                      Draft vs Awaiting Payment per batch without
+                      bouncing through another page. */}
+                  <Select
+                    value={billStatus}
+                    onValueChange={(v) =>
+                      setBillStatus(v === "DRAFT" ? "DRAFT" : "AUTHORISED")
+                    }
+                  >
+                    <SelectTrigger className="h-8 w-[150px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AUTHORISED">Awaiting payment</SelectItem>
+                      <SelectItem value="DRAFT">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={pending || selectedCount === 0}
+                    onClick={handleSyncToXero}
+                    className="gap-1.5"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    {billStatus === "DRAFT"
+                      ? "Sync to Xero (draft bill)"
+                      : "Sync to Xero (bill)"}
+                  </Button>
+                </>
               ) : null}
             </>
           ) : xeroConnected ? (

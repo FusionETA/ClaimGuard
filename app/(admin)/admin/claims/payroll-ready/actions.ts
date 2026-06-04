@@ -78,19 +78,27 @@ export async function bulkAttachClaimsToRunAction(
  */
 export async function bulkSyncClaimsToXeroAction(
   claimIds: string[],
+  billStatus: "DRAFT" | "AUTHORISED" = "AUTHORISED",
 ): Promise<BulkActionResult> {
   const auth = await requireAdmin()
   if (!auth.ok) return { ok: false, message: auth.message, succeeded: 0, failed: 0 }
   if (claimIds.length === 0) {
     return { ok: false, message: "No claims selected.", succeeded: 0, failed: 0 }
   }
+  // Defensive narrow — the action is invoked via `useTransition` from a
+  // controlled <Select>, but it's still a server-action boundary that
+  // anyone can call.
+  const safeStatus: "DRAFT" | "AUTHORISED" =
+    billStatus === "DRAFT" ? "DRAFT" : "AUTHORISED"
 
   let succeeded = 0
   let failed = 0
   const errors: string[] = []
 
   const outcomes = await Promise.allSettled(
-    claimIds.map((claimId) => syncApprovedClaimToXero(claimId)),
+    claimIds.map((claimId) =>
+      syncApprovedClaimToXero(claimId, { billStatus: safeStatus }),
+    ),
   )
   for (const outcome of outcomes) {
     if (outcome.status === "fulfilled" && outcome.value.status === "synced") {

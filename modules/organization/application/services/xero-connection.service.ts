@@ -441,7 +441,19 @@ export async function disconnectXeroConnection(data: {
   return { ok: true, message: "Xero connection disconnected." }
 }
 
-export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSyncResult> {
+/**
+ * Sync a single claim to Xero. For PERSONAL-money claims this creates an
+ * ACCPAY Invoice (Bill); the admin chooses whether it lands as a Draft
+ * or directly as Awaiting Payment via `billStatus`. COMPANY-money claims
+ * always create a Spend Money txn (Xero has no draft equivalent there).
+ *
+ * `billStatus` defaults to `AUTHORISED` so older callers (and any
+ * unit-test fixtures) keep the existing behaviour.
+ */
+export async function syncApprovedClaimToXero(
+  claimId: string,
+  opts?: { billStatus?: "DRAFT" | "AUTHORISED" },
+): Promise<XeroSyncResult> {
   const runtime = getXeroRuntimeConfigStatus()
 
   if (!runtime.configured) {
@@ -637,7 +649,7 @@ export async function syncApprovedClaimToXero(claimId: string): Promise<XeroSync
       accessToken: connection.accessToken,
       tenantId: connection.tenantId,
       idempotencyKey: `claim-${claim.id}`,
-      status: "AUTHORISED",
+      status: opts?.billStatus ?? "AUTHORISED",
       payload: {
         contactName: claim.employee.name,
         contactEmail: claim.employee.email,
