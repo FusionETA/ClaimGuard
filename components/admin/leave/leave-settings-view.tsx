@@ -1012,18 +1012,15 @@ function EmployeeEntitlementsTab(props: {
   )
 }
 
-/// Small pair of pills showing where each dimension (days / method)
-/// resolved from. Three-state per dimension:
-///   employee — per-employee LeaveEntitlement override is set
-///   policy   — PolicyLeaveEntitlement override is set (employee row
-///              is null)
-///   type     — both higher layers are null; falls through to
-///              LeaveType.defaultDays / accrualMethod
+/// Single pill summarising where this row's values resolve from.
+/// Picks the *highest-priority* source across the days and method
+/// dimensions:
+///   - Any per-employee override (days OR method) → "Custom"
+///   - Otherwise any policy override → "Policy"
+///   - Both fall through to type → "Default"
 ///
-/// Colors:
-///   employee → primary (blue) — "you set this"
-///   policy   → secondary muted purple — "from the policy"
-///   type     → outline grey — "factory default"
+/// Tooltip spells out the per-dimension detail for admins who want
+/// to know exactly where each value came from.
 function SourceBadges({
   daysSource,
   methodSource,
@@ -1031,49 +1028,66 @@ function SourceBadges({
 }: {
   daysSource: "employee" | "policy" | "type"
   methodSource: "employee" | "policy" | "type"
+  /// When false (non-ANNUAL rows), method is always locked at the
+  /// type default — we ignore it in the rollup so the pill doesn't
+  /// stay stuck on "Default" even when the admin has a per-employee
+  /// days override.
   showMethod: boolean
 }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <SourcePill label="Days" source={daysSource} />
-      {showMethod ? (
-        <SourcePill label="Method" source={methodSource} />
-      ) : null}
-    </div>
-  )
-}
+  const sources: Array<"employee" | "policy" | "type"> = [daysSource]
+  if (showMethod) sources.push(methodSource)
 
-function SourcePill({
-  label,
-  source,
-}: {
-  label: "Days" | "Method"
-  source: "employee" | "policy" | "type"
-}) {
-  const variant =
-    source === "employee"
-      ? "default"
-      : source === "policy"
-        ? "outline"
-        : "outline"
-  // Friendly source word: "Employee" reads better than "employee" in
-  // a badge, and "Type" is shorter than "Type default".
-  const word =
-    source === "employee"
-      ? "Employee"
-      : source === "policy"
+  const effective: "employee" | "policy" | "type" = sources.includes(
+    "employee",
+  )
+    ? "employee"
+    : sources.includes("policy")
+      ? "policy"
+      : "type"
+
+  const label =
+    effective === "employee"
+      ? "Custom"
+      : effective === "policy"
         ? "Policy"
-        : "Type"
+        : "Default"
+  const variant = effective === "employee" ? "default" : "outline"
+
+  // Tooltip: only spells out the per-dimension detail when there's
+  // something useful to say (i.e. when sources differ).
+  const tooltip = (() => {
+    if (!showMethod) {
+      return effective === "type"
+        ? "Falls through to the leave type's default."
+        : effective === "policy"
+          ? "Days come from the policy override."
+          : "Days are overridden for this employee."
+    }
+    const dWord =
+      daysSource === "employee"
+        ? "this employee"
+        : daysSource === "policy"
+          ? "the policy"
+          : "the leave type"
+    const mWord =
+      methodSource === "employee"
+        ? "this employee"
+        : methodSource === "policy"
+          ? "the policy"
+          : "the leave type"
+    return `Days from ${dWord} · Method from ${mWord}`
+  })()
+
   return (
     <Badge
       variant={variant}
       className={
         "text-[10px] font-normal " +
-        (source === "type" ? "text-muted-foreground" : "")
+        (effective === "type" ? "text-muted-foreground" : "")
       }
-      title={`${label} value resolved from the ${source} layer`}
+      title={tooltip}
     >
-      {label}: {word}
+      {label}
     </Badge>
   )
 }
