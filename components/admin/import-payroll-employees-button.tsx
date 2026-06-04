@@ -42,6 +42,38 @@ import type {
   MappedImportResult,
   PreviewResult,
 } from "@/modules/payroll/application/services/payroll-import.service"
+import type { AddEmployeeLeaveType } from "@/modules/payroll/application/services/payroll-profile.service"
+import { Input } from "@/components/ui/input"
+import { NativeSelect } from "@/components/admin/payroll-form-controls"
+
+/// Per-policy default rows passed down so the Leave Method UI can
+/// (in future) pre-fill per-policy custom values. Today bulk import
+/// uses per-batch customs only, so we read this only as the type
+/// of the parent's `policyDefaults` prop.
+export type BulkImportPolicyDefault = {
+  policyId: string
+  leaveTypeId: string
+  defaultDays: number
+  accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+}
+
+/// Seed the Custom-mode form with each leave type's own defaultDays
+/// + accrualMethod. Bulk imports don't have a single policy picked up
+/// front (the policy comes from the CSV per row), so we can't
+/// pre-fill from a policy override. Admins start from the type
+/// defaults and tweak.
+function defaultLeaveOverridesForBatch(leaveTypes: AddEmployeeLeaveType[]): {
+  days: Record<string, number>
+  methods: Record<string, "LUMP_SUM" | "PRO_RATED">
+} {
+  const days: Record<string, number> = {}
+  const methods: Record<string, "LUMP_SUM" | "PRO_RATED"> = {}
+  for (const t of leaveTypes) {
+    days[t.id] = t.defaultDays
+    methods[t.id] = t.accrualMethod
+  }
+  return { days, methods }
+}
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -120,9 +152,30 @@ const PREVIEW_PICKABLE_REQUIRED = new Set([
   "teamLayer",
 ])
 
-export function ImportPayrollEmployeesButton() {
+export function ImportPayrollEmployeesButton({
+  leaveTypes,
+  policyDefaults,
+}: {
+  leaveTypes: AddEmployeeLeaveType[]
+  policyDefaults: BulkImportPolicyDefault[]
+}) {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>("upload")
+  // Per-batch Leave Method choice. DEFAULT = each created employee
+  // inherits from policy/type chain (`seedEmployeeLeaveEntitlements`
+  // resolves it). CUSTOM = admin-supplied per-type values applied to
+  // every newly-created row in this import.
+  const [leaveMethod, setLeaveMethod] = useState<"DEFAULT" | "CUSTOM">(
+    "DEFAULT",
+  )
+  // When leaveMethod is CUSTOM, these hold the admin's per-leave-type
+  // edits. Pre-filled by `defaultLeaveOverridesForBatch` below using
+  // the type defaults (bulk imports don't pick a single policy up
+  // front, so we don't have a policy-resolved baseline).
+  const [leaveOverrides, setLeaveOverrides] = useState<{
+    days: Record<string, number>
+    methods: Record<string, "LUMP_SUM" | "PRO_RATED">
+  }>(() => defaultLeaveOverridesForBatch(leaveTypes))
   const [csvText, setCsvText] = useState<string>("")
   const [headers, setHeaders] = useState<string[]>([])
   const [mapping, setMapping] = useState<Record<string, string | null>>({})
@@ -619,6 +672,12 @@ export function ImportPayrollEmployeesButton() {
         mapping,
         valueMap,
         rowOverrides,
+        leaveMethod,
+        // Only pass overrides when the admin actually chose Custom.
+        // Avoids growing the action payload with default values that
+        // the server would just ignore.
+        leaveOverrides:
+          leaveMethod === "CUSTOM" ? leaveOverrides : undefined,
       })
       if (result.status === "success") {
         setFinalResult(result.result)
@@ -765,6 +824,22 @@ export function ImportPayrollEmployeesButton() {
               preview={preview}
               pickerOptions={pickerOptions}
               rowOverrides={rowOverrides}
+              leaveTypes={leaveTypes}
+              leaveMethod={leaveMethod}
+              leaveOverrides={leaveOverrides}
+              onLeaveMethodChange={setLeaveMethod}
+              onLeaveOverrideChange={(typeId, patch) =>
+                setLeaveOverrides((prev) => ({
+                  days:
+                    patch.days !== undefined
+                      ? { ...prev.days, [typeId]: patch.days }
+                      : prev.days,
+                  methods:
+                    patch.method !== undefined
+                      ? { ...prev.methods, [typeId]: patch.method }
+                      : prev.methods,
+                }))
+              }
               onOverrideChange={(rowIndex, patch) =>
                 setRowOverrides((prev) => {
                   const next = { ...prev }
@@ -1863,6 +1938,11 @@ function PreviewStep({
   preview,
   pickerOptions,
   rowOverrides,
+  leaveTypes,
+  leaveMethod,
+  leaveOverrides,
+  onLeaveMethodChange,
+  onLeaveOverrideChange,
   onOverrideChange,
   onRefreshPickers,
   onBack,
@@ -1872,6 +1952,17 @@ function PreviewStep({
   preview: PreviewResult
   pickerOptions: ImportPickerOptions
   rowOverrides: RowOverrides
+  leaveTypes: AddEmployeeLeaveType[]
+  leaveMethod: "DEFAULT" | "CUSTOM"
+  leaveOverrides: {
+    days: Record<string, number>
+    methods: Record<string, "LUMP_SUM" | "PRO_RATED">
+  }
+  onLeaveMethodChange: (m: "DEFAULT" | "CUSTOM") => void
+  onLeaveOverrideChange: (
+    typeId: string,
+    patch: { days?: number; method?: "LUMP_SUM" | "PRO_RATED" },
+  ) => void
   onOverrideChange: (
     rowIndex: number,
     patch: Partial<RowOverrides[number]>,
@@ -1897,18 +1988,29 @@ function PreviewStep({
   return (
     <>
       <p className="text-sm text-muted-foreground">
-        Showing first {preview.preview.length} of {preview.total} data
-        rows after mapping and normalisation. The pickers on the right
-        let you set each row&apos;s Policy / Project / Team / Layer —
-        if your CSV didn&apos;t carry those columns, use these instead.
-        New records can be added inline with{" "}
+        Showing all {preview.preview.length} data
+        {preview.preview.length === 1 ? " row" : " rows"} after mapping
+        and normalisation. The pickers on the right let you set each
+        row&apos;s Policy / Project / Team / Layer — if your CSV
+        didn&apos;t carry those columns, use these instead. New records
+        can be added inline with{" "}
         <span className="font-medium text-foreground">+ Create</span>.
       </p>
 
+      <LeaveMethodSection
+        leaveTypes={leaveTypes}
+        leaveMethod={leaveMethod}
+        leaveOverrides={leaveOverrides}
+        onLeaveMethodChange={onLeaveMethodChange}
+        onLeaveOverrideChange={onLeaveOverrideChange}
+        rowCount={preview.preview.length}
+        busy={busy}
+      />
+
       {preview.preview.length > 0 ? (
-        <ScrollArea className="overflow-x-auto rounded-lg border border-border/60">
+        <ScrollArea className="max-h-[60vh] overflow-y-auto overflow-x-auto rounded-lg border border-border/60">
           <table className="w-full text-xs">
-            <thead className="uppercase tracking-wide text-muted-foreground">
+            <thead className="sticky top-0 z-10 uppercase tracking-wide text-muted-foreground">
               <tr>
                 {hasNameCol ? (
                   // Sticky on the left. Solid background + right
@@ -1966,14 +2068,8 @@ function PreviewStep({
         </p>
       )}
 
-      {preview.total > preview.preview.length && (
-        <p className="text-[11px] text-muted-foreground">
-          Rows beyond the first {preview.preview.length} use the CSV&apos;s
-          values matched by name. If a referenced Policy / Project / Team
-          doesn&apos;t exist in this org, create it in the rows above —
-          new records become available to all rows.
-        </p>
-      )}
+      {/* The preview now shows every parsed row, so the
+          "Rows beyond the first N" note is no longer relevant. */}
 
       {preview.skipped.length > 0 && (
         <div className="rounded-lg border border-amber-300/60 bg-amber-50/40 p-3 text-xs dark:border-amber-700/40 dark:bg-amber-950/20">
@@ -2343,6 +2439,126 @@ function CreatableSelect({
       )}
       {createError && (
         <p className="text-[11px] text-destructive">{createError}</p>
+      )}
+    </div>
+  )
+}
+
+// ─── Leave Method picker (per-batch, lives at top of Preview step) ──────
+
+/// Sits at the top of the Preview step. The admin picks one Leave
+/// Method that applies to every newly-created employee in this
+/// import. Updated (re-imported) employees keep their existing
+/// entitlements regardless of this choice.
+///
+/// CUSTOM mode reveals a list of leave types with editable Days and
+/// Accrual method. Bulk imports don't carry a single policy up front
+/// (each row may have its own from the CSV), so the inputs pre-fill
+/// with the TYPE defaults, not a policy-resolved baseline. Admins
+/// who want different values per policy can use the per-employee
+/// Settings UI after the import lands.
+///
+/// When `leaveTypes.length === 0`, the parent renders an
+/// org-blocking error elsewhere; this section just no-ops so we
+/// don't show a misleading "Custom mode" picker.
+function LeaveMethodSection({
+  leaveTypes,
+  leaveMethod,
+  leaveOverrides,
+  onLeaveMethodChange,
+  onLeaveOverrideChange,
+  rowCount,
+  busy,
+}: {
+  leaveTypes: AddEmployeeLeaveType[]
+  leaveMethod: "DEFAULT" | "CUSTOM"
+  leaveOverrides: {
+    days: Record<string, number>
+    methods: Record<string, "LUMP_SUM" | "PRO_RATED">
+  }
+  onLeaveMethodChange: (m: "DEFAULT" | "CUSTOM") => void
+  onLeaveOverrideChange: (
+    typeId: string,
+    patch: { days?: number; method?: "LUMP_SUM" | "PRO_RATED" },
+  ) => void
+  rowCount: number
+  busy: boolean
+}) {
+  if (leaveTypes.length === 0) return null
+  return (
+    <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-medium text-foreground">Leave method</p>
+          <p className="text-xs text-muted-foreground">
+            Applies to every newly-created employee in this import
+            ({rowCount} {rowCount === 1 ? "row" : "rows"}). Existing
+            employees in the file keep their current entitlements.
+          </p>
+        </div>
+        <NativeSelect
+          value={leaveMethod}
+          onChange={(e) =>
+            onLeaveMethodChange(e.target.value as "DEFAULT" | "CUSTOM")
+          }
+          disabled={busy}
+          className="max-w-xs"
+        >
+          <option value="DEFAULT">
+            Default (use policy / leave-type defaults)
+          </option>
+          <option value="CUSTOM">Custom (override per leave type)</option>
+        </NativeSelect>
+      </div>
+
+      {leaveMethod === "CUSTOM" && (
+        <div className="rounded-md border border-border/40 bg-background p-2 space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Per leave type
+          </p>
+          {leaveTypes.map((t) => (
+            <div
+              key={t.id}
+              className="grid grid-cols-[1fr_5rem_8rem] items-center gap-2 text-xs"
+            >
+              <div className="truncate">
+                <span className="font-mono text-[10px] font-bold mr-1.5">
+                  {t.code}
+                </span>
+                {t.name}
+              </div>
+              <Input
+                type="number"
+                step="0.5"
+                min="0"
+                value={String(leaveOverrides.days[t.id] ?? t.defaultDays)}
+                onChange={(e) => {
+                  const n = Number(e.target.value)
+                  if (Number.isNaN(n)) return
+                  onLeaveOverrideChange(t.id, { days: Math.max(0, n) })
+                }}
+                disabled={busy || !t.paid}
+                className="h-8 text-xs"
+              />
+              <NativeSelect
+                value={leaveOverrides.methods[t.id] ?? t.accrualMethod}
+                onChange={(e) =>
+                  onLeaveOverrideChange(t.id, {
+                    method: e.target.value as "LUMP_SUM" | "PRO_RATED",
+                  })
+                }
+                disabled={busy || !t.paid}
+              >
+                <option value="LUMP_SUM">Lump sum</option>
+                <option value="PRO_RATED">Pro-rated</option>
+              </NativeSelect>
+            </div>
+          ))}
+          <p className="text-[10px] text-muted-foreground">
+            For per-employee differences, use Settings → Leave →
+            Per-employee after the import lands.
+          </p>
+        </div>
       )}
     </div>
   )
