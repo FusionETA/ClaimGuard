@@ -587,6 +587,40 @@ export async function syncApprovedClaimToXero(
   const isCompanyMoney = claim.paymentType === "COMPANY"
 
   // Idempotency: skip if this claim has already been posted on its path.
+  // But — if we ended up with a Xero id AND an ERROR status (e.g., the
+  // bill was created but a post-create step like the supporting-doc
+  // attach threw and the outer catch overwrote our SYNCED status), the
+  // skip below would lock the row in red forever. Detect that and
+  // recover the SYNCED status instead of skipping.
+  const needsStatusRecovery =
+    claim.xeroSyncStatus === "ERROR" &&
+    ((isCompanyMoney && claim.xeroSpendMoneyId) ||
+      (!isCompanyMoney && claim.xeroBillId))
+
+  if (needsStatusRecovery) {
+    if (!isCompanyMoney && claim.xeroBillId) {
+      await claimRepository.markClaimXeroSynced({
+        claimId: claim.id,
+        xeroBillId: claim.xeroBillId,
+      })
+      return {
+        status: "synced",
+        message: "Xero bill status recovered (the bill was already in Xero).",
+      }
+    }
+    if (isCompanyMoney && claim.xeroSpendMoneyId) {
+      await claimRepository.markClaimSpendMoneySynced({
+        claimId: claim.id,
+        xeroSpendMoneyId: claim.xeroSpendMoneyId,
+      })
+      return {
+        status: "synced",
+        message:
+          "Xero spend-money status recovered (the transaction was already in Xero).",
+      }
+    }
+  }
+
   if (!isCompanyMoney && claim.xeroBillId) {
     return {
       status: "skipped",
@@ -734,13 +768,22 @@ export async function syncApprovedClaimToXero(
         }
       }
 
-      await attachSupportingDocsToXero({
-        accessToken: connection.accessToken,
-        tenantId: connection.tenantId,
-        supportingAttachments: claim.supportingAttachments,
-        targetObjectId: txn.bankTransactionId,
-        objectGroup: "BankTransaction",
-      })
+      // Best-effort, like the receipt attach. NEVER let a supporting-doc
+      // failure propagate — the Spend Money txn already landed in Xero,
+      // so a thrown error here would otherwise rewind our DB status to
+      // ERROR via the outer catch + failClaimSync, leaving xeroSpendMoneyId
+      // populated but the row visually flagged red and unrecoverable.
+      try {
+        await attachSupportingDocsToXero({
+          accessToken: connection.accessToken,
+          tenantId: connection.tenantId,
+          supportingAttachments: claim.supportingAttachments,
+          targetObjectId: txn.bankTransactionId,
+          objectGroup: "BankTransaction",
+        })
+      } catch (err) {
+        console.warn("[xero-sync] supporting docs attach failed:", err)
+      }
 
       return {
         status: "synced",
@@ -799,13 +842,23 @@ export async function syncApprovedClaimToXero(
       }
     }
 
-    await attachSupportingDocsToXero({
-      accessToken: connection.accessToken,
-      tenantId: connection.tenantId,
-      supportingAttachments: claim.supportingAttachments,
-      targetObjectId: bill.invoiceId,
-      objectGroup: "Invoice",
-    })
+    // Best-effort, like the receipt attach. NEVER let a supporting-doc
+    // failure propagate — the bill already landed in Xero, so a thrown
+    // error here would otherwise rewind our DB status to ERROR via the
+    // outer catch + failClaimSync, leaving xeroBillId populated but the
+    // row visually flagged red and unrecoverable (the idempotency check
+    // skips the retry, so the ERROR badge would stick forever).
+    try {
+      await attachSupportingDocsToXero({
+        accessToken: connection.accessToken,
+        tenantId: connection.tenantId,
+        supportingAttachments: claim.supportingAttachments,
+        targetObjectId: bill.invoiceId,
+        objectGroup: "Invoice",
+      })
+    } catch (err) {
+      console.warn("[xero-sync] supporting docs attach failed:", err)
+    }
 
     return {
       status: "synced",

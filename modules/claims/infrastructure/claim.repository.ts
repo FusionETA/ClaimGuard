@@ -431,6 +431,13 @@ export type ClaimForXeroSync = {
   /// PERSONAL → posts as an awaiting-payment bill; COMPANY → posts as a
   /// Spend Money bank transaction (money already left the company bank).
   paymentType: PaymentType
+  /// Persisted sync state on our side. Used by the sync service to
+  /// detect a row that's stuck in ERROR despite having a xeroBillId /
+  /// xeroSpendMoneyId set (the bill / txn exists in Xero, but a
+  /// post-create best-effort step threw and the outer catch overwrote
+  /// our SYNCED status) — the service recovers SYNCED instead of
+  /// returning "skipped" on retry.
+  xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
   xeroBillId: string | null
   /// Set once a COMPANY claim has been posted as a Spend Money txn —
   /// mirrors xeroBillId for idempotency on that path.
@@ -2199,6 +2206,7 @@ export const claimRepository = {
         currency: true,
         spentAt: true,
         paymentType: true,
+        xeroSyncStatus: true,
         xeroBillId: true,
         xeroSpendMoneyId: true,
         xeroFileId: true,
@@ -2262,6 +2270,10 @@ export const claimRepository = {
       currency: claim.currency,
       spentAt: claim.spentAt,
       paymentType: claim.paymentType as PaymentType,
+      xeroSyncStatus:
+        claim.xeroSyncStatus === "SYNCED" || claim.xeroSyncStatus === "ERROR"
+          ? claim.xeroSyncStatus
+          : "NOT_SYNCED",
       xeroBillId: claim.xeroBillId,
       xeroSpendMoneyId: claim.xeroSpendMoneyId,
       payViaBankAccount: payViaBankAccount
