@@ -4,6 +4,7 @@ import { isAdminRole } from "@/lib/auth/types"
 import { getOrSetCache } from "@/lib/cache"
 import { bustPayrollCaches } from "@/lib/cache-invalidation"
 import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
+import { toNumber } from "@/lib/decimal"
 import { getPayrollPrismaClientSafe as getPrismaClient } from "@/modules/payroll/infrastructure/payroll-run.repository"
 import { key } from "@/lib/redis"
 import {
@@ -21,6 +22,7 @@ import type {
 } from "@/modules/payroll/domain/models"
 import type {
   AttachableClaimRow,
+  ManualLineItem,
   PayrollRunAdjustmentData,
   PayrollRunClaimRow,
   PayrollRunData,
@@ -1443,6 +1445,12 @@ export type PayrollRunDetailWithPayslipsPageData = {
   payslips: PayslipRow[]
   attachments: PayrollRunClaimRow[]
   attachableClaims: AttachableClaimRow[]
+  /// Expired-leave cash-outs already attached to this run.
+  attachedLeaveCashouts: PendingLeaveCashout[]
+  /// Eligible expired-leave rows that haven't been attached to any
+  /// run yet — admin can attach them from the "Expired leave cash-out"
+  /// card on the run detail page.
+  attachableLeaveCashouts: PendingLeaveCashout[]
   /// True when the run has payslips on file BUT something has
   /// changed since they were generated — i.e. an adjustment row or a
   /// claim attachment was created/updated after the latest payslip
@@ -1623,12 +1631,21 @@ async function loadPayrollRunDetailWithPayslipsPageData(
     }
   }
 
+  // Load expired-leave cash-out lists in parallel (admin-only data;
+  // safe to read here because getPayrollRunDetailPageData already
+  // checked the session).
+  const cashouts = await listPendingLeaveCashoutsForRun({
+    runId: input.runId,
+  })
+
   return {
     ...base,
     employees: enrichedEmployees,
     payslips,
     attachments,
     attachableClaims,
+    attachedLeaveCashouts: cashouts.attached,
+    attachableLeaveCashouts: cashouts.available,
     isStale,
   }
 }
@@ -2089,6 +2106,314 @@ export async function detachClaimFromPayrollRun(input: {
   }
 
   await payrollRunClaimRepository.detach({ claimId: input.claimId })
+  if (run) await payrollRunRepository.markMutated(run.id)
+  await bustPayrollCaches({ organizationId: orgId })
+}
+
+// ─── Expired-leave cash-out (manual review at payroll time) ─────────────
+//
+// When `runMonthlyAccrual` sweeps an expired carry-forward row it now
+// preserves `carriedExpiredDays` on the LeaveEntitlement. Admins can
+// then attach those forfeited days to a draft payroll run as a
+// `wages_leave_pay` line item, cashing the employee out for the days
+// they would otherwise lose.
+//
+// Mirrors the existing claim-attach surface in shape: list available,
+// admin clicks attach, line item lands on the run's adjustment.
+// Detach reverses both writes (line item + LeaveEntitlement flags).
+
+export type PendingLeaveCashout = {
+  entitlementId: string
+  employeeProfileId: string
+  employeeName: string
+  employeeEmail: string
+  leaveTypeId: string
+  leaveTypeCode: string
+  /// The year the carry-forward came from — e.g. 2025 carry that
+  /// expired in 2026 had `year = 2025` on the entitlement row.
+  year: number
+  expiredDays: number
+  /// When the expiry sweep fired.
+  expiredAt: Date
+  /// Monthly salary at the time of computation. Null if the employee
+  /// doesn't have a payroll profile or monthlySalary set — UI shows
+  /// the row but the Attach button is disabled with a tooltip.
+  monthlySalary: number | null
+  /// The actual rate used to compute `suggestedAmount`. Mirrors the
+  /// existing unpaid-leave deduction (monthlySalary / workingDaysBasis).
+  dailyRate: number
+  /// `expiredDays × dailyRate`, rounded to 2 decimals. Zero if
+  /// monthlySalary is null.
+  suggestedAmount: number
+  /// Null = available to attach. Equal to `run.id` = already
+  /// attached to this run (admin can detach). Equal to another run
+  /// id = already attached elsewhere; this admin can't touch it
+  /// from here.
+  attachedRunId: string | null
+  /// Snapshot of the amount that was attached (null if not attached).
+  attachedAmount: number | null
+}
+
+export async function listPendingLeaveCashoutsForRun(input: {
+  runId: string
+}): Promise<{ available: PendingLeaveCashout[]; attached: PendingLeaveCashout[] }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { available: [], attached: [] }
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) return { available: [], attached: [] }
+
+  const prisma = getPrismaClient()
+  if (!prisma) return { available: [], attached: [] }
+
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  if (!run) return { available: [], attached: [] }
+
+  const settings = await payrollSettingsRepository.getByOrgId(orgId)
+  const workingDays = workingDaysForPeriod({
+    year: run.periodYear,
+    month: run.periodMonth,
+    rule: settings?.workingDaysRule ?? "TWENTY_SIX",
+  })
+
+  // Pull every LeaveEntitlement in the org that's expired-but-not-yet-
+  // discarded — either available (not attached anywhere) or already
+  // attached to this run (so we can render the "Attached" section).
+  const rows = await prisma.leaveEntitlement.findMany({
+    where: {
+      carriedExpired: true,
+      carriedExpiredDays: { gt: 0 },
+      employee: { user: { organizationId: orgId } },
+      OR: [
+        { carriedCashedOutRunId: null },
+        { carriedCashedOutRunId: input.runId },
+      ],
+    },
+    include: {
+      leaveType: { select: { id: true, code: true } },
+      employee: {
+        select: {
+          id: true,
+          user: { select: { name: true, email: true } },
+          payrollProfile: { select: { monthlySalary: true } },
+        },
+      },
+    },
+    orderBy: [{ carriedExpiredAt: "desc" }],
+  })
+
+  const available: PendingLeaveCashout[] = []
+  const attached: PendingLeaveCashout[] = []
+
+  for (const r of rows) {
+    const monthlySalary = r.employee.payrollProfile?.monthlySalary
+      ? toNumber(r.employee.payrollProfile.monthlySalary, 0)
+      : null
+    const dailyRate =
+      monthlySalary != null && workingDays > 0
+        ? monthlySalary / workingDays
+        : 0
+    const expiredDays = r.carriedExpiredDays ?? 0
+    const suggestedAmount =
+      monthlySalary != null
+        ? Math.round(dailyRate * expiredDays * 100) / 100
+        : 0
+    const row: PendingLeaveCashout = {
+      entitlementId: r.id,
+      employeeProfileId: r.employeeId,
+      employeeName: r.employee.user.name,
+      employeeEmail: r.employee.user.email,
+      leaveTypeId: r.leaveTypeId,
+      leaveTypeCode: r.leaveType.code,
+      year: r.year,
+      expiredDays,
+      expiredAt: r.carriedExpiredAt ?? new Date(0),
+      monthlySalary,
+      dailyRate,
+      suggestedAmount,
+      attachedRunId: r.carriedCashedOutRunId,
+      attachedAmount: r.carriedCashedOutAmount
+        ? toNumber(r.carriedCashedOutAmount, 0)
+        : null,
+    }
+    if (r.carriedCashedOutRunId === input.runId) attached.push(row)
+    else available.push(row)
+  }
+
+  return { available, attached }
+}
+
+/// Attach one expired-leave row to a draft run. Adds a
+/// `wages_leave_pay` manual line item to the run's PayrollRunAdjustment
+/// for that employee, and stamps the LeaveEntitlement row with the
+/// cash-out backlink so it doesn't reappear in subsequent runs.
+export async function attachLeaveCashoutToRun(input: {
+  runId: string
+  entitlementId: string
+}): Promise<void> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    throw new Error("Session expired. Please log in again.")
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) throw new Error("No active organisation.")
+
+  const prisma = getPrismaClient()
+  if (!prisma) throw new Error("Database is not configured.")
+
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: input.runId,
+    organizationId: orgId,
+  })
+  if (!run) throw new Error("Payroll run not found.")
+  if (run.status !== "DRAFT") {
+    throw new Error(
+      "This run has been submitted and can no longer accept new cash-outs.",
+    )
+  }
+
+  const settings = await payrollSettingsRepository.getByOrgId(orgId)
+  const workingDays = workingDaysForPeriod({
+    year: run.periodYear,
+    month: run.periodMonth,
+    rule: settings?.workingDaysRule ?? "TWENTY_SIX",
+  })
+
+  const entitlement = await prisma.leaveEntitlement.findFirst({
+    where: {
+      id: input.entitlementId,
+      employee: { user: { organizationId: orgId } },
+      carriedExpired: true,
+      carriedExpiredDays: { gt: 0 },
+      carriedCashedOutRunId: null,
+    },
+    include: {
+      leaveType: { select: { code: true } },
+      employee: {
+        select: {
+          id: true,
+          user: { select: { name: true } },
+          payrollProfile: { select: { monthlySalary: true } },
+        },
+      },
+    },
+  })
+  if (!entitlement) {
+    throw new Error(
+      "This expired-leave row is no longer eligible for cash-out (already attached, or the days were already discarded).",
+    )
+  }
+  const monthlySalary = entitlement.employee.payrollProfile?.monthlySalary
+    ? toNumber(entitlement.employee.payrollProfile.monthlySalary, 0)
+    : null
+  if (monthlySalary == null || monthlySalary <= 0) {
+    throw new Error(
+      "Employee has no monthly salary on their payroll profile; cash-out requires a salary to compute the amount.",
+    )
+  }
+  const expiredDays = entitlement.carriedExpiredDays ?? 0
+  const dailyRate = monthlySalary / workingDays
+  const amount = Math.round(dailyRate * expiredDays * 100) / 100
+
+  // Read the current PayrollRunAdjustment so we can append the new
+  // line item to the existing array (or start a fresh one).
+  const existing = await payrollRunAdjustmentRepository.getOne({
+    payrollRunId: run.id,
+    employeeProfileId: entitlement.employee.id,
+  })
+  const previousLineItems = existing?.manualLineItems ?? []
+  const newLineItem: ManualLineItem = {
+    kind: "ALLOWANCE",
+    category: "wages_leave_pay",
+    label: `Annual leave cash-out (${expiredDays} day${
+      expiredDays === 1 ? "" : "s"
+    } from ${entitlement.year})`,
+    amount,
+    sourceEntitlementId: entitlement.id,
+  }
+  await payrollRunAdjustmentRepository.upsert({
+    payrollRunId: run.id,
+    employeeProfileId: entitlement.employee.id,
+    patch: { manualLineItems: [...previousLineItems, newLineItem] },
+  })
+  await prisma.leaveEntitlement.update({
+    where: { id: entitlement.id },
+    data: {
+      carriedCashedOutRunId: run.id,
+      carriedCashedOutAt: new Date(),
+      carriedCashedOutAmount: amount,
+    },
+  })
+  await payrollRunRepository.markMutated(run.id)
+  await bustPayrollCaches({ organizationId: orgId })
+}
+
+/// Detach a previously-attached cash-out. Removes the `wages_leave_pay`
+/// line item from the run's adjustment and clears the LeaveEntitlement
+/// backlink so the row reappears in "Available to attach".
+export async function detachLeaveCashoutFromRun(input: {
+  entitlementId: string
+}): Promise<void> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    throw new Error("Session expired. Please log in again.")
+  }
+  const orgId = resolveActiveOrgId(session)
+  if (!orgId) throw new Error("No active organisation.")
+
+  const prisma = getPrismaClient()
+  if (!prisma) throw new Error("Database is not configured.")
+
+  const entitlement = await prisma.leaveEntitlement.findFirst({
+    where: {
+      id: input.entitlementId,
+      employee: { user: { organizationId: orgId } },
+      carriedCashedOutRunId: { not: null },
+    },
+    select: { id: true, employeeId: true, carriedCashedOutRunId: true },
+  })
+  if (!entitlement) return // already detached
+  const run = await payrollRunRepository.getByIdForOrg({
+    id: entitlement.carriedCashedOutRunId!,
+    organizationId: orgId,
+  })
+  if (run && run.status !== "DRAFT") {
+    throw new Error(
+      "Cannot detach a cash-out from a submitted run. Reverse the run first.",
+    )
+  }
+
+  // Strip the line item by sourceEntitlementId from the adjustment.
+  if (run) {
+    const existing = await payrollRunAdjustmentRepository.getOne({
+      payrollRunId: run.id,
+      employeeProfileId: entitlement.employeeId,
+    })
+    if (existing) {
+      const filtered = existing.manualLineItems.filter(
+        (li) => li.sourceEntitlementId !== entitlement.id,
+      )
+      if (filtered.length !== existing.manualLineItems.length) {
+        await payrollRunAdjustmentRepository.upsert({
+          payrollRunId: run.id,
+          employeeProfileId: entitlement.employeeId,
+          patch: { manualLineItems: filtered },
+        })
+      }
+    }
+  }
+  await prisma.leaveEntitlement.update({
+    where: { id: entitlement.id },
+    data: {
+      carriedCashedOutRunId: null,
+      carriedCashedOutAt: null,
+      carriedCashedOutAmount: null,
+    },
+  })
   if (run) await payrollRunRepository.markMutated(run.id)
   await bustPayrollCaches({ organizationId: orgId })
 }

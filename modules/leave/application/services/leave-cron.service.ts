@@ -257,6 +257,12 @@ export async function runMonthlyAccrual(now: Date = new Date()): Promise<{
       data: {
         carriedDays: Math.max(0, e.carriedDays - unused),
         carriedExpired: true,
+        // Preserve the forfeited amount so the payroll cash-out UI
+        // can offer it later. `unused` is the days that would
+        // otherwise be lost; admins decide per run whether to pay
+        // them out.
+        carriedExpiredAt: now,
+        carriedExpiredDays: unused > 0 ? unused : null,
       },
     })
     expiredCount += 1
