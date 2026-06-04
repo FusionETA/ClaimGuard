@@ -648,11 +648,11 @@ function PolicyCollapsibleCard({
                 Default
               </Badge>
             )}
-            {overrideCount > 0 && (
-              <Badge variant="default" className="text-[10px]">
-                {overrideCount} override{overrideCount === 1 ? "" : "s"}
-              </Badge>
-            )}
+            {/* Source pill: Default (green) if no per-policy
+                overrides, Custom (red) if any leave type is
+                overridden. Same colour language as the per-employee
+                pill on the picker / balances grid. */}
+            <PolicySourceBadge overrideCount={overrideCount} />
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {overrideCount === 0
@@ -1096,7 +1096,42 @@ export function resolveEmployeeLeaveSource({
   return "default"
 }
 
-/// Small pill with the appropriate colour for a given source.
+/// Pill for a policy card: shows whether this policy follows the
+/// type defaults (Default, green) or has its own per-leave-type
+/// overrides (Custom, red). Same colour language as the per-employee
+/// `LeaveSourceBadge` below so admins read both pills the same way.
+function PolicySourceBadge({ overrideCount }: { overrideCount: number }) {
+  const isCustom = overrideCount > 0
+  const tooltip = isCustom
+    ? `This policy has ${overrideCount} per-leave-type override${
+        overrideCount === 1 ? "" : "s"
+      }. Employees on this policy inherit those values unless they have a per-employee override.`
+    : "This policy has no overrides. Employees on it follow the leave types' org-wide defaults."
+  const colorClass = isCustom
+    ? "border-rose-300 bg-rose-50 text-rose-700"
+    : "border-emerald-300 bg-emerald-50 text-emerald-700"
+  return (
+    <span
+      className={
+        "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide " +
+        colorClass
+      }
+      title={tooltip}
+    >
+      {isCustom ? "Custom" : "Default"}
+    </span>
+  )
+}
+
+/// Small distinct-color pill for an employee's leave source.
+/// Three states are visually separated so admins can scan a list
+/// without reading every label:
+///   Default — green (matches type defaults all the way up)
+///   Policy  — blue  (follows the policy's overrides)
+///   Custom  — red   (per-employee override exists)
+///
+/// Sized smaller than the standard `Supervisor` outline pill so
+/// the two don't visually clash when both appear next to a name.
 function LeaveSourceBadge({
   source,
   className,
@@ -1110,25 +1145,32 @@ function LeaveSourceBadge({
       : source === "policy"
         ? "Policy"
         : "Default"
-  const variant = source === "custom" ? "default" : "outline"
   const tooltip =
     source === "custom"
-      ? "This employee has at least one per-employee leave override."
+      ? "Has at least one per-employee leave override (entitled days or accrual method)."
       : source === "policy"
-        ? "Inherits from their policy. No per-employee overrides set."
-        : "Inherits the type defaults. No policy or employee overrides."
+        ? "Follows the employee's policy. Their policy has at least one leave-type override."
+        : "Follows the leave type defaults. No policy or per-employee overrides apply."
+  // Hard-code colours per state — the Badge primitive's variant set
+  // doesn't include matching red/blue/green so we set them inline.
+  // text-[9px] + tighter padding shrinks vs. the standard 10px pills.
+  const colorClass =
+    source === "default"
+      ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+      : source === "policy"
+        ? "border-sky-300 bg-sky-50 text-sky-700"
+        : "border-rose-300 bg-rose-50 text-rose-700"
   return (
-    <Badge
-      variant={variant}
+    <span
       className={
-        "text-[10px] font-normal " +
-        (source === "default" ? "text-muted-foreground" : "") +
+        "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide " +
+        colorClass +
         (className ? ` ${className}` : "")
       }
       title={tooltip}
     >
       {label}
-    </Badge>
+    </span>
   )
 }
 

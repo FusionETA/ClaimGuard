@@ -70,22 +70,26 @@ function EmployeeBalancesCard({
               </Badge>
             ) : null}
             {showSource ? (
-              <Badge
-                variant={
-                  employee.leaveSource === "custom" ? "default" : "outline"
-                }
-                className={
-                  "text-[10px] " +
-                  (employee.leaveSource === "default"
-                    ? "text-muted-foreground"
-                    : "")
-                }
+              // Small distinct-color pill — green/blue/red — so it's
+              // visually separable from the outline-style "Supervisor"
+              // pill that sits next to it. Hover for the longer
+              // description.
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide",
+                  employee.leaveSource === "default" &&
+                    "border-emerald-300 bg-emerald-50 text-emerald-700",
+                  employee.leaveSource === "policy" &&
+                    "border-sky-300 bg-sky-50 text-sky-700",
+                  employee.leaveSource === "custom" &&
+                    "border-rose-300 bg-rose-50 text-rose-700",
+                )}
                 title={
                   employee.leaveSource === "custom"
-                    ? "Has at least one per-employee leave override."
+                    ? "Has at least one per-employee leave override (entitled days or accrual method)."
                     : employee.leaveSource === "policy"
-                      ? "Inherits from their policy. No per-employee overrides."
-                      : "Inherits type defaults. No policy or employee overrides."
+                      ? "Follows the employee's policy. Their policy has at least one leave-type override."
+                      : "Follows the leave type defaults. No policy or per-employee overrides apply."
                 }
               >
                 {employee.leaveSource === "custom"
@@ -93,7 +97,7 @@ function EmployeeBalancesCard({
                   : employee.leaveSource === "policy"
                     ? "Policy"
                     : "Default"}
-              </Badge>
+              </span>
             ) : null}
             {outCount > 0 ? (
               <Badge variant="rejected" className="text-[10px]">
