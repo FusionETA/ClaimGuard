@@ -175,6 +175,13 @@ function getTitle(pathname: string) {
     return "Manage Employee"
   }
 
+  // Per-employee detail editor — see the nav-active override below for
+  // the same reasoning. Listed BEFORE the /admin/payroll branch so
+  // payroll's broader match doesn't claim it.
+  if (pathname.startsWith("/admin/payroll/employees/")) {
+    return "Manage Employee"
+  }
+
   if (pathname.startsWith("/admin/company-structure")) {
     return "Company Structure"
   }
@@ -319,19 +326,36 @@ export function AdminShell({
         <nav className="mt-10 space-y-2">
           {adminNav.map((item) => {
             const Icon = item.icon
+            // The per-employee detail editor still lives at the legacy
+            // URL /admin/payroll/employees/[id], but conceptually it's
+            // the "Manage Employee" drill-in (the list page at
+            // /admin/payroll/employees redirects to /admin/hierarchy).
+            // Treat that exact subtree as Company/Employee, so the
+            // Payroll nav doesn't grab the highlight when an admin
+            // opens an employee from the Manage Employee table.
+            const isEmployeeDetailPath = pathname.startsWith(
+              "/admin/payroll/employees/",
+            )
+            const forceCompanyEmployee =
+              isEmployeeDetailPath &&
+              item.href === ("/admin/company-structure" as Route)
+            const suppressPayroll =
+              isEmployeeDetailPath && item.href === ("/admin/payroll" as Route)
             const parentActive =
-              pathname === item.href ||
-              (item.children !== undefined &&
-                (pathname.startsWith(item.href + "/") ||
-                  item.children.some((c) => {
-                    // Strip query string from child href when matching path —
-                    // child.href may be "/x?tab=y" but pathname is just "/x".
-                    const childPath = c.href.split("?")[0]
-                    return (
-                      pathname === childPath ||
-                      pathname.startsWith(childPath + "/")
-                    )
-                  })))
+              forceCompanyEmployee ||
+              (!suppressPayroll &&
+                (pathname === item.href ||
+                  (item.children !== undefined &&
+                    (pathname.startsWith(item.href + "/") ||
+                      item.children.some((c) => {
+                        // Strip query string from child href when matching path —
+                        // child.href may be "/x?tab=y" but pathname is just "/x".
+                        const childPath = c.href.split("?")[0]
+                        return (
+                          pathname === childPath ||
+                          pathname.startsWith(childPath + "/")
+                        )
+                      })))))
 
             return (
               <div key={item.href}>

@@ -3,7 +3,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
+  ({ className, type, onWheel, ...props }, ref) => {
     // iOS Safari styles <input type="date|time|datetime-local|month|week">
     // via the ::-webkit-date-and-time-value and ::-webkit-datetime-edit
     // shadow DOM elements with default padding that makes these inputs
@@ -12,10 +12,26 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
     const isDateLike =
       type === "date" || type === "time" || type === "datetime-local" || type === "month" || type === "week"
 
+    // Block the browser's default "scroll wheel changes the number" on
+    // focused <input type="number">. Admins were accidentally bumping
+    // salary / amount fields while scrolling the page. Blurring the
+    // input drops focus so the wheel event propagates to the page
+    // (still scrolls normally) without changing the value.
+    const handleWheel = React.useCallback<React.WheelEventHandler<HTMLInputElement>>(
+      (event) => {
+        if (type === "number" && document.activeElement === event.currentTarget) {
+          event.currentTarget.blur()
+        }
+        onWheel?.(event)
+      },
+      [type, onWheel],
+    )
+
     return (
       <input
         type={type}
         suppressHydrationWarning
+        onWheel={handleWheel}
         className={cn(
           "flex h-12 min-w-0 w-full max-w-full rounded-2xl border border-border/80 bg-card px-4 py-2 text-base text-foreground shadow-sm transition-colors file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm sm:file:text-sm",
           // Error state — applied automatically when callers set aria-invalid.

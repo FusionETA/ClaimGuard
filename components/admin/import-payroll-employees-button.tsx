@@ -733,7 +733,15 @@ export function ImportPayrollEmployeesButton({
           Import CSV
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent
+        className={cn(
+          // Default narrow size for upload / mapping. The preview step
+          // has a wide table (every CSV column plus the canonical-value
+          // picker) so widen the dialog for that step only — admins
+          // were having to horizontal-scroll each row to verify.
+          step === "preview" ? "max-w-7xl w-[95vw]" : "sm:max-w-3xl",
+        )}
+      >
         <DialogHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <DialogTitle className="text-xl">
@@ -1064,11 +1072,26 @@ function UploadStep({
             accept=".csv,text/csv"
             required
             className="block w-full rounded-md border border-border bg-card px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-medium file:text-primary"
+            aria-describedby="csv-file-leading-zero-tip"
           />
           <p className="text-[11px] text-muted-foreground inline-flex items-center gap-1">
             <Sparkles className="h-3 w-3" />
             AI will read your column names and map them to our schema.
             You&apos;ll review before any data is imported.
+          </p>
+          <p
+            id="csv-file-leading-zero-tip"
+            className="text-[11px] leading-5 text-amber-700 dark:text-amber-300"
+          >
+            <span className="font-semibold">Tip:</span> Excel auto-strips
+            leading zeros from ID columns when saving as CSV (e.g.{" "}
+            <span className="font-mono">000701070280</span> becomes{" "}
+            <span className="font-mono">701070280</span>). Format IC,
+            SOCSO, SSFW, and postcode columns as <span className="font-mono">Text</span>{" "}
+            in Excel <em>before</em> saving. We auto-pad these specific
+            fields back to their canonical length as a safety net, but
+            other ID-shaped fields (EPF, bank account, phone) we can&apos;t
+            recover.
           </p>
         </div>
         <div className="flex justify-end pt-2">

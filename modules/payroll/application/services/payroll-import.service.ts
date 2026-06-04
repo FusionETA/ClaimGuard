@@ -95,6 +95,33 @@ const nullableString = z
     return t.length > 0 ? t : null
   })
 
+/**
+ * Variant of `nullableString` that left-pads purely-numeric values back
+ * to a canonical length with zeros. Excel/Google Sheets aggressively
+ * strips leading zeros from cells that look numeric when saving as CSV,
+ * so admins routinely lose them on fields like IC, SOCSO, SSFW, and
+ * postcode (e.g. `000701070280` becomes `701070280`). When the cell is
+ * pure digits AND shorter than the canonical length, pad it back.
+ *
+ * Skipped when the value contains anything other than digits — values
+ * with hyphens, letters, or spaces are kept as-is so we never corrupt
+ * legitimate non-padded IDs (e.g. EPF "1234-5678" or tax "SG 12345").
+ */
+function paddedDigitString(canonicalLength: number) {
+  return z
+    .string()
+    .optional()
+    .transform((v) => {
+      if (v == null) return null
+      const t = v.trim()
+      if (t.length === 0) return null
+      if (/^\d+$/.test(t) && t.length < canonicalLength) {
+        return t.padStart(canonicalLength, "0")
+      }
+      return t
+    })
+}
+
 const requiredString = z
   .string()
   .transform((v) => v.trim())
@@ -178,7 +205,8 @@ const rowSchema = z
     isResident: booleanCell,
     isOku: booleanCell,
     idType: nullableEnum(idTypes),
-    idNumber: nullableString,
+    // Malaysian NRIC = 12 digits; pad if Excel stripped the leading zeros.
+    idNumber: paddedDigitString(12),
     alternateEmail: nullableString,
     // Mandatory: backs the forgot-password WhatsApp delivery. Same
     // validation as the Add-employee dialog — at least 7 digits after
@@ -194,7 +222,8 @@ const rowSchema = z
     addressLine2: nullableString,
     addressLine3: nullableString,
     city: nullableString,
-    postcode: nullableString,
+    // Malaysian postcode = 5 digits; pad if Excel stripped a leading zero.
+    postcode: paddedDigitString(5),
     state: nullableString,
     department: nullableString,
     location: nullableString,
@@ -222,9 +251,11 @@ const rowSchema = z
     pcbBorneByEmployer: booleanCell,
     incomeTaxNumber: nullableString,
     socsoScheme: nullableEnum(socsoSchemes),
-    socsoNumber: nullableString,
+    // PERKESO SOCSO number = 12 digits (mirrors NRIC); pad if zero-stripped.
+    socsoNumber: paddedDigitString(12),
     contributeToEis: booleanCell,
-    ssfwNumber: nullableString,
+    // SSFW = i-Saraan / EPF self-contribution = 12 digits; same as SOCSO.
+    ssfwNumber: paddedDigitString(12),
     // ── Bank ──
     bankName: nullableString,
     bankAccountHolderName: nullableString,
