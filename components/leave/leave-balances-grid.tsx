@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import type { EmployeeLeaveBalances } from "@/modules/leave/application/services/leave-entitlements.service"
-import { cn } from "@/lib/utils"
+import { cn, formatDays } from "@/lib/utils"
 
 type Props = {
   /// All employees in scope (org-wide for admin; direct reports only for
@@ -18,13 +18,6 @@ type Props = {
   /// is []. Supervisor view uses this to say "you don't have any direct
   /// reports" rather than the generic "no results".
   emptyHint?: string
-}
-
-function formatDays(n: number): string {
-  // Half-days are stored as 0.5; everything else lands on integers.
-  if (n === 0) return "0"
-  if (Number.isInteger(n)) return String(n)
-  return n.toFixed(1)
 }
 
 /// Collapsible card for one employee. Header is the click target —

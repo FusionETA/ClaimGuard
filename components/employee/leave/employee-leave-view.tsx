@@ -3,6 +3,8 @@
 import { useMemo, useState, useTransition } from "react"
 import { Plus } from "lucide-react"
 
+import { formatDays } from "@/lib/utils"
+
 import { editLeaveAction, submitLeaveAction } from "@/app/(employee)/employee/leave/actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -171,7 +173,7 @@ function BalancesCard({ balances }: { balances: BalanceRow[] }) {
                 </div>
                 <div className="text-right">
                   <div className="text-2xl font-semibold">
-                    {b.paid ? b.availableDays : b.usedDays}
+                    {formatDays(b.paid ? b.availableDays : b.usedDays)}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {b.paid ? "days available" : "days used"}
@@ -181,15 +183,15 @@ function BalancesCard({ balances }: { balances: BalanceRow[] }) {
               {b.paid ? (
                 <div className="mt-3 text-xs text-muted-foreground space-y-0.5">
                   <div>
-                    Entitled: {b.entitledDays}
+                    Entitled: {formatDays(b.entitledDays)}
                     {b.accrualMethod === "PRO_RATED" && (
-                      <> · Accrued: {b.accruedDays.toFixed(2)}</>
+                      <> · Accrued: {formatDays(b.accruedDays)}</>
                     )}
                   </div>
-                  <div>Used: {b.usedDays}</div>
+                  <div>Used: {formatDays(b.usedDays)}</div>
                   {b.carriedDays > 0 && (
                     <div>
-                      Carried: {b.carriedDays}
+                      Carried: {formatDays(b.carriedDays)}
                       {b.carriedExpiresAt && !b.carriedExpired && (
                         <> · expires {fmtDate(b.carriedExpiresAt)}</>
                       )}
@@ -268,8 +270,8 @@ export function ApplyForm({
               {balances.map((b) => (
                 <SelectItem key={b.leaveTypeId} value={b.leaveTypeId}>
                   {b.leaveTypeName} · {b.paid
-                    ? `${b.availableDays} day(s) available`
-                    : `unpaid · ${b.usedDays} day(s) used`}
+                    ? `${formatDays(b.availableDays)} day(s) available`
+                    : `unpaid · ${formatDays(b.usedDays)} day(s) used`}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -277,8 +279,8 @@ export function ApplyForm({
           {selected && (
             <p className="text-xs text-muted-foreground mt-1">
               {selected.paid
-                ? `Available balance: ${selected.availableDays} day${selected.availableDays === 1 ? "" : "s"}`
-                : `Unpaid leave · ${selected.usedDays} day${selected.usedDays === 1 ? "" : "s"} used so far`}
+                ? `Available balance: ${formatDays(selected.availableDays)} day${selected.availableDays === 1 ? "" : "s"}`
+                : `Unpaid leave · ${formatDays(selected.usedDays)} day${selected.usedDays === 1 ? "" : "s"} used so far`}
             </p>
           )}
         </div>
@@ -587,8 +589,8 @@ function EditLeaveDialog({
                 {balances.map((b) => (
                   <SelectItem key={b.leaveTypeId} value={b.leaveTypeId}>
                     {b.leaveTypeName} · {b.paid
-                      ? `${b.availableDays} day(s) available`
-                      : `unpaid · ${b.usedDays} day(s) used`}
+                      ? `${formatDays(b.availableDays)} day(s) available`
+                      : `unpaid · ${formatDays(b.usedDays)} day(s) used`}
                   </SelectItem>
                 ))}
               </SelectContent>
