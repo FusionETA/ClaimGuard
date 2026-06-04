@@ -193,9 +193,15 @@ export async function syncPayrollRunToXero(
   // Deductions are credited to the unified `deduction` account unless
   // the org runs per-category deduction mapping (in which case the
   // per-category pre-flight below validates coverage instead).
+  // Unpaid leave is netted into the SALARY Dr line (no separate
+  // deduction line), so it doesn't trigger the unified-deduction
+  // account requirement. Only non-unpaid-leave deductions count here.
   const runHasDeductions = run.payslips.some((p) =>
     p.lineItems.some(
-      (li) => li.kind === "DEDUCTION" && toNumber(li.amount, 0) > 0,
+      (li) =>
+        li.kind === "DEDUCTION" &&
+        li.category !== "deduct_unpaid_leave" &&
+        toNumber(li.amount, 0) > 0,
     ),
   )
   const requiredKeys: PayrollXeroAccountKey[] = [...REQUIRED_ACCOUNT_KEYS]
@@ -392,41 +398,47 @@ export async function syncPayrollRunToXero(
 
   // ── Per-category mapping resolution ──
   // Resolve a category to a Xero account code:
-  //   - UNIFIED mode: always return the unified account.
-  //   - PER_CATEGORY: look up per-category map; missing = unmapped.
-  // `unmappedAllowanceCategories` / `unmappedDeductionCategories`
-  // collect categories that appeared on a payslip line but weren't
-  // mapped under PER_CATEGORY mode — surfaced in the pre-flight
-  // error message so the admin knows exactly which categories to
-  // configure before retrying.
+  //   - Per-category override (if set on the mapping) WINS regardless
+  //     of mode. This lets admins stay on UNIFIED mode but pin a
+  //     dedicated COA for a single category (e.g. OT, unutilized leave
+  //     pay) without forcing every category into PER_CATEGORY.
+  //   - PER_CATEGORY mode with no override → category is unmapped
+  //     (collected into the pre-flight error set below).
+  //   - UNIFIED mode with no override → unified account.
   const unmappedAllowanceCategories = new Set<PayrollAdjustmentCategory>()
   const unmappedDeductionCategories = new Set<PayrollAdjustmentCategory>()
 
   function allowanceCodeForCategory(
     cat: PayrollAdjustmentCategory | null,
   ): string | null {
+    if (cat) {
+      const id = mapping?.allowanceAccounts?.[cat]
+      if (id) {
+        const code = accountCodeById.get(id)
+        if (code) return code
+      }
+    }
     if (mapping?.allowanceMode === "PER_CATEGORY") {
       if (!cat) return codeFor("allowance") ?? null // legacy null-cat → fallback
-      const id = mapping.allowanceAccounts[cat]
-      if (!id) {
-        unmappedAllowanceCategories.add(cat)
-        return null
-      }
-      return accountCodeById.get(id) ?? null
+      unmappedAllowanceCategories.add(cat)
+      return null
     }
     return codeFor("allowance") ?? null
   }
   function deductionCodeForCategory(
     cat: PayrollAdjustmentCategory | null,
   ): string | null {
+    if (cat) {
+      const id = mapping?.deductionAccounts?.[cat]
+      if (id) {
+        const code = accountCodeById.get(id)
+        if (code) return code
+      }
+    }
     if (mapping?.deductionMode === "PER_CATEGORY") {
       if (!cat) return codeFor("deduction") ?? null
-      const id = mapping.deductionAccounts[cat]
-      if (!id) {
-        unmappedDeductionCategories.add(cat)
-        return null
-      }
-      return accountCodeById.get(id) ?? null
+      unmappedDeductionCategories.add(cat)
+      return null
     }
     return codeFor("deduction") ?? null
   }
@@ -435,12 +447,23 @@ export async function syncPayrollRunToXero(
 
   // Per-employee SALARY debits — basicPay only (allowances + OT now
   // come from line items, not the summed payslip column).
+  // Unpaid leave is netted directly into the SALARY Dr line (one
+  // salary expense line, net of unpaid days — standard payroll
+  // software treatment). The matching credit-side line is suppressed
+  // below so the journal stays balanced.
+  function unpaidLeaveAmtFor(r: (typeof rows)[number]): number {
+    return r.deductionLines
+      .filter((li) => li.category === "deduct_unpaid_leave")
+      .reduce((s, li) => s + li.amount, 0)
+  }
   if (mapping.aggregationMode === "PER_EMPLOYEE") {
     for (const r of rows) {
-      if (r.proratedPay > 0) {
+      const unpaidLeaveAmt = unpaidLeaveAmtFor(r)
+      const salaryDr = Math.max(0, r.proratedPay - unpaidLeaveAmt)
+      if (salaryDr > 0) {
         lines.push({
           accountCode: salaryCode,
-          amount: round2(r.proratedPay),
+          amount: round2(salaryDr),
           description: `SALARY - ${r.employeeName}`,
           tracking: track(r.projectName),
         })
@@ -482,7 +505,11 @@ export async function syncPayrollRunToXero(
       // reduced by these, so without a matching credit the journal
       // can't balance (debits would exceed credits by the deduction
       // total). Emit a negative line to the mapped deduction account.
+      // `deduct_unpaid_leave` is intentionally skipped — it was netted
+      // into the SALARY Dr above, so emitting a credit would double-
+      // count and unbalance the journal.
       for (const li of r.deductionLines) {
+        if (li.category === "deduct_unpaid_leave") continue
         const code = deductionCodeForCategory(li.category)
         if (!code) continue // collected into unmappedDeductionCategories
         const catLabel = li.category
@@ -513,9 +540,13 @@ export async function syncPayrollRunToXero(
       Map<PayrollAdjustmentCategory | "null", number>
     >()
     for (const r of rows) {
+      const unpaidLeaveAmt = unpaidLeaveAmtFor(r)
+      // SALARY bucket is net of unpaid leave (same treatment as the
+      // PER_EMPLOYEE branch — one expense line, net of unpaid days).
       salaryBuckets.set(
         r.projectName,
-        (salaryBuckets.get(r.projectName) ?? 0) + r.proratedPay,
+        (salaryBuckets.get(r.projectName) ?? 0) +
+          Math.max(0, r.proratedPay - unpaidLeaveAmt),
       )
       otBuckets.set(
         r.projectName,
@@ -533,6 +564,9 @@ export async function syncPayrollRunToXero(
         deductionBuckets.get(r.projectName) ??
         new Map<PayrollAdjustmentCategory | "null", number>()
       for (const li of r.deductionLines) {
+        // Unpaid leave is netted into SALARY above — don't bucket it
+        // here or it would emit a credit and double-count.
+        if (li.category === "deduct_unpaid_leave") continue
         const k = li.category ?? "null"
         byDedCat.set(k, (byDedCat.get(k) ?? 0) + li.amount)
       }

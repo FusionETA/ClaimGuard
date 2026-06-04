@@ -441,8 +441,10 @@ export const PAYROLL_XERO_ALLOWANCE_CATEGORIES: PayrollAdjustmentCategory[] =
     (cat) => PAYROLL_ADJUSTMENT_CATEGORY_META[cat].kind === "ALLOWANCE",
   )
 
+// `deduct_unpaid_leave` is intentionally NOT in this list — the Xero
+// sync nets unpaid leave into the SALARY Dr line at source, so it
+// doesn't need (or use) a per-category COA mapping.
 export const PAYROLL_XERO_DEDUCTION_CATEGORIES: PayrollAdjustmentCategory[] = [
-  "deduct_unpaid_leave",
   "deduct_salary_adjustment",
   "deduct_advance",
 ]

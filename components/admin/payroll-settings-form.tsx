@@ -1207,12 +1207,13 @@ function XeroMappingTab({
           })
         }
         accountOptions={accountOptions.filter((a) => a.type === "EXPENSE")}
+        highlightedOverrideCategories={["wages_overtime", "wages_leave_pay"]}
       />
 
       {/* Deduction card */}
       <LineGroupCard
         title="Deductions"
-        description="Admin-entered deductions only (unpaid leave, salary adjustments, advance recovery). Statutory deductions like PCB, Zakat and CP38 post via their existing accrual accounts."
+        description="Admin-entered deductions only (salary adjustments, advance recovery). Statutory deductions like PCB, Zakat and CP38 post via their existing accrual accounts. Unpaid leave is netted directly against the salary expense — no separate COA mapping needed."
         mode={deductionMode}
         onModeChange={setDeductionMode}
         modeFieldName="deductionMode"
@@ -1273,7 +1274,20 @@ function LineGroupCard(props: {
   perCategoryValues: Record<string, string>
   onPerCategoryChange: (cat: PayrollAdjustmentCategory, value: string) => void
   accountOptions: Array<{ id: string; code: string; name: string }>
+  /** Categories shown unfolded by default in the UNIFIED-mode
+   *  "Optional per-category overrides" section (e.g. OT and
+   *  unutilized leave pay). Others sit behind a "Show all" toggle. */
+  highlightedOverrideCategories?: PayrollAdjustmentCategory[]
 }) {
+  const highlighted = useMemo(
+    () => new Set(props.highlightedOverrideCategories ?? []),
+    [props.highlightedOverrideCategories],
+  )
+  const [showAllOverrides, setShowAllOverrides] = useState(false)
+  const overrideCategories = useMemo(() => {
+    if (showAllOverrides || highlighted.size === 0) return props.categories
+    return props.categories.filter((c) => highlighted.has(c))
+  }, [props.categories, showAllOverrides, highlighted])
   // Group the categories by their `group` label so the table shows
   // sensible section headers (Allowances / Recurring Monthly,
   // Remuneration, Benefits-in-kind / Perquisites, Deductions).
@@ -1334,24 +1348,84 @@ function LineGroupCard(props: {
       </CardHeader>
       <CardContent>
         {props.mode === "UNIFIED" ? (
-          <Field label={`${props.title} account`}>
-            <NativeSelect
-              name={props.unifiedAccountFieldName}
-              value={props.unifiedAccountValue}
-              onChange={(e) => props.onUnifiedAccountChange(e.target.value)}
-            >
-              <option value="">— {props.unifiedAccountPlaceholder} —</option>
-              {props.accountOptions.map((acc) => (
-                <option key={acc.id} value={acc.id}>
-                  {acc.code} — {acc.name}
-                </option>
-              ))}
-            </NativeSelect>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              Every {props.title.toLowerCase()} line on the manual journal
-              will post to this account.
-            </p>
-          </Field>
+          <div className="space-y-4">
+            <Field label={`${props.title} account`}>
+              <NativeSelect
+                name={props.unifiedAccountFieldName}
+                value={props.unifiedAccountValue}
+                onChange={(e) => props.onUnifiedAccountChange(e.target.value)}
+              >
+                <option value="">— {props.unifiedAccountPlaceholder} —</option>
+                {props.accountOptions.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.code} — {acc.name}
+                  </option>
+                ))}
+              </NativeSelect>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Every {props.title.toLowerCase()} line on the manual journal
+                will post to this account, except for any per-category
+                override picked below.
+              </p>
+            </Field>
+
+            {/* Optional per-category overrides. A row left blank uses the
+                unified account; a row with an account picked overrides
+                just that category — handy when admins want OT or
+                unutilized leave pay on its own COA without flipping the
+                whole card to per-category mode. */}
+            <details className="rounded-xl border border-border/60 bg-muted/20 [&[open]>summary>span:last-child]:rotate-180">
+              <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-xs font-medium text-foreground">
+                <span>Optional per-category overrides</span>
+                <span className="transition-transform">▾</span>
+              </summary>
+              <div className="space-y-2 border-t border-border/60 px-3 py-3">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {overrideCategories.map((cat) => (
+                      <tr key={cat} className="border-t border-border/40 first:border-t-0">
+                        <td className="w-1/2 px-1 py-2 align-middle">
+                          <span className="font-medium text-foreground">
+                            {getPayrollAdjustmentLabel(cat)}
+                          </span>
+                          <span className="ml-2 font-mono text-[10px] text-muted-foreground">
+                            {cat}
+                          </span>
+                        </td>
+                        <td className="px-1 py-2 align-middle">
+                          <NativeSelect
+                            name={`${props.perCategoryFieldPrefix}.${cat}`}
+                            value={props.perCategoryValues[cat] ?? ""}
+                            onChange={(e) =>
+                              props.onPerCategoryChange(cat, e.target.value)
+                            }
+                          >
+                            <option value="">— Use unified account —</option>
+                            {props.accountOptions.map((acc) => (
+                              <option key={acc.id} value={acc.id}>
+                                {acc.code} — {acc.name}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {highlighted.size > 0 && highlighted.size < props.categories.length ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllOverrides((v) => !v)}
+                    className="text-[11px] font-medium text-primary hover:underline"
+                  >
+                    {showAllOverrides
+                      ? "Show fewer"
+                      : `Show all overrides (${props.categories.length})`}
+                  </button>
+                ) : null}
+              </div>
+            </details>
+          </div>
         ) : (
           <div className="space-y-4">
             <p className="text-xs text-muted-foreground">
