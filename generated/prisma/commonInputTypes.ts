@@ -1071,6 +1071,23 @@ export type FloatWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedFloatFilter<$PrismaModel>
 }
 
+export type EnumLeaveAccrualMethodNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LeaveAccrualMethod[] | null
+  notIn?: $Enums.LeaveAccrualMethod[] | null
+  not?: Prisma.NestedEnumLeaveAccrualMethodNullableFilter<$PrismaModel> | $Enums.LeaveAccrualMethod | null
+}
+
+export type EnumLeaveAccrualMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LeaveAccrualMethod[] | null
+  notIn?: $Enums.LeaveAccrualMethod[] | null
+  not?: Prisma.NestedEnumLeaveAccrualMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.LeaveAccrualMethod | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeaveAccrualMethodNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeaveAccrualMethodNullableFilter<$PrismaModel>
+}
+
 export type EnumLeaveDurationFilter<$PrismaModel = never> = {
   equals?: $Enums.LeaveDuration | Prisma.EnumLeaveDurationFieldRefInput<$PrismaModel>
   in?: $Enums.LeaveDuration[]
@@ -2101,6 +2118,23 @@ export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
   _sum?: Prisma.NestedFloatFilter<$PrismaModel>
   _min?: Prisma.NestedFloatFilter<$PrismaModel>
   _max?: Prisma.NestedFloatFilter<$PrismaModel>
+}
+
+export type NestedEnumLeaveAccrualMethodNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LeaveAccrualMethod[] | null
+  notIn?: $Enums.LeaveAccrualMethod[] | null
+  not?: Prisma.NestedEnumLeaveAccrualMethodNullableFilter<$PrismaModel> | $Enums.LeaveAccrualMethod | null
+}
+
+export type NestedEnumLeaveAccrualMethodNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.LeaveAccrualMethod | Prisma.EnumLeaveAccrualMethodFieldRefInput<$PrismaModel> | null
+  in?: $Enums.LeaveAccrualMethod[] | null
+  notIn?: $Enums.LeaveAccrualMethod[] | null
+  not?: Prisma.NestedEnumLeaveAccrualMethodNullableWithAggregatesFilter<$PrismaModel> | $Enums.LeaveAccrualMethod | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumLeaveAccrualMethodNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumLeaveAccrualMethodNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumLeaveDurationFilter<$PrismaModel = never> = {

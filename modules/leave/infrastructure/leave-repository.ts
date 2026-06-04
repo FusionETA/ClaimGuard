@@ -93,6 +93,21 @@ export const leaveRepository = {
     return row?.id ?? null
   },
 
+  /// Read the employee's joinDate from their PayrollProfile (the
+  /// single source of truth for hire date). Returns null when no
+  /// PayrollProfile or no joinDate is set. The leave-accrual code
+  /// uses this to seed PRO_RATED entitlements with a join-date-aware
+  /// backfill (see domain/accrual.ts → initialProRatedAccrual).
+  async getEmployeeJoinDate(employeeProfileId: string): Promise<Date | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const row = await prisma.employeeProfile.findUnique({
+      where: { id: employeeProfileId },
+      select: { payrollProfile: { select: { joinDate: true } } },
+    })
+    return row?.payrollProfile?.joinDate ?? null
+  },
+
   /**
    * Lightweight employee list used by the leave settings page — just
    * profile id, policy id, name, email. Filtered to a single org.
@@ -165,7 +180,12 @@ export const leaveRepository = {
     orgId: string,
     year: number,
   ): Promise<
-    Array<{ employeeId: string; leaveTypeId: string; entitledDays: number }>
+    Array<{
+      employeeId: string
+      leaveTypeId: string
+      entitledDays: number
+      accrualMethod: LeaveAccrualMethod | null
+    }>
   > {
     const prisma = getPrismaClient()
     if (!prisma) return []
@@ -178,9 +198,15 @@ export const leaveRepository = {
         employeeId: true,
         leaveTypeId: true,
         entitledDays: true,
+        accrualMethod: true,
       },
     })
-    return rows
+    return rows.map((r) => ({
+      employeeId: r.employeeId,
+      leaveTypeId: r.leaveTypeId,
+      entitledDays: r.entitledDays,
+      accrualMethod: (r.accrualMethod ?? null) as LeaveAccrualMethod | null,
+    }))
   },
 
   // -------------------------------------------------------------------------
@@ -257,35 +283,93 @@ export const leaveRepository = {
   // -------------------------------------------------------------------------
   // Policy defaults
   // -------------------------------------------------------------------------
-  async listPolicyDefaults(orgId: string): Promise<Array<{ policyId: string; leaveTypeId: string; defaultDays: number }>> {
+  async listPolicyDefaults(orgId: string): Promise<
+    Array<{
+      policyId: string
+      leaveTypeId: string
+      defaultDays: number
+      accrualMethod: LeaveAccrualMethod | null
+    }>
+  > {
     const prisma = requirePrisma()
     const rows = await prisma.policyLeaveEntitlement.findMany({
       where: {
         policy: { organizationId: orgId },
       },
-      select: { policyId: true, leaveTypeId: true, defaultDays: true },
+      select: {
+        policyId: true,
+        leaveTypeId: true,
+        defaultDays: true,
+        accrualMethod: true,
+      },
     })
-    return rows
+    return rows.map((r) => ({
+      policyId: r.policyId,
+      leaveTypeId: r.leaveTypeId,
+      defaultDays: r.defaultDays,
+      accrualMethod: (r.accrualMethod ?? null) as LeaveAccrualMethod | null,
+    }))
   },
 
+  /**
+   * Upsert a per-policy override. `defaultDays` and `accrualMethod` are
+   * independent — pass `null` for a field to clear that override
+   * (column goes to null) while leaving the other in place. Pass
+   * `undefined` (i.e. omit) to leave the existing value alone.
+   *
+   * If the row doesn't exist yet and only `accrualMethod` is specified
+   * with no `defaultDays`, we still need a `defaultDays` to insert with
+   * — fall back to the leave type's own `defaultDays` so the row is
+   * coherent.
+   */
   async upsertPolicyDefault(
     orgId: string,
     policyId: string,
     leaveTypeId: string,
-    defaultDays: number,
+    patch: {
+      defaultDays?: number
+      accrualMethod?: LeaveAccrualMethod | null
+    },
   ): Promise<void> {
     const prisma = requirePrisma()
     // Scope guards
     const [policy, type] = await Promise.all([
-      prisma.employeePolicy.findFirst({ where: { id: policyId, organizationId: orgId }, select: { id: true } }),
-      prisma.leaveType.findFirst({ where: { id: leaveTypeId, organizationId: orgId }, select: { id: true } }),
+      prisma.employeePolicy.findFirst({
+        where: { id: policyId, organizationId: orgId },
+        select: { id: true },
+      }),
+      prisma.leaveType.findFirst({
+        where: { id: leaveTypeId, organizationId: orgId },
+        select: { id: true, defaultDays: true },
+      }),
     ])
     if (!policy || !type) throw new Error("Policy or LeaveType not found in org")
 
+    const createData: {
+      policyId: string
+      leaveTypeId: string
+      defaultDays: number
+      accrualMethod?: LeaveAccrualMethod | null
+    } = {
+      policyId,
+      leaveTypeId,
+      defaultDays: patch.defaultDays ?? type.defaultDays,
+    }
+    if (patch.accrualMethod !== undefined) {
+      createData.accrualMethod = patch.accrualMethod
+    }
+
+    const updateData: {
+      defaultDays?: number
+      accrualMethod?: LeaveAccrualMethod | null
+    } = {}
+    if (patch.defaultDays !== undefined) updateData.defaultDays = patch.defaultDays
+    if (patch.accrualMethod !== undefined) updateData.accrualMethod = patch.accrualMethod
+
     await prisma.policyLeaveEntitlement.upsert({
       where: { policyId_leaveTypeId: { policyId, leaveTypeId } },
-      create: { policyId, leaveTypeId, defaultDays },
-      update: { defaultDays },
+      create: createData,
+      update: updateData,
     })
   },
 
@@ -323,6 +407,10 @@ export const leaveRepository = {
     carriedDays?: number
     accruedDays?: number
     carriedExpiresAt?: Date | null
+    /// Pass `null` to clear the override (column goes to null →
+    /// resolver walks up to policy/type). Pass `undefined` to leave
+    /// the existing value alone on update.
+    accrualMethod?: LeaveAccrualMethod | null
   }) {
     const prisma = requirePrisma()
     return prisma.leaveEntitlement.upsert({
@@ -341,12 +429,18 @@ export const leaveRepository = {
         carriedDays: input.carriedDays ?? 0,
         accruedDays: input.accruedDays ?? 0,
         carriedExpiresAt: input.carriedExpiresAt ?? null,
+        ...(input.accrualMethod !== undefined
+          ? { accrualMethod: input.accrualMethod }
+          : {}),
       },
       update: {
         entitledDays: input.entitledDays,
         ...(input.carriedDays !== undefined ? { carriedDays: input.carriedDays } : {}),
         ...(input.accruedDays !== undefined ? { accruedDays: input.accruedDays } : {}),
         ...(input.carriedExpiresAt !== undefined ? { carriedExpiresAt: input.carriedExpiresAt } : {}),
+        ...(input.accrualMethod !== undefined
+          ? { accrualMethod: input.accrualMethod }
+          : {}),
       },
     })
   },
@@ -356,27 +450,63 @@ export const leaveRepository = {
     year: number,
   ): Promise<LeaveEntitlementView[]> {
     const prisma = requirePrisma()
-    const rows = await prisma.leaveEntitlement.findMany({
-      where: { employeeId, year },
-      include: { leaveType: true },
+    const [rows, employee] = await Promise.all([
+      prisma.leaveEntitlement.findMany({
+        where: { employeeId, year },
+        include: { leaveType: true },
+      }),
+      prisma.employeeProfile.findUnique({
+        where: { id: employeeId },
+        select: { policyId: true },
+      }),
+    ])
+    // Load this employee's policy-layer method overrides in one shot
+    // so we resolve the effective accrual method per row without N+1
+    // queries. `employee.policyId` may be null for unassigned employees.
+    const policyMethodIndex = new Map<string, LeaveAccrualMethod>()
+    if (employee?.policyId && rows.length > 0) {
+      const overrides = await prisma.policyLeaveEntitlement.findMany({
+        where: {
+          policyId: employee.policyId,
+          leaveTypeId: { in: rows.map((r) => r.leaveTypeId) },
+          accrualMethod: { not: null },
+        },
+        select: { leaveTypeId: true, accrualMethod: true },
+      })
+      for (const o of overrides) {
+        if (o.accrualMethod) {
+          policyMethodIndex.set(
+            o.leaveTypeId,
+            o.accrualMethod as LeaveAccrualMethod,
+          )
+        }
+      }
+    }
+    return rows.map((r) => {
+      const employeeMethod = (r.accrualMethod ?? null) as LeaveAccrualMethod | null
+      const policyMethod = policyMethodIndex.get(r.leaveTypeId) ?? null
+      const effectiveMethod: LeaveAccrualMethod =
+        employeeMethod ??
+        policyMethod ??
+        (r.leaveType.accrualMethod as LeaveAccrualMethod)
+      return {
+        id: r.id,
+        employeeId: r.employeeId,
+        leaveTypeId: r.leaveTypeId,
+        leaveTypeCode: r.leaveType.code,
+        leaveTypeName: r.leaveType.name,
+        paid: r.leaveType.paid,
+        accrualMethod: effectiveMethod,
+        year: r.year,
+        entitledDays: r.entitledDays,
+        carriedDays: r.carriedDays,
+        carriedExpiresAt: r.carriedExpiresAt,
+        carriedExpired: r.carriedExpired,
+        accruedDays: r.accruedDays,
+        usedDays: r.usedDays,
+        availableDays: 0, // service layer fills this
+      }
     })
-    return rows.map((r) => ({
-      id: r.id,
-      employeeId: r.employeeId,
-      leaveTypeId: r.leaveTypeId,
-      leaveTypeCode: r.leaveType.code,
-      leaveTypeName: r.leaveType.name,
-      paid: r.leaveType.paid,
-      accrualMethod: r.leaveType.accrualMethod as LeaveAccrualMethod,
-      year: r.year,
-      entitledDays: r.entitledDays,
-      carriedDays: r.carriedDays,
-      carriedExpiresAt: r.carriedExpiresAt,
-      carriedExpired: r.carriedExpired,
-      accruedDays: r.accruedDays,
-      usedDays: r.usedDays,
-      availableDays: 0, // service layer fills this
-    }))
   },
 
   async addUsedDays(entitlementId: string, delta: number): Promise<void> {

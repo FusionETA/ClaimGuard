@@ -36,7 +36,12 @@ export default async function AdminManageEmployeePage() {
         </p>
       </header>
 
-      <ManageEmployeeList employees={data.employees} policies={data.policies} />
+      <ManageEmployeeList
+        employees={data.employees}
+        policies={data.policies}
+        leaveTypes={data.leaveTypes}
+        policyDefaults={data.policyDefaults}
+      />
     </div>
   )
 }

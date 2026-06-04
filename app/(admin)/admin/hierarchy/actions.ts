@@ -17,6 +17,11 @@ import { writeAudit } from "@/modules/audit/application/services/audit-log.servi
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { upsertPayrollProfile } from "@/modules/payroll/application/services/payroll-profile.service"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
+import {
+  countActiveLeaveTypesForOrg,
+  type LeaveSeedInput,
+} from "@/modules/leave/application/services/leave-entitlements.service"
+import type { LeaveAccrualMethod } from "@/modules/leave/domain/models"
 
 const hierarchySchema = z.object({
   userId: z.string().min(1),
@@ -40,6 +45,10 @@ const createMemberSchema = z.object({
   projectIds: z.array(z.string()).default([]),
   jobTitle: z.string().min(1, "Job title is required."),
   policyId: z.string().min(1, "Employee policy is required."),
+  /// DEFAULT seeds entitlements from the policy/type chain; CUSTOM
+  /// uses admin-supplied per-type values (parsed from FormData entries
+  /// `leaveDays.<typeId>` and `leaveMethod.<typeId>` below).
+  leaveMethod: z.enum(["DEFAULT", "CUSTOM"]).default("DEFAULT"),
   /// Mandatory for EMPLOYEE / SUPERVISOR so the forgot-password flow has
   /// a WhatsApp delivery target. Stored on `PayrollProfile.phone` — the
   /// repository auto-creates the PayrollProfile at member-creation time
@@ -288,10 +297,15 @@ export async function createHierarchyMemberAction(
   const projectAssignments = parseProjectAssignments(formData, projectIds)
 
   const policyId = String(formData.get("policyId") ?? "").trim() || undefined
+  const leaveMethod =
+    String(formData.get("leaveMethod") ?? "DEFAULT").toUpperCase() === "CUSTOM"
+      ? "CUSTOM"
+      : "DEFAULT"
   const parsed = createMemberSchema.safeParse({
     ...values,
     projectIds,
     policyId,
+    leaveMethod,
   })
 
   if (!parsed.success) {
@@ -300,6 +314,45 @@ export async function createHierarchyMemberAction(
       status: "error",
       message: parsed.error.issues[0]?.message ?? "Unable to create employee.",
     }
+  }
+
+  // Empty-state guard: refuse to create an employee in an org with no
+  // leave types — they'd end up with zero entitlement rows and the
+  // lazy-creation gap would haunt year-end. Mirrors the dialog's
+  // client-side block.
+  const activeLeaveTypeCount = await countActiveLeaveTypesForOrg(organizationId)
+  if (activeLeaveTypeCount === 0) {
+    return {
+      ...createInitialAddHierarchyMemberFormState(values),
+      status: "error",
+      message:
+        "Set up leave types in Settings → Leave before adding employees.",
+    }
+  }
+
+  // Build the LeaveSeedInput from FormData. Each per-type input is
+  // emitted by the dialog as `leaveDays.<typeId>` /
+  // `leaveMethod.<typeId>` so the server doesn't need to know the
+  // active type list up front.
+  let leaveSeed: LeaveSeedInput = { method: "DEFAULT" }
+  if (parsed.data.leaveMethod === "CUSTOM") {
+    const days: Record<string, number> = {}
+    const methods: Record<string, LeaveAccrualMethod> = {}
+    for (const [k, raw] of formData.entries()) {
+      if (k.startsWith("leaveDays.")) {
+        const id = k.slice("leaveDays.".length)
+        const n = Number(String(raw))
+        if (!id || Number.isNaN(n) || n < 0) continue
+        days[id] = n
+      } else if (k.startsWith("leaveMethod.")) {
+        const id = k.slice("leaveMethod.".length)
+        const v = String(raw).toUpperCase()
+        if (id && (v === "LUMP_SUM" || v === "PRO_RATED")) {
+          methods[id] = v
+        }
+      }
+    }
+    leaveSeed = { method: "CUSTOM", overrides: { days, methods } }
   }
 
   try {
@@ -315,6 +368,7 @@ export async function createHierarchyMemberAction(
       policyId: parsed.data.policyId,
       phone: parsed.data.phone,
       projectAssignments,
+      leaveSeed,
     })
   } catch (error) {
     return {
