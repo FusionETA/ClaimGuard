@@ -82,6 +82,11 @@ export function EditAdjustmentDialog({
       expectedHours: number | null
       attendancePercent: number | null
     }
+    autoOt: {
+      normalHours: number
+      restHours: number
+      publicHours: number
+    }
     loans: Array<{ id: string; label: string; amount: number }>
   } | null>(null)
   const [loading, startLoading] = useTransition()
@@ -173,6 +178,7 @@ export function EditAdjustmentDialog({
               fixedAllowances={data.fixedAllowances}
               salaryType={data.salaryType}
               autoHours={data.autoHours}
+              autoOt={data.autoOt}
               loans={data.loans}
               readOnly={readOnly}
               saveFormId={saveFormId}

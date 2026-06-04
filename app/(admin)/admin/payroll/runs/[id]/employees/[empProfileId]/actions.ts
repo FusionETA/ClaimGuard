@@ -282,6 +282,11 @@ export async function fetchAdjustmentForDialogAction(input: {
     expectedHours: number | null
     attendancePercent: number | null
   }
+  autoOt: {
+    normalHours: number
+    restHours: number
+    publicHours: number
+  }
   loans: Array<{ id: string; label: string; amount: number }>
 } | null> {
   const data = await getPayrollAdjustmentPageData(input)
@@ -291,6 +296,7 @@ export async function fetchAdjustmentForDialogAction(input: {
     fixedAllowances: data.fixedAllowances,
     salaryType: data.employee.salaryType,
     autoHours: data.autoHours,
+    autoOt: data.autoOt,
     loans: data.loans,
   }
 }

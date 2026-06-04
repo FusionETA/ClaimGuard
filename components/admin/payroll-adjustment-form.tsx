@@ -61,6 +61,14 @@ export function PayrollAdjustmentForm(props: {
     expectedHours: number | null
     attendancePercent: number | null
   }
+  /// Approved OT hours from the attendance system (Normal / Rest /
+  /// Public holiday). Used to prefill the OT fields when the admin
+  /// hasn't typed a value for the run yet.
+  autoOt: {
+    normalHours: number
+    restHours: number
+    publicHours: number
+  }
   /// Active loan installments auto-deducted for this run's period.
   /// Shown read-only — editing happens on the Loans page.
   loans?: Array<{ id: string; label: string; amount: number }>
@@ -316,10 +324,16 @@ export function PayrollAdjustmentForm(props: {
           <CardDescription>
             Hours worked beyond the regular schedule. The org&apos;s OT
             multipliers (Settings → General) turn these into RM at calc
-            time.
+            time. Pre-filled from approved OT in the attendance system —
+            edit to override for this run.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
+          {/* Pre-fill rule (per bucket): use the saved adjustment value
+              when it's non-zero, otherwise fall back to the attendance
+              auto-OT figure. A saved 0 is treated as "not set" — the
+              schema can't distinguish 0 from null, so we let attendance
+              defaults shine through until the admin types a real value. */}
           <Field label="Normal day OT (hours)">
             <Input
               name="otNormalHours"
@@ -327,9 +341,18 @@ export function PayrollAdjustmentForm(props: {
               step="0.01"
               min="0"
               max="744"
-              defaultValue={props.adjustment?.otNormalHours ?? 0}
+              defaultValue={
+                (props.adjustment?.otNormalHours ?? 0) > 0
+                  ? props.adjustment?.otNormalHours
+                  : props.autoOt.normalHours
+              }
               disabled={props.readOnly}
             />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {props.autoOt.normalHours > 0
+                ? `Auto from attendance: ${props.autoOt.normalHours}h approved.`
+                : "No approved OT this period."}
+            </p>
           </Field>
           <Field label="Rest day OT (hours)">
             <Input
@@ -338,9 +361,18 @@ export function PayrollAdjustmentForm(props: {
               step="0.01"
               min="0"
               max="744"
-              defaultValue={props.adjustment?.otRestHours ?? 0}
+              defaultValue={
+                (props.adjustment?.otRestHours ?? 0) > 0
+                  ? props.adjustment?.otRestHours
+                  : props.autoOt.restHours
+              }
               disabled={props.readOnly}
             />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {props.autoOt.restHours > 0
+                ? `Auto from attendance: ${props.autoOt.restHours}h approved.`
+                : "No approved OT this period."}
+            </p>
           </Field>
           <Field label="Public holiday OT (hours)">
             <Input
@@ -349,9 +381,18 @@ export function PayrollAdjustmentForm(props: {
               step="0.01"
               min="0"
               max="744"
-              defaultValue={props.adjustment?.otPublicHours ?? 0}
+              defaultValue={
+                (props.adjustment?.otPublicHours ?? 0) > 0
+                  ? props.adjustment?.otPublicHours
+                  : props.autoOt.publicHours
+              }
               disabled={props.readOnly}
             />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {props.autoOt.publicHours > 0
+                ? `Auto from attendance: ${props.autoOt.publicHours}h approved.`
+                : "No approved OT this period."}
+            </p>
           </Field>
         </CardContent>
       </Card>
