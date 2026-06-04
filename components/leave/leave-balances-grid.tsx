@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search } from "lucide-react"
+import { ChevronDown, Search } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,133 @@ function formatDays(n: number): string {
   if (n === 0) return "0"
   if (Number.isInteger(n)) return String(n)
   return n.toFixed(1)
+}
+
+/// Collapsible card for one employee. Header is the click target —
+/// shows name + role + a short summary (number of types, plus a
+/// red/amber pill if any balance is low or fully used so admins can
+/// scan for at-risk employees without expanding every row). Body
+/// (the balance grid) only mounts when expanded, so the page loads
+/// quickly on orgs with many employees.
+function EmployeeBalancesCard({
+  employee,
+}: {
+  employee: EmployeeLeaveBalances
+}) {
+  const [open, setOpen] = useState(false)
+
+  // Count "low" (< 25% remaining) and "out" (zero available)
+  // balances so the collapsed header surfaces at-risk employees.
+  let lowCount = 0
+  let outCount = 0
+  for (const b of employee.balances) {
+    if (b.entitledDays <= 0) continue
+    if (b.availableDays === 0) outCount += 1
+    else if (b.availableDays / b.entitledDays < 0.25) lowCount += 1
+  }
+
+  return (
+    <Card>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-[28px]"
+        aria-expanded={open}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="truncate text-sm font-bold text-foreground">
+              {employee.name}
+            </span>
+            {employee.role === "SUPERVISOR" ? (
+              <Badge variant="outline" className="text-[10px]">
+                Supervisor
+              </Badge>
+            ) : null}
+            {outCount > 0 ? (
+              <Badge variant="rejected" className="text-[10px]">
+                {outCount} out
+              </Badge>
+            ) : null}
+            {lowCount > 0 ? (
+              <Badge variant="pending" className="text-[10px]">
+                {lowCount} low
+              </Badge>
+            ) : null}
+          </div>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {employee.jobTitle}
+            {employee.jobTitle ? " · " : ""}
+            {employee.email}
+            {" · "}
+            {employee.balances.length} leave type
+            {employee.balances.length === 1 ? "" : "s"}
+          </p>
+        </div>
+        <ChevronDown
+          className={cn(
+            "h-5 w-5 shrink-0 text-muted-foreground transition-transform mt-0.5",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+      {open && (
+        <CardContent className="px-4 pb-4 pt-0">
+          {employee.balances.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              No leave types configured for this employee.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              {employee.balances.map((b) => {
+                const low =
+                  b.entitledDays > 0 &&
+                  b.availableDays / b.entitledDays < 0.25
+                const usedAll =
+                  b.entitledDays > 0 && b.availableDays === 0
+                return (
+                  <div
+                    key={b.id}
+                    className={cn(
+                      "rounded-lg border bg-surface-low/40 p-2.5",
+                      usedAll
+                        ? "border-destructive/40 bg-destructive/5"
+                        : low
+                          ? "border-amber-300/60 bg-amber-50/60"
+                          : "border-border/60",
+                    )}
+                  >
+                    <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {b.leaveTypeName}
+                    </p>
+                    <p className="mt-0.5 text-base font-bold tabular-nums text-foreground">
+                      {b.paid
+                        ? formatDays(b.availableDays)
+                        : formatDays(b.usedDays)}
+                      <span className="ml-1 text-[11px] font-normal text-muted-foreground">
+                        {b.paid
+                          ? `/ ${formatDays(b.entitledDays + b.carriedDays)} avail`
+                          : "used"}
+                      </span>
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
+                      entitled {formatDays(b.entitledDays)}
+                      {b.carriedDays > 0
+                        ? ` · carried ${formatDays(b.carriedDays)}`
+                        : ""}
+                      {b.usedDays > 0 && b.paid
+                        ? ` · used ${formatDays(b.usedDays)}`
+                        : ""}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+      )}
+    </Card>
+  )
 }
 
 export function LeaveBalancesGrid({ employees, year, emptyHint }: Props) {
@@ -87,80 +214,7 @@ export function LeaveBalancesGrid({ employees, year, emptyHint }: Props) {
       ) : (
         <div className="space-y-3">
           {filtered.map((emp) => (
-            <Card key={emp.userId}>
-              <CardContent className="p-4">
-                <div className="mb-3 flex items-baseline justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="truncate text-sm font-bold text-foreground">
-                        {emp.name}
-                      </span>
-                      {emp.role === "SUPERVISOR" ? (
-                        <Badge variant="outline" className="text-[10px]">
-                          Supervisor
-                        </Badge>
-                      ) : null}
-                    </div>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {emp.jobTitle}
-                      {emp.jobTitle ? " · " : ""}
-                      {emp.email}
-                    </p>
-                  </div>
-                </div>
-                {emp.balances.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">
-                    No leave types configured for this employee.
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-                    {emp.balances.map((b) => {
-                      const low =
-                        b.entitledDays > 0 &&
-                        b.availableDays / b.entitledDays < 0.25
-                      const usedAll =
-                        b.entitledDays > 0 && b.availableDays === 0
-                      return (
-                        <div
-                          key={b.id}
-                          className={cn(
-                            "rounded-lg border bg-surface-low/40 p-2.5",
-                            usedAll
-                              ? "border-destructive/40 bg-destructive/5"
-                              : low
-                                ? "border-amber-300/60 bg-amber-50/60"
-                                : "border-border/60",
-                          )}
-                        >
-                          <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            {b.leaveTypeName}
-                          </p>
-                          <p className="mt-0.5 text-base font-bold tabular-nums text-foreground">
-                            {b.paid
-                              ? formatDays(b.availableDays)
-                              : formatDays(b.usedDays)}
-                            <span className="ml-1 text-[11px] font-normal text-muted-foreground">
-                              {b.paid
-                                ? `/ ${formatDays(b.entitledDays + b.carriedDays)} avail`
-                                : "used"}
-                            </span>
-                          </p>
-                          <p className="mt-0.5 text-[10px] text-muted-foreground tabular-nums">
-                            entitled {formatDays(b.entitledDays)}
-                            {b.carriedDays > 0
-                              ? ` · carried ${formatDays(b.carriedDays)}`
-                              : ""}
-                            {b.usedDays > 0 && b.paid
-                              ? ` · used ${formatDays(b.usedDays)}`
-                              : ""}
-                          </p>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <EmployeeBalancesCard key={emp.userId} employee={emp} />
           ))}
         </div>
       )}
