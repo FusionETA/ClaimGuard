@@ -3,12 +3,12 @@ import { isAdminRole } from "@/lib/auth/types"
 import type { Route } from "next"
 import { Download } from "lucide-react"
 
+import { AdminClaimsBreakdownTable } from "@/components/claims/admin-claims-breakdown-table"
 import { ClaimsReportFilters } from "@/components/admin/claims-report-filters"
 import { ClaimsReportPagination } from "@/components/admin/claims-report-pagination"
 import { Card, CardContent } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { getCurrentSession } from "@/lib/auth/session"
-import { cn, formatCurrency, formatMonthYear, formatShortDate } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 import { getClaimsReportPageData } from "@/modules/claims/application/services/claims-breakdown.service"
 
 /**
@@ -148,82 +148,13 @@ export default async function AdminClaimsReportsPage({
         <SummaryStat label="Total amount" value={formatCurrency(data.totalAmount)} />
       </div>
 
-      {/* The table itself. Renders a tasteful empty state when no
-          rows match the current filter so admins don't see a bare
-          card with just headers. */}
+      {/* The table itself. Renders a tasteful empty state when no rows
+          match the current filter so admins don't see a bare card with
+          just headers. Rows are clickable and open the existing
+          `ClaimDetailSheet` — see the client component file. */}
       <Card>
         <CardContent className="p-0">
-          <ScrollArea className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-surface-low text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <tr>
-                  <th className="px-4 py-3">Employee</th>
-                  <th className="px-4 py-3">Project</th>
-                  <th className="px-4 py-3">Claim</th>
-                  <th className="px-4 py-3">Account</th>
-                  <th className="px-4 py-3">Spent</th>
-                  <th className="px-4 py-3 text-right">Amount</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Payroll</th>
-                  <th className="px-4 py-3">Xero</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} className="px-4 py-10 text-center text-sm text-muted-foreground">
-                      No claims match the current filters.
-                    </td>
-                  </tr>
-                ) : (
-                  data.rows.map((claim) => (
-                    <tr
-                      key={claim.id}
-                      className="border-t border-border/50 hover:bg-surface-low/60"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-foreground">
-                            {claim.employee?.name ?? "—"}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {claim.employee?.email ?? ""}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {claim.employee?.project ?? "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-foreground">{claim.title}</p>
-                        <p className="text-xs text-muted-foreground">{claim.claimNumber}</p>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {claim.chartOfAccount
-                          ? `${claim.chartOfAccount.code} · ${claim.chartOfAccount.name}`
-                          : "—"}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {formatShortDate(claim.spentAt)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold tabular-nums">
-                        {formatCurrency(claim.amount)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={claim.status} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <PayrollBadge attachment={claim.payrollRunAttachment} />
-                      </td>
-                      <td className="px-4 py-3">
-                        <XeroBadge claim={claim} />
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </ScrollArea>
+          <AdminClaimsBreakdownTable rows={data.rows} />
         </CardContent>
       </Card>
 
@@ -251,153 +182,6 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
   )
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  SUBMITTED: "submitted",
-  PENDING: "pending",
-  APPROVED: "approved",
-  PAID: "paid",
-  REJECTED: "rejected",
-  REVIEWED: "reviewed",
-  SETTLED: "settled",
-}
-
-const STATUS_BG: Record<string, string> = {
-  PENDING: "bg-amber-100 text-amber-900",
-  SUBMITTED: "bg-amber-100 text-amber-900",
-  APPROVED: "bg-emerald-100 text-emerald-900",
-  PAID: "bg-emerald-200 text-emerald-950",
-  REJECTED: "bg-rose-100 text-rose-900",
-  REVIEWED: "bg-sky-100 text-sky-900",
-  SETTLED: "bg-emerald-200 text-emerald-950",
-}
-
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold",
-        STATUS_BG[status] ?? "bg-muted text-muted-foreground",
-      )}
-    >
-      {STATUS_LABEL[status] ?? status.toLowerCase()}
-    </span>
-  )
-}
-
-function PayrollBadge({
-  attachment,
-}: {
-  attachment?: {
-    periodYear: number
-    periodMonth: number
-    status: string
-  }
-}) {
-  if (!attachment) {
-    return <MutedBadge label="Not included" />
-  }
-  const period = formatMonthYear(
-    new Date(Date.UTC(attachment.periodYear, attachment.periodMonth - 1, 1)),
-  )
-  return (
-    <div className="space-y-1">
-      <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">
-        Included
-      </span>
-      <p className="text-xs text-muted-foreground">{period}</p>
-    </div>
-  )
-}
-
-/**
- * Build the deep-link URL for a synced claim. Xero exposes two routes:
- *  - Bill (ACCPAY Invoice) → /AccountsPayable/View.aspx?InvoiceID={guid}
- *  - Spend Money (bank txn) → /BankTransactions/View.aspx?bankTransactionID={guid}
- * Both render the document inside the user's active Xero org login — no
- * tenant id needed in the URL, Xero scopes by their session.
- */
-function buildXeroSyncedUrl(claim: {
-  xeroBillId?: string
-  xeroSpendMoneyId?: string
-}): string | null {
-  if (claim.xeroSpendMoneyId) {
-    return `https://go.xero.com/BankTransactions/View.aspx?bankTransactionID=${claim.xeroSpendMoneyId}`
-  }
-  if (claim.xeroBillId) {
-    return `https://go.xero.com/AccountsPayable/View.aspx?InvoiceID=${claim.xeroBillId}`
-  }
-  return null
-}
-
-function XeroBadge({
-  claim,
-}: {
-  claim: {
-    xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
-    xeroBillId?: string
-    xeroSpendMoneyId?: string
-    payrollRunAttachment?: {
-      xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
-    }
-  }
-}) {
-  if (claim.xeroSyncStatus === "SYNCED") {
-    const label = claim.xeroSpendMoneyId
-      ? "Spend Money"
-      : claim.xeroBillId
-        ? "Bill"
-        : "Synced"
-    const href = buildXeroSyncedUrl(claim)
-    if (href) {
-      return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900 underline-offset-2 hover:bg-emerald-200 hover:underline"
-          title={`Open in Xero (${label})`}
-        >
-          {label}
-        </a>
-      )
-    }
-    return <SuccessBadge label={label} />
-  }
-  if (claim.payrollRunAttachment?.xeroSyncStatus === "SYNCED") {
-    return <SuccessBadge label="Via payroll" />
-  }
-  if (
-    claim.xeroSyncStatus === "ERROR" ||
-    claim.payrollRunAttachment?.xeroSyncStatus === "ERROR"
-  ) {
-    return (
-      <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-xs font-semibold text-rose-900">
-        Error
-      </span>
-    )
-  }
-  if (claim.payrollRunAttachment) {
-    return (
-      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">
-        Payroll pending
-      </span>
-    )
-  }
-  return <MutedBadge label="Not synced" />
-}
-
-function SuccessBadge({ label }: { label: string }) {
-  return (
-    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">
-      {label}
-    </span>
-  )
-}
-
-function MutedBadge({ label }: { label: string }) {
-  return (
-    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-      {label}
-    </span>
-  )
-}
+// Row-level badges (StatusBadge, PayrollBadge, XeroBadge) now live in
+// `components/claims/admin-claims-breakdown-table.tsx` alongside the
+// click-to-open-drawer wiring.
