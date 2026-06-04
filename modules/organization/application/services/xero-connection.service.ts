@@ -442,6 +442,108 @@ export async function disconnectXeroConnection(data: {
 }
 
 /**
+ * Best-effort: upload (if needed) + associate each supporting attachment
+ * with the just-created Xero object so accountants see the full document
+ * set on the bill / Spend Money entry, not just the receipt.
+ *
+ *   - `xeroFileId` already set → file was uploaded at submission time
+ *     (the COA is Xero-linked, so storeSupportingFileForClaim went
+ *     down the Xero path). Just associate.
+ *   - `xeroFileId` null + `fileUrl` set → file is on local disk (Xero
+ *     was down at submission, or COA was custom and changed). Read
+ *     from disk, upload to Xero Files, persist the returned id, then
+ *     associate.
+ *   - Both null → nothing to do.
+ *
+ * Failures are warned but don't fail the whole sync — the bill is
+ * already in Xero. Admin can re-attempt by re-syncing the claim.
+ *
+ * Lives at file scope (not as an inner closure) so TypeScript's
+ * narrowing on `claim` / `connection` flows through cleanly without
+ * leaking nullable types into the helper body.
+ */
+async function attachSupportingDocsToXero(input: {
+  accessToken: string
+  tenantId: string
+  supportingAttachments: Array<{
+    id: string
+    fileName: string
+    mimeType: string | null
+    fileUrl: string | null
+    xeroFileId: string | null
+  }>
+  targetObjectId: string
+  objectGroup: "Invoice" | "BankTransaction"
+}): Promise<void> {
+  if (input.supportingAttachments.length === 0) return
+
+  const { uploadFileToXero, associateFileWithObject, getOrCreateClaimsFolder } =
+    await import("@/lib/xero")
+  const path = await import("node:path")
+  const fs = await import("node:fs/promises")
+
+  let folderId: string | undefined
+
+  for (const att of input.supportingAttachments) {
+    try {
+      let xeroFileId = att.xeroFileId
+
+      if (!xeroFileId) {
+        if (!att.fileUrl) continue
+
+        if (!folderId) {
+          folderId = (await getOrCreateClaimsFolder({
+            accessToken: input.accessToken,
+            tenantId: input.tenantId,
+          })) ?? undefined
+        }
+
+        // fileUrl is a public web path (e.g.
+        // "/uploads/claim-supporting/xxx.pdf"). Translate to the
+        // on-disk path under `public/` for reading.
+        const localPath = path.join(
+          process.cwd(),
+          "public",
+          att.fileUrl.startsWith("/") ? att.fileUrl.slice(1) : att.fileUrl,
+        )
+        const fileBuffer = await fs.readFile(localPath)
+
+        const uploaded = await uploadFileToXero({
+          accessToken: input.accessToken,
+          tenantId: input.tenantId,
+          folderId,
+          fileBuffer,
+          fileName: att.fileName,
+          // Xero rejects uploads without a mime type — fall back to a
+          // generic binary when the row never captured one.
+          mimeType: att.mimeType ?? "application/octet-stream",
+        })
+        xeroFileId = uploaded.fileId
+
+        // Persist so a retry skips the upload step.
+        await claimRepository.markSupportingAttachmentXeroFile({
+          attachmentId: att.id,
+          xeroFileId,
+        })
+      }
+
+      await associateFileWithObject({
+        accessToken: input.accessToken,
+        tenantId: input.tenantId,
+        fileId: xeroFileId,
+        objectId: input.targetObjectId,
+        objectGroup: input.objectGroup,
+      })
+    } catch (err) {
+      console.warn(
+        `[xero-sync] supporting doc attach failed (${att.fileName}):`,
+        err,
+      )
+    }
+  }
+}
+
+/**
  * Sync a single claim to Xero. For PERSONAL-money claims this creates an
  * ACCPAY Invoice (Bill); the admin chooses whether it lands as a Draft
  * or directly as Awaiting Payment via `billStatus`. COMPANY-money claims
@@ -632,6 +734,14 @@ export async function syncApprovedClaimToXero(
         }
       }
 
+      await attachSupportingDocsToXero({
+        accessToken: connection.accessToken,
+        tenantId: connection.tenantId,
+        supportingAttachments: claim.supportingAttachments,
+        targetObjectId: txn.bankTransactionId,
+        objectGroup: "BankTransaction",
+      })
+
       return {
         status: "synced",
         message: `Spend Money ${txn.reference ?? txn.bankTransactionId} created in Xero.`,
@@ -688,6 +798,14 @@ export async function syncApprovedClaimToXero(
         console.warn("[xero-sync] receipt attach failed:", err)
       }
     }
+
+    await attachSupportingDocsToXero({
+      accessToken: connection.accessToken,
+      tenantId: connection.tenantId,
+      supportingAttachments: claim.supportingAttachments,
+      targetObjectId: bill.invoiceId,
+      objectGroup: "Invoice",
+    })
 
     return {
       status: "synced",

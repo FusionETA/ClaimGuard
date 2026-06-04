@@ -472,6 +472,18 @@ export type ClaimForXeroSync = {
     name: string
     email: string
   }
+  /// Supporting attachments (the optional multi-file group on the claim
+  /// form, separate from the primary receipt). Synced to the Xero
+  /// invoice as Related Files alongside the receipt. `xeroFileId` is
+  /// null until we upload the file to Xero Files; once set, the sync
+  /// just re-associates (idempotent on retry).
+  supportingAttachments: Array<{
+    id: string
+    fileName: string
+    mimeType: string | null
+    fileUrl: string | null
+    xeroFileId: string | null
+  }>
 }
 
 function mapUser(user: PrismaUser): PortalUser {
@@ -2208,6 +2220,16 @@ export const claimRepository = {
             email: true,
           },
         },
+        supportingAttachments: {
+          select: {
+            id: true,
+            fileName: true,
+            mimeType: true,
+            fileUrl: true,
+            xeroFileId: true,
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
     })
 
@@ -2256,7 +2278,26 @@ export const claimRepository = {
         : null,
       project: claim.project,
       employee: claim.employee,
+      supportingAttachments: claim.supportingAttachments.map((att) => ({
+        id: att.id,
+        fileName: att.fileName,
+        mimeType: att.mimeType,
+        fileUrl: att.fileUrl,
+        xeroFileId: att.xeroFileId,
+      })),
     }
+  },
+
+  async markSupportingAttachmentXeroFile(data: {
+    attachmentId: string
+    xeroFileId: string
+  }): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) return
+    await prisma.claimSupportingAttachment.update({
+      where: { id: data.attachmentId },
+      data: { xeroFileId: data.xeroFileId },
+    })
   },
 
   async markClaimXeroSynced(data: {
