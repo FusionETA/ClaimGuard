@@ -865,6 +865,16 @@ export async function syncApprovedClaimToXero(
       message: `Bill ${bill.invoiceNumber ?? bill.invoiceId} created in Xero.`,
     }
   } catch (err) {
+    // Log the FULL error to the server console so admins can debug what
+    // Xero actually rejected. The UI message goes through `safeErrorMessage`
+    // (which caps at 200 chars and falls back to "Xero sync failed."),
+    // but the raw `err.message` from `createXeroBill` / `createXeroSpendMoney`
+    // typically contains Xero's full validation response (status code +
+    // body) which is exactly what's needed to diagnose the problem.
+    console.error(
+      `[xero-sync] sync failed for claim ${claim.id} (${claim.claimNumber}):`,
+      err instanceof Error ? `${err.message}\n${err.stack}` : err,
+    )
     return failClaimSync(safeErrorMessage(err, "Xero sync failed."))
   }
 }
