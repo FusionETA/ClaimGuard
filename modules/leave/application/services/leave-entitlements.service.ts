@@ -410,6 +410,97 @@ export async function seedEmployeeLeaveEntitlements(args: {
   }
 }
 
+/// Recompute `accruedDays` for an employee's PRO_RATED entitlements
+/// after their join date has changed. The seeder runs once at
+/// employee creation; if the join date wasn't set then (or changed
+/// later), the row's accruedDays is stuck at whatever the seeder
+/// produced with the old/null join date.
+///
+/// **Safety filters** — only touches rows where:
+///   1. The effective accrualMethod is PRO_RATED (LUMP_SUM unaffected).
+///   2. `usedDays === 0` — the admin hasn't approved any leave yet,
+///      so adjusting the accrual isn't moving goalposts under the
+///      employee. Once they've used any of the entitlement, we leave
+///      it alone.
+///   3. The current `entitledDays` matches the resolved default — i.e.
+///      the admin hasn't set a per-employee days override. If they
+///      did, we assume they typed the exact number they wanted and
+///      it's not safe to overwrite.
+///   4. The per-employee `accrualMethod` override is null (otherwise
+///      the admin pinned the method on purpose; touching accrued
+///      could surprise them).
+///
+/// Fire-and-forget on errors — a failure here logs and returns so
+/// the underlying join-date save still succeeds.
+export async function recomputeProRatedAccrualForEmployee(
+  employeeProfileId: string,
+  year: number = currentYearMYT(),
+): Promise<{ touched: number }> {
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return { touched: 0 }
+
+  try {
+    const joinDate = await leaveRepository.getEmployeeJoinDate(
+      employeeProfileId,
+    )
+
+    const rows = await prisma.leaveEntitlement.findMany({
+      where: { employeeId: employeeProfileId, year, usedDays: 0 },
+      include: {
+        leaveType: { select: { id: true, accrualMethod: true } },
+      },
+    })
+
+    let touched = 0
+    for (const row of rows) {
+      // Filter 4: skip rows with an explicit per-employee method override.
+      if (row.accrualMethod !== null) continue
+
+      // Filter 1: effective method must be PRO_RATED.
+      const effectiveMethod = await resolveAccrualMethod(
+        employeeProfileId,
+        row.leaveTypeId,
+        year,
+      )
+      if (effectiveMethod !== "PRO_RATED") continue
+
+      // Filter 3: skip if entitledDays differs from the resolved
+      // default (i.e. admin has overridden days for this row).
+      const resolvedDays = await resolveDefaultEntitledDays(
+        employeeProfileId,
+        row.leaveTypeId,
+      )
+      if (row.entitledDays !== resolvedDays) continue
+
+      const nextAccrued = initialProRatedAccrual({
+        entitledDays: row.entitledDays,
+        joinDate,
+        targetYear: year,
+        now: new Date(),
+      })
+
+      // Skip the write when nothing changed (avoids burning Redis
+      // bust + revalidate work on a no-op).
+      if (Math.abs(nextAccrued - row.accruedDays) < 0.005) continue
+
+      await prisma.leaveEntitlement.update({
+        where: { id: row.id },
+        data: { accruedDays: nextAccrued },
+      })
+      touched += 1
+    }
+    return { touched }
+  } catch (err) {
+    // Don't bubble — the caller's primary mutation (saving the
+    // PayrollProfile) already succeeded.
+    console.warn(
+      "[recomputeProRatedAccrualForEmployee] failed:",
+      err,
+    )
+    return { touched: 0 }
+  }
+}
+
 /// Input shape for `seedEmployeeLeaveEntitlements`. Kept narrow on
 /// purpose so the action layer can construct it from FormData without
 /// branching, and so future callers (bulk import, partner API) can

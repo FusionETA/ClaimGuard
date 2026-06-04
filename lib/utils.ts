@@ -55,3 +55,16 @@ export function buildInitials(name: string): string {
     .slice(0, 2)
     .toUpperCase()
 }
+
+/**
+ * Format a leave-day count to a consistent 2-decimal display.
+ * PRO_RATED accruals produce non-integer days (e.g. 5.25 after a
+ * partial join month) so the UI needs predictable decimals.
+ *
+ * - `14` → `"14.00"`
+ * - `5.25` → `"5.25"`
+ * - `0` → `"0.00"`
+ */
+export function formatDays(value: number): string {
+  return value.toFixed(2)
+}

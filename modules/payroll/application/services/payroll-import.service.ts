@@ -20,6 +20,11 @@ import {
 } from "@/modules/payroll/domain/models"
 import { recommendSocsoScheme } from "@/modules/payroll/domain/statutory-tables"
 import {
+  countActiveLeaveTypesForOrg,
+  type LeaveSeedInput,
+  seedEmployeeLeaveEntitlements,
+} from "@/modules/leave/application/services/leave-entitlements.service"
+import {
   CATEGORICAL_TARGETS,
   getCategoricalTargetSpec,
   heuristicMatchCategorical,
@@ -1013,6 +1018,18 @@ export async function bulkImportPayrollEmployees(input: {
   const prisma = getPrismaClient()
   if (!prisma) throw new Error("Database is not configured.")
 
+  // Empty-state guard (same as importMappedCsv): refuse to start when
+  // the org has no leave types — see comments there.
+  const activeLeaveTypeCount = await countActiveLeaveTypesForOrg(orgId)
+  if (activeLeaveTypeCount === 0) {
+    throw new Error(
+      "Set up leave types in Settings → Leave before bulk-importing employees.",
+    )
+  }
+  // The legacy path doesn't carry a per-batch Leave Method from a
+  // wizard, so it always uses DEFAULT seeding.
+  const leaveSeed: LeaveSeedInput = { method: "DEFAULT" }
+
   // 1. Parse CSV → 2D array of strings.
   const rows = parseCsv(input.csv)
   if (rows.length === 0) {
@@ -1248,14 +1265,26 @@ export async function bulkImportPayrollEmployees(input: {
           })
         }
       }
-        return outcome
+        return { outcome, employeeProfileId }
       }, {
         maxWait: 15_000,
         timeout: 120_000,
       })
 
-      if (outcome === "created") created += 1
-      else updated += 1
+      if (outcome.outcome === "created") {
+        created += 1
+        try {
+          await seedEmployeeLeaveEntitlements({
+            employeeProfileId: outcome.employeeProfileId,
+            leaveSeed,
+          })
+        } catch (seedErr) {
+          console.error(
+            `[payroll-import] leave-seed row ${rowNumber} failed:`,
+            seedErr,
+          )
+        }
+      } else updated += 1
     } catch (err) {
       console.error(
         `[payroll-import] bulkImportPayrollEmployees row ${rowNumber} failed:`,
@@ -1297,8 +1326,9 @@ export type SkippedRow = {
 }
 
 export type PreviewResult = {
-  /// First N normalised rows (max 5) — what the admin sees on the
-  /// preview screen before they confirm.
+  /// Every normalised row from the file. The admin reviews the
+  /// full set in a scrollable table before confirming the import —
+  /// previously capped at 5 but admins need to verify the whole batch.
   preview: Array<Record<string, string | null>>
   /// Rows that would be skipped, with their reason.
   skipped: SkippedRow[]
@@ -1950,8 +1980,10 @@ export async function previewMappedCsv(input: {
     valueMap: input.valueMap,
   })
 
-  // Pick the first 5 fully-normalised rows for preview.
-  const preview = parsedRows.slice(0, 5).map(({ row }) => {
+  // Return every parsed row to the preview UI — the admin needs to
+  // see exactly what will be imported, not just a sample. The wizard's
+  // preview table is scrollable so large imports remain reviewable.
+  const preview = parsedRows.map(({ row }) => {
     const obj: Record<string, string | null> = {}
     for (const [k, v] of Object.entries(row)) {
       if (v == null) {
@@ -1995,6 +2027,14 @@ export async function importMappedCsv(input: {
    * step of the import-wizard redesign.
    */
   rowOverrides?: RowOverrides
+  /**
+   * Per-batch leave seeding choice from the wizard's preview step.
+   * Applied to every newly-created employee in this import (updated
+   * employees are skipped — their existing entitlements are preserved).
+   * Defaults to `{ method: "DEFAULT" }` when omitted, so older callers
+   * keep working and still get eager LeaveEntitlement rows seeded.
+   */
+  leaveSeed?: LeaveSeedInput
 }): Promise<MappedImportResult> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
@@ -2005,6 +2045,18 @@ export async function importMappedCsv(input: {
 
   const prisma = getPrismaClient()
   if (!prisma) throw new Error("Database is not configured.")
+
+  // Empty-state guard: refuse to start if the org has no leave types.
+  // Otherwise newly-imported employees would silently land with zero
+  // entitlement rows (lazy-creation gap), and the year-rollover cron
+  // would have nothing to roll forward.
+  const activeLeaveTypeCount = await countActiveLeaveTypesForOrg(orgId)
+  if (activeLeaveTypeCount === 0) {
+    throw new Error(
+      "Set up leave types in Settings → Leave before bulk-importing employees.",
+    )
+  }
+  const leaveSeed: LeaveSeedInput = input.leaveSeed ?? { method: "DEFAULT" }
 
   const { parsedRows, skipped, errors, total } = reshapeAndNormalize({
     csv: input.csv,
@@ -2220,14 +2272,34 @@ export async function importMappedCsv(input: {
           })
         }
       }
-        return outcome
+        return { outcome, employeeProfileId }
       }, {
         maxWait: 15_000,
         timeout: 120_000,
       })
 
-      if (outcome === "created") created += 1
-      else updated += 1
+      if (outcome.outcome === "created") {
+        created += 1
+        // Seed leave entitlements for the freshly-created employee.
+        // Updated employees are skipped — they already have rows from
+        // a previous import / first leave-page visit / Add Employee
+        // dialog, and re-seeding would either be a no-op (default mode)
+        // or overwrite their existing customs (custom mode).
+        try {
+          await seedEmployeeLeaveEntitlements({
+            employeeProfileId: outcome.employeeProfileId,
+            leaveSeed,
+          })
+        } catch (seedErr) {
+          console.error(
+            `[payroll-import] leave-seed row ${rowNumber} failed:`,
+            seedErr,
+          )
+          // Don't bail the whole import — log + continue. The employee
+          // row still exists; their leave entitlements just fall back
+          // to lazy creation. Year-rollover will pick them up.
+        }
+      } else updated += 1
     } catch (err) {
       console.error(
         `[payroll-import] importMappedCsv row ${rowNumber} failed:`,

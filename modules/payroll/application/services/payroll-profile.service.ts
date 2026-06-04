@@ -20,6 +20,7 @@ import type { EmployeePolicy } from "@/modules/policy/domain/models"
 import type { LeaveTypeView } from "@/modules/leave/domain/models"
 import { listLeaveTypes } from "@/modules/leave/application/services/leave-types.service"
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
+import { recomputeProRatedAccrualForEmployee } from "@/modules/leave/application/services/leave-entitlements.service"
 
 /**
  * Page-data + action services for the admin payroll module.
@@ -235,16 +236,41 @@ export async function upsertPayrollProfile(input: {
 
   const user = await prisma.user.findFirst({
     where: { id: input.userId, organizationId: orgId },
-    select: { employeeProfile: { select: { id: true } } },
+    select: {
+      employeeProfile: {
+        select: {
+          id: true,
+          payrollProfile: { select: { joinDate: true } },
+        },
+      },
+    },
   })
   if (!user?.employeeProfile) {
     throw new Error("Employee not found in this organisation.")
   }
 
+  // Snapshot the previous joinDate so we can detect changes after
+  // the upsert and trigger the PRO_RATED accrual recompute. Compared
+  // as ISO date strings to avoid Date-instance equality issues.
+  const previousJoinDate =
+    user.employeeProfile.payrollProfile?.joinDate ?? null
+
   const result = await payrollProfileRepository.upsert({
     employeeProfileId: user.employeeProfile.id,
     patch: input.patch,
   })
+
+  // If joinDate changed (set for the first time, or updated to a
+  // different date), recompute PRO_RATED accrued days for every
+  // entitlement row that's safe to touch (no per-employee override,
+  // no leave used yet). This closes the "I set joinDate after
+  // hiring and the balance didn't move" gap.
+  const nextJoinDate = await leaveRepository.getEmployeeJoinDate(
+    user.employeeProfile.id,
+  )
+  if (!sameDate(previousJoinDate, nextJoinDate)) {
+    await recomputeProRatedAccrualForEmployee(user.employeeProfile.id)
+  }
 
   // Readiness (isComplete) shown on the Manage Employee list lives under
   // the org config namespace; eligible-employee counts live under
@@ -253,6 +279,15 @@ export async function upsertPayrollProfile(input: {
   await bustPayrollCaches({ organizationId: orgId })
 
   return result
+}
+
+/// Compare two nullable dates for equality at day-precision (avoids
+/// false positives from time-zone shifts when the column was reread
+/// via a different code path).
+function sameDate(a: Date | null, b: Date | null): boolean {
+  if (a === null && b === null) return true
+  if (a === null || b === null) return false
+  return a.toISOString().slice(0, 10) === b.toISOString().slice(0, 10)
 }
 
 /**
