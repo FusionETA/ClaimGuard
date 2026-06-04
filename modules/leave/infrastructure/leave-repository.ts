@@ -53,6 +53,7 @@ function toLeaveType(row: {
   name: string
   paid: boolean
   accrualMethod: string
+  prorateFirstYear: boolean
   defaultDays: number
   carryForward: boolean
   carryExpiryMonth: number | null
@@ -65,6 +66,7 @@ function toLeaveType(row: {
     name: row.name,
     paid: row.paid,
     accrualMethod: row.accrualMethod as LeaveAccrualMethod,
+    prorateFirstYear: row.prorateFirstYear,
     defaultDays: row.defaultDays,
     carryForward: row.carryForward,
     carryExpiryMonth: row.carryExpiryMonth,
@@ -239,6 +241,7 @@ export const leaveRepository = {
       name: string
       paid: boolean
       accrualMethod: LeaveAccrualMethod
+      prorateFirstYear?: boolean
       defaultDays: number
       carryForward: boolean
       carryExpiryMonth: number | null
@@ -259,6 +262,7 @@ export const leaveRepository = {
       name: string
       paid: boolean
       accrualMethod: LeaveAccrualMethod
+      prorateFirstYear: boolean
       defaultDays: number
       carryForward: boolean
       carryExpiryMonth: number | null
@@ -340,10 +344,23 @@ export const leaveRepository = {
       }),
       prisma.leaveType.findFirst({
         where: { id: leaveTypeId, organizationId: orgId },
-        select: { id: true, defaultDays: true },
+        select: { id: true, defaultDays: true, code: true },
       }),
     ])
     if (!policy || !type) throw new Error("Policy or LeaveType not found in org")
+
+    // ANNUAL-only constraint: reject any attempt to set PRO_RATED
+    // (or non-LUMP_SUM) on a non-Annual type. Null is always allowed
+    // — that just clears the policy-layer override.
+    if (
+      patch.accrualMethod !== undefined &&
+      patch.accrualMethod !== null &&
+      (type.code ?? "").trim().toUpperCase() !== "ANNUAL"
+    ) {
+      throw new Error(
+        "Pro-rated accrual is only available for Annual Leave. Other leave types are lump-sum.",
+      )
+    }
 
     const createData: {
       policyId: string
@@ -413,6 +430,22 @@ export const leaveRepository = {
     accrualMethod?: LeaveAccrualMethod | null
   }) {
     const prisma = requirePrisma()
+
+    // ANNUAL-only constraint: reject any attempt to set a non-null
+    // (non-LUMP_SUM) method on a non-Annual leave type. Need to look
+    // up the type to check — cheap, only runs on writes.
+    if (input.accrualMethod !== undefined && input.accrualMethod !== null) {
+      const type = await prisma.leaveType.findUnique({
+        where: { id: input.leaveTypeId },
+        select: { code: true },
+      })
+      if ((type?.code ?? "").trim().toUpperCase() !== "ANNUAL") {
+        throw new Error(
+          "Pro-rated accrual is only available for Annual Leave. Other leave types are lump-sum.",
+        )
+      }
+    }
+
     return prisma.leaveEntitlement.upsert({
       where: {
         employeeId_leaveTypeId_year: {
@@ -485,10 +518,15 @@ export const leaveRepository = {
     return rows.map((r) => {
       const employeeMethod = (r.accrualMethod ?? null) as LeaveAccrualMethod | null
       const policyMethod = policyMethodIndex.get(r.leaveTypeId) ?? null
-      const effectiveMethod: LeaveAccrualMethod =
-        employeeMethod ??
-        policyMethod ??
-        (r.leaveType.accrualMethod as LeaveAccrualMethod)
+      // ANNUAL-only constraint: only Annual Leave can resolve to
+      // PRO_RATED. See resolveAccrualMethod for the same gate.
+      const isAnnual =
+        (r.leaveType.code ?? "").trim().toUpperCase() === "ANNUAL"
+      const effectiveMethod: LeaveAccrualMethod = !isAnnual
+        ? "LUMP_SUM"
+        : (employeeMethod ??
+            policyMethod ??
+            (r.leaveType.accrualMethod as LeaveAccrualMethod))
       return {
         id: r.id,
         employeeId: r.employeeId,

@@ -15,6 +15,11 @@ export type LeaveTypeInput = {
   name: string
   paid: boolean
   accrualMethod: LeaveAccrualMethod
+  /// Only meaningful when Annual + LUMP_SUM — the seeder prorates
+  /// the year-of-hire quota for mid-year hires; year 2+ resets to
+  /// full. Coerced to false for any other combination in the
+  /// service before persisting.
+  prorateFirstYear?: boolean
   defaultDays: number
   carryForward: boolean
   carryExpiryMonth: number | null
@@ -61,10 +66,11 @@ export async function createLeaveType(
   const v = validateLeaveTypeInput(input)
   if (!v.ok) return v
   try {
+    const sanitised = sanitiseProrateFirstYear(input)
     const view = await leaveRepository.createType(orgId, {
-      ...input,
-      code: input.code.trim().toUpperCase(),
-      name: input.name.trim(),
+      ...sanitised,
+      code: sanitised.code.trim().toUpperCase(),
+      name: sanitised.name.trim(),
     })
     await bustLeaveCaches({ organizationId: orgId })
     return { ok: true, value: view }
@@ -84,17 +90,31 @@ export async function updateLeaveType(
 ): Promise<Result<LeaveTypeView>> {
   const v = validateLeaveTypeInput(input)
   if (!v.ok) return v
+  const sanitised = sanitiseProrateFirstYear(input)
   const view = await leaveRepository.updateType(orgId, id, {
-    name: input.name.trim(),
-    paid: input.paid,
-    accrualMethod: input.accrualMethod,
-    defaultDays: input.paid ? input.defaultDays : 0,
-    carryForward: input.carryForward,
-    carryExpiryMonth: input.carryForward ? input.carryExpiryMonth : null,
-    maxCarryForwardDays: input.maxCarryForwardDays,
+    name: sanitised.name.trim(),
+    paid: sanitised.paid,
+    accrualMethod: sanitised.accrualMethod,
+    prorateFirstYear: sanitised.prorateFirstYear ?? false,
+    defaultDays: sanitised.paid ? sanitised.defaultDays : 0,
+    carryForward: sanitised.carryForward,
+    carryExpiryMonth: sanitised.carryForward ? sanitised.carryExpiryMonth : null,
+    maxCarryForwardDays: sanitised.maxCarryForwardDays,
   })
   await bustLeaveCaches({ organizationId: orgId })
   return { ok: true, value: view }
+}
+
+/// Coerce `prorateFirstYear` to `false` whenever it can't apply
+/// (non-Annual type, or PRO_RATED — proration is already implicit).
+/// Defensive: prevents stale `true` from sticking around when an
+/// admin flips Annual back to PRO_RATED then back to LUMP_SUM.
+function sanitiseProrateFirstYear(input: LeaveTypeInput): LeaveTypeInput {
+  const isAnnual = isAnnualCode(input.code)
+  if (!isAnnual || input.accrualMethod !== "LUMP_SUM") {
+    return { ...input, prorateFirstYear: false }
+  }
+  return { ...input, prorateFirstYear: input.prorateFirstYear ?? false }
 }
 
 export async function archiveLeaveType(

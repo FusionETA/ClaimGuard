@@ -74,13 +74,21 @@ export async function resolveAccrualMethod(
     }),
     prisma.leaveType.findUnique({
       where: { id: leaveTypeId },
-      select: { accrualMethod: true },
+      select: { accrualMethod: true, code: true },
     }),
     prisma.employeeProfile.findUnique({
       where: { id: employeeId },
       select: { policyId: true },
     }),
   ])
+
+  // ANNUAL-only constraint: only Annual Leave can ever resolve to
+  // PRO_RATED. Every other leave type is LUMP_SUM by design (Malaysian
+  // statutory medical / compassionate / etc. are all lump-sum-at-hire-
+  // anniversary). Defensive read: any leftover PRO_RATED override on
+  // a non-ANNUAL type in the DB is ignored. See plan in
+  // ~/.claude/plans/when-the-first-layer-synthetic-knuth.md.
+  if (!isAnnualCode(type?.code)) return "LUMP_SUM"
 
   if (entitlement?.accrualMethod) {
     return entitlement.accrualMethod as LeaveAccrualMethod
@@ -99,14 +107,29 @@ export async function resolveAccrualMethod(
   return (type?.accrualMethod ?? "LUMP_SUM") as LeaveAccrualMethod
 }
 
+/// True iff this leave-type code identifies the Annual leave type.
+/// Single source of truth for the ANNUAL-only PRO_RATED rule — every
+/// other entry point reuses this so the constraint is consistent.
+export function isAnnualCode(code: string | null | undefined): boolean {
+  return (code ?? "").trim().toUpperCase() === "ANNUAL"
+}
+
 /// Same as `resolveAccrualMethod` but operates on already-loaded layer
 /// values. Use this when batch-resolving many (employee, type) pairs to
 /// avoid N+1 queries.
+///
+/// Pass `typeCode` so the ANNUAL-only constraint can be applied without
+/// another DB lookup. Callers that already join `leaveType.code` (the
+/// cron does) get short-circuiting for free.
 export function resolveAccrualMethodFromLayers(layers: {
   employeeMethod: LeaveAccrualMethod | null
   policyMethod: LeaveAccrualMethod | null
   typeMethod: LeaveAccrualMethod
+  typeCode?: string | null
 }): LeaveAccrualMethod {
+  if (layers.typeCode !== undefined && !isAnnualCode(layers.typeCode)) {
+    return "LUMP_SUM"
+  }
   return layers.employeeMethod ?? layers.policyMethod ?? layers.typeMethod
 }
 
@@ -162,6 +185,22 @@ export async function ensureEntitlement(
       targetYear: year,
       now: new Date(),
     })
+  } else if (type.prorateFirstYear && isAnnualCode(type.code)) {
+    // LUMP_SUM Annual with "prorate first year" set: if the
+    // employee joined in this seeding year, the year-of-hire amount
+    // is prorated by months worked. Year 2+ gets full quota via the
+    // year-rollover cron.
+    const joinDate = await leaveRepository.getEmployeeJoinDate(employeeId)
+    if (joinDate && joinDate.getUTCFullYear() === year) {
+      accruedDays = initialProRatedAccrual({
+        entitledDays,
+        joinDate,
+        targetYear: year,
+        now: new Date(Date.UTC(year, 11, 31)),
+      })
+    } else {
+      accruedDays = entitledDays
+    }
   } else {
     accruedDays = entitledDays
   }
@@ -343,7 +382,13 @@ export async function seedEmployeeLeaveEntitlements(args: {
 
   const types = await prisma.leaveType.findMany({
     where: { organizationId: orgId, archivedAt: null },
-    select: { id: true, accrualMethod: true, defaultDays: true },
+    select: {
+      id: true,
+      accrualMethod: true,
+      defaultDays: true,
+      code: true,
+      prorateFirstYear: true,
+    },
   })
   if (types.length === 0) return
 
@@ -375,7 +420,10 @@ export async function seedEmployeeLeaveEntitlements(args: {
       (await resolveAccrualMethod(args.employeeProfileId, t.id, year))
 
     // For PRO_RATED, seed accruedDays with join-date-aware backfill.
-    // For LUMP_SUM, accrued mirrors entitled.
+    // For LUMP_SUM, accrued mirrors entitled — except when the leave
+    // type opts into "prorate first year" AND the employee joined in
+    // this seeding year. Year 2+ gets the full quota via the
+    // year-rollover cron.
     let accruedDays: number
     if (effectiveMethod === "PRO_RATED") {
       const joinDate = await leaveRepository.getEmployeeJoinDate(
@@ -387,6 +435,25 @@ export async function seedEmployeeLeaveEntitlements(args: {
         targetYear: year,
         now: new Date(),
       })
+    } else if (t.prorateFirstYear && isAnnualCode(t.code)) {
+      const joinDate = await leaveRepository.getEmployeeJoinDate(
+        args.employeeProfileId,
+      )
+      if (joinDate && joinDate.getUTCFullYear() === year) {
+        // Year-of-hire LUMP_SUM prorate: amount = entitledDays ×
+        // (months remaining in year from join). Reuses
+        // initialProRatedAccrual evaluated at year-end, which by
+        // construction gives the total months-worked value.
+        accruedDays = initialProRatedAccrual({
+          entitledDays,
+          joinDate,
+          targetYear: year,
+          now: new Date(Date.UTC(year, 11, 31)),
+        })
+      } else {
+        // Joined in a previous year (or no joinDate): full quota.
+        accruedDays = entitledDays
+      }
     } else {
       accruedDays = entitledDays
     }
@@ -447,7 +514,14 @@ export async function recomputeProRatedAccrualForEmployee(
     const rows = await prisma.leaveEntitlement.findMany({
       where: { employeeId: employeeProfileId, year, usedDays: 0 },
       include: {
-        leaveType: { select: { id: true, accrualMethod: true } },
+        leaveType: {
+          select: {
+            id: true,
+            accrualMethod: true,
+            code: true,
+            prorateFirstYear: true,
+          },
+        },
       },
     })
 
@@ -456,13 +530,24 @@ export async function recomputeProRatedAccrualForEmployee(
       // Filter 4: skip rows with an explicit per-employee method override.
       if (row.accrualMethod !== null) continue
 
-      // Filter 1: effective method must be PRO_RATED.
+      // Filter 1: effective method drives which recompute path to use.
       const effectiveMethod = await resolveAccrualMethod(
         employeeProfileId,
         row.leaveTypeId,
         year,
       )
-      if (effectiveMethod !== "PRO_RATED") continue
+
+      // For PRO_RATED, recompute via the standard backfill helper.
+      // For LUMP_SUM with prorate-first-year + Annual + this-year
+      // hire, recompute the year-end full-year prorated total.
+      // Anything else: skip.
+      const isLumpSumProrate =
+        effectiveMethod === "LUMP_SUM" &&
+        row.leaveType.prorateFirstYear &&
+        isAnnualCode(row.leaveType.code) &&
+        joinDate?.getUTCFullYear() === year
+
+      if (effectiveMethod !== "PRO_RATED" && !isLumpSumProrate) continue
 
       // Filter 3: skip if entitledDays differs from the resolved
       // default (i.e. admin has overridden days for this row).
@@ -472,11 +557,18 @@ export async function recomputeProRatedAccrualForEmployee(
       )
       if (row.entitledDays !== resolvedDays) continue
 
+      // For LUMP_SUM-prorate the year-of-hire amount is fixed at
+      // hire (not growing through the year), so we evaluate the
+      // helper at year-end. For PRO_RATED, we evaluate at "now"
+      // because the value should grow through the year.
+      const now = isLumpSumProrate
+        ? new Date(Date.UTC(year, 11, 31))
+        : new Date()
       const nextAccrued = initialProRatedAccrual({
         entitledDays: row.entitledDays,
         joinDate,
         targetYear: year,
-        now: new Date(),
+        now,
       })
 
       // Skip the write when nothing changed (avoids burning Redis
@@ -526,6 +618,16 @@ export type EmployeeLeaveBalances = {
   role: "EMPLOYEE" | "SUPERVISOR" | "ADMIN" | "OWNER"
   jobTitle: string
   balances: LeaveEntitlementView[]
+  /// Where this employee's leave config resolves from, overall:
+  ///   "custom"  — any per-employee LeaveEntitlement override is set
+  ///   "policy"  — no per-employee override, but their policy has
+  ///               at least one PolicyLeaveEntitlement override
+  ///   "default" — both layers empty; type defaults all the way
+  ///
+  /// Pre-computed server-side so the admin balances grid doesn't
+  /// have to re-derive it per render. The supervisor view ignores
+  /// this field.
+  leaveSource: "default" | "policy" | "custom"
 }
 
 /// All employees in an org with their leave balances for the given year.
@@ -547,11 +649,16 @@ export async function listAllEmployeeBalancesForOrg(
     },
     select: {
       id: true,
+      policyId: true,
       jobTitle: true,
       user: { select: { id: true, name: true, email: true, role: true } },
     },
     orderBy: { user: { name: "asc" } },
   })
+
+  // Pre-load type-defaults and policy-overrides once for the org so
+  // computeLeaveSource doesn't need N×T extra queries.
+  const ctx = await loadLeaveSourceContext(prisma, organizationId)
 
   return Promise.all(
     employees.map(async (e) => ({
@@ -562,8 +669,87 @@ export async function listAllEmployeeBalancesForOrg(
       role: e.user.role as EmployeeLeaveBalances["role"],
       jobTitle: e.jobTitle,
       balances: await listEmployeeBalances(e.id, year),
+      leaveSource: await computeLeaveSourceForEmployee({
+        prisma,
+        employeeProfileId: e.id,
+        employeePolicyId: e.policyId,
+        year,
+        ctx,
+      }),
     })),
   )
+}
+
+/// Loads the per-org data needed to classify each employee's
+/// leave source. Shared by both balance list endpoints so the
+/// supervisor view also gets the same labelling for the (yet-unused)
+/// leaveSource field.
+async function loadLeaveSourceContext(
+  prisma: NonNullable<ReturnType<typeof getLeavePrismaClientSafe>>,
+  organizationId: string,
+) {
+  const [types, policyDefaults] = await Promise.all([
+    prisma.leaveType.findMany({
+      where: { organizationId, archivedAt: null },
+      select: { id: true, paid: true, defaultDays: true, accrualMethod: true },
+    }),
+    prisma.policyLeaveEntitlement.findMany({
+      where: { policy: { organizationId } },
+      select: {
+        policyId: true,
+        leaveTypeId: true,
+        defaultDays: true,
+        accrualMethod: true,
+      },
+    }),
+  ])
+  return {
+    typesById: new Map(types.map((t) => [t.id, t])),
+    policyDefaults,
+  }
+}
+
+async function computeLeaveSourceForEmployee(args: {
+  prisma: NonNullable<ReturnType<typeof getLeavePrismaClientSafe>>
+  employeeProfileId: string
+  employeePolicyId: string | null
+  year: number
+  ctx: Awaited<ReturnType<typeof loadLeaveSourceContext>>
+}): Promise<"default" | "policy" | "custom"> {
+  const entitlements = await args.prisma.leaveEntitlement.findMany({
+    where: { employeeId: args.employeeProfileId, year: args.year },
+    select: {
+      leaveTypeId: true,
+      entitledDays: true,
+      accrualMethod: true,
+    },
+  })
+
+  // Pass 1 — any per-employee override on a paid type?
+  for (const e of entitlements) {
+    const t = args.ctx.typesById.get(e.leaveTypeId)
+    if (!t || !t.paid) continue
+    if (e.accrualMethod !== null) return "custom"
+    const policyForThis = args.ctx.policyDefaults.find(
+      (d) =>
+        d.policyId === args.employeePolicyId &&
+        d.leaveTypeId === e.leaveTypeId,
+    )
+    const resolvedDefault = policyForThis?.defaultDays ?? t.defaultDays
+    if (Math.abs(e.entitledDays - resolvedDefault) > 0.001) return "custom"
+  }
+
+  // Pass 2 — any policy override on the employee's policy?
+  if (args.employeePolicyId) {
+    for (const d of args.ctx.policyDefaults) {
+      if (d.policyId !== args.employeePolicyId) continue
+      const t = args.ctx.typesById.get(d.leaveTypeId)
+      if (!t || !t.paid) continue
+      if (d.accrualMethod !== null) return "policy"
+      if (Math.abs(d.defaultDays - t.defaultDays) > 0.001) return "policy"
+    }
+  }
+  return "default"
 }
 
 /// Direct-reports view for supervisors. Returns balances only for the
@@ -585,11 +771,25 @@ export async function listTeamBalancesForSupervisor(
     where: { userId: { in: memberIds } },
     select: {
       id: true,
+      policyId: true,
       jobTitle: true,
-      user: { select: { id: true, name: true, email: true, role: true } },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          organizationId: true,
+        },
+      },
     },
     orderBy: { user: { name: "asc" } },
   })
+
+  // Use whichever org the team members belong to (they all share one
+  // — supervisor + reports are always in the same org).
+  const orgId = employees[0]?.user.organizationId
+  const ctx = orgId ? await loadLeaveSourceContext(prisma, orgId) : null
 
   return Promise.all(
     employees.map(async (e) => ({
@@ -600,6 +800,15 @@ export async function listTeamBalancesForSupervisor(
       role: e.user.role as EmployeeLeaveBalances["role"],
       jobTitle: e.jobTitle,
       balances: await listEmployeeBalances(e.id, year),
+      leaveSource: ctx
+        ? await computeLeaveSourceForEmployee({
+            prisma,
+            employeeProfileId: e.id,
+            employeePolicyId: e.policyId,
+            year,
+            ctx,
+          })
+        : ("default" as const),
     })),
   )
 }

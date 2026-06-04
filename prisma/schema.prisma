@@ -1621,6 +1621,13 @@ model LeaveType {
   /// expected-hours is NOT reduced when an employee takes this leave.
   paid                Boolean                  @default(true)
   accrualMethod       LeaveAccrualMethod       @default(LUMP_SUM)
+  /// When true AND `accrualMethod === LUMP_SUM`, mid-year hires get a
+  /// prorated portion of `defaultDays` in their year-of-hire only.
+  /// Year 2+ resets to the full quota via the year-rollover cron.
+  /// Only meaningful for the Annual Leave type (admins are gated to
+  /// Annual in the LeaveTypeDialog). Ignored for PRO_RATED (which
+  /// already prorates by design) and for non-Annual types.
+  prorateFirstYear    Boolean                  @default(false)
   /// Fallback org-wide default entitlement when no PolicyLeaveEntitlement
   /// row exists for the employee's policy.
   defaultDays         Float                    @default(0)

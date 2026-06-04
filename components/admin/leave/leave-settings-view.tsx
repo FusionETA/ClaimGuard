@@ -47,6 +47,10 @@ type LeaveTypeRow = {
   name: string
   paid: boolean
   accrualMethod: "LUMP_SUM" | "PRO_RATED"
+  /// Only meaningful for Annual + LUMP_SUM. The LeaveTypeDialog
+  /// surfaces the checkbox; the seeder reads it when creating
+  /// LeaveEntitlement rows for a year-of-hire employee.
+  prorateFirstYear: boolean
   defaultDays: number
   carryForward: boolean
   carryExpiryMonth: number | null
@@ -130,6 +134,9 @@ export function LeaveSettingsView(props: {
             leaveTypes={props.leaveTypes}
             onEdit={(t) => setEditingType(t)}
           />
+          {annualType && (
+            <AnnualProrateFirstYearCard annualType={annualType} />
+          )}
           {annualType && <AnnualLeaveCard annualType={annualType} />}
         </>
       )}
@@ -291,6 +298,122 @@ function LeaveTypesCard(props: {
 // Annual-leave carry-forward + expiry card
 // ---------------------------------------------------------------------------
 
+/// Annual-leave-only setting: when LUMP_SUM, should mid-year hires
+/// get a prorated quota in their year of hire (year 2+ resets to
+/// full)? Shown as a toggle in its own card on the Leave Types tab
+/// so admins don't have to dive into the edit dialog to find it.
+///
+/// Hidden entirely (returns null) when Annual Leave's accrualMethod
+/// is PRO_RATED — proration is already part of that model and the
+/// flag has no effect, so showing it would be misleading.
+function AnnualProrateFirstYearCard({
+  annualType,
+}: {
+  annualType: LeaveTypeRow
+}) {
+  const [enabled, setEnabled] = useState(annualType.prorateFirstYear)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  if (annualType.accrualMethod !== "LUMP_SUM") return null
+
+  function flip(next: boolean) {
+    setEnabled(next)
+    setError(null)
+    // Build the full type patch — `updateLeaveTypeAction` expects
+    // every field, then preserves the others as-is.
+    const fd = new FormData()
+    fd.set("code", annualType.code)
+    fd.set("name", annualType.name)
+    if (annualType.paid) fd.set("paid", "on")
+    fd.set("accrualMethod", annualType.accrualMethod)
+    fd.set("defaultDays", String(annualType.defaultDays))
+    if (annualType.carryForward) fd.set("carryForward", "on")
+    if (annualType.carryForward && annualType.carryExpiryMonth != null) {
+      fd.set("carryExpiryMonth", String(annualType.carryExpiryMonth))
+    }
+    if (annualType.maxCarryForwardDays != null) {
+      fd.set("maxCarryForwardDays", String(annualType.maxCarryForwardDays))
+    }
+    if (next) fd.set("prorateFirstYear", "on")
+    startTransition(async () => {
+      const res = await updateLeaveTypeAction(annualType.id, fd)
+      if (!res.ok) {
+        setError(res.error)
+        setEnabled(!next) // revert the optimistic flip
+      }
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Annual leave — first-year proration</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          When ON, mid-year hires get a prorated annual quota in their
+          year of hire (e.g. <span className="font-mono">14 × months-remaining / 12</span>).
+          From year 2 onwards everyone gets the full quota on Jan 1.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Prorate first year for new hires
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Applies to every employee whose joinDate falls in this
+              calendar year. Existing rows aren't recomputed
+              retroactively — only newly-seeded entitlements and rows
+              touched by a joinDate save will pick up the new setting.
+            </p>
+          </div>
+          <Switch enabled={enabled} pending={pending} onChange={flip} />
+        </div>
+        {error && (
+          <p className="mt-2 text-sm text-destructive">{error}</p>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+/// Tailwind-only toggle. Same a11y semantics as a checkbox (button
+/// with role="switch" + aria-checked). Avoids adding a Radix Switch
+/// dep just for this one control.
+function Switch({
+  enabled,
+  pending,
+  onChange,
+}: {
+  enabled: boolean
+  pending: boolean
+  onChange: (next: boolean) => void
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      disabled={pending}
+      onClick={() => onChange(!enabled)}
+      className={
+        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed " +
+        (enabled
+          ? "bg-primary border-primary"
+          : "bg-muted border-border/60")
+      }
+    >
+      <span
+        className={
+          "inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform " +
+          (enabled ? "translate-x-5" : "translate-x-0.5")
+        }
+      />
+    </button>
+  )
+}
+
 function AnnualLeaveCard({ annualType }: { annualType: LeaveTypeRow }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -422,6 +545,12 @@ function LeaveTypeDialog(props: {
     fd.set("name", name)
     if (paid) fd.set("paid", "on")
     fd.set("accrualMethod", effectiveAccrual)
+    // Preserve the type's existing prorate-first-year value (it's
+    // edited on the dedicated AnnualProrateFirstYearCard below the
+    // Leave Types table, not in this dialog). Default false for new
+    // types — the toggle defaults off and is only meaningful for
+    // Annual + LUMP_SUM anyway.
+    if (t?.prorateFirstYear) fd.set("prorateFirstYear", "on")
     fd.set("defaultDays", paid ? defaultDays : "0")
     // Carry-forward fields are managed on the AnnualLeaveCard — preserve
     // the existing values when editing an existing row.
@@ -648,11 +777,11 @@ function PolicyCollapsibleCard({
                 Default
               </Badge>
             )}
-            {overrideCount > 0 && (
-              <Badge variant="default" className="text-[10px]">
-                {overrideCount} override{overrideCount === 1 ? "" : "s"}
-              </Badge>
-            )}
+            {/* Source pill: Default (green) if no per-policy
+                overrides, Custom (red) if any leave type is
+                overridden. Same colour language as the per-employee
+                pill on the picker / balances grid. */}
+            <PolicySourceBadge overrideCount={overrideCount} />
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {overrideCount === 0
@@ -768,38 +897,43 @@ function PolicyOverrideRow(props: {
           disabled={pending}
         />
       </TableCell>
+      {/* ANNUAL-only PRO_RATED rule: method dropdown is only available
+          for Annual Leave. For every other type the cell is empty
+          (the constraint matches the LeaveTypeDialog gate). */}
       <TableCell>
-        <Select
-          value={methodSelectValue}
-          onValueChange={(v) => {
-            const next: "LUMP_SUM" | "PRO_RATED" | null =
-              v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
-            startTransition(() =>
-              setPolicyDefaultAction({
-                policyId: props.policyId,
-                leaveTypeId: props.leaveType.id,
-                accrualMethod: next,
-              }),
-            )
-          }}
-          disabled={pending}
-        >
-          <SelectTrigger
-            className={
-              "h-9 w-44 text-sm " +
-              (isOverriddenMethod ? "" : "text-muted-foreground")
-            }
+        {props.leaveType.code.toUpperCase() === "ANNUAL" ? (
+          <Select
+            value={methodSelectValue}
+            onValueChange={(v) => {
+              const next: "LUMP_SUM" | "PRO_RATED" | null =
+                v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
+              startTransition(() =>
+                setPolicyDefaultAction({
+                  policyId: props.policyId,
+                  leaveTypeId: props.leaveType.id,
+                  accrualMethod: next,
+                }),
+              )
+            }}
+            disabled={pending}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__DEFAULT__">
-              Inherit from type ({props.leaveType.accrualMethod === "PRO_RATED" ? "pro-rated" : "lump sum"})
-            </SelectItem>
-            <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
-            <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              className={
+                "h-9 w-44 text-sm " +
+                (isOverriddenMethod ? "" : "text-muted-foreground")
+              }
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__DEFAULT__">
+                Inherit from type ({props.leaveType.accrualMethod === "PRO_RATED" ? "pro-rated" : "lump sum"})
+              </SelectItem>
+              <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
+              <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : null}
       </TableCell>
     </TableRow>
   )
@@ -837,13 +971,45 @@ function EmployeeEntitlementsTab(props: {
     return map
   }, [props.entitlements])
 
-  // (policyId × leaveTypeId) → policy-layer method override (if any).
-  // Used to compute the inherited method label per row when the
-  // selected employee has a policy.
-  const policyMethodLookup = useMemo(() => {
-    const map = new Map<string, "LUMP_SUM" | "PRO_RATED" | null>()
+  // (policyId × leaveTypeId) → policy-layer overrides (both days and
+  // method, if any). Used to compute the inherited values per row
+  // when the selected employee has a policy. Combined into one map so
+  // we don't pay two lookups per row.
+  // Per-employee LeaveEntitlement rows, indexed by employee id, so
+  // the picker can show an at-a-glance "Default / Policy / Custom"
+  // pill next to each name. Built once per render and consumed by
+  // both the picker (left pane) and the parent SelectedHeader.
+  const entitlementsByEmployee = useMemo(() => {
+    const map = new Map<
+      string,
+      Array<{
+        leaveTypeId: string
+        entitledDays: number
+        accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+      }>
+    >()
+    for (const e of props.entitlements) {
+      const list = map.get(e.employeeId) ?? []
+      list.push({
+        leaveTypeId: e.leaveTypeId,
+        entitledDays: e.entitledDays,
+        accrualMethod: e.accrualMethod,
+      })
+      map.set(e.employeeId, list)
+    }
+    return map
+  }, [props.entitlements])
+
+  const policyOverrideLookup = useMemo(() => {
+    const map = new Map<
+      string,
+      { days: number | null; method: "LUMP_SUM" | "PRO_RATED" | null }
+    >()
     for (const d of props.policyDefaults) {
-      map.set(`${d.policyId}:${d.leaveTypeId}`, d.accrualMethod)
+      map.set(`${d.policyId}:${d.leaveTypeId}`, {
+        days: d.defaultDays,
+        method: d.accrualMethod,
+      })
     }
     return map
   }, [props.policyDefaults])
@@ -894,20 +1060,31 @@ function EmployeeEntitlementsTab(props: {
             {filteredEmployees.length === 0 ? (
               <div className="p-3 text-sm text-muted-foreground">No matches.</div>
             ) : (
-              filteredEmployees.map((e) => (
-                <button
-                  key={e.id}
-                  type="button"
-                  onClick={() => setSelectedEmployeeId(e.id)}
-                  className={
-                    "w-full text-left px-3 py-2 text-sm transition-colors hover:bg-muted " +
-                    (selectedEmployeeId === e.id ? "bg-muted font-medium" : "")
-                  }
-                >
-                  <div>{e.name}</div>
-                  <div className="text-xs text-muted-foreground">{e.email}</div>
-                </button>
-              ))
+              filteredEmployees.map((e) => {
+                const source = resolveEmployeeLeaveSource({
+                  employeePolicyId: e.policyId,
+                  leaveTypes: props.leaveTypes,
+                  policyDefaults: props.policyDefaults,
+                  employeeEntitlements: entitlementsByEmployee.get(e.id) ?? [],
+                })
+                return (
+                  <button
+                    key={e.id}
+                    type="button"
+                    onClick={() => setSelectedEmployeeId(e.id)}
+                    className={
+                      "w-full text-left px-3 py-2 text-sm transition-colors hover:bg-muted " +
+                      (selectedEmployeeId === e.id ? "bg-muted font-medium" : "")
+                    }
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate">{e.name}</span>
+                      <LeaveSourceBadge source={source} />
+                    </div>
+                    <div className="text-xs text-muted-foreground">{e.email}</div>
+                  </button>
+                )
+              })
             )}
           </div>
         </CardContent>
@@ -942,21 +1119,19 @@ function EmployeeEntitlementsTab(props: {
               <TableBody>
                 {props.leaveTypes.map((t) => {
                   const cell = lookup.get(`${selected.id}:${t.id}`) ?? null
-                  // The "Inherit" option's label shows what this row
-                  // would resolve to without a per-employee override —
-                  // policy-layer method (if set) then type method.
                   const policyOverride = selected.policyId
-                    ? (policyMethodLookup.get(
+                    ? (policyOverrideLookup.get(
                         `${selected.policyId}:${t.id}`,
                       ) ?? null)
                     : null
-                  const inheritedMethod = policyOverride ?? t.accrualMethod
+                  const inheritedMethod =
+                    policyOverride?.method ?? t.accrualMethod
                   // Whether the inherited method came from a policy
                   // override (vs. directly from the type). Drives the
                   // label so the admin knows which layer they're
                   // falling back to.
                   const inheritedFrom: "policy" | "type" =
-                    policyOverride != null ? "policy" : "type"
+                    policyOverride?.method != null ? "policy" : "type"
                   return (
                     <EmployeeEntitlementRow
                       key={t.id}
@@ -976,6 +1151,155 @@ function EmployeeEntitlementsTab(props: {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+/// What source layer is "in effect" for this employee, summarised
+/// across every paid leave type in the org.
+///
+///   - "custom"  → at least one LeaveEntitlement row has a per-
+///                 employee override (days differ from the resolved
+///                 default, OR accrualMethod is non-null).
+///   - "policy"  → no per-employee override anywhere, but the
+///                 employee's policy has at least one
+///                 PolicyLeaveEntitlement override (days or method).
+///   - "default" → both layers are empty; resolves entirely to the
+///                 leave type's `defaultDays` / `accrualMethod`.
+export type EmployeeLeaveSource = "default" | "policy" | "custom"
+
+/// Compute the overall source for a single employee. Pure function
+/// so we can call it from both the Settings → Per-employee picker
+/// (with policyDefaults + employeeEntitlements props in scope) and
+/// the admin balances grid (server pre-computes it on the
+/// EmployeeLeaveBalances payload).
+export function resolveEmployeeLeaveSource({
+  employeePolicyId,
+  leaveTypes,
+  policyDefaults,
+  employeeEntitlements,
+}: {
+  employeePolicyId: string | null
+  leaveTypes: Array<{ id: string; defaultDays: number; accrualMethod: "LUMP_SUM" | "PRO_RATED"; paid: boolean }>
+  /// All policy-default rows for this org (we filter by policy below).
+  policyDefaults: Array<{
+    policyId: string
+    leaveTypeId: string
+    defaultDays: number
+    accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+  }>
+  /// Per-employee LeaveEntitlement rows for *this* employee only.
+  employeeEntitlements: Array<{
+    leaveTypeId: string
+    entitledDays: number
+    accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+  }>
+}): EmployeeLeaveSource {
+  const typesById = new Map(leaveTypes.map((t) => [t.id, t]))
+  const policyByLeaveTypeId = new Map(
+    policyDefaults
+      .filter((d) => d.policyId === employeePolicyId)
+      .map((d) => [d.leaveTypeId, d]),
+  )
+
+  // Pass 1 — any per-employee override on a paid leave type?
+  for (const e of employeeEntitlements) {
+    const t = typesById.get(e.leaveTypeId)
+    if (!t || !t.paid) continue
+    if (e.accrualMethod !== null) return "custom"
+    const resolvedDefault =
+      policyByLeaveTypeId.get(e.leaveTypeId)?.defaultDays ?? t.defaultDays
+    if (Math.abs(e.entitledDays - resolvedDefault) > 0.001) return "custom"
+  }
+
+  // Pass 2 — any policy override (for the employee's policy)?
+  if (employeePolicyId) {
+    for (const d of policyDefaults) {
+      if (d.policyId !== employeePolicyId) continue
+      const t = typesById.get(d.leaveTypeId)
+      if (!t || !t.paid) continue
+      if (d.accrualMethod !== null) return "policy"
+      if (Math.abs(d.defaultDays - t.defaultDays) > 0.001) return "policy"
+    }
+  }
+
+  return "default"
+}
+
+/// Pill for a policy card: shows whether this policy follows the
+/// type defaults (Default, green) or has its own per-leave-type
+/// overrides (Custom, red). Same colour language as the per-employee
+/// `LeaveSourceBadge` below so admins read both pills the same way.
+function PolicySourceBadge({ overrideCount }: { overrideCount: number }) {
+  const isCustom = overrideCount > 0
+  const tooltip = isCustom
+    ? `This policy has ${overrideCount} per-leave-type override${
+        overrideCount === 1 ? "" : "s"
+      }. Employees on this policy inherit those values unless they have a per-employee override.`
+    : "This policy has no overrides. Employees on it follow the leave types' org-wide defaults."
+  const colorClass = isCustom
+    ? "border-rose-300 bg-rose-50 text-rose-700"
+    : "border-emerald-300 bg-emerald-50 text-emerald-700"
+  return (
+    <span
+      className={
+        "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide " +
+        colorClass
+      }
+      title={tooltip}
+    >
+      {isCustom ? "Custom" : "Default"}
+    </span>
+  )
+}
+
+/// Small distinct-color pill for an employee's leave source.
+/// Three states are visually separated so admins can scan a list
+/// without reading every label:
+///   Default — green (matches type defaults all the way up)
+///   Policy  — blue  (follows the policy's overrides)
+///   Custom  — red   (per-employee override exists)
+///
+/// Sized smaller than the standard `Supervisor` outline pill so
+/// the two don't visually clash when both appear next to a name.
+function LeaveSourceBadge({
+  source,
+  className,
+}: {
+  source: EmployeeLeaveSource
+  className?: string
+}) {
+  const label =
+    source === "custom"
+      ? "Custom"
+      : source === "policy"
+        ? "Policy"
+        : "Default"
+  const tooltip =
+    source === "custom"
+      ? "Has at least one per-employee leave override (entitled days or accrual method)."
+      : source === "policy"
+        ? "Follows the employee's policy. Their policy has at least one leave-type override."
+        : "Follows the leave type defaults. No policy or per-employee overrides apply."
+  // Hard-code colours per state — the Badge primitive's variant set
+  // doesn't include matching red/blue/green so we set them inline.
+  // text-[9px] + tighter padding shrinks vs. the standard 10px pills.
+  const colorClass =
+    source === "default"
+      ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+      : source === "policy"
+        ? "border-sky-300 bg-sky-50 text-sky-700"
+        : "border-rose-300 bg-rose-50 text-rose-700"
+  return (
+    <span
+      className={
+        "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide " +
+        colorClass +
+        (className ? ` ${className}` : "")
+      }
+      title={tooltip}
+    >
+      {label}
+    </span>
   )
 }
 
@@ -1054,47 +1378,52 @@ function EmployeeEntitlementRow(props: {
           disabled={pending}
         />
       </TableCell>
+      {/* ANNUAL-only PRO_RATED rule: method dropdown is only shown
+          for Annual Leave. Other types render an empty cell so the
+          table layout stays aligned. */}
       <TableCell>
-        <Select
-          value={methodSelectValue}
-          onValueChange={(v) => {
-            const next: "LUMP_SUM" | "PRO_RATED" | null =
-              v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
-            startTransition(() =>
-              setEmployeeEntitlementAction({
-                employeeId: props.employeeId,
-                leaveTypeId: props.leaveType.id,
-                year: props.year,
-                accrualMethod: next,
-              }),
-            )
-          }}
-          disabled={pending}
-        >
-          <SelectTrigger
-            className={
-              "h-9 w-44 text-sm " +
-              (methodSelectValue === "__DEFAULT__"
-                ? "text-muted-foreground"
-                : "")
-            }
+        {props.leaveType.code.toUpperCase() === "ANNUAL" ? (
+          <Select
+            value={methodSelectValue}
+            onValueChange={(v) => {
+              const next: "LUMP_SUM" | "PRO_RATED" | null =
+                v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
+              startTransition(() =>
+                setEmployeeEntitlementAction({
+                  employeeId: props.employeeId,
+                  leaveTypeId: props.leaveType.id,
+                  year: props.year,
+                  accrualMethod: next,
+                }),
+              )
+            }}
+            disabled={pending}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__DEFAULT__">
-              {props.inheritedFrom === "policy"
-                ? `Inherit from policy (${
-                    props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
-                  })`
-                : `Inherit from type (${
-                    props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
-                  })`}
-            </SelectItem>
-            <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
-            <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              className={
+                "h-9 w-44 text-sm " +
+                (methodSelectValue === "__DEFAULT__"
+                  ? "text-muted-foreground"
+                  : "")
+              }
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__DEFAULT__">
+                {props.inheritedFrom === "policy"
+                  ? `Inherit from policy (${
+                      props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
+                    })`
+                  : `Inherit from type (${
+                      props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
+                    })`}
+              </SelectItem>
+              <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
+              <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : null}
       </TableCell>
       <TableCell className="text-right">
         <Button

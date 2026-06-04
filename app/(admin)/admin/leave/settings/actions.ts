@@ -39,11 +39,15 @@ function parseTypeFormData(formData: FormData): LeaveTypeInput {
   const accrualMethod = (String(formData.get("accrualMethod") ?? "LUMP_SUM") as LeaveAccrualMethod)
   const carryExpiryMonthRaw = formData.get("carryExpiryMonth")
   const maxRaw = formData.get("maxCarryForwardDays")
+  const prorateFirstYear =
+    formData.get("prorateFirstYear") === "on" ||
+    formData.get("prorateFirstYear") === "true"
   return {
     code: String(formData.get("code") ?? "").trim(),
     name: String(formData.get("name") ?? "").trim(),
     paid,
     accrualMethod,
+    prorateFirstYear,
     defaultDays: paid ? Number(formData.get("defaultDays") ?? 0) : 0,
     carryForward,
     carryExpiryMonth: carryForward && carryExpiryMonthRaw ? Number(carryExpiryMonthRaw) : null,

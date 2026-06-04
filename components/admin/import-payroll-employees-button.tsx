@@ -57,15 +57,22 @@ export type BulkImportPolicyDefault = {
   accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
 }
 
-/// Seed the Custom-mode form with each leave type's own defaultDays
-/// + accrualMethod. Bulk imports don't have a single policy picked up
-/// front (the policy comes from the CSV per row), so we can't
-/// pre-fill from a policy override. Admins start from the type
-/// defaults and tweak.
-function defaultLeaveOverridesForBatch(leaveTypes: AddEmployeeLeaveType[]): {
+/// Per-row entry in the wizard's `leaveSeedByRow` state. Only present
+/// for rows the admin actively switched to Custom — every other row
+/// uses `{ method: "DEFAULT" }` implicitly at commit time. Matches
+/// the shape of `LeaveSeedInput` minus the redundant outer tag (we
+/// know it's CUSTOM if the row has an entry).
+type PerRowLeaveSeed = {
   days: Record<string, number>
   methods: Record<string, "LUMP_SUM" | "PRO_RATED">
-} {
+}
+
+/// Seed a fresh PerRowLeaveSeed using each leave type's own
+/// defaultDays + accrualMethod. Bulk imports don't have a single
+/// policy picked up front (the policy comes from the CSV per row),
+/// so we can't pre-fill from a policy override. Admins start from
+/// the type defaults and tweak in the dialog.
+function blankLeaveSeed(leaveTypes: AddEmployeeLeaveType[]): PerRowLeaveSeed {
   const days: Record<string, number> = {}
   const methods: Record<string, "LUMP_SUM" | "PRO_RATED"> = {}
   for (const t of leaveTypes) {
@@ -73,6 +80,22 @@ function defaultLeaveOverridesForBatch(leaveTypes: AddEmployeeLeaveType[]): {
     methods[t.id] = t.accrualMethod
   }
   return { days, methods }
+}
+
+/// Count how many overrides in a PerRowLeaveSeed differ from the
+/// type defaults. Used to label the row badge "Custom (N)".
+function customOverrideCount(
+  seed: PerRowLeaveSeed,
+  leaveTypes: AddEmployeeLeaveType[],
+): number {
+  let count = 0
+  for (const t of leaveTypes) {
+    const days = seed.days[t.id]
+    const method = seed.methods[t.id]
+    if (days !== undefined && days !== t.defaultDays) count += 1
+    else if (method !== undefined && method !== t.accrualMethod) count += 1
+  }
+  return count
 }
 import { Button } from "@/components/ui/button"
 import {
@@ -161,21 +184,21 @@ export function ImportPayrollEmployeesButton({
 }) {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>("upload")
-  // Per-batch Leave Method choice. DEFAULT = each created employee
-  // inherits from policy/type chain (`seedEmployeeLeaveEntitlements`
-  // resolves it). CUSTOM = admin-supplied per-type values applied to
-  // every newly-created row in this import.
-  const [leaveMethod, setLeaveMethod] = useState<"DEFAULT" | "CUSTOM">(
-    "DEFAULT",
-  )
-  // When leaveMethod is CUSTOM, these hold the admin's per-leave-type
-  // edits. Pre-filled by `defaultLeaveOverridesForBatch` below using
-  // the type defaults (bulk imports don't pick a single policy up
-  // front, so we don't have a policy-resolved baseline).
-  const [leaveOverrides, setLeaveOverrides] = useState<{
-    days: Record<string, number>
-    methods: Record<string, "LUMP_SUM" | "PRO_RATED">
-  }>(() => defaultLeaveOverridesForBatch(leaveTypes))
+  /**
+   * Per-row Leave Method choice. Keyed by 0-based preview row index.
+   * Rows without an entry get `{ method: "DEFAULT" }` on commit (each
+   * created employee inherits from policy/type chain).
+   *
+   * Switching a row to Custom opens `PerRowLeaveDialog`, which saves
+   * a `{ method: "CUSTOM", overrides }` entry here. Switching back to
+   * Default drops the entry.
+   */
+  const [leaveSeedByRow, setLeaveSeedByRow] = useState<
+    Record<number, PerRowLeaveSeed>
+  >({})
+  /// 0-based preview row index currently being edited via the
+  /// PerRowLeaveDialog. null = dialog closed.
+  const [leaveDialogRow, setLeaveDialogRow] = useState<number | null>(null)
   const [csvText, setCsvText] = useState<string>("")
   const [headers, setHeaders] = useState<string[]>([])
   const [mapping, setMapping] = useState<Record<string, string | null>>({})
@@ -672,12 +695,11 @@ export function ImportPayrollEmployeesButton({
         mapping,
         valueMap,
         rowOverrides,
-        leaveMethod,
-        // Only pass overrides when the admin actually chose Custom.
-        // Avoids growing the action payload with default values that
-        // the server would just ignore.
-        leaveOverrides:
-          leaveMethod === "CUSTOM" ? leaveOverrides : undefined,
+        // Send the per-row Leave Method map. Only rows the admin
+        // actively customised are included; the rest get DEFAULT on
+        // the server side. Skip empty maps to keep the payload small.
+        leaveSeedByRow:
+          Object.keys(leaveSeedByRow).length > 0 ? leaveSeedByRow : undefined,
       })
       if (result.status === "success") {
         setFinalResult(result.result)
@@ -825,21 +847,25 @@ export function ImportPayrollEmployeesButton({
               pickerOptions={pickerOptions}
               rowOverrides={rowOverrides}
               leaveTypes={leaveTypes}
-              leaveMethod={leaveMethod}
-              leaveOverrides={leaveOverrides}
-              onLeaveMethodChange={setLeaveMethod}
-              onLeaveOverrideChange={(typeId, patch) =>
-                setLeaveOverrides((prev) => ({
-                  days:
-                    patch.days !== undefined
-                      ? { ...prev.days, [typeId]: patch.days }
-                      : prev.days,
-                  methods:
-                    patch.method !== undefined
-                      ? { ...prev.methods, [typeId]: patch.method }
-                      : prev.methods,
-                }))
-              }
+              leaveSeedByRow={leaveSeedByRow}
+              onRowLeaveMethodChange={(rowIndex, method) => {
+                if (method === "DEFAULT") {
+                  setLeaveSeedByRow((prev) => {
+                    const next = { ...prev }
+                    delete next[rowIndex]
+                    return next
+                  })
+                  return
+                }
+                // CUSTOM: seed with type defaults and open the dialog.
+                setLeaveSeedByRow((prev) =>
+                  prev[rowIndex]
+                    ? prev
+                    : { ...prev, [rowIndex]: blankLeaveSeed(leaveTypes) },
+                )
+                setLeaveDialogRow(rowIndex)
+              }}
+              onEditRowLeave={(rowIndex) => setLeaveDialogRow(rowIndex)}
               onOverrideChange={(rowIndex, patch) =>
                 setRowOverrides((prev) => {
                   const next = { ...prev }
@@ -903,6 +929,29 @@ export function ImportPayrollEmployeesButton({
           )}
         </div>
       </DialogContent>
+      {/* Per-row Leave Method dialog. Rendered as a sibling of the
+          wizard's DialogContent so its overlay/z-index management
+          stays clean (nesting a Radix Dialog inside another can
+          cause focus-trap fights). */}
+      <PerRowLeaveDialog
+        rowIndex={leaveDialogRow}
+        previewRow={
+          leaveDialogRow !== null && preview
+            ? preview.preview[leaveDialogRow] ?? null
+            : null
+        }
+        leaveTypes={leaveTypes}
+        seed={
+          leaveDialogRow !== null
+            ? leaveSeedByRow[leaveDialogRow] ?? null
+            : null
+        }
+        onSave={(rowIndex, nextSeed) => {
+          setLeaveSeedByRow((prev) => ({ ...prev, [rowIndex]: nextSeed }))
+          setLeaveDialogRow(null)
+        }}
+        onCancel={() => setLeaveDialogRow(null)}
+      />
     </Dialog>
   )
 }
@@ -1939,10 +1988,9 @@ function PreviewStep({
   pickerOptions,
   rowOverrides,
   leaveTypes,
-  leaveMethod,
-  leaveOverrides,
-  onLeaveMethodChange,
-  onLeaveOverrideChange,
+  leaveSeedByRow,
+  onRowLeaveMethodChange,
+  onEditRowLeave,
   onOverrideChange,
   onRefreshPickers,
   onBack,
@@ -1953,16 +2001,19 @@ function PreviewStep({
   pickerOptions: ImportPickerOptions
   rowOverrides: RowOverrides
   leaveTypes: AddEmployeeLeaveType[]
-  leaveMethod: "DEFAULT" | "CUSTOM"
-  leaveOverrides: {
-    days: Record<string, number>
-    methods: Record<string, "LUMP_SUM" | "PRO_RATED">
-  }
-  onLeaveMethodChange: (m: "DEFAULT" | "CUSTOM") => void
-  onLeaveOverrideChange: (
-    typeId: string,
-    patch: { days?: number; method?: "LUMP_SUM" | "PRO_RATED" },
-  ) => void
+  /// Per-row Leave Method overrides. Rows without an entry default to
+  /// `{ method: "DEFAULT" }` at commit time.
+  leaveSeedByRow: Record<number, PerRowLeaveSeed>
+  /// Called when the admin flips a row's Default/Custom selector. On
+  /// switching to Custom the parent also opens the PerRowLeaveDialog
+  /// for that row.
+  onRowLeaveMethodChange: (rowIndex: number, method: "DEFAULT" | "CUSTOM") => void
+  /// Called when the admin clicks the "Custom (N)" badge to re-open
+  /// the dialog for an already-customised row.
+  onEditRowLeave: (rowIndex: number) => void
+  /// Per-row Policy/Project/Team/Layer override callback. Unchanged
+  /// from previous behaviour — separate path from the Leave Method
+  /// state above.
   onOverrideChange: (
     rowIndex: number,
     patch: Partial<RowOverrides[number]>,
@@ -1997,15 +2048,10 @@ function PreviewStep({
         <span className="font-medium text-foreground">+ Create</span>.
       </p>
 
-      <LeaveMethodSection
-        leaveTypes={leaveTypes}
-        leaveMethod={leaveMethod}
-        leaveOverrides={leaveOverrides}
-        onLeaveMethodChange={onLeaveMethodChange}
-        onLeaveOverrideChange={onLeaveOverrideChange}
-        rowCount={preview.preview.length}
-        busy={busy}
-      />
+      {/* Per-row Leave Method lives in the table itself now (rightmost
+          column). The old per-batch <LeaveMethodSection /> at the top
+          of this step has been removed — see the plan in
+          ~/.claude/plans/when-the-first-layer-synthetic-knuth.md. */}
 
       {preview.preview.length > 0 ? (
         <ScrollArea className="max-h-[60vh] overflow-y-auto overflow-x-auto rounded-lg border border-border/60">
@@ -2042,22 +2088,35 @@ function PreviewStep({
                 <th className="whitespace-nowrap bg-muted/40 px-2 py-1.5 text-left font-medium">
                   Layer
                 </th>
+                <th className="whitespace-nowrap bg-muted/40 px-2 py-1.5 text-left font-medium border-l border-border/60">
+                  Leave
+                </th>
               </tr>
             </thead>
             <tbody>
-              {preview.preview.map((row, rowIndex) => (
-                <PreviewRow
-                  key={rowIndex}
-                  rowIndex={rowIndex}
-                  row={row}
-                  hasNameCol={hasNameCol}
-                  dataCols={dataCols}
-                  pickerOptions={pickerOptions}
-                  override={rowOverrides[rowIndex] ?? {}}
-                  onOverrideChange={onOverrideChange}
-                  onRefreshPickers={onRefreshPickers}
-                />
-              ))}
+              {preview.preview.map((row, rowIndex) => {
+                const rowSeed = leaveSeedByRow[rowIndex] ?? null
+                const customCount = rowSeed
+                  ? customOverrideCount(rowSeed, leaveTypes)
+                  : 0
+                return (
+                  <PreviewRow
+                    key={rowIndex}
+                    rowIndex={rowIndex}
+                    row={row}
+                    hasNameCol={hasNameCol}
+                    dataCols={dataCols}
+                    pickerOptions={pickerOptions}
+                    override={rowOverrides[rowIndex] ?? {}}
+                    onOverrideChange={onOverrideChange}
+                    onRefreshPickers={onRefreshPickers}
+                    leaveMethodForRow={rowSeed ? "CUSTOM" : "DEFAULT"}
+                    leaveCustomCount={customCount}
+                    onRowLeaveMethodChange={onRowLeaveMethodChange}
+                    onEditRowLeave={onEditRowLeave}
+                  />
+                )
+              })}
             </tbody>
           </table>
         </ScrollArea>
@@ -2138,6 +2197,10 @@ function PreviewRow({
   override,
   onOverrideChange,
   onRefreshPickers,
+  leaveMethodForRow,
+  leaveCustomCount,
+  onRowLeaveMethodChange,
+  onEditRowLeave,
 }: {
   rowIndex: number
   row: Record<string, string | null>
@@ -2155,6 +2218,14 @@ function PreviewRow({
     patch: Partial<RowOverrides[number]>,
   ) => void
   onRefreshPickers: () => void
+  /// Per-row Leave Method: DEFAULT means no entry in
+  /// `leaveSeedByRow`; CUSTOM means there's an entry the dialog can
+  /// edit. The cell renders a Default/Custom selector + a
+  /// "Custom (N)" badge when CUSTOM.
+  leaveMethodForRow: "DEFAULT" | "CUSTOM"
+  leaveCustomCount: number
+  onRowLeaveMethodChange: (rowIndex: number, method: "DEFAULT" | "CUSTOM") => void
+  onEditRowLeave: (rowIndex: number) => void
 }) {
   // Auto-resolve from the CSV value when the admin hasn't overridden
   // — same name-match the importer will do. This is for display only;
@@ -2309,6 +2380,47 @@ function PreviewRow({
           </SelectContent>
         </Select>
       </td>
+      {/* Per-row Leave Method cell. Default is the no-op; flipping to
+          Custom triggers the parent to open `PerRowLeaveDialog` for
+          this row. When CUSTOM, render a clickable badge showing how
+          many type-level overrides the admin has set. */}
+      <td className="px-2 py-1.5 align-middle border-l border-border/60">
+        {leaveMethodForRow === "DEFAULT" ? (
+          <Select
+            value="DEFAULT"
+            onValueChange={(v) =>
+              onRowLeaveMethodChange(rowIndex, v as "DEFAULT" | "CUSTOM")
+            }
+          >
+            <SelectTrigger className="h-8 w-28 rounded-md border-border/70 bg-background px-2 text-xs shadow-none">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="DEFAULT">Default</SelectItem>
+              <SelectItem value="CUSTOM">Custom…</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => onEditRowLeave(rowIndex)}
+              className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary hover:bg-primary/15"
+              title="Edit this row's per-leave-type entitlements"
+            >
+              Custom ({leaveCustomCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => onRowLeaveMethodChange(rowIndex, "DEFAULT")}
+              className="text-[10px] text-muted-foreground underline hover:text-foreground"
+              title="Reset this row back to default seeding"
+            >
+              clear
+            </button>
+          </div>
+        )}
+      </td>
     </tr>
   )
 }
@@ -2446,121 +2558,146 @@ function CreatableSelect({
 
 // ─── Leave Method picker (per-batch, lives at top of Preview step) ──────
 
-/// Sits at the top of the Preview step. The admin picks one Leave
-/// Method that applies to every newly-created employee in this
-/// import. Updated (re-imported) employees keep their existing
-/// entitlements regardless of this choice.
+/// Per-row Leave Method popup. Replaces the old per-batch
+/// `LeaveMethodSection`. Opens when the admin flips a preview row's
+/// selector to Custom or clicks the "Custom (N)" badge to re-edit.
 ///
-/// CUSTOM mode reveals a list of leave types with editable Days and
-/// Accrual method. Bulk imports don't carry a single policy up front
-/// (each row may have its own from the CSV), so the inputs pre-fill
-/// with the TYPE defaults, not a policy-resolved baseline. Admins
-/// who want different values per policy can use the per-employee
-/// Settings UI after the import lands.
+/// Mounted in the wizard at the same level as the main DialogContent
+/// (not nested inside it) — Radix Dialogs don't compose well when
+/// nested, focus traps fight each other.
 ///
-/// When `leaveTypes.length === 0`, the parent renders an
-/// org-blocking error elsewhere; this section just no-ops so we
-/// don't show a misleading "Custom mode" picker.
-function LeaveMethodSection({
+/// Edits are staged locally in the dialog and only propagate to
+/// wizard state when the admin clicks Save. Cancel discards the
+/// changes (or, if the row had no entry before, drops it back to
+/// Default).
+function PerRowLeaveDialog({
+  rowIndex,
+  previewRow,
   leaveTypes,
-  leaveMethod,
-  leaveOverrides,
-  onLeaveMethodChange,
-  onLeaveOverrideChange,
-  rowCount,
-  busy,
+  seed,
+  onSave,
+  onCancel,
 }: {
+  rowIndex: number | null
+  previewRow: Record<string, string | null> | null
   leaveTypes: AddEmployeeLeaveType[]
-  leaveMethod: "DEFAULT" | "CUSTOM"
-  leaveOverrides: {
-    days: Record<string, number>
-    methods: Record<string, "LUMP_SUM" | "PRO_RATED">
-  }
-  onLeaveMethodChange: (m: "DEFAULT" | "CUSTOM") => void
-  onLeaveOverrideChange: (
-    typeId: string,
-    patch: { days?: number; method?: "LUMP_SUM" | "PRO_RATED" },
-  ) => void
-  rowCount: number
-  busy: boolean
+  seed: PerRowLeaveSeed | null
+  onSave: (rowIndex: number, next: PerRowLeaveSeed) => void
+  onCancel: () => void
 }) {
-  if (leaveTypes.length === 0) return null
-  return (
-    <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <p className="text-sm font-medium text-foreground">Leave method</p>
-          <p className="text-xs text-muted-foreground">
-            Applies to every newly-created employee in this import
-            ({rowCount} {rowCount === 1 ? "row" : "rows"}). Existing
-            employees in the file keep their current entitlements.
-          </p>
-        </div>
-        <NativeSelect
-          value={leaveMethod}
-          onChange={(e) =>
-            onLeaveMethodChange(e.target.value as "DEFAULT" | "CUSTOM")
-          }
-          disabled={busy}
-          className="max-w-xs"
-        >
-          <option value="DEFAULT">
-            Default (use policy / leave-type defaults)
-          </option>
-          <option value="CUSTOM">Custom (override per leave type)</option>
-        </NativeSelect>
-      </div>
+  // Local staging copy. Initialised from the wizard's current seed
+  // when the dialog opens for a new row. We re-init on every
+  // open via the key on Dialog below, so reopening for a different
+  // row doesn't leak state.
+  const [local, setLocal] = useState<PerRowLeaveSeed>(
+    () => seed ?? blankLeaveSeed(leaveTypes),
+  )
 
-      {leaveMethod === "CUSTOM" && (
-        <div className="rounded-md border border-border/40 bg-background p-2 space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Per leave type
-          </p>
-          {leaveTypes.map((t) => (
-            <div
-              key={t.id}
-              className="grid grid-cols-[1fr_5rem_8rem] items-center gap-2 text-xs"
-            >
-              <div className="truncate">
-                <span className="font-mono text-[10px] font-bold mr-1.5">
-                  {t.code}
-                </span>
-                {t.name}
-              </div>
-              <Input
-                type="number"
-                step="0.5"
-                min="0"
-                value={String(leaveOverrides.days[t.id] ?? t.defaultDays)}
-                onChange={(e) => {
-                  const n = Number(e.target.value)
-                  if (Number.isNaN(n)) return
-                  onLeaveOverrideChange(t.id, { days: Math.max(0, n) })
-                }}
-                disabled={busy || !t.paid}
-                className="h-8 text-xs"
-              />
-              <NativeSelect
-                value={leaveOverrides.methods[t.id] ?? t.accrualMethod}
-                onChange={(e) =>
-                  onLeaveOverrideChange(t.id, {
-                    method: e.target.value as "LUMP_SUM" | "PRO_RATED",
-                  })
-                }
-                disabled={busy || !t.paid}
+  // Friendly title — best-effort name/email from the parsed row.
+  const label =
+    previewRow?.name?.trim() ||
+    previewRow?.email?.trim() ||
+    `Row ${rowIndex !== null ? rowIndex + 1 : "?"}`
+
+  return (
+    <Dialog
+      open={rowIndex !== null}
+      onOpenChange={(o) => {
+        if (!o) onCancel()
+      }}
+    >
+      <DialogContent
+        key={rowIndex ?? "closed"}
+        className="sm:max-w-md"
+        onOpenAutoFocus={(e) => {
+          // Re-seed local state every time the dialog opens for a
+          // new row, so editing row A → opening row B starts from
+          // B's stored seed (or blank), not A's last typed values.
+          setLocal(seed ?? blankLeaveSeed(leaveTypes))
+          // Don't steal focus aggressively — first input would be
+          // OK but the days inputs are usually what admins want.
+          e.preventDefault()
+        }}
+      >
+        <DialogHeader>
+          <DialogTitle>Leave entitlements — {label}</DialogTitle>
+          <DialogDescription>
+            Override the leave type defaults for this employee. Days
+            you don&apos;t change inherit from the type default.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[60vh] overflow-y-auto space-y-2 px-1 py-2">
+          {leaveTypes.map((t) => {
+            const isAnnual = t.code.toUpperCase() === "ANNUAL"
+            return (
+              <div
+                key={t.id}
+                className="grid grid-cols-[1fr_5rem_8rem] items-center gap-2 text-xs"
               >
-                <option value="LUMP_SUM">Lump sum</option>
-                <option value="PRO_RATED">Pro-rated</option>
-              </NativeSelect>
-            </div>
-          ))}
-          <p className="text-[10px] text-muted-foreground">
-            For per-employee differences, use Settings → Leave →
-            Per-employee after the import lands.
-          </p>
+                <div className="truncate">
+                  <span className="font-mono text-[10px] font-bold mr-1.5">
+                    {t.code}
+                  </span>
+                  {t.name}
+                </div>
+                <Input
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  value={String(local.days[t.id] ?? t.defaultDays)}
+                  onChange={(e) => {
+                    const n = Number(e.target.value)
+                    if (Number.isNaN(n)) return
+                    setLocal((prev) => ({
+                      ...prev,
+                      days: { ...prev.days, [t.id]: Math.max(0, n) },
+                    }))
+                  }}
+                  disabled={!t.paid}
+                  className="h-8 text-xs"
+                />
+                {/* ANNUAL-only rule: method selector only on the
+                    Annual row. Other types are locked at LUMP_SUM. */}
+                {isAnnual ? (
+                  <NativeSelect
+                    value={local.methods[t.id] ?? t.accrualMethod}
+                    onChange={(e) =>
+                      setLocal((prev) => ({
+                        ...prev,
+                        methods: {
+                          ...prev.methods,
+                          [t.id]: e.target.value as "LUMP_SUM" | "PRO_RATED",
+                        },
+                      }))
+                    }
+                    disabled={!t.paid}
+                  >
+                    <option value="LUMP_SUM">Lump sum</option>
+                    <option value="PRO_RATED">Pro-rated</option>
+                  </NativeSelect>
+                ) : (
+                  <span />
+                )}
+              </div>
+            )
+          })}
         </div>
-      )}
-    </div>
+        <div className="mt-2 flex justify-end gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => {
+              if (rowIndex !== null) onSave(rowIndex, local)
+            }}
+          >
+            Save
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

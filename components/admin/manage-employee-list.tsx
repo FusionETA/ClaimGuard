@@ -392,6 +392,10 @@ function PerTypeRow({
   // `inheritedMethod` and we re-key on those). We use uncontrolled
   // inputs with `key={...}` so React resets the value on re-mount.
   const rowKey = `${leaveType.id}:${inheritedDays}:${inheritedMethod}`
+  // ANNUAL-only PRO_RATED rule: the method selector is only shown for
+  // the Annual Leave row. Other types render an empty cell so the
+  // grid stays aligned.
+  const isAnnual = leaveType.code.toUpperCase() === "ANNUAL"
   return (
     <div
       key={rowKey}
@@ -413,14 +417,18 @@ function PerTypeRow({
           inheritedDays === leaveType.defaultDays ? "leave type" : "policy"
         }`}
       />
-      <NativeSelect
-        name={`leaveMethod.${leaveType.id}`}
-        defaultValue={inheritedMethod}
-        disabled={pending || !leaveType.paid}
-      >
-        <option value="LUMP_SUM">Lump sum</option>
-        <option value="PRO_RATED">Pro-rated</option>
-      </NativeSelect>
+      {isAnnual ? (
+        <NativeSelect
+          name={`leaveMethod.${leaveType.id}`}
+          defaultValue={inheritedMethod}
+          disabled={pending || !leaveType.paid}
+        >
+          <option value="LUMP_SUM">Lump sum</option>
+          <option value="PRO_RATED">Pro-rated</option>
+        </NativeSelect>
+      ) : (
+        <span />
+      )}
     </div>
   )
 }

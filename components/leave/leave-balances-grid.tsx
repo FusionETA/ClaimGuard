@@ -18,6 +18,10 @@ type Props = {
   /// is []. Supervisor view uses this to say "you don't have any direct
   /// reports" rather than the generic "no results".
   emptyHint?: string
+  /// Show the per-employee Default/Policy/Custom pill next to each
+  /// name. Admin-only — supervisors don't need to see leave
+  /// configuration sources at this level.
+  showSource?: boolean
 }
 
 /// Collapsible card for one employee. Header is the click target —
@@ -28,8 +32,12 @@ type Props = {
 /// quickly on orgs with many employees.
 function EmployeeBalancesCard({
   employee,
+  showSource,
 }: {
   employee: EmployeeLeaveBalances
+  /// Admin-only: render the Default/Policy/Custom pill next to the
+  /// employee name.
+  showSource?: boolean
 }) {
   const [open, setOpen] = useState(false)
 
@@ -60,6 +68,36 @@ function EmployeeBalancesCard({
               <Badge variant="outline" className="text-[10px]">
                 Supervisor
               </Badge>
+            ) : null}
+            {showSource ? (
+              // Small distinct-color pill — green/blue/red — so it's
+              // visually separable from the outline-style "Supervisor"
+              // pill that sits next to it. Hover for the longer
+              // description.
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full border px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide",
+                  employee.leaveSource === "default" &&
+                    "border-emerald-300 bg-emerald-50 text-emerald-700",
+                  employee.leaveSource === "policy" &&
+                    "border-sky-300 bg-sky-50 text-sky-700",
+                  employee.leaveSource === "custom" &&
+                    "border-rose-300 bg-rose-50 text-rose-700",
+                )}
+                title={
+                  employee.leaveSource === "custom"
+                    ? "Has at least one per-employee leave override (entitled days or accrual method)."
+                    : employee.leaveSource === "policy"
+                      ? "Follows the employee's policy. Their policy has at least one leave-type override."
+                      : "Follows the leave type defaults. No policy or per-employee overrides apply."
+                }
+              >
+                {employee.leaveSource === "custom"
+                  ? "Custom"
+                  : employee.leaveSource === "policy"
+                    ? "Policy"
+                    : "Default"}
+              </span>
             ) : null}
             {outCount > 0 ? (
               <Badge variant="rejected" className="text-[10px]">
@@ -147,7 +185,7 @@ function EmployeeBalancesCard({
   )
 }
 
-export function LeaveBalancesGrid({ employees, year, emptyHint }: Props) {
+export function LeaveBalancesGrid({ employees, year, emptyHint, showSource }: Props) {
   const [query, setQuery] = useState("")
 
   const filtered = useMemo(() => {
@@ -207,7 +245,11 @@ export function LeaveBalancesGrid({ employees, year, emptyHint }: Props) {
       ) : (
         <div className="space-y-3">
           {filtered.map((emp) => (
-            <EmployeeBalancesCard key={emp.userId} employee={emp} />
+            <EmployeeBalancesCard
+              key={emp.userId}
+              employee={emp}
+              showSource={showSource}
+            />
           ))}
         </div>
       )}

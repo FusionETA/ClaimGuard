@@ -4406,6 +4406,7 @@ export const LeaveTypeScalarFieldEnum = {
   name: 'name',
   paid: 'paid',
   accrualMethod: 'accrualMethod',
+  prorateFirstYear: 'prorateFirstYear',
   defaultDays: 'defaultDays',
   carryForward: 'carryForward',
   carryExpiryMonth: 'carryExpiryMonth',

@@ -48,6 +48,7 @@ export type LeaveTypeMinAggregateOutputType = {
   name: string | null
   paid: boolean | null
   accrualMethod: $Enums.LeaveAccrualMethod | null
+  prorateFirstYear: boolean | null
   defaultDays: number | null
   carryForward: boolean | null
   carryExpiryMonth: number | null
@@ -64,6 +65,7 @@ export type LeaveTypeMaxAggregateOutputType = {
   name: string | null
   paid: boolean | null
   accrualMethod: $Enums.LeaveAccrualMethod | null
+  prorateFirstYear: boolean | null
   defaultDays: number | null
   carryForward: boolean | null
   carryExpiryMonth: number | null
@@ -80,6 +82,7 @@ export type LeaveTypeCountAggregateOutputType = {
   name: number
   paid: number
   accrualMethod: number
+  prorateFirstYear: number
   defaultDays: number
   carryForward: number
   carryExpiryMonth: number
@@ -110,6 +113,7 @@ export type LeaveTypeMinAggregateInputType = {
   name?: true
   paid?: true
   accrualMethod?: true
+  prorateFirstYear?: true
   defaultDays?: true
   carryForward?: true
   carryExpiryMonth?: true
@@ -126,6 +130,7 @@ export type LeaveTypeMaxAggregateInputType = {
   name?: true
   paid?: true
   accrualMethod?: true
+  prorateFirstYear?: true
   defaultDays?: true
   carryForward?: true
   carryExpiryMonth?: true
@@ -142,6 +147,7 @@ export type LeaveTypeCountAggregateInputType = {
   name?: true
   paid?: true
   accrualMethod?: true
+  prorateFirstYear?: true
   defaultDays?: true
   carryForward?: true
   carryExpiryMonth?: true
@@ -245,6 +251,7 @@ export type LeaveTypeGroupByOutputType = {
   name: string
   paid: boolean
   accrualMethod: $Enums.LeaveAccrualMethod
+  prorateFirstYear: boolean
   defaultDays: number
   carryForward: boolean
   carryExpiryMonth: number | null
@@ -284,6 +291,7 @@ export type LeaveTypeWhereInput = {
   name?: Prisma.StringFilter<"LeaveType"> | string
   paid?: Prisma.BoolFilter<"LeaveType"> | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFilter<"LeaveType"> | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFilter<"LeaveType"> | boolean
   defaultDays?: Prisma.FloatFilter<"LeaveType"> | number
   carryForward?: Prisma.BoolFilter<"LeaveType"> | boolean
   carryExpiryMonth?: Prisma.IntNullableFilter<"LeaveType"> | number | null
@@ -304,6 +312,7 @@ export type LeaveTypeOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   paid?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrder
+  prorateFirstYear?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
   carryForward?: Prisma.SortOrder
   carryExpiryMonth?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -329,6 +338,7 @@ export type LeaveTypeWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"LeaveType"> | string
   paid?: Prisma.BoolFilter<"LeaveType"> | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFilter<"LeaveType"> | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFilter<"LeaveType"> | boolean
   defaultDays?: Prisma.FloatFilter<"LeaveType"> | number
   carryForward?: Prisma.BoolFilter<"LeaveType"> | boolean
   carryExpiryMonth?: Prisma.IntNullableFilter<"LeaveType"> | number | null
@@ -349,6 +359,7 @@ export type LeaveTypeOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   paid?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrder
+  prorateFirstYear?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
   carryForward?: Prisma.SortOrder
   carryExpiryMonth?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -373,6 +384,7 @@ export type LeaveTypeScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"LeaveType"> | string
   paid?: Prisma.BoolWithAggregatesFilter<"LeaveType"> | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodWithAggregatesFilter<"LeaveType"> | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolWithAggregatesFilter<"LeaveType"> | boolean
   defaultDays?: Prisma.FloatWithAggregatesFilter<"LeaveType"> | number
   carryForward?: Prisma.BoolWithAggregatesFilter<"LeaveType"> | boolean
   carryExpiryMonth?: Prisma.IntNullableWithAggregatesFilter<"LeaveType"> | number | null
@@ -388,6 +400,7 @@ export type LeaveTypeCreateInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -408,6 +421,7 @@ export type LeaveTypeUncheckedCreateInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -426,6 +440,7 @@ export type LeaveTypeUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -446,6 +461,7 @@ export type LeaveTypeUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -465,6 +481,7 @@ export type LeaveTypeCreateManyInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -480,6 +497,7 @@ export type LeaveTypeUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -496,6 +514,7 @@ export type LeaveTypeUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -533,6 +552,7 @@ export type LeaveTypeCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   paid?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrder
+  prorateFirstYear?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
   carryForward?: Prisma.SortOrder
   carryExpiryMonth?: Prisma.SortOrder
@@ -555,6 +575,7 @@ export type LeaveTypeMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   paid?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrder
+  prorateFirstYear?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
   carryForward?: Prisma.SortOrder
   carryExpiryMonth?: Prisma.SortOrder
@@ -571,6 +592,7 @@ export type LeaveTypeMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   paid?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrder
+  prorateFirstYear?: Prisma.SortOrder
   defaultDays?: Prisma.SortOrder
   carryForward?: Prisma.SortOrder
   carryExpiryMonth?: Prisma.SortOrder
@@ -693,6 +715,7 @@ export type LeaveTypeCreateWithoutOrganizationInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -711,6 +734,7 @@ export type LeaveTypeUncheckedCreateWithoutOrganizationInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -759,6 +783,7 @@ export type LeaveTypeScalarWhereInput = {
   name?: Prisma.StringFilter<"LeaveType"> | string
   paid?: Prisma.BoolFilter<"LeaveType"> | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFilter<"LeaveType"> | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFilter<"LeaveType"> | boolean
   defaultDays?: Prisma.FloatFilter<"LeaveType"> | number
   carryForward?: Prisma.BoolFilter<"LeaveType"> | boolean
   carryExpiryMonth?: Prisma.IntNullableFilter<"LeaveType"> | number | null
@@ -774,6 +799,7 @@ export type LeaveTypeCreateWithoutPolicyDefaultsInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -793,6 +819,7 @@ export type LeaveTypeUncheckedCreateWithoutPolicyDefaultsInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -826,6 +853,7 @@ export type LeaveTypeUpdateWithoutPolicyDefaultsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -845,6 +873,7 @@ export type LeaveTypeUncheckedUpdateWithoutPolicyDefaultsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -862,6 +891,7 @@ export type LeaveTypeCreateWithoutEntitlementsInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -881,6 +911,7 @@ export type LeaveTypeUncheckedCreateWithoutEntitlementsInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -914,6 +945,7 @@ export type LeaveTypeUpdateWithoutEntitlementsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -933,6 +965,7 @@ export type LeaveTypeUncheckedUpdateWithoutEntitlementsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -950,6 +983,7 @@ export type LeaveTypeCreateWithoutApplicationsInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -969,6 +1003,7 @@ export type LeaveTypeUncheckedCreateWithoutApplicationsInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -1002,6 +1037,7 @@ export type LeaveTypeUpdateWithoutApplicationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1021,6 +1057,7 @@ export type LeaveTypeUncheckedUpdateWithoutApplicationsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1038,6 +1075,7 @@ export type LeaveTypeCreateManyOrganizationInput = {
   name: string
   paid?: boolean
   accrualMethod?: $Enums.LeaveAccrualMethod
+  prorateFirstYear?: boolean
   defaultDays?: number
   carryForward?: boolean
   carryExpiryMonth?: number | null
@@ -1053,6 +1091,7 @@ export type LeaveTypeUpdateWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1071,6 +1110,7 @@ export type LeaveTypeUncheckedUpdateWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1089,6 +1129,7 @@ export type LeaveTypeUncheckedUpdateManyWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   paid?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accrualMethod?: Prisma.EnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod
+  prorateFirstYear?: Prisma.BoolFieldUpdateOperationsInput | boolean
   defaultDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carryForward?: Prisma.BoolFieldUpdateOperationsInput | boolean
   carryExpiryMonth?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
@@ -1154,6 +1195,7 @@ export type LeaveTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   name?: boolean
   paid?: boolean
   accrualMethod?: boolean
+  prorateFirstYear?: boolean
   defaultDays?: boolean
   carryForward?: boolean
   carryExpiryMonth?: boolean
@@ -1177,6 +1219,7 @@ export type LeaveTypeSelectScalar = {
   name?: boolean
   paid?: boolean
   accrualMethod?: boolean
+  prorateFirstYear?: boolean
   defaultDays?: boolean
   carryForward?: boolean
   carryExpiryMonth?: boolean
@@ -1186,7 +1229,7 @@ export type LeaveTypeSelectScalar = {
   updatedAt?: boolean
 }
 
-export type LeaveTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "code" | "name" | "paid" | "accrualMethod" | "defaultDays" | "carryForward" | "carryExpiryMonth" | "maxCarryForwardDays" | "archivedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["leaveType"]>
+export type LeaveTypeOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "code" | "name" | "paid" | "accrualMethod" | "prorateFirstYear" | "defaultDays" | "carryForward" | "carryExpiryMonth" | "maxCarryForwardDays" | "archivedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["leaveType"]>
 export type LeaveTypeInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   applications?: boolean | Prisma.LeaveType$applicationsArgs<ExtArgs>
   entitlements?: boolean | Prisma.LeaveType$entitlementsArgs<ExtArgs>
@@ -1214,6 +1257,15 @@ export type $LeaveTypePayload<ExtArgs extends runtime.Types.Extensions.InternalA
      */
     paid: boolean
     accrualMethod: $Enums.LeaveAccrualMethod
+    /**
+     * When true AND `accrualMethod === LUMP_SUM`, mid-year hires get a
+     * prorated portion of `defaultDays` in their year-of-hire only.
+     * Year 2+ resets to the full quota via the year-rollover cron.
+     * Only meaningful for the Annual Leave type (admins are gated to
+     * Annual in the LeaveTypeDialog). Ignored for PRO_RATED (which
+     * already prorates by design) and for non-Annual types.
+     */
+    prorateFirstYear: boolean
     /**
      * Fallback org-wide default entitlement when no PolicyLeaveEntitlement
      * row exists for the employee's policy.
@@ -1611,6 +1663,7 @@ export interface LeaveTypeFieldRefs {
   readonly name: Prisma.FieldRef<"LeaveType", 'String'>
   readonly paid: Prisma.FieldRef<"LeaveType", 'Boolean'>
   readonly accrualMethod: Prisma.FieldRef<"LeaveType", 'LeaveAccrualMethod'>
+  readonly prorateFirstYear: Prisma.FieldRef<"LeaveType", 'Boolean'>
   readonly defaultDays: Prisma.FieldRef<"LeaveType", 'Float'>
   readonly carryForward: Prisma.FieldRef<"LeaveType", 'Boolean'>
   readonly carryExpiryMonth: Prisma.FieldRef<"LeaveType", 'Int'>

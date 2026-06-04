@@ -54,7 +54,11 @@ export default async function AdminLeaveBalancesPage() {
           </CardContent>
         </Card>
       ) : (
-        <LeaveBalancesGrid employees={employees} year={year} />
+        <LeaveBalancesGrid
+          employees={employees}
+          year={year}
+          showSource
+        />
       )}
     </div>
   )
