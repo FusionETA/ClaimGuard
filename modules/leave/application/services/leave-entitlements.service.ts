@@ -185,6 +185,22 @@ export async function ensureEntitlement(
       targetYear: year,
       now: new Date(),
     })
+  } else if (type.prorateFirstYear && isAnnualCode(type.code)) {
+    // LUMP_SUM Annual with "prorate first year" set: if the
+    // employee joined in this seeding year, the year-of-hire amount
+    // is prorated by months worked. Year 2+ gets full quota via the
+    // year-rollover cron.
+    const joinDate = await leaveRepository.getEmployeeJoinDate(employeeId)
+    if (joinDate && joinDate.getUTCFullYear() === year) {
+      accruedDays = initialProRatedAccrual({
+        entitledDays,
+        joinDate,
+        targetYear: year,
+        now: new Date(Date.UTC(year, 11, 31)),
+      })
+    } else {
+      accruedDays = entitledDays
+    }
   } else {
     accruedDays = entitledDays
   }
@@ -366,7 +382,13 @@ export async function seedEmployeeLeaveEntitlements(args: {
 
   const types = await prisma.leaveType.findMany({
     where: { organizationId: orgId, archivedAt: null },
-    select: { id: true, accrualMethod: true, defaultDays: true },
+    select: {
+      id: true,
+      accrualMethod: true,
+      defaultDays: true,
+      code: true,
+      prorateFirstYear: true,
+    },
   })
   if (types.length === 0) return
 
@@ -398,7 +420,10 @@ export async function seedEmployeeLeaveEntitlements(args: {
       (await resolveAccrualMethod(args.employeeProfileId, t.id, year))
 
     // For PRO_RATED, seed accruedDays with join-date-aware backfill.
-    // For LUMP_SUM, accrued mirrors entitled.
+    // For LUMP_SUM, accrued mirrors entitled — except when the leave
+    // type opts into "prorate first year" AND the employee joined in
+    // this seeding year. Year 2+ gets the full quota via the
+    // year-rollover cron.
     let accruedDays: number
     if (effectiveMethod === "PRO_RATED") {
       const joinDate = await leaveRepository.getEmployeeJoinDate(
@@ -410,6 +435,25 @@ export async function seedEmployeeLeaveEntitlements(args: {
         targetYear: year,
         now: new Date(),
       })
+    } else if (t.prorateFirstYear && isAnnualCode(t.code)) {
+      const joinDate = await leaveRepository.getEmployeeJoinDate(
+        args.employeeProfileId,
+      )
+      if (joinDate && joinDate.getUTCFullYear() === year) {
+        // Year-of-hire LUMP_SUM prorate: amount = entitledDays ×
+        // (months remaining in year from join). Reuses
+        // initialProRatedAccrual evaluated at year-end, which by
+        // construction gives the total months-worked value.
+        accruedDays = initialProRatedAccrual({
+          entitledDays,
+          joinDate,
+          targetYear: year,
+          now: new Date(Date.UTC(year, 11, 31)),
+        })
+      } else {
+        // Joined in a previous year (or no joinDate): full quota.
+        accruedDays = entitledDays
+      }
     } else {
       accruedDays = entitledDays
     }
@@ -470,7 +514,14 @@ export async function recomputeProRatedAccrualForEmployee(
     const rows = await prisma.leaveEntitlement.findMany({
       where: { employeeId: employeeProfileId, year, usedDays: 0 },
       include: {
-        leaveType: { select: { id: true, accrualMethod: true } },
+        leaveType: {
+          select: {
+            id: true,
+            accrualMethod: true,
+            code: true,
+            prorateFirstYear: true,
+          },
+        },
       },
     })
 
@@ -479,13 +530,24 @@ export async function recomputeProRatedAccrualForEmployee(
       // Filter 4: skip rows with an explicit per-employee method override.
       if (row.accrualMethod !== null) continue
 
-      // Filter 1: effective method must be PRO_RATED.
+      // Filter 1: effective method drives which recompute path to use.
       const effectiveMethod = await resolveAccrualMethod(
         employeeProfileId,
         row.leaveTypeId,
         year,
       )
-      if (effectiveMethod !== "PRO_RATED") continue
+
+      // For PRO_RATED, recompute via the standard backfill helper.
+      // For LUMP_SUM with prorate-first-year + Annual + this-year
+      // hire, recompute the year-end full-year prorated total.
+      // Anything else: skip.
+      const isLumpSumProrate =
+        effectiveMethod === "LUMP_SUM" &&
+        row.leaveType.prorateFirstYear &&
+        isAnnualCode(row.leaveType.code) &&
+        joinDate?.getUTCFullYear() === year
+
+      if (effectiveMethod !== "PRO_RATED" && !isLumpSumProrate) continue
 
       // Filter 3: skip if entitledDays differs from the resolved
       // default (i.e. admin has overridden days for this row).
@@ -495,11 +557,18 @@ export async function recomputeProRatedAccrualForEmployee(
       )
       if (row.entitledDays !== resolvedDays) continue
 
+      // For LUMP_SUM-prorate the year-of-hire amount is fixed at
+      // hire (not growing through the year), so we evaluate the
+      // helper at year-end. For PRO_RATED, we evaluate at "now"
+      // because the value should grow through the year.
+      const now = isLumpSumProrate
+        ? new Date(Date.UTC(year, 11, 31))
+        : new Date()
       const nextAccrued = initialProRatedAccrual({
         entitledDays: row.entitledDays,
         joinDate,
         targetYear: year,
-        now: new Date(),
+        now,
       })
 
       // Skip the write when nothing changed (avoids burning Redis

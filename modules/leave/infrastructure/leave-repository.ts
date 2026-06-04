@@ -53,6 +53,7 @@ function toLeaveType(row: {
   name: string
   paid: boolean
   accrualMethod: string
+  prorateFirstYear: boolean
   defaultDays: number
   carryForward: boolean
   carryExpiryMonth: number | null
@@ -65,6 +66,7 @@ function toLeaveType(row: {
     name: row.name,
     paid: row.paid,
     accrualMethod: row.accrualMethod as LeaveAccrualMethod,
+    prorateFirstYear: row.prorateFirstYear,
     defaultDays: row.defaultDays,
     carryForward: row.carryForward,
     carryExpiryMonth: row.carryExpiryMonth,
@@ -239,6 +241,7 @@ export const leaveRepository = {
       name: string
       paid: boolean
       accrualMethod: LeaveAccrualMethod
+      prorateFirstYear?: boolean
       defaultDays: number
       carryForward: boolean
       carryExpiryMonth: number | null
@@ -259,6 +262,7 @@ export const leaveRepository = {
       name: string
       paid: boolean
       accrualMethod: LeaveAccrualMethod
+      prorateFirstYear: boolean
       defaultDays: number
       carryForward: boolean
       carryExpiryMonth: number | null

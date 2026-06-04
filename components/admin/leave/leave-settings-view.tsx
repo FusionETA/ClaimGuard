@@ -47,6 +47,10 @@ type LeaveTypeRow = {
   name: string
   paid: boolean
   accrualMethod: "LUMP_SUM" | "PRO_RATED"
+  /// Only meaningful for Annual + LUMP_SUM. The LeaveTypeDialog
+  /// surfaces the checkbox; the seeder reads it when creating
+  /// LeaveEntitlement rows for a year-of-hire employee.
+  prorateFirstYear: boolean
   defaultDays: number
   carryForward: boolean
   carryExpiryMonth: number | null
@@ -400,6 +404,10 @@ function LeaveTypeDialog(props: {
   const [paid, setPaid] = useState(true)
   const [accrualMethod, setAccrualMethod] = useState<"LUMP_SUM" | "PRO_RATED">("LUMP_SUM")
   const [defaultDays, setDefaultDays] = useState("0")
+  // Only meaningful for Annual Leave + LUMP_SUM. When set, mid-year
+  // hires get a prorated quota in their year of hire; year 2+ resets
+  // to the full quota on Jan 1 via the year-rollover cron.
+  const [prorateFirstYear, setProrateFirstYear] = useState(false)
 
   const lastEditingId = useRef<string | "new" | null>(null)
   if (props.open && lastEditingId.current !== (t?.id ?? (isNew ? "new" : null))) {
@@ -409,11 +417,17 @@ function LeaveTypeDialog(props: {
     setPaid(t?.paid ?? true)
     setAccrualMethod(t?.accrualMethod ?? "LUMP_SUM")
     setDefaultDays(String(t?.defaultDays ?? 0))
+    setProrateFirstYear(t?.prorateFirstYear ?? false)
     setError(null)
   }
 
   const isAnnual = code.trim().toUpperCase() === "ANNUAL"
   const effectiveAccrual = isAnnual ? accrualMethod : "LUMP_SUM"
+  // Only persist `prorateFirstYear` when the type is Annual + LUMP_SUM
+  // — otherwise the column has no effect and storing a stale `true`
+  // would be confusing if the admin flips back to LUMP_SUM later.
+  const effectiveProrateFirstYear =
+    isAnnual && effectiveAccrual === "LUMP_SUM" ? prorateFirstYear : false
 
   async function submit() {
     setError(null)
@@ -422,6 +436,7 @@ function LeaveTypeDialog(props: {
     fd.set("name", name)
     if (paid) fd.set("paid", "on")
     fd.set("accrualMethod", effectiveAccrual)
+    if (effectiveProrateFirstYear) fd.set("prorateFirstYear", "on")
     fd.set("defaultDays", paid ? defaultDays : "0")
     // Carry-forward fields are managed on the AnnualLeaveCard — preserve
     // the existing values when editing an existing row.
@@ -521,6 +536,35 @@ function LeaveTypeDialog(props: {
               </p>
             )}
           </div>
+
+          {/* "Prorate first year" toggle — only meaningful when the
+              type is Annual AND the accrual method is LUMP_SUM. For
+              PRO_RATED, first-year proration is already part of the
+              monthly-accrual model; for non-Annual types, the
+              concept doesn't apply. */}
+          {isAnnual && effectiveAccrual === "LUMP_SUM" && (
+            <div className="rounded-lg border border-border/60 bg-muted/30 p-3">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={prorateFirstYear}
+                  onChange={(e) => setProrateFirstYear(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span className="text-sm">
+                  <span className="font-medium text-foreground">
+                    Prorate first year for new hires
+                  </span>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Mid-year hires get a prorated quota in their year
+                    of hire (e.g. 14 × months-remaining / 12). From
+                    year 2 onwards everyone gets the full quota on
+                    Jan 1.
+                  </p>
+                </span>
+              </label>
+            </div>
+          )}
 
           {isAnnual && (
             <p className="text-xs text-muted-foreground">

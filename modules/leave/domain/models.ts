@@ -13,6 +13,12 @@ export type LeaveTypeView = {
   name: string
   paid: boolean
   accrualMethod: LeaveAccrualMethod
+  /// When true AND `accrualMethod === LUMP_SUM`, mid-year hires get a
+  /// prorated portion of `defaultDays` in their year-of-hire only.
+  /// Year 2+ resets to full via the year-rollover cron. Only
+  /// meaningful for Annual Leave (admins are gated to Annual in the
+  /// LeaveTypeDialog).
+  prorateFirstYear: boolean
   defaultDays: number
   carryForward: boolean
   carryExpiryMonth: number | null
