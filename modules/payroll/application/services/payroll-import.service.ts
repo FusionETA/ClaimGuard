@@ -2028,13 +2028,21 @@ export async function importMappedCsv(input: {
    */
   rowOverrides?: RowOverrides
   /**
-   * Per-batch leave seeding choice from the wizard's preview step.
-   * Applied to every newly-created employee in this import (updated
-   * employees are skipped — their existing entitlements are preserved).
-   * Defaults to `{ method: "DEFAULT" }` when omitted, so older callers
-   * keep working and still get eager LeaveEntitlement rows seeded.
+   * Per-row Leave Method overrides keyed by 0-based preview row
+   * index. Rows without an entry use the DEFAULT seeding chain
+   * (resolved policy/type defaults). Rows with an entry get the
+   * admin-supplied days / methods applied on top.
+   *
+   * Updated (re-imported) employees are skipped — their existing
+   * entitlements are preserved regardless of any entry here.
    */
-  leaveSeed?: LeaveSeedInput
+  leaveSeedByRow?: Record<
+    number,
+    {
+      days: Record<string, number>
+      methods: Record<string, "LUMP_SUM" | "PRO_RATED">
+    }
+  >
 }): Promise<MappedImportResult> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
@@ -2056,7 +2064,10 @@ export async function importMappedCsv(input: {
       "Set up leave types in Settings → Leave before bulk-importing employees.",
     )
   }
-  const leaveSeed: LeaveSeedInput = input.leaveSeed ?? { method: "DEFAULT" }
+  // Per-row Leave Method map (keyed by preview row index). Rows
+  // without an entry default to `{ method: "DEFAULT" }` at the seed
+  // call below.
+  const leaveSeedByRow = input.leaveSeedByRow ?? {}
 
   const { parsedRows, skipped, errors, total } = reshapeAndNormalize({
     csv: input.csv,
@@ -2285,6 +2296,14 @@ export async function importMappedCsv(input: {
         // a previous import / first leave-page visit / Add Employee
         // dialog, and re-seeding would either be a no-op (default mode)
         // or overwrite their existing customs (custom mode).
+        //
+        // Per-row Leave Method: pick this row's entry from
+        // `leaveSeedByRow` if the admin customised it via the popup,
+        // otherwise fall back to DEFAULT seeding.
+        const perRow = leaveSeedByRow[rowIndex]
+        const leaveSeed: LeaveSeedInput = perRow
+          ? { method: "CUSTOM", overrides: perRow }
+          : { method: "DEFAULT" }
         try {
           await seedEmployeeLeaveEntitlements({
             employeeProfileId: outcome.employeeProfileId,

@@ -74,13 +74,21 @@ export async function resolveAccrualMethod(
     }),
     prisma.leaveType.findUnique({
       where: { id: leaveTypeId },
-      select: { accrualMethod: true },
+      select: { accrualMethod: true, code: true },
     }),
     prisma.employeeProfile.findUnique({
       where: { id: employeeId },
       select: { policyId: true },
     }),
   ])
+
+  // ANNUAL-only constraint: only Annual Leave can ever resolve to
+  // PRO_RATED. Every other leave type is LUMP_SUM by design (Malaysian
+  // statutory medical / compassionate / etc. are all lump-sum-at-hire-
+  // anniversary). Defensive read: any leftover PRO_RATED override on
+  // a non-ANNUAL type in the DB is ignored. See plan in
+  // ~/.claude/plans/when-the-first-layer-synthetic-knuth.md.
+  if (!isAnnualCode(type?.code)) return "LUMP_SUM"
 
   if (entitlement?.accrualMethod) {
     return entitlement.accrualMethod as LeaveAccrualMethod
@@ -99,14 +107,29 @@ export async function resolveAccrualMethod(
   return (type?.accrualMethod ?? "LUMP_SUM") as LeaveAccrualMethod
 }
 
+/// True iff this leave-type code identifies the Annual leave type.
+/// Single source of truth for the ANNUAL-only PRO_RATED rule — every
+/// other entry point reuses this so the constraint is consistent.
+export function isAnnualCode(code: string | null | undefined): boolean {
+  return (code ?? "").trim().toUpperCase() === "ANNUAL"
+}
+
 /// Same as `resolveAccrualMethod` but operates on already-loaded layer
 /// values. Use this when batch-resolving many (employee, type) pairs to
 /// avoid N+1 queries.
+///
+/// Pass `typeCode` so the ANNUAL-only constraint can be applied without
+/// another DB lookup. Callers that already join `leaveType.code` (the
+/// cron does) get short-circuiting for free.
 export function resolveAccrualMethodFromLayers(layers: {
   employeeMethod: LeaveAccrualMethod | null
   policyMethod: LeaveAccrualMethod | null
   typeMethod: LeaveAccrualMethod
+  typeCode?: string | null
 }): LeaveAccrualMethod {
+  if (layers.typeCode !== undefined && !isAnnualCode(layers.typeCode)) {
+    return "LUMP_SUM"
+  }
   return layers.employeeMethod ?? layers.policyMethod ?? layers.typeMethod
 }
 

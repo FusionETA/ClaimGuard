@@ -768,38 +768,43 @@ function PolicyOverrideRow(props: {
           disabled={pending}
         />
       </TableCell>
+      {/* ANNUAL-only PRO_RATED rule: method dropdown is only available
+          for Annual Leave. For every other type the cell is empty
+          (the constraint matches the LeaveTypeDialog gate). */}
       <TableCell>
-        <Select
-          value={methodSelectValue}
-          onValueChange={(v) => {
-            const next: "LUMP_SUM" | "PRO_RATED" | null =
-              v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
-            startTransition(() =>
-              setPolicyDefaultAction({
-                policyId: props.policyId,
-                leaveTypeId: props.leaveType.id,
-                accrualMethod: next,
-              }),
-            )
-          }}
-          disabled={pending}
-        >
-          <SelectTrigger
-            className={
-              "h-9 w-44 text-sm " +
-              (isOverriddenMethod ? "" : "text-muted-foreground")
-            }
+        {props.leaveType.code.toUpperCase() === "ANNUAL" ? (
+          <Select
+            value={methodSelectValue}
+            onValueChange={(v) => {
+              const next: "LUMP_SUM" | "PRO_RATED" | null =
+                v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
+              startTransition(() =>
+                setPolicyDefaultAction({
+                  policyId: props.policyId,
+                  leaveTypeId: props.leaveType.id,
+                  accrualMethod: next,
+                }),
+              )
+            }}
+            disabled={pending}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__DEFAULT__">
-              Inherit from type ({props.leaveType.accrualMethod === "PRO_RATED" ? "pro-rated" : "lump sum"})
-            </SelectItem>
-            <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
-            <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              className={
+                "h-9 w-44 text-sm " +
+                (isOverriddenMethod ? "" : "text-muted-foreground")
+              }
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__DEFAULT__">
+                Inherit from type ({props.leaveType.accrualMethod === "PRO_RATED" ? "pro-rated" : "lump sum"})
+              </SelectItem>
+              <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
+              <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : null}
       </TableCell>
     </TableRow>
   )
@@ -1054,47 +1059,52 @@ function EmployeeEntitlementRow(props: {
           disabled={pending}
         />
       </TableCell>
+      {/* ANNUAL-only PRO_RATED rule: method dropdown is only shown
+          for Annual Leave. Other types render an empty cell so the
+          table layout stays aligned. */}
       <TableCell>
-        <Select
-          value={methodSelectValue}
-          onValueChange={(v) => {
-            const next: "LUMP_SUM" | "PRO_RATED" | null =
-              v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
-            startTransition(() =>
-              setEmployeeEntitlementAction({
-                employeeId: props.employeeId,
-                leaveTypeId: props.leaveType.id,
-                year: props.year,
-                accrualMethod: next,
-              }),
-            )
-          }}
-          disabled={pending}
-        >
-          <SelectTrigger
-            className={
-              "h-9 w-44 text-sm " +
-              (methodSelectValue === "__DEFAULT__"
-                ? "text-muted-foreground"
-                : "")
-            }
+        {props.leaveType.code.toUpperCase() === "ANNUAL" ? (
+          <Select
+            value={methodSelectValue}
+            onValueChange={(v) => {
+              const next: "LUMP_SUM" | "PRO_RATED" | null =
+                v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
+              startTransition(() =>
+                setEmployeeEntitlementAction({
+                  employeeId: props.employeeId,
+                  leaveTypeId: props.leaveType.id,
+                  year: props.year,
+                  accrualMethod: next,
+                }),
+              )
+            }}
+            disabled={pending}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__DEFAULT__">
-              {props.inheritedFrom === "policy"
-                ? `Inherit from policy (${
-                    props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
-                  })`
-                : `Inherit from type (${
-                    props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
-                  })`}
-            </SelectItem>
-            <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
-            <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
-          </SelectContent>
-        </Select>
+            <SelectTrigger
+              className={
+                "h-9 w-44 text-sm " +
+                (methodSelectValue === "__DEFAULT__"
+                  ? "text-muted-foreground"
+                  : "")
+              }
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__DEFAULT__">
+                {props.inheritedFrom === "policy"
+                  ? `Inherit from policy (${
+                      props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
+                    })`
+                  : `Inherit from type (${
+                      props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
+                    })`}
+              </SelectItem>
+              <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
+              <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : null}
       </TableCell>
       <TableCell className="text-right">
         <Button

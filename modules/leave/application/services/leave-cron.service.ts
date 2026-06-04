@@ -83,6 +83,7 @@ export async function runYearRollover(targetYear: number): Promise<{
         employeeMethod,
         policyMethod,
         typeMethod: t.accrualMethod as LeaveAccrualMethod,
+        typeCode: t.code,
       })
 
       let carriedDays = 0
@@ -194,7 +195,7 @@ export async function runMonthlyAccrual(now: Date = new Date()): Promise<{
   const all = await prisma.leaveEntitlement.findMany({
     where: { year, leaveType: { archivedAt: null } },
     include: {
-      leaveType: { select: { accrualMethod: true } },
+      leaveType: { select: { accrualMethod: true, code: true } },
       employee: { select: { policyId: true } },
     },
   })
@@ -207,6 +208,7 @@ export async function runMonthlyAccrual(now: Date = new Date()): Promise<{
       employeeMethod: (e.accrualMethod ?? null) as LeaveAccrualMethod | null,
       policyMethod,
       typeMethod: e.leaveType.accrualMethod as LeaveAccrualMethod,
+      typeCode: e.leaveType.code,
     })
     if (effectiveMethod !== "PRO_RATED") continue
     const next = nextAccruedDays(e.entitledDays, e.accruedDays)
@@ -228,7 +230,7 @@ export async function runMonthlyAccrual(now: Date = new Date()): Promise<{
       carriedDays: { gt: 0 },
     },
     include: {
-      leaveType: { select: { accrualMethod: true } },
+      leaveType: { select: { accrualMethod: true, code: true } },
       employee: { select: { policyId: true } },
     },
   })
@@ -241,6 +243,7 @@ export async function runMonthlyAccrual(now: Date = new Date()): Promise<{
       employeeMethod: (e.accrualMethod ?? null) as LeaveAccrualMethod | null,
       policyMethod,
       typeMethod: e.leaveType.accrualMethod as LeaveAccrualMethod,
+      typeCode: e.leaveType.code,
     })
     const unused = unusedCarriedAtExpiry({
       accrualMethod: effectiveMethod,
