@@ -264,13 +264,40 @@ export async function importMappedCsvAction(input: {
    * importer — wired up in a later step of the wizard redesign.
    */
   rowOverrides?: RowOverrides
+  /**
+   * Per-batch Leave Method. Applies to every newly-created employee
+   * in this import. Updated (re-imported) employees are not re-seeded
+   * — their existing entitlements are preserved.
+   */
+  leaveMethod?: "DEFAULT" | "CUSTOM"
+  /**
+   * Per-leave-type custom values when `leaveMethod === "CUSTOM"`.
+   * Keyed by `LeaveType.id`. Any type not present here falls back to
+   * the resolved policy/type default for that type.
+   */
+  leaveOverrides?: {
+    days: Record<string, number>
+    methods: Record<string, "LUMP_SUM" | "PRO_RATED">
+  }
 }): Promise<MappedImportActionResult> {
   try {
+    // Build the LeaveSeedInput shape the service expects. Defaults to
+    // DEFAULT mode when the wizard didn't supply anything — keeps
+    // backwards-compat with any callers that pre-date the picker.
+    const leaveSeed =
+      input.leaveMethod === "CUSTOM"
+        ? ({
+            method: "CUSTOM" as const,
+            overrides: input.leaveOverrides ?? { days: {}, methods: {} },
+          })
+        : ({ method: "DEFAULT" as const })
+
     const result = await importMappedCsv({
       csv: input.csvText,
       mapping: input.mapping,
       valueMap: input.valueMap,
       rowOverrides: input.rowOverrides,
+      leaveSeed,
     })
     revalidatePath("/admin/payroll/employees")
     revalidatePath("/admin/hierarchy")
