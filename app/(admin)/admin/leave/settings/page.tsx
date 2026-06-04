@@ -44,7 +44,16 @@ export default async function AdminLeaveSettingsPage() {
       year={year}
       leaveTypes={leaveTypes.map((t) => ({
         ...t,
-        archivedAt: t.archivedAt ? t.archivedAt.toISOString() : null,
+        // `listLeaveTypes` goes through `getOrSetCache`, which JSON-
+        // round-trips `Date` to `string`. On a cache miss the value is
+        // still a Date; on a cache hit it's already a string. Normalize
+        // both into the ISO string the view component expects.
+        archivedAt:
+          t.archivedAt == null
+            ? null
+            : t.archivedAt instanceof Date
+              ? t.archivedAt.toISOString()
+              : String(t.archivedAt),
       }))}
       policies={policies}
       policyDefaults={policyDefaultsRaw}

@@ -9,6 +9,10 @@ import { toNumber } from "@/lib/decimal"
 import { getPrismaClient } from "@/lib/prisma"
 import { getXeroReauthVersion } from "@/lib/xero"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
+import {
+  type LeaveSeedInput,
+  seedEmployeeLeaveEntitlements,
+} from "@/modules/leave/application/services/leave-entitlements.service"
 import { mapChartAccount } from "@/modules/organization/infrastructure/chart-account.mapper"
 import type {
   AdminOrganizationOption,
@@ -1718,6 +1722,12 @@ export const organizationRepository = {
       layer: number
       chainApprovers: Array<{ layer: number; userId: string }>
     }>
+    /// Drives the eager LeaveEntitlement creation that happens at the
+    /// end of this method. Default = `{ method: "DEFAULT" }` which
+    /// seeds one row per active leave type using the resolved policy /
+    /// type defaults. `CUSTOM` lets the Add Employee dialog pass
+    /// admin-typed per-type day counts and accrual-method overrides.
+    leaveSeed?: LeaveSeedInput
   }): Promise<{ id: string }> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
@@ -1917,7 +1927,7 @@ export const organizationRepository = {
           },
         },
       },
-      select: { id: true },
+      select: { id: true, employeeProfile: { select: { id: true } } },
     })
 
     // Write per-team chain rows. Each project's chain is independent.
@@ -1942,6 +1952,20 @@ export const organizationRepository = {
           approverId: c.userId,
           step: layerToStep.get(c.layer)!,
         })),
+      })
+    }
+
+    // Eagerly seed leave entitlements so the new employee has rows
+    // for every active leave type from day one — closes the
+    // lazy-creation gap where carry-forward could silently vanish at
+    // year-end if no one had visited the employee's leave page yet.
+    // `leaveSeed` defaults to DEFAULT so existing non-dialog callers
+    // (partner API, payroll XLSX import) get the same eager seeding
+    // without code changes on their side.
+    if (user.employeeProfile?.id) {
+      await seedEmployeeLeaveEntitlements({
+        employeeProfileId: user.employeeProfile.id,
+        leaveSeed: data.leaveSeed ?? { method: "DEFAULT" },
       })
     }
 

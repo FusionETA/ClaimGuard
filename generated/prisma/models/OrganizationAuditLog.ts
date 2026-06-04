@@ -279,8 +279,8 @@ export type OrganizationAuditLogWhereInput = {
   ipAddress?: Prisma.StringNullableFilter<"OrganizationAuditLog"> | string | null
   partnerInitiated?: Prisma.BoolFilter<"OrganizationAuditLog"> | boolean
   createdAt?: Prisma.DateTimeFilter<"OrganizationAuditLog"> | Date | string
-  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   actor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }
 
 export type OrganizationAuditLogOrderByWithRelationInput = {
@@ -300,8 +300,8 @@ export type OrganizationAuditLogOrderByWithRelationInput = {
   ipAddress?: Prisma.SortOrderInput | Prisma.SortOrder
   partnerInitiated?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  organization?: Prisma.OrganizationOrderByWithRelationInput
   actor?: Prisma.UserOrderByWithRelationInput
+  organization?: Prisma.OrganizationOrderByWithRelationInput
   _relevance?: Prisma.OrganizationAuditLogOrderByRelevanceInput
 }
 
@@ -325,8 +325,8 @@ export type OrganizationAuditLogWhereUniqueInput = Prisma.AtLeast<{
   ipAddress?: Prisma.StringNullableFilter<"OrganizationAuditLog"> | string | null
   partnerInitiated?: Prisma.BoolFilter<"OrganizationAuditLog"> | boolean
   createdAt?: Prisma.DateTimeFilter<"OrganizationAuditLog"> | Date | string
-  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   actor?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
 }, "id">
 
 export type OrganizationAuditLogOrderByWithAggregationInput = {
@@ -388,8 +388,8 @@ export type OrganizationAuditLogCreateInput = {
   ipAddress?: string | null
   partnerInitiated?: boolean
   createdAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutAuditLogInput
   actor?: Prisma.UserCreateNestedOneWithoutAuditLogActorInput
+  organization: Prisma.OrganizationCreateNestedOneWithoutAuditLogInput
 }
 
 export type OrganizationAuditLogUncheckedCreateInput = {
@@ -426,8 +426,8 @@ export type OrganizationAuditLogUpdateInput = {
   ipAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   partnerInitiated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutAuditLogNestedInput
   actor?: Prisma.UserUpdateOneWithoutAuditLogActorNestedInput
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutAuditLogNestedInput
 }
 
 export type OrganizationAuditLogUncheckedUpdateInput = {
@@ -968,8 +968,8 @@ export type OrganizationAuditLogSelect<ExtArgs extends runtime.Types.Extensions.
   ipAddress?: boolean
   partnerInitiated?: boolean
   createdAt?: boolean
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   actor?: boolean | Prisma.OrganizationAuditLog$actorArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organizationAuditLog"]>
 
 
@@ -995,15 +995,15 @@ export type OrganizationAuditLogSelectScalar = {
 
 export type OrganizationAuditLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "actorUserId" | "actorRole" | "actorEmail" | "actorName" | "action" | "status" | "summary" | "errorReason" | "targetType" | "targetId" | "metadata" | "ipAddress" | "partnerInitiated" | "createdAt", ExtArgs["result"]["organizationAuditLog"]>
 export type OrganizationAuditLogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   actor?: boolean | Prisma.OrganizationAuditLog$actorArgs<ExtArgs>
+  organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
 }
 
 export type $OrganizationAuditLogPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "OrganizationAuditLog"
   objects: {
-    organization: Prisma.$OrganizationPayload<ExtArgs>
     actor: Prisma.$UserPayload<ExtArgs> | null
+    organization: Prisma.$OrganizationPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1362,8 +1362,8 @@ readonly fields: OrganizationAuditLogFieldRefs;
  */
 export interface Prisma__OrganizationAuditLogClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   actor<T extends Prisma.OrganizationAuditLog$actorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationAuditLog$actorArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

@@ -4026,12 +4026,12 @@ export const TeamScalarFieldEnum = {
   layerCount: 'layerCount',
   layerLabels: 'layerLabels',
   moduleConfig: 'moduleConfig',
-  requireClockInApproval: 'requireClockInApproval',
-  requireClockOutApproval: 'requireClockOutApproval',
-  requireBreakStartApproval: 'requireBreakStartApproval',
-  requireBreakEndApproval: 'requireBreakEndApproval',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  requireBreakEndApproval: 'requireBreakEndApproval',
+  requireBreakStartApproval: 'requireBreakStartApproval',
+  requireClockInApproval: 'requireClockInApproval',
+  requireClockOutApproval: 'requireClockOutApproval'
 } as const
 
 export type TeamScalarFieldEnum = (typeof TeamScalarFieldEnum)[keyof typeof TeamScalarFieldEnum]
@@ -4423,6 +4423,7 @@ export const PolicyLeaveEntitlementScalarFieldEnum = {
   policyId: 'policyId',
   leaveTypeId: 'leaveTypeId',
   defaultDays: 'defaultDays',
+  accrualMethod: 'accrualMethod',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -4441,6 +4442,7 @@ export const LeaveEntitlementScalarFieldEnum = {
   carriedExpired: 'carriedExpired',
   accruedDays: 'accruedDays',
   usedDays: 'usedDays',
+  accrualMethod: 'accrualMethod',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

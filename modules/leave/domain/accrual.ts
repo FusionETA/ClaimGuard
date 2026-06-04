@@ -52,6 +52,86 @@ export function nextAccruedDays(entitledDays: number, accruedDays: number): numb
   return Math.min(entitledDays, accruedDays + entitledDays / 12)
 }
 
+/// Initial `accruedDays` to seed a fresh PRO_RATED entitlement row,
+/// based on the employee's join date and what's elapsed in
+/// `targetYear` by `now`. Composed of two parts:
+///
+///   1. Full-month chunks: 1/12 of entitledDays for every calendar
+///      month boundary that has been crossed since the employee's
+///      "start month" for `targetYear` (Jan if joined in a prior
+///      year, else their join month).
+///   2. Partial join-month credit: (days worked in join month /
+///      days in join month) × 1/12 of entitledDays — only when
+///      joinDate falls inside `targetYear`. Otherwise treated as
+///      a full Jan (=1/12 chunk).
+///
+/// Result is capped at entitledDays.
+///
+/// Pure: caller passes `now` so this is deterministic and
+/// unit-testable.
+///
+/// Examples (entitledDays = 14, targetYear = 2026):
+///   - joinDate Feb 11 2026, now Feb 20 2026 →
+///       0 full months + 18/28 × (14/12) = 0.75
+///   - joinDate Feb 11 2026, now Mar 5 2026 →
+///       1 full month (Mar 1 crossed) + 18/28 × (14/12) = 1.92
+///   - joinDate Aug 2025, now Apr 4 2026 →
+///       Jan was the start month; 3 boundaries crossed (Feb, Mar,
+///       Apr) + full Jan chunk = 4 × 14/12 = 4.67
+///   - joinDate Sep 1 2026, now Apr 4 2026 →
+///       Not joined yet → 0
+export function initialProRatedAccrual(args: {
+  entitledDays: number
+  joinDate: Date | null
+  targetYear: number
+  now: Date
+}): number {
+  const { entitledDays, joinDate, targetYear, now } = args
+  if (entitledDays <= 0) return 0
+  const monthlyChunk = entitledDays / 12
+
+  // Determine the employee's "start month" within targetYear and
+  // their partial-month credit for that month.
+  let startMonth: number // 0-indexed
+  let partialMonthFraction: number // (0, 1]
+
+  const joinYear = joinDate?.getUTCFullYear() ?? null
+
+  if (joinYear !== null && joinYear > targetYear) {
+    // Hire date is in a future year — nothing to seed.
+    return 0
+  } else if (joinDate && joinYear === targetYear) {
+    startMonth = joinDate.getUTCMonth()
+    const joinDay = joinDate.getUTCDate()
+    const daysInMonth = new Date(
+      Date.UTC(targetYear, startMonth + 1, 0),
+    ).getUTCDate()
+    const daysWorked = Math.max(1, daysInMonth - joinDay + 1)
+    partialMonthFraction = daysWorked / daysInMonth
+  } else {
+    // joined in a prior year, or unknown — treat as a full Jan.
+    startMonth = 0
+    partialMonthFraction = 1
+  }
+
+  // How many full month boundaries have been crossed in targetYear
+  // by `now`? E.g. if now is Mar 5, that's month index 2; if
+  // startMonth is 1 (Feb), 2 - 1 = 1 boundary (Mar 1) has crossed.
+  let nowMonthInTarget: number
+  if (now.getUTCFullYear() > targetYear) {
+    nowMonthInTarget = 11 // all months elapsed
+  } else if (now.getUTCFullYear() < targetYear) {
+    return 0
+  } else {
+    nowMonthInTarget = now.getUTCMonth()
+  }
+  const fullMonthsCrossed = Math.max(0, nowMonthInTarget - startMonth)
+
+  const seeded =
+    fullMonthsCrossed * monthlyChunk + partialMonthFraction * monthlyChunk
+  return Math.min(entitledDays, seeded)
+}
+
 /// Compute the carry-forward amount for next year, given this year's state.
 /// Only used for leave types where `carryForward = true`.
 ///

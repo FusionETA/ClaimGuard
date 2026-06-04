@@ -55,7 +55,13 @@ type LeaveTypeRow = {
 
 type PolicyRow = { id: string; name: string; isDefault: boolean }
 
-type PolicyDefault = { policyId: string; leaveTypeId: string; defaultDays: number }
+type PolicyDefault = {
+  policyId: string
+  leaveTypeId: string
+  defaultDays: number
+  /// Per-policy override of `LeaveType.accrualMethod`. Null = inherit.
+  accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
+}
 
 type EmployeeRow = {
   id: string
@@ -68,9 +74,11 @@ type EmployeeEntitlement = {
   employeeId: string
   leaveTypeId: string
   entitledDays: number
+  /// Per-employee override of accrualMethod. Null = inherit.
+  accrualMethod: "LUMP_SUM" | "PRO_RATED" | null
 }
 
-type Tab = "types" | "employees"
+type Tab = "types" | "policies" | "employees"
 
 export function LeaveSettingsView(props: {
   orgId: string
@@ -89,11 +97,11 @@ export function LeaveSettingsView(props: {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold">Leave Settings</h1>
           <p className="text-sm text-muted-foreground">
-            Configure leave types, policy defaults, and per-employee entitlements for {props.year}.
+            {tabBlurb(tab, props.year)}
           </p>
         </div>
         {tab === "types" && (
@@ -104,10 +112,13 @@ export function LeaveSettingsView(props: {
       <nav className="-mx-6 overflow-x-auto px-6 nice-scrollbar">
         <div className="flex gap-2 pb-0.5">
           <PillTab active={tab === "types"} onClick={() => setTab("types")}>
-            Leave types &amp; policies
+            Leave types
+          </PillTab>
+          <PillTab active={tab === "policies"} onClick={() => setTab("policies")}>
+            Per-policy
           </PillTab>
           <PillTab active={tab === "employees"} onClick={() => setTab("employees")}>
-            Employee entitlements
+            Per-employee
           </PillTab>
         </div>
       </nav>
@@ -118,17 +129,16 @@ export function LeaveSettingsView(props: {
             leaveTypes={props.leaveTypes}
             onEdit={(t) => setEditingType(t)}
           />
-
-          {annualType && (
-            <AnnualLeaveCard annualType={annualType} />
-          )}
-
-          <PolicyDefaultsCard
-            leaveTypes={activeTypes}
-            policies={props.policies}
-            defaults={props.policyDefaults}
-          />
+          {annualType && <AnnualLeaveCard annualType={annualType} />}
         </>
+      )}
+
+      {tab === "policies" && (
+        <PerPolicyOverridesTab
+          leaveTypes={activeTypes}
+          policies={props.policies}
+          defaults={props.policyDefaults}
+        />
       )}
 
       {tab === "employees" && (
@@ -137,6 +147,7 @@ export function LeaveSettingsView(props: {
           leaveTypes={activeTypes}
           employees={props.employees}
           entitlements={props.employeeEntitlements}
+          policyDefaults={props.policyDefaults}
         />
       )}
 
@@ -147,6 +158,17 @@ export function LeaveSettingsView(props: {
       />
     </div>
   )
+}
+
+function tabBlurb(tab: Tab, year: number): string {
+  switch (tab) {
+    case "types":
+      return "Define the leave types available in this organisation — what they're called, whether they're paid, the default day count, and how they accrue."
+    case "policies":
+      return "Override the type defaults per employee policy. Each policy can have its own day count and accrual method per leave type."
+    case "employees":
+      return `Override the policy/type defaults for a specific employee for ${year}. Reset to inherit from the policy.`
+  }
 }
 
 function PillTab({
@@ -519,120 +541,212 @@ function LeaveTypeDialog(props: {
 }
 
 // ---------------------------------------------------------------------------
-// Policy defaults
+// Per-policy overrides (tab)
+//
+// Replaces the old wide "policy × leave-type" matrix with one Card per
+// policy. Each Card contains a Table with one row per leave type, so
+// admins read top-to-bottom (which leave type is overridden for THIS
+// policy) instead of having to scan a sprawling 2D grid.
 // ---------------------------------------------------------------------------
 
-function PolicyDefaultsCard(props: {
+function PerPolicyOverridesTab(props: {
   leaveTypes: LeaveTypeRow[]
   policies: PolicyRow[]
   defaults: PolicyDefault[]
 }) {
   const lookup = useMemo(() => {
-    const map = new Map<string, number>()
+    const map = new Map<
+      string,
+      { days: number; method: "LUMP_SUM" | "PRO_RATED" | null }
+    >()
     for (const d of props.defaults) {
-      map.set(`${d.policyId}:${d.leaveTypeId}`, d.defaultDays)
+      map.set(`${d.policyId}:${d.leaveTypeId}`, {
+        days: d.defaultDays,
+        method: d.accrualMethod,
+      })
     }
     return map
   }, [props.defaults])
 
+  // Only paid leave types can carry custom day counts (unpaid leave
+  // always resolves to 0); filtering here matches the matrix's old
+  // behaviour and keeps each policy card focused.
+  const paidTypes = props.leaveTypes.filter((t) => t.paid)
+
+  if (props.policies.length === 0 || paidTypes.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-6 text-sm text-muted-foreground">
+          {props.policies.length === 0
+            ? "Add at least one employee policy in Settings → Employees to configure per-policy overrides."
+            : "Add at least one paid leave type to configure per-policy overrides."}
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Policy defaults</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Override the leave-type default per employee policy. Leave blank to fall back to the leave type's default.
-        </p>
-      </CardHeader>
-      <CardContent className="p-0">
-        {props.policies.length === 0 || props.leaveTypes.length === 0 ? (
-          <p className="px-6 pb-6 text-sm text-muted-foreground">
-            Add at least one policy and leave type to configure defaults.
-          </p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Policy</TableHead>
-                {props.leaveTypes.map((t) => (
-                  <TableHead key={t.id} className="font-mono">{t.code}</TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {props.policies.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">
-                    {p.name}
-                    {p.isDefault && (
-                      <span className="ml-2 text-xs text-muted-foreground">(default)</span>
-                    )}
-                  </TableCell>
-                  {props.leaveTypes.map((t) => (
-                    <TableCell key={t.id}>
-                      <PolicyDefaultCell
+    <div className="space-y-4">
+      {props.policies.map((p) => {
+        // Quick header summary: how many overrides this policy holds.
+        const overrideCount = paidTypes.filter(
+          (t) => lookup.get(`${p.id}:${t.id}`) != null,
+        ).length
+        return (
+          <Card key={p.id}>
+            <CardHeader className="flex-row items-center justify-between gap-2 pb-3">
+              <div>
+                <CardTitle className="text-base">
+                  {p.name}
+                  {p.isDefault && (
+                    <Badge variant="outline" className="ml-2 align-middle text-[10px]">
+                      Default
+                    </Badge>
+                  )}
+                </CardTitle>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {overrideCount === 0
+                    ? "No overrides — every leave type inherits from its type default."
+                    : `${overrideCount} override${overrideCount === 1 ? "" : "s"} set.`}
+                </p>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Leave type</TableHead>
+                    <TableHead className="w-36">Default days</TableHead>
+                    <TableHead className="w-48">Accrual method</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paidTypes.map((t) => {
+                    const cell = lookup.get(`${p.id}:${t.id}`) ?? null
+                    return (
+                      <PolicyOverrideRow
+                        key={t.id}
                         policyId={p.id}
-                        leaveTypeId={t.id}
-                        paid={t.paid}
-                        value={lookup.get(`${p.id}:${t.id}`) ?? null}
-                        fallback={t.defaultDays}
+                        leaveType={t}
+                        daysValue={cell?.days ?? null}
+                        methodValue={cell?.method ?? null}
                       />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )
+      })}
+    </div>
   )
 }
 
-function PolicyDefaultCell(props: {
+function PolicyOverrideRow(props: {
   policyId: string
-  leaveTypeId: string
-  paid: boolean
-  value: number | null
-  fallback: number
+  leaveType: LeaveTypeRow
+  daysValue: number | null
+  methodValue: "LUMP_SUM" | "PRO_RATED" | null
 }) {
-  const [val, setVal] = useState(props.value !== null ? String(props.value) : "")
+  const [val, setVal] = useState(
+    props.daysValue !== null ? String(props.daysValue) : "",
+  )
   const [pending, startTransition] = useTransition()
-  if (!props.paid) {
-    return <span className="text-muted-foreground">—</span>
-  }
+  const methodSelectValue: "LUMP_SUM" | "PRO_RATED" | "__DEFAULT__" =
+    props.methodValue ?? "__DEFAULT__"
+  const isOverriddenDays = props.daysValue !== null
+  const isOverriddenMethod = props.methodValue !== null
+
   return (
-    <Input
-      type="number"
-      step="0.5"
-      min="0"
-      className="w-24"
-      placeholder={String(props.fallback)}
-      value={val}
-      onChange={(e) => setVal(e.target.value)}
-      onBlur={() => {
-        const numeric = val.trim() === "" ? null : Number(val)
-        if (numeric === null) {
-          if (props.value !== null) {
+    <TableRow>
+      <TableCell>
+        <span className="font-mono text-xs font-bold mr-2">{props.leaveType.code}</span>
+        {props.leaveType.name}
+      </TableCell>
+      <TableCell>
+        <Input
+          type="number"
+          step="0.5"
+          min="0"
+          className={
+            "h-9 w-28 " +
+            (isOverriddenDays ? "" : "text-muted-foreground")
+          }
+          placeholder={`${props.leaveType.defaultDays} (type)`}
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+          onBlur={() => {
+            const numeric = val.trim() === "" ? null : Number(val)
+            if (numeric === null) {
+              // Days cleared. Keep the row alive if there's still a
+              // method override; otherwise drop the row entirely.
+              if (props.methodValue !== null) {
+                startTransition(() =>
+                  setPolicyDefaultAction({
+                    policyId: props.policyId,
+                    leaveTypeId: props.leaveType.id,
+                    defaultDays: props.leaveType.defaultDays,
+                  }),
+                )
+                return
+              }
+              if (props.daysValue !== null) {
+                startTransition(() =>
+                  clearPolicyDefaultAction({
+                    policyId: props.policyId,
+                    leaveTypeId: props.leaveType.id,
+                  }),
+                )
+              }
+              return
+            }
+            if (numeric === props.daysValue) return
             startTransition(() =>
-              clearPolicyDefaultAction({
+              setPolicyDefaultAction({
                 policyId: props.policyId,
-                leaveTypeId: props.leaveTypeId,
+                leaveTypeId: props.leaveType.id,
+                defaultDays: numeric,
               }),
             )
-          }
-          return
-        }
-        if (numeric === props.value) return
-        startTransition(() =>
-          setPolicyDefaultAction({
-            policyId: props.policyId,
-            leaveTypeId: props.leaveTypeId,
-            defaultDays: numeric,
-          }),
-        )
-      }}
-      disabled={pending}
-    />
+          }}
+          disabled={pending}
+        />
+      </TableCell>
+      <TableCell>
+        <Select
+          value={methodSelectValue}
+          onValueChange={(v) => {
+            const next: "LUMP_SUM" | "PRO_RATED" | null =
+              v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
+            startTransition(() =>
+              setPolicyDefaultAction({
+                policyId: props.policyId,
+                leaveTypeId: props.leaveType.id,
+                accrualMethod: next,
+              }),
+            )
+          }}
+          disabled={pending}
+        >
+          <SelectTrigger
+            className={
+              "h-9 w-44 text-sm " +
+              (isOverriddenMethod ? "" : "text-muted-foreground")
+            }
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__DEFAULT__">
+              Inherit from type ({props.leaveType.accrualMethod === "PRO_RATED" ? "pro-rated" : "lump sum"})
+            </SelectItem>
+            <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
+            <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
+          </SelectContent>
+        </Select>
+      </TableCell>
+    </TableRow>
   )
 }
 
@@ -645,17 +759,39 @@ function EmployeeEntitlementsTab(props: {
   leaveTypes: LeaveTypeRow[]
   employees: EmployeeRow[]
   entitlements: EmployeeEntitlement[]
+  /// Per-policy method overrides — used to label the "Policy default"
+  /// option on the per-employee method selector with what the
+  /// employee's policy actually resolves to (so the admin can see what
+  /// they're inheriting).
+  policyDefaults: PolicyDefault[]
 }) {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null)
   const [filter, setFilter] = useState("")
 
   const lookup = useMemo(() => {
-    const map = new Map<string, number>()
+    const map = new Map<
+      string,
+      { days: number; method: "LUMP_SUM" | "PRO_RATED" | null }
+    >()
     for (const e of props.entitlements) {
-      map.set(`${e.employeeId}:${e.leaveTypeId}`, e.entitledDays)
+      map.set(`${e.employeeId}:${e.leaveTypeId}`, {
+        days: e.entitledDays,
+        method: e.accrualMethod,
+      })
     }
     return map
   }, [props.entitlements])
+
+  // (policyId × leaveTypeId) → policy-layer method override (if any).
+  // Used to compute the inherited method label per row when the
+  // selected employee has a policy.
+  const policyMethodLookup = useMemo(() => {
+    const map = new Map<string, "LUMP_SUM" | "PRO_RATED" | null>()
+    for (const d of props.policyDefaults) {
+      map.set(`${d.policyId}:${d.leaveTypeId}`, d.accrualMethod)
+    }
+    return map
+  }, [props.policyDefaults])
 
   const filteredEmployees = useMemo(() => {
     const needle = filter.trim().toLowerCase()
@@ -674,11 +810,8 @@ function EmployeeEntitlementsTab(props: {
   if (props.employees.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Per-employee entitlements ({props.year})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">No employees yet.</p>
+        <CardContent className="py-12 text-center text-sm text-muted-foreground">
+          No employees yet — add one from Settings → Employees to set per-employee leave overrides.
         </CardContent>
       </Card>
     )
@@ -687,11 +820,13 @@ function EmployeeEntitlementsTab(props: {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
       <Card className="lg:col-span-1">
-        <CardHeader>
-          <CardTitle>Employees</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Click an employee to edit their entitlements for {props.year}.
-          </p>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">
+            Employees{" "}
+            <span className="ml-1 text-xs font-normal text-muted-foreground">
+              ({props.employees.length})
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Input
@@ -724,40 +859,62 @@ function EmployeeEntitlementsTab(props: {
       </Card>
 
       <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle>
-            {selected ? `${selected.name}'s entitlements` : "Select an employee"}
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">
+            {selected ? selected.name : "Select an employee"}
           </CardTitle>
           {selected && (
-            <p className="text-sm text-muted-foreground">
-              Override the policy/leave-type default for {props.year}. Reset to pull the default.
+            <p className="text-xs text-muted-foreground">
+              {selected.email} · Overrides for {props.year}
             </p>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className={selected ? "p-0" : ""}>
           {!selected ? (
-            <p className="text-sm text-muted-foreground">
-              Pick an employee from the list on the left.
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Pick an employee on the left to edit their leave entitlements.
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Leave type</TableHead>
-                  <TableHead>Entitled days</TableHead>
-                  <TableHead className="text-right"> </TableHead>
+                  <TableHead className="w-32">Days</TableHead>
+                  <TableHead className="w-48">Accrual method</TableHead>
+                  <TableHead className="w-12 text-right"> </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {props.leaveTypes.map((t) => (
-                  <EmployeeEntitlementRow
-                    key={t.id}
-                    employeeId={selected.id}
-                    leaveType={t}
-                    year={props.year}
-                    current={lookup.get(`${selected.id}:${t.id}`) ?? null}
-                  />
-                ))}
+                {props.leaveTypes.map((t) => {
+                  const cell = lookup.get(`${selected.id}:${t.id}`) ?? null
+                  // The "Inherit" option's label shows what this row
+                  // would resolve to without a per-employee override —
+                  // policy-layer method (if set) then type method.
+                  const policyOverride = selected.policyId
+                    ? (policyMethodLookup.get(
+                        `${selected.policyId}:${t.id}`,
+                      ) ?? null)
+                    : null
+                  const inheritedMethod = policyOverride ?? t.accrualMethod
+                  // Whether the inherited method came from a policy
+                  // override (vs. directly from the type). Drives the
+                  // label so the admin knows which layer they're
+                  // falling back to.
+                  const inheritedFrom: "policy" | "type" =
+                    policyOverride != null ? "policy" : "type"
+                  return (
+                    <EmployeeEntitlementRow
+                      key={t.id}
+                      employeeId={selected.id}
+                      leaveType={t}
+                      year={props.year}
+                      currentDays={cell?.days ?? null}
+                      currentMethod={cell?.method ?? null}
+                      inheritedMethod={inheritedMethod}
+                      inheritedFrom={inheritedFrom}
+                    />
+                  )
+                })}
               </TableBody>
             </Table>
           )}
@@ -771,9 +928,19 @@ function EmployeeEntitlementRow(props: {
   employeeId: string
   leaveType: LeaveTypeRow
   year: number
-  current: number | null
+  currentDays: number | null
+  currentMethod: "LUMP_SUM" | "PRO_RATED" | null
+  /// The method this row falls back to when the per-employee override
+  /// is null — already resolved from policy → type by the caller.
+  inheritedMethod: "LUMP_SUM" | "PRO_RATED"
+  /// Which layer the inherited method came from. Drives the option
+  /// label so the admin knows whether they'd inherit from the policy
+  /// or all the way up to the leave type.
+  inheritedFrom: "policy" | "type"
 }) {
-  const [val, setVal] = useState(props.current !== null ? String(props.current) : "")
+  const [val, setVal] = useState(
+    props.currentDays !== null ? String(props.currentDays) : "",
+  )
   const [pending, startTransition] = useTransition()
 
   // Reset local state when the selected employee changes.
@@ -782,7 +949,7 @@ function EmployeeEntitlementRow(props: {
   if (lastKey.current !== key) {
     lastKey.current = key
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    setVal(props.current !== null ? String(props.current) : "")
+    setVal(props.currentDays !== null ? String(props.currentDays) : "")
   }
 
   if (!props.leaveType.paid) {
@@ -793,10 +960,13 @@ function EmployeeEntitlementRow(props: {
           {props.leaveType.name}
         </TableCell>
         <TableCell className="text-muted-foreground">— (unpaid)</TableCell>
+        <TableCell className="text-muted-foreground">—</TableCell>
         <TableCell></TableCell>
       </TableRow>
     )
   }
+  const methodSelectValue: "LUMP_SUM" | "PRO_RATED" | "__DEFAULT__" =
+    props.currentMethod ?? "__DEFAULT__"
   return (
     <TableRow>
       <TableCell>
@@ -808,13 +978,15 @@ function EmployeeEntitlementRow(props: {
           type="number"
           step="0.5"
           min="0"
-          className="w-28"
-          placeholder={String(props.leaveType.defaultDays)}
+          className={
+            "h-9 w-24 " + (props.currentDays !== null ? "" : "text-muted-foreground")
+          }
+          placeholder={`${props.leaveType.defaultDays}`}
           value={val}
           onChange={(e) => setVal(e.target.value)}
           onBlur={() => {
             const numeric = val.trim() === "" ? null : Number(val)
-            if (numeric === null || numeric === props.current) return
+            if (numeric === null || numeric === props.currentDays) return
             startTransition(() =>
               setEmployeeEntitlementAction({
                 employeeId: props.employeeId,
@@ -827,11 +999,54 @@ function EmployeeEntitlementRow(props: {
           disabled={pending}
         />
       </TableCell>
+      <TableCell>
+        <Select
+          value={methodSelectValue}
+          onValueChange={(v) => {
+            const next: "LUMP_SUM" | "PRO_RATED" | null =
+              v === "__DEFAULT__" ? null : (v as "LUMP_SUM" | "PRO_RATED")
+            startTransition(() =>
+              setEmployeeEntitlementAction({
+                employeeId: props.employeeId,
+                leaveTypeId: props.leaveType.id,
+                year: props.year,
+                accrualMethod: next,
+              }),
+            )
+          }}
+          disabled={pending}
+        >
+          <SelectTrigger
+            className={
+              "h-9 w-44 text-sm " +
+              (methodSelectValue === "__DEFAULT__"
+                ? "text-muted-foreground"
+                : "")
+            }
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__DEFAULT__">
+              {props.inheritedFrom === "policy"
+                ? `Inherit from policy (${
+                    props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
+                  })`
+                : `Inherit from type (${
+                    props.inheritedMethod === "PRO_RATED" ? "pro-rated" : "lump sum"
+                  })`}
+            </SelectItem>
+            <SelectItem value="LUMP_SUM">Lump sum</SelectItem>
+            <SelectItem value="PRO_RATED">Pro-rated</SelectItem>
+          </SelectContent>
+        </Select>
+      </TableCell>
       <TableCell className="text-right">
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
           disabled={pending}
+          title="Reset to inherit from policy / type"
           onClick={() =>
             startTransition(async () => {
               await resetEmployeeEntitlementAction({
@@ -843,7 +1058,7 @@ function EmployeeEntitlementRow(props: {
             })
           }
         >
-          Reset to default
+          Reset
         </Button>
       </TableCell>
     </TableRow>
