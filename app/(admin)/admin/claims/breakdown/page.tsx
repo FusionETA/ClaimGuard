@@ -309,6 +309,26 @@ function PayrollBadge({
   )
 }
 
+/**
+ * Build the deep-link URL for a synced claim. Xero exposes two routes:
+ *  - Bill (ACCPAY Invoice) → /AccountsPayable/View.aspx?InvoiceID={guid}
+ *  - Spend Money (bank txn) → /BankTransactions/View.aspx?bankTransactionID={guid}
+ * Both render the document inside the user's active Xero org login — no
+ * tenant id needed in the URL, Xero scopes by their session.
+ */
+function buildXeroSyncedUrl(claim: {
+  xeroBillId?: string
+  xeroSpendMoneyId?: string
+}): string | null {
+  if (claim.xeroSpendMoneyId) {
+    return `https://go.xero.com/BankTransactions/View.aspx?bankTransactionID=${claim.xeroSpendMoneyId}`
+  }
+  if (claim.xeroBillId) {
+    return `https://go.xero.com/AccountsPayable/View.aspx?InvoiceID=${claim.xeroBillId}`
+  }
+  return null
+}
+
 function XeroBadge({
   claim,
 }: {
@@ -322,11 +342,26 @@ function XeroBadge({
   }
 }) {
   if (claim.xeroSyncStatus === "SYNCED") {
-    return (
-      <SuccessBadge
-        label={claim.xeroSpendMoneyId ? "Spend Money" : claim.xeroBillId ? "Bill" : "Synced"}
-      />
-    )
+    const label = claim.xeroSpendMoneyId
+      ? "Spend Money"
+      : claim.xeroBillId
+        ? "Bill"
+        : "Synced"
+    const href = buildXeroSyncedUrl(claim)
+    if (href) {
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900 underline-offset-2 hover:bg-emerald-200 hover:underline"
+          title={`Open in Xero (${label})`}
+        >
+          {label}
+        </a>
+      )
+    }
+    return <SuccessBadge label={label} />
   }
   if (claim.payrollRunAttachment?.xeroSyncStatus === "SYNCED") {
     return <SuccessBadge label="Via payroll" />
