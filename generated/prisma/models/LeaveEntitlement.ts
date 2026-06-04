@@ -32,6 +32,8 @@ export type LeaveEntitlementAvgAggregateOutputType = {
   year: number | null
   entitledDays: number | null
   carriedDays: number | null
+  carriedExpiredDays: number | null
+  carriedCashedOutAmount: runtime.Decimal | null
   accruedDays: number | null
   usedDays: number | null
 }
@@ -40,6 +42,8 @@ export type LeaveEntitlementSumAggregateOutputType = {
   year: number | null
   entitledDays: number | null
   carriedDays: number | null
+  carriedExpiredDays: number | null
+  carriedCashedOutAmount: runtime.Decimal | null
   accruedDays: number | null
   usedDays: number | null
 }
@@ -53,6 +57,11 @@ export type LeaveEntitlementMinAggregateOutputType = {
   carriedDays: number | null
   carriedExpiresAt: Date | null
   carriedExpired: boolean | null
+  carriedExpiredAt: Date | null
+  carriedExpiredDays: number | null
+  carriedCashedOutRunId: string | null
+  carriedCashedOutAt: Date | null
+  carriedCashedOutAmount: runtime.Decimal | null
   accruedDays: number | null
   usedDays: number | null
   accrualMethod: $Enums.LeaveAccrualMethod | null
@@ -69,6 +78,11 @@ export type LeaveEntitlementMaxAggregateOutputType = {
   carriedDays: number | null
   carriedExpiresAt: Date | null
   carriedExpired: boolean | null
+  carriedExpiredAt: Date | null
+  carriedExpiredDays: number | null
+  carriedCashedOutRunId: string | null
+  carriedCashedOutAt: Date | null
+  carriedCashedOutAmount: runtime.Decimal | null
   accruedDays: number | null
   usedDays: number | null
   accrualMethod: $Enums.LeaveAccrualMethod | null
@@ -85,6 +99,11 @@ export type LeaveEntitlementCountAggregateOutputType = {
   carriedDays: number
   carriedExpiresAt: number
   carriedExpired: number
+  carriedExpiredAt: number
+  carriedExpiredDays: number
+  carriedCashedOutRunId: number
+  carriedCashedOutAt: number
+  carriedCashedOutAmount: number
   accruedDays: number
   usedDays: number
   accrualMethod: number
@@ -98,6 +117,8 @@ export type LeaveEntitlementAvgAggregateInputType = {
   year?: true
   entitledDays?: true
   carriedDays?: true
+  carriedExpiredDays?: true
+  carriedCashedOutAmount?: true
   accruedDays?: true
   usedDays?: true
 }
@@ -106,6 +127,8 @@ export type LeaveEntitlementSumAggregateInputType = {
   year?: true
   entitledDays?: true
   carriedDays?: true
+  carriedExpiredDays?: true
+  carriedCashedOutAmount?: true
   accruedDays?: true
   usedDays?: true
 }
@@ -119,6 +142,11 @@ export type LeaveEntitlementMinAggregateInputType = {
   carriedDays?: true
   carriedExpiresAt?: true
   carriedExpired?: true
+  carriedExpiredAt?: true
+  carriedExpiredDays?: true
+  carriedCashedOutRunId?: true
+  carriedCashedOutAt?: true
+  carriedCashedOutAmount?: true
   accruedDays?: true
   usedDays?: true
   accrualMethod?: true
@@ -135,6 +163,11 @@ export type LeaveEntitlementMaxAggregateInputType = {
   carriedDays?: true
   carriedExpiresAt?: true
   carriedExpired?: true
+  carriedExpiredAt?: true
+  carriedExpiredDays?: true
+  carriedCashedOutRunId?: true
+  carriedCashedOutAt?: true
+  carriedCashedOutAmount?: true
   accruedDays?: true
   usedDays?: true
   accrualMethod?: true
@@ -151,6 +184,11 @@ export type LeaveEntitlementCountAggregateInputType = {
   carriedDays?: true
   carriedExpiresAt?: true
   carriedExpired?: true
+  carriedExpiredAt?: true
+  carriedExpiredDays?: true
+  carriedCashedOutRunId?: true
+  carriedCashedOutAt?: true
+  carriedCashedOutAmount?: true
   accruedDays?: true
   usedDays?: true
   accrualMethod?: true
@@ -254,6 +292,11 @@ export type LeaveEntitlementGroupByOutputType = {
   carriedDays: number
   carriedExpiresAt: Date | null
   carriedExpired: boolean
+  carriedExpiredAt: Date | null
+  carriedExpiredDays: number | null
+  carriedCashedOutRunId: string | null
+  carriedCashedOutAt: Date | null
+  carriedCashedOutAmount: runtime.Decimal | null
   accruedDays: number
   usedDays: number
   accrualMethod: $Enums.LeaveAccrualMethod | null
@@ -293,6 +336,11 @@ export type LeaveEntitlementWhereInput = {
   carriedDays?: Prisma.FloatFilter<"LeaveEntitlement"> | number
   carriedExpiresAt?: Prisma.DateTimeNullableFilter<"LeaveEntitlement"> | Date | string | null
   carriedExpired?: Prisma.BoolFilter<"LeaveEntitlement"> | boolean
+  carriedExpiredAt?: Prisma.DateTimeNullableFilter<"LeaveEntitlement"> | Date | string | null
+  carriedExpiredDays?: Prisma.FloatNullableFilter<"LeaveEntitlement"> | number | null
+  carriedCashedOutRunId?: Prisma.StringNullableFilter<"LeaveEntitlement"> | string | null
+  carriedCashedOutAt?: Prisma.DateTimeNullableFilter<"LeaveEntitlement"> | Date | string | null
+  carriedCashedOutAmount?: Prisma.DecimalNullableFilter<"LeaveEntitlement"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFilter<"LeaveEntitlement"> | number
   usedDays?: Prisma.FloatFilter<"LeaveEntitlement"> | number
   accrualMethod?: Prisma.EnumLeaveAccrualMethodNullableFilter<"LeaveEntitlement"> | $Enums.LeaveAccrualMethod | null
@@ -311,6 +359,11 @@ export type LeaveEntitlementOrderByWithRelationInput = {
   carriedDays?: Prisma.SortOrder
   carriedExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   carriedExpired?: Prisma.SortOrder
+  carriedExpiredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  carriedExpiredDays?: Prisma.SortOrderInput | Prisma.SortOrder
+  carriedCashedOutRunId?: Prisma.SortOrderInput | Prisma.SortOrder
+  carriedCashedOutAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  carriedCashedOutAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   accruedDays?: Prisma.SortOrder
   usedDays?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -334,6 +387,11 @@ export type LeaveEntitlementWhereUniqueInput = Prisma.AtLeast<{
   carriedDays?: Prisma.FloatFilter<"LeaveEntitlement"> | number
   carriedExpiresAt?: Prisma.DateTimeNullableFilter<"LeaveEntitlement"> | Date | string | null
   carriedExpired?: Prisma.BoolFilter<"LeaveEntitlement"> | boolean
+  carriedExpiredAt?: Prisma.DateTimeNullableFilter<"LeaveEntitlement"> | Date | string | null
+  carriedExpiredDays?: Prisma.FloatNullableFilter<"LeaveEntitlement"> | number | null
+  carriedCashedOutRunId?: Prisma.StringNullableFilter<"LeaveEntitlement"> | string | null
+  carriedCashedOutAt?: Prisma.DateTimeNullableFilter<"LeaveEntitlement"> | Date | string | null
+  carriedCashedOutAmount?: Prisma.DecimalNullableFilter<"LeaveEntitlement"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFilter<"LeaveEntitlement"> | number
   usedDays?: Prisma.FloatFilter<"LeaveEntitlement"> | number
   accrualMethod?: Prisma.EnumLeaveAccrualMethodNullableFilter<"LeaveEntitlement"> | $Enums.LeaveAccrualMethod | null
@@ -352,6 +410,11 @@ export type LeaveEntitlementOrderByWithAggregationInput = {
   carriedDays?: Prisma.SortOrder
   carriedExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   carriedExpired?: Prisma.SortOrder
+  carriedExpiredAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  carriedExpiredDays?: Prisma.SortOrderInput | Prisma.SortOrder
+  carriedCashedOutRunId?: Prisma.SortOrderInput | Prisma.SortOrder
+  carriedCashedOutAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  carriedCashedOutAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   accruedDays?: Prisma.SortOrder
   usedDays?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -376,6 +439,11 @@ export type LeaveEntitlementScalarWhereWithAggregatesInput = {
   carriedDays?: Prisma.FloatWithAggregatesFilter<"LeaveEntitlement"> | number
   carriedExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"LeaveEntitlement"> | Date | string | null
   carriedExpired?: Prisma.BoolWithAggregatesFilter<"LeaveEntitlement"> | boolean
+  carriedExpiredAt?: Prisma.DateTimeNullableWithAggregatesFilter<"LeaveEntitlement"> | Date | string | null
+  carriedExpiredDays?: Prisma.FloatNullableWithAggregatesFilter<"LeaveEntitlement"> | number | null
+  carriedCashedOutRunId?: Prisma.StringNullableWithAggregatesFilter<"LeaveEntitlement"> | string | null
+  carriedCashedOutAt?: Prisma.DateTimeNullableWithAggregatesFilter<"LeaveEntitlement"> | Date | string | null
+  carriedCashedOutAmount?: Prisma.DecimalNullableWithAggregatesFilter<"LeaveEntitlement"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatWithAggregatesFilter<"LeaveEntitlement"> | number
   usedDays?: Prisma.FloatWithAggregatesFilter<"LeaveEntitlement"> | number
   accrualMethod?: Prisma.EnumLeaveAccrualMethodNullableWithAggregatesFilter<"LeaveEntitlement"> | $Enums.LeaveAccrualMethod | null
@@ -390,6 +458,11 @@ export type LeaveEntitlementCreateInput = {
   carriedDays?: number
   carriedExpiresAt?: Date | string | null
   carriedExpired?: boolean
+  carriedExpiredAt?: Date | string | null
+  carriedExpiredDays?: number | null
+  carriedCashedOutRunId?: string | null
+  carriedCashedOutAt?: Date | string | null
+  carriedCashedOutAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: number
   usedDays?: number
   accrualMethod?: $Enums.LeaveAccrualMethod | null
@@ -408,6 +481,11 @@ export type LeaveEntitlementUncheckedCreateInput = {
   carriedDays?: number
   carriedExpiresAt?: Date | string | null
   carriedExpired?: boolean
+  carriedExpiredAt?: Date | string | null
+  carriedExpiredDays?: number | null
+  carriedCashedOutRunId?: string | null
+  carriedCashedOutAt?: Date | string | null
+  carriedCashedOutAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: number
   usedDays?: number
   accrualMethod?: $Enums.LeaveAccrualMethod | null
@@ -422,6 +500,11 @@ export type LeaveEntitlementUpdateInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -440,6 +523,11 @@ export type LeaveEntitlementUncheckedUpdateInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -456,6 +544,11 @@ export type LeaveEntitlementCreateManyInput = {
   carriedDays?: number
   carriedExpiresAt?: Date | string | null
   carriedExpired?: boolean
+  carriedExpiredAt?: Date | string | null
+  carriedExpiredDays?: number | null
+  carriedCashedOutRunId?: string | null
+  carriedCashedOutAt?: Date | string | null
+  carriedCashedOutAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: number
   usedDays?: number
   accrualMethod?: $Enums.LeaveAccrualMethod | null
@@ -470,6 +563,11 @@ export type LeaveEntitlementUpdateManyMutationInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -486,6 +584,11 @@ export type LeaveEntitlementUncheckedUpdateManyInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -524,6 +627,11 @@ export type LeaveEntitlementCountOrderByAggregateInput = {
   carriedDays?: Prisma.SortOrder
   carriedExpiresAt?: Prisma.SortOrder
   carriedExpired?: Prisma.SortOrder
+  carriedExpiredAt?: Prisma.SortOrder
+  carriedExpiredDays?: Prisma.SortOrder
+  carriedCashedOutRunId?: Prisma.SortOrder
+  carriedCashedOutAt?: Prisma.SortOrder
+  carriedCashedOutAmount?: Prisma.SortOrder
   accruedDays?: Prisma.SortOrder
   usedDays?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrder
@@ -535,6 +643,8 @@ export type LeaveEntitlementAvgOrderByAggregateInput = {
   year?: Prisma.SortOrder
   entitledDays?: Prisma.SortOrder
   carriedDays?: Prisma.SortOrder
+  carriedExpiredDays?: Prisma.SortOrder
+  carriedCashedOutAmount?: Prisma.SortOrder
   accruedDays?: Prisma.SortOrder
   usedDays?: Prisma.SortOrder
 }
@@ -548,6 +658,11 @@ export type LeaveEntitlementMaxOrderByAggregateInput = {
   carriedDays?: Prisma.SortOrder
   carriedExpiresAt?: Prisma.SortOrder
   carriedExpired?: Prisma.SortOrder
+  carriedExpiredAt?: Prisma.SortOrder
+  carriedExpiredDays?: Prisma.SortOrder
+  carriedCashedOutRunId?: Prisma.SortOrder
+  carriedCashedOutAt?: Prisma.SortOrder
+  carriedCashedOutAmount?: Prisma.SortOrder
   accruedDays?: Prisma.SortOrder
   usedDays?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrder
@@ -564,6 +679,11 @@ export type LeaveEntitlementMinOrderByAggregateInput = {
   carriedDays?: Prisma.SortOrder
   carriedExpiresAt?: Prisma.SortOrder
   carriedExpired?: Prisma.SortOrder
+  carriedExpiredAt?: Prisma.SortOrder
+  carriedExpiredDays?: Prisma.SortOrder
+  carriedCashedOutRunId?: Prisma.SortOrder
+  carriedCashedOutAt?: Prisma.SortOrder
+  carriedCashedOutAmount?: Prisma.SortOrder
   accruedDays?: Prisma.SortOrder
   usedDays?: Prisma.SortOrder
   accrualMethod?: Prisma.SortOrder
@@ -575,6 +695,8 @@ export type LeaveEntitlementSumOrderByAggregateInput = {
   year?: Prisma.SortOrder
   entitledDays?: Prisma.SortOrder
   carriedDays?: Prisma.SortOrder
+  carriedExpiredDays?: Prisma.SortOrder
+  carriedCashedOutAmount?: Prisma.SortOrder
   accruedDays?: Prisma.SortOrder
   usedDays?: Prisma.SortOrder
 }
@@ -670,6 +792,11 @@ export type LeaveEntitlementCreateWithoutEmployeeInput = {
   carriedDays?: number
   carriedExpiresAt?: Date | string | null
   carriedExpired?: boolean
+  carriedExpiredAt?: Date | string | null
+  carriedExpiredDays?: number | null
+  carriedCashedOutRunId?: string | null
+  carriedCashedOutAt?: Date | string | null
+  carriedCashedOutAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: number
   usedDays?: number
   accrualMethod?: $Enums.LeaveAccrualMethod | null
@@ -686,6 +813,11 @@ export type LeaveEntitlementUncheckedCreateWithoutEmployeeInput = {
   carriedDays?: number
   carriedExpiresAt?: Date | string | null
   carriedExpired?: boolean
+  carriedExpiredAt?: Date | string | null
+  carriedExpiredDays?: number | null
+  carriedCashedOutRunId?: string | null
+  carriedCashedOutAt?: Date | string | null
+  carriedCashedOutAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: number
   usedDays?: number
   accrualMethod?: $Enums.LeaveAccrualMethod | null
@@ -731,6 +863,11 @@ export type LeaveEntitlementScalarWhereInput = {
   carriedDays?: Prisma.FloatFilter<"LeaveEntitlement"> | number
   carriedExpiresAt?: Prisma.DateTimeNullableFilter<"LeaveEntitlement"> | Date | string | null
   carriedExpired?: Prisma.BoolFilter<"LeaveEntitlement"> | boolean
+  carriedExpiredAt?: Prisma.DateTimeNullableFilter<"LeaveEntitlement"> | Date | string | null
+  carriedExpiredDays?: Prisma.FloatNullableFilter<"LeaveEntitlement"> | number | null
+  carriedCashedOutRunId?: Prisma.StringNullableFilter<"LeaveEntitlement"> | string | null
+  carriedCashedOutAt?: Prisma.DateTimeNullableFilter<"LeaveEntitlement"> | Date | string | null
+  carriedCashedOutAmount?: Prisma.DecimalNullableFilter<"LeaveEntitlement"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFilter<"LeaveEntitlement"> | number
   usedDays?: Prisma.FloatFilter<"LeaveEntitlement"> | number
   accrualMethod?: Prisma.EnumLeaveAccrualMethodNullableFilter<"LeaveEntitlement"> | $Enums.LeaveAccrualMethod | null
@@ -745,6 +882,11 @@ export type LeaveEntitlementCreateWithoutLeaveTypeInput = {
   carriedDays?: number
   carriedExpiresAt?: Date | string | null
   carriedExpired?: boolean
+  carriedExpiredAt?: Date | string | null
+  carriedExpiredDays?: number | null
+  carriedCashedOutRunId?: string | null
+  carriedCashedOutAt?: Date | string | null
+  carriedCashedOutAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: number
   usedDays?: number
   accrualMethod?: $Enums.LeaveAccrualMethod | null
@@ -761,6 +903,11 @@ export type LeaveEntitlementUncheckedCreateWithoutLeaveTypeInput = {
   carriedDays?: number
   carriedExpiresAt?: Date | string | null
   carriedExpired?: boolean
+  carriedExpiredAt?: Date | string | null
+  carriedExpiredDays?: number | null
+  carriedCashedOutRunId?: string | null
+  carriedCashedOutAt?: Date | string | null
+  carriedCashedOutAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: number
   usedDays?: number
   accrualMethod?: $Enums.LeaveAccrualMethod | null
@@ -802,6 +949,11 @@ export type LeaveEntitlementCreateManyEmployeeInput = {
   carriedDays?: number
   carriedExpiresAt?: Date | string | null
   carriedExpired?: boolean
+  carriedExpiredAt?: Date | string | null
+  carriedExpiredDays?: number | null
+  carriedCashedOutRunId?: string | null
+  carriedCashedOutAt?: Date | string | null
+  carriedCashedOutAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: number
   usedDays?: number
   accrualMethod?: $Enums.LeaveAccrualMethod | null
@@ -816,6 +968,11 @@ export type LeaveEntitlementUpdateWithoutEmployeeInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -832,6 +989,11 @@ export type LeaveEntitlementUncheckedUpdateWithoutEmployeeInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -847,6 +1009,11 @@ export type LeaveEntitlementUncheckedUpdateManyWithoutEmployeeInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -862,6 +1029,11 @@ export type LeaveEntitlementCreateManyLeaveTypeInput = {
   carriedDays?: number
   carriedExpiresAt?: Date | string | null
   carriedExpired?: boolean
+  carriedExpiredAt?: Date | string | null
+  carriedExpiredDays?: number | null
+  carriedCashedOutRunId?: string | null
+  carriedCashedOutAt?: Date | string | null
+  carriedCashedOutAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: number
   usedDays?: number
   accrualMethod?: $Enums.LeaveAccrualMethod | null
@@ -876,6 +1048,11 @@ export type LeaveEntitlementUpdateWithoutLeaveTypeInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -892,6 +1069,11 @@ export type LeaveEntitlementUncheckedUpdateWithoutLeaveTypeInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -907,6 +1089,11 @@ export type LeaveEntitlementUncheckedUpdateManyWithoutLeaveTypeInput = {
   carriedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   carriedExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   carriedExpired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  carriedExpiredAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedExpiredDays?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  carriedCashedOutRunId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  carriedCashedOutAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  carriedCashedOutAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   accruedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   usedDays?: Prisma.FloatFieldUpdateOperationsInput | number
   accrualMethod?: Prisma.NullableEnumLeaveAccrualMethodFieldUpdateOperationsInput | $Enums.LeaveAccrualMethod | null
@@ -925,6 +1112,11 @@ export type LeaveEntitlementSelect<ExtArgs extends runtime.Types.Extensions.Inte
   carriedDays?: boolean
   carriedExpiresAt?: boolean
   carriedExpired?: boolean
+  carriedExpiredAt?: boolean
+  carriedExpiredDays?: boolean
+  carriedCashedOutRunId?: boolean
+  carriedCashedOutAt?: boolean
+  carriedCashedOutAmount?: boolean
   accruedDays?: boolean
   usedDays?: boolean
   accrualMethod?: boolean
@@ -945,6 +1137,11 @@ export type LeaveEntitlementSelectScalar = {
   carriedDays?: boolean
   carriedExpiresAt?: boolean
   carriedExpired?: boolean
+  carriedExpiredAt?: boolean
+  carriedExpiredDays?: boolean
+  carriedCashedOutRunId?: boolean
+  carriedCashedOutAt?: boolean
+  carriedCashedOutAmount?: boolean
   accruedDays?: boolean
   usedDays?: boolean
   accrualMethod?: boolean
@@ -952,7 +1149,7 @@ export type LeaveEntitlementSelectScalar = {
   updatedAt?: boolean
 }
 
-export type LeaveEntitlementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "leaveTypeId" | "year" | "entitledDays" | "carriedDays" | "carriedExpiresAt" | "carriedExpired" | "accruedDays" | "usedDays" | "accrualMethod" | "createdAt" | "updatedAt", ExtArgs["result"]["leaveEntitlement"]>
+export type LeaveEntitlementOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "leaveTypeId" | "year" | "entitledDays" | "carriedDays" | "carriedExpiresAt" | "carriedExpired" | "carriedExpiredAt" | "carriedExpiredDays" | "carriedCashedOutRunId" | "carriedCashedOutAt" | "carriedCashedOutAmount" | "accruedDays" | "usedDays" | "accrualMethod" | "createdAt" | "updatedAt", ExtArgs["result"]["leaveEntitlement"]>
 export type LeaveEntitlementInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   leaveType?: boolean | Prisma.LeaveTypeDefaultArgs<ExtArgs>
@@ -973,6 +1170,32 @@ export type $LeaveEntitlementPayload<ExtArgs extends runtime.Types.Extensions.In
     carriedDays: number
     carriedExpiresAt: Date | null
     carriedExpired: boolean
+    /**
+     * Set by `runMonthlyAccrual`'s expiry sweep when this row's
+     * carry-forward expired. Lets the payroll cash-out UI surface
+     * "this employee had X days expire on date Y" even after
+     * `carriedDays` is mutated to the used portion.
+     */
+    carriedExpiredAt: Date | null
+    /**
+     * How many days were forfeited when the expiry fired — i.e. the
+     * `unused` portion at sweep time. Stays on the row indefinitely
+     * so the cash-out UI knows the amount even years later.
+     */
+    carriedExpiredDays: number | null
+    /**
+     * Non-null = an admin has attached this expired-days row to a
+     * payroll run for cash-out. We don't show it as "available" again
+     * and we don't re-attach on re-imports. No onDelete cascade — keep
+     * the audit if the run is deleted.
+     */
+    carriedCashedOutRunId: string | null
+    carriedCashedOutAt: Date | null
+    /**
+     * Snapshot of the cash-out amount actually attached to the run,
+     * in case the employee's salary changes later.
+     */
+    carriedCashedOutAmount: runtime.Decimal | null
     /**
      * PRO_RATED: monthly accumulated. LUMP_SUM: equals entitledDays.
      */
@@ -1366,6 +1589,11 @@ export interface LeaveEntitlementFieldRefs {
   readonly carriedDays: Prisma.FieldRef<"LeaveEntitlement", 'Float'>
   readonly carriedExpiresAt: Prisma.FieldRef<"LeaveEntitlement", 'DateTime'>
   readonly carriedExpired: Prisma.FieldRef<"LeaveEntitlement", 'Boolean'>
+  readonly carriedExpiredAt: Prisma.FieldRef<"LeaveEntitlement", 'DateTime'>
+  readonly carriedExpiredDays: Prisma.FieldRef<"LeaveEntitlement", 'Float'>
+  readonly carriedCashedOutRunId: Prisma.FieldRef<"LeaveEntitlement", 'String'>
+  readonly carriedCashedOutAt: Prisma.FieldRef<"LeaveEntitlement", 'DateTime'>
+  readonly carriedCashedOutAmount: Prisma.FieldRef<"LeaveEntitlement", 'Decimal'>
   readonly accruedDays: Prisma.FieldRef<"LeaveEntitlement", 'Float'>
   readonly usedDays: Prisma.FieldRef<"LeaveEntitlement", 'Float'>
   readonly accrualMethod: Prisma.FieldRef<"LeaveEntitlement", 'LeaveAccrualMethod'>

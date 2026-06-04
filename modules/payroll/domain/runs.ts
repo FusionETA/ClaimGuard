@@ -289,6 +289,14 @@ export type ManualLineItem = {
   category: string
   label: string
   amount: number
+  /// Optional backlink to the LeaveEntitlement row this line item
+  /// was derived from. Set ONLY when category === "wages_leave_pay"
+  /// and the attach came from the Expired-leave-cash-out card on the
+  /// run page. Lets the detach action find + remove the line item
+  /// without label matching, and lets the cash-out card know which
+  /// rows are already attached. Other manual line items leave this
+  /// undefined.
+  sourceEntitlementId?: string
 }
 
 /**

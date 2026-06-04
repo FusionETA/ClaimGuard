@@ -203,7 +203,20 @@ function parseManualLineItems(value: unknown): ManualLineItem[] {
           ? Number(amountRaw)
           : 0
     if (!Number.isFinite(amount) || amount <= 0) continue
-    out.push({ kind, category, label, amount })
+    // Preserve the optional sourceEntitlementId backlink — set by the
+    // leave-cash-out attach flow so detach can find the row without
+    // label matching. Other line items have it undefined.
+    const sourceEntitlementId =
+      typeof i.sourceEntitlementId === "string" && i.sourceEntitlementId.length > 0
+        ? i.sourceEntitlementId
+        : undefined
+    out.push({
+      kind,
+      category,
+      label,
+      amount,
+      ...(sourceEntitlementId ? { sourceEntitlementId } : {}),
+    })
   }
   return out
 }

@@ -13,9 +13,11 @@ import {
 import {
   approvePayrollRun,
   attachClaimToPayrollRun,
+  attachLeaveCashoutToRun,
   createPayrollRunDraft,
   deletePayrollRunDraft,
   detachClaimFromPayrollRun,
+  detachLeaveCashoutFromRun,
   generatePayrollPayslips,
   rejectPayrollRunApproval,
   revertPayrollRunToDraft,
@@ -200,6 +202,64 @@ export async function detachClaimFromPayrollRunAction(
 
   revalidatePath(`/admin/payroll/runs/${parsed.data.runId}`)
   return { status: "success", message: "Claim removed from payroll run." }
+}
+
+// ─── Expired leave cash-out ──────────────────────────────────────────────
+
+const attachLeaveCashoutSchema = z.object({
+  runId: z.string().min(1),
+  entitlementId: z.string().min(1),
+})
+
+export async function attachLeaveCashoutToRunAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const parsed = attachLeaveCashoutSchema.safeParse({
+    runId: formData.get("runId"),
+    entitlementId: formData.get("entitlementId"),
+  })
+  if (!parsed.success) {
+    return { status: "error", message: "Missing run or entitlement id." }
+  }
+  try {
+    await attachLeaveCashoutToRun(parsed.data)
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not attach leave cash-out."),
+    }
+  }
+  revalidatePath(`/admin/payroll/runs/${parsed.data.runId}`)
+  return { status: "success", message: "Leave cash-out attached to run." }
+}
+
+const detachLeaveCashoutSchema = z.object({
+  runId: z.string().min(1),
+  entitlementId: z.string().min(1),
+})
+
+export async function detachLeaveCashoutFromRunAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const parsed = detachLeaveCashoutSchema.safeParse({
+    runId: formData.get("runId"),
+    entitlementId: formData.get("entitlementId"),
+  })
+  if (!parsed.success) {
+    return { status: "error", message: "Missing run or entitlement id." }
+  }
+  try {
+    await detachLeaveCashoutFromRun({ entitlementId: parsed.data.entitlementId })
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not detach leave cash-out."),
+    }
+  }
+  revalidatePath(`/admin/payroll/runs/${parsed.data.runId}`)
+  return { status: "success", message: "Leave cash-out removed from run." }
 }
 
 // ─── Approval flow (Phase 21) ────────────────────────────────────────────

@@ -1032,6 +1032,11 @@ export const LeaveEntitlementScalarFieldEnum = {
   carriedDays: 'carriedDays',
   carriedExpiresAt: 'carriedExpiresAt',
   carriedExpired: 'carriedExpired',
+  carriedExpiredAt: 'carriedExpiredAt',
+  carriedExpiredDays: 'carriedExpiredDays',
+  carriedCashedOutRunId: 'carriedCashedOutRunId',
+  carriedCashedOutAt: 'carriedCashedOutAt',
+  carriedCashedOutAmount: 'carriedCashedOutAmount',
   accruedDays: 'accruedDays',
   usedDays: 'usedDays',
   accrualMethod: 'accrualMethod',
@@ -1705,7 +1710,8 @@ export type PolicyLeaveEntitlementOrderByRelevanceFieldEnum = (typeof PolicyLeav
 export const LeaveEntitlementOrderByRelevanceFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
-  leaveTypeId: 'leaveTypeId'
+  leaveTypeId: 'leaveTypeId',
+  carriedCashedOutRunId: 'carriedCashedOutRunId'
 } as const
 
 export type LeaveEntitlementOrderByRelevanceFieldEnum = (typeof LeaveEntitlementOrderByRelevanceFieldEnum)[keyof typeof LeaveEntitlementOrderByRelevanceFieldEnum]

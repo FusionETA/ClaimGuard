@@ -1684,6 +1684,24 @@ model LeaveEntitlement {
   carriedDays      Float               @default(0)
   carriedExpiresAt DateTime?
   carriedExpired   Boolean             @default(false)
+  /// Set by `runMonthlyAccrual`'s expiry sweep when this row's
+  /// carry-forward expired. Lets the payroll cash-out UI surface
+  /// "this employee had X days expire on date Y" even after
+  /// `carriedDays` is mutated to the used portion.
+  carriedExpiredAt    DateTime?
+  /// How many days were forfeited when the expiry fired — i.e. the
+  /// `unused` portion at sweep time. Stays on the row indefinitely
+  /// so the cash-out UI knows the amount even years later.
+  carriedExpiredDays  Float?
+  /// Non-null = an admin has attached this expired-days row to a
+  /// payroll run for cash-out. We don't show it as "available" again
+  /// and we don't re-attach on re-imports. No onDelete cascade — keep
+  /// the audit if the run is deleted.
+  carriedCashedOutRunId  String?
+  carriedCashedOutAt     DateTime?
+  /// Snapshot of the cash-out amount actually attached to the run,
+  /// in case the employee's salary changes later.
+  carriedCashedOutAmount Decimal?           @db.Decimal(12, 2)
   /// PRO_RATED: monthly accumulated. LUMP_SUM: equals entitledDays.
   accruedDays      Float               @default(0)
   usedDays         Float               @default(0)
@@ -1700,6 +1718,7 @@ model LeaveEntitlement {
   @@unique([employeeId, leaveTypeId, year])
   @@index([leaveTypeId])
   @@index([year])
+  @@index([carriedExpired, carriedCashedOutRunId])
 }
 
 /// Employee leave application. Approval chain mirrors the attendance

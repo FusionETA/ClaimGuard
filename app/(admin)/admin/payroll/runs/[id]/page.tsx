@@ -21,6 +21,10 @@ import {
   AttachClaimButton,
   DetachClaimButton,
 } from "@/components/admin/claim-attachment-buttons"
+import {
+  AttachLeaveCashoutButton,
+  DetachLeaveCashoutButton,
+} from "@/components/admin/leave-cashout-buttons"
 import { DeletePayrollRunDraftButton } from "@/components/admin/delete-payroll-run-draft-button"
 import { GeneratePayslipsButton } from "@/components/admin/generate-payslips-button"
 import { PayrollDownloadsModal } from "@/components/admin/payroll-downloads-modal"
@@ -38,6 +42,7 @@ import { getPayrollRunReadiness } from "@/modules/payroll/application/services/p
 import {
   getLaterSubmittedRunsForRevert,
   getPayrollRunDetailWithPayslipsPageData,
+  type PendingLeaveCashout,
 } from "@/modules/payroll/application/services/payroll-run.service"
 import { getSalaryChangeHintsForRun } from "@/modules/payroll/application/services/salary-change-hints.service"
 import { SalaryChangeHintsCard } from "@/components/admin/salary-change-hints-card"
@@ -319,6 +324,61 @@ export default async function AdminPayrollRunDetailPage({
                   first.
                 </p>
               )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Expired-leave cash-out panel. Sibling of Reimbursements —
+          surfaces every employee whose carry-forward annual leave
+          expired and hasn't yet been paid out. Each attach creates a
+          `wages_leave_pay` line on the run's PayrollRunAdjustment. */}
+      {(data.attachedLeaveCashouts.length > 0 ||
+        (isDraft && data.attachableLeaveCashouts.length > 0)) && (
+        <Card className="print:hidden">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ClipboardList className="h-4 w-4" />
+              Expired leave cash-out
+            </CardTitle>
+            <CardDescription>
+              Annual leave carry-forward days that expired without being
+              used. Attach to this run to pay the employee for those
+              days at <span className="font-mono">monthlySalary ÷ working-days</span>.
+              {data.attachedLeaveCashouts.length > 0 && isDraft
+                ? " Re-run payroll after attaching to refresh the totals."
+                : ""}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {data.attachedLeaveCashouts.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="text-xs font-medium text-muted-foreground">
+                  Attached to this run
+                </div>
+                {data.attachedLeaveCashouts.map((c) => (
+                  <AttachedCashoutRow
+                    key={c.entitlementId}
+                    runId={data.run.id}
+                    cashout={c}
+                    canDetach={isDraft}
+                  />
+                ))}
+              </div>
+            )}
+            {isDraft && data.attachableLeaveCashouts.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="text-xs font-medium text-muted-foreground">
+                  Available to attach
+                </div>
+                {data.attachableLeaveCashouts.map((c) => (
+                  <AttachableCashoutRow
+                    key={c.entitlementId}
+                    runId={data.run.id}
+                    cashout={c}
+                  />
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -680,4 +740,86 @@ function formatMyr(value: number) {
     currency: "MYR",
     maximumFractionDigits: 2,
   }).format(value)
+}
+
+/// Already-attached expired-leave row. Mirrors `AttachedRow` (claim).
+function AttachedCashoutRow({
+  runId,
+  cashout,
+  canDetach,
+}: {
+  runId: string
+  cashout: PendingLeaveCashout
+  canDetach: boolean
+}) {
+  return (
+    <div className="flex w-full items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm">
+      <div className="flex min-w-0 flex-col">
+        <span className="truncate font-medium text-foreground">
+          {cashout.employeeName}
+          <span className="ml-2 text-xs text-muted-foreground">
+            {cashout.expiredDays} day{cashout.expiredDays === 1 ? "" : "s"}{" "}
+            · {cashout.leaveTypeCode} {cashout.year}
+          </span>
+        </span>
+        <span className="truncate text-xs text-muted-foreground">
+          {cashout.employeeEmail}
+        </span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="font-medium text-foreground">
+          {formatMyr(cashout.attachedAmount ?? cashout.suggestedAmount)}
+        </span>
+        {canDetach && (
+          <DetachLeaveCashoutButton
+            runId={runId}
+            entitlementId={cashout.entitlementId}
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+/// Available expired-leave row. Mirrors `AttachableRow` (claim).
+/// The Attach button is disabled when the employee has no monthly
+/// salary on their payroll profile — without one, we can't compute
+/// the cash-out amount.
+function AttachableCashoutRow({
+  runId,
+  cashout,
+}: {
+  runId: string
+  cashout: PendingLeaveCashout
+}) {
+  const noSalary =
+    cashout.monthlySalary == null || cashout.monthlySalary <= 0
+  return (
+    <div className="flex w-full items-center justify-between gap-3 rounded-lg border border-transparent px-3 py-2 text-sm transition hover:border-primary/40 hover:bg-primary/5">
+      <div className="flex min-w-0 flex-col">
+        <span className="truncate font-medium text-foreground">
+          {cashout.employeeName}
+          <span className="ml-2 text-xs text-muted-foreground">
+            {cashout.expiredDays} day{cashout.expiredDays === 1 ? "" : "s"}{" "}
+            · {cashout.leaveTypeCode} {cashout.year}
+          </span>
+        </span>
+        <span className="truncate text-xs text-muted-foreground">
+          {cashout.employeeEmail}
+          {noSalary ? " · no monthly salary set" : ""}
+        </span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="font-medium text-foreground">
+          {formatMyr(cashout.suggestedAmount)}
+        </span>
+        <AttachLeaveCashoutButton
+          runId={runId}
+          entitlementId={cashout.entitlementId}
+          disabled={noSalary}
+          disabledReason="Set the employee's monthly salary on their payroll profile first."
+        />
+      </div>
+    </div>
+  )
 }
