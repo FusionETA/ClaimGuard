@@ -23,7 +23,11 @@ import type {
   SalaryType,
   SocsoScheme,
 } from "@/modules/payroll/domain/models"
-import { calcPcb } from "@/modules/payroll/domain/pcb"
+import {
+  calcPcb,
+  calcPcbBreakdown,
+  type CalcPcbBreakdown,
+} from "@/modules/payroll/domain/pcb"
 import type { WorkingDaysRule } from "@/modules/payroll/domain/settings"
 import {
   lookupEis,
@@ -609,6 +613,12 @@ export type CalcPayslipResult = {
   /// pay; `additional` is the PCB attributable to one-off remuneration
   /// (bonus, commission, etc.) computed via the LHDN AR formula.
   pcbBreakdown: { normal: number; additional: number }
+  /// Full LHDN-style PCB formula breakdown (Y, K, Y1, K1, Y2, K2, n,
+  /// D, S, Du, Su, Q×C, ∑LP, LP1, P, M, R, B, Z, X, yearlyTax,
+  /// currentMonthPcb, pcbFinal). Persisted on the payslip as
+  /// `pcbCalculation Json?` so the Detailed Calculations PDF can show
+  /// the formula that produced the deducted amount.
+  pcbCalculation: CalcPcbBreakdown
   // Line items the repo should write alongside the payslip
   lineItems: Array<{
     kind: "ALLOWANCE" | "DEDUCTION" | "REIMBURSEMENT"
@@ -1029,7 +1039,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     ? (input.ytdSocsoEis ?? 0)
     : 0
 
-  const pcbBreakdown = calcPcb({
+  const pcbCalcInput = {
     isResident: profile.isResident,
     periodMonth,
     thisMonthTaxable: pcbWage,
@@ -1048,7 +1058,12 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       spouseDisabled: profile.spouseDisabled,
       childRelief: profile.childRelief,
     },
-  })
+  }
+  const pcbBreakdown = calcPcb(pcbCalcInput)
+  // LHDN-style breakdown for the Detailed Calculations PDF. Mirrors
+  // the calcPcb arithmetic but exposes each named LHDN variable so
+  // the audit trail can show "P = ..., M = ..., R = ..., etc.".
+  const pcbCalculation = calcPcbBreakdown(pcbCalcInput)
   // Zakat offset: any `deduct_zakat` line items reduce PCB owed for
   // the month (capped at PCB). Zakat is still listed as a deduction on
   // the payslip — the offset means the employee effectively pays
@@ -1175,6 +1190,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     grossPay,
     netPay,
     totalCostToEmployer,
+    pcbCalculation,
     pcbBreakdown: {
       normal: pcbBreakdown.normal,
       additional: pcbBreakdown.additional,

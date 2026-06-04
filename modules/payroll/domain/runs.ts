@@ -197,6 +197,11 @@ export type PayslipData = {
   eisEmployee: number
   eisEmployer: number
   pcb: number
+  /// LHDN-style PCB formula breakdown — see `CalcPcbBreakdown` in
+  /// `modules/payroll/domain/pcb.ts`. Null on payslips generated before
+  /// the snapshot column existed; consumers should fall back to the
+  /// flat `pcb` number for display in that case.
+  pcbCalculation: unknown
   hrdf: number
   zakat: number
   hrdfWage: number

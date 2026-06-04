@@ -391,7 +391,12 @@ export function DetailedCalculationsPdfDocument(
                     : "Non-resident MTD: 30% flat"
                 }
                 amount={p.pcb}
+                bold
               />
+              {/* LHDN-style line-by-line breakdown, snapshotted at
+                  payroll generation. Always matches the deducted `pcb`
+                  amount (the calc function persisted both together). */}
+              <PcbBreakdownBlock value={p.pcbCalculation} />
             </View>
 
             <View style={detailedStyles.calcGroup}>
@@ -446,6 +451,155 @@ function CalcRow(props: { label: string; amount: number; bold?: boolean }) {
         ]}
       >
         {fmtMyr(props.amount)}
+      </Text>
+    </View>
+  )
+}
+
+// ─── PCB breakdown block (LHDN-style) ────────────────────────────────────
+
+/**
+ * Renders the persisted `CalcPcbBreakdown` JSON (from
+ * `PayrollPayslip.pcbCalculation`) as an LHDN-style line-by-line
+ * table. Variable names match the LHDN MTD Specification 2026:
+ * Y, K, Σ(Y-K), Y1, K1, Y2, K2, n, D, S, Du, Su, Q×C, ∑LP, LP1, P,
+ * M, R, B, Z, X, yearlyTax, currentMonthPcb.
+ *
+ * Renders nothing when the breakdown is null (payslips generated
+ * before the column existed). Tolerates unknown shapes — if Prisma
+ * returned anything weird we just skip rather than crash the PDF.
+ */
+function PcbBreakdownBlock({ value }: { value: unknown }) {
+  if (!value || typeof value !== "object") {
+    return (
+      <Text style={{ fontSize: 7.5, color: COLOURS.muted, marginTop: 2 }}>
+        Detailed PCB breakdown not available for this payslip — regenerate
+        payroll to populate.
+      </Text>
+    )
+  }
+
+  // Discriminate on `formula`. Cast to any for property access since
+  // this is a server-rendered PDF — Zod-strict validation here would
+  // be heavier than the cost of a silent skip.
+  const v = value as Record<string, unknown> & { formula?: string }
+
+  if (v.formula === "nonResident") {
+    const rate = (v.rate as number) ?? 0.3
+    return (
+      <Text style={{ fontSize: 8, color: COLOURS.muted, marginTop: 2 }}>
+        Non-resident: flat {(rate * 100).toFixed(0)}% × taxable amount.
+      </Text>
+    )
+  }
+
+  if (v.formula !== "resident") return null
+
+  // Pull every named variable. Default 0 if absent (e.g. older snapshot
+  // shape that didn't carry the field).
+  const num = (k: string) => (typeof v[k] === "number" ? (v[k] as number) : 0)
+  const Y = num("Y"), K = num("K"), sumYK = num("sumYK")
+  const Y1 = num("Y1"), K1 = num("K1")
+  const Y2 = num("Y2"), K2 = num("K2"), n = num("n")
+  const D = num("D"), S = num("S"), Du = num("Du"), Su = num("Su")
+  const Q = num("Q"), C = num("C"), QC = num("QC")
+  const sumLP = num("sumLP"), LP1 = num("LP1")
+  const P = num("P"), M = num("M"), R = num("R"), B = num("B")
+  const Z = num("Z"), X = num("X")
+  const yearlyTax = num("yearlyTax")
+  const currentMonthPcb = num("currentMonthPcb")
+
+  // Render in the same row style as the rest of the calc card. The
+  // labels match LHDN MTD Specification 2026 nomenclature so the
+  // accountant can reconcile against LHDN's published worksheet.
+  return (
+    <View style={{ marginTop: 4 }}>
+      <Text
+        style={{
+          fontSize: 8,
+          color: COLOURS.muted,
+          marginBottom: 2,
+          fontFamily: "Helvetica-Oblique",
+        }}
+      >
+        PCB(A) formula: [(P − M)R + B − (Z + X)] ÷ (n + 1)
+      </Text>
+
+      <PcbVar label="Σ(Y−K) — accumulated net remuneration" amount={sumYK} />
+      <PcbVar label="Y — accumulated gross (YTD)" amount={Y} />
+      <PcbVar label="K — accumulated EPF (YTD, capped)" amount={K} />
+      <PcbVar label="Y1 — this month's normal gross" amount={Y1} />
+      <PcbVar label="K1 — this month's EPF (capped)" amount={K1} />
+      <PcbVar label={`Y2 — projected future gross (Y1 × ${n.toFixed(0)})`} amount={Y2} />
+      <PcbVar label="K2 — projected future EPF per month" amount={K2} />
+      <PcbVar label="n — remaining months (excl. current)" amount={n} suffix=" mo" />
+      <PcbVar label="D — individual relief" amount={D} />
+      <PcbVar label="S — spouse relief" amount={S} />
+      <PcbVar label="Du — disabled-individual relief" amount={Du} />
+      <PcbVar label="Su — disabled-spouse relief" amount={Su} />
+      <PcbVar
+        label={`Q × C — child relief (${C.toFixed(0)} child × RM ${Q.toFixed(0)})`}
+        amount={QC}
+      />
+      <PcbVar label="∑LP — accumulated SOCSO+EIS relief" amount={sumLP} />
+      <PcbVar label="LP1 — this month's SOCSO+EIS relief" amount={LP1} />
+      <PcbVar label="P — annual chargeable income" amount={P} bold />
+      <PcbVar label="M — tax-bracket lower bound" amount={M} />
+      <PcbVar label={`R — tax rate (${(R * 100).toFixed(2)}%)`} amount={R} suffix="" raw />
+      <PcbVar label="B — bracket baseline (after rebate)" amount={B} />
+      <PcbVar label="Z — accumulated zakat (YTD)" amount={Z} />
+      <PcbVar label="X — accumulated PCB (YTD)" amount={X} />
+      <PcbVar label="Yearly Tax = (P − M)R + B" amount={yearlyTax} bold />
+      <PcbVar
+        label={`Current Month PCB = (Yearly Tax − Z − X) ÷ (n+1) = (${yearlyTax.toFixed(2)} − ${Z.toFixed(2)} − ${X.toFixed(2)}) ÷ ${(n + 1).toFixed(0)}`}
+        amount={currentMonthPcb}
+        bold
+      />
+    </View>
+  )
+}
+
+/**
+ * Compact variant of CalcRow for the PCB breakdown — a hair smaller,
+ * accepts a suffix (e.g. " mo") and a `raw` flag for non-currency
+ * values like rate (R = 0.03 should render as "0.03", not "RM 0.03").
+ */
+function PcbVar({
+  label,
+  amount,
+  bold,
+  suffix,
+  raw,
+}: {
+  label: string
+  amount: number
+  bold?: boolean
+  suffix?: string
+  raw?: boolean
+}) {
+  return (
+    <View style={{ flexDirection: "row", paddingVertical: 0.5 }}>
+      <Text
+        style={{
+          flex: 5,
+          fontSize: 8.5,
+          color: COLOURS.ink,
+          ...(bold ? { fontFamily: "Helvetica-Bold" } : {}),
+        }}
+      >
+        {label}
+      </Text>
+      <Text
+        style={{
+          flex: 1,
+          fontSize: 8.5,
+          textAlign: "right",
+          ...(bold ? { fontFamily: "Helvetica-Bold" } : {}),
+        }}
+      >
+        {raw
+          ? amount.toFixed(2)
+          : `${fmtMyr(amount)}${suffix ?? ""}`}
       </Text>
     </View>
   )

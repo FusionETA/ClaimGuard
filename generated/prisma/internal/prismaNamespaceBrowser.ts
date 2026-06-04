@@ -936,6 +936,7 @@ export const PayslipScalarFieldEnum = {
   eisEmployee: 'eisEmployee',
   eisEmployer: 'eisEmployer',
   pcb: 'pcb',
+  pcbCalculation: 'pcbCalculation',
   hrdf: 'hrdf',
   zakat: 'zakat',
   hrdfWage: 'hrdfWage',

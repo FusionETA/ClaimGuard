@@ -1,5 +1,6 @@
 import "server-only"
 
+import type { Prisma } from "@/generated/prisma/client"
 import { getPrismaClient } from "@/lib/prisma"
 import { toNumber } from "@/lib/decimal"
 import type {
@@ -62,6 +63,12 @@ export type CreatePayslipInput = {
   eisEmployee: number
   eisEmployer: number
   pcb: number
+  /// LHDN-style PCB formula breakdown. JSON shape matches
+  /// `CalcPcbBreakdown` in `modules/payroll/domain/pcb.ts`. Snapshotted
+  /// so the Detailed Calculations PDF can show the exact formula that
+  /// produced this row's `pcb` value. Optional for backwards compat —
+  /// payslips generated before this column existed have null.
+  pcbCalculation: unknown
   hrdf: number
   hrdfWage: number
   zakat: number
@@ -141,6 +148,10 @@ export const payslipRepository = {
             eisEmployee: p.eisEmployee,
             eisEmployer: p.eisEmployer,
             pcb: p.pcb,
+            // Cast through Prisma's JSON-input shape — `pcbCalculation`
+            // is `unknown` at this layer so the calc.ts type doesn't
+            // need to escape the domain into the repo.
+            pcbCalculation: (p.pcbCalculation ?? null) as Prisma.InputJsonValue,
             hrdf: p.hrdf,
             hrdfWage: p.hrdfWage,
             zakat: p.zakat,
@@ -523,6 +534,10 @@ function mapPayslip(row: any, lineItems: PayslipLineItemData[]): PayslipData {
     eisEmployee: toNumber(row.eisEmployee, 0),
     eisEmployer: toNumber(row.eisEmployer, 0),
     pcb: toNumber(row.pcb, 0),
+    // LHDN PCB formula breakdown — null on rows generated before the
+    // `pcbCalculation` column existed; the PDF renderer falls back to
+    // a single-line summary in that case.
+    pcbCalculation: (row.pcbCalculation ?? null) as unknown,
     hrdf: toNumber(row.hrdf, 0),
     zakat: toNumber(row.zakat, 0),
     hrdfWage: toNumber(row.hrdfWage, 0),

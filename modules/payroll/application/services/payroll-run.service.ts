@@ -1368,6 +1368,7 @@ export async function generatePayrollPayslips(input: {
       eisEmployee: result.eisEmployee,
       eisEmployer: result.eisEmployer,
       pcb: result.pcb,
+      pcbCalculation: result.pcbCalculation,
       hrdf: result.hrdf,
       hrdfWage: result.hrdfWage,
       zakat: result.zakat,

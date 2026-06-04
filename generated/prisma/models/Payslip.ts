@@ -222,6 +222,7 @@ export type PayslipCountAggregateOutputType = {
   eisEmployee: number
   eisEmployer: number
   pcb: number
+  pcbCalculation: number
   hrdf: number
   zakat: number
   hrdfWage: number
@@ -431,6 +432,7 @@ export type PayslipCountAggregateInputType = {
   eisEmployee?: true
   eisEmployer?: true
   pcb?: true
+  pcbCalculation?: true
   hrdf?: true
   zakat?: true
   hrdfWage?: true
@@ -565,6 +567,7 @@ export type PayslipGroupByOutputType = {
   eisEmployee: runtime.Decimal
   eisEmployer: runtime.Decimal
   pcb: runtime.Decimal
+  pcbCalculation: runtime.JsonValue | null
   hrdf: runtime.Decimal
   zakat: runtime.Decimal
   hrdfWage: runtime.Decimal
@@ -635,6 +638,7 @@ export type PayslipWhereInput = {
   eisEmployee?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.JsonNullableFilter<"Payslip">
   hrdf?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -686,6 +690,7 @@ export type PayslipOrderByWithRelationInput = {
   eisEmployee?: Prisma.SortOrder
   eisEmployer?: Prisma.SortOrder
   pcb?: Prisma.SortOrder
+  pcbCalculation?: Prisma.SortOrderInput | Prisma.SortOrder
   hrdf?: Prisma.SortOrder
   zakat?: Prisma.SortOrder
   hrdfWage?: Prisma.SortOrder
@@ -742,6 +747,7 @@ export type PayslipWhereUniqueInput = Prisma.AtLeast<{
   eisEmployee?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.JsonNullableFilter<"Payslip">
   hrdf?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -793,6 +799,7 @@ export type PayslipOrderByWithAggregationInput = {
   eisEmployee?: Prisma.SortOrder
   eisEmployer?: Prisma.SortOrder
   pcb?: Prisma.SortOrder
+  pcbCalculation?: Prisma.SortOrderInput | Prisma.SortOrder
   hrdf?: Prisma.SortOrder
   zakat?: Prisma.SortOrder
   hrdfWage?: Prisma.SortOrder
@@ -848,6 +855,7 @@ export type PayslipScalarWhereWithAggregatesInput = {
   eisEmployee?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.JsonNullableWithAggregatesFilter<"Payslip">
   hrdf?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalWithAggregatesFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -892,6 +900,7 @@ export type PayslipCreateInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -943,6 +952,7 @@ export type PayslipUncheckedCreateInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -988,6 +998,7 @@ export type PayslipUpdateInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1039,6 +1050,7 @@ export type PayslipUncheckedUpdateInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1087,6 +1099,7 @@ export type PayslipCreateManyInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1131,6 +1144,7 @@ export type PayslipUpdateManyMutationInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1178,6 +1192,7 @@ export type PayslipUncheckedUpdateManyInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1246,6 +1261,7 @@ export type PayslipCountOrderByAggregateInput = {
   eisEmployee?: Prisma.SortOrder
   eisEmployer?: Prisma.SortOrder
   pcb?: Prisma.SortOrder
+  pcbCalculation?: Prisma.SortOrder
   hrdf?: Prisma.SortOrder
   zakat?: Prisma.SortOrder
   hrdfWage?: Prisma.SortOrder
@@ -1595,6 +1611,7 @@ export type PayslipCreateWithoutEmployeeProfileInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1644,6 +1661,7 @@ export type PayslipUncheckedCreateWithoutEmployeeProfileInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1721,6 +1739,7 @@ export type PayslipScalarWhereInput = {
   eisEmployee?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.JsonNullableFilter<"Payslip">
   hrdf?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFilter<"Payslip"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1765,6 +1784,7 @@ export type PayslipCreateWithoutPayrollProfileInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1814,6 +1834,7 @@ export type PayslipUncheckedCreateWithoutPayrollProfileInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1885,6 +1906,7 @@ export type PayslipCreateWithoutPayrollRunInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1934,6 +1956,7 @@ export type PayslipUncheckedCreateWithoutPayrollRunInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2005,6 +2028,7 @@ export type PayslipCreateWithoutLineItemsInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2055,6 +2079,7 @@ export type PayslipUncheckedCreateWithoutLineItemsInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2115,6 +2140,7 @@ export type PayslipUpdateWithoutLineItemsInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2165,6 +2191,7 @@ export type PayslipUncheckedUpdateWithoutLineItemsInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2211,6 +2238,7 @@ export type PayslipCreateManyEmployeeProfileInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2255,6 +2283,7 @@ export type PayslipUpdateWithoutEmployeeProfileInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2304,6 +2333,7 @@ export type PayslipUncheckedUpdateWithoutEmployeeProfileInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2351,6 +2381,7 @@ export type PayslipUncheckedUpdateManyWithoutEmployeeProfileInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2397,6 +2428,7 @@ export type PayslipCreateManyPayrollProfileInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2441,6 +2473,7 @@ export type PayslipUpdateWithoutPayrollProfileInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2490,6 +2523,7 @@ export type PayslipUncheckedUpdateWithoutPayrollProfileInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2537,6 +2571,7 @@ export type PayslipUncheckedUpdateManyWithoutPayrollProfileInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2583,6 +2618,7 @@ export type PayslipCreateManyPayrollRunInput = {
   eisEmployee?: runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2627,6 +2663,7 @@ export type PayslipUpdateWithoutPayrollRunInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2676,6 +2713,7 @@ export type PayslipUncheckedUpdateWithoutPayrollRunInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2723,6 +2761,7 @@ export type PayslipUncheckedUpdateManyWithoutPayrollRunInput = {
   eisEmployee?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   eisEmployer?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   pcb?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  pcbCalculation?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   hrdf?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   zakat?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   hrdfWage?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -2801,6 +2840,7 @@ export type PayslipSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   eisEmployee?: boolean
   eisEmployer?: boolean
   pcb?: boolean
+  pcbCalculation?: boolean
   hrdf?: boolean
   zakat?: boolean
   hrdfWage?: boolean
@@ -2855,6 +2895,7 @@ export type PayslipSelectScalar = {
   eisEmployee?: boolean
   eisEmployer?: boolean
   pcb?: boolean
+  pcbCalculation?: boolean
   hrdf?: boolean
   zakat?: boolean
   hrdfWage?: boolean
@@ -2868,7 +2909,7 @@ export type PayslipSelectScalar = {
   unpaidLeaveDays?: boolean
 }
 
-export type PayslipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payrollRunId" | "employeeProfileId" | "payrollProfileId" | "snapshotName" | "snapshotEmployeeId" | "snapshotPosition" | "snapshotSalaryType" | "snapshotMonthlySalary" | "snapshotHourlyRate" | "snapshotNationality" | "snapshotIsResident" | "snapshotEpfRates" | "basicPay" | "proratedPay" | "workedHours" | "proratedFactor" | "proratedDays" | "totalWorkingDays" | "otNormalHours" | "otRestHours" | "otPublicHours" | "otPay" | "totalAllowances" | "totalReimbursements" | "totalDeductions" | "epfEmployee" | "epfEmployer" | "socsoEmployee" | "socsoEmployer" | "eisEmployee" | "eisEmployer" | "pcb" | "hrdf" | "zakat" | "hrdfWage" | "grossPay" | "netPay" | "totalCostToEmployer" | "createdAt" | "updatedAt" | "totalBenefitsInKind" | "expectedHours" | "unpaidLeaveDays", ExtArgs["result"]["payslip"]>
+export type PayslipOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "payrollRunId" | "employeeProfileId" | "payrollProfileId" | "snapshotName" | "snapshotEmployeeId" | "snapshotPosition" | "snapshotSalaryType" | "snapshotMonthlySalary" | "snapshotHourlyRate" | "snapshotNationality" | "snapshotIsResident" | "snapshotEpfRates" | "basicPay" | "proratedPay" | "workedHours" | "proratedFactor" | "proratedDays" | "totalWorkingDays" | "otNormalHours" | "otRestHours" | "otPublicHours" | "otPay" | "totalAllowances" | "totalReimbursements" | "totalDeductions" | "epfEmployee" | "epfEmployer" | "socsoEmployee" | "socsoEmployer" | "eisEmployee" | "eisEmployer" | "pcb" | "pcbCalculation" | "hrdf" | "zakat" | "hrdfWage" | "grossPay" | "netPay" | "totalCostToEmployer" | "createdAt" | "updatedAt" | "totalBenefitsInKind" | "expectedHours" | "unpaidLeaveDays", ExtArgs["result"]["payslip"]>
 export type PayslipInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employeeProfile?: boolean | Prisma.EmployeeProfileDefaultArgs<ExtArgs>
   payrollProfile?: boolean | Prisma.Payslip$payrollProfileArgs<ExtArgs>
@@ -2930,6 +2971,22 @@ export type $PayslipPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     eisEmployee: runtime.Decimal
     eisEmployer: runtime.Decimal
     pcb: runtime.Decimal
+    /**
+     * LHDN-style PCB formula breakdown — the line-by-line variables
+     * (Y, K, Y1, K1, Y2, K2, n, D, S, Du, Su, Q×C, ∑LP, LP1, P, M, R,
+     * B, Z, X, yearlyTax, currentMonthPcb) that produced the `pcb`
+     * number above. Snapshotted at generation so the Detailed
+     * Calculations PDF can always show the formula that yielded the
+     * actually-deducted amount, even if rates / formula change later.
+     * Shape matches `CalcPcbBreakdown` in `modules/payroll/domain/pcb.ts`.
+     * Null on payslips generated before this column shipped — the PDF
+     * falls back to a single-line summary for those.
+     * 
+     * Named `pcbCalculation` to avoid colliding with the in-memory
+     * `CalcPayslipResult.pcbBreakdown` field (which is just the
+     * `{normal, additional}` amount split).
+     */
+    pcbCalculation: runtime.JsonValue | null
     hrdf: runtime.Decimal
     zakat: runtime.Decimal
     /**
@@ -3368,6 +3425,7 @@ export interface PayslipFieldRefs {
   readonly eisEmployee: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly eisEmployer: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly pcb: Prisma.FieldRef<"Payslip", 'Decimal'>
+  readonly pcbCalculation: Prisma.FieldRef<"Payslip", 'Json'>
   readonly hrdf: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly zakat: Prisma.FieldRef<"Payslip", 'Decimal'>
   readonly hrdfWage: Prisma.FieldRef<"Payslip", 'Decimal'>

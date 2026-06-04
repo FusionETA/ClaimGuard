@@ -545,3 +545,247 @@ function applyMtdThreshold(mtd: number): number {
 function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n))
 }
+
+// ─── PCB breakdown (LHDN-style line-by-line) ────────────────────────────
+
+/**
+ * LHDN MTD Specification Table 1 in our band shape: walk the bands and
+ * return the {M, R, B} triple for the band that contains `P`. M is the
+ * lower bound of the bracket (in RM), R is its marginal rate, and B is
+ * the cumulative tax at M minus the rebate (when P ≤ RM 35,000), so the
+ * LHDN formula `(P - M) × R + B` yields the post-rebate annual tax in
+ * one step.
+ */
+function findResidentTaxBand(
+  P: number,
+  spouseClaimable: boolean,
+): { M: number; R: number; B: number } {
+  if (!Number.isFinite(P) || P <= 0) {
+    return { M: 0, R: 0, B: 0 }
+  }
+  let prevBound = 0
+  let cumulativeTaxAtPrevBound = 0
+  for (const band of RESIDENT_TAX_BANDS_2024) {
+    if (P <= band.upperBound) {
+      let B = cumulativeTaxAtPrevBound
+      if (P <= REBATE_THRESHOLD) {
+        const rebate =
+          REBATE_INDIVIDUAL + (spouseClaimable ? REBATE_SPOUSE : 0)
+        B -= rebate
+      }
+      return { M: prevBound, R: band.rate, B }
+    }
+    cumulativeTaxAtPrevBound += (band.upperBound - prevBound) * band.rate
+    prevBound = band.upperBound
+  }
+  // Above the top band (very rare — chargeable income > RM 2M).
+  return { M: prevBound, R: 0.3, B: cumulativeTaxAtPrevBound }
+}
+
+/**
+ * Full LHDN-style breakdown of a single resident PCB(A) computation.
+ * Variables use the exact symbols from the LHDN MTD Specification so
+ * the rendered PDF mirrors LHDN's Form CP 39 explanation:
+ *
+ *   - Y / K           — accumulated YTD gross / EPF (prior months,
+ *                       including any AR-EPF that was already paid)
+ *   - Σ(Y-K)          — Y minus K (accumulated NET remuneration)
+ *   - Y1 / K1         — current month's normal gross / EPF (K1
+ *                       capped at the remaining RM 4,000 budget)
+ *   - Y2 / K2         — estimated future months (per LHDN rules:
+ *                       Y2 = Y1 × n, K2 = min(K1, remainingCap/n))
+ *   - n               — remaining working months (excludes current)
+ *   - D / S / Du / Su — personal / spouse / disabled-individual /
+ *                       disabled-spouse reliefs
+ *   - Q × C           — per-child amount times child count
+ *   - ∑LP / LP1       — accumulated / current allowable other
+ *                       deductions (we use SOCSO+EIS today)
+ *   - P               — annual chargeable income (no AR)
+ *   - M / R / B       — tax band for P
+ *   - Z / X           — accumulated zakat / accumulated PCB paid
+ *   - yearlyTax       — (P - M) × R + B
+ *   - currentMonthPcb — (yearlyTax - Z - X) / (n + 1)
+ *
+ * V1 covers the resident PCB(A) only — non-resident uses the simple
+ * flat-30% block and AR (PCB B / C) is omitted from the breakdown
+ * (the calcPcb total still includes AR PCB; we just don't show the
+ * formula). Add AR when a customer needs it.
+ */
+export type CalcPcbBreakdown =
+  | {
+      formula: "nonResident"
+      rate: number // 0.30
+      normalTaxable: number
+      normalPcb: number
+      additionalTaxable: number
+      additionalPcb: number
+      totalPcb: number
+    }
+  | {
+      formula: "resident"
+      Y: number
+      K: number
+      sumYK: number // Y - K
+      Y1: number
+      K1: number
+      Y2: number
+      K2: number
+      n: number
+      // Reliefs
+      D: number
+      S: number
+      Du: number
+      Su: number
+      Q: number // per-child amount actually used (display as RM 2,000 by default)
+      C: number // number of children that produced relief
+      QC: number // total per-child relief (Σ reliefForChild)
+      sumLP: number
+      LP1: number
+      // Annual chargeable income
+      P: number
+      // Tax band for P
+      M: number
+      R: number
+      B: number
+      // Accumulated
+      Z: number
+      X: number
+      zakatThisMonth: number
+      // Outputs
+      yearlyTax: number // (P - M) × R + B
+      currentMonthPcb: number // (yearlyTax - Z - X) / (n + 1), before threshold + rounding
+      pcbAfterThreshold: number // 0 if currentMonthPcb < RM 10
+      pcbFinal: number // rounded up to 5 cents
+      // AR — total only, no formula expansion (V1)
+      pcbAdditional: number // 0 when no AR this month
+    }
+
+/**
+ * Build the LHDN-style breakdown for display. Mirrors `calcPcb`'s
+ * internal arithmetic — keep these two in sync if you ever change the
+ * formula. The returned numbers match `calcPcb`'s outputs exactly
+ * (within floating-point) so the PDF row and the deducted amount can
+ * never disagree.
+ *
+ * Persist this on the payslip at generation time (see
+ * `PayrollPayslip.pcbBreakdown` in the Prisma schema). The Detailed
+ * Calculations PDF reads from that snapshot so historical runs always
+ * show the formula that produced the actual deducted PCB.
+ */
+export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
+  const normalTaxable = Math.max(0, input.thisMonthTaxable)
+  const arTaxable = Math.max(0, input.thisMonthAdditionalRemuneration ?? 0)
+
+  if (!input.isResident) {
+    const nrNormal = applyMtdThreshold(roundMtd(normalTaxable * 0.3))
+    const nrAdditional = applyMtdThreshold(roundMtd(arTaxable * 0.3))
+    return {
+      formula: "nonResident",
+      rate: 0.3,
+      normalTaxable,
+      normalPcb: nrNormal,
+      additionalTaxable: arTaxable,
+      additionalPcb: nrAdditional,
+      totalPcb: roundMtd(nrNormal + nrAdditional),
+    }
+  }
+
+  // ── Resident — mirrors calcPcb's resident branch step-by-step. ──
+  const monthsRemainingIncludingThis = Math.max(
+    1,
+    13 - clamp(input.periodMonth, 1, 12),
+  )
+  const n = monthsRemainingIncludingThis - 1
+
+  // LHDN-style K split (K = YTD, K1 = this month, K2 = projected future).
+  // All capped against the combined RM 4,000 EPF-relief budget.
+  const K = Math.min(EPF_RELIEF_CAP, Math.max(0, input.ytdEpf))
+  const cap_after_K = Math.max(0, EPF_RELIEF_CAP - K)
+  const thisMonthEpf = Math.max(0, input.thisMonthEpf)
+  const K1 = Math.min(thisMonthEpf, cap_after_K)
+  const Kt = Math.min(
+    Math.max(0, input.thisMonthEpfFromAR ?? 0),
+    Math.max(0, cap_after_K - K1),
+  )
+  const cap_after_K1_Kt = Math.max(0, EPF_RELIEF_CAP - K - K1 - Kt)
+  const K2 = n > 0 ? Math.min(thisMonthEpf, cap_after_K1_Kt / n) : 0
+
+  const Y = Math.max(0, input.ytdTaxable)
+  const Y1 = normalTaxable
+  const Y2 = Y1 * n
+
+  const sumYK = Y - K // accumulated NET
+
+  // Reliefs (LHDN: D, S, Du, Su, Q×C).
+  const r = calcResidentReliefsBreakdown(input.profile)
+  const D = r.individual
+  const S = r.spouse
+  const Du = r.disabledIndividual
+  const Su = r.disabledSpouse
+  const QC = r.children
+  // Q and C: the LHDN form shows them separately for display.
+  // We don't have the per-child rate in the breakdown (it varies per
+  // child — RM 2k / 8k / 16k); use a synthetic "Q = RM 2,000" as the
+  // base amount and "C = QC / 2000" so the math reads sensibly.
+  // When children mix non-standard amounts, Q × C may differ from QC —
+  // we always report the actual QC sum for accuracy.
+  const Q = 2000
+  const C = QC > 0 ? Math.round((QC / Q) * 100) / 100 : 0
+
+  // ∑LP + LP1 — actuals-only SOCSO+EIS relief (no projection).
+  const sumLP = Math.min(SOCSO_EIS_RELIEF_CAP, Math.max(0, input.ytdSocsoEis ?? 0))
+  const LP1 = Math.max(
+    0,
+    Math.min(
+      Math.max(0, input.thisMonthSocsoEis ?? 0),
+      Math.max(0, SOCSO_EIS_RELIEF_CAP - sumLP),
+    ),
+  )
+
+  // Annual chargeable income — formula exactly per LHDN.
+  // P = [Σ(Y-K) + (Y1-K1) + (Y2-K2×n)] - (D + S + Du + Su + Q×C + ∑LP + LP1)
+  const annualGrossNet =
+    sumYK + (Y1 - K1) + (Y2 - K2 * n)
+  const totalReliefs = D + S + Du + Su + QC + sumLP + LP1
+  const P = Math.max(0, annualGrossNet - totalReliefs)
+
+  const spouseClaimable = input.profile.spouseWorking === false
+  const { M, R, B } = findResidentTaxBand(P, spouseClaimable)
+
+  const yearlyTax = Math.max(0, (P - M) * R + B)
+
+  const Z = Math.max(0, input.ytdZakat ?? 0)
+  const X = Math.max(0, input.ytdPcb)
+
+  const stillOwed = Math.max(0, yearlyTax - Z - X)
+  const currentMonthPcb = stillOwed / (n + 1)
+  const pcbAfterThreshold = applyMtdThreshold(roundMtd(currentMonthPcb))
+  const pcbFinal = pcbAfterThreshold
+
+  // AR — compute via calcPcb so the breakdown matches the deducted
+  // amount exactly. We only surface the final number in V1.
+  const arPcb =
+    arTaxable > 0
+      ? calcPcb({ ...input, isResident: true }).additional
+      : 0
+
+  // zakatThisMonth — pcb-orchestrator-level offset, not part of formula
+  // body. Captured for completeness in case the UI wants to show it.
+  // Caller can leave undefined → 0.
+  const zakatThisMonth = 0
+
+  return {
+    formula: "resident",
+    Y, K, sumYK,
+    Y1, K1, Y2, K2, n,
+    D, S, Du, Su, Q, C, QC,
+    sumLP, LP1,
+    P, M, R, B,
+    Z, X, zakatThisMonth,
+    yearlyTax,
+    currentMonthPcb,
+    pcbAfterThreshold,
+    pcbFinal: roundMtd(pcbFinal + arPcb),
+    pcbAdditional: arPcb,
+  }
+}

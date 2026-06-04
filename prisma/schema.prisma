@@ -1494,6 +1494,20 @@ model Payslip {
   eisEmployee           Decimal           @default(0.00) @db.Decimal(12, 2)
   eisEmployer           Decimal           @default(0.00) @db.Decimal(12, 2)
   pcb                   Decimal           @default(0.00) @db.Decimal(12, 2)
+  /// LHDN-style PCB formula breakdown — the line-by-line variables
+  /// (Y, K, Y1, K1, Y2, K2, n, D, S, Du, Su, Q×C, ∑LP, LP1, P, M, R,
+  /// B, Z, X, yearlyTax, currentMonthPcb) that produced the `pcb`
+  /// number above. Snapshotted at generation so the Detailed
+  /// Calculations PDF can always show the formula that yielded the
+  /// actually-deducted amount, even if rates / formula change later.
+  /// Shape matches `CalcPcbBreakdown` in `modules/payroll/domain/pcb.ts`.
+  /// Null on payslips generated before this column shipped — the PDF
+  /// falls back to a single-line summary for those.
+  ///
+  /// Named `pcbCalculation` to avoid colliding with the in-memory
+  /// `CalcPayslipResult.pcbBreakdown` field (which is just the
+  /// `{normal, additional}` amount split).
+  pcbCalculation        Json?
   hrdf                  Decimal           @default(0.00) @db.Decimal(12, 2)
   zakat                 Decimal           @default(0.00) @db.Decimal(12, 2)
   /// Wage base used for HRDF — may differ from gross.
