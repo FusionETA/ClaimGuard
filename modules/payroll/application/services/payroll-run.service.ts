@@ -1044,27 +1044,6 @@ export async function generatePayrollPayslips(input: {
     ),
   )
 
-  // Approved OT minutes per employee, bucketed by day type. The legacy
-  // admin-typed `otNormalHours / otRestHours / otPublicHours` adjustment
-  // is no longer honoured — only days with an APPROVED OT
-  // ApprovalRequest contribute to payroll OT pay (matches the rule
-  // "only when an OT is approved, it should go into payroll").
-  const otByEmp = new Map(
-    await Promise.all(
-      employees.map(
-        async (e) =>
-          [
-            e.employeeProfileId,
-            await attendanceRepository.getApprovedOtMinutesForPeriod({
-              employeeId: e.userId,
-              from: periodFrom,
-              to: periodTo,
-            }),
-          ] as const,
-      ),
-    ),
-  )
-
   // Per-employee worked minutes bucketed by day type (regardless of OT
   // approval status). Drives the HRS column on the run table: HRS now
   // shows `normalMin / 60` instead of the raw `durationMin` total, so
@@ -1179,24 +1158,23 @@ export async function generatePayrollPayslips(input: {
       org: orgHours,
     })
 
-    // Auto OT line items: convert APPROVED OT minutes (from the
-    // attendance side, bucketed by day type) into pay using the
-    // employee policy's CASH-OT multipliers + their derived hourly
-    // rate. Emitted as `wages_overtime` line items so the payslip
-    // shows them as a line below base salary, mirroring the
-    // "Unpaid Leave" pattern. TIME_BANK / OT-disabled policies skip
-    // this — the time-bank crediting happens at OT-approval time
-    // (see `computeApprovedOtMinutes`).
+    // Auto OT line items: convert the admin-typed OT hours on the
+    // per-run PayrollRunAdjustment (otNormalHours / otRestHours /
+    // otPublicHours) into pay using the employee policy's CASH-OT
+    // multipliers + their derived hourly rate. Emitted as
+    // `wages_overtime` line items so the payslip shows them as a
+    // line below base salary, mirroring the "Unpaid Leave" pattern.
+    // TIME_BANK / OT-disabled policies skip this (no cash OT payable).
     const policyForOt = e.policyId ? policyById.get(e.policyId) ?? null : null
     const cashOt =
       policyForOt !== null &&
       policyForOt.otEnabled &&
       policyForOt.otMethod === "CASH"
     if (cashOt && policyForOt) {
-      const ot = otByEmp.get(e.employeeProfileId) ?? {
-        normalOtMin: 0,
-        restMin: 0,
-        publicMin: 0,
+      const ot = {
+        normalHours: toNumber(adj?.otNormalHours, 0),
+        restHours: toNumber(adj?.otRestHours, 0),
+        publicHours: toNumber(adj?.otPublicHours, 0),
       }
       const otHourlyRate = deriveHourlyRate({
         salaryType: e.profile.salaryType,
@@ -1211,47 +1189,48 @@ export async function generatePayrollPayslips(input: {
       })
       const wagesOtCategory =
         "wages_overtime" as (typeof overriddenFixed)[number]["category"]
-      const fmtHm = (m: number) => {
-        const h = Math.floor(m / 60)
-        const r = m % 60
-        return r === 0 ? `${h}h` : `${h}h ${r}m`
+      const fmtHours = (h: number) => {
+        const rounded = Math.round(h * 100) / 100
+        return Number.isInteger(rounded) ? `${rounded}h` : `${rounded}h`
       }
-      if (ot.normalOtMin > 0) {
-        const hours = ot.normalOtMin / 60
-        const amount =
-          Math.round(hours * otHourlyRate * policyForOt.otRateNormalDay * 100) /
-          100
-        if (amount > 0) {
-          oneOffLines.push({
-            category: wagesOtCategory,
-            name: `Overtime — ${fmtHm(ot.normalOtMin)} @ ${policyForOt.otRateNormalDay}×`,
-            amount,
-          })
-        }
-      }
-      if (ot.restMin > 0) {
-        const hours = ot.restMin / 60
-        const amount =
-          Math.round(hours * otHourlyRate * policyForOt.otRateRestDay * 100) /
-          100
-        if (amount > 0) {
-          oneOffLines.push({
-            category: wagesOtCategory,
-            name: `Overtime (Rest day) — ${fmtHm(ot.restMin)} @ ${policyForOt.otRateRestDay}×`,
-            amount,
-          })
-        }
-      }
-      if (ot.publicMin > 0) {
-        const hours = ot.publicMin / 60
+      if (ot.normalHours > 0) {
         const amount =
           Math.round(
-            hours * otHourlyRate * policyForOt.otRatePublicHoliday * 100,
+            ot.normalHours * otHourlyRate * policyForOt.otRateNormalDay * 100,
           ) / 100
         if (amount > 0) {
           oneOffLines.push({
             category: wagesOtCategory,
-            name: `Overtime (Public holiday) — ${fmtHm(ot.publicMin)} @ ${policyForOt.otRatePublicHoliday}×`,
+            name: `Overtime — ${fmtHours(ot.normalHours)} @ ${policyForOt.otRateNormalDay}×`,
+            amount,
+          })
+        }
+      }
+      if (ot.restHours > 0) {
+        const amount =
+          Math.round(
+            ot.restHours * otHourlyRate * policyForOt.otRateRestDay * 100,
+          ) / 100
+        if (amount > 0) {
+          oneOffLines.push({
+            category: wagesOtCategory,
+            name: `Overtime (Rest day) — ${fmtHours(ot.restHours)} @ ${policyForOt.otRateRestDay}×`,
+            amount,
+          })
+        }
+      }
+      if (ot.publicHours > 0) {
+        const amount =
+          Math.round(
+            ot.publicHours *
+              otHourlyRate *
+              policyForOt.otRatePublicHoliday *
+              100,
+          ) / 100
+        if (amount > 0) {
+          oneOffLines.push({
+            category: wagesOtCategory,
+            name: `Overtime (Public holiday) — ${fmtHours(ot.publicHours)} @ ${policyForOt.otRatePublicHoliday}×`,
             amount,
           })
         }
@@ -1359,16 +1338,15 @@ export async function generatePayrollPayslips(input: {
       proratedFactor: result.proratedFactor,
       proratedDays: result.proratedDays,
       totalWorkingDays: result.totalWorkingDays,
-      // OT hour columns (OT N / OT R / OT PH on the run table) reflect
-      // APPROVED OT only — matching what the wages_overtime line item
-      // actually pays. The engine inputs are zeroed (we drive OT pay
-      // via the line item, not the engine path), so `result.ot*Hours`
-      // would always be 0 here. We override with the auto-derived
-      // approved hours from `otByEmp` so the columns aren't blank.
-      otNormalHours:
-        (otByEmp.get(e.employeeProfileId)?.normalOtMin ?? 0) / 60,
-      otRestHours: (otByEmp.get(e.employeeProfileId)?.restMin ?? 0) / 60,
-      otPublicHours: (otByEmp.get(e.employeeProfileId)?.publicMin ?? 0) / 60,
+      // OT hour columns (OT N / OT R / OT PH on the run table) mirror
+      // the admin-typed values on this employee's PayrollRunAdjustment
+      // — same source the wages_overtime line item is derived from.
+      // The engine's separate OT path stays zeroed (see comment further
+      // down) so `result.ot*Hours` is always 0; we surface the adj
+      // values directly here so the columns aren't blank.
+      otNormalHours: toNumber(adj?.otNormalHours, 0),
+      otRestHours: toNumber(adj?.otRestHours, 0),
+      otPublicHours: toNumber(adj?.otPublicHours, 0),
       otPay: result.otPay,
       totalAllowances: result.totalAllowances,
       totalBenefitsInKind: result.totalBenefitsInKind,
@@ -1799,6 +1777,15 @@ export async function getPayrollAdjustmentPageData(input: {
     expectedHours: number | null
     attendancePercent: number | null
   }
+  /// Approved OT hours from the attendance system, bucketed by day
+  /// type. The form prefills the OT fields with these when the admin
+  /// hasn't typed a value yet. Zero across the board = no approved
+  /// OT for this period.
+  autoOt: {
+    normalHours: number
+    restHours: number
+    publicHours: number
+  }
   /// Active loan installments that auto-deduct for THIS run's period.
   /// Shown read-only in the modal (editing happens on the Loans page).
   loans: Array<{ id: string; label: string; amount: number }>
@@ -1908,6 +1895,29 @@ export async function getPayrollAdjustmentPageData(input: {
         : null,
   }
 
+  // Approved OT minutes for this employee's period, converted to
+  // hours for the form. Only fetched when the employee's policy
+  // grants attendance access — otherwise the OT-approval path
+  // isn't available to them anyway.
+  const periodFromUtc = new Date(
+    Date.UTC(run.periodYear, run.periodMonth - 1, 1),
+  )
+  const periodToUtc = new Date(
+    Date.UTC(run.periodYear, run.periodMonth, 1),
+  )
+  const otMinutes = attendanceApplies
+    ? await attendanceRepository.getApprovedOtMinutesForPeriod({
+        employeeId: profileRow.user.id,
+        from: periodFromUtc,
+        to: periodToUtc,
+      })
+    : { normalOtMin: 0, restMin: 0, publicMin: 0 }
+  const autoOt = {
+    normalHours: Math.round(((otMinutes.normalOtMin ?? 0) / 60) * 100) / 100,
+    restHours: Math.round(((otMinutes.restMin ?? 0) / 60) * 100) / 100,
+    publicHours: Math.round(((otMinutes.publicMin ?? 0) / 60) * 100) / 100,
+  }
+
   return {
     organizationName: org?.name ?? "",
     run,
@@ -1931,6 +1941,7 @@ export async function getPayrollAdjustmentPageData(input: {
     fixedAllowances: payrollProfile?.fixedAllowances ?? [],
     adjustment,
     autoHours,
+    autoOt,
     loans,
   }
 }

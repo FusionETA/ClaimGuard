@@ -216,9 +216,15 @@ export async function buildPayrollSyncPreview(
   // HRDF charge; the unified `deduction` account only when the run has
   // deductions and the org isn't using per-category deduction mapping.
   const runHasHrdf = run.payslips.some((p) => toNumber(p.hrdf, 0) > 0)
+  // Unpaid leave is netted into SALARY now (no separate deduction
+  // line), so it doesn't trigger the unified-deduction-account
+  // requirement. Only non-unpaid-leave deductions count here.
   const runHasDeductions = run.payslips.some((p) =>
     p.lineItems.some(
-      (li) => li.kind === "DEDUCTION" && toNumber(li.amount, 0) > 0,
+      (li) =>
+        li.kind === "DEDUCTION" &&
+        li.category !== "deduct_unpaid_leave" &&
+        toNumber(li.amount, 0) > 0,
     ),
   )
   const requiredKeys: PayrollXeroAccountKey[] = [...REQUIRED_KEYS]
@@ -243,7 +249,13 @@ export async function buildPayrollSyncPreview(
     for (const li of p.lineItems) {
       if (!li.category) continue
       if (li.kind === "ALLOWANCE") allowanceCatsOnRun.add(li.category)
-      else if (li.kind === "DEDUCTION") deductionCatsOnRun.add(li.category)
+      else if (li.kind === "DEDUCTION") {
+        // Unpaid leave no longer needs a per-category COA — it's netted
+        // into the SALARY Dr line instead of getting its own credit
+        // line. Skip the pre-flight check for it.
+        if (li.category === "deduct_unpaid_leave") continue
+        deductionCatsOnRun.add(li.category)
+      }
     }
   }
   const missingAllowanceCategories =
@@ -291,6 +303,15 @@ export async function buildPayrollSyncPreview(
     totalAllowances: toNumber(p.totalAllowances, 0),
     totalReimbursements: toNumber(p.totalReimbursements, 0),
     totalDeductions: toNumber(p.totalDeductions, 0),
+    // Unpaid leave is netted into the SALARY Dr line (same treatment
+    // as the real sync). The matching `deduct_unpaid_leave` credit is
+    // suppressed below so the journal preview stays balanced.
+    unpaidLeaveAmt: p.lineItems
+      .filter(
+        (li) =>
+          li.kind === "DEDUCTION" && li.category === "deduct_unpaid_leave",
+      )
+      .reduce((s, li) => s + toNumber(li.amount, 0), 0),
     netPay: toNumber(p.netPay, 0),
     epfEmployee: toNumber(p.epfEmployee, 0),
     epfEmployer: toNumber(p.epfEmployer, 0),
@@ -331,12 +352,15 @@ export async function buildPayrollSyncPreview(
   }
 
   // Debits — expense side (per the aggregation mode).
+  // SALARY Dr is net of unpaid leave — see xero-payroll-sync.service.ts
+  // for the same treatment in the live sync.
   if (aggregationMode === "PER_EMPLOYEE") {
     for (const r of rows) {
-      if (r.proratedPay > 0)
+      const salaryDr = Math.max(0, r.proratedPay - r.unpaidLeaveAmt)
+      if (salaryDr > 0)
         pushLine(
           "salary",
-          r.proratedPay,
+          salaryDr,
           `SALARY - ${r.employeeName}`,
           r.projectName,
         )
@@ -369,7 +393,7 @@ export async function buildPayrollSyncPreview(
         allowance: 0,
         overtime: 0,
       }
-      b.salary += r.proratedPay
+      b.salary += Math.max(0, r.proratedPay - r.unpaidLeaveAmt)
       b.allowance += r.totalAllowances
       b.overtime += r.otPay
       buckets.set(r.projectName, b)
@@ -438,7 +462,10 @@ export async function buildPayrollSyncPreview(
   // journal balances. Deductions reduced net pay, so they also need a
   // matching credit to their account.
   const totalHrdf = sum(rows, (r) => r.hrdf)
-  const totalDeductions = sum(rows, (r) => r.totalDeductions)
+  // Unpaid leave is netted into SALARY, so don't double-count it on the
+  // deduction credit line.
+  const totalDeductions =
+    sum(rows, (r) => r.totalDeductions) - sum(rows, (r) => r.unpaidLeaveAmt)
   // Net pay includes reimbursements because attached claims are paid out
   // through payroll. The matching reimbursement debits are emitted below.
   const totalNet = sum(rows, (r) => r.netPay)
