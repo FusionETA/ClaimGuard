@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useRef, useState, useTransition } from "react"
+import { ChevronDown } from "lucide-react"
 
 import {
   archiveLeaveTypeAction,
@@ -586,60 +587,114 @@ function PerPolicyOverridesTab(props: {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {props.policies.map((p) => {
         // Quick header summary: how many overrides this policy holds.
         const overrideCount = paidTypes.filter(
           (t) => lookup.get(`${p.id}:${t.id}`) != null,
         ).length
         return (
-          <Card key={p.id}>
-            <CardHeader className="flex-row items-center justify-between gap-2 pb-3">
-              <div>
-                <CardTitle className="text-base">
-                  {p.name}
-                  {p.isDefault && (
-                    <Badge variant="outline" className="ml-2 align-middle text-[10px]">
-                      Default
-                    </Badge>
-                  )}
-                </CardTitle>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {overrideCount === 0
-                    ? "No overrides — every leave type inherits from its type default."
-                    : `${overrideCount} override${overrideCount === 1 ? "" : "s"} set.`}
-                </p>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Leave type</TableHead>
-                    <TableHead className="w-36">Default days</TableHead>
-                    <TableHead className="w-48">Accrual method</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paidTypes.map((t) => {
-                    const cell = lookup.get(`${p.id}:${t.id}`) ?? null
-                    return (
-                      <PolicyOverrideRow
-                        key={t.id}
-                        policyId={p.id}
-                        leaveType={t}
-                        daysValue={cell?.days ?? null}
-                        methodValue={cell?.method ?? null}
-                      />
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <PolicyCollapsibleCard
+            key={p.id}
+            policy={p}
+            paidTypes={paidTypes}
+            lookup={lookup}
+            overrideCount={overrideCount}
+          />
         )
       })}
     </div>
+  )
+}
+
+/// Collapsible card for one policy. Header is the click target —
+/// shows the policy name, default badge, override count, and a
+/// rotating chevron. Body (the leave-type table) only mounts when
+/// expanded, so reloading the Per-policy tab on a big org is fast
+/// and admins aren't drowned in fields they don't need to see.
+///
+/// Each card manages its own open/closed state. We accept that
+/// reordering or filtering the policy list later would lose the
+/// in-flight expansion state — that's a fair trade for not threading
+/// state through the parent.
+function PolicyCollapsibleCard({
+  policy,
+  paidTypes,
+  lookup,
+  overrideCount,
+}: {
+  policy: PolicyRow
+  paidTypes: LeaveTypeRow[]
+  lookup: Map<
+    string,
+    { days: number; method: "LUMP_SUM" | "PRO_RATED" | null }
+  >
+  overrideCount: number
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <Card>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-2 px-6 py-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-[28px]"
+        aria-expanded={open}
+      >
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-base">{policy.name}</CardTitle>
+            {policy.isDefault && (
+              <Badge variant="outline" className="text-[10px]">
+                Default
+              </Badge>
+            )}
+            {overrideCount > 0 && (
+              <Badge variant="default" className="text-[10px]">
+                {overrideCount} override{overrideCount === 1 ? "" : "s"}
+              </Badge>
+            )}
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {overrideCount === 0
+              ? "Inherits every leave type from the type defaults."
+              : `${overrideCount} leave type${overrideCount === 1 ? "" : "s"} overridden.`}
+          </p>
+        </div>
+        <ChevronDown
+          className={
+            "h-5 w-5 shrink-0 text-muted-foreground transition-transform " +
+            (open ? "rotate-180" : "")
+          }
+        />
+      </button>
+      {open && (
+        <CardContent className="p-0 pt-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Leave type</TableHead>
+                <TableHead className="w-36">Default days</TableHead>
+                <TableHead className="w-48">Accrual method</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paidTypes.map((t) => {
+                const cell = lookup.get(`${policy.id}:${t.id}`) ?? null
+                return (
+                  <PolicyOverrideRow
+                    key={t.id}
+                    policyId={policy.id}
+                    leaveType={t}
+                    daysValue={cell?.days ?? null}
+                    methodValue={cell?.method ?? null}
+                  />
+                )
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      )}
+    </Card>
   )
 }
 
