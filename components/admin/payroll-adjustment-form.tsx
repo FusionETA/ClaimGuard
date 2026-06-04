@@ -794,6 +794,35 @@ function LineRow(props: {
           </Button>
         )}
       </div>
+      {/* LHDN AR override — only shown for categories that are
+          AR-flagged by default (bonus, commission, arrears, gratuity,
+          director-fee, etc.). When OFF (default), the line goes
+          through the LHDN Additional Remuneration formula (one-shot
+          marginal tax — correct for a true one-off bonus). When ON,
+          the line goes through the normal recurring bucket (smooth
+          monthly PCB — correct for monthly commission / director fee).
+          Hidden for non-AR categories since the toggle would have no
+          effect. */}
+      {category.isAdditionalRemuneration ? (
+        <label className="mt-2 flex items-start gap-2 rounded-md border border-amber-200/70 bg-amber-50/40 px-2.5 py-2 text-[11px] leading-4 text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-100">
+          <input
+            type="checkbox"
+            name={`line${props.index}.treatAsRecurring`}
+            value="true"
+            defaultChecked={props.line.treatAsRecurring === true}
+            disabled={props.readOnly}
+            className="mt-0.5 h-3.5 w-3.5 rounded border-amber-300 text-amber-700 focus:ring-amber-500"
+          />
+          <span>
+            <span className="font-semibold">Treat as regular monthly remuneration.</span>{" "}
+            Default OFF — the LHDN Additional Remuneration formula runs
+            (PCB spikes this month, smooth thereafter). Tick ON if this
+            employee receives this category every month at similar
+            amounts (e.g., monthly commission, monthly director fee) so
+            PCB stays smooth.
+          </span>
+        </label>
+      ) : null}
       <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
         <span className="rounded-full bg-background px-2 py-0.5 font-medium text-foreground">
           {category.kind === "DEDUCTION"
@@ -811,6 +840,16 @@ function LineRow(props: {
           </span>
         ) : null}
         {category.offsetsPcb ? <span>Offsets PCB</span> : null}
+        {category.isAdditionalRemuneration && !props.line.treatAsRecurring ? (
+          <span className="text-amber-700 dark:text-amber-300">
+            PCB: Additional Remuneration formula
+          </span>
+        ) : null}
+        {category.isAdditionalRemuneration && props.line.treatAsRecurring ? (
+          <span className="text-emerald-700 dark:text-emerald-300">
+            PCB: treated as recurring (smoothed)
+          </span>
+        ) : null}
       </div>
     </div>
   )

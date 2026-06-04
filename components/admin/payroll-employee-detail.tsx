@@ -1729,6 +1729,29 @@ function FixedAdjustmentRow({
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </div>
+      {/* LHDN AR override — same logic as the per-run manual-line
+          editor. Shown only when the category is AR-flagged. Recurring
+          monthly entries (sales rep on monthly commission, director on
+          a monthly fee) should tick this so PCB stays smooth instead
+          of spiking each month. */}
+      {category.isAdditionalRemuneration ? (
+        <label className="mt-2 flex items-start gap-2 rounded-md border border-amber-200/70 bg-amber-50/40 px-2.5 py-2 text-[11px] leading-4 text-amber-900 dark:border-amber-700/40 dark:bg-amber-950/20 dark:text-amber-100">
+          <input
+            type="checkbox"
+            name={`allowance${index}.treatAsRecurring`}
+            value="true"
+            defaultChecked={adjustment.treatAsRecurring === true}
+            className="mt-0.5 h-3.5 w-3.5 rounded border-amber-300 text-amber-700 focus:ring-amber-500"
+          />
+          <span>
+            <span className="font-semibold">Treat as regular monthly remuneration.</span>{" "}
+            Default OFF — the LHDN Additional Remuneration formula
+            runs (PCB spikes when this is paid, smooth otherwise). Tick
+            ON for monthly commission, monthly director fee, or any
+            other AR-category paid every month at similar amounts.
+          </span>
+        </label>
+      ) : null}
       <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
         <span className="rounded-full bg-background px-2 py-0.5 font-medium text-foreground">
           {category.kind === "DEDUCTION"
@@ -1749,6 +1772,16 @@ function FixedAdjustmentRow({
         ) : null}
         {category.referenceOnly ? <span>Reference only</span> : null}
         {category.offsetsPcb ? <span>Offsets PCB</span> : null}
+        {category.isAdditionalRemuneration && !adjustment.treatAsRecurring ? (
+          <span className="text-amber-700 dark:text-amber-300">
+            PCB: Additional Remuneration formula
+          </span>
+        ) : null}
+        {category.isAdditionalRemuneration && adjustment.treatAsRecurring ? (
+          <span className="text-emerald-700 dark:text-emerald-300">
+            PCB: treated as recurring (smoothed)
+          </span>
+        ) : null}
       </div>
     </div>
   )

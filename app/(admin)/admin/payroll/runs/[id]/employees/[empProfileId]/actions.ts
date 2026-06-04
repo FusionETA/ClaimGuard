@@ -125,7 +125,18 @@ export async function savePayrollAdjustmentAction(
       : kind === "DEDUCTION"
         ? "deduct_salary_adjustment"
         : "allowance_standard"
-    manualLineItems.push({ kind, category, label, amount })
+    // LHDN AR override — present only for AR-flagged categories where
+    // admin opted to treat the line as recurring monthly remuneration.
+    const treatAsRecurringRaw = formData.get(`line${i}.treatAsRecurring`)
+    const treatAsRecurring =
+      String(treatAsRecurringRaw ?? "").toLowerCase() === "true"
+    manualLineItems.push({
+      kind,
+      category,
+      label,
+      amount,
+      ...(treatAsRecurring ? { treatAsRecurring } : {}),
+    })
   }
 
   // Collect per-row overrides on the profile's fixed adjustments.

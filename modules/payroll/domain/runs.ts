@@ -294,6 +294,26 @@ export type ManualLineItem = {
   category: string
   label: string
   amount: number
+  /// LHDN Additional Remuneration override.
+  ///
+  /// When the chosen category has `isAdditionalRemuneration: true`
+  /// (bonus / commission / arrears / gratuity / director-fee), the
+  /// default PCB path treats the amount as a one-off — annual tax is
+  /// re-projected with the bonus layered on, and the marginal tax
+  /// becomes this month's PCB. That's the right default for a true
+  /// one-shot bonus.
+  ///
+  /// Some employees receive an AR-flagged category EVERY month
+  /// (monthly commission, monthly director fee). In that case the
+  /// AR formula causes PCB to swing wildly. Setting this flag to
+  /// `true` routes the amount into the NORMAL recurring bucket
+  /// instead — annualised by × (n+1), spread across the year, smooth
+  /// monthly PCB.
+  ///
+  /// Defaults to `false` (= AR formula). Has no effect on categories
+  /// where `meta.isAdditionalRemuneration` is `false` (those always
+  /// use the normal bucket anyway).
+  treatAsRecurring?: boolean
   /// Optional backlink to the LeaveEntitlement row this line item
   /// was derived from. Set ONLY when category === "wages_leave_pay"
   /// and the attach came from the Expired-leave-cash-out card on the

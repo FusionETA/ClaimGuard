@@ -850,7 +850,14 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
         // existing `subjectTo*` flags (we just don't add to those
         // bases here).
         if (meta.subjectToPcb) {
-          if (meta.isAdditionalRemuneration) {
+          // Per-item LHDN AR override: even on an AR-flagged category,
+          // a `treatAsRecurring: true` line routes into the normal
+          // bucket (smooth monthly PCB) instead of the one-shot AR
+          // bucket (marginal-tax spike). Default is undefined/false →
+          // current behaviour unchanged.
+          const treatAsAdditional =
+            meta.isAdditionalRemuneration && !a.treatAsRecurring
+          if (treatAsAdditional) {
             pcbAdditionalRemuneration += pcbTaxable
           } else {
             pcbAdjustmentBase += pcbTaxable
@@ -863,7 +870,10 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
         if (meta.subjectToEis) eisAdjustmentBase += amt
         if (meta.subjectToHrdf) hrdfAdjustmentBase += amt
         if (meta.subjectToPcb) {
-          if (meta.isAdditionalRemuneration) {
+          // Same per-item LHDN AR override as the BIK branch above.
+          const treatAsAdditional =
+            meta.isAdditionalRemuneration && !a.treatAsRecurring
+          if (treatAsAdditional) {
             pcbAdditionalRemuneration += pcbTaxable
             // AR EPF — only the portion of EPF attributable to the AR
             // row needs to count toward the with-AR annual EPF bucket.

@@ -639,7 +639,18 @@ function parseFixedAllowancesFromForm(formData: FormData): FixedAllowance[] {
     // skip it so the admin can clear a row by zeroing it out (rather
     // than having to delete the row, save, then re-add).
     if (!Number.isFinite(amount) || amount <= 0) continue
-    out.push({ category, name, amount })
+    // LHDN AR override: when admin ticked "Treat as regular monthly
+    // remuneration" on this row, persist it so calc.ts routes the
+    // amount through the normal PCB bucket instead of the AR bucket.
+    const treatAsRecurringField = formData.get(`allowance${i}.treatAsRecurring`)
+    const treatAsRecurring =
+      String(treatAsRecurringField ?? "").toLowerCase() === "true"
+    out.push({
+      category,
+      name,
+      amount,
+      ...(treatAsRecurring ? { treatAsRecurring } : {}),
+    })
   }
   return out
 }

@@ -210,12 +210,17 @@ function parseManualLineItems(value: unknown): ManualLineItem[] {
       typeof i.sourceEntitlementId === "string" && i.sourceEntitlementId.length > 0
         ? i.sourceEntitlementId
         : undefined
+    // Preserve the LHDN AR override flag — see `ManualLineItem.treatAsRecurring`
+    // in `domain/runs.ts`. Defaults to undefined → AR formula stays
+    // the default for bonus/commission/etc., matching pre-flag behaviour.
+    const treatAsRecurring = i.treatAsRecurring === true ? true : undefined
     out.push({
       kind,
       category,
       label,
       amount,
       ...(sourceEntitlementId ? { sourceEntitlementId } : {}),
+      ...(treatAsRecurring ? { treatAsRecurring } : {}),
     })
   }
   return out

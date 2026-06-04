@@ -760,6 +760,14 @@ export type FixedAllowance = {
   category: PayrollAdjustmentCategory
   name: string
   amount: number
+  /// LHDN Additional Remuneration override. See `ManualLineItem.treatAsRecurring`
+  /// in `runs.ts` for the full explanation. Default `false` (= AR
+  /// formula on bonus / commission / arrears / gratuity / director-fee
+  /// categories). Set `true` when the same category is paid every
+  /// month at a similar amount — e.g., a sales rep on monthly
+  /// commission, or a director on a monthly directors' fee — so PCB
+  /// stays smooth instead of spiking each month.
+  treatAsRecurring?: boolean
 }
 
 // ─── Leave entitlement JSON shape (v2 placeholder) ───────────────────────

@@ -648,7 +648,14 @@ export async function previewEmployeeNetForRun(input: {
     otPublicHours: number
     workedHours?: number | null
     expectedHours?: number | null
-    manualLineItems: { kind: string; category: string; label: string; amount: number }[]
+    manualLineItems: {
+      kind: string
+      category: string
+      label: string
+      amount: number
+      /// LHDN AR override — see `ManualLineItem.treatAsRecurring`.
+      treatAsRecurring?: boolean
+    }[]
     fixedAllowanceOverrides: Record<
       string,
       { amount: number | null; skip: boolean }
@@ -711,6 +718,9 @@ export async function previewEmployeeNetForRun(input: {
     category: li.category as (typeof overriddenFixed)[number]["category"],
     name: li.label,
     amount: li.amount,
+    // Preserve the per-item LHDN AR override so the validation guard
+    // sees the same PCB bucket the actual calc will use.
+    ...(li.treatAsRecurring ? { treatAsRecurring: true } : {}),
   }))
 
   // Fold in the active loan installment(s) for this period so the guard
@@ -1111,6 +1121,9 @@ export async function generatePayrollPayslips(input: {
       category: li.category as (typeof overriddenFixed)[number]["category"],
       name: li.label,
       amount: li.amount,
+      // Per-item LHDN AR override — propagates to calc.ts so the PCB
+      // bucket reflects the admin's "treat as recurring" toggle.
+      ...(li.treatAsRecurring ? { treatAsRecurring: true } : {}),
     }))
 
     // Auto-applied loan installments for this period. A loan repayment
