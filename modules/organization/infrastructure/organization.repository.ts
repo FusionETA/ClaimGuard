@@ -1710,6 +1710,13 @@ export const organizationRepository = {
     /// password-reset lookup works from day one. The rest of the
     /// PayrollProfile stays empty until payroll enrollment.
     phone: string
+    /// Optional first-day-of-work date. Stored on `PayrollProfile.joinDate`.
+    /// MUST be written before `seedEmployeeLeaveEntitlements` runs so the
+    /// PRO_RATED seed path can read it and pro-rate this year's accrual.
+    /// Null = unknown; PRO_RATED entitlements fall back to full entitlement
+    /// and admin can fix by setting joinDate on the edit page later
+    /// (triggers `recomputeProRatedAccrualForEmployee`).
+    joinDate?: Date | null
     /// One entry per project the employee belongs to. Each entry pins the
     /// employee to a team in that project at a specific layer, plus an
     /// explicit per-layer chain (one approver per layer above the
@@ -1921,6 +1928,11 @@ export const organizationRepository = {
                 // (HOURLY | MONTHLY_BASED), while PayrollProfile.salaryType
                 // is the SalaryType enum (HOURLY | MONTHLY). Translate.
                 salaryType: policy.salaryType === "HOURLY" ? "HOURLY" : "MONTHLY",
+                // joinDate landed here (before seedEmployeeLeaveEntitlements
+                // runs) so the PRO_RATED seed path can read it via
+                // `leaveRepository.getEmployeeJoinDate` and compute the
+                // initial accrual against the actual hire date.
+                joinDate: data.joinDate ?? null,
                 payrollDocuments: [],
               },
             },

@@ -61,6 +61,13 @@ const createMemberSchema = z.object({
     .refine((v) => v.replace(/\D/g, "").length >= 7, {
       message: "Phone number must contain at least 7 digits.",
     }),
+  /// Optional ISO YYYY-MM-DD from the date input. Empty string =
+  /// admin left it blank → joinDate stays null and PRO_RATED seeds
+  /// fall back to full entitlement (admin can fix on the edit page).
+  joinDate: z
+    .string()
+    .optional()
+    .transform((v) => (v && v.trim() ? v.trim() : "")),
 })
 
 /// Pull the per-project routing config out of FormData. Each project section
@@ -355,6 +362,24 @@ export async function createHierarchyMemberAction(
     leaveSeed = { method: "CUSTOM", overrides: { days, methods } }
   }
 
+  // Parse joinDate (YYYY-MM-DD) → UTC midnight Date. The DB column is
+  // a DateTime; we use UTC so the same calendar day round-trips
+  // regardless of the admin's local timezone.
+  let joinDate: Date | null = null
+  if (parsed.data.joinDate) {
+    const parts = parsed.data.joinDate.split("-").map((p) => Number(p))
+    if (
+      parts.length === 3 &&
+      parts.every((n) => Number.isFinite(n)) &&
+      parts[1] >= 1 &&
+      parts[1] <= 12 &&
+      parts[2] >= 1 &&
+      parts[2] <= 31
+    ) {
+      joinDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]))
+    }
+  }
+
   try {
     await organizationRepository.createOrganizationMember({
       name: parsed.data.name,
@@ -367,6 +392,7 @@ export async function createHierarchyMemberAction(
       jobTitle: parsed.data.jobTitle,
       policyId: parsed.data.policyId,
       phone: parsed.data.phone,
+      joinDate,
       projectAssignments,
       leaveSeed,
     })
