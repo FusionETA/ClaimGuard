@@ -78,12 +78,21 @@ token's scopes (without reissuing) from `/internal/api-scopes`.
 
 ## How it runs after a deploy
 
-The DigitalOcean droplet's deploy script (`altomatehr-dev-deploy.sh` /
-`altomatehr-prod-deploy.sh`) calls GitHub's workflow-dispatch API after the
-pm2 restart succeeds, triggering `.github/workflows/smoke.yml` with
-`target: dev | prod`. The workflow pre-flights `GET /api/health` (which echoes
-the deployed `GIT_SHA`) before running the suite. It can also be run by hand
-from the **Actions** tab.
+`.github/workflows/smoke.yml` triggers on **push to `main`**, then *waits* for
+the dev deploy to go live: it polls `GET /api/health` until the reported `sha`
+matches the pushed commit (the droplet finished pulling + pm2-restarting),
+then runs the suite. No GitHub token on the droplet is required — the only
+droplet change is exporting the commit so `/api/health` can report it:
+
+```bash
+# in altomatehr-dev-deploy.sh, AFTER `git pull` and BEFORE the pm2 restart:
+export GIT_SHA=$(git rev-parse HEAD)
+```
+
+Until that line is in place, `/api/health` reports `sha: "unknown"` and the
+wait step falls back to a short grace period. **Prod** isn't deployed by a
+push, so smoke it manually: **Actions → Post-deploy smoke → Run workflow →
+target: prod** (needs `SMOKE_API_TOKEN_PROD`).
 
 > `scripts/check-orphans.ts` is a **separate** operator tool (talks to Prisma
 > directly) for deep FK-consistency audits — it is not part of this suite.
