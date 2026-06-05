@@ -59,7 +59,7 @@ jobs:
           if [ "${{ github.event.inputs.target }}" = "prod" ]; then
             echo "base=https://hr.altomate.io" >> "$GITHUB_OUTPUT"
           else
-            echo "base=https://dev-hr.altomate.io" >> "$GITHUB_OUTPUT"
+            echo "base=https://altomatehr-dev.fusioneta.com.my" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Pre-flight health check

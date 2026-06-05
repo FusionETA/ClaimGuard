@@ -15,7 +15,7 @@ the unit lane (`npm test`) — they need a running environment and a token.
 ## Running locally
 
 ```bash
-export SMOKE_BASE_URL="https://dev-hr.altomate.io"
+export SMOKE_BASE_URL="https://altomatehr-dev.fusioneta.com.my"
 export SMOKE_API_TOKEN="wp_live_smoke_…"   # Smoke Test Co (dev) token
 npm run smoke
 ```
