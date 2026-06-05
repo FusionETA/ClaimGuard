@@ -1,25 +1,34 @@
 # Post-deploy API smoke tests.
 #
-# This is Tier 1 of the post-push test bot. It is NOT triggered by GitHub
-# on push — deployment is done by the droplet webhook service
-# (altomatehr-deploy-webhook). After the droplet pulls + rebuilds + pm2
-# restarts the app, its deploy script calls GitHub's workflow-dispatch API
-# to fire THIS workflow, passing target=dev (or target=prod for the prod
-# deploy script). See the PR description / repo docs for the droplet setup.
+# This is Tier 1 of the post-push test bot. Deployment itself is NOT done by
+# GitHub — the droplet webhook service (altomatehr-deploy-webhook) pulls +
+# rebuilds + pm2-restarts the app on every push to main.
 #
-# It can also be run by hand from the Actions tab ("Run workflow").
+# Trigger model (no GitHub token needed on the droplet):
+#   - push to main  → this workflow starts, then WAITS until the dev deploy
+#     is live (it polls /api/health until the reported `sha` matches the
+#     pushed commit) before running the suite. So the droplet only needs to
+#     export GIT_SHA before its pm2 restart — it does NOT call back to GitHub.
+#   - workflow_dispatch → manual run from the Actions tab; choose dev | prod.
+#     (prod is the only way to smoke prod, since pushes only deploy dev.)
+#
+# For GIT_SHA wiring: /usr/local/bin/altomatehr-dev-deploy.sh must, after the
+# git pull and before the pm2 restart, run:  export GIT_SHA=$(git rev-parse HEAD)
+# Until that's in place the wait step falls back to a short grace period.
 #
 # ── Tokens & secrets ────────────────────────────────────────────────────
-#   SMOKE_API_TOKEN_DEV  — wp_live_smoke_* token for "Smoke Test Co" on DEV
-#   SMOKE_API_TOKEN_PROD — wp_live_smoke_* token for "Smoke Test Co (prod)"
+#   SMOKE_API_TOKEN_DEV  — wp_live_* token for "Smoke Test Co" on DEV
+#   SMOKE_API_TOKEN_PROD — wp_live_* token for "Smoke Test Co (prod)"
 #
-# The smoke tokens are regenerated from the internal scope-control page
-# (/internal/api-scopes) when rotated; update the matching repo secret to
-# match. Rotate every 90 days — keep a calendar reminder.
+# Mint/rotate a token with `scripts/issue-api-token.ts`; adjust scopes on an
+# existing token from /internal/api-scopes. Rotate ~every 90 days and update
+# the matching repo secret.
 
 name: Post-deploy smoke
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       target:
@@ -62,21 +71,48 @@ jobs:
             echo "base=https://altomatehr-dev.fusioneta.com.my" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Pre-flight health check
+      # Wait for the environment to be serving the right build before we
+      # hammer the API. On a push, "right build" means /api/health reports
+      # the pushed commit SHA (the droplet finished pulling + restarting).
+      # On a manual dispatch we don't know which commit is deployed, so we
+      # just confirm the app answers. If GIT_SHA isn't wired yet the app
+      # reports sha="unknown" — we then fall back to a short grace period
+      # so this still works during the rollout of the droplet change.
+      - name: Wait for deploy to be live
+        env:
+          BASE: ${{ steps.env.outputs.base }}
+          EXPECTED_SHA: ${{ github.sha }}
+          EVENT: ${{ github.event_name }}
         run: |
-          BASE="${{ steps.env.outputs.base }}"
-          echo "Probing $BASE/api/health"
-          for i in 1 2 3 4 5; do
-            if curl -fsS "$BASE/api/health"; then
-              echo ""
-              echo "App is up."
-              exit 0
+          echo "Target: $BASE  (event: $EVENT, expecting sha: $EXPECTED_SHA)"
+          start=$(date +%s)
+          deadline=$(( start + 600 ))   # 10 minutes
+          while :; do
+            now=$(date +%s)
+            body=$(curl -fsS -m 10 "$BASE/api/health" 2>/dev/null || true)
+            sha=$(printf '%s' "$body" | sed -n 's/.*"sha":"\([^"]*\)".*/\1/p')
+            if [ -n "$body" ]; then
+              if [ "$EVENT" != "push" ]; then
+                echo "Manual run — app is up (sha=${sha:-?}). Proceeding."
+                break
+              elif [ "$sha" = "$EXPECTED_SHA" ]; then
+                echo "Deploy live at $sha. Proceeding."
+                break
+              elif [ "$sha" = "unknown" ] && [ $(( now - start )) -ge 120 ]; then
+                echo "App up but GIT_SHA not wired (sha=unknown); proceeding after grace period."
+                break
+              else
+                echo "Waiting… deployed=${sha:-none}, expected=$EXPECTED_SHA"
+              fi
+            else
+              echo "Health endpoint not responding yet…"
             fi
-            echo "Attempt $i failed; retrying in 10s..."
-            sleep 10
+            if [ "$now" -ge "$deadline" ]; then
+              echo "Timed out after 10m waiting for $BASE to serve $EXPECTED_SHA."
+              exit 1
+            fi
+            sleep 15
           done
-          echo "App not responding at $BASE/api/health after retries."
-          exit 1
 
       - name: Run smoke suite
         run: npm run smoke
