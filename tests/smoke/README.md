@@ -41,10 +41,23 @@ Write-capable modules self-clean each fixture in the same test / `afterAll`.
 The sweep is the safety net for crashed runs and only polices deletable
 resources.
 
-## The token
+## Provisioning the org + token
 
-Issued from the internal scope-control page (`/internal/api-scopes`) for the
-`Smoke Test Co` org. Granted scopes:
+There is no admin-UI token-creation page yet, and
+`POST /api/v1/admin/organizations` only mints a token while *creating a new
+org* (and 409s if the name exists). So use the two scripts, run against the
+**dev** DB (then the **prod** DB for the prod org):
+
+```bash
+# 1. Create the org + seed its default Employee Policy (the employees suite needs one)
+npx tsx scripts/create-org.ts --org "Smoke Test Co" \
+  --email smoke@fusioneta.com --name "Smoke Bot" --password 'Strong123!'
+
+# 2. Mint a scoped token — prints the raw wp_live_* once
+npx tsx scripts/issue-api-token.ts --org "Smoke Test Co"
+```
+
+`issue-api-token.ts` defaults to exactly the scopes this suite needs:
 
 ```
 employees:read  employees:write
@@ -57,8 +70,11 @@ claims:read     claims:write
 settings:read
 ```
 
-Rotate every **90 days**; regenerate from `/internal/api-scopes` and update the
-GitHub repo secrets `SMOKE_API_TOKEN_DEV` / `SMOKE_API_TOKEN_PROD` to match.
+(`--all` grants the full catalog; `--scopes a,b,c` for a custom set.)
+
+Rotate every **90 days**: re-run `issue-api-token.ts` and update the GitHub repo
+secrets `SMOKE_API_TOKEN_DEV` / `SMOKE_API_TOKEN_PROD`. Adjust an existing
+token's scopes (without reissuing) from `/internal/api-scopes`.
 
 ## How it runs after a deploy
 
