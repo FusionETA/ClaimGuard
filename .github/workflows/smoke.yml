@@ -1,0 +1,85 @@
+# Post-deploy API smoke tests.
+#
+# This is Tier 1 of the post-push test bot. It is NOT triggered by GitHub
+# on push — deployment is done by the droplet webhook service
+# (altomatehr-deploy-webhook). After the droplet pulls + rebuilds + pm2
+# restarts the app, its deploy script calls GitHub's workflow-dispatch API
+# to fire THIS workflow, passing target=dev (or target=prod for the prod
+# deploy script). See the PR description / repo docs for the droplet setup.
+#
+# It can also be run by hand from the Actions tab ("Run workflow").
+#
+# ── Tokens & secrets ────────────────────────────────────────────────────
+#   SMOKE_API_TOKEN_DEV  — wp_live_smoke_* token for "Smoke Test Co" on DEV
+#   SMOKE_API_TOKEN_PROD — wp_live_smoke_* token for "Smoke Test Co (prod)"
+#
+# The smoke tokens are regenerated from the internal scope-control page
+# (/internal/api-scopes) when rotated; update the matching repo secret to
+# match. Rotate every 90 days — keep a calendar reminder.
+
+name: Post-deploy smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which environment to smoke"
+        required: false
+        default: "dev"
+        type: choice
+        options: [dev, prod]
+
+# A later deploy's smoke run supersedes an in-flight one for the same env.
+concurrency:
+  group: smoke-${{ github.event.inputs.target || 'dev' }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Prisma's client is generated into ./generated; tsx/vitest type
+      # resolution of shared imports can touch it during collection.
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Resolve target base URL
+        id: env
+        run: |
+          if [ "${{ github.event.inputs.target }}" = "prod" ]; then
+            echo "base=https://hr.altomate.io" >> "$GITHUB_OUTPUT"
+          else
+            echo "base=https://dev-hr.altomate.io" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pre-flight health check
+        run: |
+          BASE="${{ steps.env.outputs.base }}"
+          echo "Probing $BASE/api/health"
+          for i in 1 2 3 4 5; do
+            if curl -fsS "$BASE/api/health"; then
+              echo ""
+              echo "App is up."
+              exit 0
+            fi
+            echo "Attempt $i failed; retrying in 10s..."
+            sleep 10
+          done
+          echo "App not responding at $BASE/api/health after retries."
+          exit 1
+
+      - name: Run smoke suite
+        run: npm run smoke
+        env:
+          SMOKE_BASE_URL: ${{ steps.env.outputs.base }}
+          SMOKE_API_TOKEN: ${{ github.event.inputs.target == 'prod' && secrets.SMOKE_API_TOKEN_PROD || secrets.SMOKE_API_TOKEN_DEV }}
