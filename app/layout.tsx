@@ -5,6 +5,7 @@ import { AppResumeIndicator } from "@/components/pwa/app-resume-indicator"
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ToasterProvider } from "@/components/ui/toaster"
+import { UpdatesAnnouncer } from "@/components/updates-announcer"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
@@ -160,6 +161,16 @@ export default function RootLayout({
           <ToasterProvider>
             <AppResumeIndicator>
               <ServiceWorkerRegister />
+              {/*
+                Top banner for scheduled maintenance + floating "What's
+                new" pill that opens a slide-in changelog sheet. Content
+                lives in `lib/updates.ts` — no DB, no admin UI in V1.
+                Component self-suppresses on /maintenance and /login.
+                Rendered before {children} so the banner sits at the
+                very top of every layout (above admin / employee
+                shells), and {children} continues to lay out below it.
+              */}
+              <UpdatesAnnouncer />
               {children}
             </AppResumeIndicator>
           </ToasterProvider>
