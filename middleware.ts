@@ -156,6 +156,35 @@ function redirectToLogin(request: NextRequest, clearSession = false) {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // ── Maintenance gate ────────────────────────────────────────────
+  //
+  // When `MAINTENANCE_MODE=true` is set in the deployment env, every
+  // page request is rewritten to /maintenance and every API request
+  // gets a 503 JSON response. Static files (Next.js internals,
+  // images, manifest) are excluded from the matcher below so the
+  // maintenance page itself can still load its assets. There's no
+  // in-app bypass — toggle the env var to bring the system back up.
+  if (process.env.MAINTENANCE_MODE === "true" && pathname !== "/maintenance") {
+    // API routes get a machine-readable 503 with a Retry-After hint
+    // so uptime monitors and external integrations (Master API,
+    // mobile clients) get a sensible response instead of a redirect.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        {
+          error: "Service temporarily unavailable for scheduled maintenance.",
+        },
+        { status: 503, headers: { "Retry-After": "1800" } },
+      )
+    }
+    // Page routes get rewritten (not redirected) so the user's URL
+    // bar still shows what they were trying to access — clearer than
+    // a hard redirect when they reload after maintenance ends.
+    const url = request.nextUrl.clone()
+    url.pathname = "/maintenance"
+    return NextResponse.rewrite(url)
+  }
+
   const isProtected = PROTECTED_PREFIXES.some((prefix) =>
     pathname.startsWith(prefix)
   )
@@ -207,5 +236,21 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/employee/:path*", "/admin/:path*"],
+  // Run middleware on every page + API route. Exclude only static
+  // assets and Next.js internals — the maintenance-mode gate above
+  // needs to see ALL pages (login, home, /admin, /employee) so it
+  // can rewrite them to /maintenance, and ALL /api/* routes so it
+  // can return a 503. The /maintenance page itself is matched too
+  // but the early-return inside the middleware skips it.
+  //
+  // Excluded paths (so the maintenance page can still load its
+  // assets, and static-asset serving stays fast outside maintenance):
+  //   - _next/static, _next/image  → Next.js internals
+  //   - favicon.ico, manifest      → root-level static files
+  //   - /splash/*                  → iOS PWA splash bitmaps
+  //   - /brand-*                   → brand icons
+  //   - anything ending in a static-asset extension
+  matcher: [
+    "/((?!_next/static|_next/image|favicon\\.ico|manifest\\.webmanifest|splash/|brand-|robots\\.txt|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico|css|js|map|woff2?|ttf|otf|eot)$).*)",
+  ],
 }
