@@ -13,6 +13,10 @@ export type AddHierarchyMemberFormValues = HierarchyFormValues & {
   /// Required for the forgot-password WhatsApp delivery. Stored on
   /// `PayrollProfile.phone` server-side.
   phone: string
+  /// ISO YYYY-MM-DD. Optional — defaults to today in the form. Stored
+  /// on `PayrollProfile.joinDate` server-side. Drives pro-rated leave
+  /// accrual at seed time.
+  joinDate: string
 }
 
 export type HierarchyFormState = {
@@ -54,6 +58,7 @@ export function createInitialAddHierarchyMemberFormState(
       employeeId: values?.employeeId ?? "",
       password: values?.password ?? "",
       phone: values?.phone ?? "",
+      joinDate: values?.joinDate ?? "",
       role: values?.role ?? "EMPLOYEE",
       organizationId: values?.organizationId ?? "",
       jobTitle: values?.jobTitle ?? "",
