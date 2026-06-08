@@ -14,14 +14,17 @@
 export const payrollReportKinds = [
   "PAYROLL_SUMMARY_PDF",
   "PAYMENT_SCHEDULE_PDF",
-  "DETAILED_CALCULATIONS_PDF",
   // LHDN MTD Specification 2026 worksheet — each employee's PCB
   // calculation shown LHDN-form-style with the dark blue header bar,
   // numbered sections (PCB(A) Normal / Yearly PCB / Yearly Tax / AR
   // PCB / Net PCB), and each variable in its own table card showing
   // abbreviation + full official LHDN description + amount. Audit-
   // ready format; auditors familiar with the LHDN form will read it
-  // without any explanation.
+  // without any explanation. SUPERSEDES the older compact
+  // "Detailed Calculations" PDF (which was removed from the modal in
+  // 2026-06 — the Prisma enum value DETAILED_CALCULATIONS_PDF stays
+  // for back-compat with existing PayrollRunReport cache rows but
+  // is no longer rendered).
   "PCB_LHDN_FORM_PDF",
   "BULK_PAYSLIPS_PDF",
   "EPF_CSV",
@@ -77,16 +80,6 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
     title: "Payment Schedule",
     description:
       "Per-employee net pay + statutory remittances (PCB, EPF, SOCSO, EIS, HRDF).",
-    portal: null,
-    extension: "pdf",
-    mimeType: "application/pdf",
-  },
-  DETAILED_CALCULATIONS_PDF: {
-    kind: "DETAILED_CALCULATIONS_PDF",
-    group: "REPORTS",
-    title: "Detailed Calculations",
-    description:
-      "Per-employee working showing how each statutory line was computed (PCB, EPF, SOCSO, EIS, HRDF).",
     portal: null,
     extension: "pdf",
     mimeType: "application/pdf",
@@ -203,8 +196,6 @@ export function buildReportFileName(input: {
       return `Payroll_Summary_${monthName}_${yy}.${meta.extension}`
     case "PAYMENT_SCHEDULE_PDF":
       return `Payment_Schedule_${monthName}_${yy}.${meta.extension}`
-    case "DETAILED_CALCULATIONS_PDF":
-      return `Detailed_Calculations_${monthName}_${yy}.${meta.extension}`
     case "PCB_LHDN_FORM_PDF":
       return `PCB_Calculation_Details_${monthName}_${yy}.${meta.extension}`
     case "BULK_PAYSLIPS_PDF":

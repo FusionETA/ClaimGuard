@@ -16,9 +16,8 @@ import { periodLabel } from "@/modules/payroll/domain/runs"
  * Audit-ready format. An LHDN officer familiar with the published
  * MTD worksheet should be able to read it without explanation.
  *
- * Counterpart of `renderDetailedCalculationsPdf` (which produces the
- * compact inline form). Both consume the same payslip data; the
- * difference is purely visual.
+ * Sole PCB-breakdown PDF renderer — the older compact "Detailed
+ * Calculations" renderer was removed in 2026-06.
  */
 export async function renderPcbLhdnFormPdf(input: {
   runId: string

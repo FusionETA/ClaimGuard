@@ -2,7 +2,6 @@ import "server-only"
 
 import type { PayrollReportKind } from "@/modules/payroll/domain/reports"
 import { renderBulkPayslipsPdf } from "@/modules/payroll/application/services/report-renderers/bulk-payslips-pdf"
-import { renderDetailedCalculationsPdf } from "@/modules/payroll/application/services/report-renderers/detailed-calculations-pdf"
 import { renderEpfCsv } from "@/modules/payroll/application/services/report-renderers/epf-csv"
 import { renderPaymentSchedulePdf } from "@/modules/payroll/application/services/report-renderers/payment-schedule-pdf"
 import { renderPayrollSummaryPdf } from "@/modules/payroll/application/services/report-renderers/payroll-summary-pdf"
@@ -27,8 +26,6 @@ export async function renderPayrollReport(input: {
       return renderPayrollSummaryPdf({ runId: input.runId })
     case "PAYMENT_SCHEDULE_PDF":
       return renderPaymentSchedulePdf({ runId: input.runId })
-    case "DETAILED_CALCULATIONS_PDF":
-      return renderDetailedCalculationsPdf({ runId: input.runId })
     case "PCB_LHDN_FORM_PDF":
       return renderPcbLhdnFormPdf({ runId: input.runId })
     case "BULK_PAYSLIPS_PDF":
