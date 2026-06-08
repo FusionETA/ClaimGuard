@@ -109,8 +109,13 @@ export async function savePayrollAdjustmentAction(
       // gaps shouldn't happen in practice.)
       continue
     }
-    const kind =
-      String(kindRaw ?? "").trim() === "DEDUCTION" ? "DEDUCTION" : "ALLOWANCE"
+    const kindStr = String(kindRaw ?? "").trim()
+    const kind: ManualLineItem["kind"] =
+      kindStr === "DEDUCTION"
+        ? "DEDUCTION"
+        : kindStr === "REIMBURSEMENT"
+          ? "REIMBURSEMENT"
+          : "ALLOWANCE"
     const label = String(labelRaw ?? "").trim()
     const amountStr = String(amountRaw ?? "").trim()
     const amount = Number(amountStr)
@@ -120,11 +125,15 @@ export async function savePayrollAdjustmentAction(
     // for the kind so a tampered client can't smuggle an arbitrary
     // string into the JSON column.
     const categoryStr = String(categoryRaw ?? "").trim()
+    const defaultCategory =
+      kind === "DEDUCTION"
+        ? "deduct_salary_adjustment"
+        : kind === "REIMBURSEMENT"
+          ? "wages_expense_claim"
+          : "allowance_standard"
     const category = payrollAdjustmentCategories.includes(categoryStr as never)
       ? categoryStr
-      : kind === "DEDUCTION"
-        ? "deduct_salary_adjustment"
-        : "allowance_standard"
+      : defaultCategory
     // LHDN AR override — present only for AR-flagged categories where
     // admin opted to treat the line as recurring monthly remuneration.
     const treatAsRecurringRaw = formData.get(`line${i}.treatAsRecurring`)

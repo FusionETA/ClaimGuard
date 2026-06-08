@@ -291,7 +291,22 @@ export type PayrollRunClaimForCalc = {
 
 // ─── PayrollRunAdjustment (Phase 7) ──────────────────────────────────────
 
-export const manualLineItemKinds = ["ALLOWANCE", "DEDUCTION"] as const
+// REIMBURSEMENT-kind manual line items represent ad-hoc expense claims
+// that aren't backed by a Claim record in the Claims module. The main
+// use case is historical payroll imports — when migrating from another
+// payroll system (e.g. Payroll Panda), a past run may have paid out
+// claims that aren't in AltomateHR's Claims table. The admin records
+// them here as REIMBURSEMENT line items so the historical payslip
+// totals match.
+//
+// Statutory treatment: same as live claims — feeds gross pay, NOT
+// subject to EPF / SOCSO / EIS / PCB / HRDF. The `wages_expense_claim`
+// category carries the right `subjectTo*: false` flags.
+export const manualLineItemKinds = [
+  "ALLOWANCE",
+  "DEDUCTION",
+  "REIMBURSEMENT",
+] as const
 export type ManualLineItemKind = (typeof manualLineItemKinds)[number]
 
 /**

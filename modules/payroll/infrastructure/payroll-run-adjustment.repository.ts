@@ -179,22 +179,33 @@ function parseManualLineItems(value: unknown): ManualLineItem[] {
   for (const item of value) {
     if (!item || typeof item !== "object") continue
     const i = item as Record<string, unknown>
-    const kind = i.kind === "DEDUCTION" ? "DEDUCTION" : "ALLOWANCE"
+    const kind: ManualLineItem["kind"] =
+      i.kind === "DEDUCTION"
+        ? "DEDUCTION"
+        : i.kind === "REIMBURSEMENT"
+          ? "REIMBURSEMENT"
+          : "ALLOWANCE"
     // Pre-Phase-19 rows have no `category`. Default by kind so the
     // calc engine still finds a valid meta entry.
     const categoryRaw = typeof i.category === "string" ? i.category : null
-    const category =
-      categoryRaw && categoryRaw.length > 0
-        ? categoryRaw
-        : kind === "DEDUCTION"
-          ? "deduct_salary_adjustment"
+    const defaultCategory =
+      kind === "DEDUCTION"
+        ? "deduct_salary_adjustment"
+        : kind === "REIMBURSEMENT"
+          ? "wages_expense_claim"
           : "allowance_standard"
+    const category =
+      categoryRaw && categoryRaw.length > 0 ? categoryRaw : defaultCategory
+    const defaultLabel =
+      kind === "DEDUCTION"
+        ? "Deduction"
+        : kind === "REIMBURSEMENT"
+          ? "Expense claim"
+          : "Allowance"
     const label =
       typeof i.label === "string" && i.label.trim().length > 0
         ? i.label
-        : kind === "DEDUCTION"
-          ? "Deduction"
-          : "Allowance"
+        : defaultLabel
     const amountRaw = i.amount
     const amount =
       typeof amountRaw === "number"

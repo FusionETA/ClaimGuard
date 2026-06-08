@@ -167,12 +167,22 @@ export function PayrollAdjustmentForm(props: {
     )
   }
 
-  function addLine(kind: "ALLOWANCE" | "DEDUCTION") {
+  function addLine(kind: ManualLineItem["kind"]) {
     // Default category by kind. Admin can pick a more specific one
     // from the dropdown (e.g. annual bonus, travel allowance, advance
     // recovery, CP38) — those carry their own statutory treatment.
+    //
+    // REIMBURSEMENT kind defaults to `wages_expense_claim`, which has
+    // all `subjectTo*: false` flags — matches how live claims pulled
+    // from the Claims module flow through. Use case: historical
+    // payroll imports where an old run paid out a claim that isn't
+    // backed by a Claim record in this system.
     const category =
-      kind === "DEDUCTION" ? "deduct_salary_adjustment" : "allowance_standard"
+      kind === "DEDUCTION"
+        ? "deduct_salary_adjustment"
+        : kind === "REIMBURSEMENT"
+          ? "wages_expense_claim"
+          : "allowance_standard"
     const label = PAYROLL_ADJUSTMENT_CATEGORY_META[category].label
     setLines((cs) => [...cs, { kind, category, label, amount: 0 }])
   }
@@ -187,6 +197,9 @@ export function PayrollAdjustmentForm(props: {
 
   const allowanceCount = lines.filter((l) => l.kind === "ALLOWANCE").length
   const deductionCount = lines.filter((l) => l.kind === "DEDUCTION").length
+  const reimbursementCount = lines.filter(
+    (l) => l.kind === "REIMBURSEMENT",
+  ).length
 
   // ── Regular working hours (the HRS column) ──────────────────────────
   // MONTHLY staff edit a percentage (worked ÷ leave-adjusted expected);
@@ -612,6 +625,22 @@ export function PayrollAdjustmentForm(props: {
                 <Plus className="h-3.5 w-3.5" />
                 Deduction
               </Button>
+              {/*
+                Expense Claim — for historical payroll imports where an
+                old run paid out a claim that isn't backed by a Claim
+                record in the Claims module. Same statutory treatment
+                as live claims: feeds gross, not subject to EPF / SOCSO
+                / EIS / PCB / HRDF.
+              */}
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => addLine("REIMBURSEMENT")}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Expense claim
+              </Button>
             </div>
           )}
         </CardHeader>
@@ -653,6 +682,24 @@ export function PayrollAdjustmentForm(props: {
                 return (
                   <LineRow
                     key={`d-${i}`}
+                    index={i}
+                    line={line}
+                    onChange={(p) => patchLine(i, p)}
+                    onRemove={() => removeLine(i)}
+                    readOnly={props.readOnly}
+                  />
+                )
+              })}
+              {reimbursementCount > 0 && (
+                <div className="mt-3 text-xs font-medium text-muted-foreground">
+                  Expense claims ({reimbursementCount})
+                </div>
+              )}
+              {lines.map((line, i) => {
+                if (line.kind !== "REIMBURSEMENT") return null
+                return (
+                  <LineRow
+                    key={`r-${i}`}
                     index={i}
                     line={line}
                     onChange={(p) => patchLine(i, p)}
@@ -734,10 +781,12 @@ function LineRow(props: {
     category.subjectToPcb ? "PCB" : null,
   ].filter(Boolean)
   // Filter categories shown in the dropdown to ones that match the
-  // row's intent. Admin clicked "Add allowance" → only earning-style
-  // categories. Clicked "Add deduction" → only deduction categories.
-  // Reimbursement categories aren't surfaced here — those flow through
-  // the Reimbursements (claims) section instead.
+  // row's intent:
+  //   - "Add allowance"     → only ALLOWANCE-kind categories
+  //   - "Add deduction"     → only DEDUCTION-kind categories
+  //   - "Add expense claim" → only REIMBURSEMENT-kind categories (for
+  //                          historical-payroll imports; live claims
+  //                          flow through the Claims module instead)
   const allowedCategories = payrollAdjustmentCategories.filter((code) => {
     // Unpaid leave is auto-docked from approved unpaid-leave applications
     // (a "deduct_unpaid_leave" line is injected at generation), so don't
@@ -745,6 +794,8 @@ function LineRow(props: {
     if (code === "deduct_unpaid_leave") return false
     const meta = PAYROLL_ADJUSTMENT_CATEGORY_META[code]
     if (props.line.kind === "DEDUCTION") return meta.kind === "DEDUCTION"
+    if (props.line.kind === "REIMBURSEMENT")
+      return meta.kind === "REIMBURSEMENT"
     return meta.kind === "ALLOWANCE"
   })
 
