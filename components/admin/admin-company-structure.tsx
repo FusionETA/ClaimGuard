@@ -81,11 +81,37 @@ export function AdminCompanyStructure({
     [projects],
   )
 
+  const teamCountByProject = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const t of teams) {
+      map.set(t.projectId, (map.get(t.projectId) ?? 0) + 1)
+    }
+    return map
+  }, [teams])
+
+  // Projects with teams sort to the top of the left-column list —
+  // those are the ones the admin actually configures structure for.
+  // Empty projects drop below so they stay accessible but out of the
+  // way. Within each group, preserve the server's alphabetical order.
+  // Stable sort: same teamCount → original index order.
   const filteredProjects = useMemo(() => {
     const q = projectSearch.trim().toLowerCase()
-    if (q === "") return projects
-    return projects.filter((p) => p.name.toLowerCase().includes(q))
-  }, [projects, projectSearch])
+    const base =
+      q === ""
+        ? projects
+        : projects.filter((p) => p.name.toLowerCase().includes(q))
+    return base
+      .map((p, idx) => ({
+        project: p,
+        idx,
+        hasTeams: (teamCountByProject.get(p.id) ?? 0) > 0,
+      }))
+      .sort((a, b) => {
+        if (a.hasTeams !== b.hasTeams) return a.hasTeams ? -1 : 1
+        return a.idx - b.idx
+      })
+      .map((x) => x.project)
+  }, [projects, projectSearch, teamCountByProject])
 
   const teamsInSelectedProject = useMemo(
     () => teams.filter((t) => t.projectId === selectedProjectId),
@@ -99,14 +125,6 @@ export function AdminCompanyStructure({
       t.name.toLowerCase().includes(q),
     )
   }, [teamsInSelectedProject, teamSearch])
-
-  const teamCountByProject = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const t of teams) {
-      map.set(t.projectId, (map.get(t.projectId) ?? 0) + 1)
-    }
-    return map
-  }, [teams])
 
   const selectedTeam = useMemo(() => {
     if (!selectedTeamId || selectedTeamId === "new") return null
