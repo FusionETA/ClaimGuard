@@ -576,11 +576,35 @@ function parseEpfRatesSnapshot(value: unknown): PayslipEpfRatesSnapshot {
   }
   if (!value || typeof value !== "object") return fallback
   const v = value as Record<string, unknown>
+  // Amount fields were added after the EPF AR fix. Old payslips don't
+  // have them — return undefined (rather than 0) so renderers can
+  // distinguish "no voluntary" from "old payslip with unknown split"
+  // and fall back to a single combined line in that case.
+  const mandatoryAmountEmployee =
+    v.mandatoryAmountEmployee !== undefined
+      ? toNum(v.mandatoryAmountEmployee)
+      : undefined
+  const mandatoryAmountEmployer =
+    v.mandatoryAmountEmployer !== undefined
+      ? toNum(v.mandatoryAmountEmployer)
+      : undefined
+  const voluntaryAmountEmployee =
+    v.voluntaryAmountEmployee !== undefined
+      ? toNum(v.voluntaryAmountEmployee)
+      : undefined
+  const voluntaryAmountEmployer =
+    v.voluntaryAmountEmployer !== undefined
+      ? toNum(v.voluntaryAmountEmployer)
+      : undefined
   return {
     employee: toNum(v.employee),
     employer: toNum(v.employer),
     voluntaryEmployee: toNum(v.voluntaryEmployee),
     voluntaryEmployer: toNum(v.voluntaryEmployer),
+    mandatoryAmountEmployee,
+    mandatoryAmountEmployer,
+    voluntaryAmountEmployee,
+    voluntaryAmountEmployer,
   }
 }
 

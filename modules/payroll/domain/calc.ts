@@ -28,6 +28,7 @@ import {
   calcPcbBreakdown,
   type CalcPcbBreakdown,
 } from "@/modules/payroll/domain/pcb"
+import type { PayslipEpfRatesSnapshot } from "@/modules/payroll/domain/runs"
 import type { WorkingDaysRule } from "@/modules/payroll/domain/settings"
 import {
   lookupEis,
@@ -678,13 +679,12 @@ export type CalcPayslipResult = {
     subjectToEis: boolean
     subjectToPcb: boolean
   }>
-  /// EPF rate snapshot to store on the payslip (audit trail).
-  epfRatesSnapshot: {
-    employee: number
-    employer: number
-    voluntaryEmployee: number
-    voluntaryEmployer: number
-  }
+  /// EPF rate + amount snapshot to store on the payslip (audit trail).
+  /// See `PayslipEpfRatesSnapshot` — carries both the % rates that
+  /// applied and the RM amounts split into mandatory vs voluntary on
+  /// each side, so the Detailed Calculations PDF can render them as
+  /// separate lines.
+  epfRatesSnapshot: PayslipEpfRatesSnapshot
   /// Non-blocking warnings about statutory data that is required for
   /// LHDN/PERKESO/KWSP filing or submission but missing from the
   /// profile. The calc itself proceeds (e.g. PCB is still computed)
@@ -1273,30 +1273,38 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       branch: epf.branch,
       profileEmployeeRate: employeeRate,
       wage: epfWage,
+      arWage: arEpfBase,
       voluntaryEmployee: profile.epfEmployeeVoluntary,
       voluntaryEmployer: profile.epfEmployerVoluntary,
+      totalEmployee: epf.employee,
+      totalEmployer: epf.employer,
     }),
     statutoryWarnings,
   }
 }
 
 /**
- * Snapshot rates by KWSP branch. The numbers stored on the payslip
- * reflect what the calc actually applied, not the profile's declared
- * rate (which the engine overrides for non-Part-A branches).
+ * Snapshot rates + amounts by KWSP branch. The numbers stored on the
+ * payslip reflect what the calc actually applied, not the profile's
+ * declared rate (which the engine overrides for non-Part-A branches).
+ *
+ * Stores both the percentages and the RM amounts split into mandatory
+ * vs voluntary on each side. The amounts let the Detailed Calculations
+ * PDF render mandatory and voluntary as separate lines without having
+ * to redo the math from the totals. Voluntary AMOUNT is computed from
+ * the TOTAL EPF-able wage (regular + AR), matching how `calcEpf`
+ * applies it.
  */
 function epfSnapshotRates(input: {
   branch: EpfBranch
   profileEmployeeRate: number
   wage: number
+  arWage: number
   voluntaryEmployee: number
   voluntaryEmployer: number
-}): {
-  employee: number
-  employer: number
-  voluntaryEmployee: number
-  voluntaryEmployer: number
-} {
+  totalEmployee: number
+  totalEmployer: number
+}): PayslipEpfRatesSnapshot {
   let employee = 0
   let employer = 0
   switch (input.branch) {
@@ -1324,11 +1332,34 @@ function epfSnapshotRates(input: {
       employer = 0
       break
   }
+
+  // Voluntary amount uses the TOTAL EPF-able wage (regular + AR),
+  // matching the formula in calcEpf. Mandatory amount = total - voluntary
+  // for each side. For OPTED_OUT / DE_MINIMIS branches both totals are
+  // 0, so the splits are also 0.
+  const totalWage = input.wage + input.arWage
+  const voluntaryAmountEmployee = round2(
+    totalWage * (input.voluntaryEmployee / 100),
+  )
+  const voluntaryAmountEmployer = round2(
+    totalWage * (input.voluntaryEmployer / 100),
+  )
+  const mandatoryAmountEmployee = round2(
+    input.totalEmployee - voluntaryAmountEmployee,
+  )
+  const mandatoryAmountEmployer = round2(
+    input.totalEmployer - voluntaryAmountEmployer,
+  )
+
   return {
     employee,
     employer,
     voluntaryEmployee: input.voluntaryEmployee,
     voluntaryEmployer: input.voluntaryEmployer,
+    mandatoryAmountEmployee,
+    mandatoryAmountEmployer,
+    voluntaryAmountEmployee,
+    voluntaryAmountEmployer,
   }
 }
 

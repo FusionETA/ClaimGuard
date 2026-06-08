@@ -360,14 +360,61 @@ export function DetailedCalculationsPdfDocument(
 
             <View style={detailedStyles.calcGroup}>
               <Text style={detailedStyles.calcGroupTitle}>EPF (KWSP)</Text>
-              <CalcRow
-                label={`Employee share (${p.snapshotEpfRates.employee}%)`}
-                amount={p.epfEmployee}
-              />
-              <CalcRow
-                label={`Employer share (${p.snapshotEpfRates.employer}%)`}
-                amount={p.epfEmployer}
-              />
+              {/*
+                When voluntary % is set on the employee profile, the
+                payslip's `epfEmployee` / `epfEmployer` totals already
+                include the voluntary portion stacked on top of the
+                gazetted mandatory rate. Show them as separate lines so
+                admins can sanity-check both pieces — historically this
+                rendered as a single "Employee share (11%)" line whose
+                AMOUNT silently included voluntary, which read like a
+                missing voluntary line to anyone doing the back-of-
+                napkin check.
+
+                Old payslips written before the snapshot was extended
+                with amount fields don't have the split available
+                (mandatoryAmount* / voluntaryAmount* will be undefined).
+                Fall back to the combined single-line rendering for
+                those — better to be vague than to show a wrong split.
+              */}
+              {p.snapshotEpfRates.voluntaryAmountEmployee !== undefined &&
+              p.snapshotEpfRates.mandatoryAmountEmployee !== undefined &&
+              p.snapshotEpfRates.voluntaryEmployee > 0 ? (
+                <>
+                  <CalcRow
+                    label={`Employee mandatory (${p.snapshotEpfRates.employee}%)`}
+                    amount={p.snapshotEpfRates.mandatoryAmountEmployee}
+                  />
+                  <CalcRow
+                    label={`Employee voluntary (${p.snapshotEpfRates.voluntaryEmployee}%)`}
+                    amount={p.snapshotEpfRates.voluntaryAmountEmployee}
+                  />
+                </>
+              ) : (
+                <CalcRow
+                  label={`Employee share (${p.snapshotEpfRates.employee}%)`}
+                  amount={p.epfEmployee}
+                />
+              )}
+              {p.snapshotEpfRates.voluntaryAmountEmployer !== undefined &&
+              p.snapshotEpfRates.mandatoryAmountEmployer !== undefined &&
+              p.snapshotEpfRates.voluntaryEmployer > 0 ? (
+                <>
+                  <CalcRow
+                    label={`Employer mandatory (${p.snapshotEpfRates.employer}%)`}
+                    amount={p.snapshotEpfRates.mandatoryAmountEmployer}
+                  />
+                  <CalcRow
+                    label={`Employer voluntary (${p.snapshotEpfRates.voluntaryEmployer}%)`}
+                    amount={p.snapshotEpfRates.voluntaryAmountEmployer}
+                  />
+                </>
+              ) : (
+                <CalcRow
+                  label={`Employer share (${p.snapshotEpfRates.employer}%)`}
+                  amount={p.epfEmployer}
+                />
+              )}
             </View>
 
             <View style={detailedStyles.calcGroup}>

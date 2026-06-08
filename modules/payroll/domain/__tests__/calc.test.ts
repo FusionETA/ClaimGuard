@@ -177,6 +177,159 @@ describe("calcPayslip — additional remuneration routing", () => {
     expect(result.epfEmployee).toBe(585)
   })
 
+  it("stacks voluntary % on top of mandatory + AR EPF (Option B / unticked)", () => {
+    // Same Kay Ben numbers as above but with 2% employer voluntary +
+    // 1% employee voluntary. Voluntary is computed on the TOTAL
+    // EPF-able wage (regular + AR) regardless of treatAsRecurring.
+    const result = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3800,
+        epfEmployeeVoluntary: 1,
+        epfEmployerVoluntary: 2,
+        fixedAllowances: [
+          {
+            category:
+              "allowance_parking" satisfies PayrollAdjustmentCategory,
+            name: "Parking",
+            amount: 150,
+          },
+          {
+            category:
+              "allowance_phone_fixed" satisfies PayrollAdjustmentCategory,
+            name: "Phone",
+            amount: 150,
+          },
+          {
+            category:
+              "wages_bonus_annual" satisfies PayrollAdjustmentCategory,
+            name: "Annual bonus",
+            amount: 1218,
+            // unticked → AR path
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 12,
+    })
+
+    // Mandatory regular: 533 / 451 (4,100 at 13%/11%)
+    // Mandatory AR:      159 / 134 (1,218 at 13%/11%)
+    // Voluntary on total 5,318:
+    //   employer 2% × 5,318 = 106.36
+    //   employee 1% × 5,318 = 53.18
+    // Totals: employer 533 + 159 + 106.36 = 798.36
+    //         employee 451 + 134 + 53.18  = 638.18
+    expect(result.epfEmployer).toBeCloseTo(798.36, 2)
+    expect(result.epfEmployee).toBeCloseTo(638.18, 2)
+  })
+
+  it("stacks voluntary % on top of mandatory when treatAsRecurring=true (Option A)", () => {
+    const result = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3800,
+        epfEmployeeVoluntary: 1,
+        epfEmployerVoluntary: 2,
+        fixedAllowances: [
+          {
+            category:
+              "allowance_parking" satisfies PayrollAdjustmentCategory,
+            name: "Parking",
+            amount: 150,
+          },
+          {
+            category:
+              "allowance_phone_fixed" satisfies PayrollAdjustmentCategory,
+            name: "Phone",
+            amount: 150,
+          },
+          {
+            category:
+              "wages_bonus_annual" satisfies PayrollAdjustmentCategory,
+            name: "Monthly guaranteed bonus",
+            amount: 1218,
+            treatAsRecurring: true,
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 12,
+    })
+
+    // Combined 5,318 → band 5,400 → mandatory 648 / 594
+    // Voluntary on total 5,318:
+    //   employer 2% × 5,318 = 106.36
+    //   employee 1% × 5,318 = 53.18
+    // Totals: employer 754.36 / employee 647.18
+    expect(result.epfEmployer).toBeCloseTo(754.36, 2)
+    expect(result.epfEmployee).toBeCloseTo(647.18, 2)
+  })
+
+  it("snapshot exposes voluntary amount split so PDFs can render it", () => {
+    // The Detailed Calculations PDF needs the voluntary AMOUNT (RM),
+    // not just the percentage, to render mandatory and voluntary on
+    // separate lines. Before the snapshot carried only %, the PDF
+    // showed e.g. "Employee share (11%) RM 638.18" which mislead
+    // admins into thinking voluntary wasn't applied.
+    const result = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3800,
+        epfEmployeeVoluntary: 1,
+        epfEmployerVoluntary: 2,
+        fixedAllowances: [
+          {
+            category:
+              "allowance_parking" satisfies PayrollAdjustmentCategory,
+            name: "Parking",
+            amount: 150,
+          },
+          {
+            category:
+              "allowance_phone_fixed" satisfies PayrollAdjustmentCategory,
+            name: "Phone",
+            amount: 150,
+          },
+          {
+            category:
+              "wages_bonus_annual" satisfies PayrollAdjustmentCategory,
+            name: "Annual bonus",
+            amount: 1218,
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 12,
+    })
+
+    // Voluntary on total 5,318:
+    //   employer 2% × 5,318 = 106.36
+    //   employee 1% × 5,318 = 53.18
+    expect(result.epfRatesSnapshot.voluntaryAmountEmployer).toBeCloseTo(
+      106.36,
+      2,
+    )
+    expect(result.epfRatesSnapshot.voluntaryAmountEmployee).toBeCloseTo(
+      53.18,
+      2,
+    )
+    // Mandatory amounts = totals - voluntary
+    expect(result.epfRatesSnapshot.mandatoryAmountEmployer).toBeCloseTo(
+      692,
+      2,
+    )
+    expect(result.epfRatesSnapshot.mandatoryAmountEmployee).toBeCloseTo(
+      585,
+      2,
+    )
+    // Rate fields still set correctly
+    expect(result.epfRatesSnapshot.employee).toBe(11)
+    expect(result.epfRatesSnapshot.employer).toBe(13)
+    expect(result.epfRatesSnapshot.voluntaryEmployee).toBe(1)
+    expect(result.epfRatesSnapshot.voluntaryEmployer).toBe(2)
+  })
+
   it("folds the bonus into the regular tier when treatAsRecurring=true", () => {
     const result = calcPayslip({
       profile: makeProfile({

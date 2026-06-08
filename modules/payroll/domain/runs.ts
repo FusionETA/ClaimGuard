@@ -135,12 +135,30 @@ export type PayslipLineItemData = {
 /**
  * Snapshot of EPF rates stored on the payslip for audit. Mirrors the
  * JSON shape written by the calc engine.
+ *
+ * The rate fields (`employee` / `employer` / `voluntary*`) are the
+ * percentages that applied to this run. The amount fields (`*Amount`)
+ * are the RM contribution split into mandatory vs voluntary on each
+ * side, so the Detailed Calculations PDF can render them as separate
+ * lines without redoing the math. Without these the PDF showed a
+ * single line per side labelled with just the mandatory rate, even
+ * when the amount silently included voluntary on top — which read as
+ * "voluntary not applied" to anyone who did the back-of-napkin check.
+ *
+ * Amount fields are optional for backward compatibility — historical
+ * payslips written before this change omit them. The parser defaults
+ * to 0 in that case; renderers should fall back to a single combined
+ * line when the amounts are missing AND voluntary % > 0.
  */
 export type PayslipEpfRatesSnapshot = {
   employee: number
   employer: number
   voluntaryEmployee: number
   voluntaryEmployer: number
+  mandatoryAmountEmployee?: number
+  mandatoryAmountEmployer?: number
+  voluntaryAmountEmployee?: number
+  voluntaryAmountEmployer?: number
 }
 
 /**
