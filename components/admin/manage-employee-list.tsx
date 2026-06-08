@@ -210,6 +210,19 @@ function AddEmployeeDialog({
               required
             />
           </Labelled>
+          <Labelled label="Join date">
+            <Input
+              name="joinDate"
+              type="date"
+              defaultValue={
+                state.values.joinDate ?? new Date().toISOString().slice(0, 10)
+              }
+              disabled={pending}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Used to pro-rate this year&apos;s annual leave for new hires.
+            </p>
+          </Labelled>
           <Labelled label="Temporary password">
             <Input
               name="password"
