@@ -7,6 +7,7 @@ import { renderEpfCsv } from "@/modules/payroll/application/services/report-rend
 import { renderPaymentSchedulePdf } from "@/modules/payroll/application/services/report-renderers/payment-schedule-pdf"
 import { renderPayrollSummaryPdf } from "@/modules/payroll/application/services/report-renderers/payroll-summary-pdf"
 import { renderPbEcpXlsx } from "@/modules/payroll/application/services/report-renderers/pb-ecp-xlsx"
+import { renderPcbLhdnFormPdf } from "@/modules/payroll/application/services/report-renderers/pcb-lhdn-form-pdf"
 import { renderPcbTxt } from "@/modules/payroll/application/services/report-renderers/pcb-txt"
 import { renderSocsoEisTxt } from "@/modules/payroll/application/services/report-renderers/socso-eis-txt"
 
@@ -28,6 +29,8 @@ export async function renderPayrollReport(input: {
       return renderPaymentSchedulePdf({ runId: input.runId })
     case "DETAILED_CALCULATIONS_PDF":
       return renderDetailedCalculationsPdf({ runId: input.runId })
+    case "PCB_LHDN_FORM_PDF":
+      return renderPcbLhdnFormPdf({ runId: input.runId })
     case "BULK_PAYSLIPS_PDF":
       return renderBulkPayslipsPdf({ runId: input.runId })
     case "EPF_CSV":

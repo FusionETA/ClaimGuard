@@ -1856,6 +1856,13 @@ enum PayrollReportKind {
   PAYROLL_SUMMARY_PDF
   PAYMENT_SCHEDULE_PDF
   DETAILED_CALCULATIONS_PDF
+  /// LHDN MTD §E worksheet PDF — official LHDN-form layout with
+  /// numbered sections (PCB(A) Normal / Yearly PCB / Yearly Tax / AR
+  /// PCB / Net PCB), each LHDN variable in its own table card with
+  /// abbreviation + full description + amount. Counterpart of
+  /// DETAILED_CALCULATIONS_PDF for auditors expecting the official
+  /// form layout.
+  PCB_LHDN_FORM_PDF
   BULK_PAYSLIPS_PDF
   EPF_CSV
   SOCSO_EIS_TXT

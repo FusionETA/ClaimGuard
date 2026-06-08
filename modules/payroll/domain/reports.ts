@@ -15,6 +15,14 @@ export const payrollReportKinds = [
   "PAYROLL_SUMMARY_PDF",
   "PAYMENT_SCHEDULE_PDF",
   "DETAILED_CALCULATIONS_PDF",
+  // LHDN MTD Specification 2026 worksheet — each employee's PCB
+  // calculation shown LHDN-form-style with the dark blue header bar,
+  // numbered sections (PCB(A) Normal / Yearly PCB / Yearly Tax / AR
+  // PCB / Net PCB), and each variable in its own table card showing
+  // abbreviation + full official LHDN description + amount. Audit-
+  // ready format; auditors familiar with the LHDN form will read it
+  // without any explanation.
+  "PCB_LHDN_FORM_PDF",
   "BULK_PAYSLIPS_PDF",
   "EPF_CSV",
   "SOCSO_EIS_TXT",
@@ -79,6 +87,16 @@ export const PAYROLL_REPORT_META: Record<PayrollReportKind, PayrollReportMeta> =
     title: "Detailed Calculations",
     description:
       "Per-employee working showing how each statutory line was computed (PCB, EPF, SOCSO, EIS, HRDF).",
+    portal: null,
+    extension: "pdf",
+    mimeType: "application/pdf",
+  },
+  PCB_LHDN_FORM_PDF: {
+    kind: "PCB_LHDN_FORM_PDF",
+    group: "REPORTS",
+    title: "PCB Calculation Details (LHDN form)",
+    description:
+      "LHDN MTD §E worksheet for each employee — numbered sections with the official LHDN variable descriptions, audit-ready.",
     portal: null,
     extension: "pdf",
     mimeType: "application/pdf",
@@ -187,6 +205,8 @@ export function buildReportFileName(input: {
       return `Payment_Schedule_${monthName}_${yy}.${meta.extension}`
     case "DETAILED_CALCULATIONS_PDF":
       return `Detailed_Calculations_${monthName}_${yy}.${meta.extension}`
+    case "PCB_LHDN_FORM_PDF":
+      return `PCB_Calculation_Details_${monthName}_${yy}.${meta.extension}`
     case "BULK_PAYSLIPS_PDF":
       return `Payslips_${yy}_${mm}_All.${meta.extension}`
     case "EPF_CSV": {
