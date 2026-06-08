@@ -2077,6 +2077,18 @@ function PreviewStep({
           ~/.claude/plans/when-the-first-layer-synthetic-knuth.md. */}
 
       {preview.preview.length > 0 ? (
+        <BulkApplyHierarchy
+          pickerOptions={pickerOptions}
+          rowCount={preview.preview.length}
+          onApply={(patch) => {
+            for (let i = 0; i < preview.preview.length; i++) {
+              onOverrideChange(i, patch)
+            }
+          }}
+        />
+      ) : null}
+
+      {preview.preview.length > 0 ? (
         <ScrollArea className="max-h-[60vh] overflow-y-auto overflow-x-auto rounded-lg border border-border/60">
           <table className="w-full text-xs">
             <thead className="sticky top-0 z-10 uppercase tracking-wide text-muted-foreground">
@@ -2271,18 +2283,28 @@ function PreviewRow({
     (p) => p.name.toLowerCase() === csvProject.toLowerCase(),
   )
 
-  // Default-policy resolution: always pin to "Monthly Workers" as the
-  // safe starting choice. Admin can flip the picker to "Hourly
-  // Workers" (or any other policy) per row before importing.
+  // Default-policy resolution: prefer the org's monthly default;
+  // otherwise fall back to the first policy in the picker list so
+  // legacy orgs (or orgs that deleted the seeded "Monthly Workers"
+  // policy) still get a sensible pre-fill instead of a blank picker.
+  // Admin can flip the picker per row before importing.
   const policyFromDefault =
-    !override.policyId && !autoPolicy && defaults.monthlyPolicyId
-      ? pickerOptions.policies.find(
-          (p) => p.id === defaults.monthlyPolicyId,
-        ) ?? null
+    !override.policyId && !autoPolicy
+      ? (defaults.monthlyPolicyId
+          ? pickerOptions.policies.find(
+              (p) => p.id === defaults.monthlyPolicyId,
+            )
+          : null) ??
+        pickerOptions.policies[0] ??
+        null
       : null
   const projectFromDefault =
-    !override.projectId && !autoProject && defaults.projectId
-      ? pickerOptions.projects.find((p) => p.id === defaults.projectId) ?? null
+    !override.projectId && !autoProject
+      ? (defaults.projectId
+          ? pickerOptions.projects.find((p) => p.id === defaults.projectId)
+          : null) ??
+        pickerOptions.projects[0] ??
+        null
       : null
 
   const selectedPolicyId =
@@ -2295,16 +2317,17 @@ function PreviewRow({
       t.projectId === selectedProjectId &&
       t.name.toLowerCase() === csvTeam.toLowerCase(),
   )
-  // Default team only resolves when the selected project IS the org
-  // default project (the seeded default team is scoped to that
-  // project). Avoids picking a stranded team under the wrong project.
+  // Default team: prefer the seeded default team when its project
+  // matches the resolved project; otherwise fall back to the first
+  // team scoped to the resolved project. This way every project that
+  // has any team gets a sensible pre-fill.
   const teamFromDefault =
-    !override.teamId &&
-    !autoTeam &&
-    defaults.teamId &&
-    selectedProjectId &&
-    selectedProjectId === defaults.projectId
-      ? pickerOptions.teams.find((t) => t.id === defaults.teamId) ?? null
+    !override.teamId && !autoTeam && selectedProjectId
+      ? (defaults.teamId && selectedProjectId === defaults.projectId
+          ? pickerOptions.teams.find((t) => t.id === defaults.teamId)
+          : null) ??
+        pickerOptions.teams.find((t) => t.projectId === selectedProjectId) ??
+        null
       : null
   const selectedTeamId =
     override.teamId ?? autoTeam?.id ?? teamFromDefault?.id ?? ""
@@ -2313,11 +2336,15 @@ function PreviewRow({
     (t) => t.id === selectedTeamId,
   )
   const layerCount = selectedTeam?.layerCount ?? 1
-  const selectedLayer =
+  // Layer fallback chain: explicit admin override → CSV value → the
+  // configured default (currently always 1). Always >= 1 and <= the
+  // team's layer count so the Select doesn't render a stranded value.
+  const desiredLayer =
     override.teamLayer ??
     (Number.isFinite(csvLayerNum) && csvLayerNum > 0
       ? csvLayerNum
       : defaults.teamLayer)
+  const selectedLayer = Math.min(Math.max(1, desiredLayer), layerCount)
 
   // Track which cells were filled from the org default vs CSV/override,
   // so we can render a subtle "(default)" hint next to them.
@@ -2503,6 +2530,180 @@ function PreviewRow({
         )}
       </td>
     </tr>
+  )
+}
+
+/**
+ * "Bulk apply" card above the preview table. Lets an admin pick
+ * Policy / Project / Team / Layer once and push the values into
+ * every row's `override` slot in a single click. Each field is
+ * optional — unset fields are skipped at apply time (so admins can
+ * bulk-apply just the policy, for example, without overwriting
+ * already-correct project/team picks).
+ */
+function BulkApplyHierarchy({
+  pickerOptions,
+  rowCount,
+  onApply,
+}: {
+  pickerOptions: ImportPickerOptions
+  rowCount: number
+  onApply: (patch: {
+    policyId?: string
+    projectId?: string
+    teamId?: string
+    teamLayer?: number
+  }) => void
+}) {
+  const [policyId, setPolicyId] = useState<string>("")
+  const [projectId, setProjectId] = useState<string>("")
+  const [teamId, setTeamId] = useState<string>("")
+  const [teamLayer, setTeamLayer] = useState<string>("")
+
+  const teamsForProject = pickerOptions.teams.filter(
+    (t) => !projectId || t.projectId === projectId,
+  )
+  const selectedTeam = pickerOptions.teams.find((t) => t.id === teamId)
+  const layerCount = selectedTeam?.layerCount ?? 1
+
+  const hasAnySelection = Boolean(
+    policyId || projectId || teamId || teamLayer,
+  )
+
+  function handleApply() {
+    const patch: {
+      policyId?: string
+      projectId?: string
+      teamId?: string
+      teamLayer?: number
+    } = {}
+    if (policyId) patch.policyId = policyId
+    if (projectId) {
+      patch.projectId = projectId
+      // Clear team/layer when project changes so per-row state
+      // doesn't end up pointing at a team under the wrong project.
+      patch.teamId = teamId || undefined
+      patch.teamLayer = teamLayer ? Number(teamLayer) : undefined
+    } else {
+      if (teamId) patch.teamId = teamId
+      if (teamLayer) patch.teamLayer = Number(teamLayer)
+    }
+    onApply(patch)
+  }
+
+  return (
+    <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs font-medium text-foreground">
+          Bulk apply to all rows
+        </p>
+        <p className="text-[11px] text-muted-foreground">
+          Pick any field then click Apply — applies to all {rowCount} rows.
+        </p>
+      </div>
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] text-muted-foreground">Policy</label>
+          <Select
+            value={policyId || "__none"}
+            onValueChange={(v) => setPolicyId(v === "__none" ? "" : v)}
+          >
+            <SelectTrigger className="h-8 w-40 rounded-md border-border/70 bg-background px-2 text-xs shadow-none">
+              <SelectValue placeholder="— Leave unchanged —" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">— Leave unchanged —</SelectItem>
+              {pickerOptions.policies.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] text-muted-foreground">Project</label>
+          <Select
+            value={projectId || "__none"}
+            onValueChange={(v) => {
+              setProjectId(v === "__none" ? "" : v)
+              // Reset dependent picks when project changes.
+              setTeamId("")
+              setTeamLayer("")
+            }}
+          >
+            <SelectTrigger className="h-8 w-40 rounded-md border-border/70 bg-background px-2 text-xs shadow-none">
+              <SelectValue placeholder="— Leave unchanged —" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">— Leave unchanged —</SelectItem>
+              {pickerOptions.projects.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] text-muted-foreground">Team</label>
+          <Select
+            value={teamId || "__none"}
+            onValueChange={(v) => setTeamId(v === "__none" ? "" : v)}
+            disabled={!projectId}
+          >
+            <SelectTrigger className="h-8 w-40 rounded-md border-border/70 bg-background px-2 text-xs shadow-none">
+              <SelectValue
+                placeholder={
+                  projectId ? "— Leave unchanged —" : "Pick a project first"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">— Leave unchanged —</SelectItem>
+              {teamsForProject.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] text-muted-foreground">Layer</label>
+          <Select
+            value={teamLayer || "__none"}
+            onValueChange={(v) => setTeamLayer(v === "__none" ? "" : v)}
+            disabled={!teamId}
+          >
+            <SelectTrigger className="h-8 w-20 rounded-md border-border/70 bg-background px-2 text-xs shadow-none">
+              <SelectValue placeholder="—" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">—</SelectItem>
+              {Array.from({ length: layerCount }, (_, i) => i + 1).map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={handleApply}
+          disabled={!hasAnySelection}
+        >
+          Apply to all rows
+        </Button>
+      </div>
+    </div>
   )
 }
 
