@@ -311,6 +311,18 @@ export type ImportPickerOptions = {
     projectId: string
     layerCount: number
   }>
+  /// The org's seeded "default" Policy / Project / Team IDs. The
+  /// preview pre-selects these on rows where the XLSX hierarchy cells
+  /// are blank, so admins can hit Import without manually picking on
+  /// every row. Any field is null when the matching default doesn't
+  /// exist (legacy orgs from before the seeding flow shipped).
+  defaults: {
+    monthlyPolicyId: string | null
+    hourlyPolicyId: string | null
+    projectId: string | null
+    teamId: string | null
+    teamLayer: number
+  }
 }
 
 export type ImportPickerOptionsActionResult =
@@ -333,10 +345,11 @@ export async function listImportPickerOptionsAction(): Promise<ImportPickerOptio
     return { status: "error", message: "No active organisation." }
   }
   try {
-    const [policies, projects, teams] = await Promise.all([
+    const [policies, projects, teams, defaults] = await Promise.all([
       policyRepository.listForOrganization(organizationId),
       organizationRepository.getProjectsForOrganization(organizationId),
       organizationRepository.listTeamsForOrganization(organizationId),
+      organizationRepository.getOrgImportDefaults(organizationId),
     ])
     return {
       status: "success",
@@ -351,6 +364,7 @@ export async function listImportPickerOptionsAction(): Promise<ImportPickerOptio
           projectId: t.projectId,
           layerCount: t.layerCount,
         })),
+        defaults,
       },
     }
   } catch (err) {
