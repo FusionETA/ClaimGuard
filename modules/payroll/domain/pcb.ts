@@ -486,15 +486,24 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   )
   const pcbNormal = stillOwedNormal / monthsRemainingIncludingThis
 
-  // PCB on additional remuneration: the marginal tax of layering the
-  // AR onto the annual chargeable income. No forward projection — a
-  // one-shot.
-  const pcbAdditional = Math.max(0, annualTaxWithAr - annualTaxNormal)
-
   // Apply LHDN rounding + RM 10 minimum-deduction threshold to
   // each component independently (Section E items 1-3, page 19-20).
   const normalRounded = applyMtdThreshold(roundMtd(pcbNormal))
-  const arRounded = applyMtdThreshold(roundMtd(pcbAdditional))
+
+  // PCB on additional remuneration — LHDN MTD Specification 2026 §E
+  // five-step formula:
+  //
+  //   PCB(B) = X + PCB(A) × (n + 1)
+  //   PCB(C) = CS − PCB(B) − Z
+  //
+  // Using the ROUNDED PCB(A) (after threshold + 5c) for the projection
+  // is what the gazetted formula prescribes — slight rounding skew
+  // versus the simpler `yearlyTaxWithAr − yearlyTaxNormal` marginal
+  // calc, but this is what LHDN's e-Data PCB validator expects so the
+  // PDF reconciles exactly to what's remitted.
+  const pcbB = input.ytdPcb + normalRounded * monthsRemainingIncludingThis
+  const pcbCBeforeRounding = Math.max(0, annualTaxWithAr - pcbB - ytdZakat)
+  const arRounded = applyMtdThreshold(roundMtd(pcbCBeforeRounding))
 
   return {
     normal: normalRounded,
@@ -641,7 +650,7 @@ export type CalcPcbBreakdown =
       QC: number // total per-child relief (Σ reliefForChild)
       sumLP: number
       LP1: number
-      // Annual chargeable income
+      // Annual chargeable income (no AR)
       P: number
       // Tax band for P
       M: number
@@ -651,12 +660,55 @@ export type CalcPcbBreakdown =
       Z: number
       X: number
       zakatThisMonth: number
-      // Outputs
+      // PCB(A) outputs
       yearlyTax: number // (P - M) × R + B
       currentMonthPcb: number // (yearlyTax - Z - X) / (n + 1), before threshold + rounding
       pcbAfterThreshold: number // 0 if currentMonthPcb < RM 10
-      pcbFinal: number // rounded up to 5 cents
-      // AR — total only, no formula expansion (V1)
+      pcbFinal: number // rounded up to 5 cents (PCB(A) + PCB(B) combined)
+      // Additional Remuneration breakdown — per LHDN MTD Specification
+      // 2026 Section E. The LHDN spec walks five sub-steps:
+      //
+      //   Section 1 — PCB(A) = current month normal PCB (above)
+      //   Section 2 — PCB(B) = projected ANNUAL normal PCB
+      //               = X + PCB(A) × (n + 1)
+      //   Section 3 — CS = yearly tax WITH AR
+      //               = (P_withAR − M_withAR)R_withAR + B_withAR
+      //   Section 4 — PCB(C) = additional remuneration PCB
+      //               = CS − PCB(B) − Z
+      //   Section 5 — PCB(MTD) = PCB(A) + PCB(C), rounded up to 5c
+      //
+      // All zeros when no AR fires this run (treatAsRecurring=true or
+      // no AR-categorised line).
+      ar: {
+        // ── Section 3 — Yearly Tax (CS) primitives ──
+        Yt: number // additional remuneration this month (bonus / commission / arrears, taxable)
+        Kt: number // EPF on AR (employee share, capped against remaining RM 4K budget)
+        // P_withAR — annual chargeable income with the AR layered on
+        chargeableWithAr: number
+        // Tax band for the with-AR chargeable. Differs from Section 1's
+        // M / R / B only when AR pushes the chargeable past a bracket
+        // boundary. Labelled M₂/R₂/B₂ in the PDF.
+        M2: number
+        R2: number
+        B2: number
+        // CS — yearly tax with AR = (P_withAR − M₂)R₂ + B₂
+        CS: number
+        // ── Section 2 — PCB(B), the annual NORMAL projection ──
+        // PCB(B) = X + PCB(A) × (n + 1)
+        pcbB: number
+        // ── Section 4 — PCB(C), the AR marginal increase ──
+        // PCB(C) = CS − PCB(B) − Z (before threshold + 5c rounding)
+        pcbCBeforeRounding: number
+        // After LHDN MTD threshold + 5c rounding
+        pcbC: number
+        // ── Section 5 — Net PCB this month ──
+        // = round-up-to-5c(PCB(A) + PCB(C)). Should equal `pcbFinal`
+        // above; duplicated here so the PDF's Section 5 line ties out
+        // without the reader needing to chase it.
+        pcbCurrentMonth: number
+      }
+      // Legacy single-number AR field — kept so older snapshot readers
+      // don't break. Always equals `ar.pcbC` for new payslips.
       pcbAdditional: number // 0 when no AR this month
     }
 
@@ -698,17 +750,37 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   const n = monthsRemainingIncludingThis - 1
 
   // LHDN-style K split (K = YTD, K1 = this month, K2 = projected future).
-  // All capped against the combined RM 4,000 EPF-relief budget.
+  // All capped against the RM 4,000 EPF-relief budget. Each step
+  // subtracts what's already used:
+  //
+  //   K  ≤ 4K
+  //   K1 ≤ 4K − K
+  //   K2 ≤ (4K − K − K1) ÷ n   ← per-month cap
+  //   Kt ≤ 4K − K − K1 − K2×n  ← AR EPF takes WHATEVER cap remains
+  //                              after the normal-side projection
+  //                              has had first claim
+  //
+  // Earlier this routine subtracted Kt from K2's cap, which meant the
+  // normal-side PCB(A) understated by (Kt × R) and PCB(B) overstated
+  // by the same amount. Net deducted PCB stayed roughly right but the
+  // breakdown numbers didn't reconcile against the actual deducted
+  // amount. Fixed by computing K2 first (no Kt subtraction), then
+  // sizing Kt against whatever cap is left.
   const K = Math.min(EPF_RELIEF_CAP, Math.max(0, input.ytdEpf))
   const cap_after_K = Math.max(0, EPF_RELIEF_CAP - K)
   const thisMonthEpf = Math.max(0, input.thisMonthEpf)
   const K1 = Math.min(thisMonthEpf, cap_after_K)
+  const cap_after_K1 = Math.max(0, EPF_RELIEF_CAP - K - K1)
+  const K2 = n > 0 ? Math.min(thisMonthEpf, cap_after_K1 / n) : 0
+  // AR EPF deductible — only what fits into the cap AFTER normal K2×n
+  // has been booked. When the normal side already hits 4K, Kt = 0
+  // (the AR contribution still happens in real life, it just gets no
+  // additional tax relief).
+  const cap_after_K1_K2 = Math.max(0, EPF_RELIEF_CAP - K - K1 - K2 * n)
   const Kt = Math.min(
     Math.max(0, input.thisMonthEpfFromAR ?? 0),
-    Math.max(0, cap_after_K - K1),
+    cap_after_K1_K2,
   )
-  const cap_after_K1_Kt = Math.max(0, EPF_RELIEF_CAP - K - K1 - Kt)
-  const K2 = n > 0 ? Math.min(thisMonthEpf, cap_after_K1_Kt / n) : 0
 
   const Y = Math.max(0, input.ytdTaxable)
   const Y1 = normalTaxable
@@ -762,12 +834,52 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   const pcbAfterThreshold = applyMtdThreshold(roundMtd(currentMonthPcb))
   const pcbFinal = pcbAfterThreshold
 
-  // AR — compute via calcPcb so the breakdown matches the deducted
-  // amount exactly. We only surface the final number in V1.
-  const arPcb =
-    arTaxable > 0
-      ? calcPcb({ ...input, isResident: true }).additional
-      : 0
+  // ── Additional Remuneration — LHDN MTD Specification 2026 §E. ──
+  //
+  // Computed in the exact five-step order the spec walks:
+  //
+  //   Step 1: PCB(A) — current month normal PCB. Already done above as
+  //           `pcbAfterThreshold`.
+  //
+  //   Step 2: PCB(B) — projected annual NORMAL PCB.
+  //           = X + PCB(A) × (n + 1)
+  //           This is what the year-end PCB would total if the
+  //           employee earned this month's normal PCB every remaining
+  //           month and we added the YTD already paid.
+  //
+  //   Step 3: CS — yearly tax with AR.
+  //           = (P_withAR − M₂)R₂ + B₂
+  //           where P_withAR = P + AR − Kt   (Kt = AR EPF, capped
+  //           against remaining RM 4K relief budget after the normal
+  //           K + K₁ + K₂×n)
+  //
+  //   Step 4: PCB(C) — additional remuneration PCB.
+  //           = CS − PCB(B) − Z       (before MTD threshold + 5c)
+  //
+  //   Step 5: PCB current month = round-up-5c(PCB(A) + PCB(C)).
+  //           This is what gets deducted and remitted.
+  //
+  // Mirrors calcPcb's arithmetic so the displayed numbers match what
+  // was actually deducted exactly.
+  const Yt = arTaxable
+  const KtFinal = Kt // already computed above using cap_after_K1_K2
+  const chargeableWithAr = Math.max(
+    0,
+    annualGrossNet + Yt - KtFinal - totalReliefs,
+  )
+  const arBand = findResidentTaxBand(chargeableWithAr, spouseClaimable)
+  const M2 = arBand.M
+  const R2 = arBand.R
+  const B2 = arBand.B
+  const CS = Math.max(0, (chargeableWithAr - M2) * R2 + B2)
+  // PCB(B) — annual projected normal PCB.
+  // Per LHDN MTD spec uses `Current Month PCB` (= `pcbAfterThreshold`,
+  // after MTD threshold + 5c rounding) × (n + 1), plus YTD PCB paid.
+  const pcbB = X + pcbAfterThreshold * (n + 1)
+  const pcbCBeforeRounding = Math.max(0, CS - pcbB - Z)
+  const pcbC =
+    Yt > 0 ? applyMtdThreshold(roundMtd(pcbCBeforeRounding)) : 0
+  const pcbCurrentMonth = roundMtd(pcbAfterThreshold + pcbC)
 
   // zakatThisMonth — pcb-orchestrator-level offset, not part of formula
   // body. Captured for completeness in case the UI wants to show it.
@@ -785,7 +897,20 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
     yearlyTax,
     currentMonthPcb,
     pcbAfterThreshold,
-    pcbFinal: roundMtd(pcbFinal + arPcb),
-    pcbAdditional: arPcb,
+    pcbFinal: pcbCurrentMonth,
+    ar: {
+      Yt,
+      Kt: KtFinal,
+      chargeableWithAr,
+      M2,
+      R2,
+      B2,
+      CS,
+      pcbB,
+      pcbCBeforeRounding,
+      pcbC,
+      pcbCurrentMonth,
+    },
+    pcbAdditional: pcbC,
   }
 }

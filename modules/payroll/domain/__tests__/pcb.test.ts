@@ -582,10 +582,15 @@ describe("calcPcb — additional remuneration", () => {
       ytdPcb: 1028.33, // 2 prior months × 514.17 normal PCB
       profile: baseProfile,
     })
-    // PCB_normal stays around 514.17, PCB_AR ≈ 1,900.
-    expect(result.normal).toBeCloseTo(514.17, 1)
-    expect(result.additional).toBeCloseTo(1900, 0)
-    expect(result.total).toBeCloseTo(514.17 + 1900, 1)
+    // PCB_normal stays around 514.20, PCB_AR ≈ 1,899.70.
+    // (Per LHDN MTD Spec §E: PCB(B) uses rounded PCB(A) × (n+1) for
+    //  the projection, then PCB(C) = CS − PCB(B) − Z. This introduces
+    //  a small rounding skew vs the simpler marginal-tax calc but it's
+    //  what LHDN's e-Data PCB validator expects.)
+    expect(result.normal).toBeCloseTo(514.2, 1)
+    expect(result.additional).toBeCloseTo(1899.7, 1)
+    // Invariant: total = normal + additional (no double-rounding).
+    expect(result.total).toBeCloseTo(result.normal + result.additional, 2)
   })
 
   it("returns 0 AR when the bonus is 0 (back-compat with normal-only callers)", () => {

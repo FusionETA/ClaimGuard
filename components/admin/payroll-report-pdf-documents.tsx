@@ -330,7 +330,13 @@ export function DetailedCalculationsPdfDocument(
         </View>
 
         {props.payslips.map((p) => (
-          <View key={p.id} style={detailedStyles.employeeCard} wrap={false}>
+          // Allow the card to wrap across pages — with PCB(B) + PCB(C)
+          // sections added, a single employee's breakdown can exceed
+          // one A4 page (especially when AR fires). The previous
+          // wrap={false} produced a "Node of type VIEW can't wrap
+          // between pages and it's bigger than available page height"
+          // warning and silently overflowed.
+          <View key={p.id} style={detailedStyles.employeeCard}>
             <Text style={detailedStyles.employeeName}>{p.snapshotName}</Text>
             <Text style={detailedStyles.employeeMeta}>
               {p.snapshotEmployeeId}
@@ -480,6 +486,520 @@ export function DetailedCalculationsPdfDocument(
   )
 }
 
+// ─── PCB Calculation Details (LHDN-form replica) ─────────────────────────
+//
+// A standalone PDF page that replicates the LHDN MTD Specification 2026
+// worksheet format exactly: dark blue title bar, numbered sections, each
+// LHDN variable on its own row with abbreviation + official wording +
+// amount. Renders one page per employee.
+//
+// Distinct from the compact `PcbBreakdownBlock` used in the Detailed
+// Calculations PDF — that one is a quick-reference inline summary;
+// THIS one is the audit-ready worksheet that mirrors how an LHDN
+// officer would expect to see the calc broken down.
+//
+// All descriptions come from the LHDN MTD Specification 2026 (the
+// official spec doc used to generate the PCB TXT file for upload to
+// e-Data PCB).
+
+export type PcbCalculationDetailsPdfDocumentProps = {
+  organizationName: string
+  period: string
+  payslips: PayslipRow[]
+  generatedAt: Date
+}
+
+const lhdnStyles = StyleSheet.create({
+  headerBar: {
+    backgroundColor: "#1f3a5f", // dark navy, matches LHDN form style
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+  headerBarText: {
+    color: "#ffffff",
+    fontFamily: "Helvetica-Bold",
+    fontSize: 13,
+  },
+  employeeName: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 11,
+    marginTop: 6,
+  },
+  employeeMeta: {
+    color: COLOURS.muted,
+    fontSize: 9,
+    marginTop: 1,
+    marginBottom: 10,
+  },
+  sectionTitle: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 10,
+    color: COLOURS.ink,
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  subsectionTitle: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 9.5,
+    color: COLOURS.ink,
+    marginTop: 6,
+    marginBottom: 2,
+  },
+  formulaLine: {
+    fontSize: 8.5,
+    color: COLOURS.muted,
+    marginBottom: 4,
+    fontFamily: "Helvetica-Oblique",
+  },
+  formulaIntro: {
+    fontSize: 9,
+    color: COLOURS.ink,
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  varRow: {
+    flexDirection: "row",
+    paddingVertical: 4,
+    borderBottomWidth: 0.25,
+    borderBottomColor: COLOURS.divider,
+  },
+  varBox: { flex: 1, paddingRight: 8 },
+  varAbbrev: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 9,
+    color: COLOURS.ink,
+    marginBottom: 1,
+  },
+  varDescription: {
+    fontSize: 8,
+    color: COLOURS.muted,
+    lineHeight: 1.3,
+  },
+  varAmount: {
+    width: 80,
+    textAlign: "right",
+    fontSize: 9,
+    color: COLOURS.ink,
+  },
+  varAmountBold: {
+    width: 80,
+    textAlign: "right",
+    fontSize: 9.5,
+    fontFamily: "Helvetica-Bold",
+    color: COLOURS.ink,
+  },
+})
+
+export function PcbCalculationDetailsPdfDocument(
+  props: PcbCalculationDetailsPdfDocumentProps,
+) {
+  return (
+    <Document
+      title={`PCB Calculation Details ${props.period}`}
+      author={props.organizationName}
+    >
+      {props.payslips.map((p) => (
+        <Page key={p.id} size="A4" style={baseStyles.page}>
+          <View style={lhdnStyles.headerBar}>
+            <Text style={lhdnStyles.headerBarText}>PCB Calculation Details</Text>
+          </View>
+
+          <Text style={lhdnStyles.employeeName}>{p.snapshotName}</Text>
+          <Text style={lhdnStyles.employeeMeta}>
+            {p.snapshotPosition ? p.snapshotPosition : ""}
+            {p.snapshotEmployeeId ? ` · ${p.snapshotEmployeeId}` : ""} ·{" "}
+            {props.period}
+          </Text>
+
+          <PcbCalculationDetailsBody pcbCalculation={p.pcbCalculation} />
+
+          <View style={baseStyles.footer} fixed>
+            <Text>
+              {props.organizationName} · Generated {fmtDate(props.generatedAt)}
+            </Text>
+            <Text
+              render={({ pageNumber, totalPages }) =>
+                `${pageNumber} / ${totalPages}`
+              }
+            />
+          </View>
+        </Page>
+      ))}
+    </Document>
+  )
+}
+
+/**
+ * Renders the LHDN-form body. Three numbered sections:
+ *   1. PCB(A) — Normal PCB on yearly net remuneration (excluding AR)
+ *   2. PCB(B) — PCB on additional remuneration (bonus, commission, etc.)
+ *   3. Net PCB — PCB(A) + PCB(B) summary
+ *
+ * Section 2 is omitted when there's no AR this run (clean monthly run).
+ * Section 3 always shows so the reader can confirm "what was actually
+ * deducted = X this month".
+ */
+function PcbCalculationDetailsBody({
+  pcbCalculation,
+}: {
+  pcbCalculation: unknown
+}) {
+  if (!pcbCalculation || typeof pcbCalculation !== "object") {
+    return (
+      <Text style={{ fontSize: 9, color: COLOURS.muted, marginTop: 12 }}>
+        PCB calculation snapshot not available. Regenerate the payroll run to
+        populate this report.
+      </Text>
+    )
+  }
+
+  const v = pcbCalculation as Record<string, unknown> & { formula?: string }
+
+  if (v.formula === "nonResident") {
+    return (
+      <View>
+        <Text style={lhdnStyles.sectionTitle}>
+          Non-resident — flat-rate withholding
+        </Text>
+        <Text style={{ fontSize: 9, color: COLOURS.muted }}>
+          Non-residents are taxed at a flat 30% under LHDN MTD spec; the
+          LHDN-form variable breakdown is not applicable. Total PCB deducted
+          this month: RM {((v.totalPcb as number) ?? 0).toFixed(2)}.
+        </Text>
+      </View>
+    )
+  }
+
+  if (v.formula !== "resident") return null
+
+  const num = (k: string) => (typeof v[k] === "number" ? (v[k] as number) : 0)
+  const Y = num("Y"), K = num("K")
+  const Y1 = num("Y1"), K1 = num("K1")
+  const Y2 = num("Y2"), K2 = num("K2"), n = num("n")
+  const sumYK = num("sumYK")
+  const D = num("D"), S = num("S"), Du = num("Du"), Su = num("Su")
+  const Q = num("Q"), C = num("C"), QC = num("QC")
+  const sumLP = num("sumLP"), LP1 = num("LP1")
+  const P = num("P"), M = num("M"), R = num("R"), B = num("B")
+  const Z = num("Z"), X = num("X")
+  const yearlyTax = num("yearlyTax")
+  const currentMonthPcb = num("currentMonthPcb")
+  const pcbAfterThreshold = num("pcbAfterThreshold")
+
+  const ar = (v.ar as Record<string, unknown> | undefined) ?? {}
+  const arNum = (k: string) => (typeof ar[k] === "number" ? (ar[k] as number) : 0)
+  const Yt = arNum("Yt")
+  const Kt = arNum("Kt")
+  const chargeableWithAr = arNum("chargeableWithAr")
+  const M2 = arNum("M2"), R2 = arNum("R2"), B2 = arNum("B2")
+  const CS = arNum("CS")
+  const pcbB = arNum("pcbB")
+  const pcbC = arNum("pcbC")
+  const pcbCurrentMonth = arNum("pcbCurrentMonth")
+
+  // Formula expansion for P — the full arithmetic the LHDN form shows
+  // inline so the auditor can re-derive P from primitives.
+  const formulaP = `[${fmt(sumYK)} + (${fmt(Y1)} − ${fmt(K1)}) + (${fmt(Y2)} − [${fmt(K2)} × ${n.toFixed(0)}])] − [${fmt(D)} + ${fmt(S)} + ${fmt(Du)} + ${fmt(Su)} + (${fmt(Q)} × ${C.toFixed(0)}) + ${fmt(sumLP)} + ${fmt(LP1)}]`
+
+  return (
+    <View>
+      {/* ── Section 1: PCB(A) Normal ─────────────────────────────────── */}
+      <Text style={lhdnStyles.sectionTitle}>
+        1. PCB to yearly net remuneration excluding the additional
+        remuneration
+      </Text>
+      <Text style={lhdnStyles.subsectionTitle}>PCB (A) / Net PCB</Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`[(P − M)R + B − (Z + X)] / (n + 1) − Zakat/Fitrah/Levy for current month`}
+      </Text>
+      <Text style={lhdnStyles.formulaIntro}>
+        P · Total chargeable income for a year excluding additional
+        remuneration
+      </Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`[Σ(Y−K) + (Y₁ − K₁) + (Y₂ − [K₂ × n]) + (Yt − Kt)] − (D + S + Du + Su + Q×C + ΣLP + LP₁)  where (Yt − Kt) = 0`}
+      </Text>
+
+      <LhdnVar
+        abbrev="Σ(Y−K)"
+        description="Total accumulated net remuneration including net additional remuneration which has been paid to an employee until before current month including net remuneration which has been paid by previous employer (if any)."
+        amount={sumYK}
+      />
+      <LhdnVar
+        abbrev="Y"
+        description="Total monthly gross remuneration and additional remuneration which has been paid including monthly gross remuneration paid by previous employer (if any)."
+        amount={Y}
+      />
+      <LhdnVar
+        abbrev="K"
+        description="Total contribution to EPF or Other Approved Funds made on all remuneration (monthly remuneration, additional remuneration and remuneration from previous employer on current year) that was paid (including premium claimed under previous employment, if any) not exceeding RM4,000.00 per year."
+        amount={K}
+      />
+      <LhdnVar
+        abbrev="Y₁"
+        description="Current month's normal remuneration."
+        amount={Y1}
+      />
+      <LhdnVar
+        abbrev="K₁"
+        description="Contribution to EPF or Other Approved Funds paid subject to total qualifying amount for current month's remuneration not exceeding RM4,000.00 per year."
+        amount={K1}
+      />
+      <LhdnVar
+        abbrev="Y₂"
+        description="Estimated remuneration as per Y₁ for the following months."
+        amount={Y2}
+      />
+      <LhdnVar
+        abbrev="K₂"
+        description="Estimated balance of total contribution to EPF or other Approved Scheme paid for the qualifying monthly balance [(RM4,000 (limited) − (K + K₁ + Kt)) ÷ n] or K₁, whichever is lower."
+        amount={K2}
+      />
+      <LhdnVar
+        abbrev="n"
+        description="Remaining working month in a year."
+        amount={n}
+        raw
+      />
+      <LhdnVar
+        abbrev="D"
+        description="Deduction for individual."
+        amount={D}
+      />
+      <LhdnVar
+        abbrev="S"
+        description="Deduction for spouse."
+        amount={S}
+      />
+      <LhdnVar
+        abbrev="Du"
+        description="Deduction for disabled individual."
+        amount={Du}
+      />
+      <LhdnVar
+        abbrev="Su"
+        description="Deduction for disabled spouse."
+        amount={Su}
+      />
+      <LhdnVar
+        abbrev="Q"
+        description="Deduction per eligible child."
+        amount={Q}
+      />
+      <LhdnVar
+        abbrev="C"
+        description="Number of eligible children."
+        amount={C}
+        raw
+      />
+      <LhdnVar
+        abbrev="ΣLP"
+        description="Other accumulated allowable deductions including from previous employment (if any)."
+        amount={sumLP}
+      />
+      <LhdnVar
+        abbrev="LP₁"
+        description="Other allowable deductions for current month."
+        amount={LP1}
+      />
+      <LhdnVar
+        abbrev="P"
+        description={formulaP}
+        amount={P}
+        bold
+      />
+      <LhdnVar
+        abbrev="M"
+        description="Amount of first chargeable income for every range of chargeable income a year."
+        amount={M}
+      />
+      <LhdnVar
+        abbrev="R"
+        description={`Percentage of tax rates. (${(R * 100).toFixed(2)}%)`}
+        amount={R}
+        raw
+      />
+      <LhdnVar
+        abbrev="B"
+        description="Amount of tax on M less tax rebate for individual and spouse (if qualified)."
+        amount={B}
+      />
+      <LhdnVar
+        abbrev="Z"
+        description="Accumulated Zakat/Fitrah/Levy paid other than Zakat/Fitrah/Levy for current month."
+        amount={Z}
+      />
+      <LhdnVar
+        abbrev="X"
+        description="Accumulated PCB paid in respect of previous month(s) (excluding the current month)."
+        amount={X}
+      />
+      <LhdnVar
+        abbrev="Yearly Tax"
+        description={`(P − M)R + B = (${fmt(P)} − ${fmt(M)}) × ${R.toFixed(2)} + (${fmt(B)})`}
+        amount={yearlyTax}
+        bold
+      />
+      <LhdnVar
+        abbrev="PCB(A)"
+        description={`Current Month PCB = (Yearly Tax − Z − X) ÷ (n + 1) = (${fmt(yearlyTax)} − ${fmt(Z)} − ${fmt(X)}) ÷ ${(n + 1).toFixed(0)}`}
+        amount={currentMonthPcb}
+        bold
+      />
+
+      {/* ── Section 2: Yearly PCB (PCB B — annual normal projection) ── */}
+      <Text style={lhdnStyles.sectionTitle}>2. Yearly PCB</Text>
+      <Text style={lhdnStyles.subsectionTitle}>PCB (B)</Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`(X) + [Current Month PCB × (n + 1)]`}
+      </Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`(${fmt(X)}) + [${fmt(pcbAfterThreshold)} × (${n.toFixed(0)} + 1)]`}
+      </Text>
+      <LhdnVar
+        abbrev="PCB (B)"
+        description="Projected annual normal PCB — what the year-end PCB would total if the employee earned this month's normal PCB every remaining month, plus the YTD already paid."
+        amount={pcbB}
+        bold
+      />
+
+      {/* ── Section 3: Yearly Tax (CS) — chargeable income with AR ─── */}
+      <Text style={lhdnStyles.sectionTitle}>3. Yearly Tax</Text>
+      <Text style={lhdnStyles.subsectionTitle}>CS</Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`(P − M)R + B`}
+      </Text>
+      <Text style={lhdnStyles.formulaIntro}>
+        P · Total income tax for a year including current additional
+        remuneration
+      </Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`[Σ(Y−K) + (Y₁ − K₁) + (Y₂ − [K₂ × n]) + (Yt − Kt)] − (D + S + Du + Su + Q×C + ΣLP + LP₁)`}
+      </Text>
+
+      <LhdnVar
+        abbrev="Yt"
+        description="Gross additional remuneration for current month."
+        amount={Yt}
+      />
+      <LhdnVar
+        abbrev="Kt"
+        description="Contribution to EPF or Other Approved Funds for current month's additional remuneration subject to total qualifying amount not exceeding RM4,000.00 per year."
+        amount={Kt}
+      />
+      <LhdnVar
+        abbrev="P"
+        description={`Total chargeable income for a year including AR — recomputed from Section 1's P with Yt added and Kt deducted = ${fmt(P)} + ${fmt(Yt)} − ${fmt(Kt)}`}
+        amount={chargeableWithAr}
+        bold
+      />
+      <LhdnVar
+        abbrev="M₂"
+        description="Amount of first chargeable income for the range that P (with AR) falls into. May differ from Section 1's M when AR pushes the chargeable income across a tax bracket."
+        amount={M2}
+      />
+      <LhdnVar
+        abbrev="R₂"
+        description={`Percentage of tax rates. (${(R2 * 100).toFixed(2)}%)`}
+        amount={R2}
+        raw
+      />
+      <LhdnVar
+        abbrev="B₂"
+        description="Amount of tax on M₂ less tax rebate for individual and spouse (if qualified)."
+        amount={B2}
+      />
+      <LhdnVar
+        abbrev="CS"
+        description={`Yearly tax including AR = (P − M₂)R₂ + B₂ = (${fmt(chargeableWithAr)} − ${fmt(M2)}) × ${R2.toFixed(2)} + (${fmt(B2)})`}
+        amount={CS}
+        bold
+      />
+
+      {/* ── Section 4: Additional Remuneration PCB (PCB C) ─────────── */}
+      <Text style={lhdnStyles.sectionTitle}>4. Additional Remuneration PCB</Text>
+      <Text style={lhdnStyles.subsectionTitle}>PCB (C)</Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`CS − [PCB (B) + Accumulated Zakat that have been paid]`}
+      </Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`${fmt(CS)} − [${fmt(pcbB)} + ${fmt(Z)}]`}
+      </Text>
+      <LhdnVar
+        abbrev="PCB (C)"
+        description="Additional Remuneration PCB — the marginal PCB owed because of the AR amount this month (after MTD threshold + 5c rounding)."
+        amount={pcbC}
+        bold
+      />
+
+      {/* ── Section 5: PCB Current Month ────────────────────────────── */}
+      <Text style={lhdnStyles.sectionTitle}>5. PCB Current Month</Text>
+      <Text style={lhdnStyles.subsectionTitle}>
+        PCB (after rounding up to the nearest 5 cents)
+      </Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`PCB (A) + PCB (C)`}
+      </Text>
+      <Text style={lhdnStyles.formulaLine}>
+        {`${fmt(pcbAfterThreshold)} + ${fmt(pcbC)}`}
+      </Text>
+      <LhdnVar
+        abbrev="PCB"
+        description="Net PCB this month — the amount actually deducted from the employee's pay and remitted to LHDN."
+        amount={pcbCurrentMonth}
+        bold
+      />
+
+      {/* ── ΣLP & LP₁ Details ───────────────────────────────────────── */}
+      <Text style={lhdnStyles.sectionTitle}>ΣLP & LP₁ Details</Text>
+      <LhdnVar
+        abbrev="SOCSO & EIS"
+        description="Employee SOCSO + EIS contributions used as LP relief. ΣLP is the YTD accumulated amount; LP₁ is this month's amount. Capped at RM 350/year per LHDN."
+        amount={sumLP + LP1}
+      />
+    </View>
+  )
+}
+
+function LhdnVar({
+  abbrev,
+  description,
+  amount,
+  bold,
+  raw,
+}: {
+  abbrev: string
+  description: string
+  amount: number
+  bold?: boolean
+  raw?: boolean
+}) {
+  return (
+    <View style={lhdnStyles.varRow}>
+      <View style={lhdnStyles.varBox}>
+        <Text style={lhdnStyles.varAbbrev}>{abbrev}</Text>
+        <Text style={lhdnStyles.varDescription}>{description}</Text>
+      </View>
+      <Text style={bold ? lhdnStyles.varAmountBold : lhdnStyles.varAmount}>
+        {raw
+          ? amount.toFixed(2)
+          : amount.toLocaleString("en-MY", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+      </Text>
+    </View>
+  )
+}
+
+function fmt(n: number): string {
+  return n.toLocaleString("en-MY", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
+
 function CalcRow(props: { label: string; amount: number; bold?: boolean }) {
   return (
     <View style={detailedStyles.calcRow}>
@@ -555,6 +1075,7 @@ function PcbBreakdownBlock({ value }: { value: unknown }) {
   const Z = num("Z"), X = num("X")
   const yearlyTax = num("yearlyTax")
   const currentMonthPcb = num("currentMonthPcb")
+  const pcbAfterThreshold = num("pcbAfterThreshold")
 
   // Render in the same row style as the rest of the calc card. The
   // labels match LHDN MTD Specification 2026 nomenclature so the
@@ -600,6 +1121,151 @@ function PcbBreakdownBlock({ value }: { value: unknown }) {
       <PcbVar
         label={`Current Month PCB = (Yearly Tax − Z − X) ÷ (n+1) = (${yearlyTax.toFixed(2)} − ${Z.toFixed(2)} − ${X.toFixed(2)}) ÷ ${(n + 1).toFixed(0)}`}
         amount={currentMonthPcb}
+        bold
+      />
+
+      {/*
+        PCB(B) Additional Remuneration breakdown — fires only when an
+        AR-categorised line (annual bonus, commission, etc.) lands in
+        this run AND the user did NOT tick "Treat as regular monthly".
+        Mirrors the PCB(A) layout: italic formula subtitle, then each
+        LHDN variable on its own row. When no AR fires, this block is
+        omitted entirely so the PDF doesn't get cluttered with zeros
+        on a normal payroll month.
+      */}
+      <PcbArBlock value={v.ar} pcbA={pcbAfterThreshold} n={n} X={X} />
+    </View>
+  )
+}
+
+/**
+ * PCB(B) — Additional Remuneration formula breakdown. Renders nothing
+ * when this run has no AR (the common case). When AR is present,
+ * shows the LHDN-style variables in the same layout as PCB(A): top-
+ * line formula header with the AR-portion PCB amount, italic formula
+ * subtitle, then row-by-row variables, then the PCB(C) net summary.
+ */
+function PcbArBlock({
+  value,
+  pcbA,
+  n,
+  X,
+}: {
+  value: unknown
+  pcbA: number
+  n: number
+  X: number
+}) {
+  if (!value || typeof value !== "object") return null
+  const ar = value as Record<string, unknown>
+  const num = (k: string) =>
+    typeof ar[k] === "number" ? (ar[k] as number) : 0
+  const Yt = num("Yt")
+  // PCB(B)/(C) block is meaningless without an AR amount this run.
+  if (Yt <= 0) return null
+
+  const Kt = num("Kt")
+  const chargeableWithAr = num("chargeableWithAr")
+  const M2 = num("M2")
+  const R2 = num("R2")
+  const B2 = num("B2")
+  const CS = num("CS")
+  const pcbB = num("pcbB")
+  const pcbC = num("pcbC")
+  const pcbCurrentMonth = num("pcbCurrentMonth")
+
+  // Compact rendering of the LHDN MTD §E AR sequence — same five
+  // sub-steps as the full LHDN-form PDF, but condensed into PcbVar
+  // rows so it fits inline under the Detailed Calculations block.
+  // The full audit-ready worksheet lives in PcbCalculationDetailsPdfDocument.
+  return (
+    <View style={{ marginTop: 4 }}>
+      {/* PCB(B) — annual projected normal PCB */}
+      <Text
+        style={{
+          fontSize: 8,
+          color: COLOURS.muted,
+          marginBottom: 2,
+          fontFamily: "Helvetica-Oblique",
+        }}
+      >
+        PCB(B) formula: X + [PCB(A) × (n + 1)]
+      </Text>
+      <PcbVar
+        label={`PCB(B) — projected annual normal PCB = X + [PCB(A) × (n+1)] = (${X.toFixed(2)} + [${pcbA.toFixed(2)} × ${(n + 1).toFixed(0)}])`}
+        amount={pcbB}
+        bold
+      />
+
+      {/* Yearly Tax (CS) — yearly tax with AR */}
+      <Text
+        style={{
+          fontSize: 8,
+          color: COLOURS.muted,
+          marginTop: 4,
+          marginBottom: 2,
+          fontFamily: "Helvetica-Oblique",
+        }}
+      >
+        Yearly Tax (CS) formula: (P + AR − Kt) → (P − M)R + B
+      </Text>
+      <PcbVar label="Yt — additional remuneration this month" amount={Yt} />
+      <PcbVar
+        label="Kt — AR EPF (capped vs RM 4,000 budget)"
+        amount={Kt}
+      />
+      <PcbVar
+        label={`P — chargeable income (with AR) = ${chargeableWithAr.toFixed(2)}`}
+        amount={chargeableWithAr}
+        bold
+      />
+      <PcbVar label="M₂ — tax-bracket lower bound (with AR)" amount={M2} />
+      <PcbVar
+        label={`R₂ — tax rate (${(R2 * 100).toFixed(2)}%)`}
+        amount={R2}
+        raw
+        suffix=""
+      />
+      <PcbVar label="B₂ — bracket baseline (with AR)" amount={B2} />
+      <PcbVar
+        label="CS = (P − M₂)R₂ + B₂ (yearly tax including AR)"
+        amount={CS}
+        bold
+      />
+
+      {/* PCB(C) — additional remuneration PCB */}
+      <Text
+        style={{
+          fontSize: 8,
+          color: COLOURS.muted,
+          marginTop: 4,
+          marginBottom: 2,
+          fontFamily: "Helvetica-Oblique",
+        }}
+      >
+        PCB(C) formula: CS − [PCB(B) + Accumulated Zakat]
+      </Text>
+      <PcbVar
+        label={`PCB(C) — additional remuneration PCB = CS − [PCB(B) + Z] = ${CS.toFixed(2)} − [${pcbB.toFixed(2)} + 0.00] (after MTD threshold + 5c rounding)`}
+        amount={pcbC}
+        bold
+      />
+
+      {/* PCB Current Month — final */}
+      <Text
+        style={{
+          fontSize: 8,
+          color: COLOURS.muted,
+          marginTop: 4,
+          marginBottom: 2,
+          fontFamily: "Helvetica-Oblique",
+        }}
+      >
+        PCB current month: PCB(A) + PCB(C), rounded up to 5 cents
+      </Text>
+      <PcbVar
+        label={`PCB / MTD = ${pcbA.toFixed(2)} + ${pcbC.toFixed(2)}`}
+        amount={pcbCurrentMonth}
         bold
       />
     </View>

@@ -330,6 +330,97 @@ describe("calcPayslip — additional remuneration routing", () => {
     expect(result.epfRatesSnapshot.voluntaryEmployer).toBe(2)
   })
 
+  it("PCB breakdown exposes the AR sub-formula variables", () => {
+    // Without these, the Detailed Calculations PDF can't render
+    // PCB(B) / PCB(C), and an admin staring at 469.35 total PCB vs
+    // a 15.43 "Current Month PCB" formula line has no way to reconcile.
+    const result = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3800,
+        fixedAllowances: [
+          {
+            category:
+              "allowance_parking" satisfies PayrollAdjustmentCategory,
+            name: "Parking",
+            amount: 150,
+          },
+          {
+            category:
+              "allowance_phone_fixed" satisfies PayrollAdjustmentCategory,
+            name: "Phone",
+            amount: 150,
+          },
+          {
+            category:
+              "wages_bonus_annual" satisfies PayrollAdjustmentCategory,
+            name: "Annual bonus",
+            amount: 1218,
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+    })
+
+    expect(result.pcbCalculation.formula).toBe("resident")
+    if (result.pcbCalculation.formula !== "resident") return // type guard
+
+    const ar = result.pcbCalculation.ar
+    expect(ar).toBeDefined()
+    // LHDN MTD spec naming: Yt = AR taxable, Kt = AR EPF deductible
+    expect(ar.Yt).toBeGreaterThan(0)
+    // P_withAR (chargeable income WITH the AR) > P (chargeable income without AR)
+    expect(ar.chargeableWithAr).toBeGreaterThan(result.pcbCalculation.P)
+    // CS — yearly tax with AR
+    expect(ar.CS).toBeGreaterThanOrEqual(result.pcbCalculation.yearlyTax)
+    // PCB(B) = annual projected normal PCB
+    //        = X + PCB(A) × (n + 1)
+    expect(ar.pcbB).toBeCloseTo(
+      result.pcbCalculation.X +
+        result.pcbCalculation.pcbAfterThreshold *
+          (result.pcbCalculation.n + 1),
+      2,
+    )
+    // PCB(C) before rounding = CS − PCB(B) − Z
+    expect(ar.pcbCBeforeRounding).toBeCloseTo(
+      Math.max(0, ar.CS - ar.pcbB - result.pcbCalculation.Z),
+      2,
+    )
+    // PCB(C) final matches the legacy pcbAdditional field exactly
+    expect(ar.pcbC).toBe(result.pcbCalculation.pcbAdditional)
+    // PCB current month = PCB(A) + PCB(C), rounded up to 5c
+    // This should equal the engine's actual deducted PCB exactly.
+    expect(ar.pcbCurrentMonth).toBeCloseTo(result.pcb, 2)
+  })
+
+  it("PCB AR breakdown is empty when no AR fires (treatAsRecurring=true)", () => {
+    const result = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3800,
+        fixedAllowances: [
+          {
+            category:
+              "wages_bonus_annual" satisfies PayrollAdjustmentCategory,
+            name: "Monthly guaranteed bonus",
+            amount: 1218,
+            treatAsRecurring: true,
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 1,
+    })
+
+    if (result.pcbCalculation.formula !== "resident") {
+      throw new Error("expected resident formula")
+    }
+    // No AR routed to AR bucket → AR amounts all zero
+    expect(result.pcbCalculation.ar.Yt).toBe(0)
+    expect(result.pcbCalculation.ar.pcbC).toBe(0)
+  })
+
   it("folds the bonus into the regular tier when treatAsRecurring=true", () => {
     const result = calcPayslip({
       profile: makeProfile({
