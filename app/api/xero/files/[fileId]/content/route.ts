@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { isAdminRole } from "@/lib/auth/types"
 import { safeErrorMessage } from "@/lib/errors"
 
-import { getCurrentSession } from "@/lib/auth/session"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getXeroFileContent } from "@/lib/xero"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import { getUsableXeroAccessToken } from "@/modules/organization/application/services/xero-connection.service"
@@ -42,17 +42,24 @@ export async function GET(
     return NextResponse.json({ error: "Not found." }, { status: 404 })
   }
 
-  // Permission check. Admin in the same org always wins; the claim's
-  // own employee always wins. Supervisors are allowed if they're in the
-  // claim's chain (we approximate cheaply by org match — a stricter
+  // Permission check. Admin/supervisor in the same org always wins; the
+  // claim's own employee always wins. Supervisors are allowed if they're
+  // in the claim's chain (we approximate cheaply by org match — a stricter
   // check would walk the chain, but for receipt viewing the org-level
   // gate is sufficient and avoids extra DB round-trips on a hot read
   // path).
+  //
+  // Use resolveActiveOrgId, not session.organizationId: a multi-company
+  // admin's home org can differ from the company they've selected in the
+  // org dropdown. The admin claims list is scoped by the active org too,
+  // so a receipt clicked from that list belongs to the active org — keying
+  // off the home org instead 403'd every linked company's receipts.
+  const activeOrgId = resolveActiveOrgId(session)
   const isOwnClaim = session.userId === claim.employeeId
   const isOrgInsider =
     (isAdminRole(session.role) || session.role === "SUPERVISOR") &&
-    Boolean(session.organizationId) &&
-    session.organizationId === claim.organizationId
+    Boolean(activeOrgId) &&
+    activeOrgId === claim.organizationId
   if (!isOwnClaim && !isOrgInsider) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 })
   }
