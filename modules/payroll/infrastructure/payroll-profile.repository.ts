@@ -650,11 +650,20 @@ function parseFixedAllowancesJson(raw: unknown): FixedAllowance[] {
       //   amount: 0 }`. Saving the Employment tab once after this fix
       // permanently cleans the column.
       if (!Number.isFinite(amount) || amount <= 0) return null
-      return {
+      // LHDN AR override — preserved on read so the checkbox renders
+      // its persisted state on the Employment tab. The mapper was
+      // previously dropping this field, so a ticked checkbox would
+      // round-trip back as unchecked after save, even though the JSON
+      // column had the value stored correctly. Pre-Phase-19 rows have
+      // no `treatAsRecurring` → defaults to undefined (= unchecked,
+      // matching the old behaviour).
+      const allowance: FixedAllowance = {
         category,
         name,
         amount,
-      } satisfies FixedAllowance
+      }
+      if (e.treatAsRecurring === true) allowance.treatAsRecurring = true
+      return allowance
     })
     .filter((x): x is FixedAllowance => x !== null)
 }
