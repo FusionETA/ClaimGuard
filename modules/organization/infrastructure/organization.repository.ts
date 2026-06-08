@@ -385,12 +385,14 @@ export const organizationRepository = {
    * blank-picker behaviour).
    *
    * Lookup rule:
-   *   - Policy: exact match on the seeded names "Monthly Workers" and
-   *     "Hourly Workers". The salaryType column would also work but
-   *     the seeded name is the more stable signal (admin could create
-   *     additional MONTHLY policies later).
-   *   - Project: exact match on "<OrgName> Project (default)".
-   *   - Team: exact match on "<OrgName> Team (default)".
+   *   - Policy: prefer "Monthly Workers" (Hourly returned as well so
+   *     the wizard could surface both, but the preview only uses
+   *     monthly today).
+   *   - Project / Team: match by suffix " Project (default)" /
+   *     " Team (default)" rather than the full org-prefixed name, so
+   *     an org rename after seeding doesn't break the lookup. Falls
+   *     back to the oldest project / team for the org if no
+   *     suffix-marked row exists (legacy orgs).
    */
   async getOrgImportDefaults(organizationId: string): Promise<{
     monthlyPolicyId: string | null
@@ -409,39 +411,94 @@ export const organizationRepository = {
         teamLayer: 1,
       }
     }
-    const [org, monthly, hourly] = await Promise.all([
-      prisma.organization.findUnique({
-        where: { id: organizationId },
-        select: { name: true },
-      }),
+    // Look up by salaryType + isDefault, falling back to any
+    // non-archived policy of that type. This is more robust than a
+    // hard-coded "Monthly Workers" name lookup — admins may have
+    // renamed / deleted the seeded policy, and we still want a
+    // sensible default policy of the right pay type.
+    const [
+      monthlyDefault,
+      monthlyAny,
+      hourlyDefault,
+      hourlyAny,
+      projectSeeded,
+      teamSeeded,
+    ] = await Promise.all([
       prisma.employeePolicy.findFirst({
-        where: { organizationId, name: "Monthly Workers", archived: false },
+        where: {
+          organizationId,
+          salaryType: "MONTHLY_BASED",
+          isDefault: true,
+          archivedAt: null,
+        },
         select: { id: true },
       }),
       prisma.employeePolicy.findFirst({
-        where: { organizationId, name: "Hourly Workers", archived: false },
+        where: {
+          organizationId,
+          salaryType: "MONTHLY_BASED",
+          archivedAt: null,
+        },
+        select: { id: true },
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.employeePolicy.findFirst({
+        where: {
+          organizationId,
+          salaryType: "HOURLY",
+          isDefault: true,
+          archivedAt: null,
+        },
         select: { id: true },
       }),
-    ])
-    const trimmed = (org?.name ?? "").trim() || "Organization"
-    const projectName = `${trimmed} Project (default)`
-    const teamName = `${trimmed} Team (default)`
-    const [project, team] = await Promise.all([
+      prisma.employeePolicy.findFirst({
+        where: {
+          organizationId,
+          salaryType: "HOURLY",
+          archivedAt: null,
+        },
+        select: { id: true },
+        orderBy: { createdAt: "asc" },
+      }),
       prisma.xeroProject.findFirst({
-        where: { organizationId, name: projectName },
+        where: {
+          organizationId,
+          name: { endsWith: " Project (default)" },
+        },
         select: { id: true },
+        orderBy: { createdAt: "asc" },
       }),
       prisma.team.findFirst({
         where: {
-          name: teamName,
           project: { organizationId },
+          name: { endsWith: " Team (default)" },
         },
         select: { id: true, layerCount: true },
+        orderBy: { createdAt: "asc" },
       }),
     ])
+    // Legacy-org fallback: if the seeded "(default)"-suffixed rows
+    // don't exist, pick the oldest project / team so the preview
+    // still has something sensible to pre-select.
+    const project =
+      projectSeeded ??
+      (await prisma.xeroProject.findFirst({
+        where: { organizationId },
+        select: { id: true },
+        orderBy: { createdAt: "asc" },
+      }))
+    const team =
+      teamSeeded ??
+      (project
+        ? await prisma.team.findFirst({
+            where: { projectId: project.id },
+            select: { id: true, layerCount: true },
+            orderBy: { createdAt: "asc" },
+          })
+        : null)
     return {
-      monthlyPolicyId: monthly?.id ?? null,
-      hourlyPolicyId: hourly?.id ?? null,
+      monthlyPolicyId: monthlyDefault?.id ?? monthlyAny?.id ?? null,
+      hourlyPolicyId: hourlyDefault?.id ?? hourlyAny?.id ?? null,
       projectId: project?.id ?? null,
       teamId: team?.id ?? null,
       teamLayer: 1,

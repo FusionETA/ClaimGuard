@@ -2262,7 +2262,6 @@ function PreviewRow({
   const csvProject = (row.projectCode ?? "").trim()
   const csvTeam = (row.teamCode ?? "").trim()
   const csvLayerNum = Number(row.teamLayer ?? "")
-  const rowSalaryType = (row.salaryType ?? "").trim().toUpperCase()
   const defaults = pickerOptions.defaults
 
   const autoPolicy = pickerOptions.policies.find(
@@ -2272,15 +2271,14 @@ function PreviewRow({
     (p) => p.name.toLowerCase() === csvProject.toLowerCase(),
   )
 
-  // Default-policy resolution: HOURLY rows → "Hourly Workers";
-  // anything else (MONTHLY or blank) → "Monthly Workers".
-  const defaultPolicyId =
-    rowSalaryType === "HOURLY"
-      ? defaults.hourlyPolicyId
-      : defaults.monthlyPolicyId
+  // Default-policy resolution: always pin to "Monthly Workers" as the
+  // safe starting choice. Admin can flip the picker to "Hourly
+  // Workers" (or any other policy) per row before importing.
   const policyFromDefault =
-    !override.policyId && !autoPolicy && defaultPolicyId
-      ? pickerOptions.policies.find((p) => p.id === defaultPolicyId) ?? null
+    !override.policyId && !autoPolicy && defaults.monthlyPolicyId
+      ? pickerOptions.policies.find(
+          (p) => p.id === defaults.monthlyPolicyId,
+        ) ?? null
       : null
   const projectFromDefault =
     !override.projectId && !autoProject && defaults.projectId
