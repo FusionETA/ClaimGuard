@@ -67,7 +67,22 @@ export type EpfBranch =
  * can pick the correct KWSP Third Schedule branch.
  */
 export type CalcEpfInput = {
+  /// Regular monthly EPF-able wage (base salary + recurring allowances).
+  /// THIS is what determines the 13%/12% KWSP Third Schedule tier and
+  /// drives the gazetted band-table lookup. AR amounts (one-off bonus,
+  /// commission, arrears) do NOT belong here — they go in
+  /// `additionalRemuneration` so the tier doesn't get pushed past
+  /// RM 5,000 just because a bonus landed this run.
   wage: number
+  /// Optional. EPF-able amounts treated as Additional Remuneration —
+  /// bonus / commission / arrears whose category is
+  /// `isAdditionalRemuneration: true` AND the user did NOT tick
+  /// "Treat as regular monthly remuneration" on that line. The AR
+  /// portion gets EPF at the SAME rate the regular tier qualifies for
+  /// (e.g. 13% if regular wage ≤ 5,000), computed as exact percentage
+  /// rounded up to next ringgit (KWSP general rule for off-table
+  /// amounts). Defaults to 0 when omitted.
+  additionalRemuneration?: number
   /// Employee mandatory rate %; the calc engine overrides this with
   /// the branch's statutory rate for non-Part-A branches (so the
   /// "11%" the admin enters has no effect at age 60+ or for post-1998
@@ -200,21 +215,49 @@ export function calcEpf(input: CalcEpfInput): {
       break
   }
 
-  const mandatory = lookupEpfBand({
+  const mandatoryRegular = lookupEpfBand({
     wage: input.wage,
     employerRateLow,
     employerRateHigh,
     employeeRate,
   })
 
+  // AR (additional remuneration) mandatory EPF — bonus / commission /
+  // arrears whose line did NOT tick "Treat as regular monthly". The
+  // gazetted KWSP Third Schedule band table is keyed to the regular
+  // monthly wage, so an off-cycle AR amount is computed at exact
+  // percentage rounded UP to the next ringgit (KWSP general principle,
+  // matches the > RM 20,000 branch of `lookupEpfBand`). The rate used
+  // is the SAME the regular wage qualifies for — bonus paid to a
+  // RM 4,100 base employee still gets 13% on the bonus, even though
+  // the bonus pushes (base + bonus) past RM 5,000.
+  const ar = input.additionalRemuneration ?? 0
+  const arEmployerRate = input.wage <= 5000 ? employerRateLow : employerRateHigh
+  const mandatoryAr =
+    ar > 0
+      ? {
+          employer: Math.ceil((ar * arEmployerRate) / 100),
+          employee: Math.ceil((ar * employeeRate) / 100),
+        }
+      : { employer: 0, employee: 0 }
+
   // Voluntary contributions stack on top. These use the exact
   // percentage (not the table) because they're not part of the
-  // statutory minimum that the gazetted Schedule prescribes.
-  const employeeExtra = round2(input.wage * (input.employeeVoluntary / 100))
-  const employerExtra = round2(input.wage * (input.employerVoluntary / 100))
+  // statutory minimum that the gazetted Schedule prescribes. The
+  // voluntary base IS the total EPF-able wage (regular + AR) — the
+  // bonus is still EPF-able even if its mandatory portion is computed
+  // separately above, so the % voluntary the employee elected stacks
+  // on top of that total.
+  const totalWage = input.wage + ar
+  const employeeExtra = round2(totalWage * (input.employeeVoluntary / 100))
+  const employerExtra = round2(totalWage * (input.employerVoluntary / 100))
   return {
-    employee: round2(mandatory.employee + employeeExtra),
-    employer: round2(mandatory.employer + employerExtra),
+    employee: round2(
+      mandatoryRegular.employee + mandatoryAr.employee + employeeExtra,
+    ),
+    employer: round2(
+      mandatoryRegular.employer + mandatoryAr.employer + employerExtra,
+    ),
     branch,
   }
 }
@@ -766,6 +809,15 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   let totalGrossReducingDeductions = 0
   let totalRecurringReimbursements = 0
   let epfAdjustmentBase = 0
+  /// AR (additional remuneration) bucket for EPF — bonus / commission /
+  /// arrears lines whose category is `isAdditionalRemuneration: true` AND
+  /// the user did NOT tick "Treat as regular monthly remuneration". These
+  /// amounts are EPF-able but kept OUT of the regular monthly EPF wage
+  /// that determines the 13%/12% KWSP Third Schedule tier — instead the
+  /// AR portion gets EPF computed separately at the regular tier's rate
+  /// as exact percentage rounded up (KWSP general rule for off-table
+  /// amounts). Matches the existing PCB AR vs recurring split.
+  let arEpfBase = 0
   let socsoAdjustmentBase = 0
   let eisAdjustmentBase = 0
   let pcbAdjustmentBase = 0
@@ -865,14 +917,24 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
         }
       } else {
         totalAllowances += amt
-        if (meta.subjectToEpf) epfAdjustmentBase += amt
+        // Per-item LHDN AR override (same flag as the PCB branch below):
+        // an AR-flagged category routes to the AR EPF bucket UNLESS the
+        // user ticked "Treat as regular monthly remuneration" — in which
+        // case the line is folded back into the regular monthly EPF wage
+        // that determines the 13%/12% KWSP Third Schedule tier.
+        const treatAsAdditional =
+          meta.isAdditionalRemuneration && !a.treatAsRecurring
+        if (meta.subjectToEpf) {
+          if (treatAsAdditional) {
+            arEpfBase += amt
+          } else {
+            epfAdjustmentBase += amt
+          }
+        }
         if (meta.subjectToSocso) socsoAdjustmentBase += amt
         if (meta.subjectToEis) eisAdjustmentBase += amt
         if (meta.subjectToHrdf) hrdfAdjustmentBase += amt
         if (meta.subjectToPcb) {
-          // Same per-item LHDN AR override as the BIK branch above.
-          const treatAsAdditional =
-            meta.isAdditionalRemuneration && !a.treatAsRecurring
           if (treatAsAdditional) {
             pcbAdditionalRemuneration += pcbTaxable
             // AR EPF — only the portion of EPF attributable to the AR
@@ -979,6 +1041,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   )
   const epf = calcEpf({
     wage: epfWage,
+    additionalRemuneration: arEpfBase,
     employeeRate,
     employeeVoluntary: profile.epfEmployeeVoluntary,
     employerVoluntary: profile.epfEmployerVoluntary,

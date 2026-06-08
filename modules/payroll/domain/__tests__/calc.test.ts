@@ -118,6 +118,102 @@ describe("calcPayslip — additional remuneration routing", () => {
 
     expect(result.pcbBreakdown.additional).toBe(0)
   })
+
+  // ─── EPF tier protection for AR lines (the "Kay Ben" cliff) ──────────
+  //
+  // Real-world regression: base 3,800 + recurring allowances 300 +
+  // annual bonus 1,218 should NOT push the EPF tier across the
+  // RM 5,000 cliff just because the bonus tagged along this run.
+  //
+  //   - treatAsRecurring=false (default for AR categories): bonus stays
+  //     out of the tier-determining wage. Regular wage 4,100 ≤ 5,000 →
+  //     Part A low tier → employer 13%, employee 11%. The bonus then
+  //     gets EPF at the SAME 13%/11% rate, exact %, rounded up.
+  //   - treatAsRecurring=true (admin ticked "treat as monthly"): bonus
+  //     gets folded into the regular wage, total 5,318 → Part A high
+  //     tier → employer 12%, employee 11% on the gazetted band.
+  //
+  // Both modes are valid; the toggle reflects what the company is
+  // actually doing with that line.
+  it("keeps a one-off bonus out of the EPF tier wage by default", () => {
+    const result = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3800,
+        fixedAllowances: [
+          {
+            category:
+              "allowance_parking" satisfies PayrollAdjustmentCategory,
+            name: "Parking",
+            amount: 150,
+          },
+          {
+            category:
+              "allowance_phone_fixed" satisfies PayrollAdjustmentCategory,
+            name: "Phone",
+            amount: 150,
+          },
+          {
+            category:
+              "wages_bonus_annual" satisfies PayrollAdjustmentCategory,
+            name: "Annual bonus",
+            amount: 1218,
+            // treatAsRecurring intentionally omitted → defaults to AR
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 12,
+    })
+
+    // Regular monthly EPF wage = 3,800 + 150 + 150 = 4,100 → tier ≤ 5K
+    //   Mandatory employer = ceil(4,100 × 13%) = 533
+    //   Mandatory employee = ceil(4,100 × 11%) = 451
+    // AR portion (bonus 1,218) at the regular tier's rate:
+    //   Employer = ceil(1,218 × 13%) = 159
+    //   Employee = ceil(1,218 × 11%) = 134
+    // Totals: employer 692, employee 585
+    expect(result.epfEmployer).toBe(692)
+    expect(result.epfEmployee).toBe(585)
+  })
+
+  it("folds the bonus into the regular tier when treatAsRecurring=true", () => {
+    const result = calcPayslip({
+      profile: makeProfile({
+        monthlySalary: 3800,
+        fixedAllowances: [
+          {
+            category:
+              "allowance_parking" satisfies PayrollAdjustmentCategory,
+            name: "Parking",
+            amount: 150,
+          },
+          {
+            category:
+              "allowance_phone_fixed" satisfies PayrollAdjustmentCategory,
+            name: "Phone",
+            amount: 150,
+          },
+          {
+            category:
+              "wages_bonus_annual" satisfies PayrollAdjustmentCategory,
+            name: "Monthly guaranteed bonus",
+            amount: 1218,
+            treatAsRecurring: true,
+          },
+        ],
+      }),
+      settings: baseSettings,
+      periodYear: 2026,
+      periodMonth: 12,
+    })
+
+    // Combined wage = 5,318 → tier > 5K, RM 100 band, upper = 5,400
+    //   Mandatory employer = ceil(5,400 × 12%) = 648
+    //   Mandatory employee = ceil(5,400 × 11%) = 594
+    expect(result.epfEmployer).toBe(648)
+    expect(result.epfEmployee).toBe(594)
+  })
 })
 
 // ─── Allowance exemption caps ───────────────────────────────────────────
