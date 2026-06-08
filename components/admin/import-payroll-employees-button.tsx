@@ -2253,10 +2253,17 @@ function PreviewRow({
   // Auto-resolve from the CSV value when the admin hasn't overridden
   // — same name-match the importer will do. This is for display only;
   // the importer redoes the lookup at commit time.
+  // When the CSV cell is blank AND no override is set, fall back to
+  // the org's seeded default (Monthly/Hourly Workers policy, default
+  // project, default team). Admins can hit Import without manually
+  // picking on every row; the picker still shows the default ID as
+  // its `value` so the choice is visible and overridable.
   const csvPolicy = (row.policyName ?? "").trim()
   const csvProject = (row.projectCode ?? "").trim()
   const csvTeam = (row.teamCode ?? "").trim()
   const csvLayerNum = Number(row.teamLayer ?? "")
+  const rowSalaryType = (row.salaryType ?? "").trim().toUpperCase()
+  const defaults = pickerOptions.defaults
 
   const autoPolicy = pickerOptions.policies.find(
     (p) => p.name.toLowerCase() === csvPolicy.toLowerCase(),
@@ -2265,22 +2272,60 @@ function PreviewRow({
     (p) => p.name.toLowerCase() === csvProject.toLowerCase(),
   )
 
-  const selectedPolicyId = override.policyId ?? autoPolicy?.id ?? ""
-  const selectedProjectId = override.projectId ?? autoProject?.id ?? ""
+  // Default-policy resolution: HOURLY rows → "Hourly Workers";
+  // anything else (MONTHLY or blank) → "Monthly Workers".
+  const defaultPolicyId =
+    rowSalaryType === "HOURLY"
+      ? defaults.hourlyPolicyId
+      : defaults.monthlyPolicyId
+  const policyFromDefault =
+    !override.policyId && !autoPolicy && defaultPolicyId
+      ? pickerOptions.policies.find((p) => p.id === defaultPolicyId) ?? null
+      : null
+  const projectFromDefault =
+    !override.projectId && !autoProject && defaults.projectId
+      ? pickerOptions.projects.find((p) => p.id === defaults.projectId) ?? null
+      : null
+
+  const selectedPolicyId =
+    override.policyId ?? autoPolicy?.id ?? policyFromDefault?.id ?? ""
+  const selectedProjectId =
+    override.projectId ?? autoProject?.id ?? projectFromDefault?.id ?? ""
 
   const autoTeam = pickerOptions.teams.find(
     (t) =>
       t.projectId === selectedProjectId &&
       t.name.toLowerCase() === csvTeam.toLowerCase(),
   )
-  const selectedTeamId = override.teamId ?? autoTeam?.id ?? ""
+  // Default team only resolves when the selected project IS the org
+  // default project (the seeded default team is scoped to that
+  // project). Avoids picking a stranded team under the wrong project.
+  const teamFromDefault =
+    !override.teamId &&
+    !autoTeam &&
+    defaults.teamId &&
+    selectedProjectId &&
+    selectedProjectId === defaults.projectId
+      ? pickerOptions.teams.find((t) => t.id === defaults.teamId) ?? null
+      : null
+  const selectedTeamId =
+    override.teamId ?? autoTeam?.id ?? teamFromDefault?.id ?? ""
 
   const selectedTeam = pickerOptions.teams.find(
     (t) => t.id === selectedTeamId,
   )
   const layerCount = selectedTeam?.layerCount ?? 1
   const selectedLayer =
-    override.teamLayer ?? (Number.isFinite(csvLayerNum) ? csvLayerNum : 1)
+    override.teamLayer ??
+    (Number.isFinite(csvLayerNum) && csvLayerNum > 0
+      ? csvLayerNum
+      : defaults.teamLayer)
+
+  // Track which cells were filled from the org default vs CSV/override,
+  // so we can render a subtle "(default)" hint next to them.
+  const policyUsedDefault = Boolean(policyFromDefault)
+  const projectUsedDefault = Boolean(projectFromDefault)
+  const teamUsedDefault = Boolean(teamFromDefault)
 
   // Teams scoped to the currently-selected project, sorted by name.
   const teamOptions = pickerOptions.teams.filter(
@@ -2322,6 +2367,11 @@ function PreviewRow({
             onRefreshPickers()
           }}
         />
+        {policyUsedDefault ? (
+          <span className="mt-0.5 block text-[10px] text-muted-foreground">
+            (default)
+          </span>
+        ) : null}
       </td>
 
       {/* Project */}
@@ -2351,6 +2401,11 @@ function PreviewRow({
             onRefreshPickers()
           }}
         />
+        {projectUsedDefault ? (
+          <span className="mt-0.5 block text-[10px] text-muted-foreground">
+            (default)
+          </span>
+        ) : null}
       </td>
 
       {/* Team */}
@@ -2381,6 +2436,11 @@ function PreviewRow({
               : undefined
           }
         />
+        {teamUsedDefault ? (
+          <span className="mt-0.5 block text-[10px] text-muted-foreground">
+            (default)
+          </span>
+        ) : null}
       </td>
 
       {/* Layer */}

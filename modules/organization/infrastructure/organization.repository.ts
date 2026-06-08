@@ -376,6 +376,78 @@ export const organizationRepository = {
     }
   },
 
+  /**
+   * Resolve the org's seeded "default" Policy / Project / Team IDs so
+   * the bulk-import preview can pre-select them on rows where the
+   * XLSX cell is blank. Returns nulls for any default that doesn't
+   * exist (legacy orgs created before `seedDefaultsForNewOrganization`
+   * shipped — callers tolerate null and fall back to the existing
+   * blank-picker behaviour).
+   *
+   * Lookup rule:
+   *   - Policy: exact match on the seeded names "Monthly Workers" and
+   *     "Hourly Workers". The salaryType column would also work but
+   *     the seeded name is the more stable signal (admin could create
+   *     additional MONTHLY policies later).
+   *   - Project: exact match on "<OrgName> Project (default)".
+   *   - Team: exact match on "<OrgName> Team (default)".
+   */
+  async getOrgImportDefaults(organizationId: string): Promise<{
+    monthlyPolicyId: string | null
+    hourlyPolicyId: string | null
+    projectId: string | null
+    teamId: string | null
+    teamLayer: number
+  }> {
+    const prisma = getPrismaClient()
+    if (!prisma) {
+      return {
+        monthlyPolicyId: null,
+        hourlyPolicyId: null,
+        projectId: null,
+        teamId: null,
+        teamLayer: 1,
+      }
+    }
+    const [org, monthly, hourly] = await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { name: true },
+      }),
+      prisma.employeePolicy.findFirst({
+        where: { organizationId, name: "Monthly Workers", archived: false },
+        select: { id: true },
+      }),
+      prisma.employeePolicy.findFirst({
+        where: { organizationId, name: "Hourly Workers", archived: false },
+        select: { id: true },
+      }),
+    ])
+    const trimmed = (org?.name ?? "").trim() || "Organization"
+    const projectName = `${trimmed} Project (default)`
+    const teamName = `${trimmed} Team (default)`
+    const [project, team] = await Promise.all([
+      prisma.xeroProject.findFirst({
+        where: { organizationId, name: projectName },
+        select: { id: true },
+      }),
+      prisma.team.findFirst({
+        where: {
+          name: teamName,
+          project: { organizationId },
+        },
+        select: { id: true, layerCount: true },
+      }),
+    ])
+    return {
+      monthlyPolicyId: monthly?.id ?? null,
+      hourlyPolicyId: hourly?.id ?? null,
+      projectId: project?.id ?? null,
+      teamId: team?.id ?? null,
+      teamLayer: 1,
+    }
+  },
+
   async createAdminOrganization(data: {
     adminId: string
     name: string
