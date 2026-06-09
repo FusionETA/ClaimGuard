@@ -712,13 +712,6 @@ export function ClaimForm({
           aria-invalid={state?.errors?.spendingAt ? "true" : undefined}
         />
         <FieldError message={state?.errors?.spendingAt} />
-        <p className="text-[11px] text-muted-foreground">
-          Where you spent — the merchant / vendor / restaurant from the
-          receipt.{" "}
-          {paymentType === "COMPANY"
-            ? "Becomes the “Bill To” on the Xero Spend Money record — required for company-money claims."
-            : "Optional for personal-money claims."}
-        </p>
       </div>
 
       <div className="space-y-2">
@@ -736,10 +729,6 @@ export function ClaimForm({
           maxLength={200}
           onChange={(event) => setSpendingWithInput(event.target.value)}
         />
-        <p className="text-[11px] text-muted-foreground">
-          Who you spent this money with — a client, colleague, or
-          counterparty. Leave blank if not applicable.
-        </p>
       </div>
 
       <div className="space-y-2">
