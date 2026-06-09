@@ -8,12 +8,14 @@ import { SpendLimitsCard } from "@/components/claims/spend-limits-card"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/attendance/ui/card"
 import { getEmployeeDashboard, getEmployeeClaimSubmissionData } from "@/modules/claims/application/services/employee-portal.service"
 import { formatCurrency } from "@/lib/utils"
-import { requirePortalSession } from "@/lib/auth/session"
+import { requirePortalSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { employeeAttendanceService } from "@/modules/attendance/application/services/employee-attendance.service"
 import { supervisorAttendanceService } from "@/modules/attendance/application/services/supervisor-attendance.service"
 import { countPendingClaimsForSupervisor } from "@/modules/claims/application/services/claim-workflow.service"
 import { countPendingApprovalsForReviewer as countPendingLeaveApprovalsForReviewer } from "@/modules/leave/application/services/leave-application.service"
 import { listEmployeeBalancesForUser } from "@/modules/leave/application/services/leave-entitlements.service"
+import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import type { ClockEventLite } from "@/modules/attendance/domain/models"
 import {
   DEFAULT_MODULE_ACCESS,
@@ -64,6 +66,7 @@ export default async function EmployeeDashboardPage() {
   if (moduleAccess.claims && !claimsData) redirect("/login")
 
   const isSupervisor = session.role === "SUPERVISOR"
+  const orgId = resolveActiveOrgId(session)
   const [
     attendanceDashboard,
     projects,
@@ -71,6 +74,8 @@ export default async function EmployeeDashboardPage() {
     pendingClaimApprovals,
     pendingLeaveApprovals,
     leaveBalances,
+    leaveProfileId,
+    leaveOrganization,
     claimSubmissionData,
     payslipPageData,
   ] = await Promise.all([
@@ -92,6 +97,12 @@ export default async function EmployeeDashboardPage() {
     moduleAccess.leave
       ? listEmployeeBalancesForUser(session.userId, new Date().getUTCFullYear())
       : Promise.resolve([]),
+    moduleAccess.leave
+      ? leaveRepository.findEmployeeProfileIdByUserId(session.userId)
+      : Promise.resolve(null),
+    moduleAccess.leave && orgId
+      ? organizationRepository.getOrganizationById(orgId)
+      : Promise.resolve(null),
     moduleAccess.claims
       ? getEmployeeClaimSubmissionData()
       : Promise.resolve(null),
@@ -100,6 +111,11 @@ export default async function EmployeeDashboardPage() {
     getEmployeePayslipsPageData(),
   ])
   const latestPayslip = payslipPageData?.payslips[0] ?? null
+  const employeeJoinDate = leaveProfileId
+    ? await leaveRepository.getEmployeeJoinDate(leaveProfileId)
+    : null
+  const allowForecastedLeaveApply =
+    leaveOrganization?.allowForecastedLeaveApply ?? false
   // Selfie + geofence requirements come from the already-loaded policy
   // (line 55) — no need to re-query the employee profile.
   const requiresSelfieOnClockIn = policy?.requireSelfie ?? false
@@ -341,6 +357,8 @@ export default async function EmployeeDashboardPage() {
                         }))
                       : undefined
                   }
+                  joinDate={employeeJoinDate ? employeeJoinDate.toISOString() : null}
+                  allowForecastedLeaveApply={allowForecastedLeaveApply}
                 />
               </div>
             </CardContent>
