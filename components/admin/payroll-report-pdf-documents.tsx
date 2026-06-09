@@ -473,6 +473,7 @@ function PcbCalculationDetailsBody({
   const arNum = (k: string) => (typeof ar[k] === "number" ? (ar[k] as number) : 0)
   const Yt = arNum("Yt")
   const Kt = arNum("Kt")
+  const KtEffective = arNum("KtEffective")
   const chargeableWithAr = arNum("chargeableWithAr")
   const M2 = arNum("M2"), R2 = arNum("R2"), B2 = arNum("B2")
   const CS = arNum("CS")
@@ -672,7 +673,7 @@ function PcbCalculationDetailsBody({
       />
       <LhdnVar
         abbrev="P"
-        description={`Total chargeable income for a year including AR — recomputed from Section 1's P with Yt added and Kt deducted = ${fmt(P)} + ${fmt(Yt)} - ${fmt(Kt)}`}
+        description={`Total chargeable income for a year including AR — recomputed from Section 1's P with Yt added and Kt deducted = ${fmt(P)} + ${fmt(Yt)} - ${fmt(KtEffective)} (Kt ${fmt(Kt)} capped at remaining RM 4,000 cap = ${fmt(KtEffective)})`}
         amount={chargeableWithAr}
         bold
       />
@@ -724,7 +725,7 @@ function PcbCalculationDetailsBody({
         {`PCB (A) + PCB (C)`}
       </Text>
       <Text style={lhdnStyles.formulaLine}>
-        {`${fmt(pcbAfterThreshold)} + ${fmt(pcbC)}`}
+        {`${fmt(currentMonthPcb)} + ${fmt(pcbC)}`}
       </Text>
       <LhdnVar
         abbrev="PCB"

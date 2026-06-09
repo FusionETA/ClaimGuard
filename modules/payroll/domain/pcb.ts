@@ -719,11 +719,16 @@ export type CalcPcbBreakdown =
         // Full EPF contribution on the AR amount as actually paid by
         // the employee (= ceil(Yt × employee mandatory rate)). Matches
         // the LHDN form's expected meaning of Kt and the engine's
-        // employee EPF total. Note: for the chargeable_with_AR calc
-        // internally, the value is capped against the remaining
-        // RM 4,000 annual relief budget — that cap is applied inside
-        // the breakdown function, not exposed here.
+        // employee EPF total.
         Kt: number
+        // The portion of Kt that actually counts as tax relief —
+        // capped against the remaining RM 4,000 annual budget after
+        // K + K1 + (K2 × n). Often near zero when the normal
+        // projection already saturates the cap. Used in the LHDN-form
+        // PDF's P (with AR) formula expansion so the displayed math
+        // reconciles (the simple `P + Yt - Kt` reading uses 134; the
+        // actual chargeable subtracts only this effective value).
+        KtEffective: number
         // P_withAR — annual chargeable income with the AR layered on
         chargeableWithAr: number
         // Tax band for the with-AR chargeable. Differs from Section 1's
@@ -975,6 +980,7 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
     ar: {
       Yt,
       Kt: KtDisplay, // full contributed AR EPF; matches the LHDN form's expected meaning
+      KtEffective: KtForRelief, // cap-restricted portion that gets PCB relief
       chargeableWithAr,
       M2,
       R2,
