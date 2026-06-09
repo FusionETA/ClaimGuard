@@ -676,12 +676,18 @@ export function EmployeeCompanyForm({
         <Button
           type="submit"
           className="rounded-xl"
+          // Projects + chains are NOT in this gate. An admin should be
+          // able to save the policy / role / job title in one pass and
+          // come back later for project assignments + approval chains.
+          // The Company tab pill stays "Required fields missing" until
+          // those are added — readiness check lives in the badge logic,
+          // not the Save button. Bare minimum to save: policy picked
+          // (so payroll has a salary type to fall back on) and no
+          // temporary-employee deadline is overdue.
           disabled={
             pending ||
             activePolicies.length === 0 ||
             !policyId ||
-            selectedProjectIds.length === 0 ||
-            !allChainsComplete ||
             temporaryReviewDateMissing
           }
         >
