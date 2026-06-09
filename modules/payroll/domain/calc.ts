@@ -940,9 +940,18 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
             // AR EPF — only the portion of EPF attributable to the AR
             // row needs to count toward the with-AR annual EPF bucket.
             // EPF cap (RM4k) is honoured by `calcPcb` regardless.
+            //
+            // Use `Math.ceil` to mirror exactly what `calcEpf` adds for
+            // the AR portion (KWSP general rule: AR EPF is exact % ×
+            // amount, rounded UP to next ringgit). Using `round2` here
+            // creates a fractional-cent mismatch between the AR EPF
+            // added by calcEpf (e.g. ceil(133.98) = 134) and the AR
+            // EPF subtracted when computing thisMonthEpf for PCB
+            // (e.g. round2(133.98) = 133.98) — the leftover 0.02
+            // cents leaks into K1 (e.g. K1 = 451.02 instead of 451).
             if (meta.subjectToEpf) {
               const rate = profile.epfEmployeeRate || settings.defaultEpfEmployeeRate
-              pcbAdditionalRemunerationEpf += round2(amt * (rate / 100))
+              pcbAdditionalRemunerationEpf += Math.ceil(amt * (rate / 100))
             }
           } else {
             pcbAdjustmentBase += pcbTaxable
