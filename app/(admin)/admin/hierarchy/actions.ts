@@ -279,6 +279,7 @@ export async function createHierarchyMemberAction(
     jobTitle: String(formData.get("jobTitle") ?? "").trim(),
     phone: String(formData.get("phone") ?? "").trim(),
     xeroConnectionId: xeroConnectionId ?? "",
+    joinDate: String(formData.get("joinDate") ?? "").trim(),
   }
   const session = await getCurrentSession()
 
@@ -313,6 +314,9 @@ export async function createHierarchyMemberAction(
     projectIds,
     policyId,
     leaveMethod,
+    // Trim to undefined so the Zod schema's `.optional()` path accepts
+    // it and the downstream parse-to-Date treats it as "skip".
+    joinDate: values.joinDate || undefined,
   })
 
   if (!parsed.success) {
