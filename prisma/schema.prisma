@@ -74,6 +74,14 @@ model Organization {
   /// SLA threshold (in minutes) used to flag a supervisor approval as
   /// "slow" in the supervisor performance card. Defaults to 60.
   supervisorSlaMinutes    Int                    @default(60)
+  /// When true, employees can apply for leave that hasn't yet accrued
+  /// — provided it WILL have accrued by the leave's start date (e.g.
+  /// in January book 6 days for June against a PRO_RATED entitlement
+  /// that monthly-accrues to 6 by then). When false (default), the
+  /// strict rule applies: requested days must fit within today's
+  /// balance. Only affects PRO_RATED leave types; LUMP_SUM is fully
+  /// credited at the start of the year so forecasting is a no-op.
+  allowForecastedLeaveApply Boolean              @default(false)
   adminMembers            AdminOrganization[]
   apiIntegrations         ApiIntegration[]
   chartAccounts           ChartOfAccount[]

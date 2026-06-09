@@ -6,6 +6,7 @@ import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { ensureDefaultLeaveTypesForOrg } from "@/modules/leave/application/services/leave-defaults.service"
 import { listLeaveTypes } from "@/modules/leave/application/services/leave-types.service"
 import { leaveRepository } from "@/modules/leave/infrastructure/leave-repository"
+import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
 import { policyRepository } from "@/modules/policy/infrastructure/policy.repository"
 
 export default async function AdminLeaveSettingsPage() {
@@ -19,14 +20,21 @@ export default async function AdminLeaveSettingsPage() {
   await ensureDefaultLeaveTypesForOrg(orgId)
 
   const year = new Date().getUTCFullYear()
-  const [leaveTypes, allPolicies, policyDefaultsRaw, employees, employeeEntitlements] =
-    await Promise.all([
-      listLeaveTypes(orgId, true),
-      policyRepository.listForOrganization(orgId),
-      leaveRepository.listPolicyDefaults(orgId),
-      leaveRepository.listEmployeesForLeaveSettings(orgId),
-      leaveRepository.listEmployeeEntitlementsForOrg(orgId, year),
-    ])
+  const [
+    leaveTypes,
+    allPolicies,
+    policyDefaultsRaw,
+    employees,
+    employeeEntitlements,
+    organization,
+  ] = await Promise.all([
+    listLeaveTypes(orgId, true),
+    policyRepository.listForOrganization(orgId),
+    leaveRepository.listPolicyDefaults(orgId),
+    leaveRepository.listEmployeesForLeaveSettings(orgId),
+    leaveRepository.listEmployeeEntitlementsForOrg(orgId, year),
+    organizationRepository.getOrganizationById(orgId),
+  ])
 
   // Settings UI only needs id/name/isDefault — strip the rest and drop
   // archived policies (matches the previous `archivedAt: null` filter).
@@ -59,6 +67,9 @@ export default async function AdminLeaveSettingsPage() {
       policyDefaults={policyDefaultsRaw}
       employees={employees}
       employeeEntitlements={employeeEntitlements}
+      allowForecastedLeaveApply={
+        organization?.allowForecastedLeaveApply ?? false
+      }
     />
   )
 }

@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react"
 import { Plus } from "lucide-react"
 
 import { formatDays } from "@/lib/utils"
+import { forecastAccruedOnDate } from "@/modules/leave/domain/accrual"
 
 import { editLeaveAction, submitLeaveAction } from "@/app/(employee)/employee/leave/actions"
 import { Badge } from "@/components/ui/badge"
@@ -94,6 +95,14 @@ export function EmployeeLeaveView(props: {
   year: number
   balances: BalanceRow[]
   applications: ApplicationRow[]
+  /// Employee's payroll-profile join date as ISO string. Used to forecast
+  /// PRO_RATED balances on the leave-apply form. Null when not set.
+  joinDate: string | null
+  /// Org-level toggle. When true, the leave-apply form shows the
+  /// projected available balance on the picked start date (for PRO_RATED
+  /// leave types) so employees know whether their forecasted request
+  /// will be accepted before submitting.
+  allowForecastedLeaveApply: boolean
 }) {
   const [applyOpen, setApplyOpen] = useState(false)
 
@@ -138,7 +147,12 @@ export function EmployeeLeaveView(props: {
             className="flex-1 overflow-y-auto pr-1"
             style={{ scrollbarGutter: "stable both-edges" }}
           >
-            <ApplyForm balances={props.balances} onSuccess={() => setApplyOpen(false)} />
+            <ApplyForm
+              balances={props.balances}
+              joinDate={props.joinDate}
+              allowForecastedLeaveApply={props.allowForecastedLeaveApply}
+              onSuccess={() => setApplyOpen(false)}
+            />
           </div>
         </DialogContent>
       </Dialog>
@@ -214,9 +228,19 @@ function BalancesCard({ balances }: { balances: BalanceRow[] }) {
 
 export function ApplyForm({
   balances,
+  joinDate,
+  allowForecastedLeaveApply,
   onSuccess,
 }: {
   balances: BalanceRow[]
+  /// ISO date string ("YYYY-MM-DD...") or null. Drives the PRO_RATED
+  /// forecast math when the org allows forecasted-apply.
+  joinDate: string | null
+  /// When true and the selected leave type is PRO_RATED, render an
+  /// extra "Available by <startDate>: X day(s)" hint below the current
+  /// balance so employees know how many days they'll actually have
+  /// accrued by the date they're applying for.
+  allowForecastedLeaveApply: boolean
   onSuccess?: () => void
 }) {
   const [leaveTypeId, setLeaveTypeId] = useState<string>(balances[0]?.leaveTypeId ?? "")
@@ -234,6 +258,33 @@ export function ApplyForm({
     () => balances.find((b) => b.leaveTypeId === leaveTypeId),
     [balances, leaveTypeId],
   )
+
+  /// "Available by <startDate>" hint for PRO_RATED entitlements. Mirrors
+  /// the server-side check in leave-application.service:
+  ///   forecastedAccrued = forecastAccruedOnDate(entitled, joinDate, asOf)
+  ///   availableByDate   = forecastedAccrued + carriedDays - usedDays
+  /// Returns null when the hint shouldn't render (org toggle off,
+  /// non-PRO_RATED leave type, missing inputs, or asOf <= today — in
+  /// which case the existing "Available balance" line is already
+  /// authoritative).
+  const forecastedAvailable = useMemo(() => {
+    if (!allowForecastedLeaveApply) return null
+    if (!selected || !selected.paid) return null
+    if (selected.accrualMethod !== "PRO_RATED") return null
+    if (!startDate) return null
+    const asOf = new Date(`${startDate}T00:00:00Z`)
+    if (!Number.isFinite(asOf.getTime())) return null
+    const today = new Date()
+    today.setUTCHours(0, 0, 0, 0)
+    if (asOf.getTime() <= today.getTime()) return null
+    const forecastedAccrued = forecastAccruedOnDate({
+      entitledDays: selected.entitledDays,
+      joinDate: joinDate ? new Date(joinDate) : null,
+      asOf,
+    })
+    const carry = selected.carriedExpired ? 0 : selected.carriedDays
+    return Math.max(0, forecastedAccrued + carry - selected.usedDays)
+  }, [allowForecastedLeaveApply, selected, startDate, joinDate])
 
   const sameDay = startDate !== "" && startDate === endDate
   const effectiveDuration: "FULL_DAY" | "MORNING" | "AFTERNOON" =
@@ -283,6 +334,12 @@ export function ApplyForm({
                 : `Unpaid leave · ${formatDays(selected.usedDays)} day${selected.usedDays === 1 ? "" : "s"} used so far`}
             </p>
           )}
+          {forecastedAvailable !== null && startDate ? (
+            <p className="text-xs text-primary mt-0.5">
+              Available by {startDate}: {formatDays(forecastedAvailable)} day
+              {forecastedAvailable === 1 ? "" : "s"}
+            </p>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">

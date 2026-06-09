@@ -107,6 +107,42 @@ export async function resolveAccrualMethod(
   return (type?.accrualMethod ?? "LUMP_SUM") as LeaveAccrualMethod
 }
 
+/// Like `resolveAccrualMethod` but skips the LeaveEntitlement row's own
+/// `accrualMethod` field. Used when the admin is about to clear the
+/// per-employee override and we need to see what the row will resolve
+/// to AFTER the clear (policy override → type default), without the
+/// current row's value masking the answer.
+async function resolveAccrualMethodWithoutRow(
+  employeeId: string,
+  leaveTypeId: string,
+): Promise<LeaveAccrualMethod> {
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) return "LUMP_SUM"
+  const [type, employee] = await Promise.all([
+    prisma.leaveType.findUnique({
+      where: { id: leaveTypeId },
+      select: { accrualMethod: true, code: true },
+    }),
+    prisma.employeeProfile.findUnique({
+      where: { id: employeeId },
+      select: { policyId: true },
+    }),
+  ])
+  if (!isAnnualCode(type?.code)) return "LUMP_SUM"
+  if (employee?.policyId) {
+    const policyOverride = await prisma.policyLeaveEntitlement.findUnique({
+      where: {
+        policyId_leaveTypeId: { policyId: employee.policyId, leaveTypeId },
+      },
+      select: { accrualMethod: true },
+    })
+    if (policyOverride?.accrualMethod) {
+      return policyOverride.accrualMethod as LeaveAccrualMethod
+    }
+  }
+  return (type?.accrualMethod ?? "LUMP_SUM") as LeaveAccrualMethod
+}
+
 /// True iff this leave-type code identifies the Annual leave type.
 /// Single source of truth for the ANNUAL-only PRO_RATED rule — every
 /// other entry point reuses this so the constraint is consistent.
@@ -293,21 +329,57 @@ export async function setEmployeeEntitlement(
   if (entitledDays < 0) throw new Error("Entitled days cannot be negative")
   const existing = await ensureEntitlement(employeeId, leaveTypeId, year)
 
-  // Resolve the effective method AFTER any update we're about to make,
-  // so the accrued-days recompute matches what consumers will see going
-  // forward. If the caller passed an explicit method, use that;
-  // otherwise re-resolve via the chain.
-  const effectiveMethod =
-    accrualMethod !== undefined && accrualMethod !== null
-      ? accrualMethod
-      : await resolveAccrualMethod(employeeId, leaveTypeId, year)
+  // Resolve the OLD effective method BEFORE we write so we can detect
+  // a transition (LUMP_SUM → PRO_RATED requires reseeding accruedDays
+  // from scratch; just capping the old value would leave the employee
+  // sitting on the LUMP_SUM full quota).
+  const previousEffectiveMethod = await resolveAccrualMethod(
+    employeeId,
+    leaveTypeId,
+    year,
+  )
 
-  // For LUMP_SUM the accrued mirrors entitled; for PRO_RATED accrued is
-  // capped at the new entitled (don't go above the new ceiling).
-  const accruedDays =
-    effectiveMethod === "PRO_RATED"
-      ? Math.min(existing.accruedDays, entitledDays)
-      : entitledDays
+  // Resolve the effective method AFTER the update:
+  //   - explicit method passed → use it
+  //   - null → admin clears the override; re-resolve through policy/type
+  //     (skipping the row's own value, which is about to be nulled)
+  //   - undefined → leave the existing per-employee value untouched,
+  //     so the resolved value is the same as the previous one.
+  let newEffectiveMethod: LeaveAccrualMethod
+  if (accrualMethod !== undefined && accrualMethod !== null) {
+    newEffectiveMethod = accrualMethod
+  } else if (accrualMethod === null) {
+    newEffectiveMethod = await resolveAccrualMethodWithoutRow(
+      employeeId,
+      leaveTypeId,
+    )
+  } else {
+    newEffectiveMethod = previousEffectiveMethod
+  }
+
+  let accruedDays: number
+  if (newEffectiveMethod === "PRO_RATED") {
+    if (previousEffectiveMethod !== "PRO_RATED") {
+      // Transitioning INTO PRO_RATED — reseed accruedDays via the
+      // join-date-aware backfill (same math as the initial seed and the
+      // joinDate-change recompute). Without this, the row keeps the
+      // LUMP_SUM full quota and the employee appears fully accrued.
+      const joinDate = await leaveRepository.getEmployeeJoinDate(employeeId)
+      accruedDays = initialProRatedAccrual({
+        entitledDays,
+        joinDate,
+        targetYear: year,
+        now: new Date(),
+      })
+    } else {
+      // Already PRO_RATED — preserve progress, capped at the new
+      // entitled ceiling (admin may have reduced entitledDays).
+      accruedDays = Math.min(existing.accruedDays, entitledDays)
+    }
+  } else {
+    // LUMP_SUM (or anything non-PRO_RATED) — fully credit.
+    accruedDays = entitledDays
+  }
 
   return leaveRepository.upsertEntitlement({
     employeeId,

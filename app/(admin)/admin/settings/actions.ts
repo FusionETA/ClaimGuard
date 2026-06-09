@@ -1608,6 +1608,64 @@ export async function toggleOrgOtAction(
   return { ok: true, message: enabled ? "Overtime enabled." : "Overtime disabled." }
 }
 
+/**
+ * Toggle the org's "allow forecasted leave apply" switch. When on,
+ * the leave-application validation projects PRO_RATED entitlements
+ * onto the leave start date instead of using today's accruedDays.
+ */
+export async function toggleOrgForecastedLeaveApplyAction(
+  enabled: boolean
+): Promise<{ ok: boolean; message: string }> {
+  const session = await getCurrentSession()
+  if (!session || !isAdminRole(session.role)) {
+    return { ok: false, message: "Session expired. Please log in again." }
+  }
+  const organizationId = resolveActiveOrgId(session)
+  if (!organizationId) return { ok: false, message: "No organization found." }
+
+  try {
+    await organizationRepository.setOrganizationAllowForecastedLeaveApply(
+      organizationId,
+      enabled,
+    )
+  } catch (error) {
+    return {
+      ok: false,
+      message: safeErrorMessage(
+        error,
+        "Unable to update forecasted-leave setting.",
+      ),
+    }
+  }
+
+  void writeAudit({
+    organizationId,
+    actor: {
+      userId: session.userId,
+      email: session.email,
+      name: session.name,
+      role: session.role,
+    },
+    action: enabled
+      ? "settings.leave.forecast.enable"
+      : "settings.leave.forecast.disable",
+    status: "SUCCESS",
+    summary: enabled
+      ? "Enabled forecasted leave applications"
+      : "Disabled forecasted leave applications",
+    targetType: "organization",
+    targetId: organizationId,
+  })
+
+  await revalidateAdminSurfaces(organizationId)
+  return {
+    ok: true,
+    message: enabled
+      ? "Forecasted leave applications enabled."
+      : "Forecasted leave applications disabled.",
+  }
+}
+
 export async function saveSupervisorReportSettingsAction(
   enabled: boolean,
   slaMinutes: number,
