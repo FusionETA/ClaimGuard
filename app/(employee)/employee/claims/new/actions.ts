@@ -62,6 +62,7 @@ export async function submitClaimAction(
       formData.get("mileageDestinationAddress") ?? ""
     ),
     spendingWith: String(formData.get("spendingWith") ?? ""),
+    spendingAt: String(formData.get("spendingAt") ?? ""),
   }
 
   // Build the payload Zod will see — for mileage, omit `amount` so the
@@ -80,6 +81,7 @@ export async function submitClaimAction(
           payViaAccountId: values.payViaAccountId || undefined,
           projectId: values.projectId || undefined,
           spendingWith: values.spendingWith || undefined,
+          spendingAt: values.spendingAt || undefined,
           distance: values.distance,
           mileageOriginAddress: values.mileageOriginAddress,
           mileageDestinationAddress: values.mileageDestinationAddress,
@@ -97,6 +99,7 @@ export async function submitClaimAction(
           payViaAccountId: values.payViaAccountId || undefined,
           projectId: values.projectId || undefined,
           spendingWith: values.spendingWith || undefined,
+          spendingAt: values.spendingAt || undefined,
         }
 
   // Validate form fields.
@@ -132,6 +135,7 @@ export async function submitClaimAction(
         distance: fieldErrors.distance?.[0],
         mileageOriginAddress: fieldErrors.mileageOriginAddress?.[0],
         mileageDestinationAddress: fieldErrors.mileageDestinationAddress?.[0],
+        spendingAt: fieldErrors.spendingAt?.[0],
       },
     }
   }
@@ -170,6 +174,7 @@ export async function submitClaimAction(
             payViaAccountId: parsed.data.payViaAccountId,
             projectId: parsed.data.projectId,
             spendingWith: parsed.data.spendingWith,
+            spendingAt: parsed.data.spendingAt,
             claimType: "MILEAGE",
             distance: parsed.data.distance,
             mileageOriginAddress: parsed.data.mileageOriginAddress,
@@ -187,6 +192,7 @@ export async function submitClaimAction(
             payViaAccountId: parsed.data.payViaAccountId,
             projectId: parsed.data.projectId,
             spendingWith: parsed.data.spendingWith,
+            spendingAt: parsed.data.spendingAt,
             claimType: "EXPENSE",
           },
   })

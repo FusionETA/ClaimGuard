@@ -358,6 +358,7 @@ export const ClaimScalarFieldEnum = {
   exceedsLimit: 'exceedsLimit',
   xeroFileId: 'xeroFileId',
   spendingWith: 'spendingWith',
+  spendingAt: 'spendingAt',
   xeroSpendMoneyId: 'xeroSpendMoneyId',
   xeroSpendMoneyRef: 'xeroSpendMoneyRef'
 } as const
@@ -1308,6 +1309,7 @@ export const ClaimOrderByRelevanceFieldEnum = {
   projectId: 'projectId',
   xeroFileId: 'xeroFileId',
   spendingWith: 'spendingWith',
+  spendingAt: 'spendingAt',
   xeroSpendMoneyId: 'xeroSpendMoneyId',
   xeroSpendMoneyRef: 'xeroSpendMoneyRef'
 } as const

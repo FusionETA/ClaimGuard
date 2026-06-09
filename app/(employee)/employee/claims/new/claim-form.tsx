@@ -187,6 +187,14 @@ export function ClaimForm({
   const [spendingWithInput, setSpendingWithInput] = useState(
     state?.values?.spendingWith ?? "",
   )
+  /// Free-text "where the money was spent" — the merchant / vendor /
+  /// restaurant name from the receipt. REQUIRED for COMPANY money
+  /// (the Zod superRefine in claim-workflow.service.ts enforces this);
+  /// optional for PERSONAL. Becomes the Xero Spend Money Contact for
+  /// COMPANY claims.
+  const [spendingAtInput, setSpendingAtInput] = useState(
+    state?.values?.spendingAt ?? "",
+  )
   /// Supporting documents the user picks. Controlled list since the
   /// browser's native multi-file input is awkward when the user wants
   /// to add files in two separate clicks. We keep our own list and
@@ -221,6 +229,7 @@ export function ClaimForm({
       setAmountInput("")
       setDescriptionInput("")
       setSpendingWithInput("")
+      setSpendingAtInput("")
       setSupportingFiles([])
       setCurrency(defaultCurrency ?? allowedCurrencies[0] ?? "MYR")
       onSuccess?.()
@@ -681,6 +690,31 @@ export function ClaimForm({
       )}
 
       <div className="space-y-2">
+        <Label htmlFor="spendingAt">
+          Spending at{" "}
+          {paymentType === "COMPANY" ? (
+            <span className="text-xs font-normal text-rose-600 dark:text-rose-400">
+              — required
+            </span>
+          ) : (
+            <span className="text-xs font-normal text-muted-foreground">
+              — optional
+            </span>
+          )}
+        </Label>
+        <Input
+          id="spendingAt"
+          name="spendingAt"
+          placeholder="e.g. Starbucks KLCC, Office Depot, Acme Hardware Sdn Bhd"
+          value={spendingAtInput}
+          maxLength={200}
+          onChange={(event) => setSpendingAtInput(event.target.value)}
+          aria-invalid={state?.errors?.spendingAt ? "true" : undefined}
+        />
+        <FieldError message={state?.errors?.spendingAt} />
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="spendingWith">
           Spending with{" "}
           <span className="text-xs font-normal text-muted-foreground">
@@ -690,15 +724,11 @@ export function ClaimForm({
         <Input
           id="spendingWith"
           name="spendingWith"
-          placeholder="e.g. ABC Client Sdn Bhd, TechMart Supplies, Internal team lunch"
+          placeholder="e.g. ABC Client Sdn Bhd, internal team lunch, vendor rep"
           value={spendingWithInput}
           maxLength={200}
           onChange={(event) => setSpendingWithInput(event.target.value)}
         />
-        <p className="text-[11px] text-muted-foreground">
-          Who you spent this money with — a client, vendor, or internal
-          team. Leave blank if not applicable.
-        </p>
       </div>
 
       <div className="space-y-2">
