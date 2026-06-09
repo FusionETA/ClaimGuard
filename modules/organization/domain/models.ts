@@ -74,6 +74,11 @@ export type OrganizationSummary = {
   supervisorReportEnabled: boolean
   /// SLA in minutes for flagging an approval as "slow" (event-to-review).
   supervisorSlaMinutes: number
+  /// When true, employees can apply for PRO_RATED leave that hasn't yet
+  /// accrued — as long as it WILL have accrued by the leave's start
+  /// date. When false (default), the strict rule applies: requested
+  /// days must fit within today's balance.
+  allowForecastedLeaveApply: boolean
 }
 
 export type AdminOrganizationOption = {

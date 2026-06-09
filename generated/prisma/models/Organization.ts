@@ -56,6 +56,7 @@ export type OrganizationMinAggregateOutputType = {
   defaultCurrency: string | null
   supervisorReportEnabled: boolean | null
   supervisorSlaMinutes: number | null
+  allowForecastedLeaveApply: boolean | null
 }
 
 export type OrganizationMaxAggregateOutputType = {
@@ -74,6 +75,7 @@ export type OrganizationMaxAggregateOutputType = {
   defaultCurrency: string | null
   supervisorReportEnabled: boolean | null
   supervisorSlaMinutes: number | null
+  allowForecastedLeaveApply: boolean | null
 }
 
 export type OrganizationCountAggregateOutputType = {
@@ -93,6 +95,7 @@ export type OrganizationCountAggregateOutputType = {
   defaultCurrency: number
   supervisorReportEnabled: number
   supervisorSlaMinutes: number
+  allowForecastedLeaveApply: number
   _all: number
 }
 
@@ -127,6 +130,7 @@ export type OrganizationMinAggregateInputType = {
   defaultCurrency?: true
   supervisorReportEnabled?: true
   supervisorSlaMinutes?: true
+  allowForecastedLeaveApply?: true
 }
 
 export type OrganizationMaxAggregateInputType = {
@@ -145,6 +149,7 @@ export type OrganizationMaxAggregateInputType = {
   defaultCurrency?: true
   supervisorReportEnabled?: true
   supervisorSlaMinutes?: true
+  allowForecastedLeaveApply?: true
 }
 
 export type OrganizationCountAggregateInputType = {
@@ -164,6 +169,7 @@ export type OrganizationCountAggregateInputType = {
   defaultCurrency?: true
   supervisorReportEnabled?: true
   supervisorSlaMinutes?: true
+  allowForecastedLeaveApply?: true
   _all?: true
 }
 
@@ -270,6 +276,7 @@ export type OrganizationGroupByOutputType = {
   defaultCurrency: string | null
   supervisorReportEnabled: boolean
   supervisorSlaMinutes: number
+  allowForecastedLeaveApply: boolean
   _count: OrganizationCountAggregateOutputType | null
   _avg: OrganizationAvgAggregateOutputType | null
   _sum: OrganizationSumAggregateOutputType | null
@@ -312,6 +319,7 @@ export type OrganizationWhereInput = {
   defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
   supervisorReportEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   supervisorSlaMinutes?: Prisma.IntFilter<"Organization"> | number
+  allowForecastedLeaveApply?: Prisma.BoolFilter<"Organization"> | boolean
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
@@ -346,6 +354,7 @@ export type OrganizationOrderByWithRelationInput = {
   defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
   supervisorSlaMinutes?: Prisma.SortOrder
+  allowForecastedLeaveApply?: Prisma.SortOrder
   adminMembers?: Prisma.AdminOrganizationOrderByRelationAggregateInput
   apiIntegrations?: Prisma.ApiIntegrationOrderByRelationAggregateInput
   chartAccounts?: Prisma.ChartOfAccountOrderByRelationAggregateInput
@@ -384,6 +393,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   defaultCurrency?: Prisma.StringNullableFilter<"Organization"> | string | null
   supervisorReportEnabled?: Prisma.BoolFilter<"Organization"> | boolean
   supervisorSlaMinutes?: Prisma.IntFilter<"Organization"> | number
+  allowForecastedLeaveApply?: Prisma.BoolFilter<"Organization"> | boolean
   adminMembers?: Prisma.AdminOrganizationListRelationFilter
   apiIntegrations?: Prisma.ApiIntegrationListRelationFilter
   chartAccounts?: Prisma.ChartOfAccountListRelationFilter
@@ -418,6 +428,7 @@ export type OrganizationOrderByWithAggregationInput = {
   defaultCurrency?: Prisma.SortOrderInput | Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
   supervisorSlaMinutes?: Prisma.SortOrder
+  allowForecastedLeaveApply?: Prisma.SortOrder
   _count?: Prisma.OrganizationCountOrderByAggregateInput
   _avg?: Prisma.OrganizationAvgOrderByAggregateInput
   _max?: Prisma.OrganizationMaxOrderByAggregateInput
@@ -445,6 +456,7 @@ export type OrganizationScalarWhereWithAggregatesInput = {
   defaultCurrency?: Prisma.StringNullableWithAggregatesFilter<"Organization"> | string | null
   supervisorReportEnabled?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
   supervisorSlaMinutes?: Prisma.IntWithAggregatesFilter<"Organization"> | number
+  allowForecastedLeaveApply?: Prisma.BoolWithAggregatesFilter<"Organization"> | boolean
 }
 
 export type OrganizationCreateInput = {
@@ -464,6 +476,7 @@ export type OrganizationCreateInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -498,6 +511,7 @@ export type OrganizationUncheckedCreateInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -532,6 +546,7 @@ export type OrganizationUpdateInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -566,6 +581,7 @@ export type OrganizationUncheckedUpdateInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -600,6 +616,7 @@ export type OrganizationCreateManyInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
 }
 
 export type OrganizationUpdateManyMutationInput = {
@@ -619,6 +636,7 @@ export type OrganizationUpdateManyMutationInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrganizationUncheckedUpdateManyInput = {
@@ -638,6 +656,7 @@ export type OrganizationUncheckedUpdateManyInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type OrganizationNullableScalarRelationFilter = {
@@ -668,6 +687,7 @@ export type OrganizationCountOrderByAggregateInput = {
   defaultCurrency?: Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
   supervisorSlaMinutes?: Prisma.SortOrder
+  allowForecastedLeaveApply?: Prisma.SortOrder
 }
 
 export type OrganizationAvgOrderByAggregateInput = {
@@ -693,6 +713,7 @@ export type OrganizationMaxOrderByAggregateInput = {
   defaultCurrency?: Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
   supervisorSlaMinutes?: Prisma.SortOrder
+  allowForecastedLeaveApply?: Prisma.SortOrder
 }
 
 export type OrganizationMinOrderByAggregateInput = {
@@ -711,6 +732,7 @@ export type OrganizationMinOrderByAggregateInput = {
   defaultCurrency?: Prisma.SortOrder
   supervisorReportEnabled?: Prisma.SortOrder
   supervisorSlaMinutes?: Prisma.SortOrder
+  allowForecastedLeaveApply?: Prisma.SortOrder
 }
 
 export type OrganizationSumOrderByAggregateInput = {
@@ -980,6 +1002,7 @@ export type OrganizationCreateWithoutUsersInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -1013,6 +1036,7 @@ export type OrganizationUncheckedCreateWithoutUsersInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1062,6 +1086,7 @@ export type OrganizationUpdateWithoutUsersInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -1095,6 +1120,7 @@ export type OrganizationUncheckedUpdateWithoutUsersInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1128,6 +1154,7 @@ export type OrganizationCreateWithoutEmployeePoliciesInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -1161,6 +1188,7 @@ export type OrganizationUncheckedCreateWithoutEmployeePoliciesInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1210,6 +1238,7 @@ export type OrganizationUpdateWithoutEmployeePoliciesInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -1243,6 +1272,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeePoliciesInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1276,6 +1306,7 @@ export type OrganizationCreateWithoutApiIntegrationsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1309,6 +1340,7 @@ export type OrganizationUncheckedCreateWithoutApiIntegrationsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1358,6 +1390,7 @@ export type OrganizationUpdateWithoutApiIntegrationsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1391,6 +1424,7 @@ export type OrganizationUncheckedUpdateWithoutApiIntegrationsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1424,6 +1458,7 @@ export type OrganizationCreateWithoutAdminMembersInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1457,6 +1492,7 @@ export type OrganizationUncheckedCreateWithoutAdminMembersInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1506,6 +1542,7 @@ export type OrganizationUpdateWithoutAdminMembersInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1539,6 +1576,7 @@ export type OrganizationUncheckedUpdateWithoutAdminMembersInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1572,6 +1610,7 @@ export type OrganizationCreateWithoutEmployeeImportDraftsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -1605,6 +1644,7 @@ export type OrganizationUncheckedCreateWithoutEmployeeImportDraftsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1654,6 +1694,7 @@ export type OrganizationUpdateWithoutEmployeeImportDraftsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -1687,6 +1728,7 @@ export type OrganizationUncheckedUpdateWithoutEmployeeImportDraftsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1720,6 +1762,7 @@ export type OrganizationCreateWithoutClaimsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -1753,6 +1796,7 @@ export type OrganizationUncheckedCreateWithoutClaimsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1802,6 +1846,7 @@ export type OrganizationUpdateWithoutClaimsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -1835,6 +1880,7 @@ export type OrganizationUncheckedUpdateWithoutClaimsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -1868,6 +1914,7 @@ export type OrganizationCreateWithoutChartAccountsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimCreateNestedManyWithoutOrganizationInput
@@ -1901,6 +1948,7 @@ export type OrganizationUncheckedCreateWithoutChartAccountsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   claims?: Prisma.ClaimUncheckedCreateNestedManyWithoutOrganizationInput
@@ -1950,6 +1998,7 @@ export type OrganizationUpdateWithoutChartAccountsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUpdateManyWithoutOrganizationNestedInput
@@ -1983,6 +2032,7 @@ export type OrganizationUncheckedUpdateWithoutChartAccountsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   claims?: Prisma.ClaimUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2016,6 +2066,7 @@ export type OrganizationCreateWithoutXeroConnectionInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -2049,6 +2100,7 @@ export type OrganizationUncheckedCreateWithoutXeroConnectionInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2098,6 +2150,7 @@ export type OrganizationUpdateWithoutXeroConnectionInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -2131,6 +2184,7 @@ export type OrganizationUncheckedUpdateWithoutXeroConnectionInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2164,6 +2218,7 @@ export type OrganizationCreateWithoutProjectsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -2197,6 +2252,7 @@ export type OrganizationUncheckedCreateWithoutProjectsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2246,6 +2302,7 @@ export type OrganizationUpdateWithoutProjectsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -2279,6 +2336,7 @@ export type OrganizationUncheckedUpdateWithoutProjectsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2312,6 +2370,7 @@ export type OrganizationCreateWithoutPayrollSettingsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -2345,6 +2404,7 @@ export type OrganizationUncheckedCreateWithoutPayrollSettingsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2394,6 +2454,7 @@ export type OrganizationUpdateWithoutPayrollSettingsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -2427,6 +2488,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollSettingsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2460,6 +2522,7 @@ export type OrganizationCreateWithoutPayrollCompanyInfoInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -2493,6 +2556,7 @@ export type OrganizationUncheckedCreateWithoutPayrollCompanyInfoInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2542,6 +2606,7 @@ export type OrganizationUpdateWithoutPayrollCompanyInfoInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -2575,6 +2640,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollCompanyInfoInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2608,6 +2674,7 @@ export type OrganizationCreateWithoutPayrollRunsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -2641,6 +2708,7 @@ export type OrganizationUncheckedCreateWithoutPayrollRunsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2690,6 +2758,7 @@ export type OrganizationUpdateWithoutPayrollRunsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -2723,6 +2792,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollRunsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2756,6 +2826,7 @@ export type OrganizationCreateWithoutPayrollAnnualReportsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -2789,6 +2860,7 @@ export type OrganizationUncheckedCreateWithoutPayrollAnnualReportsInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2838,6 +2910,7 @@ export type OrganizationUpdateWithoutPayrollAnnualReportsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -2871,6 +2944,7 @@ export type OrganizationUncheckedUpdateWithoutPayrollAnnualReportsInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -2904,6 +2978,7 @@ export type OrganizationCreateWithoutLeaveTypesInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -2937,6 +3012,7 @@ export type OrganizationUncheckedCreateWithoutLeaveTypesInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -2986,6 +3062,7 @@ export type OrganizationUpdateWithoutLeaveTypesInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -3019,6 +3096,7 @@ export type OrganizationUncheckedUpdateWithoutLeaveTypesInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -3052,6 +3130,7 @@ export type OrganizationCreateWithoutAuditLogInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountCreateNestedManyWithoutOrganizationInput
@@ -3085,6 +3164,7 @@ export type OrganizationUncheckedCreateWithoutAuditLogInput = {
   defaultCurrency?: string | null
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: number
+  allowForecastedLeaveApply?: boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedCreateNestedManyWithoutOrganizationInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedCreateNestedManyWithoutOrganizationInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedCreateNestedManyWithoutOrganizationInput
@@ -3134,6 +3214,7 @@ export type OrganizationUpdateWithoutAuditLogInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUpdateManyWithoutOrganizationNestedInput
@@ -3167,6 +3248,7 @@ export type OrganizationUncheckedUpdateWithoutAuditLogInput = {
   defaultCurrency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supervisorReportEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   supervisorSlaMinutes?: Prisma.IntFieldUpdateOperationsInput | number
+  allowForecastedLeaveApply?: Prisma.BoolFieldUpdateOperationsInput | boolean
   adminMembers?: Prisma.AdminOrganizationUncheckedUpdateManyWithoutOrganizationNestedInput
   apiIntegrations?: Prisma.ApiIntegrationUncheckedUpdateManyWithoutOrganizationNestedInput
   chartAccounts?: Prisma.ChartOfAccountUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -3330,6 +3412,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   defaultCurrency?: boolean
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: boolean
+  allowForecastedLeaveApply?: boolean
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
   chartAccounts?: boolean | Prisma.Organization$chartAccountsArgs<ExtArgs>
@@ -3367,9 +3450,10 @@ export type OrganizationSelectScalar = {
   defaultCurrency?: boolean
   supervisorReportEnabled?: boolean
   supervisorSlaMinutes?: boolean
+  allowForecastedLeaveApply?: boolean
 }
 
-export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "allowedCurrencies" | "defaultCurrency" | "supervisorReportEnabled" | "supervisorSlaMinutes", ExtArgs["result"]["organization"]>
+export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "claimCutoffDay" | "createdAt" | "updatedAt" | "workingHoursEnd" | "workingHoursStart" | "geofenceRadiusMeters" | "defaultMileageRate" | "mileageUnit" | "otEnabled" | "timezone" | "allowedCurrencies" | "defaultCurrency" | "supervisorReportEnabled" | "supervisorSlaMinutes" | "allowForecastedLeaveApply", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   adminMembers?: boolean | Prisma.Organization$adminMembersArgs<ExtArgs>
   apiIntegrations?: boolean | Prisma.Organization$apiIntegrationsArgs<ExtArgs>
@@ -3446,6 +3530,16 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
      * "slow" in the supervisor performance card. Defaults to 60.
      */
     supervisorSlaMinutes: number
+    /**
+     * When true, employees can apply for leave that hasn't yet accrued
+     * — provided it WILL have accrued by the leave's start date (e.g.
+     * in January book 6 days for June against a PRO_RATED entitlement
+     * that monthly-accrues to 6 by then). When false (default), the
+     * strict rule applies: requested days must fit within today's
+     * balance. Only affects PRO_RATED leave types; LUMP_SUM is fully
+     * credited at the start of the year so forecasting is a no-op.
+     */
+    allowForecastedLeaveApply: boolean
   }, ExtArgs["result"]["organization"]>
   composites: {}
 }
@@ -3846,6 +3940,7 @@ export interface OrganizationFieldRefs {
   readonly defaultCurrency: Prisma.FieldRef<"Organization", 'String'>
   readonly supervisorReportEnabled: Prisma.FieldRef<"Organization", 'Boolean'>
   readonly supervisorSlaMinutes: Prisma.FieldRef<"Organization", 'Int'>
+  readonly allowForecastedLeaveApply: Prisma.FieldRef<"Organization", 'Boolean'>
 }
     
 

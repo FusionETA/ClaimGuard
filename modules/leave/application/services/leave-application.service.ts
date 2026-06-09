@@ -2,11 +2,15 @@ import "server-only"
 
 import { bustLeaveCaches } from "@/lib/cache-invalidation"
 import { parseWorkingDays } from "@/modules/attendance/domain/hours-summary"
-import { computeTotalDays } from "@/modules/leave/domain/accrual"
+import {
+  computeTotalDays,
+  forecastAccruedOnDate,
+} from "@/modules/leave/domain/accrual"
 import type {
   LeaveApplicationView,
   LeaveApprovalEntry,
   LeaveDuration,
+  LeaveEntitlementView,
 } from "@/modules/leave/domain/models"
 import {
   getLeavePrismaClient,
@@ -22,6 +26,63 @@ import {
   ensureEntitlement,
   listEmployeeBalances,
 } from "./leave-entitlements.service"
+
+/**
+ * Compute the "effective available days" used to gate a leave
+ * application. When the employee's org has
+ * `allowForecastedLeaveApply = true` AND the leave type uses
+ * `PRO_RATED` accrual, we substitute the live `accruedDays` for a
+ * forecast computed at the leave's `startDate` — letting employees
+ * apply for days that haven't accrued yet but WILL by then. Otherwise
+ * the existing `balance.availableDays` is returned unchanged. Carried
+ * (non-expired) days and used days are kept from the live row.
+ *
+ * Returns `{ available, forecasted, asOf }`: `forecasted` true means
+ * the forecast path was taken (used by the caller to phrase the
+ * error message differently).
+ */
+async function effectiveAvailableDaysFor(args: {
+  employeeProfileId: string
+  balance: LeaveEntitlementView
+  startDate: Date
+}): Promise<{ available: number; forecasted: boolean; asOf: Date }> {
+  const { balance, startDate } = args
+  if (balance.accrualMethod !== "PRO_RATED") {
+    return { available: balance.availableDays, forecasted: false, asOf: startDate }
+  }
+  const prisma = getLeavePrismaClientSafe()
+  if (!prisma) {
+    return { available: balance.availableDays, forecasted: false, asOf: startDate }
+  }
+  const profile = await prisma.employeeProfile.findUnique({
+    where: { id: args.employeeProfileId },
+    select: {
+      user: {
+        select: {
+          organization: { select: { allowForecastedLeaveApply: true } },
+        },
+      },
+    },
+  })
+  const allowForecast =
+    profile?.user.organization?.allowForecastedLeaveApply === true
+  if (!allowForecast) {
+    return { available: balance.availableDays, forecasted: false, asOf: startDate }
+  }
+  const joinDate = await leaveRepository.getEmployeeJoinDate(
+    args.employeeProfileId,
+  )
+  const forecastedAccrued = forecastAccruedOnDate({
+    entitledDays: balance.entitledDays,
+    joinDate,
+    asOf: startDate,
+  })
+  // Mirror availableDaysFor's PRO_RATED math, swapping accrued for
+  // the forecasted value. Expired-carried days still don't count.
+  const carry = balance.carriedExpired ? 0 : balance.carriedDays
+  const available = Math.max(0, forecastedAccrued + carry - balance.usedDays)
+  return { available, forecasted: true, asOf: startDate }
+}
 
 export type SubmitLeaveInput = {
   /// EmployeeProfile.id (NOT user.id) of the applicant.
@@ -116,10 +177,18 @@ export async function submitLeaveApplication(
     const balances = await listEmployeeBalances(input.employeeProfileId, year)
     const balance = balances.find((b) => b.leaveTypeId === input.leaveTypeId)
     if (!balance) return { ok: false, error: "No entitlement row for this leave type" }
-    if (totalDays > balance.availableDays + 0.0001) {
+    const eff = await effectiveAvailableDaysFor({
+      employeeProfileId: input.employeeProfileId,
+      balance,
+      startDate: input.startDate,
+    })
+    if (totalDays > eff.available + 0.0001) {
+      const rounded = Math.round(eff.available * 100) / 100
       return {
         ok: false,
-        error: `Insufficient balance: requesting ${totalDays} but only ${balance.availableDays} available`,
+        error: eff.forecasted
+          ? `Insufficient balance: requesting ${totalDays} day(s); even by your leave start date (${formatIsoDate(eff.asOf)}) you'll only have ${rounded} day(s) available.`
+          : `Insufficient balance: requesting ${totalDays} but only ${rounded} available`,
       }
     }
   }
@@ -238,10 +307,18 @@ export async function editLeaveApplication(
     const balances = await listEmployeeBalances(app.employeeId, year)
     const balance = balances.find((b) => b.leaveTypeId === input.leaveTypeId)
     if (!balance) return { ok: false, error: "No entitlement row for this leave type" }
-    if (totalDays > balance.availableDays + 0.0001) {
+    const eff = await effectiveAvailableDaysFor({
+      employeeProfileId: app.employeeId,
+      balance,
+      startDate: input.startDate,
+    })
+    if (totalDays > eff.available + 0.0001) {
+      const rounded = Math.round(eff.available * 100) / 100
       return {
         ok: false,
-        error: `Insufficient balance: requesting ${totalDays} but only ${balance.availableDays} available`,
+        error: eff.forecasted
+          ? `Insufficient balance: requesting ${totalDays} day(s); even by your leave start date (${formatIsoDate(eff.asOf)}) you'll only have ${rounded} day(s) available.`
+          : `Insufficient balance: requesting ${totalDays} but only ${rounded} available`,
       }
     }
   }
@@ -485,6 +562,16 @@ function sameDay(a: Date, b: Date): boolean {
     a.getUTCMonth() === b.getUTCMonth() &&
     a.getUTCDate() === b.getUTCDate()
   )
+}
+
+/// Format a Date as YYYY-MM-DD using UTC components — matches how
+/// leave start/end dates are stored and avoids local-tz drift in
+/// admin-visible error messages.
+function formatIsoDate(d: Date): string {
+  const y = d.getUTCFullYear()
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0")
+  const day = String(d.getUTCDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
 }
 
 async function userIdFromProfile(profileId: string): Promise<string> {

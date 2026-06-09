@@ -132,6 +132,25 @@ export function initialProRatedAccrual(args: {
   return Math.min(entitledDays, seeded)
 }
 
+/// Project a PRO_RATED entitlement's `accruedDays` value AS-OF an
+/// arbitrary future (or past) date. Reuses the same semantics as the
+/// initial-seed math, just with the target date passed in as `now` so
+/// callers can ask "how many days would this employee have on
+/// 2026-06-15?". Used by the forecasted-leave-apply check
+/// (`allowForecastedLeaveApply` org toggle).
+export function forecastAccruedOnDate(args: {
+  entitledDays: number
+  joinDate: Date | null
+  asOf: Date
+}): number {
+  return initialProRatedAccrual({
+    entitledDays: args.entitledDays,
+    joinDate: args.joinDate,
+    targetYear: args.asOf.getUTCFullYear(),
+    now: args.asOf,
+  })
+}
+
 /// Compute the carry-forward amount for next year, given this year's state.
 /// Only used for leave types where `carryForward = true`.
 ///

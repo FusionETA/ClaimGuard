@@ -146,7 +146,8 @@ export const OrganizationScalarFieldEnum = {
   allowedCurrencies: 'allowedCurrencies',
   defaultCurrency: 'defaultCurrency',
   supervisorReportEnabled: 'supervisorReportEnabled',
-  supervisorSlaMinutes: 'supervisorSlaMinutes'
+  supervisorSlaMinutes: 'supervisorSlaMinutes',
+  allowForecastedLeaveApply: 'allowForecastedLeaveApply'
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]

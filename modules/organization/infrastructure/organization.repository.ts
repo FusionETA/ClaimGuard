@@ -99,6 +99,7 @@ function mapOrganizationSummary(
         defaultCurrency?: string | null
         supervisorReportEnabled?: boolean | null
         supervisorSlaMinutes?: number | null
+        allowForecastedLeaveApply?: boolean | null
       }
     | null
 ): OrganizationSummary | undefined {
@@ -147,6 +148,7 @@ function mapOrganizationSummary(
         : undefined,
     supervisorReportEnabled: org.supervisorReportEnabled ?? true,
     supervisorSlaMinutes: org.supervisorSlaMinutes ?? 60,
+    allowForecastedLeaveApply: org.allowForecastedLeaveApply ?? false,
   }
 }
 
@@ -1171,6 +1173,24 @@ export const organizationRepository = {
     await prisma.organization.update({
       where: { id: organizationId },
       data: { otEnabled: enabled },
+    })
+  },
+
+  /**
+   * Toggle the org's "allow forecasted leave apply" master switch.
+   * When true, employees can apply for PRO_RATED leave that hasn't
+   * yet accrued provided it will by the leave's start date. When
+   * false (default), the strict balance check applies.
+   */
+  async setOrganizationAllowForecastedLeaveApply(
+    organizationId: string,
+    enabled: boolean,
+  ): Promise<void> {
+    const prisma = getPrismaClient()
+    if (!prisma) throw new Error("Database is not configured.")
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { allowForecastedLeaveApply: enabled },
     })
   },
 

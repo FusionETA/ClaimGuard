@@ -13,6 +13,7 @@ import {
   unarchiveLeaveTypeAction,
   updateLeaveTypeAction,
 } from "@/app/(admin)/admin/leave/settings/actions"
+import { toggleOrgForecastedLeaveApplyAction } from "@/app/(admin)/admin/settings/actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -93,6 +94,9 @@ export function LeaveSettingsView(props: {
   policyDefaults: PolicyDefault[]
   employees: EmployeeRow[]
   employeeEntitlements: EmployeeEntitlement[]
+  /// Org-level toggle: when true, employees can apply for PRO_RATED
+  /// leave that hasn't accrued yet but WILL by the leave start date.
+  allowForecastedLeaveApply: boolean
 }) {
   const [tab, setTab] = useState<Tab>("types")
   const [editingType, setEditingType] = useState<LeaveTypeRow | "new" | null>(null)
@@ -138,6 +142,9 @@ export function LeaveSettingsView(props: {
             <AnnualProrateFirstYearCard annualType={annualType} />
           )}
           {annualType && <AnnualLeaveCard annualType={annualType} />}
+          <ForecastedLeaveApplyCard
+            initialEnabled={props.allowForecastedLeaveApply}
+          />
         </>
       )}
 
@@ -373,6 +380,61 @@ function AnnualProrateFirstYearCard({
         {error && (
           <p className="mt-2 text-sm text-destructive">{error}</p>
         )}
+      </CardContent>
+    </Card>
+  )
+}
+
+/// Org-wide switch that lets employees apply for PRO_RATED leave
+/// that hasn't accrued yet but WILL by the leave's start date. When
+/// OFF (default), the strict balance rule applies.
+function ForecastedLeaveApplyCard({
+  initialEnabled,
+}: {
+  initialEnabled: boolean
+}) {
+  const [enabled, setEnabled] = useState(initialEnabled)
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  function flip(next: boolean) {
+    setEnabled(next)
+    setError(null)
+    startTransition(async () => {
+      const res = await toggleOrgForecastedLeaveApplyAction(next)
+      if (!res.ok) {
+        setError(res.message)
+        setEnabled(!next)
+      }
+    })
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Forecasted leave applications</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Let employees apply for pro-rated leave that will accrue by
+          the leave&apos;s start date — instead of strictly checking
+          against today&apos;s balance. Only affects PRO_RATED leave
+          types; LUMP_SUM is unaffected.
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-foreground">
+              Allow forecasted apply
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Example: in January an employee with 1 day accrued can book
+              6 days for June, because the monthly accrual will have
+              credited them by then.
+            </p>
+          </div>
+          <Switch enabled={enabled} pending={pending} onChange={flip} />
+        </div>
+        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
       </CardContent>
     </Card>
   )
