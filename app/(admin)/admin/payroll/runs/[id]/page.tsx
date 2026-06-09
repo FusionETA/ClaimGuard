@@ -37,8 +37,10 @@ import {
   SendBackToDraftButton,
   SubmitPayrollRunButton,
 } from "@/components/admin/submit-payroll-run-buttons"
+import { getCurrentSession, resolveActiveOrgId } from "@/lib/auth/session"
 import { getPayrollReportsModalData } from "@/modules/payroll/application/services/payroll-reports.service"
 import { getPayrollRunReadiness } from "@/modules/payroll/application/services/payroll-readiness.service"
+import { getXeroConnectionSummary } from "@/modules/organization/application/services/xero-connection.service"
 import {
   getLaterSubmittedRunsForRevert,
   getPayrollRunDetailWithPayslipsPageData,
@@ -74,6 +76,18 @@ export default async function AdminPayrollRunDetailPage({
   const { id } = await params
   const data = await getPayrollRunDetailWithPayslipsPageData({ runId: id })
   if (!data) redirect("/admin/payroll/runs")
+
+  // Whether the active org actually has a Xero connection. Drives
+  // visibility of the "Posted to Xero" / "Not posted to Xero" panels
+  // below — for orgs with no connection at all, those panels are
+  // meaningless (and the Retry button calls a sync that would fail
+  // anyway). `connections.length > 0` is the simplest "is connected"
+  // signal that doesn't require checking token expiry.
+  const session = await getCurrentSession()
+  const activeOrgId = session ? resolveActiveOrgId(session) : undefined
+  const xeroSummary = await getXeroConnectionSummary(activeOrgId)
+  const hasXeroConnection =
+    xeroSummary.configured && xeroSummary.connections.length > 0
 
   // Modal data — only meaningful once the run is SUBMITTED (the
   // statutory files + cached PDFs all require finalised payslips). We
@@ -569,7 +583,10 @@ export default async function AdminPayrollRunDetailPage({
               </a>
             </Button>
             <SendBackToDraftButton runId={data.run.id} />
-            <ApprovePayrollRunButton runId={data.run.id} />
+            <ApprovePayrollRunButton
+              runId={data.run.id}
+              hasXeroConnection={hasXeroConnection}
+            />
           </div>
         </div>
       )}
@@ -610,11 +627,15 @@ export default async function AdminPayrollRunDetailPage({
                 • ERROR  → red banner with the captured error + retry
                 • NOT_SYNCED → grey hint that sync didn't fire (admin
                               disabled it or mapping was missing)
-              All three are skipped when the run has been reverted and
-              never synced — the absence of any Xero status is a valid
-              empty state.
+              All three are skipped when:
+                • The run has been reverted and never synced (no
+                  xeroSyncStatus to show).
+                • The org has no Xero connection at all — the panels
+                  would be meaningless and the Retry button would call
+                  a sync that's guaranteed to fail. Orgs that don't
+                  use Xero should see nothing here.
           */}
-          {data.run.xeroSyncStatus === "SYNCED" ? (
+          {hasXeroConnection && data.run.xeroSyncStatus === "SYNCED" ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-300/60 bg-emerald-50/40 p-3 dark:border-emerald-700/40 dark:bg-emerald-950/20">
               <div className="text-xs">
                 <p className="font-medium text-foreground">
@@ -636,7 +657,7 @@ export default async function AdminPayrollRunDetailPage({
             </div>
           ) : null}
 
-          {data.run.xeroSyncStatus === "ERROR" ? (
+          {hasXeroConnection && data.run.xeroSyncStatus === "ERROR" ? (
             <div className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-destructive/40 bg-destructive/5 p-3">
               <div className="min-w-0 text-xs">
                 <p className="font-medium text-destructive">
@@ -650,7 +671,8 @@ export default async function AdminPayrollRunDetailPage({
             </div>
           ) : null}
 
-          {data.run.xeroSyncStatus === "NOT_SYNCED" &&
+          {hasXeroConnection &&
+          data.run.xeroSyncStatus === "NOT_SYNCED" &&
           !data.run.xeroManualJournalId ? (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-muted/30 p-3">
               <p className="text-xs text-muted-foreground">
