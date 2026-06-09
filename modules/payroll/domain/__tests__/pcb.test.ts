@@ -582,13 +582,14 @@ describe("calcPcb — additional remuneration", () => {
       ytdPcb: 1028.33, // 2 prior months × 514.17 normal PCB
       profile: baseProfile,
     })
-    // PCB_normal stays around 514.20, PCB_AR ≈ 1,899.70.
-    // (Per LHDN MTD Spec §E: PCB(B) uses rounded PCB(A) × (n+1) for
-    //  the projection, then PCB(C) = CS − PCB(B) − Z. This introduces
-    //  a small rounding skew vs the simpler marginal-tax calc but it's
-    //  what LHDN's e-Data PCB validator expects.)
+    // PCB_normal stays around 514.20, PCB_AR ≈ 1,900.10.
+    // (Per LHDN MTD Spec §E: PCB(B) = X + PCB(A) × (n+1), where
+    //  PCB(A) is the TRUNCATED Current Month PCB (e.g. 514.17 not
+    //  the 5-sen-rounded 514.20). Then PCB(C) = CS − PCB(B) − Z.
+    //  Matches Payroll Panda's projection and the LHDN-form PDF's
+    //  inline formula display.)
     expect(result.normal).toBeCloseTo(514.2, 1)
-    expect(result.additional).toBeCloseTo(1899.7, 1)
+    expect(result.additional).toBeCloseTo(1900.1, 1)
     // Invariant: total = normal + additional (no double-rounding).
     expect(result.total).toBeCloseTo(result.normal + result.additional, 2)
   })

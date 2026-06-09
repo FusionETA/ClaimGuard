@@ -637,7 +637,7 @@ function PcbCalculationDetailsBody({
         {`(X) + [Current Month PCB × (n + 1)]`}
       </Text>
       <Text style={lhdnStyles.formulaLine}>
-        {`(${fmt(X)}) + [${fmt(pcbAfterThreshold)} × (${n.toFixed(0)} + 1)]`}
+        {`(${fmt(X)}) + [${fmt(currentMonthPcb)} × (${n.toFixed(0)} + 1)]`}
       </Text>
       <LhdnVar
         abbrev="PCB (B)"

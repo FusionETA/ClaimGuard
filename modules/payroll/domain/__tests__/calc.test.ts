@@ -375,10 +375,16 @@ describe("calcPayslip — additional remuneration routing", () => {
     // CS — yearly tax with AR
     expect(ar.CS).toBeGreaterThanOrEqual(result.pcbCalculation.yearlyTax)
     // PCB(B) = annual projected normal PCB
-    //        = X + PCB(A) × (n + 1)
+    //        = X + trunc2(Current Month PCB) × (n + 1)
+    //
+    // Uses the TRUNCATED `currentMonthPcb` (e.g. 15.0958 → 15.09)
+    // NOT the 5-sen-rounded `pcbAfterThreshold` — matches Payroll
+    // Panda + the LHDN-form PDF row which displays the truncated
+    // value, and produces the same final PCB as PP.
+    const trunc2 = (n: number) => Math.trunc(n * 100) / 100
     expect(ar.pcbB).toBeCloseTo(
       result.pcbCalculation.X +
-        result.pcbCalculation.pcbAfterThreshold *
+        trunc2(result.pcbCalculation.currentMonthPcb) *
           (result.pcbCalculation.n + 1),
       2,
     )
