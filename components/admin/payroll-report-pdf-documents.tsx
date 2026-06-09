@@ -766,7 +766,7 @@ function LhdnVar({
       <Text style={bold ? lhdnStyles.varAmountBold : lhdnStyles.varAmount}>
         {raw
           ? amount.toFixed(2)
-          : amount.toLocaleString("en-MY", {
+          : trunc2(amount).toLocaleString("en-MY", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -775,8 +775,18 @@ function LhdnVar({
   )
 }
 
+// Truncate to 2dp without rounding. Used by the LHDN-form PDF so the
+// displayed values match what an auditor gets by computing the
+// formulas by hand (and matches Payroll Panda's convention — even
+// 15.098 displays as 15.09, not 15.10). `Math.trunc` toward zero so
+// negative numbers like B = -250.00 don't drift to -250.01.
+function trunc2(n: number): number {
+  if (!Number.isFinite(n)) return 0
+  return Math.trunc(n * 100) / 100
+}
+
 function fmt(n: number): string {
-  return n.toLocaleString("en-MY", {
+  return trunc2(n).toLocaleString("en-MY", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
