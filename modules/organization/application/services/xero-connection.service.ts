@@ -726,13 +726,28 @@ export async function syncApprovedClaimToXero(
       const { createXeroSpendMoney, associateFileWithObject } = await import(
         "@/lib/xero"
       )
+      // For COMPANY-money claims the employee never paid out-of-pocket
+      // — the company already settled the bill directly with the
+      // merchant/supplier. So the Xero Contact on the bank transaction
+      // should be the MERCHANT name (matching the "Bill To" on the
+      // original receipt), NOT the employee's. The merchant is captured
+      // on the claim form as `spendingAt` (mandatory for COMPANY claims;
+      // see Zod validation in claim-workflow.service.ts).
+      //
+      // Falls back to the employee name only if `spendingAt` is empty
+      // (existing pre-Phase-N claims won't have it populated, so we
+      // don't want a resync of an old claim to fail).
+      const companyContactName =
+        claim.spendingAt?.trim() || claim.employee.name
       const txn = await createXeroSpendMoney({
         accessToken: connection.accessToken,
         tenantId: connection.tenantId,
         idempotencyKey: `claim-spend-${claim.id}`,
         payload: {
-          contactName: claim.employee.name,
-          contactEmail: claim.employee.email,
+          contactName: companyContactName,
+          // Deliberately not passing an email — the merchant is a
+          // third-party we don't have an address for at this layer.
+          // Xero accepts contacts without an email.
           date: fmt(today),
           currency: claim.currency,
           amount: claim.amount,

@@ -59,6 +59,11 @@ const baseClaimSchema = z.object({
   /// internal team). Trimmed; empty string is treated as null. Capped
   /// at 200 chars so admins reviewing don't see runaway text.
   spendingWith: z.string().trim().max(200).optional(),
+  /// Free-text "where you spent" — merchant / vendor / restaurant name
+  /// (e.g. "Starbucks KLCC"). Optional at the base level; the
+  /// COMPANY-money requirement is enforced in the superRefine on the
+  /// discriminated union below. Capped at 200 chars.
+  spendingAt: z.string().trim().max(200).optional(),
 })
 
 const expenseClaimSchema = baseClaimSchema.extend({
@@ -84,6 +89,17 @@ export const createClaimSchema = createClaimBaseSchema.superRefine((data, ctx) =
       code: z.ZodIssueCode.custom,
       path: ["payViaAccountId"],
       message: "Select the company bank account that paid for this claim.",
+    })
+  }
+  // Merchant name is mandatory for COMPANY-money claims — it becomes
+  // the Xero Spend Money Contact (the "Bill To" name on the receipt).
+  // PERSONAL claims keep the employee as the Bill contact, so this
+  // field is informational and not required there.
+  if (data.paymentType === "COMPANY" && !data.spendingAt?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["spendingAt"],
+      message: "Enter the merchant / vendor name from the receipt.",
     })
   }
 })
@@ -150,6 +166,10 @@ export type CreateClaimInput = {
   /// Optional free-text "who you spent with" (client / vendor name).
   /// Passed through to the DB; not validated against any list.
   spendingWith?: string
+  /// Free-text "where you spent" — merchant name from the receipt.
+  /// REQUIRED when paymentType=COMPANY (Zod enforces this); optional
+  /// context otherwise.
+  spendingAt?: string
   // Mileage-claim fields. Required when claimType === "MILEAGE", ignored otherwise.
   claimType?: "EXPENSE" | "MILEAGE"
   distance?: string | number
@@ -780,6 +800,7 @@ export async function createClaimForEmployee({
     mileageRateUsed,
     mileageUnitUsed,
     spendingWith: parsed.data.spendingWith?.trim() || null,
+    spendingAt: parsed.data.spendingAt?.trim() || null,
     supportingAttachments:
       supportingAttachments.length > 0 ? supportingAttachments : undefined,
   })

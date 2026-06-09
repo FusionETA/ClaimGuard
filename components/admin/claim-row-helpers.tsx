@@ -292,6 +292,17 @@ export function ClaimDetailSheet({
                   </p>
                 </div>
 
+                {claim.spendingAt ? (
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+                      Spending at
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-foreground">
+                      {claim.spendingAt}
+                    </p>
+                  </div>
+                ) : null}
+
                 {claim.spendingWith ? (
                   <div>
                     <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">

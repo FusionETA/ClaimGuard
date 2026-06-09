@@ -470,6 +470,15 @@ model Claim {
   /// secondary search term. Nullable because legacy claims and
   /// reasonable categories (own-use office supplies) don't need it.
   spendingWith              String?
+  /// Free-text "where you spent" — the merchant / vendor / restaurant
+  /// name from the receipt (e.g. "Starbucks KLCC", "Office Depot",
+  /// "Acme Hardware Sdn Bhd"). Distinct from `spendingWith` (the
+  /// counterparty — e.g. a client you ate with). For COMPANY-money
+  /// claims this is REQUIRED at submission and becomes the Xero Spend
+  /// Money Contact ("Bill To"). For PERSONAL claims it's optional
+  /// context for the approver. Nullable so legacy claims that pre-date
+  /// the field can still be loaded + resynced without backfill.
+  spendingAt                String?
   /// For COMPANY-money claims synced to Xero as a "Spend Money" bank
   /// transaction (money already left the company bank/card), as opposed
   /// to PERSONAL claims which post as an awaiting-payment bill

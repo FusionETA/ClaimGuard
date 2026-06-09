@@ -219,6 +219,12 @@ export type ClaimRecord = {
   /// internal team name. Surfaced on the review surfaces and in
   /// receipts-tab UIs.
   spendingWith?: string
+  /// Free-text "where you spent" — merchant / vendor / restaurant
+  /// name from the receipt (e.g. "Starbucks KLCC"). Distinct from
+  /// `spendingWith` (a dining client / colleague). REQUIRED for
+  /// COMPANY-money claims (becomes the Xero Spend Money Contact);
+  /// optional context for PERSONAL claims.
+  spendingAt?: string
   /// Extra supporting files attached to the claim alongside the
   /// primary receipt. Each entry has a downloadable URL (proxy URL
   /// for Xero-Files-hosted bytes, /uploads/... for local).

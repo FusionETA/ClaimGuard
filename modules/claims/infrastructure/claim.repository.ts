@@ -126,6 +126,10 @@ type PrismaClaim = {
   /// Optional free-text "who you spent with" — surfaced on review
   /// screens.
   spendingWith?: string | null
+  /// Free-text "where you spent" (merchant / vendor / restaurant).
+  /// Required for COMPANY money at submission; surfaced on review
+  /// screens alongside `spendingWith`.
+  spendingAt?: string | null
   /// Optional supporting files. Only present when the relation was
   /// included; absent on selects that didn't ask for it.
   supportingAttachments?: Array<{
@@ -375,6 +379,11 @@ export type CreateClaimData = {
   /// name). Surfaced on the review screens; not validated server-side
   /// against any list — purely informational.
   spendingWith?: string | null
+  /// Free-text "where you spent" — merchant name from the receipt.
+  /// Required for COMPANY money at submission (the upstream service
+  /// validates this); becomes the Xero Spend Money Contact for COMPANY
+  /// claims. Optional context for PERSONAL claims.
+  spendingAt?: string | null
   /// Optional extra files supporting this claim (quotations, invoices,
   /// approval emails, secondary receipts). Each entry already has a
   /// resolved `fileUrl` and/or `xeroFileId` from the storage pipeline.
@@ -479,6 +488,17 @@ export type ClaimForXeroSync = {
     name: string
     email: string
   }
+  /// Optional free-text "who you spent with" — the counterparty (client
+  /// you ate with, vendor representative met, etc.). Informational —
+  /// not used in the Xero post. Always nullable.
+  spendingWith: string | null
+  /// Free-text "where you spent" — merchant / vendor / restaurant
+  /// name from the receipt (e.g. "Starbucks KLCC"). For COMPANY-money
+  /// claims this becomes the Xero Spend Money Contact ("Bill To" on
+  /// the original receipt). For PERSONAL claims it's optional context.
+  /// May be null on pre-Phase-N claims that pre-date the field; the
+  /// sync service falls back to the employee name in that case.
+  spendingAt: string | null
   /// Supporting attachments (the optional multi-file group on the claim
   /// form, separate from the primary receipt). Synced to the Xero
   /// invoice as Related Files alongside the receipt. `xeroFileId` is
@@ -622,6 +642,7 @@ function mapClaim(
     awaitingAdminFinalApproval,
     exceedsLimit: claim.exceedsLimit ?? false,
     spendingWith: claim.spendingWith ?? undefined,
+    spendingAt: claim.spendingAt ?? undefined,
     // `supportingAttachments` is only populated when the query
     // included the relation. Older queries that didn't include it
     // see `undefined` here on the Prisma type, which we project to
@@ -1805,6 +1826,7 @@ export const claimRepository = {
         exceedsLimit: data.exceedsLimit ?? false,
         xeroFileId: data.xeroFileId ?? null,
         spendingWith: data.spendingWith ?? null,
+        spendingAt: data.spendingAt ?? null,
         distance: data.distance,
         mileageOriginAddress: data.mileageOriginAddress,
         mileageDestinationAddress: data.mileageDestinationAddress,
@@ -2212,6 +2234,8 @@ export const claimRepository = {
         xeroFileId: true,
         organizationId: true,
         payViaAccountId: true,
+        spendingWith: true,
+        spendingAt: true,
         chartOfAccount: {
           select: {
             code: true,
@@ -2290,6 +2314,8 @@ export const claimRepository = {
         : null,
       project: claim.project,
       employee: claim.employee,
+      spendingWith: claim.spendingWith,
+      spendingAt: claim.spendingAt,
       supportingAttachments: claim.supportingAttachments.map((att) => ({
         id: att.id,
         fileName: att.fileName,

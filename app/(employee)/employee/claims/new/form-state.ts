@@ -13,9 +13,13 @@ export type ClaimFormValues = {
   distance: string
   mileageOriginAddress: string
   mileageDestinationAddress: string
-  /// Optional free-text "who you spent the money with" — client name,
-  /// vendor name, internal team. Capped at 200 chars server-side.
+  /// Optional free-text "who you spent the money with" — client /
+  /// colleague / counterparty. Capped at 200 chars server-side.
   spendingWith: string
+  /// Free-text "where you spent" — merchant / vendor / restaurant.
+  /// REQUIRED when paymentType=COMPANY; used as the Xero Spend Money
+  /// Contact ("Bill To"). Optional context for PERSONAL claims.
+  spendingAt: string
 }
 
 export type ClaimFormState = {
@@ -44,6 +48,7 @@ export const initialClaimFormState: ClaimFormState = {
     mileageOriginAddress: "",
     mileageDestinationAddress: "",
     spendingWith: "",
+    spendingAt: "",
   },
   errors: {},
 }
