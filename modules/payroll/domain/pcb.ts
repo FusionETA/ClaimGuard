@@ -702,7 +702,14 @@ export type CalcPcbBreakdown =
       ar: {
         // ── Section 3 — Yearly Tax (CS) primitives ──
         Yt: number // additional remuneration this month (bonus / commission / arrears, taxable)
-        Kt: number // EPF on AR (employee share, capped against remaining RM 4K budget)
+        // Full EPF contribution on the AR amount as actually paid by
+        // the employee (= ceil(Yt × employee mandatory rate)). Matches
+        // the LHDN form's expected meaning of Kt and the engine's
+        // employee EPF total. Note: for the chargeable_with_AR calc
+        // internally, the value is capped against the remaining
+        // RM 4,000 annual relief budget — that cap is applied inside
+        // the breakdown function, not exposed here.
+        Kt: number
         // P_withAR — annual chargeable income with the AR layered on
         chargeableWithAr: number
         // Tax band for the with-AR chargeable. Differs from Section 1's
@@ -888,10 +895,33 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   // Mirrors calcPcb's arithmetic so the displayed numbers match what
   // was actually deducted exactly.
   const Yt = arTaxable
-  const KtFinal = Kt // already computed above using cap_after_K1_K2
+  // Two-value Kt:
+  //
+  //   ar.Kt (display)        = the FULL EPF contribution on the AR
+  //                            amount as actually paid by the
+  //                            employee = ceil(Yt × employee rate).
+  //                            Matches the LHDN form's expected
+  //                            meaning of Kt and reconciles with the
+  //                            engine's other EPF outputs (employee
+  //                            EPF total 585 = 451 regular + 134 AR
+  //                            + 0 voluntary).
+  //
+  //   KtForRelief (internal) = the portion of Kt that gets PCB
+  //                            relief, capped against the remaining
+  //                            RM 4,000 budget after normal K + K₁ +
+  //                            K₂×n. Used in the chargeable_with_AR
+  //                            formula so the deducted PCB stays
+  //                            LHDN-compliant.
+  //
+  // When the normal projection saturates the cap, KtDisplay still
+  // shows the contributed amount (e.g. 134), while KtForRelief drops
+  // toward 0. That's faithful to KWSP/LHDN: the EPF is still paid,
+  // just no extra tax relief.
+  const KtDisplay = Math.max(0, input.thisMonthEpfFromAR ?? 0)
+  const KtForRelief = Kt // = cap-restricted value computed above
   const chargeableWithAr = Math.max(
     0,
-    annualGrossNet + Yt - KtFinal - totalReliefs,
+    annualGrossNet + Yt - KtForRelief - totalReliefs,
   )
   const arBand = findResidentTaxBand(chargeableWithAr, spouseClaimable)
   const M2 = arBand.M
@@ -926,7 +956,7 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
     pcbFinal: pcbCurrentMonth,
     ar: {
       Yt,
-      Kt: KtFinal,
+      Kt: KtDisplay, // full contributed AR EPF; matches the LHDN form's expected meaning
       chargeableWithAr,
       M2,
       R2,
