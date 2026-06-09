@@ -38,6 +38,14 @@
 
 import type { ChildRelief, PayrollProfileData } from "@/modules/payroll/domain/models"
 
+// Tiny local helper — same as `round2` in `calc.ts` but kept local to
+// avoid a circular import (calc.ts imports calcPcb/calcPcbBreakdown
+// from here).
+function round2(n: number): number {
+  if (!Number.isFinite(n)) return 0
+  return Math.round(n * 100) / 100
+}
+
 // ─── Tax bands (LHDN 2024 individual-resident) ──────────────────────────
 
 /**
@@ -406,21 +414,33 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
     input.ytdTaxable + normalTaxable + normalTaxable * futureMonths
 
   // Annualised EPF on normal pay, capped at RM 4,000.
-  const annualEpfNormal = Math.min(
-    EPF_RELIEF_CAP,
-    input.ytdEpf + input.thisMonthEpf + input.thisMonthEpf * futureMonths,
-  )
+  //
+  // Uses the same K + K1 + (round2(K2) × n) decomposition as the
+  // breakdown view in `calcPcbBreakdown` below — keeps the two
+  // arithmetics in sync so a manual reconciliation of the LHDN-form
+  // PDF columns (K1 = 451.02, K2 = 322.63, n = 11) reproduces the
+  // same annualised EPF and thus the same P / Yearly Tax / Current
+  // Month PCB that the engine actually deducted. The 2dp rounding
+  // on K2 matches what the LHDN form displays (and what other
+  // Malaysian payroll software shows).
+  const _K = Math.min(EPF_RELIEF_CAP, Math.max(0, input.ytdEpf))
+  const _capAfterK = Math.max(0, EPF_RELIEF_CAP - _K)
+  const _K1 = Math.min(input.thisMonthEpf, _capAfterK)
+  const _capAfterK1 = Math.max(0, EPF_RELIEF_CAP - _K - _K1)
+  const _K2 =
+    futureMonths > 0
+      ? round2(Math.min(input.thisMonthEpf, _capAfterK1 / futureMonths))
+      : 0
+  const annualEpfNormal = _K + _K1 + _K2 * futureMonths
 
   // Annualised EPF when AR is included — the AR EPF is a one-shot
-  // contribution this month, not projected forward.
+  // contribution this month, not projected forward. Kt takes whatever
+  // cap is left after K + K1 + (K2 × n); when the normal projection
+  // already saturates the RM 4,000 budget, Kt = 0.
   const arEpf = Math.max(0, input.thisMonthEpfFromAR ?? 0)
-  const annualEpfWithAr = Math.min(
-    EPF_RELIEF_CAP,
-    input.ytdEpf +
-      input.thisMonthEpf +
-      input.thisMonthEpf * futureMonths +
-      arEpf,
-  )
+  const _capAfterK1K2 = Math.max(0, EPF_RELIEF_CAP - annualEpfNormal)
+  const _Kt = Math.min(arEpf, _capAfterK1K2)
+  const annualEpfWithAr = annualEpfNormal + _Kt
 
   const reliefs = calcResidentReliefs(input.profile)
   const ytdZakat = Math.max(0, input.ytdZakat ?? 0)
@@ -771,7 +791,13 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   const thisMonthEpf = Math.max(0, input.thisMonthEpf)
   const K1 = Math.min(thisMonthEpf, cap_after_K)
   const cap_after_K1 = Math.max(0, EPF_RELIEF_CAP - K - K1)
-  const K2 = n > 0 ? Math.min(thisMonthEpf, cap_after_K1 / n) : 0
+  // Round K2 to 2dp so the displayed K2 is exactly the value used in
+  // arithmetic. Without this, the formula expansion shows
+  // `[322.63 × 11]` but the underlying value is 322.6345… → the
+  // displayed P doesn't reconcile with what the auditor gets by hand.
+  // Keeps `calcPcb` and `calcPcbBreakdown` in sync (calcPcb uses the
+  // same rounded-K2 logic above).
+  const K2 = n > 0 ? round2(Math.min(thisMonthEpf, cap_after_K1 / n)) : 0
   // AR EPF deductible — only what fits into the cap AFTER normal K2×n
   // has been booked. When the normal side already hits 4K, Kt = 0
   // (the AR contribution still happens in real life, it just gets no

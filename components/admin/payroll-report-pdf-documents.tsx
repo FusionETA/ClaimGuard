@@ -482,7 +482,7 @@ function PcbCalculationDetailsBody({
 
   // Formula expansion for P — the full arithmetic the LHDN form shows
   // inline so the auditor can re-derive P from primitives.
-  const formulaP = `[${fmt(sumYK)} + (${fmt(Y1)} − ${fmt(K1)}) + (${fmt(Y2)} − [${fmt(K2)} × ${n.toFixed(0)}])] − [${fmt(D)} + ${fmt(S)} + ${fmt(Du)} + ${fmt(Su)} + (${fmt(Q)} × ${C.toFixed(0)}) + ${fmt(sumLP)} + ${fmt(LP1)}]`
+  const formulaP = `[${fmt(sumYK)} + (${fmt(Y1)} - ${fmt(K1)}) + (${fmt(Y2)} - [${fmt(K2)} × ${n.toFixed(0)}])] - [${fmt(D)} + ${fmt(S)} + ${fmt(Du)} + ${fmt(Su)} + (${fmt(Q)} × ${C.toFixed(0)}) + ${fmt(sumLP)} + ${fmt(LP1)}]`
 
   return (
     <View>
@@ -493,18 +493,18 @@ function PcbCalculationDetailsBody({
       </Text>
       <Text style={lhdnStyles.subsectionTitle}>PCB (A) / Net PCB</Text>
       <Text style={lhdnStyles.formulaLine}>
-        {`[(P − M)R + B − (Z + X)] / (n + 1) − Zakat/Fitrah/Levy for current month`}
+        {`[(P - M)R + B - (Z + X)] / (n + 1) - Zakat/Fitrah/Levy for current month`}
       </Text>
       <Text style={lhdnStyles.formulaIntro}>
         P · Total chargeable income for a year excluding additional
         remuneration
       </Text>
       <Text style={lhdnStyles.formulaLine}>
-        {`[Σ(Y−K) + (Y₁ − K₁) + (Y₂ − [K₂ × n]) + (Yt − Kt)] − (D + S + Du + Su + Q×C + ΣLP + LP₁)  where (Yt − Kt) = 0`}
+        {`[Σ(Y-K) + (Y₁ - K₁) + (Y₂ - [K₂ × n]) + (Yt - Kt)] - (D + S + Du + Su + Q×C + ΣLP + LP₁)  where (Yt - Kt) = 0`}
       </Text>
 
       <LhdnVar
-        abbrev="Σ(Y−K)"
+        abbrev="Σ(Y-K)"
         description="Total accumulated net remuneration including net additional remuneration which has been paid to an employee until before current month including net remuneration which has been paid by previous employer (if any)."
         amount={sumYK}
       />
@@ -535,7 +535,7 @@ function PcbCalculationDetailsBody({
       />
       <LhdnVar
         abbrev="K₂"
-        description="Estimated balance of total contribution to EPF or other Approved Scheme paid for the qualifying monthly balance [(RM4,000 (limited) − (K + K₁ + Kt)) ÷ n] or K₁, whichever is lower."
+        description="Estimated balance of total contribution to EPF or other Approved Scheme paid for the qualifying monthly balance [(RM4,000 (limited) - (K + K₁ + Kt)) ÷ n] or K₁, whichever is lower."
         amount={K2}
       />
       <LhdnVar
@@ -619,13 +619,13 @@ function PcbCalculationDetailsBody({
       />
       <LhdnVar
         abbrev="Yearly Tax"
-        description={`(P − M)R + B = (${fmt(P)} − ${fmt(M)}) × ${R.toFixed(2)} + (${fmt(B)})`}
+        description={`(P - M)R + B = (${fmt(P)} - ${fmt(M)}) × ${R.toFixed(2)} + (${fmt(B)})`}
         amount={yearlyTax}
         bold
       />
       <LhdnVar
         abbrev="PCB(A)"
-        description={`Current Month PCB = (Yearly Tax − Z − X) ÷ (n + 1) = (${fmt(yearlyTax)} − ${fmt(Z)} − ${fmt(X)}) ÷ ${(n + 1).toFixed(0)}`}
+        description={`Current Month PCB = (Yearly Tax - Z - X) ÷ (n + 1) = (${fmt(yearlyTax)} - ${fmt(Z)} - ${fmt(X)}) ÷ ${(n + 1).toFixed(0)}`}
         amount={currentMonthPcb}
         bold
       />
@@ -650,14 +650,14 @@ function PcbCalculationDetailsBody({
       <Text style={lhdnStyles.sectionTitle}>3. Yearly Tax</Text>
       <Text style={lhdnStyles.subsectionTitle}>CS</Text>
       <Text style={lhdnStyles.formulaLine}>
-        {`(P − M)R + B`}
+        {`(P - M)R + B`}
       </Text>
       <Text style={lhdnStyles.formulaIntro}>
         P · Total income tax for a year including current additional
         remuneration
       </Text>
       <Text style={lhdnStyles.formulaLine}>
-        {`[Σ(Y−K) + (Y₁ − K₁) + (Y₂ − [K₂ × n]) + (Yt − Kt)] − (D + S + Du + Su + Q×C + ΣLP + LP₁)`}
+        {`[Σ(Y-K) + (Y₁ - K₁) + (Y₂ - [K₂ × n]) + (Yt - Kt)] - (D + S + Du + Su + Q×C + ΣLP + LP₁)`}
       </Text>
 
       <LhdnVar
@@ -672,7 +672,7 @@ function PcbCalculationDetailsBody({
       />
       <LhdnVar
         abbrev="P"
-        description={`Total chargeable income for a year including AR — recomputed from Section 1's P with Yt added and Kt deducted = ${fmt(P)} + ${fmt(Yt)} − ${fmt(Kt)}`}
+        description={`Total chargeable income for a year including AR — recomputed from Section 1's P with Yt added and Kt deducted = ${fmt(P)} + ${fmt(Yt)} - ${fmt(Kt)}`}
         amount={chargeableWithAr}
         bold
       />
@@ -694,7 +694,7 @@ function PcbCalculationDetailsBody({
       />
       <LhdnVar
         abbrev="CS"
-        description={`Yearly tax including AR = (P − M₂)R₂ + B₂ = (${fmt(chargeableWithAr)} − ${fmt(M2)}) × ${R2.toFixed(2)} + (${fmt(B2)})`}
+        description={`Yearly tax including AR = (P - M₂)R₂ + B₂ = (${fmt(chargeableWithAr)} - ${fmt(M2)}) × ${R2.toFixed(2)} + (${fmt(B2)})`}
         amount={CS}
         bold
       />
@@ -703,10 +703,10 @@ function PcbCalculationDetailsBody({
       <Text style={lhdnStyles.sectionTitle}>4. Additional Remuneration PCB</Text>
       <Text style={lhdnStyles.subsectionTitle}>PCB (C)</Text>
       <Text style={lhdnStyles.formulaLine}>
-        {`CS − [PCB (B) + Accumulated Zakat that have been paid]`}
+        {`CS - [PCB (B) + Accumulated Zakat that have been paid]`}
       </Text>
       <Text style={lhdnStyles.formulaLine}>
-        {`${fmt(CS)} − [${fmt(pcbB)} + ${fmt(Z)}]`}
+        {`${fmt(CS)} - [${fmt(pcbB)} + ${fmt(Z)}]`}
       </Text>
       <LhdnVar
         abbrev="PCB (C)"
@@ -953,8 +953,8 @@ export function BulkPayslipsPdfDocument(props: BulkPayslipsPdfDocumentProps) {
             <View style={payslipStyles.subTotal}>
               <Text style={payslipStyles.subTotalLabel}>Total deductions</Text>
               {/* Match the calc engine's netPay formula:
-                    netPay = grossPay − epf − socso − eis − pcb
-                            − totalDeductions
+                    netPay = grossPay - epf - socso - eis - pcb
+                            - totalDeductions
                   Zakat is inside totalDeductions, so we don't add it
                   again here. */}
               <Text style={payslipStyles.subTotalAmount}>
