@@ -152,7 +152,13 @@ describe("calcPcb — resident normal-remuneration", () => {
     })
     expect(result.total).toBeCloseTo(514.17, 1)
     expect(result.additional).toBe(0)
-    expect(result.normal).toBe(result.total)
+    // `normal` is now the TRUNCATED PCB(A) per LHDN form (Section E
+    // item 1), not the 5-sen-rounded deducted amount. In a no-bonus
+    // month the deducted total is `ceil5sen(normal)`, which can sit
+    // up to 0.04 above `normal`. (Old behaviour pre-double-round
+    // fix: normal == total. See pcb.ts `normalRounded` comment.)
+    const ceil5Sen = (n: number) => Math.ceil(n * 20) / 20
+    expect(result.total).toBe(ceil5Sen(result.normal))
   })
 
   it("spreads remaining tax over remaining months on the June run", () => {
