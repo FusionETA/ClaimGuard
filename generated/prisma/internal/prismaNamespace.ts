@@ -3873,6 +3873,7 @@ export const XeroProjectScalarFieldEnum = {
   workingDays: 'workingDays',
   lunchBreakMinutes: 'lunchBreakMinutes',
   xeroTrackingOptionId: 'xeroTrackingOptionId',
+  xeroTrackingCategoryId: 'xeroTrackingCategoryId',
   archivedByXeroConnect: 'archivedByXeroConnect'
 } as const
 
@@ -4794,7 +4795,8 @@ export const XeroProjectOrderByRelevanceFieldEnum = {
   workingHoursStart: 'workingHoursStart',
   workingHoursEnd: 'workingHoursEnd',
   workingDays: 'workingDays',
-  xeroTrackingOptionId: 'xeroTrackingOptionId'
+  xeroTrackingOptionId: 'xeroTrackingOptionId',
+  xeroTrackingCategoryId: 'xeroTrackingCategoryId'
 } as const
 
 export type XeroProjectOrderByRelevanceFieldEnum = (typeof XeroProjectOrderByRelevanceFieldEnum)[keyof typeof XeroProjectOrderByRelevanceFieldEnum]

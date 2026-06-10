@@ -685,9 +685,17 @@ model XeroProject {
   /// Populated for rows synced from a Xero Tracking Category option.
   /// Coexists with `xeroProjectId` on the same model so legacy rows
   /// and new tracking-option rows live side-by-side. See
-  /// `XeroConnection.xeroTrackingCategoryId` for which category this
-  /// option belongs to.
+  /// `xeroTrackingCategoryId` (below) for which category this option
+  /// belongs to — populated alongside `xeroTrackingOptionId` from the
+  /// connection's active category at sync time.
   xeroTrackingOptionId  String?
+  /// Snapshot of the Xero Tracking Category this row was synced under.
+  /// Lets project listings scope by the connection's CURRENT active
+  /// category so swapping categories hides stale rows from the picker
+  /// (without deleting them — round-tripping back restores them with
+  /// their managers, lat/long, etc. intact). Null for manual rows and
+  /// legacy `/Projects`-API rows, which are always visible.
+  xeroTrackingCategoryId String?
   archivedByXeroConnect Boolean                     @default(false)
   attendanceRecords     AttendanceRecord[]          @relation("AttendanceRecordProject")
   claims                Claim[]                     @relation("ClaimProject")
@@ -701,6 +709,7 @@ model XeroProject {
   @@unique([organizationId, xeroProjectId])
   @@unique([organizationId, xeroTrackingOptionId])
   @@index([organizationId, name])
+  @@index([organizationId, xeroTrackingCategoryId])
   @@index([projectManagerId])
 }
 

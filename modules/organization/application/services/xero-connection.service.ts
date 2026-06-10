@@ -295,6 +295,11 @@ export async function syncOrganizationProjects(
     await organizationRepository.upsertTrackingOptionsFromXero({
       xeroConnectionId: connectionId,
       organizationId: connectionRecord.organizationId,
+      // Stamp every upserted row with the current category id so
+      // the listing query can scope by it. After a category swap
+      // this is how the stale rows from the previous category fall
+      // out of the picker (they keep their old id and stop matching).
+      xeroTrackingCategoryId: picked.xeroTrackingCategoryId,
       options: picked.options.map((o) => ({
         xeroTrackingOptionId: o.xeroTrackingOptionId,
         name: o.name,
