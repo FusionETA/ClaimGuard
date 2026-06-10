@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
-import { AlertTriangle, CalendarClock, Sparkles, X } from "lucide-react"
+import { AlertTriangle, CalendarClock, PartyPopper, Sparkles, X } from "lucide-react"
 
 import {
   RECENTLY_SHIPPED,
@@ -25,7 +25,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
+import { cn, formatShortDate } from "@/lib/utils"
 
 /**
  * Top-of-page announcement banner + slide-in updates sheet. Mounted
@@ -252,18 +252,26 @@ function TriggerPill({
       type="button"
       onClick={onClick}
       className={cn(
-        "fixed bottom-4 right-4 z-40 inline-flex items-center gap-1.5",
-        "rounded-full bg-foreground/5 px-3 py-1.5 text-xs font-medium text-foreground",
-        "shadow-sm ring-1 ring-border/60 backdrop-blur",
-        "transition-colors hover:bg-foreground/10",
-        // Hide on very small screens — the banner already covers that
-        // case, and the pill would overlap with the mobile bottom nav.
-        "hidden sm:inline-flex",
+        // Position: bottom-LEFT, not bottom-right, so per-page
+        // floating action buttons (the + on Claims, Leave, etc.,
+        // which all sit bottom-right) never overlap with this pill.
+        // Hierarchy stays clean: bottom-right = primary action,
+        // bottom-left = passive "what's new" info.
+        //
+        // On mobile / tablet we sit ABOVE the bottom nav (which lives
+        // at `bottom-4` with ~60px height, so `bottom-24` = 96px
+        // clears it). On lg+ the bottom nav becomes a sidebar, so
+        // we snap to the normal corner.
+        "fixed left-4 z-30 bottom-24 lg:bottom-4",
+        "inline-flex items-center gap-1.5",
+        "rounded-full bg-card/95 px-3 py-1.5 text-xs font-semibold text-foreground",
+        "shadow-md ring-1 ring-border/60 backdrop-blur",
+        "transition-colors hover:bg-card",
       )}
       aria-label="Open what's new and coming"
     >
       <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-      What's new
+      What&apos;s new
     </button>
   )
 }
@@ -291,18 +299,32 @@ function UpdatesSheet({
   const [showAllShipped, setShowAllShipped] = useState(false)
   const shippedToShow = showAllShipped ? shipped : shipped.slice(0, 3)
 
+  const hasAnyContent =
+    maintenance.length > 0 || upcoming.length > 0 || shipped.length > 0
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
+        // Suppress the default Radix auto-focus on the close × — that
+        // was painting a primary focus ring around the icon the moment
+        // the sheet opened (it looked like a stray purple circle).
+        // The sheet is still keyboard-accessible (Tab → close, Esc to
+        // dismiss); we just don't slam focus on the X.
+        onOpenAutoFocus={(e) => e.preventDefault()}
         className={cn(
           // Mobile: full screen. Desktop: ~440px right panel.
           "w-full sm:max-w-md",
-          "overflow-y-auto bg-card",
+          // Horizontal padding so the title / X / cards don't hug the
+          // edges of the panel; top padding gives the close × room to
+          // breathe. The SheetContent primitive itself has no default
+          // padding — components own their own gutters.
+          "px-5 pt-6 pb-8",
+          "overflow-y-auto bg-gradient-to-b from-card via-card to-muted/30",
         )}
       >
-        <SheetHeader className="space-y-1 pb-2">
-          <SheetTitle>What's new &amp; coming</SheetTitle>
+        <SheetHeader className="space-y-1.5 pb-3">
+          <SheetTitle className="text-2xl">What&apos;s new &amp; coming</SheetTitle>
           <SheetDescription>
             Heads-up on upcoming maintenance and a quick log of features
             we&apos;ve shipped recently.
@@ -314,18 +336,23 @@ function UpdatesSheet({
             <Section
               icon={<AlertTriangle className="h-4 w-4 text-amber-600" />}
               title="Scheduled maintenance"
+              accentClass="text-amber-700 dark:text-amber-300"
             >
               {maintenance.map((w) => (
                 <article
                   key={w.id}
-                  className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 dark:border-amber-800/50 dark:bg-amber-950/30"
+                  className="relative overflow-hidden rounded-2xl border border-amber-200 bg-amber-50/70 p-4 shadow-sm dark:border-amber-800/50 dark:bg-amber-950/30"
                 >
+                  <span
+                    aria-hidden
+                    className="absolute inset-y-0 left-0 w-1 bg-amber-500"
+                  />
                   <ClientOnly>
-                    <p className="text-xs font-semibold text-amber-900 dark:text-amber-200">
+                    <span className="inline-flex items-center rounded-full bg-amber-200/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900 dark:bg-amber-800/40 dark:text-amber-200">
                       {formatMaintenanceWindow(w)}
-                    </p>
+                    </span>
                   </ClientOnly>
-                  <p className="mt-1 text-sm font-medium text-foreground">
+                  <p className="mt-2 text-sm font-semibold text-foreground">
                     {w.title}
                   </p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
@@ -340,16 +367,21 @@ function UpdatesSheet({
             <Section
               icon={<CalendarClock className="h-4 w-4 text-primary" />}
               title="Coming soon"
+              accentClass="text-primary"
             >
               {upcoming.map((f) => (
                 <article
                   key={f.id}
-                  className="rounded-xl border border-border/60 bg-muted/40 p-3"
+                  className="relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm"
                 >
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+                  <span
+                    aria-hidden
+                    className="absolute inset-y-0 left-0 w-1 bg-primary"
+                  />
+                  <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
                     {f.eta}
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-foreground">
+                  </span>
+                  <p className="mt-2 text-sm font-semibold text-foreground">
                     {f.title}
                   </p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
@@ -364,17 +396,22 @@ function UpdatesSheet({
             <Section
               icon={<Sparkles className="h-4 w-4 text-emerald-600" />}
               title="Recently shipped"
+              accentClass="text-emerald-700 dark:text-emerald-300"
             >
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {shippedToShow.map((f) => (
                   <article
                     key={f.id}
-                    className="rounded-xl border border-border/60 bg-card p-3"
+                    className="relative overflow-hidden rounded-2xl border border-emerald-200/70 bg-emerald-50/40 p-4 shadow-sm transition-colors hover:bg-emerald-50/70 dark:border-emerald-800/40 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/30"
                   >
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {f.date}
-                    </p>
-                    <p className="mt-1 text-sm font-medium text-foreground">
+                    <span
+                      aria-hidden
+                      className="absolute inset-y-0 left-0 w-1 bg-emerald-500"
+                    />
+                    <span className="inline-flex items-center rounded-full bg-emerald-200/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-800 dark:bg-emerald-800/30 dark:text-emerald-200">
+                      {formatShortDate(f.date)}
+                    </span>
+                    <p className="mt-2 text-sm font-semibold text-foreground">
                       {f.title}
                     </p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">
@@ -398,17 +435,22 @@ function UpdatesSheet({
             </Section>
           ) : null}
 
-          {/* Empty-state safety net — shouldn't normally reach this
-              branch because the parent already filters by hasContent,
-              but cheap to render and useful if someone empties one
-              array without checking the others. */}
-          {maintenance.length === 0 &&
-          upcoming.length === 0 &&
-          shipped.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nothing to share right now. Check back soon.
-            </p>
-          ) : null}
+          {!hasAnyContent ? (
+            <div className="rounded-2xl border border-dashed border-border/60 bg-muted/30 p-6 text-center">
+              <Sparkles className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
+              <p className="text-sm font-medium text-foreground">
+                Nothing to share right now
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Check back when we ship something new.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2 pt-2 text-xs text-muted-foreground/80">
+              <PartyPopper className="h-3.5 w-3.5" />
+              <span>That&apos;s everything for now</span>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>
@@ -418,11 +460,21 @@ function UpdatesSheet({
 function Section(props: {
   icon: React.ReactNode
   title: string
+  /// Optional Tailwind colour class applied to the title text — gives
+  /// each section a different tint so the eye finds the headers fast
+  /// (amber maintenance, primary upcoming, emerald shipped). Falls
+  /// back to muted-foreground when omitted.
+  accentClass?: string
   children: React.ReactNode
 }) {
   return (
     <section className="space-y-3">
-      <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <h3
+        className={cn(
+          "flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em]",
+          props.accentClass ?? "text-muted-foreground",
+        )}
+      >
         {props.icon}
         {props.title}
       </h3>
