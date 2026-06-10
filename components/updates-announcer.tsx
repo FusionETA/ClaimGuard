@@ -11,7 +11,11 @@ import {
   formatMaintenanceWindow,
   formatMaintenanceWindowCompact,
   getImminentMaintenance,
+  matchesAudience,
   type MaintenanceWindow,
+  type ShippedFeature,
+  type UpcomingFeature,
+  type UpdateAudience,
 } from "@/lib/updates"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,7 +53,20 @@ import { cn } from "@/lib/utils"
  */
 const EXCLUDED_PATHS = ["/maintenance", "/login"]
 
-export function UpdatesAnnouncer() {
+/**
+ * Props:
+ *   - `audience`: who the current viewer is. Pass `"ADMIN"` for
+ *     ADMIN / OWNER sessions, `"EMPLOYEE"` for EMPLOYEE / SUPERVISOR
+ *     sessions, and `"ALL"` for logged-out / role-unknown contexts
+ *     (the latter just sees `ALL`-tagged entries — the safe default).
+ *     The component filters all three arrays + the imminent-window
+ *     lookup using `matchesAudience` from `lib/updates.ts`.
+ */
+export function UpdatesAnnouncer({
+  audience = "ALL",
+}: {
+  audience?: UpdateAudience
+} = {}) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [dismissedId, setDismissedId] = useState<string | null>(null)
@@ -71,24 +88,40 @@ export function UpdatesAnnouncer() {
     return () => clearInterval(interval)
   }, [])
 
+  // Audience-filtered slices of the three source arrays. Memoised
+  // because `matchesAudience` runs on every entry and we recompute
+  // every render — cheap, but no point doing it twice. Sheet reads
+  // these straight through.
+  const visibleMaintenance = useMemo(
+    () => SCHEDULED_MAINTENANCE.filter((w) => matchesAudience(w, audience)),
+    [audience],
+  )
+  const visibleUpcoming = useMemo(
+    () => UPCOMING_FEATURES.filter((f) => matchesAudience(f, audience)),
+    [audience],
+  )
+  const visibleShipped = useMemo(
+    () => RECENTLY_SHIPPED.filter((f) => matchesAudience(f, audience)),
+    [audience],
+  )
+
   const imminent = useMemo<MaintenanceWindow | null>(
-    () => getImminentMaintenance(),
-    // Intentionally empty — `getImminentMaintenance` reads from the
-    // static import and we re-run via the 5-min tick above. Keeping
-    // this hook lightweight matters because it runs on every render.
+    () => getImminentMaintenance(audience),
+    // `getImminentMaintenance` reads from the static import; we
+    // re-evaluate via the 5-min tick AND when audience changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [audience],
   )
 
   // Suppress on /maintenance and /login. The banner / pill add no
   // value on those routes and only steal screen real estate.
   const onExcludedPath = EXCLUDED_PATHS.some((p) => pathname?.startsWith(p))
 
-  // Nothing to show at all? Render nothing — no DOM, no JS work.
+  // Nothing visible to this audience? Render nothing — no DOM, no JS work.
   const hasAnyContent =
-    SCHEDULED_MAINTENANCE.length > 0 ||
-    UPCOMING_FEATURES.length > 0 ||
-    RECENTLY_SHIPPED.length > 0
+    visibleMaintenance.length > 0 ||
+    visibleUpcoming.length > 0 ||
+    visibleShipped.length > 0
   if (onExcludedPath || !hasAnyContent) return null
 
   const bannerVisible = imminent !== null && imminent.id !== dismissedId
@@ -112,16 +145,15 @@ export function UpdatesAnnouncer() {
         />
       ) : null}
 
-      <TriggerPill
-        onClick={() => setOpen(true)}
-        hasContent={
-          SCHEDULED_MAINTENANCE.length > 0 ||
-          UPCOMING_FEATURES.length > 0 ||
-          RECENTLY_SHIPPED.length > 0
-        }
-      />
+      <TriggerPill onClick={() => setOpen(true)} hasContent={hasAnyContent} />
 
-      <UpdatesSheet open={open} onOpenChange={setOpen} />
+      <UpdatesSheet
+        open={open}
+        onOpenChange={setOpen}
+        maintenance={visibleMaintenance}
+        upcoming={visibleUpcoming}
+        shipped={visibleShipped}
+      />
     </>
   )
 }
@@ -241,15 +273,23 @@ function TriggerPill({
 function UpdatesSheet({
   open,
   onOpenChange,
+  maintenance,
+  upcoming,
+  shipped,
 }: {
   open: boolean
   onOpenChange: (v: boolean) => void
+  // Audience-filtered slices from the parent. The sheet renders these
+  // verbatim — it never reaches back into the raw `SCHEDULED_MAINTENANCE
+  // / UPCOMING_FEATURES / RECENTLY_SHIPPED` imports, so an admin
+  // entry can't leak into the employee view.
+  maintenance: MaintenanceWindow[]
+  upcoming: UpcomingFeature[]
+  shipped: ShippedFeature[]
 }) {
   // "Show more" toggle for the shipped list. Default: top 3.
   const [showAllShipped, setShowAllShipped] = useState(false)
-  const shippedToShow = showAllShipped
-    ? RECENTLY_SHIPPED
-    : RECENTLY_SHIPPED.slice(0, 3)
+  const shippedToShow = showAllShipped ? shipped : shipped.slice(0, 3)
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -270,12 +310,12 @@ function UpdatesSheet({
         </SheetHeader>
 
         <div className="space-y-6 py-4">
-          {SCHEDULED_MAINTENANCE.length > 0 ? (
+          {maintenance.length > 0 ? (
             <Section
               icon={<AlertTriangle className="h-4 w-4 text-amber-600" />}
               title="Scheduled maintenance"
             >
-              {SCHEDULED_MAINTENANCE.map((w) => (
+              {maintenance.map((w) => (
                 <article
                   key={w.id}
                   className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 dark:border-amber-800/50 dark:bg-amber-950/30"
@@ -296,12 +336,12 @@ function UpdatesSheet({
             </Section>
           ) : null}
 
-          {UPCOMING_FEATURES.length > 0 ? (
+          {upcoming.length > 0 ? (
             <Section
               icon={<CalendarClock className="h-4 w-4 text-primary" />}
               title="Coming soon"
             >
-              {UPCOMING_FEATURES.map((f) => (
+              {upcoming.map((f) => (
                 <article
                   key={f.id}
                   className="rounded-xl border border-border/60 bg-muted/40 p-3"
@@ -320,7 +360,7 @@ function UpdatesSheet({
             </Section>
           ) : null}
 
-          {RECENTLY_SHIPPED.length > 0 ? (
+          {shipped.length > 0 ? (
             <Section
               icon={<Sparkles className="h-4 w-4 text-emerald-600" />}
               title="Recently shipped"
@@ -343,7 +383,7 @@ function UpdatesSheet({
                   </article>
                 ))}
               </div>
-              {RECENTLY_SHIPPED.length > 3 ? (
+              {shipped.length > 3 ? (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -352,7 +392,7 @@ function UpdatesSheet({
                 >
                   {showAllShipped
                     ? "Show less"
-                    : `Show ${RECENTLY_SHIPPED.length - 3} more`}
+                    : `Show ${shipped.length - 3} more`}
                 </Button>
               ) : null}
             </Section>
@@ -362,9 +402,9 @@ function UpdatesSheet({
               branch because the parent already filters by hasContent,
               but cheap to render and useful if someone empties one
               array without checking the others. */}
-          {SCHEDULED_MAINTENANCE.length === 0 &&
-          UPCOMING_FEATURES.length === 0 &&
-          RECENTLY_SHIPPED.length === 0 ? (
+          {maintenance.length === 0 &&
+          upcoming.length === 0 &&
+          shipped.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Nothing to share right now. Check back soon.
             </p>
