@@ -50,9 +50,23 @@ function round2(n: number): number {
 // drop fractional sen rather than round — e.g. K2 (3,549/11 = 322.6363…
 // → 322.63), Current Month PCB before 5-sen rounding (15.0958 → 15.09).
 // Matches Payroll Panda's display convention.
-function trunc2(n: number): number {
+//
+// NOTE on IEEE 754: the naive `Math.trunc(n * 100) / 100` is unsafe for
+// "clean" 2dp values because the float representation drifts. For
+// example, `32.55 * 100 = 3254.9999999999995` in JS, so the naive
+// version returns 32.54 — that's where the SOCSO + EIS = 32.55 figure
+// silently became 32.54 on the LHDN-form PDF. We go through `toFixed`
+// for a fixed-precision string representation (no drift past the 10th
+// decimal) and lexically slice to 2dp.
+export function trunc2(n: number): number {
   if (!Number.isFinite(n)) return 0
-  return Math.trunc(n * 100) / 100
+  const negative = n < 0
+  const abs = Math.abs(n)
+  const str = abs.toFixed(10)
+  const dotIdx = str.indexOf(".")
+  if (dotIdx === -1) return n
+  const truncated = Number(str.slice(0, dotIdx + 3))
+  return negative ? -truncated : truncated
 }
 
 // ─── Tax bands (LHDN 2024 individual-resident) ──────────────────────────

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { applyResidentTaxBands, calcPcb } from "../pcb"
+import { applyResidentTaxBands, calcPcb, trunc2 } from "../pcb"
 
 /**
  * LHDN PCB calc tests.
@@ -789,5 +789,58 @@ describe("calcPcb — SOCSO + EIS RM 350 relief (actuals-only)", () => {
       profile: baseProfile,
     })
     expect(withFigures.total).toBeCloseTo(2100, 2) // 7000 × 30%
+  })
+})
+
+describe("trunc2 — IEEE 754 safety", () => {
+  // Regression for the Kang Nickee bug: trunc2(32.55) used to return
+  // 32.54 because 32.55 * 100 lands at 3254.9999999999995 in IEEE 754
+  // and `Math.trunc` snipped the fractional part to 3254. The same
+  // hit 41,567.52 → 41,567.51 on Kang Nickee's January 2026 LHDN PDF.
+  // The toFixed-string slice in the current implementation dodges
+  // float drift past the 10th decimal.
+  it("does NOT drop 32.55 → 32.54 (Kang Nickee SOCSO + EIS regression)", () => {
+    expect(trunc2(32.55)).toBe(32.55)
+  })
+
+  it("does NOT drop 41567.52 → 41567.51 (Kang Nickee P regression)", () => {
+    expect(trunc2(41567.52)).toBe(41567.52)
+  })
+
+  // Other "clean" 2dp values that have historically been bitten by
+  // the float-drift bug in similar trunc helpers.
+  it.each([
+    [0.07, 0.07],
+    [0.1, 0.1],
+    [0.2, 0.2],
+    [156.05, 156.05],
+    [1067.13, 1067.13],
+    [994.05, 994.05],
+  ])("preserves clean 2dp value %f", (input, expected) => {
+    expect(trunc2(input)).toBe(expected)
+  })
+
+  // Still truncates (does NOT round) values with >2dp of real
+  // precision — this is the Payroll Panda convention.
+  it("truncates K2 division (3549/11 = 322.6363… → 322.63)", () => {
+    expect(trunc2(3549 / 11)).toBe(322.63)
+  })
+
+  it("truncates current-month PCB division (181.15/12 = 15.0958… → 15.09)", () => {
+    expect(trunc2(181.15 / 12)).toBe(15.09)
+  })
+
+  // Negative numbers truncate toward zero (Math.trunc semantics) so
+  // -0.07 stays -0.07 and -250.00 doesn't drift to -250.01.
+  it("handles negative numbers without drift", () => {
+    expect(trunc2(-0.07)).toBe(-0.07)
+    expect(trunc2(-250)).toBe(-250)
+    expect(trunc2(-15.0958)).toBe(-15.09)
+  })
+
+  it("handles 0 and non-finite inputs", () => {
+    expect(trunc2(0)).toBe(0)
+    expect(trunc2(NaN)).toBe(0)
+    expect(trunc2(Infinity)).toBe(0)
   })
 })
