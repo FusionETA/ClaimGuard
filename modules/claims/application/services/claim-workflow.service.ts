@@ -23,6 +23,7 @@ import type {
 } from "@/modules/claims/domain/models"
 import { claimRepository } from "@/modules/claims/infrastructure/claim.repository"
 import { organizationRepository } from "@/modules/organization/infrastructure/organization.repository"
+import { bustClaimCaches } from "@/lib/cache-invalidation"
 import type {
   ChartOfAccountOption,
   LimitPeriod,
@@ -1221,4 +1222,377 @@ export async function syncClaimToXero({
   }
 
   return { ok: true, claimTitle: result.claimTitle }
+}
+
+/**
+ * Schema for the in-place edit of an existing employee claim. We only
+ * accept the scalar / text fields here — changes to account, payment
+ * type, currency or claim type require re-creating the claim because
+ * they affect Xero routing + limit math performed at creation time.
+ */
+const updateOwnClaimSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, "Title is required.")
+    .max(120, "Keep the title under 120 characters."),
+  amount: z
+    .number()
+    .positive("Amount must be greater than zero.")
+    .max(1_000_000, "Amount is unreasonably large — double-check the receipt."),
+  spentAt: z.string().min(1, "Pick the date this was spent."),
+  description: z.string().trim().max(2000, "Keep the description under 2000 characters.").optional(),
+  spendingAt: z
+    .string()
+    .trim()
+    .max(160, "Keep the merchant name under 160 characters.")
+    .optional(),
+  spendingWith: z
+    .string()
+    .trim()
+    .max(160, "Keep the colleague / client name under 160 characters.")
+    .optional(),
+})
+
+export type UpdateOwnClaimInput = z.infer<typeof updateOwnClaimSchema>
+
+/**
+ * Edit a SUBMITTED / PENDING claim the caller owns. Title, amount,
+ * spent-on date, description, and the two free-text "with / at" fields
+ * can be patched in place; everything else needs a fresh claim.
+ *
+ * Returns a discriminated result so the action can mirror the
+ * field-level errors back into the form state.
+ */
+export async function updateOwnEmployeeClaim({
+  session,
+  claimId,
+  input,
+}: {
+  session: AuthenticatedSession
+  claimId: string
+  input: unknown
+}): Promise<
+  | { ok: true }
+  | {
+      ok: false
+      status: number
+      message: string
+      fieldErrors?: Partial<Record<keyof UpdateOwnClaimInput, string>>
+    }
+> {
+  const parsed = updateOwnClaimSchema.safeParse(input)
+  if (!parsed.success) {
+    const fieldErrors: Partial<Record<keyof UpdateOwnClaimInput, string>> = {}
+    for (const issue of parsed.error.issues) {
+      const k = issue.path[0] as keyof UpdateOwnClaimInput | undefined
+      if (k && !fieldErrors[k]) fieldErrors[k] = issue.message
+    }
+    return {
+      ok: false,
+      status: 400,
+      message: "Fix the highlighted fields.",
+      fieldErrors,
+    }
+  }
+
+  const spentAtDate = new Date(parsed.data.spentAt)
+  if (Number.isNaN(spentAtDate.valueOf())) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Spent-on date is invalid.",
+      fieldErrors: { spentAt: "Pick a valid date." },
+    }
+  }
+
+  const result = await claimRepository.updateClaimForOwner({
+    claimId,
+    userId: session.userId,
+    fields: {
+      title: parsed.data.title,
+      amount: parsed.data.amount,
+      spentAt: spentAtDate,
+      description: parsed.data.description ?? "",
+      spendingAt: parsed.data.spendingAt?.trim() || null,
+      spendingWith: parsed.data.spendingWith?.trim() || null,
+    },
+  })
+  if (!result.ok) {
+    const map = {
+      NOT_FOUND: { status: 404, message: "Claim not found." },
+      FORBIDDEN: { status: 403, message: "You can't edit this claim." },
+      STATUS_LOCKED: {
+        status: 409,
+        message:
+          "This claim is already under review and can no longer be edited from your side.",
+      },
+    } as const
+    const m = map[result.reason]
+    return { ok: false, status: m.status, message: m.message }
+  }
+  if (result.organizationId) {
+    await bustClaimCaches({
+      organizationId: result.organizationId,
+      userId: session.userId,
+    })
+  }
+  return { ok: true }
+}
+
+/**
+ * Delete one of the caller's own claims. Allowed only while the claim
+ * is still SUBMITTED or PENDING — once an approver has acted the claim
+ * is locked as audit history.
+ */
+export async function deleteOwnEmployeeClaim({
+  session,
+  claimId,
+}: {
+  session: AuthenticatedSession
+  claimId: string
+}): Promise<
+  | { ok: true }
+  | { ok: false; status: number; message: string }
+> {
+  const result = await claimRepository.deleteClaimForOwner({
+    claimId,
+    userId: session.userId,
+  })
+  if (!result.ok) {
+    const map = {
+      NOT_FOUND: { status: 404, message: "Claim not found." },
+      FORBIDDEN: { status: 403, message: "You can't delete this claim." },
+      STATUS_LOCKED: {
+        status: 409,
+        message:
+          "This claim is already under review and can no longer be deleted from your side.",
+      },
+    } as const
+    const m = map[result.reason]
+    return { ok: false, status: m.status, message: m.message }
+  }
+  if (result.organizationId) {
+    await bustClaimCaches({
+      organizationId: result.organizationId,
+      userId: session.userId,
+    })
+  }
+  return { ok: true }
+}
+
+/**
+ * Append extra supporting documents to one of the caller's own claims.
+ * Same ownership + status gate as deletion (SUBMITTED / PENDING only).
+ * Reuses `storeSupportingFileForClaim` so the storage decision tree
+ * (Xero Files when COA is linked; local disk otherwise) is identical
+ * to the original submission path.
+ */
+export async function addSupportingFilesToOwnClaim({
+  session,
+  claimId,
+  files,
+}: {
+  session: AuthenticatedSession
+  claimId: string
+  files: File[]
+}): Promise<
+  | { ok: true; inserted: number; warning?: string }
+  | { ok: false; status: number; message: string }
+> {
+  // Hard cap: same as the submission-side cap.
+  const candidates = files.filter((f) => f.size > 0).slice(0, 10)
+  if (candidates.length === 0) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Pick at least one file to attach.",
+    }
+  }
+
+  // Discover the claim's owning org so we can route file storage
+  // (Xero Files when the org is connected; local disk otherwise).
+  // The canonical ownership + status check still happens later inside
+  // `addSupportingAttachmentsForOwner` — this lookup is just for
+  // routing, with a fail-fast on the obvious cases.
+  const ownership = await claimRepository.getClaimOwnership(claimId)
+  if (!ownership) {
+    return { ok: false, status: 404, message: "Claim not found." }
+  }
+  if (ownership.employeeId !== session.userId) {
+    return { ok: false, status: 403, message: "You can't update this claim." }
+  }
+  if (ownership.status !== "SUBMITTED" && ownership.status !== "PENDING") {
+    return {
+      ok: false,
+      status: 409,
+      message:
+        "This claim is already under review — new supporting documents can no longer be attached from your side.",
+    }
+  }
+  const orgXeroConnectionId = ownership.organizationId
+    ? await organizationRepository.getActiveXeroConnectionId(
+        ownership.organizationId,
+      )
+    : null
+
+  const stored: Array<{
+    fileName: string
+    fileUrl: string | null
+    xeroFileId: string | null
+    mimeType: string | null
+    sizeBytes: number | null
+  }> = []
+  let warning: string | undefined
+  for (const file of candidates) {
+    try {
+      const s = await storeSupportingFileForClaim({
+        file,
+        xeroConnectionId: orgXeroConnectionId,
+      })
+      stored.push({
+        fileName: s.fileName,
+        fileUrl: s.fileUrl,
+        xeroFileId: s.xeroFileId,
+        mimeType: s.mimeType,
+        sizeBytes: s.sizeBytes,
+      })
+      if (s.warning && !warning) warning = s.warning
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : `Supporting file ${file.name} failed to upload.`
+      if (!warning) warning = message
+    }
+  }
+
+  if (stored.length === 0) {
+    return {
+      ok: false,
+      status: 500,
+      message: warning ?? "All files failed to upload.",
+    }
+  }
+
+  const result = await claimRepository.addSupportingAttachmentsForOwner({
+    claimId,
+    userId: session.userId,
+    files: stored,
+  })
+  if (!result.ok) {
+    const map = {
+      NOT_FOUND: { status: 404, message: "Claim not found." },
+      FORBIDDEN: { status: 403, message: "You can't update this claim." },
+      STATUS_LOCKED: {
+        status: 409,
+        message:
+          "This claim is already under review — new supporting documents can no longer be attached from your side.",
+      },
+    } as const
+    const m = map[result.reason]
+    return { ok: false, status: m.status, message: m.message }
+  }
+  if (result.organizationId) {
+    await bustClaimCaches({
+      organizationId: result.organizationId,
+      userId: session.userId,
+    })
+  }
+  return { ok: true, inserted: result.inserted, warning }
+}
+
+/**
+ * Replace the caller's claim's primary receipt. Same eligibility window
+ * as the other employee-side edits (SUBMITTED / PENDING only — enforced
+ * by the repo). Reuses `storeReceiptForClaim` so the storage decision
+ * tree (Xero Files when the COA is linked, local disk otherwise) is
+ * identical to the original submission path.
+ *
+ * The old receipt bytes are NOT deleted from disk / Xero Files — we
+ * keep historical uploads available for audit.
+ */
+export async function replaceOwnClaimReceipt({
+  session,
+  claimId,
+  receiptFile,
+}: {
+  session: AuthenticatedSession
+  claimId: string
+  receiptFile: File
+}): Promise<
+  | { ok: true; warning?: string; receiptUrl: string }
+  | { ok: false; status: number; message: string }
+> {
+  if (!receiptFile || receiptFile.size <= 0) {
+    return { ok: false, status: 400, message: "Pick a receipt file to upload." }
+  }
+
+  // Pre-flight ownership + status check so we don't waste an upload
+  // when the claim is already locked. The repo's replace call still
+  // re-checks before writing.
+  const ownership = await claimRepository.getClaimOwnership(claimId)
+  if (!ownership) {
+    return { ok: false, status: 404, message: "Claim not found." }
+  }
+  if (ownership.employeeId !== session.userId) {
+    return { ok: false, status: 403, message: "You can't update this claim." }
+  }
+  if (ownership.status !== "SUBMITTED" && ownership.status !== "PENDING") {
+    return {
+      ok: false,
+      status: 409,
+      message:
+        "This claim is already under review — the receipt can no longer be replaced from your side.",
+    }
+  }
+
+  const orgXeroConnectionId = ownership.organizationId
+    ? await organizationRepository.getActiveXeroConnectionId(
+        ownership.organizationId,
+      )
+    : null
+
+  let stored: { receiptUrl: string; xeroFileId: string | null; warning?: string }
+  try {
+    stored = await storeReceiptForClaim({
+      receiptFile,
+      xeroConnectionId: orgXeroConnectionId,
+    })
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Receipt failed to upload."
+    return { ok: false, status: 400, message }
+  }
+
+  const result = await claimRepository.replaceReceiptForOwner({
+    claimId,
+    userId: session.userId,
+    receipt: {
+      receiptUrl: stored.receiptUrl,
+      xeroFileId: stored.xeroFileId,
+    },
+  })
+  if (!result.ok) {
+    const map = {
+      NOT_FOUND: { status: 404, message: "Claim not found." },
+      FORBIDDEN: { status: 403, message: "You can't update this claim." },
+      STATUS_LOCKED: {
+        status: 409,
+        message:
+          "This claim is already under review — the receipt can no longer be replaced from your side.",
+      },
+    } as const
+    const m = map[result.reason]
+    return { ok: false, status: m.status, message: m.message }
+  }
+  if (result.organizationId) {
+    await bustClaimCaches({
+      organizationId: result.organizationId,
+      userId: session.userId,
+    })
+  }
+  return { ok: true, warning: stored.warning, receiptUrl: stored.receiptUrl }
 }

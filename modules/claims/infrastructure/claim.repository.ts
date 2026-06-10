@@ -2470,4 +2470,237 @@ export const claimRepository = {
       },
     })
   },
+
+  /**
+   * Lightweight ownership + status projection — used by services that
+   * need to make a routing decision BEFORE the canonical mutate
+   * methods run their own ownership check (e.g. discovering the org's
+   * Xero connection so file uploads land in the right place).
+   */
+  async getClaimOwnership(claimId: string): Promise<{
+    employeeId: string
+    status: string
+    organizationId: string | null
+  } | null> {
+    const prisma = getPrismaClient()
+    if (!prisma) return null
+    const claim = await prisma.claim.findUnique({
+      where: { id: claimId },
+      select: { employeeId: true, status: true, organizationId: true },
+    })
+    if (!claim) return null
+    return {
+      employeeId: claim.employeeId,
+      status: claim.status,
+      organizationId: claim.organizationId ?? null,
+    }
+  },
+
+  /**
+   * Edit a claim the employee owns — title / amount / date / context
+   * text fields. Same ownership + status gate as deletion: only
+   * allowed while the claim is SUBMITTED or PENDING. Account, payment
+   * type, currency, claim type and receipt stay immutable here (those
+   * changes have downstream effects on Xero routing + limit checks
+   * that the create-claim path handles up front; for those edits the
+   * employee re-creates the claim).
+   */
+  async updateClaimForOwner(data: {
+    claimId: string
+    userId: string
+    fields: {
+      title?: string
+      amount?: number
+      spentAt?: Date
+      description?: string | null
+      spendingAt?: string | null
+      spendingWith?: string | null
+    }
+  }): Promise<
+    | { ok: true; organizationId: string | null }
+    | { ok: false; reason: "NOT_FOUND" | "FORBIDDEN" | "STATUS_LOCKED"; status?: string }
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return { ok: false, reason: "NOT_FOUND" }
+
+    const claim = await prisma.claim.findUnique({
+      where: { id: data.claimId },
+      select: { id: true, employeeId: true, status: true, organizationId: true },
+    })
+    if (!claim) return { ok: false, reason: "NOT_FOUND" }
+    if (claim.employeeId !== data.userId) return { ok: false, reason: "FORBIDDEN" }
+    if (claim.status !== "SUBMITTED" && claim.status !== "PENDING") {
+      return { ok: false, reason: "STATUS_LOCKED", status: claim.status }
+    }
+
+    // Build the update payload from defined fields only — undefined
+    // means "leave as-is". null means "clear back to blank" for the
+    // nullable text columns.
+    const patch: Record<string, unknown> = {}
+    if (data.fields.title !== undefined) patch.title = data.fields.title
+    if (data.fields.amount !== undefined) patch.amount = data.fields.amount
+    if (data.fields.spentAt !== undefined) patch.spentAt = data.fields.spentAt
+    if (data.fields.description !== undefined) {
+      patch.description = data.fields.description ?? ""
+    }
+    if (data.fields.spendingAt !== undefined) {
+      patch.spendingAt = data.fields.spendingAt
+    }
+    if (data.fields.spendingWith !== undefined) {
+      patch.spendingWith = data.fields.spendingWith
+    }
+    if (Object.keys(patch).length === 0) {
+      return { ok: true, organizationId: claim.organizationId ?? null }
+    }
+
+    await prisma.claim.update({
+      where: { id: data.claimId },
+      data: patch,
+    })
+
+    return { ok: true, organizationId: claim.organizationId ?? null }
+  },
+
+  /**
+   * Delete a claim the employee owns, but ONLY while it's still in an
+   * early state (SUBMITTED or PENDING). Once any approver has acted
+   * (APPROVED / REVIEWED / REJECTED) the claim becomes audit history
+   * and must not be removable from the employee surface.
+   *
+   * `ClaimSupportingAttachment` + `ClaimApprovalEntry` cascade-delete
+   * via the schema's `onDelete: Cascade`, so this is a single delete.
+   *
+   * Returns a discriminated result so the caller can surface a precise
+   * toast (not-found vs status-locked vs ownership mismatch).
+   */
+  async deleteClaimForOwner(data: {
+    claimId: string
+    userId: string
+  }): Promise<
+    | { ok: true; organizationId: string | null }
+    | { ok: false; reason: "NOT_FOUND" | "FORBIDDEN" | "STATUS_LOCKED"; status?: string }
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return { ok: false, reason: "NOT_FOUND" }
+
+    const claim = await prisma.claim.findUnique({
+      where: { id: data.claimId },
+      select: { id: true, employeeId: true, status: true, organizationId: true },
+    })
+    if (!claim) return { ok: false, reason: "NOT_FOUND" }
+    if (claim.employeeId !== data.userId) return { ok: false, reason: "FORBIDDEN" }
+    if (claim.status !== "SUBMITTED" && claim.status !== "PENDING") {
+      return { ok: false, reason: "STATUS_LOCKED", status: claim.status }
+    }
+
+    await prisma.claim.delete({ where: { id: data.claimId } })
+    return { ok: true, organizationId: claim.organizationId ?? null }
+  },
+
+  /**
+   * Append extra supporting attachments to a claim the employee owns.
+   * Same ownership + status gate as deletion: only allowed while the
+   * claim is SUBMITTED / PENDING (post-approval evidence belongs in a
+   * separate audit channel, not as a silent edit to the claim).
+   *
+   * The caller is responsible for already having uploaded the file
+   * bytes (via `storeSupportingFileForClaim`) and producing the
+   * `fileName / fileUrl / xeroFileId / mimeType / sizeBytes` tuples.
+   */
+  async addSupportingAttachmentsForOwner(data: {
+    claimId: string
+    userId: string
+    files: Array<{
+      fileName: string
+      fileUrl: string | null
+      xeroFileId: string | null
+      mimeType: string | null
+      sizeBytes: number | null
+    }>
+  }): Promise<
+    | { ok: true; organizationId: string | null; inserted: number }
+    | { ok: false; reason: "NOT_FOUND" | "FORBIDDEN" | "STATUS_LOCKED"; status?: string }
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return { ok: false, reason: "NOT_FOUND" }
+
+    const claim = await prisma.claim.findUnique({
+      where: { id: data.claimId },
+      select: { id: true, employeeId: true, status: true, organizationId: true },
+    })
+    if (!claim) return { ok: false, reason: "NOT_FOUND" }
+    if (claim.employeeId !== data.userId) return { ok: false, reason: "FORBIDDEN" }
+    if (claim.status !== "SUBMITTED" && claim.status !== "PENDING") {
+      return { ok: false, reason: "STATUS_LOCKED", status: claim.status }
+    }
+    if (data.files.length === 0) {
+      return { ok: true, organizationId: claim.organizationId ?? null, inserted: 0 }
+    }
+
+    await prisma.claimSupportingAttachment.createMany({
+      data: data.files.map((f) => ({
+        claimId: data.claimId,
+        fileName: f.fileName,
+        fileUrl: f.fileUrl,
+        xeroFileId: f.xeroFileId,
+        mimeType: f.mimeType,
+        sizeBytes: f.sizeBytes,
+      })),
+    })
+
+    return {
+      ok: true,
+      organizationId: claim.organizationId ?? null,
+      inserted: data.files.length,
+    }
+  },
+
+  /**
+   * Replace the claim's primary receipt. Same ownership + status gate
+   * as the other employee-side edits — SUBMITTED / PENDING only.
+   *
+   * Updates the two columns the receipt lives across: `receiptUrl`
+   * (display URL) and `xeroFileId` (the Xero Files id, when the receipt
+   * was uploaded there). The caller is responsible for having already
+   * uploaded the bytes via `storeReceiptForClaim`.
+   *
+   * The previous receipt's bytes are NOT deleted from disk / Xero — same
+   * conservative posture as the rest of the app (we keep historical
+   * uploads around in case audit needs them). The old URL just stops
+   * being referenced.
+   */
+  async replaceReceiptForOwner(data: {
+    claimId: string
+    userId: string
+    receipt: {
+      receiptUrl: string
+      xeroFileId: string | null
+    }
+  }): Promise<
+    | { ok: true; organizationId: string | null }
+    | { ok: false; reason: "NOT_FOUND" | "FORBIDDEN" | "STATUS_LOCKED"; status?: string }
+  > {
+    const prisma = getPrismaClient()
+    if (!prisma) return { ok: false, reason: "NOT_FOUND" }
+
+    const claim = await prisma.claim.findUnique({
+      where: { id: data.claimId },
+      select: { id: true, employeeId: true, status: true, organizationId: true },
+    })
+    if (!claim) return { ok: false, reason: "NOT_FOUND" }
+    if (claim.employeeId !== data.userId) return { ok: false, reason: "FORBIDDEN" }
+    if (claim.status !== "SUBMITTED" && claim.status !== "PENDING") {
+      return { ok: false, reason: "STATUS_LOCKED", status: claim.status }
+    }
+
+    await prisma.claim.update({
+      where: { id: data.claimId },
+      data: {
+        receiptUrl: data.receipt.receiptUrl,
+        xeroFileId: data.receipt.xeroFileId,
+      },
+    })
+
+    return { ok: true, organizationId: claim.organizationId ?? null }
+  },
 }
