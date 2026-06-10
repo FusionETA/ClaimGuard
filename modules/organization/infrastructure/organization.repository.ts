@@ -4020,34 +4020,45 @@ export const organizationRepository = {
       where: { id: data.employeeProfileId },
       include: {
         user: { select: { id: true, name: true, role: true, organizationId: true } },
-        projectAssignments: { select: { projectId: true } },
       },
     })
     if (!profile || profile.user.organizationId !== data.organizationId) {
       throw new Error("Employee not found in this organization.")
     }
-    const employeeProjectIds = new Set(
-      profile.projectAssignments.map((a) => a.projectId),
-    )
-    if (!employeeProjectIds.has(team.projectId)) {
-      throw new Error(
-        "Employee is not assigned to the project this team belongs to.",
-      )
-    }
 
-    const upserted = await prisma.employeeTeamMembership.upsert({
-      where: {
-        employeeProfileId_teamId: {
+    // Adding to a team implicitly puts the employee in the team's
+    // parent project — admins shouldn't have to do "add to project"
+    // as a separate step. We upsert both rows in one transaction so a
+    // partial failure (project insert succeeds but team membership
+    // fails) doesn't leave an orphaned project assignment.
+    const upserted = await prisma.$transaction(async (tx) => {
+      await tx.employeeProjectAssignment.upsert({
+        where: {
+          employeeProfileId_projectId: {
+            employeeProfileId: profile.id,
+            projectId: team.projectId,
+          },
+        },
+        create: {
+          employeeProfileId: profile.id,
+          projectId: team.projectId,
+        },
+        update: {}, // already there → no-op
+      })
+      return tx.employeeTeamMembership.upsert({
+        where: {
+          employeeProfileId_teamId: {
+            employeeProfileId: profile.id,
+            teamId: team.id,
+          },
+        },
+        create: {
           employeeProfileId: profile.id,
           teamId: team.id,
+          layer: data.layer,
         },
-      },
-      create: {
-        employeeProfileId: profile.id,
-        teamId: team.id,
-        layer: data.layer,
-      },
-      update: { layer: data.layer },
+        update: { layer: data.layer },
+      })
     })
 
     return {
