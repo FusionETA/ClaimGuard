@@ -93,10 +93,17 @@ describe("calcPayslip — additional remuneration routing", () => {
 
     expect(result.pcbBreakdown.normal).toBeGreaterThanOrEqual(0)
     expect(result.pcbBreakdown.additional).toBeGreaterThan(0)
-    expect(result.pcb).toBeCloseTo(
+    // Engine invariant: final PCB = (normal + additional) put
+    // through LHDN's 5-sen ceil. Normal is already 5-sen-rounded
+    // (it's the deducted figure), but `additional` (PCB(C)) is now
+    // a 2dp-truncated value per LHDN Section E item 1 — only the
+    // SUM is ceiled, not each component. So `total` can be up to
+    // ~0.04 greater than the raw sum.
+    const ceil5Sen = (n: number) => Math.ceil(n * 20) / 20
+    const expectedTotal = ceil5Sen(
       result.pcbBreakdown.normal + result.pcbBreakdown.additional,
-      2,
     )
+    expect(result.pcb).toBeCloseTo(expectedTotal, 2)
   })
 
   it("recurring allowances stay on the normal PCB path", () => {

@@ -590,8 +590,15 @@ describe("calcPcb — additional remuneration", () => {
     //  inline formula display.)
     expect(result.normal).toBeCloseTo(514.2, 1)
     expect(result.additional).toBeCloseTo(1900.1, 1)
-    // Invariant: total = normal + additional (no double-rounding).
-    expect(result.total).toBeCloseTo(result.normal + result.additional, 2)
+    // Invariant: total = ceil-to-5-sen(normal + additional). The
+    // 5-sen ceil applies ONLY to the final Net PCB, not to PCB(C)
+    // itself — see the matching comment in pcb.ts for why. The raw
+    // sum can differ from `total` by up to ~0.04.
+    const ceil5Sen = (n: number) => Math.ceil(n * 20) / 20
+    expect(result.total).toBeCloseTo(
+      ceil5Sen(result.normal + result.additional),
+      2,
+    )
   })
 
   it("returns 0 AR when the bonus is 0 (back-compat with normal-only callers)", () => {

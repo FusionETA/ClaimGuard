@@ -551,12 +551,20 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   const truncPcbNormal = Math.trunc(pcbNormal * 100) / 100
   const pcbB = input.ytdPcb + truncPcbNormal * monthsRemainingIncludingThis
   const pcbCBeforeRounding = Math.max(0, annualTaxWithAr - pcbB - ytdZakat)
-  const arRounded = applyMtdThreshold(roundMtd(pcbCBeforeRounding))
+  // PCB(C) — the marginal AR PCB this month — gets LHDN's 2dp
+  // truncation (Section E item 1) and the RM 10 minimum threshold
+  // (item 3), but NOT the 5-sen ceiling. That ceiling applies only
+  // to the FINAL Net PCB (PCB(A) + PCB(C)) — see `total` below.
+  // Previously this used `roundMtd` which silently bumped values
+  // like 73.16 up to 73.20 and broke the formula box on the LHDN
+  // PDF (admins saw `1,067.12 - 993.96 = 73.16` printed alongside
+  // PCB(C) = 73.20 with no explanation). Matches Payroll Panda.
+  const arTruncated = applyMtdThreshold(trunc2(pcbCBeforeRounding))
 
   return {
     normal: normalRounded,
-    additional: arRounded,
-    total: roundMtd(normalRounded + arRounded),
+    additional: arTruncated,
+    total: roundMtd(normalRounded + arTruncated),
   }
 }
 
@@ -970,8 +978,14 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   // Malaysian payroll system seems to use.
   const pcbB = X + trunc2(currentMonthPcb) * (n + 1)
   const pcbCBeforeRounding = Math.max(0, CS - pcbB - Z)
-  const pcbC =
-    Yt > 0 ? applyMtdThreshold(roundMtd(pcbCBeforeRounding)) : 0
+  // PCB(C) — 2dp truncation (LHDN Section E item 1) + RM 10
+  // threshold (item 3) only. NO 5-sen ceil here — that's reserved
+  // for the FINAL Net PCB on the line below. See the matching
+  // comment in `calcPcb` for the rationale (the formula box on the
+  // LHDN PDF was reading `1,067.12 - 993.96 = 73.16` but printing
+  // PCB(C) = 73.20 because of this ceil; admins saw it as a math
+  // error). Matches Payroll Panda.
+  const pcbC = Yt > 0 ? applyMtdThreshold(trunc2(pcbCBeforeRounding)) : 0
   const pcbCurrentMonth = roundMtd(pcbAfterThreshold + pcbC)
 
   // zakatThisMonth — pcb-orchestrator-level offset, not part of formula
