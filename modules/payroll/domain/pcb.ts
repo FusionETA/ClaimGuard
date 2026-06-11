@@ -829,7 +829,14 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   const K = Math.min(EPF_RELIEF_CAP, Math.max(0, input.ytdEpf))
   const cap_after_K = Math.max(0, EPF_RELIEF_CAP - K)
   const thisMonthEpf = Math.max(0, input.thisMonthEpf)
-  const K1 = Math.min(thisMonthEpf, cap_after_K)
+  // K1 is displayed on the LHDN form as a WHOLE-RINGGIT figure (per
+  // the Spec's "rounded up to the next ringgit" convention for EPF
+  // contributions). Payroll Panda follows this. We ceil here so the
+  // displayed K1 matches — K2 then naturally absorbs the few sen
+  // difference within the same RM 4,000 cap. Next month's run reads
+  // the ACTUAL EPF paid (from the payslip snapshot), not the ceil'd
+  // K1, so no drift accumulates.
+  const K1 = Math.min(Math.ceil(thisMonthEpf), cap_after_K)
   const cap_after_K1 = Math.max(0, EPF_RELIEF_CAP - K - K1)
   // Truncate K2 at 2dp (LHDN / Payroll Panda convention — don't round).
   // 3,549 / 11 = 322.6363… → 322.63. Stored exactly as displayed, so
