@@ -99,7 +99,15 @@ export async function savePayrollPersonalAction(
     idType: formData.get("idType"),
     idNumber: formData.get("idNumber"),
     maritalStatus: formData.get("maritalStatus"),
-    isResident: formData.get("isResident") ?? "true",
+    // No `?? "true"` fallback here on purpose. An unchecked HTML
+    // checkbox is absent from FormData entirely — the fallback used
+    // to slam it back to `"true"`, which the Zod booleanString()
+    // transform parsed as true. Admins unticking "Resident (tax)?"
+    // for a non-Malaysian saw the toggle revert on refresh because
+    // the false value never reached the DB. Matching the
+    // hasPr / isOku pattern below: `null` from formData → Zod
+    // booleanString() → false.
+    isResident: formData.get("isResident"),
     isOku: formData.get("isOku"),
     spouseWorking: formData.get("spouseWorking"),
     spouseDisabled: formData.get("spouseDisabled"),
