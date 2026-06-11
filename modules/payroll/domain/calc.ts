@@ -242,16 +242,22 @@ export function calcEpf(input: CalcEpfInput): {
         }
       : { employer: 0, employee: 0 }
 
-  // Voluntary contributions stack on top. These use the exact
-  // percentage (not the table) because they're not part of the
-  // statutory minimum that the gazetted Schedule prescribes. The
-  // voluntary base IS the total EPF-able wage (regular + AR) — the
-  // bonus is still EPF-able even if its mandatory portion is computed
-  // separately above, so the % voluntary the employee elected stacks
-  // on top of that total.
+  // Voluntary contributions stack on top. The voluntary base IS the
+  // total EPF-able wage (regular + AR). Per KWSP general convention
+  // for off-tier amounts (same as Note 2 of the Third Schedule for
+  // wages > RM 20,000), each side is rounded UP to the next ringgit.
+  // Previously this used `round2`, which left fractional sen like
+  // Aafaq Ul Basit's 808.56 instead of the gazetted-style 809 — a 1
+  // RM gap from Payroll Panda's display.
   const totalWage = input.wage + ar
-  const employeeExtra = round2(totalWage * (input.employeeVoluntary / 100))
-  const employerExtra = round2(totalWage * (input.employerVoluntary / 100))
+  const employeeExtra =
+    input.employeeVoluntary > 0
+      ? Math.ceil(totalWage * input.employeeVoluntary / 100)
+      : 0
+  const employerExtra =
+    input.employerVoluntary > 0
+      ? Math.ceil(totalWage * input.employerVoluntary / 100)
+      : 0
   return {
     employee: round2(
       mandatoryRegular.employee + mandatoryAr.employee + employeeExtra,
@@ -917,19 +923,19 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
         }
       } else {
         totalAllowances += amt
-        // Per-item LHDN AR override (same flag as the PCB branch below):
-        // an AR-flagged category routes to the AR EPF bucket UNLESS the
-        // user ticked "Treat as regular monthly remuneration" — in which
-        // case the line is folded back into the regular monthly EPF wage
-        // that determines the 13%/12% KWSP Third Schedule tier.
+        // The `treatAsRecurring` flag now ONLY controls PCB routing
+        // (smoothed monthly vs LHDN one-shot AR formula). For EPF, all
+        // wages paid in the month — including bonus / commission —
+        // ALWAYS combine into the regular wage that determines the
+        // KWSP Third Schedule tier (EPF Act 1991 §2 reads "wages"
+        // broadly to include bonus paid in the contribution month).
+        // Previously the flag drove both, which forced admins to
+        // choose between "right EPF + wrong PCB" or "wrong EPF +
+        // right PCB" on the bonus line. Matches Payroll Panda.
         const treatAsAdditional =
           meta.isAdditionalRemuneration && !a.treatAsRecurring
         if (meta.subjectToEpf) {
-          if (treatAsAdditional) {
-            arEpfBase += amt
-          } else {
-            epfAdjustmentBase += amt
-          }
+          epfAdjustmentBase += amt
         }
         if (meta.subjectToSocso) socsoAdjustmentBase += amt
         if (meta.subjectToEis) eisAdjustmentBase += amt
@@ -1343,16 +1349,19 @@ function epfSnapshotRates(input: {
   }
 
   // Voluntary amount uses the TOTAL EPF-able wage (regular + AR),
-  // matching the formula in calcEpf. Mandatory amount = total - voluntary
-  // for each side. For OPTED_OUT / DE_MINIMIS branches both totals are
-  // 0, so the splits are also 0.
+  // matching the formula in calcEpf — which ceils each side to the
+  // next ringgit per KWSP convention. Mandatory amount = total -
+  // voluntary for each side. For OPTED_OUT / DE_MINIMIS branches both
+  // totals are 0, so the splits are also 0.
   const totalWage = input.wage + input.arWage
-  const voluntaryAmountEmployee = round2(
-    totalWage * (input.voluntaryEmployee / 100),
-  )
-  const voluntaryAmountEmployer = round2(
-    totalWage * (input.voluntaryEmployer / 100),
-  )
+  const voluntaryAmountEmployee =
+    input.voluntaryEmployee > 0
+      ? Math.ceil(totalWage * input.voluntaryEmployee / 100)
+      : 0
+  const voluntaryAmountEmployer =
+    input.voluntaryEmployer > 0
+      ? Math.ceil(totalWage * input.voluntaryEmployer / 100)
+      : 0
   const mandatoryAmountEmployee = round2(
     input.totalEmployee - voluntaryAmountEmployee,
   )
