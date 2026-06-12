@@ -77,9 +77,9 @@ export type ClaimMinAggregateOutputType = {
   exceedsLimit: boolean | null
   xeroFileId: string | null
   spendingWith: string | null
-  spendingAt: string | null
   xeroSpendMoneyId: string | null
   xeroSpendMoneyRef: string | null
+  spendingAt: string | null
 }
 
 export type ClaimMaxAggregateOutputType = {
@@ -121,9 +121,9 @@ export type ClaimMaxAggregateOutputType = {
   exceedsLimit: boolean | null
   xeroFileId: string | null
   spendingWith: string | null
-  spendingAt: string | null
   xeroSpendMoneyId: string | null
   xeroSpendMoneyRef: string | null
+  spendingAt: string | null
 }
 
 export type ClaimCountAggregateOutputType = {
@@ -165,9 +165,9 @@ export type ClaimCountAggregateOutputType = {
   exceedsLimit: number
   xeroFileId: number
   spendingWith: number
-  spendingAt: number
   xeroSpendMoneyId: number
   xeroSpendMoneyRef: number
+  spendingAt: number
   _all: number
 }
 
@@ -223,9 +223,9 @@ export type ClaimMinAggregateInputType = {
   exceedsLimit?: true
   xeroFileId?: true
   spendingWith?: true
-  spendingAt?: true
   xeroSpendMoneyId?: true
   xeroSpendMoneyRef?: true
+  spendingAt?: true
 }
 
 export type ClaimMaxAggregateInputType = {
@@ -267,9 +267,9 @@ export type ClaimMaxAggregateInputType = {
   exceedsLimit?: true
   xeroFileId?: true
   spendingWith?: true
-  spendingAt?: true
   xeroSpendMoneyId?: true
   xeroSpendMoneyRef?: true
+  spendingAt?: true
 }
 
 export type ClaimCountAggregateInputType = {
@@ -311,9 +311,9 @@ export type ClaimCountAggregateInputType = {
   exceedsLimit?: true
   xeroFileId?: true
   spendingWith?: true
-  spendingAt?: true
   xeroSpendMoneyId?: true
   xeroSpendMoneyRef?: true
+  spendingAt?: true
   _all?: true
 }
 
@@ -442,9 +442,9 @@ export type ClaimGroupByOutputType = {
   exceedsLimit: boolean
   xeroFileId: string | null
   spendingWith: string | null
-  spendingAt: string | null
   xeroSpendMoneyId: string | null
   xeroSpendMoneyRef: string | null
+  spendingAt: string | null
   _count: ClaimCountAggregateOutputType | null
   _avg: ClaimAvgAggregateOutputType | null
   _sum: ClaimSumAggregateOutputType | null
@@ -509,9 +509,9 @@ export type ClaimWhereInput = {
   exceedsLimit?: Prisma.BoolFilter<"Claim"> | boolean
   xeroFileId?: Prisma.StringNullableFilter<"Claim"> | string | null
   spendingWith?: Prisma.StringNullableFilter<"Claim"> | string | null
-  spendingAt?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSpendMoneyId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSpendMoneyRef?: Prisma.StringNullableFilter<"Claim"> | string | null
+  spendingAt?: Prisma.StringNullableFilter<"Claim"> | string | null
   chartOfAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
@@ -563,9 +563,9 @@ export type ClaimOrderByWithRelationInput = {
   exceedsLimit?: Prisma.SortOrder
   xeroFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   spendingWith?: Prisma.SortOrderInput | Prisma.SortOrder
-  spendingAt?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSpendMoneyId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSpendMoneyRef?: Prisma.SortOrderInput | Prisma.SortOrder
+  spendingAt?: Prisma.SortOrderInput | Prisma.SortOrder
   chartOfAccount?: Prisma.ChartOfAccountOrderByWithRelationInput
   employee?: Prisma.UserOrderByWithRelationInput
   organization?: Prisma.OrganizationOrderByWithRelationInput
@@ -622,8 +622,8 @@ export type ClaimWhereUniqueInput = Prisma.AtLeast<{
   exceedsLimit?: Prisma.BoolFilter<"Claim"> | boolean
   xeroFileId?: Prisma.StringNullableFilter<"Claim"> | string | null
   spendingWith?: Prisma.StringNullableFilter<"Claim"> | string | null
-  spendingAt?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSpendMoneyRef?: Prisma.StringNullableFilter<"Claim"> | string | null
+  spendingAt?: Prisma.StringNullableFilter<"Claim"> | string | null
   chartOfAccount?: Prisma.XOR<Prisma.ChartOfAccountNullableScalarRelationFilter, Prisma.ChartOfAccountWhereInput> | null
   employee?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   organization?: Prisma.XOR<Prisma.OrganizationNullableScalarRelationFilter, Prisma.OrganizationWhereInput> | null
@@ -675,9 +675,9 @@ export type ClaimOrderByWithAggregationInput = {
   exceedsLimit?: Prisma.SortOrder
   xeroFileId?: Prisma.SortOrderInput | Prisma.SortOrder
   spendingWith?: Prisma.SortOrderInput | Prisma.SortOrder
-  spendingAt?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSpendMoneyId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSpendMoneyRef?: Prisma.SortOrderInput | Prisma.SortOrder
+  spendingAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.ClaimCountOrderByAggregateInput
   _avg?: Prisma.ClaimAvgOrderByAggregateInput
   _max?: Prisma.ClaimMaxOrderByAggregateInput
@@ -727,9 +727,9 @@ export type ClaimScalarWhereWithAggregatesInput = {
   exceedsLimit?: Prisma.BoolWithAggregatesFilter<"Claim"> | boolean
   xeroFileId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   spendingWith?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
-  spendingAt?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   xeroSpendMoneyId?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
   xeroSpendMoneyRef?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
+  spendingAt?: Prisma.StringNullableWithAggregatesFilter<"Claim"> | string | null
 }
 
 export type ClaimCreateInput = {
@@ -765,9 +765,9 @@ export type ClaimCreateInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
@@ -819,9 +819,9 @@ export type ClaimUncheckedCreateInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
@@ -861,9 +861,9 @@ export type ClaimUpdateInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
@@ -915,9 +915,9 @@ export type ClaimUncheckedUpdateInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
@@ -963,9 +963,9 @@ export type ClaimCreateManyInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
 }
 
 export type ClaimUpdateManyMutationInput = {
@@ -1001,9 +1001,9 @@ export type ClaimUpdateManyMutationInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClaimUncheckedUpdateManyInput = {
@@ -1045,9 +1045,9 @@ export type ClaimUncheckedUpdateManyInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClaimListRelationFilter = {
@@ -1105,9 +1105,9 @@ export type ClaimCountOrderByAggregateInput = {
   exceedsLimit?: Prisma.SortOrder
   xeroFileId?: Prisma.SortOrder
   spendingWith?: Prisma.SortOrder
-  spendingAt?: Prisma.SortOrder
   xeroSpendMoneyId?: Prisma.SortOrder
   xeroSpendMoneyRef?: Prisma.SortOrder
+  spendingAt?: Prisma.SortOrder
 }
 
 export type ClaimAvgOrderByAggregateInput = {
@@ -1155,9 +1155,9 @@ export type ClaimMaxOrderByAggregateInput = {
   exceedsLimit?: Prisma.SortOrder
   xeroFileId?: Prisma.SortOrder
   spendingWith?: Prisma.SortOrder
-  spendingAt?: Prisma.SortOrder
   xeroSpendMoneyId?: Prisma.SortOrder
   xeroSpendMoneyRef?: Prisma.SortOrder
+  spendingAt?: Prisma.SortOrder
 }
 
 export type ClaimMinOrderByAggregateInput = {
@@ -1199,9 +1199,9 @@ export type ClaimMinOrderByAggregateInput = {
   exceedsLimit?: Prisma.SortOrder
   xeroFileId?: Prisma.SortOrder
   spendingWith?: Prisma.SortOrder
-  spendingAt?: Prisma.SortOrder
   xeroSpendMoneyId?: Prisma.SortOrder
   xeroSpendMoneyRef?: Prisma.SortOrder
+  spendingAt?: Prisma.SortOrder
 }
 
 export type ClaimSumOrderByAggregateInput = {
@@ -1591,9 +1591,9 @@ export type ClaimCreateWithoutEmployeeInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
   payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPaidClaimsInput
@@ -1643,9 +1643,9 @@ export type ClaimUncheckedCreateWithoutEmployeeInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
@@ -1695,9 +1695,9 @@ export type ClaimCreateWithoutReviewerInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
@@ -1747,9 +1747,9 @@ export type ClaimUncheckedCreateWithoutReviewerInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
@@ -1824,9 +1824,9 @@ export type ClaimScalarWhereInput = {
   exceedsLimit?: Prisma.BoolFilter<"Claim"> | boolean
   xeroFileId?: Prisma.StringNullableFilter<"Claim"> | string | null
   spendingWith?: Prisma.StringNullableFilter<"Claim"> | string | null
-  spendingAt?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSpendMoneyId?: Prisma.StringNullableFilter<"Claim"> | string | null
   xeroSpendMoneyRef?: Prisma.StringNullableFilter<"Claim"> | string | null
+  spendingAt?: Prisma.StringNullableFilter<"Claim"> | string | null
 }
 
 export type ClaimUpsertWithWhereUniqueWithoutReviewerInput = {
@@ -1878,9 +1878,9 @@ export type ClaimCreateWithoutOrganizationInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPaidClaimsInput
@@ -1930,9 +1930,9 @@ export type ClaimUncheckedCreateWithoutOrganizationInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
@@ -1998,9 +1998,9 @@ export type ClaimCreateWithoutSupportingAttachmentsInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
@@ -2051,9 +2051,9 @@ export type ClaimUncheckedCreateWithoutSupportingAttachmentsInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
@@ -2108,9 +2108,9 @@ export type ClaimUpdateWithoutSupportingAttachmentsInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
@@ -2161,9 +2161,9 @@ export type ClaimUncheckedUpdateWithoutSupportingAttachmentsInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
@@ -2202,9 +2202,9 @@ export type ClaimCreateWithoutApprovalEntriesInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
@@ -2255,9 +2255,9 @@ export type ClaimUncheckedCreateWithoutApprovalEntriesInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
@@ -2312,9 +2312,9 @@ export type ClaimUpdateWithoutApprovalEntriesInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
@@ -2365,9 +2365,9 @@ export type ClaimUncheckedUpdateWithoutApprovalEntriesInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
@@ -2406,9 +2406,9 @@ export type ClaimCreateWithoutChartOfAccountInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
   payViaAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutPaidClaimsInput
@@ -2458,9 +2458,9 @@ export type ClaimUncheckedCreateWithoutChartOfAccountInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
@@ -2510,9 +2510,9 @@ export type ClaimCreateWithoutPayViaAccountInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
@@ -2562,9 +2562,9 @@ export type ClaimUncheckedCreateWithoutPayViaAccountInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
@@ -2646,9 +2646,9 @@ export type ClaimCreateWithoutProjectInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
@@ -2698,9 +2698,9 @@ export type ClaimUncheckedCreateWithoutProjectInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
@@ -2766,9 +2766,9 @@ export type ClaimCreateWithoutPayrollRunAttachmentInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
@@ -2819,9 +2819,9 @@ export type ClaimUncheckedCreateWithoutPayrollRunAttachmentInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedCreateNestedOneWithoutClaimInput
@@ -2876,9 +2876,9 @@ export type ClaimUpdateWithoutPayrollRunAttachmentInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
@@ -2929,9 +2929,9 @@ export type ClaimUncheckedUpdateWithoutPayrollRunAttachmentInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payslipLineItem?: Prisma.PayslipLineItemUncheckedUpdateOneWithoutClaimNestedInput
@@ -2970,9 +2970,9 @@ export type ClaimCreateWithoutPayslipLineItemInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   chartOfAccount?: Prisma.ChartOfAccountCreateNestedOneWithoutClaimsInput
   employee: Prisma.UserCreateNestedOneWithoutClaimsInput
   organization?: Prisma.OrganizationCreateNestedOneWithoutClaimsInput
@@ -3023,9 +3023,9 @@ export type ClaimUncheckedCreateWithoutPayslipLineItemInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedCreateNestedManyWithoutClaimInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedCreateNestedManyWithoutClaimInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedCreateNestedOneWithoutClaimInput
@@ -3080,9 +3080,9 @@ export type ClaimUpdateWithoutPayslipLineItemInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
@@ -3133,9 +3133,9 @@ export type ClaimUncheckedUpdateWithoutPayslipLineItemInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
@@ -3179,9 +3179,9 @@ export type ClaimCreateManyEmployeeInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
 }
 
 export type ClaimCreateManyReviewerInput = {
@@ -3222,9 +3222,9 @@ export type ClaimCreateManyReviewerInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
 }
 
 export type ClaimUpdateWithoutEmployeeInput = {
@@ -3260,9 +3260,9 @@ export type ClaimUpdateWithoutEmployeeInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
   payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPaidClaimsNestedInput
@@ -3312,9 +3312,9 @@ export type ClaimUncheckedUpdateWithoutEmployeeInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
@@ -3359,9 +3359,9 @@ export type ClaimUncheckedUpdateManyWithoutEmployeeInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClaimUpdateWithoutReviewerInput = {
@@ -3397,9 +3397,9 @@ export type ClaimUpdateWithoutReviewerInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
@@ -3449,9 +3449,9 @@ export type ClaimUncheckedUpdateWithoutReviewerInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
@@ -3496,9 +3496,9 @@ export type ClaimUncheckedUpdateManyWithoutReviewerInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClaimCreateManyOrganizationInput = {
@@ -3539,9 +3539,9 @@ export type ClaimCreateManyOrganizationInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
 }
 
 export type ClaimUpdateWithoutOrganizationInput = {
@@ -3577,9 +3577,9 @@ export type ClaimUpdateWithoutOrganizationInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPaidClaimsNestedInput
@@ -3629,9 +3629,9 @@ export type ClaimUncheckedUpdateWithoutOrganizationInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
@@ -3676,9 +3676,9 @@ export type ClaimUncheckedUpdateManyWithoutOrganizationInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClaimCreateManyChartOfAccountInput = {
@@ -3719,9 +3719,9 @@ export type ClaimCreateManyChartOfAccountInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
 }
 
 export type ClaimCreateManyPayViaAccountInput = {
@@ -3762,9 +3762,9 @@ export type ClaimCreateManyPayViaAccountInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
 }
 
 export type ClaimUpdateWithoutChartOfAccountInput = {
@@ -3800,9 +3800,9 @@ export type ClaimUpdateWithoutChartOfAccountInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
   payViaAccount?: Prisma.ChartOfAccountUpdateOneWithoutPaidClaimsNestedInput
@@ -3852,9 +3852,9 @@ export type ClaimUncheckedUpdateWithoutChartOfAccountInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
@@ -3899,9 +3899,9 @@ export type ClaimUncheckedUpdateManyWithoutChartOfAccountInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClaimUpdateWithoutPayViaAccountInput = {
@@ -3937,9 +3937,9 @@ export type ClaimUpdateWithoutPayViaAccountInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
@@ -3989,9 +3989,9 @@ export type ClaimUncheckedUpdateWithoutPayViaAccountInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
@@ -4036,9 +4036,9 @@ export type ClaimUncheckedUpdateManyWithoutPayViaAccountInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type ClaimCreateManyProjectInput = {
@@ -4079,9 +4079,9 @@ export type ClaimCreateManyProjectInput = {
   exceedsLimit?: boolean
   xeroFileId?: string | null
   spendingWith?: string | null
-  spendingAt?: string | null
   xeroSpendMoneyId?: string | null
   xeroSpendMoneyRef?: string | null
+  spendingAt?: string | null
 }
 
 export type ClaimUpdateWithoutProjectInput = {
@@ -4117,9 +4117,9 @@ export type ClaimUpdateWithoutProjectInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   chartOfAccount?: Prisma.ChartOfAccountUpdateOneWithoutClaimsNestedInput
   employee?: Prisma.UserUpdateOneRequiredWithoutClaimsNestedInput
   organization?: Prisma.OrganizationUpdateOneWithoutClaimsNestedInput
@@ -4169,9 +4169,9 @@ export type ClaimUncheckedUpdateWithoutProjectInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   approvalEntries?: Prisma.ClaimApprovalEntryUncheckedUpdateManyWithoutClaimNestedInput
   supportingAttachments?: Prisma.ClaimSupportingAttachmentUncheckedUpdateManyWithoutClaimNestedInput
   payrollRunAttachment?: Prisma.PayrollRunClaimUncheckedUpdateOneWithoutClaimNestedInput
@@ -4216,9 +4216,9 @@ export type ClaimUncheckedUpdateManyWithoutProjectInput = {
   exceedsLimit?: Prisma.BoolFieldUpdateOperationsInput | boolean
   xeroFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   spendingWith?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSpendMoneyRef?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  spendingAt?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -4300,9 +4300,9 @@ export type ClaimSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   exceedsLimit?: boolean
   xeroFileId?: boolean
   spendingWith?: boolean
-  spendingAt?: boolean
   xeroSpendMoneyId?: boolean
   xeroSpendMoneyRef?: boolean
+  spendingAt?: boolean
   chartOfAccount?: boolean | Prisma.Claim$chartOfAccountArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.Claim$organizationArgs<ExtArgs>
@@ -4357,12 +4357,12 @@ export type ClaimSelectScalar = {
   exceedsLimit?: boolean
   xeroFileId?: boolean
   spendingWith?: boolean
-  spendingAt?: boolean
   xeroSpendMoneyId?: boolean
   xeroSpendMoneyRef?: boolean
+  spendingAt?: boolean
 }
 
-export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "organizationId" | "chartOfAccountId" | "amount" | "currency" | "spentAt" | "submittedAt" | "claimRunMonth" | "lastReviewedAt" | "status" | "receiptUrl" | "reviewNotes" | "employeeId" | "lastReviewerId" | "xeroBillId" | "xeroBillRef" | "xeroSyncStatus" | "xeroSyncError" | "xeroSyncedAt" | "createdAt" | "updatedAt" | "payViaAccountId" | "paymentType" | "claimType" | "distance" | "mileageDestinationAddress" | "mileageOriginAddress" | "mileageRateUsed" | "mileageUnitUsed" | "reviewerRole" | "projectId" | "exceedsLimit" | "xeroFileId" | "spendingWith" | "spendingAt" | "xeroSpendMoneyId" | "xeroSpendMoneyRef", ExtArgs["result"]["claim"]>
+export type ClaimOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "claimNumber" | "title" | "description" | "category" | "organizationId" | "chartOfAccountId" | "amount" | "currency" | "spentAt" | "submittedAt" | "claimRunMonth" | "lastReviewedAt" | "status" | "receiptUrl" | "reviewNotes" | "employeeId" | "lastReviewerId" | "xeroBillId" | "xeroBillRef" | "xeroSyncStatus" | "xeroSyncError" | "xeroSyncedAt" | "createdAt" | "updatedAt" | "payViaAccountId" | "paymentType" | "claimType" | "distance" | "mileageDestinationAddress" | "mileageOriginAddress" | "mileageRateUsed" | "mileageUnitUsed" | "reviewerRole" | "projectId" | "exceedsLimit" | "xeroFileId" | "spendingWith" | "xeroSpendMoneyId" | "xeroSpendMoneyRef" | "spendingAt", ExtArgs["result"]["claim"]>
 export type ClaimInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chartOfAccount?: boolean | Prisma.Claim$chartOfAccountArgs<ExtArgs>
   employee?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -4465,6 +4465,15 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      */
     spendingWith: string | null
     /**
+     * For COMPANY-money claims synced to Xero as a "Spend Money" bank
+     * transaction (money already left the company bank/card), as opposed
+     * to PERSONAL claims which post as an awaiting-payment bill
+     * (`xeroBillId`). Set once on sync so the post is idempotent. Unique
+     * to prevent a double-post creating two transactions for one claim.
+     */
+    xeroSpendMoneyId: string | null
+    xeroSpendMoneyRef: string | null
+    /**
      * Free-text "where you spent" — the merchant / vendor / restaurant
      * name from the receipt (e.g. "Starbucks KLCC", "Office Depot",
      * "Acme Hardware Sdn Bhd"). Distinct from `spendingWith` (the
@@ -4475,15 +4484,6 @@ export type $ClaimPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      * the field can still be loaded + resynced without backfill.
      */
     spendingAt: string | null
-    /**
-     * For COMPANY-money claims synced to Xero as a "Spend Money" bank
-     * transaction (money already left the company bank/card), as opposed
-     * to PERSONAL claims which post as an awaiting-payment bill
-     * (`xeroBillId`). Set once on sync so the post is idempotent. Unique
-     * to prevent a double-post creating two transactions for one claim.
-     */
-    xeroSpendMoneyId: string | null
-    xeroSpendMoneyRef: string | null
   }, ExtArgs["result"]["claim"]>
   composites: {}
 }
@@ -4901,9 +4901,9 @@ export interface ClaimFieldRefs {
   readonly exceedsLimit: Prisma.FieldRef<"Claim", 'Boolean'>
   readonly xeroFileId: Prisma.FieldRef<"Claim", 'String'>
   readonly spendingWith: Prisma.FieldRef<"Claim", 'String'>
-  readonly spendingAt: Prisma.FieldRef<"Claim", 'String'>
   readonly xeroSpendMoneyId: Prisma.FieldRef<"Claim", 'String'>
   readonly xeroSpendMoneyRef: Prisma.FieldRef<"Claim", 'String'>
+  readonly spendingAt: Prisma.FieldRef<"Claim", 'String'>
 }
     
 

@@ -291,6 +291,14 @@ export const PayrollRunStatus = {
 export type PayrollRunStatus = (typeof PayrollRunStatus)[keyof typeof PayrollRunStatus]
 
 
+export const PortalKind = {
+  KWSP: 'KWSP',
+  PERKESO: 'PERKESO'
+} as const
+
+export type PortalKind = (typeof PortalKind)[keyof typeof PortalKind]
+
+
 export const PayslipLineKind = {
   ALLOWANCE: 'ALLOWANCE',
   DEDUCTION: 'DEDUCTION',

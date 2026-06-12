@@ -26,6 +26,10 @@ import {
   upsertPayrollCompanyInfo,
   upsertPayrollSettings,
 } from "@/modules/payroll/application/services/payroll-settings.service"
+import {
+  deletePortalCredential,
+  upsertPortalCredential,
+} from "@/modules/payroll/application/services/portal-credential.service"
 
 /**
  * Server actions for the payroll settings page. Two separate actions,
@@ -426,4 +430,142 @@ export async function savePayrollXeroMappingAction(
 
   revalidatePath("/admin/payroll/settings")
   return { status: "success", message: "Xero mapping saved." }
+}
+
+// ─── Credentials tab → PayrollPortalCredential ───────────────────────────
+
+const PORTAL_KINDS = ["KWSP", "PERKESO"] as const
+
+/// Zod schema for a single portal upsert. The `password` field uses a
+/// tri-state convention:
+///   - undefined → leave the existing ciphertext untouched
+///   - ""        → clear the saved password
+///   - "..."     → encrypt + persist this value
+const portalCredentialSchema = z.object({
+  portal: z.enum(PORTAL_KINDS),
+  userId: nullableString(),
+  password: z
+    .union([z.string(), z.null(), z.instanceof(File)])
+    .optional()
+    .transform((v) => {
+      if (v === undefined) return undefined
+      if (v == null || v instanceof File) return null
+      return v
+    }),
+  image: nullableString(),
+  secretCode: nullableString(),
+  securityPhrase: nullableString(),
+  passwordReminder: nullableString(),
+  notes: nullableString(),
+})
+
+export async function savePortalCredentialAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  // The "leave password untouched" signal is a hidden checkbox the
+  // form sets when the admin DIDN'T change the password field — we
+  // strip the `password` key out of the parsed object in that case so
+  // the service skips the re-encrypt path.
+  const passwordChanged = formData.get("passwordChanged")
+  const includePassword = String(passwordChanged ?? "").toLowerCase() === "true"
+
+  const parsed = portalCredentialSchema.safeParse({
+    portal: formData.get("portal"),
+    userId: formData.get("userId"),
+    password: includePassword ? formData.get("password") : undefined,
+    image: formData.get("image"),
+    secretCode: formData.get("secretCode"),
+    securityPhrase: formData.get("securityPhrase"),
+    passwordReminder: formData.get("passwordReminder"),
+    notes: formData.get("notes"),
+  })
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: parsed.error.issues[0]?.message ?? "Invalid input.",
+    }
+  }
+
+  try {
+    await upsertPortalCredential(parsed.data)
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not save credentials."),
+    }
+  }
+
+  const session = await getCurrentSession()
+  const organizationId = session ? resolveActiveOrgId(session) : null
+  if (session && organizationId && isAdminRole(session.role)) {
+    void writeAudit({
+      organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "payroll.portal-credential.update",
+      status: "SUCCESS",
+      summary: `Updated ${parsed.data.portal} portal credentials`,
+      targetType: "payroll-portal-credential",
+      // Never log the password — it's intentionally absent here.
+      metadata: { portal: parsed.data.portal, passwordChanged: includePassword },
+    })
+  }
+
+  revalidatePath("/admin/payroll/settings")
+  return {
+    status: "success",
+    message: `${parsed.data.portal} credentials saved.`,
+  }
+}
+
+export async function deletePortalCredentialAction(
+  _prev: BaseFormState,
+  formData: FormData,
+): Promise<BaseFormState> {
+  const portalRaw = formData.get("portal")
+  const portal =
+    typeof portalRaw === "string" &&
+    (PORTAL_KINDS as readonly string[]).includes(portalRaw)
+      ? (portalRaw as (typeof PORTAL_KINDS)[number])
+      : null
+  if (!portal) {
+    return { status: "error", message: "Unknown portal." }
+  }
+
+  try {
+    await deletePortalCredential(portal)
+  } catch (err) {
+    return {
+      status: "error",
+      message: safeErrorMessage(err, "Could not delete credentials."),
+    }
+  }
+
+  const session = await getCurrentSession()
+  const organizationId = session ? resolveActiveOrgId(session) : null
+  if (session && organizationId && isAdminRole(session.role)) {
+    void writeAudit({
+      organizationId,
+      actor: {
+        userId: session.userId,
+        email: session.email,
+        name: session.name,
+        role: session.role,
+      },
+      action: "payroll.portal-credential.delete",
+      status: "SUCCESS",
+      summary: `Deleted ${portal} portal credentials`,
+      targetType: "payroll-portal-credential",
+      metadata: { portal },
+    })
+  }
+
+  revalidatePath("/admin/payroll/settings")
+  return { status: "success", message: `${portal} credentials cleared.` }
 }
