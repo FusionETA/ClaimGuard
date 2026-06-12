@@ -473,6 +473,7 @@ function PcbCalculationDetailsBody({
   const arNum = (k: string) => (typeof ar[k] === "number" ? (ar[k] as number) : 0)
   const Yt = arNum("Yt")
   const Kt = arNum("Kt")
+  const KtEffective = arNum("KtEffective")
   const chargeableWithAr = arNum("chargeableWithAr")
   const M2 = arNum("M2"), R2 = arNum("R2"), B2 = arNum("B2")
   const CS = arNum("CS")
@@ -672,7 +673,7 @@ function PcbCalculationDetailsBody({
       />
       <LhdnVar
         abbrev="P"
-        description={`Total chargeable income for a year including AR — recomputed from Section 1's P with Yt added and Kt deducted = ${fmt(P)} + ${fmt(Yt)} - ${fmt(Kt)}`}
+        description={`Total chargeable income for a year including AR — recomputed from Section 1's P with Yt added and Kt deducted = ${fmt(P)} + ${fmt(Yt)} - ${fmt(KtEffective)} (Kt ${fmt(Kt)} capped at remaining RM 4,000 cap = ${fmt(KtEffective)})`}
         amount={chargeableWithAr}
         bold
       />
@@ -724,7 +725,7 @@ function PcbCalculationDetailsBody({
         {`PCB (A) + PCB (C)`}
       </Text>
       <Text style={lhdnStyles.formulaLine}>
-        {`${fmt(pcbAfterThreshold)} + ${fmt(pcbC)}`}
+        {`${fmt(currentMonthPcb)} + ${fmt(pcbC)}`}
       </Text>
       <LhdnVar
         abbrev="PCB"
@@ -778,11 +779,26 @@ function LhdnVar({
 // Truncate to 2dp without rounding. Used by the LHDN-form PDF so the
 // displayed values match what an auditor gets by computing the
 // formulas by hand (and matches Payroll Panda's convention — even
-// 15.098 displays as 15.09, not 15.10). `Math.trunc` toward zero so
+// 15.098 displays as 15.09, not 15.10). Truncation is toward zero so
 // negative numbers like B = -250.00 don't drift to -250.01.
+//
+// NOTE on IEEE 754: the naive `Math.trunc(n * 100) / 100` is unsafe
+// for "clean" 2dp values because their float representation drifts.
+// For example, `32.55 * 100 = 3254.9999999999995` in JS, so the
+// naive version returns 32.54 — that's what made Kang Nickee's
+// SOCSO + EIS row read 32.54 instead of 32.55, then cascade through
+// the displayed P value (41,567.51 vs the actual 41,567.52). We go
+// through `toFixed` for a fixed-precision string representation (no
+// drift past the 10th decimal) and lexically slice to 2dp.
 function trunc2(n: number): number {
   if (!Number.isFinite(n)) return 0
-  return Math.trunc(n * 100) / 100
+  const negative = n < 0
+  const abs = Math.abs(n)
+  const str = abs.toFixed(10)
+  const dotIdx = str.indexOf(".")
+  if (dotIdx === -1) return n
+  const truncated = Number(str.slice(0, dotIdx + 3))
+  return negative ? -truncated : truncated
 }
 
 function fmt(n: number): string {

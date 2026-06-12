@@ -242,16 +242,22 @@ export function calcEpf(input: CalcEpfInput): {
         }
       : { employer: 0, employee: 0 }
 
-  // Voluntary contributions stack on top. These use the exact
-  // percentage (not the table) because they're not part of the
-  // statutory minimum that the gazetted Schedule prescribes. The
-  // voluntary base IS the total EPF-able wage (regular + AR) — the
-  // bonus is still EPF-able even if its mandatory portion is computed
-  // separately above, so the % voluntary the employee elected stacks
-  // on top of that total.
+  // Voluntary contributions stack on top. The voluntary base IS the
+  // total EPF-able wage (regular + AR). Per KWSP general convention
+  // for off-tier amounts (same as Note 2 of the Third Schedule for
+  // wages > RM 20,000), each side is rounded UP to the next ringgit.
+  // Previously this used `round2`, which left fractional sen like
+  // Aafaq Ul Basit's 808.56 instead of the gazetted-style 809 — a 1
+  // RM gap from Payroll Panda's display.
   const totalWage = input.wage + ar
-  const employeeExtra = round2(totalWage * (input.employeeVoluntary / 100))
-  const employerExtra = round2(totalWage * (input.employerVoluntary / 100))
+  const employeeExtra =
+    input.employeeVoluntary > 0
+      ? Math.ceil(totalWage * input.employeeVoluntary / 100)
+      : 0
+  const employerExtra =
+    input.employerVoluntary > 0
+      ? Math.ceil(totalWage * input.employerVoluntary / 100)
+      : 0
   return {
     employee: round2(
       mandatoryRegular.employee + mandatoryAr.employee + employeeExtra,
@@ -818,11 +824,20 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   /// as exact percentage rounded up (KWSP general rule for off-table
   /// amounts). Matches the existing PCB AR vs recurring split.
   let arEpfBase = 0
+  // EPF-subject amount that's flagged as AR for PCB purposes (i.e.
+  // the bonus / commission line whose `treatAsRecurring` was left
+  // unticked). Used after the main `calcEpf` call to derive Kt as the
+  // band difference — see the comment on the accumulator-update site
+  // and the post-calcEpf block below. The actual EPF deducted is
+  // unaffected (always uses the combined-wage band lookup).
+  let arEpfAmountForPcbKt = 0
   let socsoAdjustmentBase = 0
   let eisAdjustmentBase = 0
   let pcbAdjustmentBase = 0
   let pcbAdditionalRemuneration = 0
-  let pcbAdditionalRemunerationEpf = 0
+  // `pcbAdditionalRemunerationEpf` (the LHDN form's Kt) is computed
+  // AFTER `calcEpf` runs, as a band difference. No longer accumulated
+  // per AR line.
   let hrdfAdjustmentBase = 0
   let thisMonthZakat = 0
   for (const a of profile.fixedAllowances) {
@@ -917,18 +932,36 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
         }
       } else {
         totalAllowances += amt
-        // Per-item LHDN AR override (same flag as the PCB branch below):
-        // an AR-flagged category routes to the AR EPF bucket UNLESS the
-        // user ticked "Treat as regular monthly remuneration" — in which
-        // case the line is folded back into the regular monthly EPF wage
-        // that determines the 13%/12% KWSP Third Schedule tier.
+        // The `treatAsRecurring` flag now ONLY controls PCB routing
+        // (smoothed monthly vs LHDN one-shot AR formula). For EPF, all
+        // wages paid in the month — including bonus / commission —
+        // ALWAYS combine into the regular wage that determines the
+        // KWSP Third Schedule tier (EPF Act 1991 §2 reads "wages"
+        // broadly to include bonus paid in the contribution month).
+        // Previously the flag drove both, which forced admins to
+        // choose between "right EPF + wrong PCB" or "wrong EPF +
+        // right PCB" on the bonus line. Matches Payroll Panda.
         const treatAsAdditional =
           meta.isAdditionalRemuneration && !a.treatAsRecurring
         if (meta.subjectToEpf) {
+          epfAdjustmentBase += amt
+          // Separately track the AR-flagged portion (for PCB Kt
+          // derivation only — actual EPF deducted always uses the
+          // combined wage above). The LHDN PCB form's Kt is the
+          // marginal EPF the bonus adds on top of regular wage:
+          //
+          //   Kt = band(regular + bonus) − band(regular only)
+          //
+          // We accumulate the bonus amount here so we can rerun the
+          // band lookup minus this amount after the main calcEpf
+          // call, then take the difference. Pre-fix, this used the
+          // straight exact-percentage (134 for Kay Ben), which made
+          // K1 + Kt only equal the actual deducted EPF by coincidence
+          // when the bonus didn't push across a band tier — and
+          // attributed the tier-jump to K1 incorrectly when it did
+          // (Kay Ben's K1 was reading 460 instead of 451).
           if (treatAsAdditional) {
-            arEpfBase += amt
-          } else {
-            epfAdjustmentBase += amt
+            arEpfAmountForPcbKt += amt
           }
         }
         if (meta.subjectToSocso) socsoAdjustmentBase += amt
@@ -937,22 +970,6 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
         if (meta.subjectToPcb) {
           if (treatAsAdditional) {
             pcbAdditionalRemuneration += pcbTaxable
-            // AR EPF — only the portion of EPF attributable to the AR
-            // row needs to count toward the with-AR annual EPF bucket.
-            // EPF cap (RM4k) is honoured by `calcPcb` regardless.
-            //
-            // Use `Math.ceil` to mirror exactly what `calcEpf` adds for
-            // the AR portion (KWSP general rule: AR EPF is exact % ×
-            // amount, rounded UP to next ringgit). Using `round2` here
-            // creates a fractional-cent mismatch between the AR EPF
-            // added by calcEpf (e.g. ceil(133.98) = 134) and the AR
-            // EPF subtracted when computing thisMonthEpf for PCB
-            // (e.g. round2(133.98) = 133.98) — the leftover 0.02
-            // cents leaks into K1 (e.g. K1 = 451.02 instead of 451).
-            if (meta.subjectToEpf) {
-              const rate = profile.epfEmployeeRate || settings.defaultEpfEmployeeRate
-              pcbAdditionalRemunerationEpf += Math.ceil(amt * (rate / 100))
-            }
           } else {
             pcbAdjustmentBase += pcbTaxable
           }
@@ -975,7 +992,6 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
   totalRecurringDeductions = round2(totalRecurringDeductions)
   totalRecurringReimbursements = round2(totalRecurringReimbursements)
   pcbAdditionalRemuneration = round2(pcbAdditionalRemuneration)
-  pcbAdditionalRemunerationEpf = round2(pcbAdditionalRemunerationEpf)
   hrdfAdjustmentBase = round2(hrdfAdjustmentBase)
 
   // Self-paid zakat (Borang TP1 §D1(a)) is now just a `deduct_zakat_tp1`
@@ -1060,6 +1076,43 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     epfMemberBefore1998: profile.epfMemberBefore1998,
     ageAtPeriodEnd,
   })
+
+  // Derive the LHDN PCB form's Kt as a band difference, so K1 + Kt
+  // reconciles exactly to the EPF actually deducted (epf.employee)
+  // even after the band tier jumps when bonus combines into wage.
+  //
+  //   K1 = band(regular wage only) — what would be deducted in a
+  //        no-bonus month, displayed as PCB(A) on the LHDN form.
+  //   Kt = epf.employee − band(regular wage only) — the marginal
+  //        EPF the bonus tacked on top, displayed as Kt on the form.
+  //
+  // Pre-fix, Kt was computed as `ceil(bonus × rate / 100)` (e.g. 134
+  // for Kay Ben's 1,218 bonus). That works when the bonus doesn't
+  // push the combined wage across a band tier boundary, but
+  // misattributes the tier-jump portion to K1 when it does — Kay Ben
+  // was showing K1 = 460 instead of 451 because the 9-RM band jump
+  // (from 4,100 → 5,400 upper) landed in the K1 bucket.
+  let pcbAdditionalRemunerationEpf = 0
+  if (arEpfAmountForPcbKt > 0) {
+    const regularEpfWage = round2(
+      Math.max(0, epfWage - arEpfAmountForPcbKt),
+    )
+    const epfRegularOnly = calcEpf({
+      wage: regularEpfWage,
+      additionalRemuneration: 0,
+      employeeRate,
+      employeeVoluntary: profile.epfEmployeeVoluntary,
+      employerVoluntary: profile.epfEmployerVoluntary,
+      contributeToEpf: profile.contributeToEpf,
+      isMalaysianCitizen,
+      hasPr: profile.hasPr,
+      epfMemberBefore1998: profile.epfMemberBefore1998,
+      ageAtPeriodEnd,
+    })
+    pcbAdditionalRemunerationEpf = round2(
+      Math.max(0, epf.employee - epfRegularOnly.employee),
+    )
+  }
 
   const socso = calcSocso({
     wage: socsoWage,
@@ -1343,16 +1396,19 @@ function epfSnapshotRates(input: {
   }
 
   // Voluntary amount uses the TOTAL EPF-able wage (regular + AR),
-  // matching the formula in calcEpf. Mandatory amount = total - voluntary
-  // for each side. For OPTED_OUT / DE_MINIMIS branches both totals are
-  // 0, so the splits are also 0.
+  // matching the formula in calcEpf — which ceils each side to the
+  // next ringgit per KWSP convention. Mandatory amount = total -
+  // voluntary for each side. For OPTED_OUT / DE_MINIMIS branches both
+  // totals are 0, so the splits are also 0.
   const totalWage = input.wage + input.arWage
-  const voluntaryAmountEmployee = round2(
-    totalWage * (input.voluntaryEmployee / 100),
-  )
-  const voluntaryAmountEmployer = round2(
-    totalWage * (input.voluntaryEmployer / 100),
-  )
+  const voluntaryAmountEmployee =
+    input.voluntaryEmployee > 0
+      ? Math.ceil(totalWage * input.voluntaryEmployee / 100)
+      : 0
+  const voluntaryAmountEmployer =
+    input.voluntaryEmployer > 0
+      ? Math.ceil(totalWage * input.voluntaryEmployer / 100)
+      : 0
   const mandatoryAmountEmployee = round2(
     input.totalEmployee - voluntaryAmountEmployee,
   )

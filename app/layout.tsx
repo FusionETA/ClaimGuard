@@ -6,6 +6,9 @@ import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ToasterProvider } from "@/components/ui/toaster"
 import { UpdatesAnnouncer } from "@/components/updates-announcer"
+import { getCurrentSession } from "@/lib/auth/session"
+import { isAdminRole } from "@/lib/auth/types"
+import type { UpdateAudience } from "@/lib/updates"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
@@ -97,11 +100,30 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Map the current session's role to the audience tag that the
+  // updates banner uses to filter entries. ADMIN / OWNER see ADMIN
+  // entries; EMPLOYEE / SUPERVISOR see EMPLOYEE entries; logged-out
+  // (or any auth failure) defaults to ALL — which means they see
+  // only entries tagged ALL (the safe public set). All three audiences
+  // also see ALL-tagged entries (handled inside `matchesAudience`).
+  // Wrapped in a try/catch so a transient session-decode failure
+  // can't break the whole page render — worst case the banner falls
+  // back to ALL.
+  let updatesAudience: UpdateAudience = "ALL"
+  try {
+    const session = await getCurrentSession()
+    if (session) {
+      updatesAudience = isAdminRole(session.role) ? "ADMIN" : "EMPLOYEE"
+    }
+  } catch {
+    // Keep updatesAudience = "ALL".
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -170,7 +192,7 @@ export default function RootLayout({
                 very top of every layout (above admin / employee
                 shells), and {children} continues to lay out below it.
               */}
-              <UpdatesAnnouncer />
+              <UpdatesAnnouncer audience={updatesAudience} />
               {children}
             </AppResumeIndicator>
           </ToasterProvider>

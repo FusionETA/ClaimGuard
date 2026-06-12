@@ -402,8 +402,8 @@ export function EmployeeCompanyForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="EMPLOYEE">Basic Employee</SelectItem>
-                <SelectItem value="SUPERVISOR">Supervisor Employee</SelectItem>
+                <SelectItem value="EMPLOYEE">Non-supervisory employee</SelectItem>
+                <SelectItem value="SUPERVISOR">Supervisor</SelectItem>
               </SelectContent>
             </Select>
           </div>

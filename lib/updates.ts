@@ -26,6 +26,20 @@
  *     Goal is to set expectations, not commit to a wall-clock minute.
  */
 
+/// Audience filter for every update entry. The viewer's role is
+/// mapped to one of these values at layout time and passed into the
+/// component, which then renders only matching rows.
+///
+///   - `ALL`      — visible to everyone (default when omitted). Use
+///                  for scheduled maintenance (downtime affects both
+///                  sides) and for cross-cutting features.
+///   - `ADMIN`    — visible only to ADMIN / OWNER. Use for admin-side
+///                  features (Xero changes, payroll engine, settings).
+///   - `EMPLOYEE` — visible only to EMPLOYEE / SUPERVISOR (they share
+///                  the /employee/* surfaces). Use for employee-portal
+///                  features (claim form, leave apply, payslips).
+export type UpdateAudience = "ALL" | "ADMIN" | "EMPLOYEE"
+
 /// One scheduled maintenance window. The banner auto-shows the
 /// soonest entry within `BANNER_LEAD_HOURS` of `now()` (see helper
 /// below). Past windows can stay in the array for historical display
@@ -43,6 +57,11 @@ export type MaintenanceWindow = {
   title: string
   /// Plain-text body, 1–3 sentences. Shown in the sheet, not the banner.
   body: string
+  /// Who sees this entry. Defaults to `ALL` — downtime affects every
+  /// role so most maintenance windows want this. Use `ADMIN` /
+  /// `EMPLOYEE` to scope a partial outage (e.g. payroll-only or
+  /// claims-only deploy).
+  audience?: UpdateAudience
 }
 
 export type UpcomingFeature = {
@@ -51,6 +70,10 @@ export type UpcomingFeature = {
   eta: string
   title: string
   body: string
+  /// Who sees this entry. Defaults to `ALL` when omitted. Set to
+  /// `ADMIN` or `EMPLOYEE` to scope a teaser to the side that
+  /// actually cares about it.
+  audience?: UpdateAudience
 }
 
 export type ShippedFeature = {
@@ -59,13 +82,18 @@ export type ShippedFeature = {
   date: string
   title: string
   body: string
+  /// Who sees this entry. Defaults to `ALL` when omitted. Most
+  /// shipped features are scoped — a Xero account-sync change goes to
+  /// `ADMIN`, a claim-form polish goes to `EMPLOYEE`.
+  audience?: UpdateAudience
 }
 
 // ─── Edit these arrays when you have news to share ────────────────────
 
 /**
  * Scheduled maintenance windows. Newest first. Past windows are kept
- * for historical context but don't trigger the banner.
+ * for historical context but don't trigger the banner. `audience` is
+ * usually omitted (= ALL) because downtime affects everyone.
  *
  * Example entry:
  *   {
@@ -76,6 +104,8 @@ export type ShippedFeature = {
  *     body:     "Expected downtime ~10 minutes. The app will be " +
  *               "unreachable while we migrate the database to a new " +
  *               "cluster. All in-flight data is preserved.",
+ *     // audience: "ALL" — implied; set "ADMIN" / "EMPLOYEE" for a
+ *     // partial-surface outage.
  *   },
  */
 export const SCHEDULED_MAINTENANCE: MaintenanceWindow[] = []
@@ -83,9 +113,10 @@ export const SCHEDULED_MAINTENANCE: MaintenanceWindow[] = []
 /**
  * Features in active development. Use sparingly — only list things
  * you're confident will ship in the next ~6 weeks. Vapourware
- * announcements erode trust.
+ * announcements erode trust. Scope with `audience` so admins don't
+ * see employee-facing teasers and vice-versa.
  *
- * Example entry:
+ * Example entries:
  *   {
  *     id: "feat-leave-bulk",
  *     eta: "Mid-July 2026",
@@ -93,6 +124,15 @@ export const SCHEDULED_MAINTENANCE: MaintenanceWindow[] = []
  *     body: "Upload a CSV to set initial balances for multiple " +
  *           "employees at once — useful when migrating from another " +
  *           "system or correcting a calendar-year reset.",
+ *     audience: "ADMIN",
+ *   },
+ *   {
+ *     id: "feat-claim-draft",
+ *     eta: "Q3 2026",
+ *     title: "Save claim drafts before submitting",
+ *     body: "Half-fill a claim, leave, come back later and finish it " +
+ *           "without re-uploading the receipt.",
+ *     audience: "EMPLOYEE",
  *   },
  */
 export const UPCOMING_FEATURES: UpcomingFeature[] = []
@@ -101,8 +141,9 @@ export const UPCOMING_FEATURES: UpcomingFeature[] = []
  * Recently shipped features. Newest first. Keep ~10 entries — the UI
  * shows the top 3 with a "Show more" toggle for the rest. Beyond 10,
  * trim the tail; old entries belong in git history, not the banner.
+ * Always set `audience` so the changelog reads relevant to the viewer.
  *
- * Example entry:
+ * Example entries:
  *   {
  *     id: "ship-pcb-recurring-toggle",
  *     date: "2026-07-04",
@@ -112,9 +153,40 @@ export const UPCOMING_FEATURES: UpcomingFeature[] = []
  *           "through the normal monthly PCB formula instead of LHDN’s " +
  *           "one-shot Additional Remuneration formula. Smooth PCB " +
  *           "instead of a spike.",
+ *     audience: "ADMIN",
+ *   },
+ *   {
+ *     id: "ship-claim-edit",
+ *     date: "2026-06-10",
+ *     title: "Edit a pending claim",
+ *     body: "Tap the pencil on a claim row to fix a typo, swap the " +
+ *           "receipt, or attach extra supporting documents without " +
+ *           "deleting and resubmitting.",
+ *     audience: "EMPLOYEE",
  *   },
  */
-export const RECENTLY_SHIPPED: ShippedFeature[] = []
+export const RECENTLY_SHIPPED: ShippedFeature[] = [
+  {
+    id: "ship-edit-pending-claim-2026-06-10",
+    date: "2026-06-10",
+    title: "Edit a pending claim",
+    body:
+      "Tap the pencil on any claim row to fix typos, swap the receipt, " +
+      "or attach more supporting documents — without deleting and " +
+      "resubmitting.",
+    audience: "EMPLOYEE",
+  },
+  {
+    id: "ship-xero-expense-types-2026-06-10",
+    date: "2026-06-10",
+    title:
+      "Chart-of-accounts now includes Direct Costs / Overheads / Depreciation",
+    body:
+      "Re-sync your Xero connection to pull in account types beyond plain " +
+      "EXPENSE.",
+    audience: "ADMIN",
+  },
+]
 
 // ─── Helpers ──────────────────────────────────────────────────────────
 
@@ -125,13 +197,41 @@ export const RECENTLY_SHIPPED: ShippedFeature[] = []
 export const BANNER_LEAD_HOURS = 24
 
 /**
+ * True when this entry should be visible to a viewer with the given
+ * audience tag. Rules:
+ *
+ *   - Entry omits `audience` (= ALL)  → visible to every viewer.
+ *   - Entry sets `ALL`                → visible to every viewer.
+ *   - Entry sets `ADMIN` / `EMPLOYEE` → visible only when the viewer
+ *                                       matches that tag exactly, OR
+ *                                       when the viewer is `ALL`
+ *                                       (logged-out / public — shows
+ *                                       them everything, since there's
+ *                                       no role to scope by).
+ *
+ * Generic over the entry shape so the same helper filters the three
+ * arrays without coupling to a single type.
+ */
+export function matchesAudience(
+  entry: { audience?: UpdateAudience },
+  viewer: UpdateAudience,
+): boolean {
+  const tag = entry.audience ?? "ALL"
+  if (tag === "ALL") return true
+  if (viewer === "ALL") return true
+  return tag === viewer
+}
+
+/**
  * The soonest maintenance window whose `startsAt` is within
- * `hoursAhead` from now. Returns null when there's nothing imminent —
- * the banner then doesn't render at all. Windows already in progress
- * (startsAt in the past, endsAt in the future) also return so the
- * banner keeps showing until the window closes.
+ * `hoursAhead` from now AND that the given viewer is allowed to see.
+ * Returns null when there's nothing imminent — the banner then doesn't
+ * render at all. Windows already in progress (startsAt in the past,
+ * endsAt in the future) also return so the banner keeps showing until
+ * the window closes.
  */
 export function getImminentMaintenance(
+  viewer: UpdateAudience = "ALL",
   hoursAhead: number = BANNER_LEAD_HOURS,
   now: Date = new Date(),
 ): MaintenanceWindow | null {
@@ -140,9 +240,9 @@ export function getImminentMaintenance(
 
   // Sort by startsAt ASC so we pick the soonest, even if the array
   // ordering drifts. Belt-and-braces against editor mistakes.
-  const sorted = [...SCHEDULED_MAINTENANCE].sort(
-    (a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt),
-  )
+  const sorted = [...SCHEDULED_MAINTENANCE]
+    .filter((w) => matchesAudience(w, viewer))
+    .sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt))
 
   for (const w of sorted) {
     const start = Date.parse(w.startsAt)

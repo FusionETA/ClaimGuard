@@ -86,7 +86,15 @@ export function SubmitPayrollRunButton(props: {
  * The section is collapsible — the count is always visible; the details
  * unfold on click.
  */
-export function ApprovePayrollRunButton(props: { runId: string }) {
+export function ApprovePayrollRunButton(props: {
+  runId: string
+  /// Whether the active org has a Xero connection configured. When
+  /// false, the modal skips the Xero post-preview panel entirely and
+  /// reads as a plain "Approve payroll run" confirmation — no
+  /// references to journals, posting, or Xero. The action still
+  /// runs (just skips the Xero post step server-side).
+  hasXeroConnection?: boolean
+}) {
   const formId = useId()
   const [open, setOpen] = useState(false)
   const [preview, setPreview] = useState<PayrollSyncPreviewResult | null>(null)
@@ -99,9 +107,10 @@ export function ApprovePayrollRunButton(props: { runId: string }) {
   // Load the preview the first time the modal opens (or every open?
   // Run state is stable while in PENDING_APPROVAL, but a re-load on
   // every open keeps numbers fresh if the admin opens/cancels/opens
-  // — cheap, all DB-side).
+  // — cheap, all DB-side). Skip entirely for orgs without Xero —
+  // there's no Xero post to preview.
   useEffect(() => {
-    if (!open) {
+    if (!open || !props.hasXeroConnection) {
       setPreview(null)
       return
     }
@@ -113,7 +122,7 @@ export function ApprovePayrollRunButton(props: { runId: string }) {
     return () => {
       cancelled = true
     }
-  }, [open, props.runId])
+  }, [open, props.runId, props.hasXeroConnection])
 
   // Close on success so the page refreshes into the SUBMITTED state.
   const lastStatus = React.useRef(state.status)
@@ -133,15 +142,17 @@ export function ApprovePayrollRunButton(props: { runId: string }) {
         <DialogHeader>
           <DialogTitle>Approve and submit payroll run?</DialogTitle>
           <DialogDescription>
-            This finalises the run, exposes every payslip to the affected
-            employees, and posts the entries below to Xero. You can still
-            revert to draft later if corrections are needed.
+            {props.hasXeroConnection
+              ? "This finalises the run, exposes every payslip to the affected employees, and posts the entries below to Xero. You can still revert to draft later if corrections are needed."
+              : "This finalises the run and exposes every payslip to the affected employees. You can still revert to draft later if corrections are needed."}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-[55vh] overflow-y-auto pr-1">
-          <SyncPreviewPanel preview={preview} />
-        </div>
+        {props.hasXeroConnection ? (
+          <div className="max-h-[55vh] overflow-y-auto pr-1">
+            <SyncPreviewPanel preview={preview} />
+          </div>
+        ) : null}
 
         <form action={action}>
           <input type="hidden" name="runId" value={props.runId} hidden />
@@ -152,7 +163,11 @@ export function ApprovePayrollRunButton(props: { runId: string }) {
               </Button>
             </DialogClose>
             <Button type="submit" disabled={pending}>
-              {pending ? "Approving…" : "Approve and post"}
+              {pending
+                ? "Approving…"
+                : props.hasXeroConnection
+                  ? "Approve and post"
+                  : "Approve"}
             </Button>
           </DialogFooter>
         </form>

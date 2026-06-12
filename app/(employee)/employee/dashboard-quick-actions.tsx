@@ -39,6 +39,8 @@ type Props = {
   /// to give. Omit / pass [] when the leave module is disabled to
   /// hide the button entirely.
   leaveBalances?: BalanceRow[]
+  joinDate?: string | null
+  allowForecastedLeaveApply?: boolean
 }
 
 export function DashboardQuickActions({
@@ -53,6 +55,8 @@ export function DashboardQuickActions({
   allowedCurrencies,
   defaultCurrency,
   leaveBalances,
+  joinDate = null,
+  allowForecastedLeaveApply = false,
 }: Props) {
   const [open, setOpen] = useState(false)
   const [leaveOpen, setLeaveOpen] = useState(false)
@@ -132,6 +136,8 @@ export function DashboardQuickActions({
             >
               <ApplyForm
                 balances={leaveBalances ?? []}
+                joinDate={joinDate}
+                allowForecastedLeaveApply={allowForecastedLeaveApply}
                 onSuccess={() => setLeaveOpen(false)}
               />
             </div>

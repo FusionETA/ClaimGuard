@@ -93,10 +93,17 @@ describe("calcPayslip — additional remuneration routing", () => {
 
     expect(result.pcbBreakdown.normal).toBeGreaterThanOrEqual(0)
     expect(result.pcbBreakdown.additional).toBeGreaterThan(0)
-    expect(result.pcb).toBeCloseTo(
+    // Engine invariant: final PCB = (normal + additional) put
+    // through LHDN's 5-sen ceil. Normal is already 5-sen-rounded
+    // (it's the deducted figure), but `additional` (PCB(C)) is now
+    // a 2dp-truncated value per LHDN Section E item 1 — only the
+    // SUM is ceiled, not each component. So `total` can be up to
+    // ~0.04 greater than the raw sum.
+    const ceil5Sen = (n: number) => Math.ceil(n * 20) / 20
+    const expectedTotal = ceil5Sen(
       result.pcbBreakdown.normal + result.pcbBreakdown.additional,
-      2,
     )
+    expect(result.pcb).toBeCloseTo(expectedTotal, 2)
   })
 
   it("recurring allowances stay on the normal PCB path", () => {
@@ -119,23 +126,24 @@ describe("calcPayslip — additional remuneration routing", () => {
     expect(result.pcbBreakdown.additional).toBe(0)
   })
 
-  // ─── EPF tier protection for AR lines (the "Kay Ben" cliff) ──────────
+  // ─── EPF tier handling for AR lines (post-decouple semantics) ────────
   //
-  // Real-world regression: base 3,800 + recurring allowances 300 +
-  // annual bonus 1,218 should NOT push the EPF tier across the
-  // RM 5,000 cliff just because the bonus tagged along this run.
+  // After admin reported that ticking "Treat as regular monthly
+  // remuneration" was the only way to get Payroll Panda's EPF numbers
+  // (but that broke PCB), the `treatAsRecurring` flag was decoupled:
   //
-  //   - treatAsRecurring=false (default for AR categories): bonus stays
-  //     out of the tier-determining wage. Regular wage 4,100 ≤ 5,000 →
-  //     Part A low tier → employer 13%, employee 11%. The bonus then
-  //     gets EPF at the SAME 13%/11% rate, exact %, rounded up.
-  //   - treatAsRecurring=true (admin ticked "treat as monthly"): bonus
-  //     gets folded into the regular wage, total 5,318 → Part A high
-  //     tier → employer 12%, employee 11% on the gazetted band.
+  //   - EPF — bonus / AR ALWAYS combines into the regular wage for the
+  //     KWSP Third Schedule band lookup. Reflects EPF Act 1991 §2's
+  //     broad "wages" definition and matches every other Malaysian
+  //     payroll system (Payroll Panda, BrioHR, Talenox, …).
+  //   - PCB — still respects the flag:
+  //       unticked (default for AR) → LHDN one-shot AR formula
+  //       ticked              → smoothed monthly PCB
   //
-  // Both modes are valid; the toggle reflects what the company is
-  // actually doing with that line.
-  it("keeps a one-off bonus out of the EPF tier wage by default", () => {
+  // So the tier-pushing-across-RM-5K behaviour is now the SAME whether
+  // the flag is ticked or not — the only thing the flag changes is
+  // which PCB bucket the line lands in.
+  it("combines a one-off bonus into the EPF tier wage (default unticked)", () => {
     const result = calcPayslip({
       profile: makeProfile({
         monthlySalary: 3800,
@@ -166,21 +174,21 @@ describe("calcPayslip — additional remuneration routing", () => {
       periodMonth: 12,
     })
 
-    // Regular monthly EPF wage = 3,800 + 150 + 150 = 4,100 → tier ≤ 5K
-    //   Mandatory employer = ceil(4,100 × 13%) = 533
-    //   Mandatory employee = ceil(4,100 × 11%) = 451
-    // AR portion (bonus 1,218) at the regular tier's rate:
-    //   Employer = ceil(1,218 × 13%) = 159
-    //   Employee = ceil(1,218 × 11%) = 134
-    // Totals: employer 692, employee 585
-    expect(result.epfEmployer).toBe(692)
-    expect(result.epfEmployee).toBe(585)
+    // Combined EPF wage = 3,800 + 150 + 150 + 1,218 = 5,318 → tier > 5K
+    //   Band upper = ceil(5,318 / 100) × 100 = 5,400
+    //   Mandatory employer = ceil(5,400 × 12%) = 648  (high-tier rate)
+    //   Mandatory employee = ceil(5,400 × 11%) = 594
+    // No voluntary on this profile.
+    expect(result.epfEmployer).toBe(648)
+    expect(result.epfEmployee).toBe(594)
   })
 
-  it("stacks voluntary % on top of mandatory + AR EPF (Option B / unticked)", () => {
+  it("stacks voluntary % on top of combined-wage mandatory (unticked)", () => {
     // Same Kay Ben numbers as above but with 2% employer voluntary +
-    // 1% employee voluntary. Voluntary is computed on the TOTAL
-    // EPF-able wage (regular + AR) regardless of treatAsRecurring.
+    // 1% employee voluntary. Voluntary is computed on the combined
+    // EPF-able wage (regular + bonus). Per KWSP convention the
+    // voluntary side ceils to the next ringgit (NOT round2) — same as
+    // the band table mandatory side.
     const result = calcPayslip({
       profile: makeProfile({
         monthlySalary: 3800,
@@ -213,18 +221,19 @@ describe("calcPayslip — additional remuneration routing", () => {
       periodMonth: 12,
     })
 
-    // Mandatory regular: 533 / 451 (4,100 at 13%/11%)
-    // Mandatory AR:      159 / 134 (1,218 at 13%/11%)
-    // Voluntary on total 5,318:
-    //   employer 2% × 5,318 = 106.36
-    //   employee 1% × 5,318 = 53.18
-    // Totals: employer 533 + 159 + 106.36 = 798.36
-    //         employee 451 + 134 + 53.18  = 638.18
-    expect(result.epfEmployer).toBeCloseTo(798.36, 2)
-    expect(result.epfEmployee).toBeCloseTo(638.18, 2)
+    // Combined wage 5,318 → band 5,400:
+    //   Mandatory employer = ceil(5,400 × 12%) = 648
+    //   Mandatory employee = ceil(5,400 × 11%) = 594
+    // Voluntary on combined wage 5,318 (ceil per KWSP convention):
+    //   employer 2% × 5,318 = ceil(106.36) = 107
+    //   employee 1% × 5,318 = ceil(53.18)  = 54
+    // Totals: employer 648 + 107 = 755
+    //         employee 594 + 54  = 648
+    expect(result.epfEmployer).toBe(755)
+    expect(result.epfEmployee).toBe(648)
   })
 
-  it("stacks voluntary % on top of mandatory when treatAsRecurring=true (Option A)", () => {
+  it("ticking treatAsRecurring=true gives the SAME EPF result (decoupled)", () => {
     const result = calcPayslip({
       profile: makeProfile({
         monthlySalary: 3800,
@@ -257,13 +266,12 @@ describe("calcPayslip — additional remuneration routing", () => {
       periodMonth: 12,
     })
 
-    // Combined 5,318 → band 5,400 → mandatory 648 / 594
-    // Voluntary on total 5,318:
-    //   employer 2% × 5,318 = 106.36
-    //   employee 1% × 5,318 = 53.18
-    // Totals: employer 754.36 / employee 647.18
-    expect(result.epfEmployer).toBeCloseTo(754.36, 2)
-    expect(result.epfEmployee).toBeCloseTo(647.18, 2)
+    // Same combined 5,318 → 5,400 band → 648 / 594 mandatory.
+    // Same ceil'd voluntary: employer 107 / employee 54.
+    // Totals: employer 755 / employee 648 (identical to the unticked
+    // case above — that's the whole point of decoupling).
+    expect(result.epfEmployer).toBe(755)
+    expect(result.epfEmployee).toBe(648)
   })
 
   it("snapshot exposes voluntary amount split so PDFs can render it", () => {
@@ -303,29 +311,22 @@ describe("calcPayslip — additional remuneration routing", () => {
       periodMonth: 12,
     })
 
-    // Voluntary on total 5,318:
-    //   employer 2% × 5,318 = 106.36
-    //   employee 1% × 5,318 = 53.18
-    expect(result.epfRatesSnapshot.voluntaryAmountEmployer).toBeCloseTo(
-      106.36,
-      2,
-    )
-    expect(result.epfRatesSnapshot.voluntaryAmountEmployee).toBeCloseTo(
-      53.18,
-      2,
-    )
-    // Mandatory amounts = totals - voluntary
-    expect(result.epfRatesSnapshot.mandatoryAmountEmployer).toBeCloseTo(
-      692,
-      2,
-    )
-    expect(result.epfRatesSnapshot.mandatoryAmountEmployee).toBeCloseTo(
-      585,
-      2,
-    )
-    // Rate fields still set correctly
+    // Voluntary on combined wage 5,318, ceil'd per KWSP:
+    //   employer ceil(5,318 × 2%) = 107
+    //   employee ceil(5,318 × 1%) = 54
+    expect(result.epfRatesSnapshot.voluntaryAmountEmployer).toBe(107)
+    expect(result.epfRatesSnapshot.voluntaryAmountEmployee).toBe(54)
+    // Mandatory amounts = total - voluntary, on combined-band wage:
+    //   employer 755 - 107 = 648
+    //   employee 648 -  54 = 594
+    expect(result.epfRatesSnapshot.mandatoryAmountEmployer).toBe(648)
+    expect(result.epfRatesSnapshot.mandatoryAmountEmployee).toBe(594)
+    // Rate fields reflect the band the combined wage qualifies for —
+    // 5,318 > RM 5,000 → Part A HIGH tier (employer 12%, not 13%).
+    // Pre-decouple this read as low tier because the bonus stayed out
+    // of the wage; now the combined wage drives the rate display too.
     expect(result.epfRatesSnapshot.employee).toBe(11)
-    expect(result.epfRatesSnapshot.employer).toBe(13)
+    expect(result.epfRatesSnapshot.employer).toBe(12)
     expect(result.epfRatesSnapshot.voluntaryEmployee).toBe(1)
     expect(result.epfRatesSnapshot.voluntaryEmployer).toBe(2)
   })

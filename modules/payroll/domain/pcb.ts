@@ -50,9 +50,23 @@ function round2(n: number): number {
 // drop fractional sen rather than round — e.g. K2 (3,549/11 = 322.6363…
 // → 322.63), Current Month PCB before 5-sen rounding (15.0958 → 15.09).
 // Matches Payroll Panda's display convention.
-function trunc2(n: number): number {
+//
+// NOTE on IEEE 754: the naive `Math.trunc(n * 100) / 100` is unsafe for
+// "clean" 2dp values because the float representation drifts. For
+// example, `32.55 * 100 = 3254.9999999999995` in JS, so the naive
+// version returns 32.54 — that's where the SOCSO + EIS = 32.55 figure
+// silently became 32.54 on the LHDN-form PDF. We go through `toFixed`
+// for a fixed-precision string representation (no drift past the 10th
+// decimal) and lexically slice to 2dp.
+export function trunc2(n: number): number {
   if (!Number.isFinite(n)) return 0
-  return Math.trunc(n * 100) / 100
+  const negative = n < 0
+  const abs = Math.abs(n)
+  const str = abs.toFixed(10)
+  const dotIdx = str.indexOf(".")
+  if (dotIdx === -1) return n
+  const truncated = Number(str.slice(0, dotIdx + 3))
+  return negative ? -truncated : truncated
 }
 
 // ─── Tax bands (LHDN 2024 individual-resident) ──────────────────────────
@@ -518,31 +532,31 @@ export function calcPcb(input: CalcPcbInput): CalcPcbResult {
   )
   const pcbNormal = stillOwedNormal / monthsRemainingIncludingThis
 
-  // Apply LHDN rounding + RM 10 minimum-deduction threshold to
-  // each component independently (Section E items 1-3, page 19-20).
-  const normalRounded = applyMtdThreshold(roundMtd(pcbNormal))
-
-  // PCB on additional remuneration — LHDN MTD Specification 2026 §E
-  // five-step formula:
+  // LHDN MTD Spec Section E in one place (pages 19-20):
   //
-  //   PCB(B) = X + PCB(A) × (n + 1)
-  //   PCB(C) = CS − PCB(B) − Z
+  //   1. Truncate each component to 2dp (`trunc2`).
+  //   2. Zero anything below RM 10 — per component, not on the sum
+  //      (`applyMtdThreshold`).
+  //   3. Round up to the next 5 sen, ONCE, on the final Net PCB
+  //      (`roundMtd`).
   //
-  // Uses the TRUNCATED PCB(A) (pcbNormal floor-2dp, e.g. 15.0958 →
-  // 15.09) for the projection — matches Payroll Panda and matches the
-  // LHDN-form PDF row above which displays the truncated value. The
-  // 5-sen-rounded `normalRounded` (15.10) is what gets DEDUCTED for
-  // the normal portion, but the PROJECTION uses the truncated value
-  // so the formula `[(X) + 15.09 × (n+1)]` reconciles by hand.
-  const truncPcbNormal = Math.trunc(pcbNormal * 100) / 100
-  const pcbB = input.ytdPcb + truncPcbNormal * monthsRemainingIncludingThis
+  //   PCB(A)  = trunc2(currentMonthPcb), thresholded.
+  //   PCB(B)  = X + PCB(A) × (n + 1)            — projection only.
+  //   PCB(C)  = trunc2(CS − PCB(B) − Z), thresholded; 0 when no AR.
+  //   Net PCB = roundMtd(PCB(A) + PCB(C))
+  //
+  // We deliberately do NOT 5-sen-ceil PCB(A) or PCB(C) before the
+  // sum — that's double rounding and pushes 155.99 (which should
+  // ceil to 156.00) up to 156.05.
+  const pcbA = applyMtdThreshold(trunc2(pcbNormal))
+  const pcbB = input.ytdPcb + trunc2(pcbNormal) * monthsRemainingIncludingThis
   const pcbCBeforeRounding = Math.max(0, annualTaxWithAr - pcbB - ytdZakat)
-  const arRounded = applyMtdThreshold(roundMtd(pcbCBeforeRounding))
+  const pcbC = applyMtdThreshold(trunc2(pcbCBeforeRounding))
 
   return {
-    normal: normalRounded,
-    additional: arRounded,
-    total: roundMtd(normalRounded + arRounded),
+    normal: pcbA,
+    additional: pcbC,
+    total: roundMtd(pcbA + pcbC),
   }
 }
 
@@ -719,11 +733,16 @@ export type CalcPcbBreakdown =
         // Full EPF contribution on the AR amount as actually paid by
         // the employee (= ceil(Yt × employee mandatory rate)). Matches
         // the LHDN form's expected meaning of Kt and the engine's
-        // employee EPF total. Note: for the chargeable_with_AR calc
-        // internally, the value is capped against the remaining
-        // RM 4,000 annual relief budget — that cap is applied inside
-        // the breakdown function, not exposed here.
+        // employee EPF total.
         Kt: number
+        // The portion of Kt that actually counts as tax relief —
+        // capped against the remaining RM 4,000 annual budget after
+        // K + K1 + (K2 × n). Often near zero when the normal
+        // projection already saturates the cap. Used in the LHDN-form
+        // PDF's P (with AR) formula expansion so the displayed math
+        // reconciles (the simple `P + Yt - Kt` reading uses 134; the
+        // actual chargeable subtracts only this effective value).
+        KtEffective: number
         // P_withAR — annual chargeable income with the AR layered on
         chargeableWithAr: number
         // Tax band for the with-AR chargeable. Differs from Section 1's
@@ -810,7 +829,14 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   const K = Math.min(EPF_RELIEF_CAP, Math.max(0, input.ytdEpf))
   const cap_after_K = Math.max(0, EPF_RELIEF_CAP - K)
   const thisMonthEpf = Math.max(0, input.thisMonthEpf)
-  const K1 = Math.min(thisMonthEpf, cap_after_K)
+  // K1 is displayed on the LHDN form as a WHOLE-RINGGIT figure (per
+  // the Spec's "rounded up to the next ringgit" convention for EPF
+  // contributions). Payroll Panda follows this. We ceil here so the
+  // displayed K1 matches — K2 then naturally absorbs the few sen
+  // difference within the same RM 4,000 cap. Next month's run reads
+  // the ACTUAL EPF paid (from the payslip snapshot), not the ceil'd
+  // K1, so no drift accumulates.
+  const K1 = Math.min(Math.ceil(thisMonthEpf), cap_after_K)
   const cap_after_K1 = Math.max(0, EPF_RELIEF_CAP - K - K1)
   // Truncate K2 at 2dp (LHDN / Payroll Panda convention — don't round).
   // 3,549 / 11 = 322.6363… → 322.63. Stored exactly as displayed, so
@@ -877,8 +903,12 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
 
   const stillOwed = Math.max(0, yearlyTax - Z - X)
   const currentMonthPcb = stillOwed / (n + 1)
-  const pcbAfterThreshold = applyMtdThreshold(roundMtd(currentMonthPcb))
-  const pcbFinal = pcbAfterThreshold
+  // PCB(A) = current-month PCB truncated to 2dp + RM 10 threshold.
+  // The 5-sen ceil happens ONCE on the Net PCB sum at the very end
+  // — feeding a pre-ceiled PCB(A) into that sum double-rounds and
+  // breaks the formula box on the LHDN PDF. See calcPcb above for
+  // the same pattern.
+  const pcbA = applyMtdThreshold(trunc2(currentMonthPcb))
 
   // ── Additional Remuneration — LHDN MTD Specification 2026 §E. ──
   //
@@ -940,7 +970,14 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   const M2 = arBand.M
   const R2 = arBand.R
   const B2 = arBand.B
-  const CS = Math.max(0, (chargeableWithAr - M2) * R2 + B2)
+  // CS is a tax intermediate (yearly tax including AR), not a PCB
+  // value, so the LHDN Section E truncation rule doesn't apply here.
+  // Use standard 2dp rounding — matches Payroll Panda's CS display
+  // (e.g. Kang Nickee: raw 1,067.127 -> round 1,067.13 instead of
+  // truncate 1,067.12). Downstream pcbC then subtracts off the
+  // rounded CS so the formula `CS - PCB(B) - Z` printed on the LHDN
+  // PDF reconciles to the sen.
+  const CS = round2(Math.max(0, (chargeableWithAr - M2) * R2 + B2))
   // PCB(B) — annual projected normal PCB.
   // Uses the TRUNCATED `currentMonthPcb` (e.g. 15.0958 → 15.09) — NOT
   // the 5-sen-rounded `pcbAfterThreshold` (15.10). This matches the
@@ -951,9 +988,18 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
   // Malaysian payroll system seems to use.
   const pcbB = X + trunc2(currentMonthPcb) * (n + 1)
   const pcbCBeforeRounding = Math.max(0, CS - pcbB - Z)
-  const pcbC =
-    Yt > 0 ? applyMtdThreshold(roundMtd(pcbCBeforeRounding)) : 0
-  const pcbCurrentMonth = roundMtd(pcbAfterThreshold + pcbC)
+  // PCB(C) — 2dp truncation (LHDN Section E item 1) + RM 10
+  // threshold (item 3) only. NO 5-sen ceil here — that's reserved
+  // for the FINAL Net PCB on the line below. See the matching
+  // comment in `calcPcb` for the rationale (the formula box on the
+  // LHDN PDF was reading `1,067.12 - 993.96 = 73.16` but printing
+  // PCB(C) = 73.20 because of this ceil; admins saw it as a math
+  // error). Matches Payroll Panda.
+  const pcbC = Yt > 0 ? applyMtdThreshold(trunc2(pcbCBeforeRounding)) : 0
+  // Net PCB = ceil-to-5-sen(PCB(A) + PCB(C)). Single rounding step,
+  // applied once, at the sum. Matches what an auditor would
+  // re-derive by hand from the LHDN-form formula `PCB (A) + PCB (C)`.
+  const pcbCurrentMonth = roundMtd(pcbA + pcbC)
 
   // zakatThisMonth — pcb-orchestrator-level offset, not part of formula
   // body. Captured for completeness in case the UI wants to show it.
@@ -970,11 +1016,15 @@ export function calcPcbBreakdown(input: CalcPcbInput): CalcPcbBreakdown {
     Z, X, zakatThisMonth,
     yearlyTax,
     currentMonthPcb,
-    pcbAfterThreshold,
+    // Kept for backwards-compat with the LHDN PDF data binding —
+    // it's PCB(A), just under the legacy name from when the engine
+    // 5-sen-ceiled it before this point.
+    pcbAfterThreshold: pcbA,
     pcbFinal: pcbCurrentMonth,
     ar: {
       Yt,
       Kt: KtDisplay, // full contributed AR EPF; matches the LHDN form's expected meaning
+      KtEffective: KtForRelief, // cap-restricted portion that gets PCB relief
       chargeableWithAr,
       M2,
       R2,

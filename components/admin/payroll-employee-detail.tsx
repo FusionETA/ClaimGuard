@@ -1225,6 +1225,26 @@ function EmploymentTab(props: {
     return false
   }
 
+  /**
+   * Whether a real prior salary value exists for the current salary
+   * type. A "first-time input" — saved value is null OR 0 — is not a
+   * change in any meaningful sense (the row was empty / a placeholder)
+   * and so does NOT need the Typo-vs-Real-change classification dialog.
+   * Only show the dialog when there's a real prior figure (>0) to
+   * disambiguate from.
+   */
+  function salaryWasPreviouslySet(): boolean {
+    if (salaryType === "MONTHLY") {
+      const saved = props.profile?.monthlySalary ?? null
+      return saved != null && saved > 0.005
+    }
+    if (salaryType === "HOURLY") {
+      const saved = props.profile?.hourlyRate ?? null
+      return saved != null && saved > 0.005
+    }
+    return false
+  }
+
   const monthlySalaryMissing =
     salaryType === "MONTHLY" && monthlySalary.trim() === ""
   const hourlyRateMissing =
@@ -1273,7 +1293,11 @@ function EmploymentTab(props: {
           // let the admin pick TYPO vs a real reason; the second
           // submit (from the dialog's "Save" button) is allowed
           // through because `salaryChangeKind` will have been set.
-          if (salaryHasChanged() && salaryChangeKind === null) {
+          if (
+            salaryHasChanged() &&
+            salaryWasPreviouslySet() &&
+            salaryChangeKind === null
+          ) {
             e.preventDefault()
             setSalaryDialogOpen(true)
           }

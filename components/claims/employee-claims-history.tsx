@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Search } from "lucide-react"
 
 import { ClaimStatusBadge } from "@/components/claims/claim-status-badge"
+import { EmployeeClaimRowActions } from "@/components/claims/employee-claim-row-actions"
 import { Card, CardContent } from "@/components/attendance/ui/card"
 import { Input } from "@/components/ui/input"
 import { PaginationControls } from "@/components/ui/pagination-controls"
@@ -215,7 +216,10 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
                         : "Account not assigned"}
                     </p>
                   </div>
-                  <ClaimStatusBadge status={claim.status} />
+                  <div className="flex items-center gap-1">
+                    <ClaimStatusBadge status={claim.status} />
+                    <EmployeeClaimRowActions claim={claim} />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
@@ -273,6 +277,9 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
                   <TableHead>Claims run</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="w-12 text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -303,6 +310,9 @@ export function EmployeeClaimsHistory({ claims }: EmployeeClaimsHistoryProps) {
                     <TableCell>{formatCurrency(claim.amount)}</TableCell>
                     <TableCell>
                       <ClaimStatusBadge status={claim.status} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <EmployeeClaimRowActions claim={claim} />
                     </TableCell>
                   </TableRow>
                 ))}

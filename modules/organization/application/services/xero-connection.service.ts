@@ -163,11 +163,16 @@ export async function syncOrganizationChartAccounts(
   }
 
   try {
-    // Pull EXPENSE + BANK + every LIABILITY-style account type so the
-    // payroll Xero-mapping settings can point accrual lines (EPF /
-    // SOCSO / EIS / PCB / Salary payable) at the right liability
-    // accounts. `LIABILITY` is the legacy type code; modern Xero
-    // splits this into `CURRLIAB` (current) and `TERMLIAB`
+    // Pull every "expense-side" P&L account type Xero exposes
+    // (EXPENSE / DIRECTCOSTS / OVERHEADS / DEPRECIATN) so the claims
+    // selectable picker can mirror Xero's full Expenses tab — not just
+    // the narrow `EXPENSE` type, which omits Direct Costs, Overheads,
+    // and Depreciation accounts that orgs routinely use for claim
+    // categorisation. BANK + every LIABILITY-style code are also
+    // included so the payroll Xero-mapping settings can point accrual
+    // lines (EPF / SOCSO / EIS / PCB / Salary payable) at the right
+    // liability accounts. `LIABILITY` is the legacy type code; modern
+    // Xero splits this into `CURRLIAB` (current) and `TERMLIAB`
     // (long-term/non-current). We include all three to be safe across
     // tenant configurations.
     const accounts = await getXeroAccounts({
@@ -175,6 +180,9 @@ export async function syncOrganizationChartAccounts(
       tenantId: connection.tenantId,
       includeTypes: [
         "EXPENSE",
+        "DIRECTCOSTS",
+        "OVERHEADS",
+        "DEPRECIATN",
         "BANK",
         "LIABILITY",
         "CURRLIAB",
@@ -287,6 +295,11 @@ export async function syncOrganizationProjects(
     await organizationRepository.upsertTrackingOptionsFromXero({
       xeroConnectionId: connectionId,
       organizationId: connectionRecord.organizationId,
+      // Stamp every upserted row with the current category id so
+      // the listing query can scope by it. After a category swap
+      // this is how the stale rows from the previous category fall
+      // out of the picker (they keep their old id and stop matching).
+      xeroTrackingCategoryId: picked.xeroTrackingCategoryId,
       options: picked.options.map((o) => ({
         xeroTrackingOptionId: o.xeroTrackingOptionId,
         name: o.name,

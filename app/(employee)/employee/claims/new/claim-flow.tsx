@@ -366,6 +366,11 @@ function ReceiptStep({
         description: e.description ?? undefined,
         currency: e.resolvedCurrency ?? undefined,
         chartOfAccountId: e.suggestedAccountId ?? undefined,
+        // The supplier name doubles as the merchant for the "Spending
+        // at" field — same string we put in `title`, but the form needs
+        // it on both initial values so it lands in the dedicated
+        // merchant input the Xero Bill picks up as the Contact.
+        spendingAt: e.supplier ?? undefined,
       }
 
       lastProcessedRef.current = receiptFile.name

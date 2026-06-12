@@ -4,13 +4,10 @@ import { useActionState, useEffect, useMemo, useRef, useState } from "react"
 import { Building2, Layers, Plus, Search, Trash2, Users, X } from "lucide-react"
 
 import {
-  addEmployeeToProjectAction,
   assignTeamMemberAction,
   createTeamAction,
   deleteTeamAction,
-  removeEmployeeFromProjectAction,
   removeTeamMemberAction,
-  setProjectManagersAction,
   updateTeamAction,
   type CreateTeamActionState,
 } from "@/app/(admin)/admin/company-structure/actions"
@@ -341,29 +338,16 @@ export function AdminCompanyStructure({
         </div>
       </div>
 
-      {/* Full-width tables under the grid, stacked: project managers
-          first, then team members below. Stacking gives both tables the
-          full page width and keeps the manager section visually adjacent
-          to the project list. */}
-      {selectedProjectId || selectedTeam ? (
-        <div className="space-y-4">
-          {selectedProjectId ? (
-            <ProjectManagersTable
-              key={`pm-${selectedProjectId}`}
-              project={
-                projectsById.get(selectedProjectId) ?? null
-              }
-              members={members}
-            />
-          ) : null}
-          {selectedTeam ? (
-            <TeamMembersTable
-              key={`tm-${selectedTeam.id}`}
-              team={selectedTeam}
-              members={members}
-            />
-          ) : null}
-        </div>
+      {/* Per-team members card. Adding a member to a team implicitly
+          puts them in the team's parent project — admins don't need a
+          separate "add to project" step. (The old project-level
+          managers card was removed when we collapsed that flow.) */}
+      {selectedTeam ? (
+        <TeamMembersTable
+          key={`tm-${selectedTeam.id}`}
+          team={selectedTeam}
+          members={members}
+        />
       ) : null}
     </div>
   )
@@ -807,355 +791,6 @@ function DeleteTeamButton(props: {
 }
 
 // ---------------------------------------------------------------------------
-// Project managers table (full-width, below the grid)
-// ---------------------------------------------------------------------------
-
-/**
- * Full-width managers table for the selected project.
- *
- * Manager ADD is intentionally NOT exposed here — adding/removing
- * project managers is the project-settings page's job, and duplicating
- * that affordance creates two surfaces that drift. This card is
- * read-only for managers (display + remove) and write-enabled for
- * project employees (add to project, remove unassigned).
- *
- * The remove on managers stays because it's the same `setProjectManagers`
- * action either way (idempotent full-array replacement) and gives the
- * admin a fast undo when they're already on this card.
- */
-function ProjectManagersTable(props: {
-  project: OrganizationProjectOption | null
-  members: OrganizationMember[]
-}) {
-  const [pickerOpen, setPickerOpen] = useState(false)
-  const [filter, setFilter] = useState("")
-
-  const [managerState, managerFormAction, managerPending] = useActionState(
-    setProjectManagersAction,
-    initialSettingsActionState,
-  )
-  const [employeeState, employeeFormAction, employeePending] = useActionState(
-    addEmployeeToProjectAction,
-    initialSettingsActionState,
-  )
-  const [removeEmpState, removeEmpFormAction, removeEmpPending] = useActionState(
-    removeEmployeeFromProjectAction,
-    initialSettingsActionState,
-  )
-  useToastOnAction(managerState)
-  useToastOnAction(employeeState)
-  useToastOnAction(removeEmpState)
-
-  const project = props.project
-
-  // Employee candidates: anyone (EMPLOYEE or SUPERVISOR) whose
-  // `projects[]` does NOT include this project. We don't filter by
-  // role here — supervisors can also be project members. Each candidate
-  // must have an employeeProfileId since we key the assignment on it.
-  const employeeCandidates = useMemo(() => {
-    if (!project) return []
-    const q = filter.trim().toLowerCase()
-    return props.members.filter((m) => {
-      if (!m.employeeProfileId) return false
-      const inProject = m.projects.some((p) => p.id === project.id)
-      if (inProject) return false
-      if (!q) return true
-      return (
-        m.name.toLowerCase().includes(q) ||
-        m.email.toLowerCase().includes(q) ||
-        m.employeeId.toLowerCase().includes(q)
-      )
-    })
-  }, [props.members, project, filter])
-
-  function buildHiddenManagerInputs(nextIds: string[]) {
-    return nextIds.map((id) => (
-      <input key={id} type="hidden" name="managerUserIds" value={id} />
-    ))
-  }
-
-  if (!project) return null
-
-  const managers = project.projectManagers
-  const pending = managerPending || employeePending || removeEmpPending
-
-  // Employees who are in this project but not yet on any team that
-  // belongs to the project. We use member.teams[] (which carries each
-  // membership's projectId) to test membership without needing the
-  // teams prop here.
-  const unassignedEmployees = props.members.filter((m) => {
-    if (!m.employeeProfileId) return false
-    const inProject = m.projects.some((p) => p.id === project.id)
-    if (!inProject) return false
-    const onAnyTeam = m.teams.some((t) => t.projectId === project.id)
-    return !onAnyTeam
-  })
-
-  return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
-        <div>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Building2 className="h-4 w-4" />
-            Managers — {project.name}
-          </CardTitle>
-          <CardDescription>
-            {managers.length} manager{managers.length === 1 ? "" : "s"} · add or
-            remove managers in project settings
-          </CardDescription>
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={pending}
-          onClick={() => {
-            setPickerOpen((v) => !v)
-            setFilter("")
-          }}
-          className="gap-1"
-        >
-          {pickerOpen ? (
-            <X className="h-3.5 w-3.5" />
-          ) : (
-            <Plus className="h-3.5 w-3.5" />
-          )}
-          {pickerOpen ? "Close" : "Add employee"}
-        </Button>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {pickerOpen ? (
-          <div className="rounded-md border border-border/60 bg-muted/30 p-2">
-            <Input
-              placeholder="Search employees by name, email, or employee ID…"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="h-8 text-sm"
-              autoFocus
-            />
-            <p className="mt-1 px-1 text-[11px] text-muted-foreground">
-              Adds the employee to the project. Use the team table below to
-              assign them to a specific team and layer afterwards.
-            </p>
-            <div className="mt-2 max-h-48 space-y-1 overflow-y-auto pr-1">
-              {employeeCandidates.length === 0 ? (
-                <p className="px-1 py-2 text-xs text-muted-foreground">
-                  No eligible employees — everyone is already in this project.
-                </p>
-              ) : (
-                employeeCandidates.map((c) => (
-                  <form
-                    key={c.id}
-                    action={employeeFormAction}
-                    onSubmit={() => {
-                      setPickerOpen(false)
-                      setFilter("")
-                    }}
-                  >
-                    <input
-                      type="hidden"
-                      name="projectId"
-                      value={project.id}
-                    />
-                    <input
-                      type="hidden"
-                      name="employeeProfileId"
-                      value={c.employeeProfileId ?? ""}
-                    />
-                    <button
-                      type="submit"
-                      disabled={pending || !c.employeeProfileId}
-                      className="flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm hover:bg-background disabled:opacity-50"
-                    >
-                      <span className="flex min-w-0 items-center gap-2">
-                        <span className="truncate font-medium text-foreground">
-                          {c.name}
-                        </span>
-                        {c.role === "SUPERVISOR" ? (
-                          <Badge variant="outline" className="text-[10px]">
-                            Supervisor
-                          </Badge>
-                        ) : null}
-                      </span>
-                      <span className="ml-3 truncate text-xs text-muted-foreground">
-                        {c.employeeId} · {c.email}
-                      </span>
-                    </button>
-                  </form>
-                ))
-              )}
-            </div>
-          </div>
-        ) : null}
-
-        <ScrollArea className="overflow-x-auto rounded-md border">
-          <table className="min-w-full text-sm">
-            <thead className="bg-muted/40">
-              <tr>
-                <th className="px-3 py-2 text-left font-medium">Name</th>
-                <th className="px-3 py-2 text-left font-medium">User ID</th>
-                <th className="w-20 px-3 py-2 text-right font-medium">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {managers.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="px-3 py-6 text-center text-muted-foreground"
-                  >
-                    No managers yet. Add one in project settings.
-                  </td>
-                </tr>
-              ) : (
-                managers.map((pm) => {
-                  const remainingIds = managers
-                    .map((m) => m.userId)
-                    .filter((id) => id !== pm.userId)
-                  return (
-                    <tr key={pm.userId} className="border-t">
-                      <td className="px-3 py-2 font-medium text-foreground">
-                        {pm.name}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-muted-foreground">
-                        {pm.userId}
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        <form
-                          action={managerFormAction}
-                          className="inline-flex"
-                        >
-                          <input
-                            type="hidden"
-                            name="projectId"
-                            value={project.id}
-                          />
-                          {buildHiddenManagerInputs(remainingIds)}
-                          <Button
-                            type="submit"
-                            variant="ghost"
-                            size="sm"
-                            disabled={pending}
-                            className="gap-1 text-muted-foreground hover:text-destructive"
-                            title="Remove manager"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                            Remove
-                          </Button>
-                        </form>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-        </ScrollArea>
-
-        {/* Unassigned employees — added to the project but not on any
-            team yet. Surfacing them here keeps these "stuck" rows
-            visible so the admin can either assign them via the team
-            members table below, or remove them if added by mistake. */}
-        <div className="space-y-2 pt-2">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">
-              Unassigned employees
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              {unassignedEmployees.length === 0
-                ? "Everyone in this project is assigned to a team."
-                : `${unassignedEmployees.length} employee${
-                    unassignedEmployees.length === 1 ? "" : "s"
-                  } added to the project but not yet on any team. Use the team members table below to assign them to a layer.`}
-            </p>
-          </div>
-          {unassignedEmployees.length > 0 ? (
-            <ScrollArea className="overflow-x-auto rounded-md border">
-              <table className="min-w-full text-sm">
-                <thead className="bg-muted/40">
-                  <tr>
-                    <th className="px-3 py-2 text-left font-medium">Name</th>
-                    <th className="px-3 py-2 text-left font-medium">Role</th>
-                    <th className="px-3 py-2 text-left font-medium">
-                      Employee ID
-                    </th>
-                    <th className="w-24 px-3 py-2 text-right font-medium">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {unassignedEmployees.map((m) => (
-                    <tr key={m.id} className="border-t">
-                      <td className="px-3 py-2">
-                        <div className="font-medium text-foreground">
-                          {m.name}
-                        </div>
-                        {m.email ? (
-                          <div className="text-xs text-muted-foreground">
-                            {m.email}
-                          </div>
-                        ) : null}
-                      </td>
-                      <td className="px-3 py-2">
-                        {m.role === "SUPERVISOR" ? (
-                          <Badge variant="outline" className="text-[10px]">
-                            Supervisor
-                          </Badge>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            Employee
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-muted-foreground">
-                        {m.employeeId || "—"}
-                      </td>
-                      <td className="px-3 py-2 text-right">
-                        <form
-                          action={removeEmpFormAction}
-                          className="inline-flex"
-                        >
-                          <input
-                            type="hidden"
-                            name="projectId"
-                            value={project.id}
-                            hidden
-                          />
-                          <input
-                            type="hidden"
-                            name="employeeProfileId"
-                            value={m.employeeProfileId ?? ""}
-                            hidden
-                          />
-                          <Button
-                            type="submit"
-                            variant="ghost"
-                            size="sm"
-                            disabled={pending || !m.employeeProfileId}
-                            className="gap-1 text-muted-foreground hover:text-destructive"
-                            title="Remove from project"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                            Remove
-                          </Button>
-                        </form>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </ScrollArea>
-          ) : null}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-// ---------------------------------------------------------------------------
 // Team members table (full-width, below the grid)
 // ---------------------------------------------------------------------------
 
@@ -1209,13 +844,18 @@ function TeamMembersTable(props: {
     [props.team.members],
   )
 
+  // Picker shows every org employee with a profile (minus those
+  // already in THIS team). Project-membership is no longer a
+  // pre-requisite — `assignTeamMember` on the server side now
+  // upserts the EmployeeProjectAssignment alongside the team
+  // membership, so adding to a team implicitly puts the employee in
+  // the project too. That collapses the old two-step flow ("add to
+  // project, then add to team") into a single click.
   const candidates = useMemo(() => {
     const q = filter.trim().toLowerCase()
     return props.members.filter((m) => {
       if (!m.employeeProfileId) return false
       if (inTeamProfileIds.has(m.employeeProfileId)) return false
-      const inProject = m.projects.some((p) => p.id === props.team.projectId)
-      if (!inProject) return false
       if (!q) return true
       return (
         m.name.toLowerCase().includes(q) ||
@@ -1223,7 +863,7 @@ function TeamMembersTable(props: {
         m.employeeId.toLowerCase().includes(q)
       )
     })
-  }, [props.members, props.team.projectId, inTeamProfileIds, filter])
+  }, [props.members, inTeamProfileIds, filter])
 
   const labelFor = (layer: number) => {
     const label = props.team.layerLabels?.[layer - 1]
@@ -1271,7 +911,7 @@ function TeamMembersTable(props: {
           <div className="rounded-md border border-border/60 bg-muted/30 p-2 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <Input
-                placeholder="Search project members by name, email, or employee ID…"
+                placeholder="Search employees by name, email, or employee ID…"
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className="h-8 flex-1 text-sm"
@@ -1300,7 +940,7 @@ function TeamMembersTable(props: {
             <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
               {candidates.length === 0 ? (
                 <p className="px-1 py-2 text-xs text-muted-foreground">
-                  No eligible project members.
+                  No eligible employees.
                 </p>
               ) : (
                 candidates.map((c) => (

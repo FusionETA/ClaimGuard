@@ -39,6 +39,10 @@ export type ClaimFormAiPrefill = {
   description?: string
   currency?: string
   chartOfAccountId?: string
+  /// Supplier / vendor name extracted by AI from the receipt. Used to
+  /// pre-fill the "Spending at" merchant field so COMPANY-money claims
+  /// can flow straight into Xero as a Bill with the right Contact.
+  spendingAt?: string
 }
 
 export function ClaimForm({
@@ -193,7 +197,7 @@ export function ClaimForm({
   /// optional for PERSONAL. Becomes the Xero Spend Money Contact for
   /// COMPANY claims.
   const [spendingAtInput, setSpendingAtInput] = useState(
-    state?.values?.spendingAt ?? "",
+    state?.values?.spendingAt ?? aiPrefill?.spendingAt ?? "",
   )
   /// Supporting documents the user picks. Controlled list since the
   /// browser's native multi-file input is awkward when the user wants

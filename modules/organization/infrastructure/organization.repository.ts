@@ -3034,15 +3034,35 @@ export const organizationRepository = {
     if (!prisma) return []
 
     // Projects are org-scoped (one Xero connection per org). Resolve the
-    // org from the connection, then list its projects.
+    // org AND the currently-active tracking category from the
+    // connection so we can scope the listing — see the where clause
+    // below for why.
     const conn = await prisma.xeroConnection.findUnique({
       where: { id: connectionId },
-      select: { organizationId: true },
+      select: { organizationId: true, xeroTrackingCategoryId: true },
     })
     if (!conn) return []
 
     const rows = await prisma.xeroProject.findMany({
-      where: { organizationId: conn.organizationId, isDisabled: false, archivedByXeroConnect: false },
+      where: {
+        organizationId: conn.organizationId,
+        isDisabled: false,
+        archivedByXeroConnect: false,
+        // Scope to the connection's CURRENTLY-active tracking category
+        // so swapping the source category in Settings hides stale rows
+        // from the prior category without deleting them. Manual rows
+        // and legacy `/Projects`-API rows have `xeroTrackingOptionId
+        // = NULL` and are always visible (the OR-branch). When no
+        // category is picked at all, every row shows — same as before.
+        ...(conn.xeroTrackingCategoryId
+          ? {
+              OR: [
+                { xeroTrackingCategoryId: conn.xeroTrackingCategoryId },
+                { xeroTrackingOptionId: null },
+              ],
+            }
+          : {}),
+      },
       include: {
         projectManager: { select: { id: true, name: true } },
         projectManagers: {
@@ -3106,8 +3126,31 @@ export const organizationRepository = {
     const prisma = getPrismaClient()
     if (!prisma) return []
 
+    // Match `getProjectsForConnection`'s scoping: only surface rows
+    // that belong to the org's currently-active tracking category.
+    // The org may have at most one Xero connection — pick its active
+    // category id. Manual / legacy rows (xeroTrackingOptionId = NULL)
+    // are always visible.
+    const activeConnection = await prisma.xeroConnection.findFirst({
+      where: { organizationId },
+      select: { xeroTrackingCategoryId: true },
+    })
+    const activeCategory = activeConnection?.xeroTrackingCategoryId ?? null
+
     const rows = await prisma.xeroProject.findMany({
-      where: { organizationId, isDisabled: false, archivedByXeroConnect: false },
+      where: {
+        organizationId,
+        isDisabled: false,
+        archivedByXeroConnect: false,
+        ...(activeCategory
+          ? {
+              OR: [
+                { xeroTrackingCategoryId: activeCategory },
+                { xeroTrackingOptionId: null },
+              ],
+            }
+          : {}),
+      },
       include: {
         projectManager: { select: { id: true, name: true } },
         projectManagers: {
@@ -3476,6 +3519,11 @@ export const organizationRepository = {
   async upsertTrackingOptionsFromXero(data: {
     xeroConnectionId: string
     organizationId: string
+    /// The Xero Tracking Category these options belong to. Stamped on
+    /// every upserted row so the project-listing queries can scope by
+    /// the connection's currently-active category and hide stale rows
+    /// from a previous category without deleting them.
+    xeroTrackingCategoryId: string
     options: Array<{
       xeroTrackingOptionId: string
       name: string
@@ -3499,6 +3547,7 @@ export const organizationRepository = {
           create: {
             organizationId: data.organizationId,
             xeroTrackingOptionId: opt.xeroTrackingOptionId,
+            xeroTrackingCategoryId: data.xeroTrackingCategoryId,
             name: opt.name,
             status: opt.status,
             isManual: false,
@@ -3506,6 +3555,11 @@ export const organizationRepository = {
           update: {
             name: opt.name,
             status: opt.status,
+            // Re-stamp on update too, so any row that was synced
+            // before the column existed (and therefore has
+            // xeroTrackingCategoryId = NULL) gets backfilled the
+            // first time it re-appears in a sync.
+            xeroTrackingCategoryId: data.xeroTrackingCategoryId,
           },
         }),
       ),
@@ -3966,34 +4020,45 @@ export const organizationRepository = {
       where: { id: data.employeeProfileId },
       include: {
         user: { select: { id: true, name: true, role: true, organizationId: true } },
-        projectAssignments: { select: { projectId: true } },
       },
     })
     if (!profile || profile.user.organizationId !== data.organizationId) {
       throw new Error("Employee not found in this organization.")
     }
-    const employeeProjectIds = new Set(
-      profile.projectAssignments.map((a) => a.projectId),
-    )
-    if (!employeeProjectIds.has(team.projectId)) {
-      throw new Error(
-        "Employee is not assigned to the project this team belongs to.",
-      )
-    }
 
-    const upserted = await prisma.employeeTeamMembership.upsert({
-      where: {
-        employeeProfileId_teamId: {
+    // Adding to a team implicitly puts the employee in the team's
+    // parent project — admins shouldn't have to do "add to project"
+    // as a separate step. We upsert both rows in one transaction so a
+    // partial failure (project insert succeeds but team membership
+    // fails) doesn't leave an orphaned project assignment.
+    const upserted = await prisma.$transaction(async (tx) => {
+      await tx.employeeProjectAssignment.upsert({
+        where: {
+          employeeProfileId_projectId: {
+            employeeProfileId: profile.id,
+            projectId: team.projectId,
+          },
+        },
+        create: {
+          employeeProfileId: profile.id,
+          projectId: team.projectId,
+        },
+        update: {}, // already there → no-op
+      })
+      return tx.employeeTeamMembership.upsert({
+        where: {
+          employeeProfileId_teamId: {
+            employeeProfileId: profile.id,
+            teamId: team.id,
+          },
+        },
+        create: {
           employeeProfileId: profile.id,
           teamId: team.id,
+          layer: data.layer,
         },
-      },
-      create: {
-        employeeProfileId: profile.id,
-        teamId: team.id,
-        layer: data.layer,
-      },
-      update: { layer: data.layer },
+        update: { layer: data.layer },
+      })
     })
 
     return {
