@@ -144,31 +144,11 @@
         font-weight: 500;
       }
 
-      @media (prefers-color-scheme: dark) {
-        :root {
-          color-scheme: dark;
-          --background: hsl(268 40% 7%);
-          --foreground: hsl(268 20% 96%);
-          --card: hsl(268 35% 11%);
-          --muted-foreground: hsl(268 12% 70%);
-          --primary: hsl(268 62% 67%);
-          --primary-600: hsl(268 62% 60%);
-          --border: hsl(268 22% 24%);
-        }
-        body {
-          background-image:
-            radial-gradient(circle at top left, rgba(76, 26, 134, 0.22), transparent 44%),
-            radial-gradient(circle at top right, rgba(154, 250, 227, 0.06), transparent 38%);
-        }
-        .card { border-color: rgba(255, 255, 255, 0.10); }
-        .logo-tile {
-          background: rgba(255, 255, 255, 0.92);
-          border-color: rgba(255, 255, 255, 0.5);
-        }
-        .status { background: rgba(154, 250, 227, 0.10); color: hsl(166 80% 68%); }
-        .dot { background: hsl(166 80% 68%); }
-        button { color: hsl(268 55% 8%); }
-      }
+      /* Light only — matches the rest of the app, which is also locked
+         to light (no system dark-mode opt-in). Previously a
+         `prefers-color-scheme: dark` block flipped this page into a
+         dark variant when the user's OS was in dark mode, which made
+         the fallback feel like a different product. Removed. */
 
       @media (prefers-reduced-motion: reduce) {
         .dot { animation: none; }
