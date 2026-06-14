@@ -248,6 +248,28 @@ export function lookupEpfBand(input: {
   const { wage, employerRateLow, employerRateHigh, employeeRate } = input
   if (!Number.isFinite(wage) || wage <= 10) return { employer: 0, employee: 0 }
   const rateWage = input.rateDeterminingWage ?? wage
+
+  // KWSP Third Schedule only TABULATES Parts A (Malaysian under 60)
+  // and C (PR / pre-1998 over 60) — those are the parts with the
+  // RM 5,000 cliff and the band-stepped contributions. Parts E
+  // (Malaysian citizen 60+, flat 4%) and F (post-1998 non-MY, flat 2%)
+  // are gazetted as flat percentages with NO band table. The KWSP
+  // off-table rule then applies: exact percentage, each side rounded
+  // UP to the next ringgit (Third Schedule Note 2).
+  //
+  // We detect flat-rate branches by `employerRateLow === employerRateHigh`:
+  // Part A has a cliff (13 / 12), Part C has a cliff (6.5 / 6); Parts E
+  // and F do not. Treating Part F as banded was producing RM 1 high
+  // employee EPF for Zarak Asim (13,946 banded up to 14,000 → mandatory
+  // 280 vs. exact 279) — Payroll Panda uses the off-table rule.
+  const hasCliff = employerRateLow !== employerRateHigh
+  if (!hasCliff) {
+    return {
+      employer: Math.ceil(wage * employerRateHigh / 100),
+      employee: Math.ceil(wage * employeeRate / 100),
+    }
+  }
+
   let upper: number
   let employerRate: number
   if (rateWage <= 5000) {
