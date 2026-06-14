@@ -228,6 +228,16 @@ export function lookupEis(wage: number): {
 
 export function lookupEpfBand(input: {
   wage: number
+  /// Optional. The wage used to pick the employer rate at the RM 5,000
+  /// cliff (13→12 for Part A, 6.5→6 for Part C). When omitted defaults
+  /// to `wage`, preserving the strict gazetted reading where total
+  /// monthly wages drive the cliff. Callers who want the looser
+  /// "cliff by contractual monthly wage" reading (so a one-off bonus
+  /// doesn't push an under-RM-5,000 employee into the higher tier)
+  /// pass the regular-monthly portion here while keeping `wage` at the
+  /// full combined amount. Used by `calcEpf` to match Payroll Panda's
+  /// employer EPF on months with bonus.
+  rateDeterminingWage?: number
   /// Employer rate (%) for wages ≤ RM 5,000 (Part A: 13, Part C: 6.5, Part E: 4, Part F: 2)
   employerRateLow: number
   /// Employer rate (%) for wages > RM 5,000 (Part A: 12, Part C: 6, Part E: 4, Part F: 2)
@@ -237,13 +247,14 @@ export function lookupEpfBand(input: {
 }): { employer: number; employee: number } {
   const { wage, employerRateLow, employerRateHigh, employeeRate } = input
   if (!Number.isFinite(wage) || wage <= 10) return { employer: 0, employee: 0 }
+  const rateWage = input.rateDeterminingWage ?? wage
   let upper: number
   let employerRate: number
-  if (wage <= 5000) {
+  if (rateWage <= 5000) {
     // RM 20 wage bands. upperBound = ceil(wage/20) × 20.
     upper = Math.ceil(wage / 20) * 20
     employerRate = employerRateLow
-  } else if (wage <= 20000) {
+  } else if (rateWage <= 20000) {
     // RM 100 wage bands. upperBound = ceil(wage/100) × 100.
     upper = Math.ceil(wage / 100) * 100
     employerRate = employerRateHigh

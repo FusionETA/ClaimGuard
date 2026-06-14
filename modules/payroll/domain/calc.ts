@@ -84,6 +84,14 @@ export type CalcEpfInput = {
   /// rounded up to next ringgit (KWSP general rule for off-table
   /// amounts). Defaults to 0 when omitted.
   additionalRemuneration?: number
+  /// Optional. The wage used to decide which side of the KWSP Third
+  /// Schedule RM 5,000 cliff the employer rate falls on (13→12 for
+  /// Part A, 6.5→6 for Part C). Defaults to `wage`. Passed by the
+  /// orchestrator as the *regular monthly* EPF-able wage (i.e. without
+  /// one-off bonus / commission AR amounts) so a bonus paid this
+  /// period doesn't kick an under-RM-5,000 employee into the higher
+  /// tier for one month. Matches Payroll Panda's behaviour.
+  rateDeterminingWage?: number
   /// Employee mandatory rate %; the calc engine overrides this with
   /// the branch's statutory rate for non-Part-A branches (so the
   /// "11%" the admin enters has no effect at age 60+ or for post-1998
@@ -216,55 +224,56 @@ export function calcEpf(input: CalcEpfInput): {
       break
   }
 
-  const mandatoryRegular = lookupEpfBand({
-    wage: input.wage,
+  const ar = input.additionalRemuneration ?? 0
+  const totalWage = input.wage + ar
+  // `rateWage` decides which side of the RM 5,000 cliff the EMPLOYER
+  // rate falls on (13→12 for Part A, 6.5→6 for Part C). Caller passes
+  // the regular monthly EPF-able wage here so a one-off bonus that
+  // month doesn't kick an under-RM-5,000 employee into the higher
+  // tier. Defaults to `wage` for backwards-compatible call sites.
+  const rateWage = input.rateDeterminingWage ?? input.wage
+
+  // Employee EPF — keep the gazetted KWSP Third Schedule band-table
+  // lookup applied to the COMBINED wage (regular + AR). The cliff for
+  // the band STEP (RM 20 vs RM 100) is driven by the combined wage so
+  // that, for Kay Ben at combined 5,318, the wage rounds up to the
+  // RM 100 band 5,400 and we read 594 = ceil(11% × 5,400) — matching
+  // Payroll Panda. The cliff that picks the EMPLOYER rate happens
+  // separately below (driven by `rateWage`, regular only).
+  const employeeBand = lookupEpfBand({
+    wage: totalWage,
     employerRateLow,
     employerRateHigh,
     employeeRate,
   })
+  const employeeMandatory = employeeBand.employee
 
-  // AR (additional remuneration) mandatory EPF — bonus / commission /
-  // arrears whose line did NOT tick "Treat as regular monthly". The
-  // gazetted KWSP Third Schedule band table is keyed to the regular
-  // monthly wage, so an off-cycle AR amount is computed at exact
-  // percentage rounded UP to the next ringgit (KWSP general principle,
-  // matches the > RM 20,000 branch of `lookupEpfBand`). The rate used
-  // is the SAME the regular wage qualifies for — bonus paid to a
-  // RM 4,100 base employee still gets 13% on the bonus, even though
-  // the bonus pushes (base + bonus) past RM 5,000.
-  const ar = input.additionalRemuneration ?? 0
-  const arEmployerRate = input.wage <= 5000 ? employerRateLow : employerRateHigh
-  const mandatoryAr =
-    ar > 0
-      ? {
-          employer: Math.ceil((ar * arEmployerRate) / 100),
-          employee: Math.ceil((ar * employeeRate) / 100),
-        }
-      : { employer: 0, employee: 0 }
+  // Employer EPF — single ceil of (mandatory + voluntary) × combined
+  // wage. Avoids the double-ceil drift between mandatory and voluntary
+  // that previously left us RM 1 above Panda on bonus months. Cliff
+  // for the mandatory rate is driven by `rateWage` (regular monthly),
+  // NOT combined wage — so a one-off bonus that pushes the month's
+  // total past RM 5,000 keeps the employee on the 13% Part A low tier
+  // when their contractual wage is under RM 5,000.
+  const employerMandatoryRate =
+    rateWage <= 5000 ? employerRateLow : employerRateHigh
+  const employerTotalRate =
+    employerMandatoryRate + (input.employerVoluntary > 0 ? input.employerVoluntary : 0)
+  const employerTotal =
+    totalWage > 0
+      ? Math.ceil(totalWage * employerTotalRate / 100)
+      : 0
 
-  // Voluntary contributions stack on top. The voluntary base IS the
-  // total EPF-able wage (regular + AR). Per KWSP general convention
-  // for off-tier amounts (same as Note 2 of the Third Schedule for
-  // wages > RM 20,000), each side is rounded UP to the next ringgit.
-  // Previously this used `round2`, which left fractional sen like
-  // Aafaq Ul Basit's 808.56 instead of the gazetted-style 809 — a 1
-  // RM gap from Payroll Panda's display.
-  const totalWage = input.wage + ar
+  // Employee voluntary stays as a separate single-ceil — the gazetted
+  // Third Schedule has no concept of "employee voluntary", so KWSP's
+  // general off-table rule (exact %, ceil to next ringgit) applies.
   const employeeExtra =
     input.employeeVoluntary > 0
       ? Math.ceil(totalWage * input.employeeVoluntary / 100)
       : 0
-  const employerExtra =
-    input.employerVoluntary > 0
-      ? Math.ceil(totalWage * input.employerVoluntary / 100)
-      : 0
   return {
-    employee: round2(
-      mandatoryRegular.employee + mandatoryAr.employee + employeeExtra,
-    ),
-    employer: round2(
-      mandatoryRegular.employer + mandatoryAr.employer + employerExtra,
-    ),
+    employee: round2(employeeMandatory + employeeExtra),
+    employer: round2(employerTotal),
     branch,
   }
 }
@@ -1064,9 +1073,20 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
     periodYear,
     periodMonth,
   )
+  // KWSP cliff (13→12 for Part A) is driven by the regular monthly
+  // wage, NOT the combined wage with bonus. So we hand calcEpf the
+  // regular EPF wage (combined minus the AR-flagged bonus portion)
+  // as `rateDeterminingWage`. For employees whose bonus line was
+  // ticked "Treat as regular monthly", `arEpfAmountForPcbKt` stays 0,
+  // so the regular wage equals the combined wage and the strict
+  // cliff applies — same behaviour as before this change.
+  const regularEpfWageForRate = round2(
+    Math.max(0, epfWage - arEpfAmountForPcbKt),
+  )
   const epf = calcEpf({
     wage: epfWage,
     additionalRemuneration: arEpfBase,
+    rateDeterminingWage: regularEpfWageForRate,
     employeeRate,
     employeeVoluntary: profile.epfEmployeeVoluntary,
     employerVoluntary: profile.epfEmployerVoluntary,
@@ -1336,6 +1356,7 @@ export function calcPayslip(input: CalcPayslipInput): CalcPayslipResult {
       profileEmployeeRate: employeeRate,
       wage: epfWage,
       arWage: arEpfBase,
+      rateDeterminingWage: regularEpfWageForRate,
       voluntaryEmployee: profile.epfEmployeeVoluntary,
       voluntaryEmployer: profile.epfEmployerVoluntary,
       totalEmployee: epf.employee,
@@ -1362,6 +1383,10 @@ function epfSnapshotRates(input: {
   profileEmployeeRate: number
   wage: number
   arWage: number
+  /// Same semantics as `CalcEpfInput.rateDeterminingWage` — the regular
+  /// monthly EPF-able wage that drives the RM 5,000 cliff. Defaults to
+  /// `wage` (back-compat with callers that don't split bonus out).
+  rateDeterminingWage?: number
   voluntaryEmployee: number
   voluntaryEmployer: number
   totalEmployee: number
@@ -1369,12 +1394,13 @@ function epfSnapshotRates(input: {
 }): PayslipEpfRatesSnapshot {
   let employee = 0
   let employer = 0
+  const rateWage = input.rateDeterminingWage ?? input.wage
   switch (input.branch) {
     case "MALAYSIAN_UNDER_60":
       // Mirror the floor enforced in calcEpf: minimum statutory
       // employee share is 11%. Snapshot what the calc actually used.
       employee = Math.max(11, input.profileEmployeeRate)
-      employer = input.wage <= 5000 ? 13 : 12
+      employer = rateWage <= 5000 ? 13 : 12
       break
     case "MALAYSIAN_CITIZEN_60_PLUS":
       employee = 0
@@ -1382,7 +1408,7 @@ function epfSnapshotRates(input: {
       break
     case "PR_OR_PRE1998_60_PLUS":
       employee = 5.5
-      employer = input.wage <= 5000 ? 6.5 : 6
+      employer = rateWage <= 5000 ? 6.5 : 6
       break
     case "POST_1998_NON_MALAYSIAN":
       employee = 2
