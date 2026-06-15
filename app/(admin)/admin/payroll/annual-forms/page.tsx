@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 
+import { Cp38ConverterModal } from "@/components/admin/cp38-converter-modal"
 import { PayrollAnnualDownloadsCard } from "@/components/admin/payroll-annual-downloads-card"
 import { getPayrollAnnualReportsPageData } from "@/modules/payroll/application/services/payroll-annual-reports.service"
 
@@ -50,6 +51,28 @@ export default async function AdminAnnualPayrollFormsPage({
         missingMonths={data.missingMonths}
         employerNoConfigured={data.employerNoConfigured}
       />
+
+      {/* CP38 converter — sits below the annual downloads card. Manual
+          row-by-row entry → fixed-width TXT for LHDN's e-CP39 portal.
+          Useful for one-off court-order CP38 filings or for testing the
+          upload workflow without needing a full Jan-Dec payroll cycle. */}
+      <section className="rounded-xl border border-dashed border-border/60 bg-card/40 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <h2 className="text-sm font-semibold text-foreground">
+              CP38 converter
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Hand-enter CP38 (court-order tax) rows and download a
+              LHDN-formatted TXT — no payroll run required.
+            </p>
+          </div>
+          <Cp38ConverterModal
+            defaultYear={data.selectedYear}
+            defaultMonth={new Date().getMonth() + 1}
+          />
+        </div>
+      </section>
     </div>
   )
 }

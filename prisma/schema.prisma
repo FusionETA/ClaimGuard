@@ -17,6 +17,7 @@ model User {
   avatarUrl                       String?
   createdAt                       DateTime               @default(now())
   updatedAt                       DateTime               @updatedAt
+  passwordChangedAt               DateTime?
   adminOrganizations              AdminOrganization[]    @relation("AdminOrganizations")
   approvalChainApprovals          ApprovalChainStep[]    @relation("ApproverChain")
   approvalChainSteps              ApprovalChainStep[]    @relation("EmployeeChain")
@@ -45,35 +46,35 @@ model User {
 }
 
 model Organization {
-  id                      String                 @id @default(cuid())
-  name                    String                 @unique
-  claimCutoffDay          Int                    @default(25)
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
-  workingHoursEnd         String                 @default("18:00")
-  workingHoursStart       String                 @default("09:00")
-  geofenceRadiusMeters    Int                    @default(200)
-  defaultMileageRate      Decimal?               @db.Decimal(10, 4)
-  mileageUnit             MileageUnit            @default(KM)
-  otEnabled               Boolean                @default(true)
-  timezone                String                 @default("Asia/Kuala_Lumpur")
+  id                        String                 @id @default(cuid())
+  name                      String                 @unique
+  claimCutoffDay            Int                    @default(25)
+  createdAt                 DateTime               @default(now())
+  updatedAt                 DateTime               @updatedAt
+  workingHoursEnd           String                 @default("18:00")
+  workingHoursStart         String                 @default("09:00")
+  geofenceRadiusMeters      Int                    @default(200)
+  defaultMileageRate        Decimal?               @db.Decimal(10, 4)
+  mileageUnit               MileageUnit            @default(KM)
+  otEnabled                 Boolean                @default(true)
+  timezone                  String                 @default("Asia/Kuala_Lumpur")
   /// JSON array of ISO 4217 currency codes the admin has enabled for
   /// expense claims (e.g. ["MYR","USD","SGD"]). Empty/null falls back to
   /// just defaultCurrency. The employee claim form picker shows only
   /// these codes.
-  allowedCurrencies       Json?
+  allowedCurrencies         Json?
   /// Default currency for new claims when the AI can't detect one and
   /// the user hasn't picked. ISO 4217 code. Replaces the previous
   /// hardcoded "USD". Null until the admin sets it (in which case the
   /// claim service falls back to "MYR" for backwards-safety).
-  defaultCurrency         String?
+  defaultCurrency           String?
   /// When true, the admin attendance Trends tab renders the supervisor
   /// performance card listing supervisors with slow approvals (any
   /// decision exceeding `supervisorSlaMinutes`) and any rejections.
-  supervisorReportEnabled Boolean                @default(true)
+  supervisorReportEnabled   Boolean                @default(true)
   /// SLA threshold (in minutes) used to flag a supervisor approval as
   /// "slow" in the supervisor performance card. Defaults to 60.
-  supervisorSlaMinutes    Int                    @default(60)
+  supervisorSlaMinutes      Int                    @default(60)
   /// When true, employees can apply for leave that hasn't yet accrued
   /// — provided it WILL have accrued by the leave's start date (e.g.
   /// in January book 6 days for June against a PRO_RATED entitlement
@@ -81,22 +82,23 @@ model Organization {
   /// strict rule applies: requested days must fit within today's
   /// balance. Only affects PRO_RATED leave types; LUMP_SUM is fully
   /// credited at the start of the year so forecasting is a no-op.
-  allowForecastedLeaveApply Boolean              @default(false)
-  adminMembers            AdminOrganization[]
-  apiIntegrations         ApiIntegration[]
-  chartAccounts           ChartOfAccount[]
-  claims                  Claim[]
-  employeeImportDrafts    EmployeeImportDraft[]
-  employeePolicies        EmployeePolicy[]
-  leaveTypes              LeaveType[]
-  auditLog                OrganizationAuditLog[]
-  payrollAnnualReports    PayrollAnnualReport[]
-  payrollCompanyInfo      PayrollCompanyInfo?
-  payrollRuns             PayrollRun[]
-  payrollSettings         PayrollSettings?
-  users                   User[]
-  xeroConnection          XeroConnection?
-  projects                XeroProject[]
+  allowForecastedLeaveApply Boolean                @default(false)
+  adminMembers              AdminOrganization[]
+  apiIntegrations           ApiIntegration[]
+  chartAccounts             ChartOfAccount[]
+  claims                    Claim[]
+  employeeImportDrafts      EmployeeImportDraft[]
+  employeePolicies          EmployeePolicy[]
+  leaveTypes                LeaveType[]
+  auditLog                  OrganizationAuditLog[]
+  payrollAnnualReports      PayrollAnnualReport[]
+  payrollCompanyInfo        PayrollCompanyInfo?
+  payrollPortalCredentials  PayrollPortalCredential[]
+  payrollRuns               PayrollRun[]
+  payrollSettings           PayrollSettings?
+  users                     User[]
+  xeroConnection            XeroConnection?
+  projects                  XeroProject[]
 }
 
 /// Admin-defined classification for an employee. Replaces the previous
@@ -478,6 +480,13 @@ model Claim {
   /// secondary search term. Nullable because legacy claims and
   /// reasonable categories (own-use office supplies) don't need it.
   spendingWith              String?
+  /// For COMPANY-money claims synced to Xero as a "Spend Money" bank
+  /// transaction (money already left the company bank/card), as opposed
+  /// to PERSONAL claims which post as an awaiting-payment bill
+  /// (`xeroBillId`). Set once on sync so the post is idempotent. Unique
+  /// to prevent a double-post creating two transactions for one claim.
+  xeroSpendMoneyId          String?                     @unique
+  xeroSpendMoneyRef         String?
   /// Free-text "where you spent" — the merchant / vendor / restaurant
   /// name from the receipt (e.g. "Starbucks KLCC", "Office Depot",
   /// "Acme Hardware Sdn Bhd"). Distinct from `spendingWith` (the
@@ -487,13 +496,6 @@ model Claim {
   /// context for the approver. Nullable so legacy claims that pre-date
   /// the field can still be loaded + resynced without backfill.
   spendingAt                String?
-  /// For COMPANY-money claims synced to Xero as a "Spend Money" bank
-  /// transaction (money already left the company bank/card), as opposed
-  /// to PERSONAL claims which post as an awaiting-payment bill
-  /// (`xeroBillId`). Set once on sync so the post is idempotent. Unique
-  /// to prevent a double-post creating two transactions for one claim.
-  xeroSpendMoneyId          String?                     @unique
-  xeroSpendMoneyRef         String?
   chartOfAccount            ChartOfAccount?             @relation("ClaimAccount", fields: [chartOfAccountId], references: [id])
   employee                  User                        @relation("EmployeeClaims", fields: [employeeId], references: [id], onDelete: Cascade)
   organization              Organization?               @relation(fields: [organizationId], references: [id])
@@ -659,36 +661,37 @@ model XeroConnection {
 }
 
 model XeroProject {
-  id                    String                      @id @default(cuid())
-  organizationId        String
+  id                     String                      @id @default(cuid())
+  organizationId         String
   /// Legacy: populated for rows synced from the old `/Projects` API
   /// before we switched to tracking categories. Kept for back-compat
   /// so existing claims/attendance FKs keep working. New rows from
   /// the tracking-category sync use `xeroTrackingOptionId` instead.
-  xeroProjectId         String?
-  name                  String
-  status                String?
-  createdAt             DateTime                    @default(now())
-  updatedAt             DateTime                    @updatedAt
-  isManual              Boolean                     @default(false)
-  location              String?
-  projectManagerId      String?
-  isDisabled            Boolean                     @default(false)
-  latitude              Float?
-  longitude             Float?
-  workingHoursStart     String?
-  workingHoursEnd       String?
-  workingDays           String?
+  xeroProjectId          String?
+  name                   String
+  status                 String?
+  createdAt              DateTime                    @default(now())
+  updatedAt              DateTime                    @updatedAt
+  isManual               Boolean                     @default(false)
+  location               String?
+  projectManagerId       String?
+  isDisabled             Boolean                     @default(false)
+  latitude               Float?
+  longitude              Float?
+  workingHoursStart      String?
+  workingHoursEnd        String?
+  workingDays            String?
   /// Daily lunch break minutes deducted from the (end-start) span when
   /// computing expected daily working minutes. Defaults to 60.
-  lunchBreakMinutes     Int                         @default(60)
+  lunchBreakMinutes      Int                         @default(60)
   /// Populated for rows synced from a Xero Tracking Category option.
   /// Coexists with `xeroProjectId` on the same model so legacy rows
   /// and new tracking-option rows live side-by-side. See
   /// `xeroTrackingCategoryId` (below) for which category this option
   /// belongs to — populated alongside `xeroTrackingOptionId` from the
   /// connection's active category at sync time.
-  xeroTrackingOptionId  String?
+  xeroTrackingOptionId   String?
+  archivedByXeroConnect  Boolean                     @default(false)
   /// Snapshot of the Xero Tracking Category this row was synced under.
   /// Lets project listings scope by the connection's CURRENT active
   /// category so swapping categories hides stale rows from the picker
@@ -696,15 +699,14 @@ model XeroProject {
   /// their managers, lat/long, etc. intact). Null for manual rows and
   /// legacy `/Projects`-API rows, which are always visible.
   xeroTrackingCategoryId String?
-  archivedByXeroConnect Boolean                     @default(false)
-  attendanceRecords     AttendanceRecord[]          @relation("AttendanceRecordProject")
-  claims                Claim[]                     @relation("ClaimProject")
-  assignedEmployees     EmployeeProjectAssignment[]
-  holidays              ProjectHoliday[]
-  projectManagers       ProjectManager[]            @relation("ProjectManagers")
-  teams                 Team[]
-  organization          Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  projectManager        User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
+  attendanceRecords      AttendanceRecord[]          @relation("AttendanceRecordProject")
+  claims                 Claim[]                     @relation("ClaimProject")
+  assignedEmployees      EmployeeProjectAssignment[]
+  holidays               ProjectHoliday[]
+  projectManagers        ProjectManager[]            @relation("ProjectManagers")
+  teams                  Team[]
+  organization           Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectManager         User?                       @relation("ProjectManager", fields: [projectManagerId], references: [id])
 
   @@unique([organizationId, xeroProjectId])
   @@unique([organizationId, xeroTrackingOptionId])
@@ -1250,6 +1252,43 @@ model PayrollCompanyInfo {
   organization             Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
+/// Saved login credentials for a single statutory portal (KWSP, PERKESO)
+/// per organization. The password is symmetrically encrypted at rest
+/// (AES-256-GCM, keyed off the `PORTAL_CREDS_KEY` env var); every other
+/// field is plain text. The Payroll Settings → Credentials tab lets the
+/// admin copy each field to the clipboard so they don't have to memorise
+/// the login or fish it out of a password manager every time the LHDN /
+/// SOCSO / EPF deadlines roll around. One row per (org, portal).
+model PayrollPortalCredential {
+  id             String       @id @default(cuid())
+  organizationId String
+  portal         PortalKind
+  /// Plain-text login ID.
+  userId         String?
+  /// AES-256-GCM ciphertext. Layout: iv(12) || authTag(16) || ciphertext,
+  /// base64-encoded. Decrypt with `decryptSecret()` from `lib/crypto.ts`.
+  /// Null when the admin hasn't saved a password yet.
+  passwordEnc    String?
+  /// KWSP-only: the image the admin chose at registration (e.g.
+  /// "elephant"). Plain text.
+  image          String?
+  /// KWSP-only: secret code shown at login. Plain text.
+  secretCode     String?
+  /// PERKESO-only: security phrase. Plain text.
+  securityPhrase String?
+  /// PERKESO-only: password reminder hint. Plain text.
+  passwordReminder String?
+  /// Free-form notes the admin wants to remember (e.g. "old PIC was
+  /// Sarah, rotated 2026-03"). Plain text.
+  notes          String?     @db.Text
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, portal])
+  @@index([organizationId])
+}
+
 /// One payroll run per (org, year, month). Created in DRAFT state; the
 /// admin reviews payslips, then submits → SUBMITTED. Submission is
 /// revertible until the next month's run is submitted.
@@ -1520,20 +1559,6 @@ model Payslip {
   eisEmployee           Decimal           @default(0.00) @db.Decimal(12, 2)
   eisEmployer           Decimal           @default(0.00) @db.Decimal(12, 2)
   pcb                   Decimal           @default(0.00) @db.Decimal(12, 2)
-  /// LHDN-style PCB formula breakdown — the line-by-line variables
-  /// (Y, K, Y1, K1, Y2, K2, n, D, S, Du, Su, Q×C, ∑LP, LP1, P, M, R,
-  /// B, Z, X, yearlyTax, currentMonthPcb) that produced the `pcb`
-  /// number above. Snapshotted at generation so the Detailed
-  /// Calculations PDF can always show the formula that yielded the
-  /// actually-deducted amount, even if rates / formula change later.
-  /// Shape matches `CalcPcbBreakdown` in `modules/payroll/domain/pcb.ts`.
-  /// Null on payslips generated before this column shipped — the PDF
-  /// falls back to a single-line summary for those.
-  ///
-  /// Named `pcbCalculation` to avoid colliding with the in-memory
-  /// `CalcPayslipResult.pcbBreakdown` field (which is just the
-  /// `{normal, additional}` amount split).
-  pcbCalculation        Json?
   hrdf                  Decimal           @default(0.00) @db.Decimal(12, 2)
   zakat                 Decimal           @default(0.00) @db.Decimal(12, 2)
   /// Wage base used for HRDF — may differ from gross.
@@ -1558,6 +1583,20 @@ model Payslip {
   /// Display-only snapshot for the DAYS column: actual working days =
   /// totalWorkingDays − unpaidLeaveDays. Does NOT affect pay.
   unpaidLeaveDays       Decimal?          @db.Decimal(5, 2)
+  /// LHDN-style PCB formula breakdown — the line-by-line variables
+  /// (Y, K, Y1, K1, Y2, K2, n, D, S, Du, Su, Q×C, ∑LP, LP1, P, M, R,
+  /// B, Z, X, yearlyTax, currentMonthPcb) that produced the `pcb`
+  /// number above. Snapshotted at generation so the Detailed
+  /// Calculations PDF can always show the formula that yielded the
+  /// actually-deducted amount, even if rates / formula change later.
+  /// Shape matches `CalcPcbBreakdown` in `modules/payroll/domain/pcb.ts`.
+  /// Null on payslips generated before this column shipped — the PDF
+  /// falls back to a single-line summary for those.
+  ///
+  /// Named `pcbCalculation` to avoid colliding with the in-memory
+  /// `CalcPayslipResult.pcbBreakdown` field (which is just the
+  /// `{normal, additional}` amount split).
+  pcbCalculation        Json?
   employeeProfile       EmployeeProfile   @relation(fields: [employeeProfileId], references: [id], onDelete: Cascade)
   payrollProfile        PayrollProfile?   @relation(fields: [payrollProfileId], references: [id])
   payrollRun            PayrollRun        @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
@@ -1661,13 +1700,6 @@ model LeaveType {
   /// expected-hours is NOT reduced when an employee takes this leave.
   paid                Boolean                  @default(true)
   accrualMethod       LeaveAccrualMethod       @default(LUMP_SUM)
-  /// When true AND `accrualMethod === LUMP_SUM`, mid-year hires get a
-  /// prorated portion of `defaultDays` in their year-of-hire only.
-  /// Year 2+ resets to the full quota via the year-rollover cron.
-  /// Only meaningful for the Annual Leave type (admins are gated to
-  /// Annual in the LeaveTypeDialog). Ignored for PRO_RATED (which
-  /// already prorates by design) and for non-Annual types.
-  prorateFirstYear    Boolean                  @default(false)
   /// Fallback org-wide default entitlement when no PolicyLeaveEntitlement
   /// row exists for the employee's policy.
   defaultDays         Float                    @default(0)
@@ -1680,6 +1712,13 @@ model LeaveType {
   archivedAt          DateTime?
   createdAt           DateTime                 @default(now())
   updatedAt           DateTime                 @updatedAt
+  /// When true AND `accrualMethod === LUMP_SUM`, mid-year hires get a
+  /// prorated portion of `defaultDays` in their year-of-hire only.
+  /// Year 2+ resets to the full quota via the year-rollover cron.
+  /// Only meaningful for the Annual Leave type (admins are gated to
+  /// Annual in the LeaveTypeDialog). Ignored for PRO_RATED (which
+  /// already prorates by design) and for non-Annual types.
+  prorateFirstYear    Boolean                  @default(false)
   applications        LeaveApplication[]
   entitlements        LeaveEntitlement[]
   organization        Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -1695,18 +1734,18 @@ model LeaveType {
 /// 2. PolicyLeaveEntitlement (if a row exists for the employee's policy)
 /// 3. LeaveType.defaultDays
 model PolicyLeaveEntitlement {
-  id             String              @id @default(cuid())
-  policyId       String
-  leaveTypeId    String
-  defaultDays    Float               @default(0)
+  id            String              @id @default(cuid())
+  policyId      String
+  leaveTypeId   String
+  defaultDays   Float               @default(0)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
   /// Per-policy override of `LeaveType.accrualMethod`. Null = inherit
   /// the type's method. See resolveAccrualMethod() in
   /// modules/leave/application/services/leave-entitlements.service.ts.
-  accrualMethod  LeaveAccrualMethod?
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  leaveType      LeaveType           @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
-  policy         EmployeePolicy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  accrualMethod LeaveAccrualMethod?
+  leaveType     LeaveType           @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  policy        EmployeePolicy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
 
   @@unique([policyId, leaveTypeId])
   @@index([leaveTypeId])
@@ -1716,44 +1755,44 @@ model PolicyLeaveEntitlement {
 /// year-rollover cron. For LUMP_SUM the full entitledDays is available
 /// immediately; for PRO_RATED only accruedDays is available.
 model LeaveEntitlement {
-  id               String              @id @default(cuid())
-  employeeId       String
-  leaveTypeId      String
-  year             Int
-  entitledDays     Float
-  carriedDays      Float               @default(0)
-  carriedExpiresAt DateTime?
-  carriedExpired   Boolean             @default(false)
-  /// Set by `runMonthlyAccrual`'s expiry sweep when this row's
-  /// carry-forward expired. Lets the payroll cash-out UI surface
-  /// "this employee had X days expire on date Y" even after
-  /// `carriedDays` is mutated to the used portion.
-  carriedExpiredAt    DateTime?
-  /// How many days were forfeited when the expiry fired — i.e. the
-  /// `unused` portion at sweep time. Stays on the row indefinitely
-  /// so the cash-out UI knows the amount even years later.
-  carriedExpiredDays  Float?
+  id                     String              @id @default(cuid())
+  employeeId             String
+  leaveTypeId            String
+  year                   Int
+  entitledDays           Float
+  carriedDays            Float               @default(0)
+  carriedExpiresAt       DateTime?
+  carriedExpired         Boolean             @default(false)
+  /// PRO_RATED: monthly accumulated. LUMP_SUM: equals entitledDays.
+  accruedDays            Float               @default(0)
+  usedDays               Float               @default(0)
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  /// Per-employee override of accrualMethod. Null = inherit from
+  /// PolicyLeaveEntitlement (if set) or LeaveType. See
+  /// resolveAccrualMethod() in
+  /// modules/leave/application/services/leave-entitlements.service.ts.
+  accrualMethod          LeaveAccrualMethod?
+  /// Snapshot of the cash-out amount actually attached to the run,
+  /// in case the employee's salary changes later.
+  carriedCashedOutAmount Decimal?            @db.Decimal(12, 2)
+  carriedCashedOutAt     DateTime?
   /// Non-null = an admin has attached this expired-days row to a
   /// payroll run for cash-out. We don't show it as "available" again
   /// and we don't re-attach on re-imports. No onDelete cascade — keep
   /// the audit if the run is deleted.
   carriedCashedOutRunId  String?
-  carriedCashedOutAt     DateTime?
-  /// Snapshot of the cash-out amount actually attached to the run,
-  /// in case the employee's salary changes later.
-  carriedCashedOutAmount Decimal?           @db.Decimal(12, 2)
-  /// PRO_RATED: monthly accumulated. LUMP_SUM: equals entitledDays.
-  accruedDays      Float               @default(0)
-  usedDays         Float               @default(0)
-  /// Per-employee override of accrualMethod. Null = inherit from
-  /// PolicyLeaveEntitlement (if set) or LeaveType. See
-  /// resolveAccrualMethod() in
-  /// modules/leave/application/services/leave-entitlements.service.ts.
-  accrualMethod    LeaveAccrualMethod?
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-  employee         EmployeeProfile     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  leaveType        LeaveType           @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+  /// Set by `runMonthlyAccrual`'s expiry sweep when this row's
+  /// carry-forward expired. Lets the payroll cash-out UI surface
+  /// "this employee had X days expire on date Y" even after
+  /// `carriedDays` is mutated to the used portion.
+  carriedExpiredAt       DateTime?
+  /// How many days were forfeited when the expiry fired — i.e. the
+  /// `unused` portion at sweep time. Stays on the row indefinitely
+  /// so the cash-out UI knows the amount even years later.
+  carriedExpiredDays     Float?
+  employee               EmployeeProfile     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType              LeaveType           @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, leaveTypeId, year])
   @@index([leaveTypeId])
@@ -2071,6 +2110,13 @@ enum PayrollRunStatus {
   /// themselves.
   PENDING_APPROVAL
   SUBMITTED
+}
+
+/// Statutory portals the admin can save credentials for. New portals
+/// (e.g. LHDN MyTax, ASSIST employer portal) can be added later.
+enum PortalKind {
+  KWSP
+  PERKESO
 }
 
 enum PayslipLineKind {

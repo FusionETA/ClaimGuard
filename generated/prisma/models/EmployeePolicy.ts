@@ -902,10 +902,6 @@ export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.EmployeePolicyScalarWhereInput | Prisma.EmployeePolicyScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type EnumPayoutMethodFieldUpdateOperationsInput = {
   set?: $Enums.PayoutMethod
 }

@@ -417,6 +417,7 @@ export const ModelName = {
   SalaryChange: 'SalaryChange',
   PayrollSettings: 'PayrollSettings',
   PayrollCompanyInfo: 'PayrollCompanyInfo',
+  PayrollPortalCredential: 'PayrollPortalCredential',
   PayrollRun: 'PayrollRun',
   PayrollRunReport: 'PayrollRunReport',
   PayrollAnnualReport: 'PayrollAnnualReport',
@@ -445,7 +446,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2627,6 +2628,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PayrollPortalCredential: {
+      payload: Prisma.$PayrollPortalCredentialPayload<ExtArgs>
+      fields: Prisma.PayrollPortalCredentialFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PayrollPortalCredentialFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollPortalCredentialPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PayrollPortalCredentialFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollPortalCredentialPayload>
+        }
+        findFirst: {
+          args: Prisma.PayrollPortalCredentialFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollPortalCredentialPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PayrollPortalCredentialFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollPortalCredentialPayload>
+        }
+        findMany: {
+          args: Prisma.PayrollPortalCredentialFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollPortalCredentialPayload>[]
+        }
+        create: {
+          args: Prisma.PayrollPortalCredentialCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollPortalCredentialPayload>
+        }
+        createMany: {
+          args: Prisma.PayrollPortalCredentialCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.PayrollPortalCredentialDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollPortalCredentialPayload>
+        }
+        update: {
+          args: Prisma.PayrollPortalCredentialUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollPortalCredentialPayload>
+        }
+        deleteMany: {
+          args: Prisma.PayrollPortalCredentialDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PayrollPortalCredentialUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.PayrollPortalCredentialUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PayrollPortalCredentialPayload>
+        }
+        aggregate: {
+          args: Prisma.PayrollPortalCredentialAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePayrollPortalCredential>
+        }
+        groupBy: {
+          args: Prisma.PayrollPortalCredentialGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollPortalCredentialGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PayrollPortalCredentialCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PayrollPortalCredentialCountAggregateOutputType> | number
+        }
+      }
+    }
     PayrollRun: {
       payload: Prisma.$PayrollRunPayload<ExtArgs>
       fields: Prisma.PayrollRunFieldRefs
@@ -3533,7 +3600,8 @@ export const UserScalarFieldEnum = {
   passwordHash: 'passwordHash',
   avatarUrl: 'avatarUrl',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  passwordChangedAt: 'passwordChangedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -3768,9 +3836,9 @@ export const ClaimScalarFieldEnum = {
   exceedsLimit: 'exceedsLimit',
   xeroFileId: 'xeroFileId',
   spendingWith: 'spendingWith',
-  spendingAt: 'spendingAt',
   xeroSpendMoneyId: 'xeroSpendMoneyId',
-  xeroSpendMoneyRef: 'xeroSpendMoneyRef'
+  xeroSpendMoneyRef: 'xeroSpendMoneyRef',
+  spendingAt: 'spendingAt'
 } as const
 
 export type ClaimScalarFieldEnum = (typeof ClaimScalarFieldEnum)[keyof typeof ClaimScalarFieldEnum]
@@ -3873,8 +3941,8 @@ export const XeroProjectScalarFieldEnum = {
   workingDays: 'workingDays',
   lunchBreakMinutes: 'lunchBreakMinutes',
   xeroTrackingOptionId: 'xeroTrackingOptionId',
-  xeroTrackingCategoryId: 'xeroTrackingCategoryId',
-  archivedByXeroConnect: 'archivedByXeroConnect'
+  archivedByXeroConnect: 'archivedByXeroConnect',
+  xeroTrackingCategoryId: 'xeroTrackingCategoryId'
 } as const
 
 export type XeroProjectScalarFieldEnum = (typeof XeroProjectScalarFieldEnum)[keyof typeof XeroProjectScalarFieldEnum]
@@ -4211,6 +4279,24 @@ export const PayrollCompanyInfoScalarFieldEnum = {
 export type PayrollCompanyInfoScalarFieldEnum = (typeof PayrollCompanyInfoScalarFieldEnum)[keyof typeof PayrollCompanyInfoScalarFieldEnum]
 
 
+export const PayrollPortalCredentialScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  portal: 'portal',
+  userId: 'userId',
+  passwordEnc: 'passwordEnc',
+  image: 'image',
+  secretCode: 'secretCode',
+  securityPhrase: 'securityPhrase',
+  passwordReminder: 'passwordReminder',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PayrollPortalCredentialScalarFieldEnum = (typeof PayrollPortalCredentialScalarFieldEnum)[keyof typeof PayrollPortalCredentialScalarFieldEnum]
+
+
 export const PayrollRunScalarFieldEnum = {
   id: 'id',
   organizationId: 'organizationId',
@@ -4348,7 +4434,6 @@ export const PayslipScalarFieldEnum = {
   eisEmployee: 'eisEmployee',
   eisEmployer: 'eisEmployer',
   pcb: 'pcb',
-  pcbCalculation: 'pcbCalculation',
   hrdf: 'hrdf',
   zakat: 'zakat',
   hrdfWage: 'hrdfWage',
@@ -4359,7 +4444,8 @@ export const PayslipScalarFieldEnum = {
   updatedAt: 'updatedAt',
   totalBenefitsInKind: 'totalBenefitsInKind',
   expectedHours: 'expectedHours',
-  unpaidLeaveDays: 'unpaidLeaveDays'
+  unpaidLeaveDays: 'unpaidLeaveDays',
+  pcbCalculation: 'pcbCalculation'
 } as const
 
 export type PayslipScalarFieldEnum = (typeof PayslipScalarFieldEnum)[keyof typeof PayslipScalarFieldEnum]
@@ -4410,14 +4496,14 @@ export const LeaveTypeScalarFieldEnum = {
   name: 'name',
   paid: 'paid',
   accrualMethod: 'accrualMethod',
-  prorateFirstYear: 'prorateFirstYear',
   defaultDays: 'defaultDays',
   carryForward: 'carryForward',
   carryExpiryMonth: 'carryExpiryMonth',
   maxCarryForwardDays: 'maxCarryForwardDays',
   archivedAt: 'archivedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  prorateFirstYear: 'prorateFirstYear'
 } as const
 
 export type LeaveTypeScalarFieldEnum = (typeof LeaveTypeScalarFieldEnum)[keyof typeof LeaveTypeScalarFieldEnum]
@@ -4428,9 +4514,9 @@ export const PolicyLeaveEntitlementScalarFieldEnum = {
   policyId: 'policyId',
   leaveTypeId: 'leaveTypeId',
   defaultDays: 'defaultDays',
-  accrualMethod: 'accrualMethod',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  accrualMethod: 'accrualMethod'
 } as const
 
 export type PolicyLeaveEntitlementScalarFieldEnum = (typeof PolicyLeaveEntitlementScalarFieldEnum)[keyof typeof PolicyLeaveEntitlementScalarFieldEnum]
@@ -4445,16 +4531,16 @@ export const LeaveEntitlementScalarFieldEnum = {
   carriedDays: 'carriedDays',
   carriedExpiresAt: 'carriedExpiresAt',
   carriedExpired: 'carriedExpired',
-  carriedExpiredAt: 'carriedExpiredAt',
-  carriedExpiredDays: 'carriedExpiredDays',
-  carriedCashedOutRunId: 'carriedCashedOutRunId',
-  carriedCashedOutAt: 'carriedCashedOutAt',
-  carriedCashedOutAmount: 'carriedCashedOutAmount',
   accruedDays: 'accruedDays',
   usedDays: 'usedDays',
-  accrualMethod: 'accrualMethod',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  accrualMethod: 'accrualMethod',
+  carriedCashedOutAmount: 'carriedCashedOutAmount',
+  carriedCashedOutAt: 'carriedCashedOutAt',
+  carriedCashedOutRunId: 'carriedCashedOutRunId',
+  carriedExpiredAt: 'carriedExpiredAt',
+  carriedExpiredDays: 'carriedExpiredDays'
 } as const
 
 export type LeaveEntitlementScalarFieldEnum = (typeof LeaveEntitlementScalarFieldEnum)[keyof typeof LeaveEntitlementScalarFieldEnum]
@@ -4720,9 +4806,9 @@ export const ClaimOrderByRelevanceFieldEnum = {
   projectId: 'projectId',
   xeroFileId: 'xeroFileId',
   spendingWith: 'spendingWith',
-  spendingAt: 'spendingAt',
   xeroSpendMoneyId: 'xeroSpendMoneyId',
-  xeroSpendMoneyRef: 'xeroSpendMoneyRef'
+  xeroSpendMoneyRef: 'xeroSpendMoneyRef',
+  spendingAt: 'spendingAt'
 } as const
 
 export type ClaimOrderByRelevanceFieldEnum = (typeof ClaimOrderByRelevanceFieldEnum)[keyof typeof ClaimOrderByRelevanceFieldEnum]
@@ -5007,6 +5093,21 @@ export const PayrollCompanyInfoOrderByRelevanceFieldEnum = {
 } as const
 
 export type PayrollCompanyInfoOrderByRelevanceFieldEnum = (typeof PayrollCompanyInfoOrderByRelevanceFieldEnum)[keyof typeof PayrollCompanyInfoOrderByRelevanceFieldEnum]
+
+
+export const PayrollPortalCredentialOrderByRelevanceFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  passwordEnc: 'passwordEnc',
+  image: 'image',
+  secretCode: 'secretCode',
+  securityPhrase: 'securityPhrase',
+  passwordReminder: 'passwordReminder',
+  notes: 'notes'
+} as const
+
+export type PayrollPortalCredentialOrderByRelevanceFieldEnum = (typeof PayrollPortalCredentialOrderByRelevanceFieldEnum)[keyof typeof PayrollPortalCredentialOrderByRelevanceFieldEnum]
 
 
 export const PayrollRunOrderByRelevanceFieldEnum = {
@@ -5423,6 +5524,13 @@ export type EnumWorkingDaysRuleFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
+ * Reference to a field of type 'PortalKind'
+ */
+export type EnumPortalKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PortalKind'>
+    
+
+
+/**
  * Reference to a field of type 'PayrollRunStatus'
  */
 export type EnumPayrollRunStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PayrollRunStatus'>
@@ -5612,6 +5720,7 @@ export type GlobalOmitConfig = {
   salaryChange?: Prisma.SalaryChangeOmit
   payrollSettings?: Prisma.PayrollSettingsOmit
   payrollCompanyInfo?: Prisma.PayrollCompanyInfoOmit
+  payrollPortalCredential?: Prisma.PayrollPortalCredentialOmit
   payrollRun?: Prisma.PayrollRunOmit
   payrollRunReport?: Prisma.PayrollRunReportOmit
   payrollAnnualReport?: Prisma.PayrollAnnualReportOmit

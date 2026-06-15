@@ -1,12 +1,16 @@
 "use client"
 
 import { useActionState, useEffect, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Copy, ExternalLink, Eye, EyeOff, Trash2 } from "lucide-react"
 
 import {
+  deletePortalCredentialAction,
   getXeroPayrollMappingOptionsAction,
   savePayrollCompanyInfoAction,
   savePayrollSettingsAction,
   savePayrollXeroMappingAction,
+  savePortalCredentialAction,
   type XeroMappingOptionsActionResult,
 } from "@/app/(admin)/admin/payroll/settings/actions"
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
@@ -24,8 +28,9 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToastOnAction } from "@/components/ui/toaster"
+import { useToast, useToastOnAction } from "@/components/ui/toaster"
 import { cn } from "@/lib/utils"
+import type { PortalCredentialDto } from "@/modules/payroll/application/services/portal-credential.service"
 import {
   ID_TYPE_LABELS,
   idTypes,
@@ -56,12 +61,14 @@ import {
   type XeroLineGroupingMode,
 } from "@/modules/payroll/domain/settings"
 
-type Tab = "general" | "formE" | "xero"
+type Tab = "general" | "formE" | "credentials" | "xero"
 
 /**
- * Tabbed payroll settings form. Two tabs, two independent saves:
- *   - General    → PayrollSettings  (OT, EPF defaults, working days, HRDF)
- *   - Form E     → PayrollCompanyInfo (LHDN employer particulars)
+ * Tabbed payroll settings form. Four tabs, independent saves:
+ *   - General     → PayrollSettings  (OT, EPF defaults, working days, HRDF)
+ *   - Form E      → PayrollCompanyInfo (LHDN employer particulars)
+ *   - Credentials → PayrollPortalCredential (saved KWSP + PERKESO logins)
+ *   - Xero sync   → PayrollSettings.xeroMapping (shown only when Xero is connected)
  */
 export type HrdfTier = "PART_I" | "PART_II" | "NOT_APPLICABLE"
 
@@ -77,6 +84,10 @@ export function PayrollSettingsForm(props: {
   /// the "sync to Xero on submit" toggles in the General tab are not
   /// rendered at all — both flags stay false in the DB.
   hasXeroConnection: boolean
+  /// Saved KWSP / PERKESO portal credentials. Empty array when the
+  /// admin hasn't saved anything yet. Plaintext password is included —
+  /// see service comments for the threat model.
+  portalCredentials: PortalCredentialDto[]
 }) {
   const [tab, setTab] = useState<Tab>("general")
   const generalComplete = props.settings !== null
@@ -97,6 +108,13 @@ export function PayrollSettingsForm(props: {
   // <-> "payroll submit blocked" can never disagree.
   const formEComplete = isCompanyInfoReadyForPayroll(liveCompanyInfo)
   const xeroComplete = isXeroMappingComplete(props.settings)
+  // "Complete" for the Credentials tab = at least one portal has a
+  // saved password. The tab is purely a convenience feature so we use
+  // a soft definition; admins who don't want to save credentials
+  // simply leave the dot showing.
+  const credentialsComplete = props.portalCredentials.some(
+    (c) => c.hasPassword,
+  )
 
   return (
     <div className="space-y-6">
@@ -114,6 +132,13 @@ export function PayrollSettingsForm(props: {
           onClick={() => setTab("formE")}
         >
           Form E (LHDN)
+        </TabPill>
+        <TabPill
+          active={tab === "credentials"}
+          complete={credentialsComplete}
+          onClick={() => setTab("credentials")}
+        >
+          Credentials
         </TabPill>
         {props.hasXeroConnection ? (
           <TabPill
@@ -146,6 +171,9 @@ export function PayrollSettingsForm(props: {
             )
           }
         />
+      )}
+      {tab === "credentials" && (
+        <CredentialsTab credentials={props.portalCredentials} />
       )}
       {tab === "xero" && props.hasXeroConnection ? (
         <XeroMappingTab settings={props.settings} />
@@ -775,6 +803,369 @@ function FormETab(props: {
         </Button>
       </div>
     </form>
+  )
+}
+
+// ─── Credentials tab ─────────────────────────────────────────────────────
+
+const PORTAL_DEFINITIONS = [
+  {
+    portal: "KWSP" as const,
+    label: "KWSP (EPF)",
+    url: "https://secure.kwsp.gov.my/employer/employer/login?0",
+    description:
+      "Employer i-Akaun login — used for EPF Borang A monthly submission and i-Saraan deposits.",
+    fields: [
+      { key: "userId", label: "User ID", placeholder: "MYKWSP123" },
+      // password rendered separately
+      { key: "image", label: "Image", placeholder: "elephant" },
+      { key: "secretCode", label: "Secret code", placeholder: "ABC123" },
+    ],
+  },
+  {
+    portal: "PERKESO" as const,
+    label: "PERKESO (SOCSO/EIS)",
+    url: "https://assist.perkeso.gov.my/ms/employer/login",
+    description:
+      "ASSIST Employer Portal login — used for SOCSO + EIS monthly contribution upload.",
+    fields: [
+      { key: "userId", label: "User ID", placeholder: "MYCOMPANY01" },
+      { key: "securityPhrase", label: "Security phrase", placeholder: "My phrase" },
+      { key: "passwordReminder", label: "Password reminder", placeholder: "Hint" },
+    ],
+  },
+] as const
+
+function CredentialsTab(props: { credentials: PortalCredentialDto[] }) {
+  // Index by portal name for O(1) lookup of saved values.
+  const byPortal = useMemo(() => {
+    const map = new Map<string, PortalCredentialDto>()
+    for (const c of props.credentials) map.set(c.portal, c)
+    return map
+  }, [props.credentials])
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Saved portal credentials</CardTitle>
+          <CardDescription>
+            Save your statutory portal logins so anyone in the finance
+            team can copy + paste them into the upload portal without
+            digging through a password manager. Passwords are encrypted
+            at rest (AES-256-GCM, keyed off the deploy&apos;s{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-[11px]">
+              PORTAL_CREDS_KEY
+            </code>
+            ). One credential set per portal per org.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      {PORTAL_DEFINITIONS.map((def) => (
+        <PortalCard
+          key={def.portal}
+          definition={def}
+          existing={byPortal.get(def.portal) ?? null}
+        />
+      ))}
+    </div>
+  )
+}
+
+function PortalCard(props: {
+  definition: (typeof PORTAL_DEFINITIONS)[number]
+  existing: PortalCredentialDto | null
+}) {
+  const { toast } = useToast()
+  const router = useRouter()
+  const [state, action, pending] = useActionState(
+    savePortalCredentialAction,
+    initialSettingsActionState,
+  )
+  const [deleteState, deleteAction, deletePending] = useActionState(
+    deletePortalCredentialAction,
+    initialSettingsActionState,
+  )
+  useToastOnAction(state)
+  useToastOnAction(deleteState)
+
+  // Track the props value so the soft refresh from `router.refresh()`
+  // re-syncs our local `record` state with the server's fresh DTO.
+  // (Without this resync, a save would clear `passwordChanged` but
+  // keep the stale `hasPassword=false` until a manual reload.)
+  const [record, setRecord] = useState<PortalCredentialDto | null>(props.existing)
+  useEffect(() => {
+    setRecord(props.existing)
+  }, [props.existing])
+
+  // Mark the password "dirty" only when the admin actually edits it.
+  // We never repopulate the password field on mount (it would mean
+  // displaying the plaintext in the DOM by default); admins can hit
+  // "Reveal" to see what's saved.
+  const [passwordValue, setPasswordValue] = useState("")
+  const [passwordChanged, setPasswordChanged] = useState(false)
+  const [passwordVisible, setPasswordVisible] = useState(false)
+
+  // After a successful save / delete, ask Next to re-run the page's
+  // server component. That re-fetches the credential row and flows the
+  // fresh DTO back through `props.existing` → the resync effect above.
+  // No full page reload, no scroll-jump, no flash of the other tabs.
+  useEffect(() => {
+    if (state.status === "success") {
+      setPasswordValue("")
+      setPasswordChanged(false)
+      setPasswordVisible(false)
+      router.refresh()
+    }
+  }, [state, router])
+  useEffect(() => {
+    if (deleteState.status === "success") {
+      setPasswordValue("")
+      setPasswordChanged(false)
+      setPasswordVisible(false)
+      router.refresh()
+    }
+  }, [deleteState, router])
+
+  async function copy(value: string | null, label: string) {
+    if (!value) {
+      toast({ title: `${label} is empty.`, variant: "error" })
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(value)
+      toast({ title: `${label} copied.`, variant: "success" })
+    } catch {
+      toast({
+        title: `Could not access clipboard. Long-press the field to copy.`,
+        variant: "error",
+      })
+    }
+  }
+
+  function valueOf(key: string): string | null {
+    if (!record) return null
+    switch (key) {
+      case "userId":
+        return record.userId
+      case "image":
+        return record.image
+      case "secretCode":
+        return record.secretCode
+      case "securityPhrase":
+        return record.securityPhrase
+      case "passwordReminder":
+        return record.passwordReminder
+      default:
+        return null
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex-row items-start justify-between gap-3">
+        <div>
+          <CardTitle className="text-base">{props.definition.label}</CardTitle>
+          <CardDescription>{props.definition.description}</CardDescription>
+        </div>
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="shrink-0 gap-1.5"
+        >
+          <a
+            href={props.definition.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Open portal
+          </a>
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <form action={action} className="space-y-4">
+          <input type="hidden" name="portal" value={props.definition.portal} />
+          <input
+            type="hidden"
+            name="passwordChanged"
+            value={String(passwordChanged)}
+          />
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {props.definition.fields.map((f) => (
+              <CredentialField
+                key={f.key}
+                name={f.key}
+                label={f.label}
+                placeholder={f.placeholder}
+                defaultValue={valueOf(f.key) ?? ""}
+                onCopy={() => copy(valueOf(f.key), f.label)}
+              />
+            ))}
+
+            {/* Password — special row with reveal + copy.
+                NEVER pre-fill the actual password into the DOM. Admin
+                hits "Reveal" to display it. */}
+            <div className="space-y-1.5 md:col-span-2">
+              <Label className="text-xs">
+                Password
+                {record?.hasPassword ? (
+                  <span className="ml-1.5 inline-block rounded-sm border border-emerald-500/50 bg-emerald-500/10 px-1.5 py-px align-middle text-[9px] font-semibold uppercase tracking-wide leading-none text-emerald-700 dark:text-emerald-300">
+                    Saved
+                  </span>
+                ) : null}
+              </Label>
+              <div className="flex items-stretch gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    name="password"
+                    type={passwordVisible ? "text" : "password"}
+                    value={
+                      passwordChanged
+                        ? passwordValue
+                        : passwordVisible
+                          ? record?.password ?? ""
+                          : ""
+                    }
+                    placeholder={
+                      record?.hasPassword
+                        ? "(saved — leave blank to keep)"
+                        : "Type the portal password"
+                    }
+                    onChange={(e) => {
+                      setPasswordValue(e.target.value)
+                      setPasswordChanged(true)
+                    }}
+                    autoComplete="new-password"
+                    spellCheck={false}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => setPasswordVisible((v) => !v)}
+                  disabled={!record?.hasPassword && !passwordChanged}
+                  aria-label={passwordVisible ? "Hide password" : "Reveal password"}
+                >
+                  {passwordVisible ? (
+                    <>
+                      <EyeOff className="h-3.5 w-3.5" /> Hide
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="h-3.5 w-3.5" /> Reveal
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const v = passwordChanged ? passwordValue : record?.password
+                    void copy(v ?? null, "Password")
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Copy
+                </Button>
+              </div>
+              {!passwordChanged && record?.hasPassword ? (
+                <p className="text-[11px] text-muted-foreground">
+                  Leave blank to keep the existing password. Type to
+                  replace it.
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-1.5 md:col-span-2">
+              <Label className="text-xs">Notes</Label>
+              <Input
+                name="notes"
+                defaultValue={record?.notes ?? ""}
+                placeholder="Anything you want to remember (e.g. PIC, last rotation date)"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <p className="text-[11px] text-muted-foreground">
+              {record?.updatedAt
+                ? `Last updated ${new Date(record.updatedAt).toLocaleString()}`
+                : "No credentials saved yet."}
+            </p>
+            <Button type="submit" disabled={pending}>
+              {pending ? "Saving…" : "Save credentials"}
+            </Button>
+          </div>
+        </form>
+
+        {/* Delete sits in its own form so we don't nest a <form> inside
+            the save <form> above (which the React DOM hydrator rejects
+            with "<form> cannot be a descendant of <form>"). Rendered
+            only when there's an existing record to clear. */}
+        {record ? (
+          <form action={deleteAction} className="mt-3 flex justify-end">
+            <input
+              type="hidden"
+              name="portal"
+              value={props.definition.portal}
+            />
+            <Button
+              type="submit"
+              variant="ghost"
+              size="sm"
+              className="gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+              disabled={deletePending}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              {deletePending ? "Deleting…" : "Delete saved credentials"}
+            </Button>
+          </form>
+        ) : null}
+      </CardContent>
+    </Card>
+  )
+}
+
+function CredentialField(props: {
+  name: string
+  label: string
+  defaultValue: string
+  placeholder?: string
+  onCopy: () => void
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">{props.label}</Label>
+      <div className="flex items-stretch gap-2">
+        <Input
+          name={props.name}
+          defaultValue={props.defaultValue}
+          placeholder={props.placeholder}
+          className="flex-1"
+          autoComplete="off"
+          spellCheck={false}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={props.onCopy}
+          aria-label={`Copy ${props.label}`}
+        >
+          <Copy className="h-3.5 w-3.5" />
+          Copy
+        </Button>
+      </div>
+    </div>
   )
 }
 

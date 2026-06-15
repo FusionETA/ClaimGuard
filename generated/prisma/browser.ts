@@ -282,6 +282,17 @@ export type PayrollSettings = Prisma.PayrollSettingsModel
  */
 export type PayrollCompanyInfo = Prisma.PayrollCompanyInfoModel
 /**
+ * Model PayrollPortalCredential
+ * Saved login credentials for a single statutory portal (KWSP, PERKESO)
+ * per organization. The password is symmetrically encrypted at rest
+ * (AES-256-GCM, keyed off the `PORTAL_CREDS_KEY` env var); every other
+ * field is plain text. The Payroll Settings → Credentials tab lets the
+ * admin copy each field to the clipboard so they don't have to memorise
+ * the login or fish it out of a password manager every time the LHDN /
+ * SOCSO / EPF deadlines roll around. One row per (org, portal).
+ */
+export type PayrollPortalCredential = Prisma.PayrollPortalCredentialModel
+/**
  * Model PayrollRun
  * One payroll run per (org, year, month). Created in DRAFT state; the
  * admin reviews payslips, then submits → SUBMITTED. Submission is

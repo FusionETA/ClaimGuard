@@ -228,6 +228,16 @@ export function lookupEis(wage: number): {
 
 export function lookupEpfBand(input: {
   wage: number
+  /// Optional. The wage used to pick the employer rate at the RM 5,000
+  /// cliff (13→12 for Part A, 6.5→6 for Part C). When omitted defaults
+  /// to `wage`, preserving the strict gazetted reading where total
+  /// monthly wages drive the cliff. Callers who want the looser
+  /// "cliff by contractual monthly wage" reading (so a one-off bonus
+  /// doesn't push an under-RM-5,000 employee into the higher tier)
+  /// pass the regular-monthly portion here while keeping `wage` at the
+  /// full combined amount. Used by `calcEpf` to match Payroll Panda's
+  /// employer EPF on months with bonus.
+  rateDeterminingWage?: number
   /// Employer rate (%) for wages ≤ RM 5,000 (Part A: 13, Part C: 6.5, Part E: 4, Part F: 2)
   employerRateLow: number
   /// Employer rate (%) for wages > RM 5,000 (Part A: 12, Part C: 6, Part E: 4, Part F: 2)
@@ -237,13 +247,36 @@ export function lookupEpfBand(input: {
 }): { employer: number; employee: number } {
   const { wage, employerRateLow, employerRateHigh, employeeRate } = input
   if (!Number.isFinite(wage) || wage <= 10) return { employer: 0, employee: 0 }
+  const rateWage = input.rateDeterminingWage ?? wage
+
+  // KWSP Third Schedule only TABULATES Parts A (Malaysian under 60)
+  // and C (PR / pre-1998 over 60) — those are the parts with the
+  // RM 5,000 cliff and the band-stepped contributions. Parts E
+  // (Malaysian citizen 60+, flat 4%) and F (post-1998 non-MY, flat 2%)
+  // are gazetted as flat percentages with NO band table. The KWSP
+  // off-table rule then applies: exact percentage, each side rounded
+  // UP to the next ringgit (Third Schedule Note 2).
+  //
+  // We detect flat-rate branches by `employerRateLow === employerRateHigh`:
+  // Part A has a cliff (13 / 12), Part C has a cliff (6.5 / 6); Parts E
+  // and F do not. Treating Part F as banded was producing RM 1 high
+  // employee EPF for Zarak Asim (13,946 banded up to 14,000 → mandatory
+  // 280 vs. exact 279) — Payroll Panda uses the off-table rule.
+  const hasCliff = employerRateLow !== employerRateHigh
+  if (!hasCliff) {
+    return {
+      employer: Math.ceil(wage * employerRateHigh / 100),
+      employee: Math.ceil(wage * employeeRate / 100),
+    }
+  }
+
   let upper: number
   let employerRate: number
-  if (wage <= 5000) {
+  if (rateWage <= 5000) {
     // RM 20 wage bands. upperBound = ceil(wage/20) × 20.
     upper = Math.ceil(wage / 20) * 20
     employerRate = employerRateLow
-  } else if (wage <= 20000) {
+  } else if (rateWage <= 20000) {
     // RM 100 wage bands. upperBound = ceil(wage/100) × 100.
     upper = Math.ceil(wage / 100) * 100
     employerRate = employerRateHigh

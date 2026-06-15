@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 
 import { PayrollSettingsForm } from "@/components/admin/payroll-settings-form"
+import { getPortalCredentialsForActiveOrg } from "@/modules/payroll/application/services/portal-credential.service"
 import { getPayrollSettingsPageData } from "@/modules/payroll/application/services/payroll-settings.service"
 
 /**
@@ -11,7 +12,14 @@ import { getPayrollSettingsPageData } from "@/modules/payroll/application/servic
  * form. Each tab saves to its own table via its own server action.
  */
 export default async function AdminPayrollSettingsPage() {
-  const data = await getPayrollSettingsPageData()
+  // Load both the settings page bundle AND the saved portal
+  // credentials in parallel. The latter is admin-only too (the service
+  // gates by `isAdminRole(session.role)`) and returns `[]` when no
+  // credentials are saved yet.
+  const [data, portalCredentials] = await Promise.all([
+    getPayrollSettingsPageData(),
+    getPortalCredentialsForActiveOrg(),
+  ])
   if (!data) redirect("/login")
 
   return (
@@ -34,6 +42,7 @@ export default async function AdminPayrollSettingsPage() {
         malaysianEmployeeCount={data.malaysianEmployeeCount}
         hrdfTier={data.hrdfTier}
         hasXeroConnection={data.hasXeroConnection}
+        portalCredentials={portalCredentials}
       />
     </div>
   )
