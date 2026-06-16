@@ -120,6 +120,11 @@ export default async function EmployeeDashboardPage() {
   // (line 55) — no need to re-query the employee profile.
   const requiresSelfieOnClockIn = policy?.requireSelfie ?? false
   const enforceGeofence = policy?.requireGeofence ?? true
+  const captureLocationEnabled = policy?.geolocationEnabled ?? true
+  const captureLocationOnClockIn = policy?.captureLocationOnClockIn ?? true
+  const captureLocationOnClockOut = policy?.captureLocationOnClockOut ?? true
+  const captureLocationOnBreakStart = policy?.captureLocationOnBreakStart ?? true
+  const captureLocationOnBreakEnd = policy?.captureLocationOnBreakEnd ?? true
   const clockState = attendanceDashboard
     ? deriveClockState(attendanceDashboard.todayEvents)
     : "OUT"
@@ -169,6 +174,11 @@ export default async function EmployeeDashboardPage() {
             currentBreakStartedAt={attendanceDashboard.today?.currentBreakStartedAt ?? null}
             requiresSelfieOnClockIn={requiresSelfieOnClockIn}
             enforceGeofence={enforceGeofence}
+            captureLocationEnabled={captureLocationEnabled}
+            captureLocationOnClockIn={captureLocationOnClockIn}
+            captureLocationOnClockOut={captureLocationOnClockOut}
+            captureLocationOnBreakStart={captureLocationOnBreakStart}
+            captureLocationOnBreakEnd={captureLocationOnBreakEnd}
             todayRecord={attendanceDashboard.today}
             latestRejection={deriveLatestRejection(attendanceDashboard.todayEvents)}
             pendingApproval={attendanceDashboard.pendingApproval}

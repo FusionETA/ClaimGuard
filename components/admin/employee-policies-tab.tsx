@@ -294,6 +294,38 @@ function PolicyEditorCard({
   const [otMode, setOtMode] = useState<OtMode>(
     policy ? policyToOtMode(policy) : "CASH",
   )
+  // Geofence + location-capture state. Geofence ON forces the master
+  // geolocation switch + clock-in capture to ON (you can't enforce a
+  // geofence without GPS) — mirrored server-side in the policy repo.
+  const [requireGeofence, setRequireGeofence] = useState<boolean>(
+    policy?.requireGeofence ?? true,
+  )
+  const [geolocationEnabled, setGeolocationEnabled] = useState<boolean>(
+    policy?.geolocationEnabled ?? true,
+  )
+  const [captureClockIn, setCaptureClockIn] = useState<boolean>(
+    policy?.captureLocationOnClockIn ?? true,
+  )
+  const [captureClockOut, setCaptureClockOut] = useState<boolean>(
+    policy?.captureLocationOnClockOut ?? true,
+  )
+  const [captureBreakStart, setCaptureBreakStart] = useState<boolean>(
+    policy?.captureLocationOnBreakStart ?? true,
+  )
+  const [captureBreakEnd, setCaptureBreakEnd] = useState<boolean>(
+    policy?.captureLocationOnBreakEnd ?? true,
+  )
+
+  // Auto-flip the master + clock-in capture when geofence is turned on.
+  function handleRequireGeofenceChange(next: boolean) {
+    setRequireGeofence(next)
+    if (next) {
+      setGeolocationEnabled(true)
+      setCaptureClockIn(true)
+    }
+  }
+  // Toggling the master OFF disables the per-event sub-toggles.
+  const subEventsDisabled = !geolocationEnabled || pending
 
   if (state.status === "success" && !pending) {
     // Auto-return to the list after a successful save.
@@ -494,7 +526,8 @@ function PolicyEditorCard({
                 <input
                   type="checkbox"
                   name="requireGeofence"
-                  defaultChecked={policy?.requireGeofence ?? true}
+                  checked={requireGeofence}
+                  onChange={(e) => handleRequireGeofenceChange(e.target.checked)}
                   disabled={pending}
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
@@ -514,6 +547,91 @@ function PolicyEditorCard({
                   Require selfie on clock-in
                 </span>
               </label>
+            </div>
+          </div>
+
+          {/* Geolocation capture — separate from geofence enforcement.
+              Master toggle decides whether GPS is captured at all; the
+              four sub-toggles pick which clock events get coords
+              persisted. Enabling geofence above auto-forces master +
+              clock-in capture on (mirrored server-side). */}
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              Geolocation capture
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Record the employee&apos;s GPS coordinates on attendance
+              events. Turn off if your employees don&apos;t want their
+              location tracked when they&apos;re not off-site.
+            </p>
+            <div className="mt-3 space-y-2">
+              <label className="flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                <input
+                  type="checkbox"
+                  name="geolocationEnabled"
+                  checked={geolocationEnabled}
+                  onChange={(e) => setGeolocationEnabled(e.target.checked)}
+                  disabled={pending || requireGeofence}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                />
+                <span className="font-medium text-foreground">
+                  Capture GPS location
+                </span>
+                {requireGeofence ? (
+                  <span className="ml-auto text-[11px] text-muted-foreground">
+                    forced on by Require geofence
+                  </span>
+                ) : null}
+              </label>
+              {/* Sub-toggles per event. Each is its own form field; on
+                  save the server reads the four checkboxes regardless
+                  of whether they were disabled in the UI. */}
+              <div className="ml-6 grid gap-2 sm:grid-cols-2">
+                <label className={`flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5 ${subEventsDisabled ? "opacity-50" : ""}`}>
+                  <input
+                    type="checkbox"
+                    name="captureLocationOnClockIn"
+                    checked={captureClockIn}
+                    onChange={(e) => setCaptureClockIn(e.target.checked)}
+                    disabled={subEventsDisabled || requireGeofence}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span className="text-foreground">On clock-in</span>
+                </label>
+                <label className={`flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5 ${subEventsDisabled ? "opacity-50" : ""}`}>
+                  <input
+                    type="checkbox"
+                    name="captureLocationOnClockOut"
+                    checked={captureClockOut}
+                    onChange={(e) => setCaptureClockOut(e.target.checked)}
+                    disabled={subEventsDisabled}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span className="text-foreground">On clock-out</span>
+                </label>
+                <label className={`flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5 ${subEventsDisabled ? "opacity-50" : ""}`}>
+                  <input
+                    type="checkbox"
+                    name="captureLocationOnBreakStart"
+                    checked={captureBreakStart}
+                    onChange={(e) => setCaptureBreakStart(e.target.checked)}
+                    disabled={subEventsDisabled}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span className="text-foreground">On break start</span>
+                </label>
+                <label className={`flex items-center gap-2 rounded-[16px] border border-border/70 bg-surface-low px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5 ${subEventsDisabled ? "opacity-50" : ""}`}>
+                  <input
+                    type="checkbox"
+                    name="captureLocationOnBreakEnd"
+                    checked={captureBreakEnd}
+                    onChange={(e) => setCaptureBreakEnd(e.target.checked)}
+                    disabled={subEventsDisabled}
+                    className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                  />
+                  <span className="text-foreground">On break end</span>
+                </label>
+              </div>
             </div>
           </div>
 

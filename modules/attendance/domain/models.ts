@@ -37,6 +37,14 @@ export type AttendanceRecordView = {
   notes: string | null
   /** Employee's free-form remark about their shift (separate from notes). */
   remark: string | null
+  /** GPS coords captured at clock-in / clock-out, when the employee's
+   *  policy enabled location capture for the event. Null when GPS
+   *  wasn't available or the policy disabled capture. Surfaced in the
+   *  employee detail view so admins can verify locations on a map. */
+  clockInLat: number | null
+  clockInLng: number | null
+  clockOutLat: number | null
+  clockOutLng: number | null
 }
 
 export type ChainHistoryEntry = {

@@ -70,6 +70,11 @@ export type EmployeePolicyMinAggregateOutputType = {
   updatedAt: Date | null
   otEnabled: boolean | null
   requireGeofence: boolean | null
+  geolocationEnabled: boolean | null
+  captureLocationOnClockIn: boolean | null
+  captureLocationOnClockOut: boolean | null
+  captureLocationOnBreakStart: boolean | null
+  captureLocationOnBreakEnd: boolean | null
   requireSelfie: boolean | null
   otDailyThresholdMinutes: number | null
   otRateNormalDay: runtime.Decimal | null
@@ -97,6 +102,11 @@ export type EmployeePolicyMaxAggregateOutputType = {
   updatedAt: Date | null
   otEnabled: boolean | null
   requireGeofence: boolean | null
+  geolocationEnabled: boolean | null
+  captureLocationOnClockIn: boolean | null
+  captureLocationOnClockOut: boolean | null
+  captureLocationOnBreakStart: boolean | null
+  captureLocationOnBreakEnd: boolean | null
   requireSelfie: boolean | null
   otDailyThresholdMinutes: number | null
   otRateNormalDay: runtime.Decimal | null
@@ -124,6 +134,11 @@ export type EmployeePolicyCountAggregateOutputType = {
   updatedAt: number
   otEnabled: number
   requireGeofence: number
+  geolocationEnabled: number
+  captureLocationOnClockIn: number
+  captureLocationOnClockOut: number
+  captureLocationOnBreakStart: number
+  captureLocationOnBreakEnd: number
   requireSelfie: number
   otDailyThresholdMinutes: number
   otRateNormalDay: number
@@ -173,6 +188,11 @@ export type EmployeePolicyMinAggregateInputType = {
   updatedAt?: true
   otEnabled?: true
   requireGeofence?: true
+  geolocationEnabled?: true
+  captureLocationOnClockIn?: true
+  captureLocationOnClockOut?: true
+  captureLocationOnBreakStart?: true
+  captureLocationOnBreakEnd?: true
   requireSelfie?: true
   otDailyThresholdMinutes?: true
   otRateNormalDay?: true
@@ -200,6 +220,11 @@ export type EmployeePolicyMaxAggregateInputType = {
   updatedAt?: true
   otEnabled?: true
   requireGeofence?: true
+  geolocationEnabled?: true
+  captureLocationOnClockIn?: true
+  captureLocationOnClockOut?: true
+  captureLocationOnBreakStart?: true
+  captureLocationOnBreakEnd?: true
   requireSelfie?: true
   otDailyThresholdMinutes?: true
   otRateNormalDay?: true
@@ -227,6 +252,11 @@ export type EmployeePolicyCountAggregateInputType = {
   updatedAt?: true
   otEnabled?: true
   requireGeofence?: true
+  geolocationEnabled?: true
+  captureLocationOnClockIn?: true
+  captureLocationOnClockOut?: true
+  captureLocationOnBreakStart?: true
+  captureLocationOnBreakEnd?: true
   requireSelfie?: true
   otDailyThresholdMinutes?: true
   otRateNormalDay?: true
@@ -341,6 +371,11 @@ export type EmployeePolicyGroupByOutputType = {
   updatedAt: Date
   otEnabled: boolean
   requireGeofence: boolean
+  geolocationEnabled: boolean
+  captureLocationOnClockIn: boolean
+  captureLocationOnClockOut: boolean
+  captureLocationOnBreakStart: boolean
+  captureLocationOnBreakEnd: boolean
   requireSelfie: boolean
   otDailyThresholdMinutes: number
   otRateNormalDay: runtime.Decimal
@@ -391,6 +426,11 @@ export type EmployeePolicyWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  geolocationEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnClockIn?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnClockOut?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
   otRateNormalDay?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -421,6 +461,11 @@ export type EmployeePolicyOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  geolocationEnabled?: Prisma.SortOrder
+  captureLocationOnClockIn?: Prisma.SortOrder
+  captureLocationOnClockOut?: Prisma.SortOrder
+  captureLocationOnBreakStart?: Prisma.SortOrder
+  captureLocationOnBreakEnd?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
@@ -456,6 +501,11 @@ export type EmployeePolicyWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  geolocationEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnClockIn?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnClockOut?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
   otRateNormalDay?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -486,6 +536,11 @@ export type EmployeePolicyOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  geolocationEnabled?: Prisma.SortOrder
+  captureLocationOnClockIn?: Prisma.SortOrder
+  captureLocationOnClockOut?: Prisma.SortOrder
+  captureLocationOnBreakStart?: Prisma.SortOrder
+  captureLocationOnBreakEnd?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
@@ -521,6 +576,11 @@ export type EmployeePolicyScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"EmployeePolicy"> | Date | string
   otEnabled?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  geolocationEnabled?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  captureLocationOnClockIn?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  captureLocationOnClockOut?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  captureLocationOnBreakStart?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolWithAggregatesFilter<"EmployeePolicy"> | boolean
   otDailyThresholdMinutes?: Prisma.IntWithAggregatesFilter<"EmployeePolicy"> | number
   otRateNormalDay?: Prisma.DecimalWithAggregatesFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -547,6 +607,11 @@ export type EmployeePolicyCreateInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -577,6 +642,11 @@ export type EmployeePolicyUncheckedCreateInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -605,6 +675,11 @@ export type EmployeePolicyUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -635,6 +710,11 @@ export type EmployeePolicyUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -664,6 +744,11 @@ export type EmployeePolicyCreateManyInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -690,6 +775,11 @@ export type EmployeePolicyUpdateManyMutationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -717,6 +807,11 @@ export type EmployeePolicyUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -765,6 +860,11 @@ export type EmployeePolicyCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  geolocationEnabled?: Prisma.SortOrder
+  captureLocationOnClockIn?: Prisma.SortOrder
+  captureLocationOnClockOut?: Prisma.SortOrder
+  captureLocationOnBreakStart?: Prisma.SortOrder
+  captureLocationOnBreakEnd?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
@@ -802,6 +902,11 @@ export type EmployeePolicyMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  geolocationEnabled?: Prisma.SortOrder
+  captureLocationOnClockIn?: Prisma.SortOrder
+  captureLocationOnClockOut?: Prisma.SortOrder
+  captureLocationOnBreakStart?: Prisma.SortOrder
+  captureLocationOnBreakEnd?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
@@ -829,6 +934,11 @@ export type EmployeePolicyMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   otEnabled?: Prisma.SortOrder
   requireGeofence?: Prisma.SortOrder
+  geolocationEnabled?: Prisma.SortOrder
+  captureLocationOnClockIn?: Prisma.SortOrder
+  captureLocationOnClockOut?: Prisma.SortOrder
+  captureLocationOnBreakStart?: Prisma.SortOrder
+  captureLocationOnBreakEnd?: Prisma.SortOrder
   requireSelfie?: Prisma.SortOrder
   otDailyThresholdMinutes?: Prisma.SortOrder
   otRateNormalDay?: Prisma.SortOrder
@@ -963,6 +1073,11 @@ export type EmployeePolicyCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -991,6 +1106,11 @@ export type EmployeePolicyUncheckedCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1049,6 +1169,11 @@ export type EmployeePolicyScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"EmployeePolicy"> | Date | string
   otEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireGeofence?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  geolocationEnabled?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnClockIn?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnClockOut?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   requireSelfie?: Prisma.BoolFilter<"EmployeePolicy"> | boolean
   otDailyThresholdMinutes?: Prisma.IntFilter<"EmployeePolicy"> | number
   otRateNormalDay?: Prisma.DecimalFilter<"EmployeePolicy"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1075,6 +1200,11 @@ export type EmployeePolicyCreateWithoutEmployeesInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1104,6 +1234,11 @@ export type EmployeePolicyUncheckedCreateWithoutEmployeesInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1147,6 +1282,11 @@ export type EmployeePolicyUpdateWithoutEmployeesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1176,6 +1316,11 @@ export type EmployeePolicyUncheckedUpdateWithoutEmployeesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1203,6 +1348,11 @@ export type EmployeePolicyCreateWithoutLeaveDefaultsInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1232,6 +1382,11 @@ export type EmployeePolicyUncheckedCreateWithoutLeaveDefaultsInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1275,6 +1430,11 @@ export type EmployeePolicyUpdateWithoutLeaveDefaultsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1304,6 +1464,11 @@ export type EmployeePolicyUncheckedUpdateWithoutLeaveDefaultsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1331,6 +1496,11 @@ export type EmployeePolicyCreateManyOrganizationInput = {
   updatedAt?: Date | string
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: number
   otRateNormalDay?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1357,6 +1527,11 @@ export type EmployeePolicyUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1385,6 +1560,11 @@ export type EmployeePolicyUncheckedUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1413,6 +1593,11 @@ export type EmployeePolicyUncheckedUpdateManyWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   otEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireGeofence?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  geolocationEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockIn?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnClockOut?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakStart?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  captureLocationOnBreakEnd?: Prisma.BoolFieldUpdateOperationsInput | boolean
   requireSelfie?: Prisma.BoolFieldUpdateOperationsInput | boolean
   otDailyThresholdMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   otRateNormalDay?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1480,6 +1665,11 @@ export type EmployeePolicySelect<ExtArgs extends runtime.Types.Extensions.Intern
   updatedAt?: boolean
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: boolean
   otRateNormalDay?: boolean
@@ -1513,6 +1703,11 @@ export type EmployeePolicySelectScalar = {
   updatedAt?: boolean
   otEnabled?: boolean
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   otDailyThresholdMinutes?: boolean
   otRateNormalDay?: boolean
@@ -1524,7 +1719,7 @@ export type EmployeePolicySelectScalar = {
   temporary?: boolean
 }
 
-export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otMethod" | "createdAt" | "updatedAt" | "otEnabled" | "requireGeofence" | "requireSelfie" | "otDailyThresholdMinutes" | "otRateNormalDay" | "otRatePublicHoliday" | "otRatePublicHolidayInShift" | "otRateRestDay" | "otRateRestDayInShift" | "otSalaryThreshold" | "temporary", ExtArgs["result"]["employeePolicy"]>
+export type EmployeePolicyOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "name" | "description" | "isDefault" | "archivedAt" | "canAccessAttendance" | "canAccessClaims" | "canAccessLeave" | "salaryType" | "otMethod" | "createdAt" | "updatedAt" | "otEnabled" | "requireGeofence" | "geolocationEnabled" | "captureLocationOnClockIn" | "captureLocationOnClockOut" | "captureLocationOnBreakStart" | "captureLocationOnBreakEnd" | "requireSelfie" | "otDailyThresholdMinutes" | "otRateNormalDay" | "otRatePublicHoliday" | "otRatePublicHolidayInShift" | "otRateRestDay" | "otRateRestDayInShift" | "otSalaryThreshold" | "temporary", ExtArgs["result"]["employeePolicy"]>
 export type EmployeePolicyInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   employees?: boolean | Prisma.EmployeePolicy$employeesArgs<ExtArgs>
@@ -1572,6 +1767,24 @@ export type $EmployeePolicyPayload<ExtArgs extends runtime.Types.Extensions.Inte
      * in. When false, geofence checks are skipped for these employees.
      */
     requireGeofence: boolean
+    /**
+     * Master switch for capturing the employee's GPS coordinates on
+     * clock events. When false, the client never asks for GPS and the
+     * per-event capture flags below are ignored. When true, the four
+     * per-event flags decide which events get their coords persisted.
+     * Auto-flipped to true on the server when `requireGeofence` is
+     * turned on (geofence enforcement needs GPS to work).
+     */
+    geolocationEnabled: boolean
+    /**
+     * Per-event capture flags. Only consulted when geolocationEnabled
+     * is true. Default true so newly-created policies record location
+     * for every event out of the box.
+     */
+    captureLocationOnClockIn: boolean
+    captureLocationOnClockOut: boolean
+    captureLocationOnBreakStart: boolean
+    captureLocationOnBreakEnd: boolean
     /**
      * When true, the clock-in flow gates on a selfie capture. Replaces
      * the legacy `salaryType === HOURLY` heuristic — admins can now turn
@@ -1999,6 +2212,11 @@ export interface EmployeePolicyFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"EmployeePolicy", 'DateTime'>
   readonly otEnabled: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly requireGeofence: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly geolocationEnabled: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly captureLocationOnClockIn: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly captureLocationOnClockOut: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly captureLocationOnBreakStart: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
+  readonly captureLocationOnBreakEnd: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly requireSelfie: Prisma.FieldRef<"EmployeePolicy", 'Boolean'>
   readonly otDailyThresholdMinutes: Prisma.FieldRef<"EmployeePolicy", 'Int'>
   readonly otRateNormalDay: Prisma.FieldRef<"EmployeePolicy", 'Decimal'>

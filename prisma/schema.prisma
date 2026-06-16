@@ -135,6 +135,20 @@ model EmployeePolicy {
   /// geofence (radius set on Organization, lat/lng on Project) to clock
   /// in. When false, geofence checks are skipped for these employees.
   requireGeofence            Boolean                  @default(true)
+  /// Master switch for capturing the employee's GPS coordinates on
+  /// clock events. When false, the client never asks for GPS and the
+  /// per-event capture flags below are ignored. When true, the four
+  /// per-event flags decide which events get their coords persisted.
+  /// Auto-flipped to true on the server when `requireGeofence` is
+  /// turned on (geofence enforcement needs GPS to work).
+  geolocationEnabled            Boolean               @default(true)
+  /// Per-event capture flags. Only consulted when geolocationEnabled
+  /// is true. Default true so newly-created policies record location
+  /// for every event out of the box.
+  captureLocationOnClockIn      Boolean               @default(true)
+  captureLocationOnClockOut     Boolean               @default(true)
+  captureLocationOnBreakStart   Boolean               @default(true)
+  captureLocationOnBreakEnd     Boolean               @default(true)
   /// When true, the clock-in flow gates on a selfie capture. Replaces
   /// the legacy `salaryType === HOURLY` heuristic — admins can now turn
   /// selfie on for any policy regardless of pay type.
@@ -831,13 +845,25 @@ model AttendanceEditLog {
 }
 
 model BreakSession {
-  id                 String                @id @default(cuid())
-  attendanceRecordId String
-  startedAt          DateTime
-  endedAt            DateTime?
-  createdAt          DateTime              @default(now())
-  attendanceRecord   AttendanceRecord      @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
-  editLogs           BreakSessionEditLog[]
+  id                       String                @id @default(cuid())
+  attendanceRecordId       String
+  startedAt                DateTime
+  endedAt                  DateTime?
+  createdAt                DateTime              @default(now())
+  /// GPS coords captured at break-start, when the employee's policy
+  /// allows location capture. Null when GPS wasn't available or the
+  /// policy has it disabled. `distanceMeters` is the haversine distance
+  /// from the project geofence center at capture time (display only;
+  /// no enforcement on breaks).
+  startedAtLat             Float?
+  startedAtLng             Float?
+  startedAtDistanceMeters  Float?
+  /// Same shape, captured at break-end.
+  endedAtLat               Float?
+  endedAtLng               Float?
+  endedAtDistanceMeters    Float?
+  attendanceRecord         AttendanceRecord      @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  editLogs                 BreakSessionEditLog[]
 
   @@index([attendanceRecordId])
   @@index([attendanceRecordId, endedAt])

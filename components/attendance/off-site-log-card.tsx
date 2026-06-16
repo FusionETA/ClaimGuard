@@ -1,6 +1,7 @@
 import { MapPin } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CoordsLink } from "@/components/attendance/coords-link"
 import {
   TableFilterBar,
   type TableFilterValue,
@@ -77,10 +78,6 @@ export function OffSiteLogCard({
         ) : (
           <div className="space-y-2">
             {rows.map((r) => {
-              const mapsUrl =
-                r.clockInLat != null && r.clockInLng != null
-                  ? `https://maps.google.com/?q=${r.clockInLat},${r.clockInLng}`
-                  : null
               return (
                 <div
                   key={r.id}
@@ -97,22 +94,8 @@ export function OffSiteLogCard({
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
-                  <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                    {r.clockInLat != null && r.clockInLng != null ? (
-                      <span className="tabular-nums">
-                        {r.clockInLat.toFixed(5)}, {r.clockInLng.toFixed(5)}
-                      </span>
-                    ) : null}
-                    {mapsUrl ? (
-                      <a
-                        href={mapsUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-semibold text-primary hover:underline"
-                      >
-                        Open in Maps
-                      </a>
-                    ) : null}
+                  <div className="mt-1">
+                    <CoordsLink lat={r.clockInLat} lng={r.clockInLng} />
                   </div>
                   {r.notes ? (
                     <p className="mt-1 text-[11px] text-muted-foreground">

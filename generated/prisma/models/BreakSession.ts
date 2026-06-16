@@ -20,8 +20,28 @@ export type BreakSessionModel = runtime.Types.Result.DefaultSelection<Prisma.$Br
 
 export type AggregateBreakSession = {
   _count: BreakSessionCountAggregateOutputType | null
+  _avg: BreakSessionAvgAggregateOutputType | null
+  _sum: BreakSessionSumAggregateOutputType | null
   _min: BreakSessionMinAggregateOutputType | null
   _max: BreakSessionMaxAggregateOutputType | null
+}
+
+export type BreakSessionAvgAggregateOutputType = {
+  startedAtLat: number | null
+  startedAtLng: number | null
+  startedAtDistanceMeters: number | null
+  endedAtLat: number | null
+  endedAtLng: number | null
+  endedAtDistanceMeters: number | null
+}
+
+export type BreakSessionSumAggregateOutputType = {
+  startedAtLat: number | null
+  startedAtLng: number | null
+  startedAtDistanceMeters: number | null
+  endedAtLat: number | null
+  endedAtLng: number | null
+  endedAtDistanceMeters: number | null
 }
 
 export type BreakSessionMinAggregateOutputType = {
@@ -30,6 +50,12 @@ export type BreakSessionMinAggregateOutputType = {
   startedAt: Date | null
   endedAt: Date | null
   createdAt: Date | null
+  startedAtLat: number | null
+  startedAtLng: number | null
+  startedAtDistanceMeters: number | null
+  endedAtLat: number | null
+  endedAtLng: number | null
+  endedAtDistanceMeters: number | null
 }
 
 export type BreakSessionMaxAggregateOutputType = {
@@ -38,6 +64,12 @@ export type BreakSessionMaxAggregateOutputType = {
   startedAt: Date | null
   endedAt: Date | null
   createdAt: Date | null
+  startedAtLat: number | null
+  startedAtLng: number | null
+  startedAtDistanceMeters: number | null
+  endedAtLat: number | null
+  endedAtLng: number | null
+  endedAtDistanceMeters: number | null
 }
 
 export type BreakSessionCountAggregateOutputType = {
@@ -46,9 +78,33 @@ export type BreakSessionCountAggregateOutputType = {
   startedAt: number
   endedAt: number
   createdAt: number
+  startedAtLat: number
+  startedAtLng: number
+  startedAtDistanceMeters: number
+  endedAtLat: number
+  endedAtLng: number
+  endedAtDistanceMeters: number
   _all: number
 }
 
+
+export type BreakSessionAvgAggregateInputType = {
+  startedAtLat?: true
+  startedAtLng?: true
+  startedAtDistanceMeters?: true
+  endedAtLat?: true
+  endedAtLng?: true
+  endedAtDistanceMeters?: true
+}
+
+export type BreakSessionSumAggregateInputType = {
+  startedAtLat?: true
+  startedAtLng?: true
+  startedAtDistanceMeters?: true
+  endedAtLat?: true
+  endedAtLng?: true
+  endedAtDistanceMeters?: true
+}
 
 export type BreakSessionMinAggregateInputType = {
   id?: true
@@ -56,6 +112,12 @@ export type BreakSessionMinAggregateInputType = {
   startedAt?: true
   endedAt?: true
   createdAt?: true
+  startedAtLat?: true
+  startedAtLng?: true
+  startedAtDistanceMeters?: true
+  endedAtLat?: true
+  endedAtLng?: true
+  endedAtDistanceMeters?: true
 }
 
 export type BreakSessionMaxAggregateInputType = {
@@ -64,6 +126,12 @@ export type BreakSessionMaxAggregateInputType = {
   startedAt?: true
   endedAt?: true
   createdAt?: true
+  startedAtLat?: true
+  startedAtLng?: true
+  startedAtDistanceMeters?: true
+  endedAtLat?: true
+  endedAtLng?: true
+  endedAtDistanceMeters?: true
 }
 
 export type BreakSessionCountAggregateInputType = {
@@ -72,6 +140,12 @@ export type BreakSessionCountAggregateInputType = {
   startedAt?: true
   endedAt?: true
   createdAt?: true
+  startedAtLat?: true
+  startedAtLng?: true
+  startedAtDistanceMeters?: true
+  endedAtLat?: true
+  endedAtLng?: true
+  endedAtDistanceMeters?: true
   _all?: true
 }
 
@@ -113,6 +187,18 @@ export type BreakSessionAggregateArgs<ExtArgs extends runtime.Types.Extensions.I
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: BreakSessionAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: BreakSessionSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: BreakSessionMinAggregateInputType
@@ -143,6 +229,8 @@ export type BreakSessionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   _count?: BreakSessionCountAggregateInputType | true
+  _avg?: BreakSessionAvgAggregateInputType
+  _sum?: BreakSessionSumAggregateInputType
   _min?: BreakSessionMinAggregateInputType
   _max?: BreakSessionMaxAggregateInputType
 }
@@ -153,7 +241,15 @@ export type BreakSessionGroupByOutputType = {
   startedAt: Date
   endedAt: Date | null
   createdAt: Date
+  startedAtLat: number | null
+  startedAtLng: number | null
+  startedAtDistanceMeters: number | null
+  endedAtLat: number | null
+  endedAtLng: number | null
+  endedAtDistanceMeters: number | null
   _count: BreakSessionCountAggregateOutputType | null
+  _avg: BreakSessionAvgAggregateOutputType | null
+  _sum: BreakSessionSumAggregateOutputType | null
   _min: BreakSessionMinAggregateOutputType | null
   _max: BreakSessionMaxAggregateOutputType | null
 }
@@ -182,6 +278,12 @@ export type BreakSessionWhereInput = {
   startedAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
   endedAt?: Prisma.DateTimeNullableFilter<"BreakSession"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
+  startedAtLat?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  startedAtLng?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  startedAtDistanceMeters?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  endedAtLat?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  endedAtLng?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  endedAtDistanceMeters?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
   attendanceRecord?: Prisma.XOR<Prisma.AttendanceRecordScalarRelationFilter, Prisma.AttendanceRecordWhereInput>
   editLogs?: Prisma.BreakSessionEditLogListRelationFilter
 }
@@ -192,6 +294,12 @@ export type BreakSessionOrderByWithRelationInput = {
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  startedAtLat?: Prisma.SortOrderInput | Prisma.SortOrder
+  startedAtLng?: Prisma.SortOrderInput | Prisma.SortOrder
+  startedAtDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
+  endedAtLat?: Prisma.SortOrderInput | Prisma.SortOrder
+  endedAtLng?: Prisma.SortOrderInput | Prisma.SortOrder
+  endedAtDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   attendanceRecord?: Prisma.AttendanceRecordOrderByWithRelationInput
   editLogs?: Prisma.BreakSessionEditLogOrderByRelationAggregateInput
   _relevance?: Prisma.BreakSessionOrderByRelevanceInput
@@ -206,6 +314,12 @@ export type BreakSessionWhereUniqueInput = Prisma.AtLeast<{
   startedAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
   endedAt?: Prisma.DateTimeNullableFilter<"BreakSession"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
+  startedAtLat?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  startedAtLng?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  startedAtDistanceMeters?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  endedAtLat?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  endedAtLng?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  endedAtDistanceMeters?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
   attendanceRecord?: Prisma.XOR<Prisma.AttendanceRecordScalarRelationFilter, Prisma.AttendanceRecordWhereInput>
   editLogs?: Prisma.BreakSessionEditLogListRelationFilter
 }, "id">
@@ -216,9 +330,17 @@ export type BreakSessionOrderByWithAggregationInput = {
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  startedAtLat?: Prisma.SortOrderInput | Prisma.SortOrder
+  startedAtLng?: Prisma.SortOrderInput | Prisma.SortOrder
+  startedAtDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
+  endedAtLat?: Prisma.SortOrderInput | Prisma.SortOrder
+  endedAtLng?: Prisma.SortOrderInput | Prisma.SortOrder
+  endedAtDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.BreakSessionCountOrderByAggregateInput
+  _avg?: Prisma.BreakSessionAvgOrderByAggregateInput
   _max?: Prisma.BreakSessionMaxOrderByAggregateInput
   _min?: Prisma.BreakSessionMinOrderByAggregateInput
+  _sum?: Prisma.BreakSessionSumOrderByAggregateInput
 }
 
 export type BreakSessionScalarWhereWithAggregatesInput = {
@@ -230,6 +352,12 @@ export type BreakSessionScalarWhereWithAggregatesInput = {
   startedAt?: Prisma.DateTimeWithAggregatesFilter<"BreakSession"> | Date | string
   endedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BreakSession"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"BreakSession"> | Date | string
+  startedAtLat?: Prisma.FloatNullableWithAggregatesFilter<"BreakSession"> | number | null
+  startedAtLng?: Prisma.FloatNullableWithAggregatesFilter<"BreakSession"> | number | null
+  startedAtDistanceMeters?: Prisma.FloatNullableWithAggregatesFilter<"BreakSession"> | number | null
+  endedAtLat?: Prisma.FloatNullableWithAggregatesFilter<"BreakSession"> | number | null
+  endedAtLng?: Prisma.FloatNullableWithAggregatesFilter<"BreakSession"> | number | null
+  endedAtDistanceMeters?: Prisma.FloatNullableWithAggregatesFilter<"BreakSession"> | number | null
 }
 
 export type BreakSessionCreateInput = {
@@ -237,6 +365,12 @@ export type BreakSessionCreateInput = {
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
   attendanceRecord: Prisma.AttendanceRecordCreateNestedOneWithoutBreaksInput
   editLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutBreakSessionInput
 }
@@ -247,6 +381,12 @@ export type BreakSessionUncheckedCreateInput = {
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
   editLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutBreakSessionInput
 }
 
@@ -255,6 +395,12 @@ export type BreakSessionUpdateInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   attendanceRecord?: Prisma.AttendanceRecordUpdateOneRequiredWithoutBreaksNestedInput
   editLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutBreakSessionNestedInput
 }
@@ -265,6 +411,12 @@ export type BreakSessionUncheckedUpdateInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutBreakSessionNestedInput
 }
 
@@ -274,6 +426,12 @@ export type BreakSessionCreateManyInput = {
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
 }
 
 export type BreakSessionUpdateManyMutationInput = {
@@ -281,6 +439,12 @@ export type BreakSessionUpdateManyMutationInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type BreakSessionUncheckedUpdateManyInput = {
@@ -289,6 +453,12 @@ export type BreakSessionUncheckedUpdateManyInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type BreakSessionListRelationFilter = {
@@ -313,6 +483,21 @@ export type BreakSessionCountOrderByAggregateInput = {
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  startedAtLat?: Prisma.SortOrder
+  startedAtLng?: Prisma.SortOrder
+  startedAtDistanceMeters?: Prisma.SortOrder
+  endedAtLat?: Prisma.SortOrder
+  endedAtLng?: Prisma.SortOrder
+  endedAtDistanceMeters?: Prisma.SortOrder
+}
+
+export type BreakSessionAvgOrderByAggregateInput = {
+  startedAtLat?: Prisma.SortOrder
+  startedAtLng?: Prisma.SortOrder
+  startedAtDistanceMeters?: Prisma.SortOrder
+  endedAtLat?: Prisma.SortOrder
+  endedAtLng?: Prisma.SortOrder
+  endedAtDistanceMeters?: Prisma.SortOrder
 }
 
 export type BreakSessionMaxOrderByAggregateInput = {
@@ -321,6 +506,12 @@ export type BreakSessionMaxOrderByAggregateInput = {
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  startedAtLat?: Prisma.SortOrder
+  startedAtLng?: Prisma.SortOrder
+  startedAtDistanceMeters?: Prisma.SortOrder
+  endedAtLat?: Prisma.SortOrder
+  endedAtLng?: Prisma.SortOrder
+  endedAtDistanceMeters?: Prisma.SortOrder
 }
 
 export type BreakSessionMinOrderByAggregateInput = {
@@ -329,6 +520,21 @@ export type BreakSessionMinOrderByAggregateInput = {
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  startedAtLat?: Prisma.SortOrder
+  startedAtLng?: Prisma.SortOrder
+  startedAtDistanceMeters?: Prisma.SortOrder
+  endedAtLat?: Prisma.SortOrder
+  endedAtLng?: Prisma.SortOrder
+  endedAtDistanceMeters?: Prisma.SortOrder
+}
+
+export type BreakSessionSumOrderByAggregateInput = {
+  startedAtLat?: Prisma.SortOrder
+  startedAtLng?: Prisma.SortOrder
+  startedAtDistanceMeters?: Prisma.SortOrder
+  endedAtLat?: Prisma.SortOrder
+  endedAtLng?: Prisma.SortOrder
+  endedAtDistanceMeters?: Prisma.SortOrder
 }
 
 export type BreakSessionNullableScalarRelationFilter = {
@@ -399,6 +605,12 @@ export type BreakSessionCreateWithoutAttendanceRecordInput = {
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
   editLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutBreakSessionInput
 }
 
@@ -407,6 +619,12 @@ export type BreakSessionUncheckedCreateWithoutAttendanceRecordInput = {
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
   editLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutBreakSessionInput
 }
 
@@ -445,6 +663,12 @@ export type BreakSessionScalarWhereInput = {
   startedAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
   endedAt?: Prisma.DateTimeNullableFilter<"BreakSession"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
+  startedAtLat?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  startedAtLng?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  startedAtDistanceMeters?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  endedAtLat?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  endedAtLng?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+  endedAtDistanceMeters?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
 }
 
 export type BreakSessionCreateWithoutEditLogsInput = {
@@ -452,6 +676,12 @@ export type BreakSessionCreateWithoutEditLogsInput = {
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
   attendanceRecord: Prisma.AttendanceRecordCreateNestedOneWithoutBreaksInput
 }
 
@@ -461,6 +691,12 @@ export type BreakSessionUncheckedCreateWithoutEditLogsInput = {
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
 }
 
 export type BreakSessionCreateOrConnectWithoutEditLogsInput = {
@@ -484,6 +720,12 @@ export type BreakSessionUpdateWithoutEditLogsInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   attendanceRecord?: Prisma.AttendanceRecordUpdateOneRequiredWithoutBreaksNestedInput
 }
 
@@ -493,6 +735,12 @@ export type BreakSessionUncheckedUpdateWithoutEditLogsInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 export type BreakSessionCreateManyAttendanceRecordInput = {
@@ -500,6 +748,12 @@ export type BreakSessionCreateManyAttendanceRecordInput = {
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
 }
 
 export type BreakSessionUpdateWithoutAttendanceRecordInput = {
@@ -507,6 +761,12 @@ export type BreakSessionUpdateWithoutAttendanceRecordInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutBreakSessionNestedInput
 }
 
@@ -515,6 +775,12 @@ export type BreakSessionUncheckedUpdateWithoutAttendanceRecordInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutBreakSessionNestedInput
 }
 
@@ -523,6 +789,12 @@ export type BreakSessionUncheckedUpdateManyWithoutAttendanceRecordInput = {
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
 }
 
 
@@ -562,6 +834,12 @@ export type BreakSessionSelect<ExtArgs extends runtime.Types.Extensions.Internal
   startedAt?: boolean
   endedAt?: boolean
   createdAt?: boolean
+  startedAtLat?: boolean
+  startedAtLng?: boolean
+  startedAtDistanceMeters?: boolean
+  endedAtLat?: boolean
+  endedAtLng?: boolean
+  endedAtDistanceMeters?: boolean
   attendanceRecord?: boolean | Prisma.AttendanceRecordDefaultArgs<ExtArgs>
   editLogs?: boolean | Prisma.BreakSession$editLogsArgs<ExtArgs>
   _count?: boolean | Prisma.BreakSessionCountOutputTypeDefaultArgs<ExtArgs>
@@ -575,9 +853,15 @@ export type BreakSessionSelectScalar = {
   startedAt?: boolean
   endedAt?: boolean
   createdAt?: boolean
+  startedAtLat?: boolean
+  startedAtLng?: boolean
+  startedAtDistanceMeters?: boolean
+  endedAtLat?: boolean
+  endedAtLng?: boolean
+  endedAtDistanceMeters?: boolean
 }
 
-export type BreakSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attendanceRecordId" | "startedAt" | "endedAt" | "createdAt", ExtArgs["result"]["breakSession"]>
+export type BreakSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attendanceRecordId" | "startedAt" | "endedAt" | "createdAt" | "startedAtLat" | "startedAtLng" | "startedAtDistanceMeters" | "endedAtLat" | "endedAtLng" | "endedAtDistanceMeters", ExtArgs["result"]["breakSession"]>
 export type BreakSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendanceRecord?: boolean | Prisma.AttendanceRecordDefaultArgs<ExtArgs>
   editLogs?: boolean | Prisma.BreakSession$editLogsArgs<ExtArgs>
@@ -596,6 +880,22 @@ export type $BreakSessionPayload<ExtArgs extends runtime.Types.Extensions.Intern
     startedAt: Date
     endedAt: Date | null
     createdAt: Date
+    /**
+     * GPS coords captured at break-start, when the employee's policy
+     * allows location capture. Null when GPS wasn't available or the
+     * policy has it disabled. `distanceMeters` is the haversine distance
+     * from the project geofence center at capture time (display only;
+     * no enforcement on breaks).
+     */
+    startedAtLat: number | null
+    startedAtLng: number | null
+    startedAtDistanceMeters: number | null
+    /**
+     * Same shape, captured at break-end.
+     */
+    endedAtLat: number | null
+    endedAtLng: number | null
+    endedAtDistanceMeters: number | null
   }, ExtArgs["result"]["breakSession"]>
   composites: {}
 }
@@ -972,6 +1272,12 @@ export interface BreakSessionFieldRefs {
   readonly startedAt: Prisma.FieldRef<"BreakSession", 'DateTime'>
   readonly endedAt: Prisma.FieldRef<"BreakSession", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"BreakSession", 'DateTime'>
+  readonly startedAtLat: Prisma.FieldRef<"BreakSession", 'Float'>
+  readonly startedAtLng: Prisma.FieldRef<"BreakSession", 'Float'>
+  readonly startedAtDistanceMeters: Prisma.FieldRef<"BreakSession", 'Float'>
+  readonly endedAtLat: Prisma.FieldRef<"BreakSession", 'Float'>
+  readonly endedAtLng: Prisma.FieldRef<"BreakSession", 'Float'>
+  readonly endedAtDistanceMeters: Prisma.FieldRef<"BreakSession", 'Float'>
 }
     
 

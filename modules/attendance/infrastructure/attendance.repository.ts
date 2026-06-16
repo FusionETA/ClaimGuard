@@ -181,6 +181,10 @@ type PrismaAttendance = {
   status: string
   notes: string | null
   remark?: string | null
+  clockInLat?: number | null
+  clockInLng?: number | null
+  clockOutLat?: number | null
+  clockOutLng?: number | null
   breaks?: Array<{ startedAt: Date; endedAt: Date | null }>
 }
 
@@ -214,6 +218,10 @@ function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
     status: r.status as AttendanceStatus,
     notes: r.notes,
     remark: r.remark ?? null,
+    clockInLat: r.clockInLat ?? null,
+    clockInLng: r.clockInLng ?? null,
+    clockOutLat: r.clockOutLat ?? null,
+    clockOutLng: r.clockOutLng ?? null,
   }
 }
 
@@ -1564,6 +1572,7 @@ export const attendanceRepository = {
     employeeId: string,
     location?: string,
     notes?: string,
+    geo?: { lat: number; lng: number; distanceMeters: number | null },
   ): Promise<{ approvalId: string }> {
     const prisma = getClient()
     const now = new Date()
@@ -1598,7 +1607,17 @@ export const attendanceRepository = {
       : undefined
     await prisma.$transaction([
       prisma.breakSession.create({
-        data: { attendanceRecordId: existing.id, startedAt: now },
+        data: {
+          attendanceRecordId: existing.id,
+          startedAt: now,
+          ...(geo
+            ? {
+                startedAtLat: geo.lat,
+                startedAtLng: geo.lng,
+                startedAtDistanceMeters: geo.distanceMeters,
+              }
+            : {}),
+        },
       }),
       ...(appendedNotes !== undefined
         ? [
@@ -1647,6 +1666,7 @@ export const attendanceRepository = {
     employeeId: string,
     location?: string,
     notes?: string,
+    geo?: { lat: number; lng: number; distanceMeters: number | null },
   ): Promise<{ approvalId: string }> {
     const prisma = getClient()
     const now = new Date()
@@ -1684,7 +1704,16 @@ export const attendanceRepository = {
     await prisma.$transaction([
       prisma.breakSession.update({
         where: { id: openBreak.id },
-        data: { endedAt: now },
+        data: {
+          endedAt: now,
+          ...(geo
+            ? {
+                endedAtLat: geo.lat,
+                endedAtLng: geo.lng,
+                endedAtDistanceMeters: geo.distanceMeters,
+              }
+            : {}),
+        },
       }),
       ...(appendedNotes !== undefined
         ? [
@@ -2512,6 +2541,10 @@ export const attendanceRepository = {
         | "ON_LEAVE"
         | null
       clockInDistanceMeters: number | null
+      clockInLat: number | null
+      clockInLng: number | null
+      clockOutLat: number | null
+      clockOutLng: number | null
       offSite: boolean
     }>
   > {
@@ -2561,6 +2594,10 @@ export const attendanceRepository = {
         timeIn: true,
         timeOut: true,
         clockInDistanceMeters: true,
+        clockInLat: true,
+        clockInLng: true,
+        clockOutLat: true,
+        clockOutLng: true,
       },
     })
     const byUser = new Map(records.map((r) => [r.employeeId, r]))
@@ -2582,7 +2619,13 @@ export const attendanceRepository = {
     const radius = await this.getGeofenceRadiusForOrganization(orgId)
     const radiusM = radius ?? 200
 
-    return users.map((u) => {
+    return users
+      // Only employees with actual activity today (any AttendanceRecord
+      // — clock event OR on-leave row). Employees who haven't touched
+      // attendance today are excluded from the roster so the table
+      // focuses on what HR is actually reviewing.
+      .filter((u) => byUser.has(u.id))
+      .map((u) => {
       const rec = byUser.get(u.id)
       const projectName =
         u.employeeProfile?.projectAssignments
@@ -2623,6 +2666,10 @@ export const attendanceRepository = {
         status,
         derivedStatus,
         clockInDistanceMeters,
+        clockInLat: rec?.clockInLat ?? null,
+        clockInLng: rec?.clockInLng ?? null,
+        clockOutLat: rec?.clockOutLat ?? null,
+        clockOutLng: rec?.clockOutLng ?? null,
         offSite,
       }
     })
@@ -3260,6 +3307,10 @@ export const attendanceRepository = {
       name: string
       email: string
       initials: string
+      /// False when the employee's policy has `otEnabled: false`. The
+      /// summary card / table render "—" in OT / Rest day / PH columns
+      /// for these rows; their minutes are folded into Normal.
+      otEnabled: boolean
       buckets: HoursBuckets & { expectedMin: number }
     }>
   }> {
@@ -3325,7 +3376,11 @@ export const attendanceRepository = {
               workingHoursEnd: true,
             },
           })
-    // Per-employee OT threshold now comes from each employee's policy.
+    // Per-employee OT threshold + OT-enabled flag — both come from the
+    // employee's policy. `otEnabled = false` means OT/Rest day/PH
+    // classification is N/A for this employee; the per-row buckets get
+    // folded into Normal before the UI renders, and Total Worked still
+    // reflects actual time clocked in.
     const policyThresholds =
       employeeIds.length === 0
         ? []
@@ -3333,13 +3388,20 @@ export const attendanceRepository = {
             where: { userId: { in: employeeIds } },
             select: {
               userId: true,
-              policy: { select: { otDailyThresholdMinutes: true } },
+              policy: {
+                select: { otDailyThresholdMinutes: true, otEnabled: true },
+              },
             },
           })
     const employeeThresholdMin = new Map(
       policyThresholds
         .filter((p) => p.policy !== null)
         .map((p) => [p.userId, p.policy!.otDailyThresholdMinutes]),
+    )
+    const employeeOtEnabled = new Map(
+      policyThresholds
+        .filter((p) => p.policy !== null)
+        .map((p) => [p.userId, p.policy!.otEnabled]),
     )
     const orgScheduleById = new Map(
       orgs.map((o) => [
@@ -3524,7 +3586,24 @@ export const attendanceRepository = {
     let totals: HoursBuckets = { ...EMPTY_BUCKETS }
     let totalsExpectedMin = 0
     const rows = await Promise.all(employees.map(async (e) => {
-      const buckets = perEmployee.get(e.id) ?? { ...EMPTY_BUCKETS }
+      const raw = perEmployee.get(e.id) ?? { ...EMPTY_BUCKETS }
+      // No-OT employees: collapse OT / Rest day / PH minutes into Normal
+      // so the UI can render "—" in those columns without losing track of
+      // the actual time worked. Total Worked (`totalMin`) is unchanged.
+      const otEnabled = employeeOtEnabled.get(e.id) ?? true
+      const buckets: HoursBuckets = otEnabled
+        ? raw
+        : {
+            ...raw,
+            normalMin:
+              raw.normalMin + raw.otMin + raw.restDayMin + raw.publicHolidayMin,
+            otMin: 0,
+            restDayMin: 0,
+            publicHolidayMin: 0,
+            otApprovedMin: 0,
+            otPendingMin: 0,
+            otRejectedMin: 0,
+          }
       totals = addBuckets(totals, buckets)
       const sched = scheduleByEmployee.get(e.id)
       const scheduledMin = sched
@@ -3547,6 +3626,7 @@ export const attendanceRepository = {
         name: e.name,
         email: e.email,
         initials: buildInitials(e.name),
+        otEnabled,
         buckets: { ...buckets, expectedMin },
       }
     }))

@@ -19,6 +19,13 @@ type Props = {
   projects: AttendanceProjectView[]
   requiresSelfieOnClockIn: boolean
   enforceGeofence: boolean
+  /// Master + per-event GPS capture flags from the employee's policy.
+  /// Drive whether the ClockCard attaches coords to each event.
+  captureLocationEnabled: boolean
+  captureLocationOnClockIn: boolean
+  captureLocationOnClockOut: boolean
+  captureLocationOnBreakStart: boolean
+  captureLocationOnBreakEnd: boolean
   timezone: string
 }
 
@@ -72,6 +79,11 @@ export function EmployeeAttendanceDashboardView({
   projects,
   requiresSelfieOnClockIn,
   enforceGeofence,
+  captureLocationEnabled,
+  captureLocationOnClockIn,
+  captureLocationOnClockOut,
+  captureLocationOnBreakStart,
+  captureLocationOnBreakEnd,
   timezone,
 }: Props) {
   const state = deriveState(dashboard.todayEvents)
@@ -118,6 +130,11 @@ export function EmployeeAttendanceDashboardView({
         currentBreakStartedAt={dashboard.today?.currentBreakStartedAt ?? null}
         requiresSelfieOnClockIn={requiresSelfieOnClockIn}
         enforceGeofence={enforceGeofence}
+        captureLocationEnabled={captureLocationEnabled}
+        captureLocationOnClockIn={captureLocationOnClockIn}
+        captureLocationOnClockOut={captureLocationOnClockOut}
+        captureLocationOnBreakStart={captureLocationOnBreakStart}
+        captureLocationOnBreakEnd={captureLocationOnBreakEnd}
         todayRecord={dashboard.today}
         latestRejection={latestRejection}
         pendingApproval={dashboard.pendingApproval}

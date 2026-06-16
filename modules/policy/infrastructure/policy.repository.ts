@@ -22,6 +22,11 @@ type PolicyRow = {
   otEnabled: boolean
   otMethod: OtPayoutMethod
   requireGeofence: boolean
+  geolocationEnabled: boolean
+  captureLocationOnClockIn: boolean
+  captureLocationOnClockOut: boolean
+  captureLocationOnBreakStart: boolean
+  captureLocationOnBreakEnd: boolean
   requireSelfie: boolean
   temporary: boolean
   otRateNormalDay: unknown
@@ -48,6 +53,11 @@ function toPolicy(row: PolicyRow, employeeCount?: number): EmployeePolicy {
     otEnabled: row.otEnabled,
     otMethod: row.otMethod,
     requireGeofence: row.requireGeofence,
+    geolocationEnabled: row.geolocationEnabled,
+    captureLocationOnClockIn: row.captureLocationOnClockIn,
+    captureLocationOnClockOut: row.captureLocationOnClockOut,
+    captureLocationOnBreakStart: row.captureLocationOnBreakStart,
+    captureLocationOnBreakEnd: row.captureLocationOnBreakEnd,
     requireSelfie: row.requireSelfie,
     temporary: row.temporary,
     otRateNormalDay: toNumber(row.otRateNormalDay, 1.5),
@@ -84,6 +94,11 @@ export type PolicyCreateInput = {
   otEnabled: boolean
   otMethod: OtPayoutMethod
   requireGeofence: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie: boolean
   temporary: boolean
   isDefault?: boolean
@@ -101,6 +116,11 @@ export type PolicyUpdateInput = {
   otEnabled?: boolean
   otMethod?: OtPayoutMethod
   requireGeofence?: boolean
+  geolocationEnabled?: boolean
+  captureLocationOnClockIn?: boolean
+  captureLocationOnClockOut?: boolean
+  captureLocationOnBreakStart?: boolean
+  captureLocationOnBreakEnd?: boolean
   requireSelfie?: boolean
   temporary?: boolean
 } & Partial<PolicyOtRateInput>
@@ -157,6 +177,17 @@ export const policyRepository = {
         })
       }
 
+      // Auto-flip: geofence enforcement needs GPS, so turning it on
+      // implicitly enables location capture for clock-in. Lets the
+      // admin enable geofence without first having to flick the
+      // master + clock-in capture switches separately.
+      const geolocationEnabled = input.requireGeofence
+        ? true
+        : input.geolocationEnabled ?? true
+      const captureLocationOnClockIn = input.requireGeofence
+        ? true
+        : input.captureLocationOnClockIn ?? true
+
       const row = await tx.employeePolicy.create({
         data: {
           organizationId: input.organizationId,
@@ -169,6 +200,11 @@ export const policyRepository = {
           otEnabled: input.otEnabled,
           otMethod: input.otMethod,
           requireGeofence: input.requireGeofence,
+          geolocationEnabled,
+          captureLocationOnClockIn,
+          captureLocationOnClockOut: input.captureLocationOnClockOut ?? true,
+          captureLocationOnBreakStart: input.captureLocationOnBreakStart ?? true,
+          captureLocationOnBreakEnd: input.captureLocationOnBreakEnd ?? true,
           requireSelfie: input.requireSelfie,
           temporary: input.temporary,
           otRateNormalDay: input.otRateNormalDay,
@@ -195,6 +231,20 @@ export const policyRepository = {
       if (!policy) {
         throw new Error("Policy not found")
       }
+      // Auto-flip on `requireGeofence=true`: force geolocation +
+      // clock-in capture on (geofence enforcement needs GPS). Without
+      // this the admin would have to flip three switches to enable
+      // geofence; one is enough.
+      const nextRequireGeofence = input.requireGeofence ?? policy.requireGeofence
+      const geolocationEnabledPatch =
+        nextRequireGeofence === true
+          ? true
+          : input.geolocationEnabled ?? undefined
+      const captureLocationOnClockInPatch =
+        nextRequireGeofence === true
+          ? true
+          : input.captureLocationOnClockIn ?? undefined
+
       const updated = await tx.employeePolicy.update({
         where: { id: input.id },
         data: {
@@ -208,6 +258,14 @@ export const policyRepository = {
           otEnabled: input.otEnabled ?? undefined,
           otMethod: input.otMethod ?? undefined,
           requireGeofence: input.requireGeofence ?? undefined,
+          geolocationEnabled: geolocationEnabledPatch,
+          captureLocationOnClockIn: captureLocationOnClockInPatch,
+          captureLocationOnClockOut:
+            input.captureLocationOnClockOut ?? undefined,
+          captureLocationOnBreakStart:
+            input.captureLocationOnBreakStart ?? undefined,
+          captureLocationOnBreakEnd:
+            input.captureLocationOnBreakEnd ?? undefined,
           requireSelfie: input.requireSelfie ?? undefined,
           temporary: input.temporary ?? undefined,
           otRateNormalDay: input.otRateNormalDay ?? undefined,
