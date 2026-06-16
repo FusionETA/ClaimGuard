@@ -3646,6 +3646,11 @@ export const EmployeePolicyScalarFieldEnum = {
   updatedAt: 'updatedAt',
   otEnabled: 'otEnabled',
   requireGeofence: 'requireGeofence',
+  geolocationEnabled: 'geolocationEnabled',
+  captureLocationOnClockIn: 'captureLocationOnClockIn',
+  captureLocationOnClockOut: 'captureLocationOnClockOut',
+  captureLocationOnBreakStart: 'captureLocationOnBreakStart',
+  captureLocationOnBreakEnd: 'captureLocationOnBreakEnd',
   requireSelfie: 'requireSelfie',
   otDailyThresholdMinutes: 'otDailyThresholdMinutes',
   otRateNormalDay: 'otRateNormalDay',
@@ -4026,7 +4031,13 @@ export const BreakSessionScalarFieldEnum = {
   attendanceRecordId: 'attendanceRecordId',
   startedAt: 'startedAt',
   endedAt: 'endedAt',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  startedAtLat: 'startedAtLat',
+  startedAtLng: 'startedAtLng',
+  startedAtDistanceMeters: 'startedAtDistanceMeters',
+  endedAtLat: 'endedAtLat',
+  endedAtLng: 'endedAtLng',
+  endedAtDistanceMeters: 'endedAtDistanceMeters'
 } as const
 
 export type BreakSessionScalarFieldEnum = (typeof BreakSessionScalarFieldEnum)[keyof typeof BreakSessionScalarFieldEnum]

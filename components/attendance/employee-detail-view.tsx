@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2 } from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/attendance/ui/avatar"
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent } from "@/components/attendance/ui/card"
+import { CoordsLink } from "@/components/attendance/coords-link"
 import { SessionEditorDialog } from "@/components/attendance/session-editor-dialog"
 import {
   approvalStatusMeta,
@@ -280,6 +281,26 @@ export function EmployeeDetailView({
                       {r.timeOut ? `– ${fmtTime(r.timeOut, timezone)}` : ""}{" "}
                       {r.project ? `• ${r.project}` : ""}
                     </p>
+                    {r.clockInLat != null && r.clockInLng != null ? (
+                      <div className="mt-0.5">
+                        <CoordsLink
+                          lat={r.clockInLat}
+                          lng={r.clockInLng}
+                          label="Clock-in map"
+                        />
+                      </div>
+                    ) : null}
+                    {r.timeOut &&
+                    r.clockOutLat != null &&
+                    r.clockOutLng != null ? (
+                      <div className="mt-0.5">
+                        <CoordsLink
+                          lat={r.clockOutLat}
+                          lng={r.clockOutLng}
+                          label="Clock-out map"
+                        />
+                      </div>
+                    ) : null}
                     {r.notes ? (
                       <p className="mt-1 text-[11px] font-semibold text-amber-700">
                         ⚠ {r.notes.split("\n").length} off-site remark

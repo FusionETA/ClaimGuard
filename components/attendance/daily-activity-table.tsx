@@ -1,5 +1,6 @@
 import { Badge } from "@/components/attendance/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CoordsLink } from "@/components/attendance/coords-link"
 import {
   TableFilterBar,
   type TableFilterValue,
@@ -22,6 +23,14 @@ export type DailyActivityRow = {
   status: string | null
   derivedStatus?: DailyActivityDerivedStatus | null
   clockInDistanceMeters?: number | null
+  /// GPS coords captured at each event when the employee's policy
+  /// permits location capture. Null when capture was off or the
+  /// browser couldn't get a fix. Drives the inline "Open in Maps"
+  /// link below each timestamp.
+  clockInLat?: number | null
+  clockInLng?: number | null
+  clockOutLat?: number | null
+  clockOutLng?: number | null
   offSite?: boolean
 }
 
@@ -129,13 +138,20 @@ export function DailyActivityTable({
                   <p className="truncate text-xs text-muted-foreground sm:text-sm">
                     {meta}
                   </p>
-                  <p className="text-sm">
+                  <div className="text-sm">
                     <span className="sm:hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                       Clock in:{" "}
                     </span>
                     {inLabel ?? <span className="text-muted-foreground">—</span>}
-                  </p>
-                  <p className="text-sm">
+                    {row.clockInLat != null && row.clockInLng != null ? (
+                      <CoordsLink
+                        lat={row.clockInLat}
+                        lng={row.clockInLng}
+                        className="mt-0.5 flex flex-wrap items-center gap-x-1"
+                      />
+                    ) : null}
+                  </div>
+                  <div className="text-sm">
                     <span className="sm:hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                       Clock out:{" "}
                     </span>
@@ -148,7 +164,16 @@ export function DailyActivityTable({
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
-                  </p>
+                    {outLabel &&
+                    row.clockOutLat != null &&
+                    row.clockOutLng != null ? (
+                      <CoordsLink
+                        lat={row.clockOutLat}
+                        lng={row.clockOutLng}
+                        className="mt-0.5 flex flex-wrap items-center gap-x-1"
+                      />
+                    ) : null}
+                  </div>
                   <div className="flex items-center">
                     {statusBadge(row.derivedStatus ?? null)}
                   </div>

@@ -27,6 +27,15 @@ export type EmployeePolicy = {
   /// in. Radius is configured per project; this flag only decides
   /// whether the check is enforced for this policy's employees.
   requireGeofence: boolean
+  /// Master switch for capturing GPS coords on attendance events.
+  /// Auto-enabled by the server when `requireGeofence` is turned on.
+  geolocationEnabled: boolean
+  /// Per-event capture flags — only consulted when geolocationEnabled
+  /// is true. Default true on freshly-created policies.
+  captureLocationOnClockIn: boolean
+  captureLocationOnClockOut: boolean
+  captureLocationOnBreakStart: boolean
+  captureLocationOnBreakEnd: boolean
   /// When true, the clock-in flow gates on a selfie capture. Replaces
   /// the legacy "Hourly Worker == selfie required" hardcoding.
   requireSelfie: boolean

@@ -23,6 +23,10 @@ export type HoursSummaryEmployeeRow = {
   name: string
   email: string
   initials: string
+  /// False when the employee's policy has `otEnabled: false`. OT / Rest
+  /// day / PH columns render as "—" for these rows (and their minutes
+  /// are already folded into `normalMin` server-side).
+  otEnabled?: boolean
   buckets: HoursBuckets & { expectedMin?: number }
 }
 
@@ -251,7 +255,7 @@ function BucketTotals({
   const expectedMin = totals.expectedMin ?? 0
   const shortfall = expectedMin > 0 && totals.normalMin < expectedMin
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
       {BUCKET_META.map((meta) => (
         <div
           key={meta.key}
@@ -273,6 +277,17 @@ function BucketTotals({
           ) : null}
         </div>
       ))}
+      {/* HR-reference card: sum of Normal + OT + Rest day + Public holiday.
+          Distinct primary tint so it reads as a "roll-up" rather than
+          another category bucket. Not used by payroll. */}
+      <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-primary">
+          Total worked
+        </p>
+        <p className="mt-1 text-lg font-bold text-primary">
+          {formatHm(totals.totalMin)}
+        </p>
+      </div>
       <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           Expected
@@ -322,6 +337,7 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
           <tr className="border-b border-border/60 text-left text-[10px] uppercase tracking-wider text-muted-foreground">
             <th className="bg-card py-2 pl-3 pr-3 font-semibold">Employee</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">Normal</th>
+            <th className="bg-card py-2 pr-3 text-right font-semibold">Total</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">Expected</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">OT</th>
             <th className="bg-card py-2 pr-3 text-right font-semibold">Rest day</th>
@@ -351,25 +367,45 @@ function EmployeeTable({ employees }: { employees: HoursSummaryEmployeeRow[] }) 
                 <td className="py-2 pr-3 text-right tabular-nums">
                   {formatHm(row.buckets.normalMin)}
                 </td>
+                <td className="py-2 pr-3 text-right tabular-nums font-semibold text-primary">
+                  {formatHm(row.buckets.totalMin)}
+                </td>
                 <td className="py-2 pr-3 text-right tabular-nums text-muted-foreground">
                   {expectedMin > 0 ? formatHm(expectedMin) : "—"}
                 </td>
+                {/* OT / Rest day / PH columns render "—" for employees
+                    whose policy disables OT — those categories don't
+                    apply and the minutes are already folded into Normal. */}
                 <td className="py-2 pr-3 text-right tabular-nums">
-                  {formatHm(row.buckets.otMin)}
-                  {row.buckets.otMin > 0 ? (
-                    <OtStatusBreakdown
-                      approvedMin={row.buckets.otApprovedMin}
-                      pendingMin={row.buckets.otPendingMin}
-                      rejectedMin={row.buckets.otRejectedMin}
-                      totalMin={row.buckets.otMin}
-                    />
-                  ) : null}
+                  {row.otEnabled === false ? (
+                    <span className="text-muted-foreground">—</span>
+                  ) : (
+                    <>
+                      {formatHm(row.buckets.otMin)}
+                      {row.buckets.otMin > 0 ? (
+                        <OtStatusBreakdown
+                          approvedMin={row.buckets.otApprovedMin}
+                          pendingMin={row.buckets.otPendingMin}
+                          rejectedMin={row.buckets.otRejectedMin}
+                          totalMin={row.buckets.otMin}
+                        />
+                      ) : null}
+                    </>
+                  )}
                 </td>
                 <td className="py-2 pr-3 text-right tabular-nums">
-                  {formatHm(row.buckets.restDayMin)}
+                  {row.otEnabled === false ? (
+                    <span className="text-muted-foreground">—</span>
+                  ) : (
+                    formatHm(row.buckets.restDayMin)
+                  )}
                 </td>
                 <td className="py-2 pr-3 text-right tabular-nums">
-                  {formatHm(row.buckets.publicHolidayMin)}
+                  {row.otEnabled === false ? (
+                    <span className="text-muted-foreground">—</span>
+                  ) : (
+                    formatHm(row.buckets.publicHolidayMin)
+                  )}
                 </td>
                 <td className="py-2 pr-3 text-right">
                   {shortfall ? (

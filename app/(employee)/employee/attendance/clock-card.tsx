@@ -120,6 +120,20 @@ type Props = {
   /** When false (policy says geofence not required), skip GPS capture and
    *  treat every clock event as "within radius" — no location is sent. */
   enforceGeofence: boolean
+  /** Master switch from the policy: when true, the client captures GPS
+   *  for every attendance event regardless of geofence enforcement. The
+   *  per-event flags below decide which events actually persist coords
+   *  server-side (the watcher runs either way; we pass the coords up
+   *  per event based on the flag). */
+  captureLocationEnabled: boolean
+  /** Per-event capture flags from the policy. The client passes coords
+   *  to the server action only when both `captureLocationEnabled` AND
+   *  the matching flag are true (or when geofence enforcement requires
+   *  it). All default true. */
+  captureLocationOnClockIn: boolean
+  captureLocationOnClockOut: boolean
+  captureLocationOnBreakStart: boolean
+  captureLocationOnBreakEnd: boolean
   /** Today's full attendance record — drives the clock-out confirmation dialog. */
   todayRecord: AttendanceRecordView | null
   /** Most recent rejected clock-in/clock-out for today, if any. When present
@@ -247,10 +261,25 @@ export function ClockCard({
   currentBreakStartedAt,
   requiresSelfieOnClockIn,
   enforceGeofence,
+  captureLocationEnabled,
+  captureLocationOnClockIn,
+  captureLocationOnClockOut,
+  captureLocationOnBreakStart,
+  captureLocationOnBreakEnd,
   todayRecord,
   latestRejection,
   pendingApproval,
 }: Props) {
+  // GPS watcher runs whenever the policy enforces geofence OR allows
+  // location capture for any event. We always have coords ready; per-
+  // event flags below decide whether to actually attach them.
+  const captureAny =
+    enforceGeofence ||
+    (captureLocationEnabled &&
+      (captureLocationOnClockIn ||
+        captureLocationOnClockOut ||
+        captureLocationOnBreakStart ||
+        captureLocationOnBreakEnd))
   const [rejectionDismissed, setRejectionDismissed] = useState(false)
   const [selected, setSelected] = useState("")
   const [result, formAction] = useActionState<ClockInState, FormData>(
@@ -325,9 +354,10 @@ export function ClockCard({
   const [projectError, setProjectError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Policy opt-out: skip GPS entirely (no permission prompt, no
-    // watcher). The fence is short-circuited to "ok" below.
-    if (!enforceGeofence) {
+    // Policy opt-out: skip GPS entirely when neither geofence nor
+    // location capture is on for ANY event. Saves the permission
+    // prompt + watcher cost for orgs that don't use either.
+    if (!captureAny) {
       setGpsState("ok")
       return
     }
@@ -358,7 +388,7 @@ export function ClockCard({
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 30000 },
     )
     return () => navigator.geolocation.clearWatch(watchId)
-  }, [enforceGeofence])
+  }, [captureAny])
 
   const targetProjectCoords: { latitude: number | null; longitude: number | null } | null =
     state === "OUT"
@@ -410,7 +440,13 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const project = projects.find((p) => p.id === selected) ?? null
-      if (enforceGeofence) {
+      // Capture coords whenever geofence is enforced OR the policy
+      // wants location persisted for clock-in events. The server is
+      // the source of truth — it'll only WRITE the coords when the
+      // per-event flag is true; sending them is harmless otherwise.
+      const captureForThisEvent =
+        enforceGeofence || (captureLocationEnabled && captureLocationOnClockIn)
+      if (captureForThisEvent) {
         await resolveCoordsForSubmit(formData, employeeCoords)
       }
       const fence: GeofenceCheck = enforceGeofence
@@ -455,7 +491,9 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const formData = new FormData(e.currentTarget)
-      if (enforceGeofence) {
+      const captureForThisEvent =
+        enforceGeofence || (captureLocationEnabled && captureLocationOnClockOut)
+      if (captureForThisEvent) {
         await resolveCoordsForSubmit(formData, employeeCoords)
       }
       const fence: GeofenceCheck = enforceGeofence
@@ -491,7 +529,13 @@ export function ClockCard({
     setIsResolving(true)
     try {
       const formData = new FormData(e.currentTarget)
-      if (enforceGeofence) {
+      const eventFlag =
+        kind === "BREAK_START"
+          ? captureLocationOnBreakStart
+          : captureLocationOnBreakEnd
+      const captureForThisEvent =
+        enforceGeofence || (captureLocationEnabled && eventFlag)
+      if (captureForThisEvent) {
         await resolveCoordsForSubmit(formData, employeeCoords)
       }
       const fence: GeofenceCheck = enforceGeofence
