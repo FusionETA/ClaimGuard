@@ -1490,6 +1490,11 @@ export const attendanceRepository = {
           projectId: true,
           location: true,
           notes: true,
+          timeIn: true,
+          status: true,
+          clockInLat: true,
+          clockInLng: true,
+          clockInDistanceMeters: true,
           sessions: {
             where: { endedAt: null },
             orderBy: { startedAt: "desc" },
@@ -1510,10 +1515,30 @@ export const attendanceRepository = {
       }),
     ])
     const orgId = employee?.organizationId ?? null
-    const openSession = existing?.sessions[0] ?? null
+    let openSession = existing?.sessions[0] ?? null
 
     if (!openSession) {
-      throw new Error("NOT_CLOCKED_IN")
+      // Migration gap: employee clocked in with the old code path which
+      // didn't create an AttendanceSession. Create one retroactively so
+      // this clock-out can proceed.
+      if (existing?.timeIn) {
+        const retroSession = await prisma.attendanceSession.create({
+          data: {
+            attendanceRecordId: existing.id,
+            startedAt: existing.timeIn,
+            status: (existing.status as AttendanceStatus) === "LATE" ? "LATE" : "ON_TIME",
+            project: existing.project ?? null,
+            projectId: existing.projectId ?? null,
+            clockInLat: existing.clockInLat ?? null,
+            clockInLng: existing.clockInLng ?? null,
+            clockInDistanceMeters: existing.clockInDistanceMeters ?? null,
+          },
+          select: { id: true, startedAt: true, breaks: { select: { startedAt: true, endedAt: true } } },
+        })
+        openSession = { id: retroSession.id, startedAt: retroSession.startedAt, breaks: retroSession.breaks }
+      } else {
+        throw new Error("NOT_CLOCKED_IN")
+      }
     }
 
     const [hours, tz] = await Promise.all([
