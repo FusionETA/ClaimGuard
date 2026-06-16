@@ -75,6 +75,7 @@ export const ModelName = {
   AttendanceRecord: 'AttendanceRecord',
   AttendanceEditLog: 'AttendanceEditLog',
   BreakSession: 'BreakSession',
+  AttendanceSession: 'AttendanceSession',
   BreakSessionEditLog: 'BreakSessionEditLog',
   ApprovalRequest: 'ApprovalRequest',
   ApprovalChainStep: 'ApprovalChainStep',
@@ -554,6 +555,7 @@ export type AttendanceEditLogScalarFieldEnum = (typeof AttendanceEditLogScalarFi
 export const BreakSessionScalarFieldEnum = {
   id: 'id',
   attendanceRecordId: 'attendanceRecordId',
+  attendanceSessionId: 'attendanceSessionId',
   startedAt: 'startedAt',
   endedAt: 'endedAt',
   createdAt: 'createdAt',
@@ -566,6 +568,34 @@ export const BreakSessionScalarFieldEnum = {
 } as const
 
 export type BreakSessionScalarFieldEnum = (typeof BreakSessionScalarFieldEnum)[keyof typeof BreakSessionScalarFieldEnum]
+
+
+export const AttendanceSessionScalarFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  durationMin: 'durationMin',
+  status: 'status',
+  clockInLat: 'clockInLat',
+  clockInLng: 'clockInLng',
+  clockInDistanceMeters: 'clockInDistanceMeters',
+  clockOutLat: 'clockOutLat',
+  clockOutLng: 'clockOutLng',
+  clockOutDistanceMeters: 'clockOutDistanceMeters',
+  clockInNotes: 'clockInNotes',
+  clockOutNotes: 'clockOutNotes',
+  xeroSelfieFileId: 'xeroSelfieFileId',
+  selfieUploadedAt: 'selfieUploadedAt',
+  project: 'project',
+  projectId: 'projectId',
+  clockInApprovalRequestId: 'clockInApprovalRequestId',
+  clockOutApprovalRequestId: 'clockOutApprovalRequestId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendanceSessionScalarFieldEnum = (typeof AttendanceSessionScalarFieldEnum)[keyof typeof AttendanceSessionScalarFieldEnum]
 
 
 export const BreakSessionEditLogScalarFieldEnum = {
@@ -1473,10 +1503,26 @@ export type AttendanceEditLogOrderByRelevanceFieldEnum = (typeof AttendanceEditL
 
 export const BreakSessionOrderByRelevanceFieldEnum = {
   id: 'id',
-  attendanceRecordId: 'attendanceRecordId'
+  attendanceRecordId: 'attendanceRecordId',
+  attendanceSessionId: 'attendanceSessionId'
 } as const
 
 export type BreakSessionOrderByRelevanceFieldEnum = (typeof BreakSessionOrderByRelevanceFieldEnum)[keyof typeof BreakSessionOrderByRelevanceFieldEnum]
+
+
+export const AttendanceSessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId',
+  clockInNotes: 'clockInNotes',
+  clockOutNotes: 'clockOutNotes',
+  xeroSelfieFileId: 'xeroSelfieFileId',
+  project: 'project',
+  projectId: 'projectId',
+  clockInApprovalRequestId: 'clockInApprovalRequestId',
+  clockOutApprovalRequestId: 'clockOutApprovalRequestId'
+} as const
+
+export type AttendanceSessionOrderByRelevanceFieldEnum = (typeof AttendanceSessionOrderByRelevanceFieldEnum)[keyof typeof AttendanceSessionOrderByRelevanceFieldEnum]
 
 
 export const BreakSessionEditLogOrderByRelevanceFieldEnum = {

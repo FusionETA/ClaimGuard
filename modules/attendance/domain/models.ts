@@ -16,6 +16,20 @@ export type ApprovalKind = (typeof approvalKinds)[number]
 export type ApprovalStatus = (typeof approvalStatuses)[number]
 export type OTSubtype = (typeof otSubtypes)[number]
 
+export type AttendanceSessionView = {
+  id: string
+  startedAt: string
+  endedAt: string | null
+  durationMin: number | null
+  status: AttendanceStatus
+  clockInLat: number | null
+  clockInLng: number | null
+  clockOutLat: number | null
+  clockOutLng: number | null
+  clockInNotes: string | null
+  clockOutNotes: string | null
+}
+
 export type AttendanceRecordView = {
   id: string
   employeeId: string
@@ -45,6 +59,9 @@ export type AttendanceRecordView = {
   clockInLng: number | null
   clockOutLat: number | null
   clockOutLng: number | null
+  /** All clock-in/out sessions for this day, ordered by startedAt asc.
+   *  Most callers can ignore this and use the rollup fields above. */
+  sessions: AttendanceSessionView[]
 }
 
 export type ChainHistoryEntry = {

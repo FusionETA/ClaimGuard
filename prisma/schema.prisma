@@ -804,6 +804,7 @@ model AttendanceRecord {
   projectRef             XeroProject?          @relation("AttendanceRecordProject", fields: [projectId], references: [id])
   breaks                 BreakSession[]
   breakEditLogs          BreakSessionEditLog[]
+  sessions               AttendanceSession[]
 
   @@unique([employeeId, date])
   @@index([employeeId, date])
@@ -847,6 +848,10 @@ model AttendanceEditLog {
 model BreakSession {
   id                       String                @id @default(cuid())
   attendanceRecordId       String
+  /// FK to the specific session this break belongs to. Null on legacy
+  /// rows created before multi-session was introduced; a backfill script
+  /// populates this for existing records.
+  attendanceSessionId      String?
   startedAt                DateTime
   endedAt                  DateTime?
   createdAt                DateTime              @default(now())
@@ -863,9 +868,52 @@ model BreakSession {
   endedAtLng               Float?
   endedAtDistanceMeters    Float?
   attendanceRecord         AttendanceRecord      @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  attendanceSession        AttendanceSession?    @relation(fields: [attendanceSessionId], references: [id], onDelete: SetNull)
   editLogs                 BreakSessionEditLog[]
 
   @@index([attendanceRecordId])
+  @@index([attendanceRecordId, endedAt])
+  @@index([attendanceSessionId])
+}
+
+/// One clock-in / clock-out pair per employee per day. Multiple sessions
+/// may exist for the same AttendanceRecord when an employee clocks in,
+/// clocks out, and clocks in again later on the same calendar day.
+/// AttendanceRecord stays as the daily roll-up; sessions hold all the
+/// per-event data (times, GPS, selfie, approval request links).
+model AttendanceSession {
+  id                        String           @id @default(cuid())
+  attendanceRecordId        String
+  startedAt                 DateTime
+  endedAt                   DateTime?
+  durationMin               Int?
+  status                    AttendanceStatus @default(ON_TIME)
+  clockInLat                Float?
+  clockInLng                Float?
+  clockInDistanceMeters     Float?
+  clockOutLat               Float?
+  clockOutLng               Float?
+  clockOutDistanceMeters    Float?
+  clockInNotes              String?
+  clockOutNotes             String?
+  /// Xero Files file ID for the selfie taken at this specific clock-in.
+  /// Never overwritten by a second session on the same day.
+  xeroSelfieFileId          String?
+  selfieUploadedAt          DateTime?
+  /// Project snapshotted at clock-in so admin changes mid-day don't
+  /// retroactively rewrite which project this session was for.
+  project                   String?
+  projectId                 String?
+  /// Approval request created at clock-in for this session.
+  clockInApprovalRequestId  String?          @unique
+  /// Approval request created at clock-out for this session.
+  clockOutApprovalRequestId String?          @unique
+  createdAt                 DateTime         @default(now())
+  updatedAt                 DateTime         @updatedAt
+  attendanceRecord          AttendanceRecord @relation(fields: [attendanceRecordId], references: [id], onDelete: Cascade)
+  breaks                    BreakSession[]
+
+  @@index([attendanceRecordId, startedAt])
   @@index([attendanceRecordId, endedAt])
 }
 

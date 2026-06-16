@@ -408,6 +408,7 @@ export const ModelName = {
   AttendanceRecord: 'AttendanceRecord',
   AttendanceEditLog: 'AttendanceEditLog',
   BreakSession: 'BreakSession',
+  AttendanceSession: 'AttendanceSession',
   BreakSessionEditLog: 'BreakSessionEditLog',
   ApprovalRequest: 'ApprovalRequest',
   ApprovalChainStep: 'ApprovalChainStep',
@@ -446,7 +447,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
+    modelProps: "user" | "organization" | "employeePolicy" | "apiIntegration" | "apiAuditLog" | "masterApiKey" | "masterApiAuditLog" | "adminOrganization" | "pushSubscription" | "notification" | "employeeImportDraft" | "employeeProfile" | "employeeProjectAssignment" | "claim" | "claimSupportingAttachment" | "claimApprovalEntry" | "chartOfAccount" | "xeroConnection" | "xeroProject" | "projectHoliday" | "projectManager" | "attendanceRecord" | "attendanceEditLog" | "breakSession" | "attendanceSession" | "breakSessionEditLog" | "approvalRequest" | "approvalChainStep" | "team" | "employeeTeamMembership" | "payrollProfile" | "salaryChange" | "payrollSettings" | "payrollCompanyInfo" | "payrollPortalCredential" | "payrollRun" | "payrollRunReport" | "payrollAnnualReport" | "payrollRunClaim" | "payrollRunAdjustment" | "payslip" | "payslipLineItem" | "employeeLoan" | "leaveType" | "policyLeaveEntitlement" | "leaveEntitlement" | "leaveApplication" | "organizationAuditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2031,6 +2032,72 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.BreakSessionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.BreakSessionCountAggregateOutputType> | number
+        }
+      }
+    }
+    AttendanceSession: {
+      payload: Prisma.$AttendanceSessionPayload<ExtArgs>
+      fields: Prisma.AttendanceSessionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AttendanceSessionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceSessionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AttendanceSessionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceSessionPayload>
+        }
+        findFirst: {
+          args: Prisma.AttendanceSessionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceSessionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AttendanceSessionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceSessionPayload>
+        }
+        findMany: {
+          args: Prisma.AttendanceSessionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceSessionPayload>[]
+        }
+        create: {
+          args: Prisma.AttendanceSessionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceSessionPayload>
+        }
+        createMany: {
+          args: Prisma.AttendanceSessionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AttendanceSessionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceSessionPayload>
+        }
+        update: {
+          args: Prisma.AttendanceSessionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceSessionPayload>
+        }
+        deleteMany: {
+          args: Prisma.AttendanceSessionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AttendanceSessionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AttendanceSessionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AttendanceSessionPayload>
+        }
+        aggregate: {
+          args: Prisma.AttendanceSessionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAttendanceSession>
+        }
+        groupBy: {
+          args: Prisma.AttendanceSessionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendanceSessionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AttendanceSessionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AttendanceSessionCountAggregateOutputType> | number
         }
       }
     }
@@ -4029,6 +4096,7 @@ export type AttendanceEditLogScalarFieldEnum = (typeof AttendanceEditLogScalarFi
 export const BreakSessionScalarFieldEnum = {
   id: 'id',
   attendanceRecordId: 'attendanceRecordId',
+  attendanceSessionId: 'attendanceSessionId',
   startedAt: 'startedAt',
   endedAt: 'endedAt',
   createdAt: 'createdAt',
@@ -4041,6 +4109,34 @@ export const BreakSessionScalarFieldEnum = {
 } as const
 
 export type BreakSessionScalarFieldEnum = (typeof BreakSessionScalarFieldEnum)[keyof typeof BreakSessionScalarFieldEnum]
+
+
+export const AttendanceSessionScalarFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  durationMin: 'durationMin',
+  status: 'status',
+  clockInLat: 'clockInLat',
+  clockInLng: 'clockInLng',
+  clockInDistanceMeters: 'clockInDistanceMeters',
+  clockOutLat: 'clockOutLat',
+  clockOutLng: 'clockOutLng',
+  clockOutDistanceMeters: 'clockOutDistanceMeters',
+  clockInNotes: 'clockInNotes',
+  clockOutNotes: 'clockOutNotes',
+  xeroSelfieFileId: 'xeroSelfieFileId',
+  selfieUploadedAt: 'selfieUploadedAt',
+  project: 'project',
+  projectId: 'projectId',
+  clockInApprovalRequestId: 'clockInApprovalRequestId',
+  clockOutApprovalRequestId: 'clockOutApprovalRequestId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AttendanceSessionScalarFieldEnum = (typeof AttendanceSessionScalarFieldEnum)[keyof typeof AttendanceSessionScalarFieldEnum]
 
 
 export const BreakSessionEditLogScalarFieldEnum = {
@@ -4948,10 +5044,26 @@ export type AttendanceEditLogOrderByRelevanceFieldEnum = (typeof AttendanceEditL
 
 export const BreakSessionOrderByRelevanceFieldEnum = {
   id: 'id',
-  attendanceRecordId: 'attendanceRecordId'
+  attendanceRecordId: 'attendanceRecordId',
+  attendanceSessionId: 'attendanceSessionId'
 } as const
 
 export type BreakSessionOrderByRelevanceFieldEnum = (typeof BreakSessionOrderByRelevanceFieldEnum)[keyof typeof BreakSessionOrderByRelevanceFieldEnum]
+
+
+export const AttendanceSessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  attendanceRecordId: 'attendanceRecordId',
+  clockInNotes: 'clockInNotes',
+  clockOutNotes: 'clockOutNotes',
+  xeroSelfieFileId: 'xeroSelfieFileId',
+  project: 'project',
+  projectId: 'projectId',
+  clockInApprovalRequestId: 'clockInApprovalRequestId',
+  clockOutApprovalRequestId: 'clockOutApprovalRequestId'
+} as const
+
+export type AttendanceSessionOrderByRelevanceFieldEnum = (typeof AttendanceSessionOrderByRelevanceFieldEnum)[keyof typeof AttendanceSessionOrderByRelevanceFieldEnum]
 
 
 export const BreakSessionEditLogOrderByRelevanceFieldEnum = {
@@ -5722,6 +5834,7 @@ export type GlobalOmitConfig = {
   attendanceRecord?: Prisma.AttendanceRecordOmit
   attendanceEditLog?: Prisma.AttendanceEditLogOmit
   breakSession?: Prisma.BreakSessionOmit
+  attendanceSession?: Prisma.AttendanceSessionOmit
   breakSessionEditLog?: Prisma.BreakSessionEditLogOmit
   approvalRequest?: Prisma.ApprovalRequestOmit
   approvalChainStep?: Prisma.ApprovalChainStepOmit

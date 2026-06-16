@@ -47,6 +47,7 @@ export type BreakSessionSumAggregateOutputType = {
 export type BreakSessionMinAggregateOutputType = {
   id: string | null
   attendanceRecordId: string | null
+  attendanceSessionId: string | null
   startedAt: Date | null
   endedAt: Date | null
   createdAt: Date | null
@@ -61,6 +62,7 @@ export type BreakSessionMinAggregateOutputType = {
 export type BreakSessionMaxAggregateOutputType = {
   id: string | null
   attendanceRecordId: string | null
+  attendanceSessionId: string | null
   startedAt: Date | null
   endedAt: Date | null
   createdAt: Date | null
@@ -75,6 +77,7 @@ export type BreakSessionMaxAggregateOutputType = {
 export type BreakSessionCountAggregateOutputType = {
   id: number
   attendanceRecordId: number
+  attendanceSessionId: number
   startedAt: number
   endedAt: number
   createdAt: number
@@ -109,6 +112,7 @@ export type BreakSessionSumAggregateInputType = {
 export type BreakSessionMinAggregateInputType = {
   id?: true
   attendanceRecordId?: true
+  attendanceSessionId?: true
   startedAt?: true
   endedAt?: true
   createdAt?: true
@@ -123,6 +127,7 @@ export type BreakSessionMinAggregateInputType = {
 export type BreakSessionMaxAggregateInputType = {
   id?: true
   attendanceRecordId?: true
+  attendanceSessionId?: true
   startedAt?: true
   endedAt?: true
   createdAt?: true
@@ -137,6 +142,7 @@ export type BreakSessionMaxAggregateInputType = {
 export type BreakSessionCountAggregateInputType = {
   id?: true
   attendanceRecordId?: true
+  attendanceSessionId?: true
   startedAt?: true
   endedAt?: true
   createdAt?: true
@@ -238,6 +244,7 @@ export type BreakSessionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Int
 export type BreakSessionGroupByOutputType = {
   id: string
   attendanceRecordId: string
+  attendanceSessionId: string | null
   startedAt: Date
   endedAt: Date | null
   createdAt: Date
@@ -275,6 +282,7 @@ export type BreakSessionWhereInput = {
   NOT?: Prisma.BreakSessionWhereInput | Prisma.BreakSessionWhereInput[]
   id?: Prisma.StringFilter<"BreakSession"> | string
   attendanceRecordId?: Prisma.StringFilter<"BreakSession"> | string
+  attendanceSessionId?: Prisma.StringNullableFilter<"BreakSession"> | string | null
   startedAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
   endedAt?: Prisma.DateTimeNullableFilter<"BreakSession"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
@@ -285,12 +293,14 @@ export type BreakSessionWhereInput = {
   endedAtLng?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
   endedAtDistanceMeters?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
   attendanceRecord?: Prisma.XOR<Prisma.AttendanceRecordScalarRelationFilter, Prisma.AttendanceRecordWhereInput>
+  attendanceSession?: Prisma.XOR<Prisma.AttendanceSessionNullableScalarRelationFilter, Prisma.AttendanceSessionWhereInput> | null
   editLogs?: Prisma.BreakSessionEditLogListRelationFilter
 }
 
 export type BreakSessionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   attendanceRecordId?: Prisma.SortOrder
+  attendanceSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -301,6 +311,7 @@ export type BreakSessionOrderByWithRelationInput = {
   endedAtLng?: Prisma.SortOrderInput | Prisma.SortOrder
   endedAtDistanceMeters?: Prisma.SortOrderInput | Prisma.SortOrder
   attendanceRecord?: Prisma.AttendanceRecordOrderByWithRelationInput
+  attendanceSession?: Prisma.AttendanceSessionOrderByWithRelationInput
   editLogs?: Prisma.BreakSessionEditLogOrderByRelationAggregateInput
   _relevance?: Prisma.BreakSessionOrderByRelevanceInput
 }
@@ -311,6 +322,7 @@ export type BreakSessionWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.BreakSessionWhereInput[]
   NOT?: Prisma.BreakSessionWhereInput | Prisma.BreakSessionWhereInput[]
   attendanceRecordId?: Prisma.StringFilter<"BreakSession"> | string
+  attendanceSessionId?: Prisma.StringNullableFilter<"BreakSession"> | string | null
   startedAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
   endedAt?: Prisma.DateTimeNullableFilter<"BreakSession"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
@@ -321,12 +333,14 @@ export type BreakSessionWhereUniqueInput = Prisma.AtLeast<{
   endedAtLng?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
   endedAtDistanceMeters?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
   attendanceRecord?: Prisma.XOR<Prisma.AttendanceRecordScalarRelationFilter, Prisma.AttendanceRecordWhereInput>
+  attendanceSession?: Prisma.XOR<Prisma.AttendanceSessionNullableScalarRelationFilter, Prisma.AttendanceSessionWhereInput> | null
   editLogs?: Prisma.BreakSessionEditLogListRelationFilter
 }, "id">
 
 export type BreakSessionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   attendanceRecordId?: Prisma.SortOrder
+  attendanceSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -349,6 +363,7 @@ export type BreakSessionScalarWhereWithAggregatesInput = {
   NOT?: Prisma.BreakSessionScalarWhereWithAggregatesInput | Prisma.BreakSessionScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"BreakSession"> | string
   attendanceRecordId?: Prisma.StringWithAggregatesFilter<"BreakSession"> | string
+  attendanceSessionId?: Prisma.StringNullableWithAggregatesFilter<"BreakSession"> | string | null
   startedAt?: Prisma.DateTimeWithAggregatesFilter<"BreakSession"> | Date | string
   endedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"BreakSession"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"BreakSession"> | Date | string
@@ -372,12 +387,14 @@ export type BreakSessionCreateInput = {
   endedAtLng?: number | null
   endedAtDistanceMeters?: number | null
   attendanceRecord: Prisma.AttendanceRecordCreateNestedOneWithoutBreaksInput
+  attendanceSession?: Prisma.AttendanceSessionCreateNestedOneWithoutBreaksInput
   editLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutBreakSessionInput
 }
 
 export type BreakSessionUncheckedCreateInput = {
   id?: string
   attendanceRecordId: string
+  attendanceSessionId?: string | null
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
@@ -402,12 +419,14 @@ export type BreakSessionUpdateInput = {
   endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   attendanceRecord?: Prisma.AttendanceRecordUpdateOneRequiredWithoutBreaksNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUpdateOneWithoutBreaksNestedInput
   editLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutBreakSessionNestedInput
 }
 
 export type BreakSessionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
+  attendanceSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -423,6 +442,7 @@ export type BreakSessionUncheckedUpdateInput = {
 export type BreakSessionCreateManyInput = {
   id?: string
   attendanceRecordId: string
+  attendanceSessionId?: string | null
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
@@ -450,6 +470,7 @@ export type BreakSessionUpdateManyMutationInput = {
 export type BreakSessionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
+  attendanceSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -480,6 +501,7 @@ export type BreakSessionOrderByRelevanceInput = {
 export type BreakSessionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   attendanceRecordId?: Prisma.SortOrder
+  attendanceSessionId?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -503,6 +525,7 @@ export type BreakSessionAvgOrderByAggregateInput = {
 export type BreakSessionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   attendanceRecordId?: Prisma.SortOrder
+  attendanceSessionId?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -517,6 +540,7 @@ export type BreakSessionMaxOrderByAggregateInput = {
 export type BreakSessionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   attendanceRecordId?: Prisma.SortOrder
+  attendanceSessionId?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
   endedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -584,6 +608,48 @@ export type BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput = 
   deleteMany?: Prisma.BreakSessionScalarWhereInput | Prisma.BreakSessionScalarWhereInput[]
 }
 
+export type BreakSessionCreateNestedManyWithoutAttendanceSessionInput = {
+  create?: Prisma.XOR<Prisma.BreakSessionCreateWithoutAttendanceSessionInput, Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput> | Prisma.BreakSessionCreateWithoutAttendanceSessionInput[] | Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput[]
+  connectOrCreate?: Prisma.BreakSessionCreateOrConnectWithoutAttendanceSessionInput | Prisma.BreakSessionCreateOrConnectWithoutAttendanceSessionInput[]
+  createMany?: Prisma.BreakSessionCreateManyAttendanceSessionInputEnvelope
+  connect?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+}
+
+export type BreakSessionUncheckedCreateNestedManyWithoutAttendanceSessionInput = {
+  create?: Prisma.XOR<Prisma.BreakSessionCreateWithoutAttendanceSessionInput, Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput> | Prisma.BreakSessionCreateWithoutAttendanceSessionInput[] | Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput[]
+  connectOrCreate?: Prisma.BreakSessionCreateOrConnectWithoutAttendanceSessionInput | Prisma.BreakSessionCreateOrConnectWithoutAttendanceSessionInput[]
+  createMany?: Prisma.BreakSessionCreateManyAttendanceSessionInputEnvelope
+  connect?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+}
+
+export type BreakSessionUpdateManyWithoutAttendanceSessionNestedInput = {
+  create?: Prisma.XOR<Prisma.BreakSessionCreateWithoutAttendanceSessionInput, Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput> | Prisma.BreakSessionCreateWithoutAttendanceSessionInput[] | Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput[]
+  connectOrCreate?: Prisma.BreakSessionCreateOrConnectWithoutAttendanceSessionInput | Prisma.BreakSessionCreateOrConnectWithoutAttendanceSessionInput[]
+  upsert?: Prisma.BreakSessionUpsertWithWhereUniqueWithoutAttendanceSessionInput | Prisma.BreakSessionUpsertWithWhereUniqueWithoutAttendanceSessionInput[]
+  createMany?: Prisma.BreakSessionCreateManyAttendanceSessionInputEnvelope
+  set?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+  disconnect?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+  delete?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+  connect?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+  update?: Prisma.BreakSessionUpdateWithWhereUniqueWithoutAttendanceSessionInput | Prisma.BreakSessionUpdateWithWhereUniqueWithoutAttendanceSessionInput[]
+  updateMany?: Prisma.BreakSessionUpdateManyWithWhereWithoutAttendanceSessionInput | Prisma.BreakSessionUpdateManyWithWhereWithoutAttendanceSessionInput[]
+  deleteMany?: Prisma.BreakSessionScalarWhereInput | Prisma.BreakSessionScalarWhereInput[]
+}
+
+export type BreakSessionUncheckedUpdateManyWithoutAttendanceSessionNestedInput = {
+  create?: Prisma.XOR<Prisma.BreakSessionCreateWithoutAttendanceSessionInput, Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput> | Prisma.BreakSessionCreateWithoutAttendanceSessionInput[] | Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput[]
+  connectOrCreate?: Prisma.BreakSessionCreateOrConnectWithoutAttendanceSessionInput | Prisma.BreakSessionCreateOrConnectWithoutAttendanceSessionInput[]
+  upsert?: Prisma.BreakSessionUpsertWithWhereUniqueWithoutAttendanceSessionInput | Prisma.BreakSessionUpsertWithWhereUniqueWithoutAttendanceSessionInput[]
+  createMany?: Prisma.BreakSessionCreateManyAttendanceSessionInputEnvelope
+  set?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+  disconnect?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+  delete?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+  connect?: Prisma.BreakSessionWhereUniqueInput | Prisma.BreakSessionWhereUniqueInput[]
+  update?: Prisma.BreakSessionUpdateWithWhereUniqueWithoutAttendanceSessionInput | Prisma.BreakSessionUpdateWithWhereUniqueWithoutAttendanceSessionInput[]
+  updateMany?: Prisma.BreakSessionUpdateManyWithWhereWithoutAttendanceSessionInput | Prisma.BreakSessionUpdateManyWithWhereWithoutAttendanceSessionInput[]
+  deleteMany?: Prisma.BreakSessionScalarWhereInput | Prisma.BreakSessionScalarWhereInput[]
+}
+
 export type BreakSessionCreateNestedOneWithoutEditLogsInput = {
   create?: Prisma.XOR<Prisma.BreakSessionCreateWithoutEditLogsInput, Prisma.BreakSessionUncheckedCreateWithoutEditLogsInput>
   connectOrCreate?: Prisma.BreakSessionCreateOrConnectWithoutEditLogsInput
@@ -611,11 +677,13 @@ export type BreakSessionCreateWithoutAttendanceRecordInput = {
   endedAtLat?: number | null
   endedAtLng?: number | null
   endedAtDistanceMeters?: number | null
+  attendanceSession?: Prisma.AttendanceSessionCreateNestedOneWithoutBreaksInput
   editLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutBreakSessionInput
 }
 
 export type BreakSessionUncheckedCreateWithoutAttendanceRecordInput = {
   id?: string
+  attendanceSessionId?: string | null
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
@@ -660,6 +728,7 @@ export type BreakSessionScalarWhereInput = {
   NOT?: Prisma.BreakSessionScalarWhereInput | Prisma.BreakSessionScalarWhereInput[]
   id?: Prisma.StringFilter<"BreakSession"> | string
   attendanceRecordId?: Prisma.StringFilter<"BreakSession"> | string
+  attendanceSessionId?: Prisma.StringNullableFilter<"BreakSession"> | string | null
   startedAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
   endedAt?: Prisma.DateTimeNullableFilter<"BreakSession"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"BreakSession"> | Date | string
@@ -669,6 +738,62 @@ export type BreakSessionScalarWhereInput = {
   endedAtLat?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
   endedAtLng?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
   endedAtDistanceMeters?: Prisma.FloatNullableFilter<"BreakSession"> | number | null
+}
+
+export type BreakSessionCreateWithoutAttendanceSessionInput = {
+  id?: string
+  startedAt: Date | string
+  endedAt?: Date | string | null
+  createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
+  attendanceRecord: Prisma.AttendanceRecordCreateNestedOneWithoutBreaksInput
+  editLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutBreakSessionInput
+}
+
+export type BreakSessionUncheckedCreateWithoutAttendanceSessionInput = {
+  id?: string
+  attendanceRecordId: string
+  startedAt: Date | string
+  endedAt?: Date | string | null
+  createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
+  editLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutBreakSessionInput
+}
+
+export type BreakSessionCreateOrConnectWithoutAttendanceSessionInput = {
+  where: Prisma.BreakSessionWhereUniqueInput
+  create: Prisma.XOR<Prisma.BreakSessionCreateWithoutAttendanceSessionInput, Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput>
+}
+
+export type BreakSessionCreateManyAttendanceSessionInputEnvelope = {
+  data: Prisma.BreakSessionCreateManyAttendanceSessionInput | Prisma.BreakSessionCreateManyAttendanceSessionInput[]
+  skipDuplicates?: boolean
+}
+
+export type BreakSessionUpsertWithWhereUniqueWithoutAttendanceSessionInput = {
+  where: Prisma.BreakSessionWhereUniqueInput
+  update: Prisma.XOR<Prisma.BreakSessionUpdateWithoutAttendanceSessionInput, Prisma.BreakSessionUncheckedUpdateWithoutAttendanceSessionInput>
+  create: Prisma.XOR<Prisma.BreakSessionCreateWithoutAttendanceSessionInput, Prisma.BreakSessionUncheckedCreateWithoutAttendanceSessionInput>
+}
+
+export type BreakSessionUpdateWithWhereUniqueWithoutAttendanceSessionInput = {
+  where: Prisma.BreakSessionWhereUniqueInput
+  data: Prisma.XOR<Prisma.BreakSessionUpdateWithoutAttendanceSessionInput, Prisma.BreakSessionUncheckedUpdateWithoutAttendanceSessionInput>
+}
+
+export type BreakSessionUpdateManyWithWhereWithoutAttendanceSessionInput = {
+  where: Prisma.BreakSessionScalarWhereInput
+  data: Prisma.XOR<Prisma.BreakSessionUpdateManyMutationInput, Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceSessionInput>
 }
 
 export type BreakSessionCreateWithoutEditLogsInput = {
@@ -683,11 +808,13 @@ export type BreakSessionCreateWithoutEditLogsInput = {
   endedAtLng?: number | null
   endedAtDistanceMeters?: number | null
   attendanceRecord: Prisma.AttendanceRecordCreateNestedOneWithoutBreaksInput
+  attendanceSession?: Prisma.AttendanceSessionCreateNestedOneWithoutBreaksInput
 }
 
 export type BreakSessionUncheckedCreateWithoutEditLogsInput = {
   id?: string
   attendanceRecordId: string
+  attendanceSessionId?: string | null
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
@@ -727,11 +854,13 @@ export type BreakSessionUpdateWithoutEditLogsInput = {
   endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   attendanceRecord?: Prisma.AttendanceRecordUpdateOneRequiredWithoutBreaksNestedInput
+  attendanceSession?: Prisma.AttendanceSessionUpdateOneWithoutBreaksNestedInput
 }
 
 export type BreakSessionUncheckedUpdateWithoutEditLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
+  attendanceSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -745,6 +874,7 @@ export type BreakSessionUncheckedUpdateWithoutEditLogsInput = {
 
 export type BreakSessionCreateManyAttendanceRecordInput = {
   id?: string
+  attendanceSessionId?: string | null
   startedAt: Date | string
   endedAt?: Date | string | null
   createdAt?: Date | string
@@ -767,11 +897,13 @@ export type BreakSessionUpdateWithoutAttendanceRecordInput = {
   endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  attendanceSession?: Prisma.AttendanceSessionUpdateOneWithoutBreaksNestedInput
   editLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutBreakSessionNestedInput
 }
 
 export type BreakSessionUncheckedUpdateWithoutAttendanceRecordInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  attendanceSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -786,6 +918,65 @@ export type BreakSessionUncheckedUpdateWithoutAttendanceRecordInput = {
 
 export type BreakSessionUncheckedUpdateManyWithoutAttendanceRecordInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  attendanceSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+}
+
+export type BreakSessionCreateManyAttendanceSessionInput = {
+  id?: string
+  attendanceRecordId: string
+  startedAt: Date | string
+  endedAt?: Date | string | null
+  createdAt?: Date | string
+  startedAtLat?: number | null
+  startedAtLng?: number | null
+  startedAtDistanceMeters?: number | null
+  endedAtLat?: number | null
+  endedAtLng?: number | null
+  endedAtDistanceMeters?: number | null
+}
+
+export type BreakSessionUpdateWithoutAttendanceSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  attendanceRecord?: Prisma.AttendanceRecordUpdateOneRequiredWithoutBreaksNestedInput
+  editLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutBreakSessionNestedInput
+}
+
+export type BreakSessionUncheckedUpdateWithoutAttendanceSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
+  startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  startedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  startedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  endedAtDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  editLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutBreakSessionNestedInput
+}
+
+export type BreakSessionUncheckedUpdateManyWithoutAttendanceSessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  attendanceRecordId?: Prisma.StringFieldUpdateOperationsInput | string
   startedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -831,6 +1022,7 @@ export type BreakSessionCountOutputTypeCountEditLogsArgs<ExtArgs extends runtime
 export type BreakSessionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   attendanceRecordId?: boolean
+  attendanceSessionId?: boolean
   startedAt?: boolean
   endedAt?: boolean
   createdAt?: boolean
@@ -841,6 +1033,7 @@ export type BreakSessionSelect<ExtArgs extends runtime.Types.Extensions.Internal
   endedAtLng?: boolean
   endedAtDistanceMeters?: boolean
   attendanceRecord?: boolean | Prisma.AttendanceRecordDefaultArgs<ExtArgs>
+  attendanceSession?: boolean | Prisma.BreakSession$attendanceSessionArgs<ExtArgs>
   editLogs?: boolean | Prisma.BreakSession$editLogsArgs<ExtArgs>
   _count?: boolean | Prisma.BreakSessionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["breakSession"]>
@@ -850,6 +1043,7 @@ export type BreakSessionSelect<ExtArgs extends runtime.Types.Extensions.Internal
 export type BreakSessionSelectScalar = {
   id?: boolean
   attendanceRecordId?: boolean
+  attendanceSessionId?: boolean
   startedAt?: boolean
   endedAt?: boolean
   createdAt?: boolean
@@ -861,9 +1055,10 @@ export type BreakSessionSelectScalar = {
   endedAtDistanceMeters?: boolean
 }
 
-export type BreakSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attendanceRecordId" | "startedAt" | "endedAt" | "createdAt" | "startedAtLat" | "startedAtLng" | "startedAtDistanceMeters" | "endedAtLat" | "endedAtLng" | "endedAtDistanceMeters", ExtArgs["result"]["breakSession"]>
+export type BreakSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attendanceRecordId" | "attendanceSessionId" | "startedAt" | "endedAt" | "createdAt" | "startedAtLat" | "startedAtLng" | "startedAtDistanceMeters" | "endedAtLat" | "endedAtLng" | "endedAtDistanceMeters", ExtArgs["result"]["breakSession"]>
 export type BreakSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   attendanceRecord?: boolean | Prisma.AttendanceRecordDefaultArgs<ExtArgs>
+  attendanceSession?: boolean | Prisma.BreakSession$attendanceSessionArgs<ExtArgs>
   editLogs?: boolean | Prisma.BreakSession$editLogsArgs<ExtArgs>
   _count?: boolean | Prisma.BreakSessionCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -872,11 +1067,18 @@ export type $BreakSessionPayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "BreakSession"
   objects: {
     attendanceRecord: Prisma.$AttendanceRecordPayload<ExtArgs>
+    attendanceSession: Prisma.$AttendanceSessionPayload<ExtArgs> | null
     editLogs: Prisma.$BreakSessionEditLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     attendanceRecordId: string
+    /**
+     * FK to the specific session this break belongs to. Null on legacy
+     * rows created before multi-session was introduced; a backfill script
+     * populates this for existing records.
+     */
+    attendanceSessionId: string | null
     startedAt: Date
     endedAt: Date | null
     createdAt: Date
@@ -1237,6 +1439,7 @@ readonly fields: BreakSessionFieldRefs;
 export interface Prisma__BreakSessionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   attendanceRecord<T extends Prisma.AttendanceRecordDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceRecordDefaultArgs<ExtArgs>>): Prisma.Prisma__AttendanceRecordClient<runtime.Types.Result.GetResult<Prisma.$AttendanceRecordPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  attendanceSession<T extends Prisma.BreakSession$attendanceSessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BreakSession$attendanceSessionArgs<ExtArgs>>): Prisma.Prisma__AttendanceSessionClient<runtime.Types.Result.GetResult<Prisma.$AttendanceSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   editLogs<T extends Prisma.BreakSession$editLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BreakSession$editLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BreakSessionEditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1269,6 +1472,7 @@ export interface Prisma__BreakSessionClient<T, Null = never, ExtArgs extends run
 export interface BreakSessionFieldRefs {
   readonly id: Prisma.FieldRef<"BreakSession", 'String'>
   readonly attendanceRecordId: Prisma.FieldRef<"BreakSession", 'String'>
+  readonly attendanceSessionId: Prisma.FieldRef<"BreakSession", 'String'>
   readonly startedAt: Prisma.FieldRef<"BreakSession", 'DateTime'>
   readonly endedAt: Prisma.FieldRef<"BreakSession", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"BreakSession", 'DateTime'>
@@ -1623,6 +1827,25 @@ export type BreakSessionDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.
    * Limit how many BreakSessions to delete.
    */
   limit?: number
+}
+
+/**
+ * BreakSession.attendanceSession
+ */
+export type BreakSession$attendanceSessionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AttendanceSession
+   */
+  select?: Prisma.AttendanceSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AttendanceSession
+   */
+  omit?: Prisma.AttendanceSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AttendanceSessionInclude<ExtArgs> | null
+  where?: Prisma.AttendanceSessionWhereInput
 }
 
 /**

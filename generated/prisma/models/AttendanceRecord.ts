@@ -393,6 +393,7 @@ export type AttendanceRecordWhereInput = {
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
   breaks?: Prisma.BreakSessionListRelationFilter
   breakEditLogs?: Prisma.BreakSessionEditLogListRelationFilter
+  sessions?: Prisma.AttendanceSessionListRelationFilter
 }
 
 export type AttendanceRecordOrderByWithRelationInput = {
@@ -424,6 +425,7 @@ export type AttendanceRecordOrderByWithRelationInput = {
   projectRef?: Prisma.XeroProjectOrderByWithRelationInput
   breaks?: Prisma.BreakSessionOrderByRelationAggregateInput
   breakEditLogs?: Prisma.BreakSessionEditLogOrderByRelationAggregateInput
+  sessions?: Prisma.AttendanceSessionOrderByRelationAggregateInput
   _relevance?: Prisma.AttendanceRecordOrderByRelevanceInput
 }
 
@@ -460,6 +462,7 @@ export type AttendanceRecordWhereUniqueInput = Prisma.AtLeast<{
   projectRef?: Prisma.XOR<Prisma.XeroProjectNullableScalarRelationFilter, Prisma.XeroProjectWhereInput> | null
   breaks?: Prisma.BreakSessionListRelationFilter
   breakEditLogs?: Prisma.BreakSessionEditLogListRelationFilter
+  sessions?: Prisma.AttendanceSessionListRelationFilter
 }, "id" | "employeeId_date">
 
 export type AttendanceRecordOrderByWithAggregationInput = {
@@ -549,6 +552,7 @@ export type AttendanceRecordCreateInput = {
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateInput = {
@@ -578,6 +582,7 @@ export type AttendanceRecordUncheckedCreateInput = {
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUpdateInput = {
@@ -607,6 +612,7 @@ export type AttendanceRecordUpdateInput = {
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateInput = {
@@ -636,6 +642,7 @@ export type AttendanceRecordUncheckedUpdateInput = {
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordCreateManyInput = {
@@ -956,6 +963,20 @@ export type AttendanceRecordUpdateOneRequiredWithoutBreaksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AttendanceRecordUpdateToOneWithWhereWithoutBreaksInput, Prisma.AttendanceRecordUpdateWithoutBreaksInput>, Prisma.AttendanceRecordUncheckedUpdateWithoutBreaksInput>
 }
 
+export type AttendanceRecordCreateNestedOneWithoutSessionsInput = {
+  create?: Prisma.XOR<Prisma.AttendanceRecordCreateWithoutSessionsInput, Prisma.AttendanceRecordUncheckedCreateWithoutSessionsInput>
+  connectOrCreate?: Prisma.AttendanceRecordCreateOrConnectWithoutSessionsInput
+  connect?: Prisma.AttendanceRecordWhereUniqueInput
+}
+
+export type AttendanceRecordUpdateOneRequiredWithoutSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.AttendanceRecordCreateWithoutSessionsInput, Prisma.AttendanceRecordUncheckedCreateWithoutSessionsInput>
+  connectOrCreate?: Prisma.AttendanceRecordCreateOrConnectWithoutSessionsInput
+  upsert?: Prisma.AttendanceRecordUpsertWithoutSessionsInput
+  connect?: Prisma.AttendanceRecordWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AttendanceRecordUpdateToOneWithWhereWithoutSessionsInput, Prisma.AttendanceRecordUpdateWithoutSessionsInput>, Prisma.AttendanceRecordUncheckedUpdateWithoutSessionsInput>
+}
+
 export type AttendanceRecordCreateNestedOneWithoutBreakEditLogsInput = {
   create?: Prisma.XOR<Prisma.AttendanceRecordCreateWithoutBreakEditLogsInput, Prisma.AttendanceRecordUncheckedCreateWithoutBreakEditLogsInput>
   connectOrCreate?: Prisma.AttendanceRecordCreateOrConnectWithoutBreakEditLogsInput
@@ -996,6 +1017,7 @@ export type AttendanceRecordCreateWithoutEmployeeInput = {
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateWithoutEmployeeInput = {
@@ -1024,6 +1046,7 @@ export type AttendanceRecordUncheckedCreateWithoutEmployeeInput = {
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordCreateOrConnectWithoutEmployeeInput = {
@@ -1107,6 +1130,7 @@ export type AttendanceRecordCreateWithoutProjectRefInput = {
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateWithoutProjectRefInput = {
@@ -1135,6 +1159,7 @@ export type AttendanceRecordUncheckedCreateWithoutProjectRefInput = {
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordCreateOrConnectWithoutProjectRefInput = {
@@ -1189,6 +1214,7 @@ export type AttendanceRecordCreateWithoutEditLogsInput = {
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateWithoutEditLogsInput = {
@@ -1217,6 +1243,7 @@ export type AttendanceRecordUncheckedCreateWithoutEditLogsInput = {
   clockOutLng?: number | null
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordCreateOrConnectWithoutEditLogsInput = {
@@ -1261,6 +1288,7 @@ export type AttendanceRecordUpdateWithoutEditLogsInput = {
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateWithoutEditLogsInput = {
@@ -1289,6 +1317,7 @@ export type AttendanceRecordUncheckedUpdateWithoutEditLogsInput = {
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordCreateWithoutBreaksInput = {
@@ -1317,6 +1346,7 @@ export type AttendanceRecordCreateWithoutBreaksInput = {
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breakEditLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateWithoutBreaksInput = {
@@ -1345,6 +1375,7 @@ export type AttendanceRecordUncheckedCreateWithoutBreaksInput = {
   clockOutLng?: number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordCreateOrConnectWithoutBreaksInput = {
@@ -1389,6 +1420,7 @@ export type AttendanceRecordUpdateWithoutBreaksInput = {
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateWithoutBreaksInput = {
@@ -1416,6 +1448,139 @@ export type AttendanceRecordUncheckedUpdateWithoutBreaksInput = {
   clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+}
+
+export type AttendanceRecordCreateWithoutSessionsInput = {
+  id?: string
+  date: Date | string
+  timeIn?: Date | string | null
+  timeOut?: Date | string | null
+  durationMin?: number | null
+  lateByMin?: number | null
+  location?: string | null
+  project?: string | null
+  status?: $Enums.AttendanceStatus
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  selfieUploadedAt?: Date | string | null
+  xeroSelfieFileId?: string | null
+  remark?: string | null
+  clockInDistanceMeters?: number | null
+  clockInLat?: number | null
+  clockInLng?: number | null
+  clockOutDistanceMeters?: number | null
+  clockOutLat?: number | null
+  clockOutLng?: number | null
+  editLogs?: Prisma.AttendanceEditLogCreateNestedManyWithoutAttendanceRecordInput
+  employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
+  projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
+  breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
+  breakEditLogs?: Prisma.BreakSessionEditLogCreateNestedManyWithoutAttendanceRecordInput
+}
+
+export type AttendanceRecordUncheckedCreateWithoutSessionsInput = {
+  id?: string
+  employeeId: string
+  date: Date | string
+  timeIn?: Date | string | null
+  timeOut?: Date | string | null
+  durationMin?: number | null
+  lateByMin?: number | null
+  location?: string | null
+  project?: string | null
+  status?: $Enums.AttendanceStatus
+  notes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  projectId?: string | null
+  selfieUploadedAt?: Date | string | null
+  xeroSelfieFileId?: string | null
+  remark?: string | null
+  clockInDistanceMeters?: number | null
+  clockInLat?: number | null
+  clockInLng?: number | null
+  clockOutDistanceMeters?: number | null
+  clockOutLat?: number | null
+  clockOutLng?: number | null
+  editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  breakEditLogs?: Prisma.BreakSessionEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
+}
+
+export type AttendanceRecordCreateOrConnectWithoutSessionsInput = {
+  where: Prisma.AttendanceRecordWhereUniqueInput
+  create: Prisma.XOR<Prisma.AttendanceRecordCreateWithoutSessionsInput, Prisma.AttendanceRecordUncheckedCreateWithoutSessionsInput>
+}
+
+export type AttendanceRecordUpsertWithoutSessionsInput = {
+  update: Prisma.XOR<Prisma.AttendanceRecordUpdateWithoutSessionsInput, Prisma.AttendanceRecordUncheckedUpdateWithoutSessionsInput>
+  create: Prisma.XOR<Prisma.AttendanceRecordCreateWithoutSessionsInput, Prisma.AttendanceRecordUncheckedCreateWithoutSessionsInput>
+  where?: Prisma.AttendanceRecordWhereInput
+}
+
+export type AttendanceRecordUpdateToOneWithWhereWithoutSessionsInput = {
+  where?: Prisma.AttendanceRecordWhereInput
+  data: Prisma.XOR<Prisma.AttendanceRecordUpdateWithoutSessionsInput, Prisma.AttendanceRecordUncheckedUpdateWithoutSessionsInput>
+}
+
+export type AttendanceRecordUpdateWithoutSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  editLogs?: Prisma.AttendanceEditLogUpdateManyWithoutAttendanceRecordNestedInput
+  employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
+  projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
+  breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
+  breakEditLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutAttendanceRecordNestedInput
+}
+
+export type AttendanceRecordUncheckedUpdateWithoutSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  timeIn?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  timeOut?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  durationMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  lateByMin?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  project?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  selfieUploadedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  xeroSelfieFileId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  remark?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clockInDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockInLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutDistanceMeters?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutLat?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
@@ -1445,6 +1610,7 @@ export type AttendanceRecordCreateWithoutBreakEditLogsInput = {
   employee: Prisma.UserCreateNestedOneWithoutAttendanceInput
   projectRef?: Prisma.XeroProjectCreateNestedOneWithoutAttendanceRecordsInput
   breaks?: Prisma.BreakSessionCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordUncheckedCreateWithoutBreakEditLogsInput = {
@@ -1473,6 +1639,7 @@ export type AttendanceRecordUncheckedCreateWithoutBreakEditLogsInput = {
   clockOutLng?: number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedCreateNestedManyWithoutAttendanceRecordInput
   breaks?: Prisma.BreakSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
+  sessions?: Prisma.AttendanceSessionUncheckedCreateNestedManyWithoutAttendanceRecordInput
 }
 
 export type AttendanceRecordCreateOrConnectWithoutBreakEditLogsInput = {
@@ -1517,6 +1684,7 @@ export type AttendanceRecordUpdateWithoutBreakEditLogsInput = {
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateWithoutBreakEditLogsInput = {
@@ -1545,6 +1713,7 @@ export type AttendanceRecordUncheckedUpdateWithoutBreakEditLogsInput = {
   clockOutLng?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordCreateManyEmployeeInput = {
@@ -1598,6 +1767,7 @@ export type AttendanceRecordUpdateWithoutEmployeeInput = {
   projectRef?: Prisma.XeroProjectUpdateOneWithoutAttendanceRecordsNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateWithoutEmployeeInput = {
@@ -1626,6 +1796,7 @@ export type AttendanceRecordUncheckedUpdateWithoutEmployeeInput = {
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateManyWithoutEmployeeInput = {
@@ -1704,6 +1875,7 @@ export type AttendanceRecordUpdateWithoutProjectRefInput = {
   employee?: Prisma.UserUpdateOneRequiredWithoutAttendanceNestedInput
   breaks?: Prisma.BreakSessionUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateWithoutProjectRefInput = {
@@ -1732,6 +1904,7 @@ export type AttendanceRecordUncheckedUpdateWithoutProjectRefInput = {
   editLogs?: Prisma.AttendanceEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breaks?: Prisma.BreakSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
   breakEditLogs?: Prisma.BreakSessionEditLogUncheckedUpdateManyWithoutAttendanceRecordNestedInput
+  sessions?: Prisma.AttendanceSessionUncheckedUpdateManyWithoutAttendanceRecordNestedInput
 }
 
 export type AttendanceRecordUncheckedUpdateManyWithoutProjectRefInput = {
@@ -1768,12 +1941,14 @@ export type AttendanceRecordCountOutputType = {
   editLogs: number
   breaks: number
   breakEditLogs: number
+  sessions: number
 }
 
 export type AttendanceRecordCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   editLogs?: boolean | AttendanceRecordCountOutputTypeCountEditLogsArgs
   breaks?: boolean | AttendanceRecordCountOutputTypeCountBreaksArgs
   breakEditLogs?: boolean | AttendanceRecordCountOutputTypeCountBreakEditLogsArgs
+  sessions?: boolean | AttendanceRecordCountOutputTypeCountSessionsArgs
 }
 
 /**
@@ -1807,6 +1982,13 @@ export type AttendanceRecordCountOutputTypeCountBreakEditLogsArgs<ExtArgs extend
   where?: Prisma.BreakSessionEditLogWhereInput
 }
 
+/**
+ * AttendanceRecordCountOutputType without action
+ */
+export type AttendanceRecordCountOutputTypeCountSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AttendanceSessionWhereInput
+}
+
 
 export type AttendanceRecordSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1837,6 +2019,7 @@ export type AttendanceRecordSelect<ExtArgs extends runtime.Types.Extensions.Inte
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
   breaks?: boolean | Prisma.AttendanceRecord$breaksArgs<ExtArgs>
   breakEditLogs?: boolean | Prisma.AttendanceRecord$breakEditLogsArgs<ExtArgs>
+  sessions?: boolean | Prisma.AttendanceRecord$sessionsArgs<ExtArgs>
   _count?: boolean | Prisma.AttendanceRecordCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["attendanceRecord"]>
 
@@ -1875,6 +2058,7 @@ export type AttendanceRecordInclude<ExtArgs extends runtime.Types.Extensions.Int
   projectRef?: boolean | Prisma.AttendanceRecord$projectRefArgs<ExtArgs>
   breaks?: boolean | Prisma.AttendanceRecord$breaksArgs<ExtArgs>
   breakEditLogs?: boolean | Prisma.AttendanceRecord$breakEditLogsArgs<ExtArgs>
+  sessions?: boolean | Prisma.AttendanceRecord$sessionsArgs<ExtArgs>
   _count?: boolean | Prisma.AttendanceRecordCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -1886,6 +2070,7 @@ export type $AttendanceRecordPayload<ExtArgs extends runtime.Types.Extensions.In
     projectRef: Prisma.$XeroProjectPayload<ExtArgs> | null
     breaks: Prisma.$BreakSessionPayload<ExtArgs>[]
     breakEditLogs: Prisma.$BreakSessionEditLogPayload<ExtArgs>[]
+    sessions: Prisma.$AttendanceSessionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2284,6 +2469,7 @@ export interface Prisma__AttendanceRecordClient<T, Null = never, ExtArgs extends
   projectRef<T extends Prisma.AttendanceRecord$projectRefArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceRecord$projectRefArgs<ExtArgs>>): Prisma.Prisma__XeroProjectClient<runtime.Types.Result.GetResult<Prisma.$XeroProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   breaks<T extends Prisma.AttendanceRecord$breaksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceRecord$breaksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BreakSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   breakEditLogs<T extends Prisma.AttendanceRecord$breakEditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceRecord$breakEditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BreakSessionEditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sessions<T extends Prisma.AttendanceRecord$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AttendanceRecord$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AttendanceSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2772,6 +2958,30 @@ export type AttendanceRecord$breakEditLogsArgs<ExtArgs extends runtime.Types.Ext
   take?: number
   skip?: number
   distinct?: Prisma.BreakSessionEditLogScalarFieldEnum | Prisma.BreakSessionEditLogScalarFieldEnum[]
+}
+
+/**
+ * AttendanceRecord.sessions
+ */
+export type AttendanceRecord$sessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AttendanceSession
+   */
+  select?: Prisma.AttendanceSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AttendanceSession
+   */
+  omit?: Prisma.AttendanceSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AttendanceSessionInclude<ExtArgs> | null
+  where?: Prisma.AttendanceSessionWhereInput
+  orderBy?: Prisma.AttendanceSessionOrderByWithRelationInput | Prisma.AttendanceSessionOrderByWithRelationInput[]
+  cursor?: Prisma.AttendanceSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AttendanceSessionScalarFieldEnum | Prisma.AttendanceSessionScalarFieldEnum[]
 }
 
 /**

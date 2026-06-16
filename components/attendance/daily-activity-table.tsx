@@ -5,6 +5,7 @@ import {
   TableFilterBar,
   type TableFilterValue,
 } from "@/components/attendance/table-filter-bar"
+import type { AttendanceSessionView } from "@/modules/attendance/domain/models"
 
 export type DailyActivityDerivedStatus =
   | "WORKING"
@@ -32,6 +33,7 @@ export type DailyActivityRow = {
   clockOutLat?: number | null
   clockOutLng?: number | null
   offSite?: boolean
+  sessions?: AttendanceSessionView[]
 }
 
 type FilterBarProps = {
@@ -119,6 +121,8 @@ export function DailyActivityTable({
               const outLabel = formatTime(row.timeOut, timezone)
               const meta =
                 [row.project, row.jobTitle].filter(Boolean).join(" · ") || "—"
+              const sessions = row.sessions ?? []
+              const hasMultiSessions = sessions.length > 1
               return (
                 <div
                   key={row.id}
@@ -138,45 +142,91 @@ export function DailyActivityTable({
                   <p className="truncate text-xs text-muted-foreground sm:text-sm">
                     {meta}
                   </p>
-                  <div className="text-sm">
-                    <span className="sm:hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      Clock in:{" "}
-                    </span>
-                    {inLabel ?? <span className="text-muted-foreground">—</span>}
-                    {row.clockInLat != null && row.clockInLng != null ? (
-                      <CoordsLink
-                        lat={row.clockInLat}
-                        lng={row.clockInLng}
-                        className="mt-0.5 flex flex-wrap items-center gap-x-1"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="text-sm">
-                    <span className="sm:hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                      Clock out:{" "}
-                    </span>
-                    {outLabel ? (
-                      outLabel
-                    ) : inLabel ? (
-                      <span className="italic text-muted-foreground">
-                        Still working
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                    {outLabel &&
-                    row.clockOutLat != null &&
-                    row.clockOutLng != null ? (
-                      <CoordsLink
-                        lat={row.clockOutLat}
-                        lng={row.clockOutLng}
-                        className="mt-0.5 flex flex-wrap items-center gap-x-1"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="flex items-center">
-                    {statusBadge(row.derivedStatus ?? null)}
-                  </div>
+                  {hasMultiSessions ? (
+                    // Multi-session: render all sessions inline in the clock-in column,
+                    // span the clock-out column empty, and show status in the last column.
+                    <>
+                      <div className="text-sm sm:col-span-2">
+                        <span className="sm:hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                          Sessions:{" "}
+                        </span>
+                        <div className="flex flex-wrap gap-x-1.5 gap-y-0.5 text-xs">
+                          {sessions.map((s, i) => {
+                            const sIn = formatTime(s.startedAt, timezone)
+                            const sOut = s.endedAt ? formatTime(s.endedAt, timezone) : null
+                            return (
+                              <span key={s.id} className="flex items-baseline gap-x-0.5">
+                                {i > 0 ? (
+                                  <span className="text-muted-foreground select-none">·</span>
+                                ) : null}
+                                <span className="font-semibold">{sIn}</span>
+                                {s.clockInLat != null && s.clockInLng != null ? (
+                                  <CoordsLink lat={s.clockInLat} lng={s.clockInLng} />
+                                ) : null}
+                                <span className="text-muted-foreground">–</span>
+                                {sOut ? (
+                                  <>
+                                    <span className="font-semibold">{sOut}</span>
+                                    {s.clockOutLat != null && s.clockOutLng != null ? (
+                                      <CoordsLink lat={s.clockOutLat} lng={s.clockOutLng} />
+                                    ) : null}
+                                  </>
+                                ) : (
+                                  <span className="italic text-muted-foreground">now</span>
+                                )}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        {statusBadge(row.derivedStatus ?? null)}
+                      </div>
+                    </>
+                  ) : (
+                    // Single-session (or no session): original two-column layout.
+                    <>
+                      <div className="text-sm">
+                        <span className="sm:hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                          Clock in:{" "}
+                        </span>
+                        {inLabel ?? <span className="text-muted-foreground">—</span>}
+                        {row.clockInLat != null && row.clockInLng != null ? (
+                          <CoordsLink
+                            lat={row.clockInLat}
+                            lng={row.clockInLng}
+                            className="mt-0.5 flex flex-wrap items-center gap-x-1"
+                          />
+                        ) : null}
+                      </div>
+                      <div className="text-sm">
+                        <span className="sm:hidden text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                          Clock out:{" "}
+                        </span>
+                        {outLabel ? (
+                          outLabel
+                        ) : inLabel ? (
+                          <span className="italic text-muted-foreground">
+                            Still working
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                        {outLabel &&
+                        row.clockOutLat != null &&
+                        row.clockOutLng != null ? (
+                          <CoordsLink
+                            lat={row.clockOutLat}
+                            lng={row.clockOutLng}
+                            className="mt-0.5 flex flex-wrap items-center gap-x-1"
+                          />
+                        ) : null}
+                      </div>
+                      <div className="flex items-center">
+                        {statusBadge(row.derivedStatus ?? null)}
+                      </div>
+                    </>
+                  )}
                 </div>
               )
             })}

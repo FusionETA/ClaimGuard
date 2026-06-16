@@ -8,6 +8,7 @@ import type {
   ApprovalRequestView,
   ApprovalStatus,
   AttendanceRecordView,
+  AttendanceSessionView,
   AttendanceStatus,
   ClockEventLite,
   OTSubtype,
@@ -186,6 +187,19 @@ type PrismaAttendance = {
   clockOutLat?: number | null
   clockOutLng?: number | null
   breaks?: Array<{ startedAt: Date; endedAt: Date | null }>
+  sessions?: Array<{
+    id: string
+    startedAt: Date
+    endedAt: Date | null
+    durationMin: number | null
+    status: string
+    clockInLat: number | null
+    clockInLng: number | null
+    clockOutLat: number | null
+    clockOutLng: number | null
+    clockInNotes: string | null
+    clockOutNotes: string | null
+  }>
 }
 
 function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
@@ -202,6 +216,21 @@ function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
       currentBreakStartedAt = b.startedAt.toISOString()
     }
   }
+  const sessions: AttendanceSessionView[] = (r.sessions ?? [])
+    .sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime())
+    .map((s) => ({
+      id: s.id,
+      startedAt: s.startedAt.toISOString(),
+      endedAt: s.endedAt?.toISOString() ?? null,
+      durationMin: s.durationMin,
+      status: s.status as AttendanceStatus,
+      clockInLat: s.clockInLat,
+      clockInLng: s.clockInLng,
+      clockOutLat: s.clockOutLat,
+      clockOutLng: s.clockOutLng,
+      clockInNotes: s.clockInNotes,
+      clockOutNotes: s.clockOutNotes,
+    }))
   return {
     id: r.id,
     employeeId: r.employeeId,
@@ -222,11 +251,27 @@ function attendanceToView(r: PrismaAttendance): AttendanceRecordView {
     clockInLng: r.clockInLng ?? null,
     clockOutLat: r.clockOutLat ?? null,
     clockOutLng: r.clockOutLng ?? null,
+    sessions,
   }
 }
 
+const SESSION_SELECT = {
+  id: true,
+  startedAt: true,
+  endedAt: true,
+  durationMin: true,
+  status: true,
+  clockInLat: true,
+  clockInLng: true,
+  clockOutLat: true,
+  clockOutLng: true,
+  clockInNotes: true,
+  clockOutNotes: true,
+} as const
+
 const BREAK_INCLUDE = {
   breaks: { select: { startedAt: true, endedAt: true } },
+  sessions: { select: SESSION_SELECT },
 } as const
 
 type PrismaApproval = {
@@ -449,6 +494,67 @@ async function computeApprovedOtMinutes(
     hasApprovedOT: true,
   })
   return bucket.otMin
+}
+
+// ---------------------------------------------------------------------------
+// Rollup helper
+// ---------------------------------------------------------------------------
+
+/**
+ * Reads all AttendanceSessions for a record, then writes the derived
+ * rollup fields back to AttendanceRecord so existing payroll / reporting
+ * queries that read the record-level fields keep working.
+ *
+ * Returns the computed values so callers can avoid a second DB round-trip.
+ */
+async function recomputeRecordRollup(
+  recordId: string,
+  prisma: ReturnType<typeof getClient>,
+): Promise<{
+  timeIn: Date | null
+  timeOut: Date | null
+  durationMin: number | null
+  status: AttendanceStatus
+}> {
+  const sessions = await prisma.attendanceSession.findMany({
+    where: { attendanceRecordId: recordId },
+    orderBy: { startedAt: "asc" },
+    select: { startedAt: true, endedAt: true, durationMin: true, status: true },
+  })
+
+  if (sessions.length === 0) {
+    return { timeIn: null, timeOut: null, durationMin: null, status: "MISSING" }
+  }
+
+  const timeIn = sessions[0].startedAt
+  const anyOpen = sessions.some((s) => s.endedAt === null)
+  const timeOut = anyOpen
+    ? null
+    : sessions.reduce<Date | null>(
+        (max, s) =>
+          s.endedAt && (!max || s.endedAt > max) ? s.endedAt : max,
+        null,
+      )
+  const durationMin = anyOpen
+    ? null
+    : sessions.reduce((sum, s) => sum + (s.durationMin ?? 0), 0)
+
+  // Status: CLOCKED_OUT when all closed, otherwise use the most recent
+  // session's own status (ON_TIME / LATE).
+  let status: AttendanceStatus = "MISSING"
+  if (!anyOpen) {
+    status = "CLOCKED_OUT"
+  } else {
+    const latestSession = sessions[sessions.length - 1]
+    status = latestSession.status as AttendanceStatus
+  }
+
+  await prisma.attendanceRecord.update({
+    where: { id: recordId },
+    data: { timeIn, timeOut, durationMin, status },
+  })
+
+  return { timeIn, timeOut, durationMin, status }
 }
 
 // ---------------------------------------------------------------------------
@@ -1090,6 +1196,7 @@ export const attendanceRepository = {
     const records = await prisma.attendanceRecord.findMany({
       where: { employeeId, date: { gte: monday } },
       orderBy: { date: "desc" },
+      include: BREAK_INCLUDE,
     })
     return records.map(attendanceToView)
   },
@@ -1194,6 +1301,7 @@ export const attendanceRepository = {
     const records = await prisma.attendanceRecord.findMany({
       where: { employeeId, date: { gte: startOfDay(from), lte: endOfDay(to) } },
       orderBy: { date: "desc" },
+      include: BREAK_INCLUDE,
     })
     return records.map(attendanceToView)
   },
@@ -1209,6 +1317,7 @@ export const attendanceRepository = {
     geo?: { lat: number; lng: number; distanceMeters: number | null },
   ): Promise<{
     recordId: string
+    sessionId: string
     approvalId: string
     /// Current-step approver user-ids for the PENDING request just
     /// created (empty when auto-approved). The service publishes a
@@ -1236,16 +1345,37 @@ export const attendanceRepository = {
     const earlyMin = diff < 0 ? -diff : 0
     const status: AttendanceStatus = lateMin > 0 ? "LATE" : "ON_TIME"
 
+    // Find or create today's roll-up record, then check for an open session.
     const record = await prisma.attendanceRecord.upsert({
       where: { employeeId_date: { employeeId, date: today } },
-      update: {
-        timeIn: now,
-        lateByMin: lateMin || null,
+      update: {},
+      create: {
+        employeeId,
+        date: today,
+        status: "MISSING",
+      },
+      select: {
+        id: true,
+        sessions: {
+          where: { endedAt: null },
+          select: { id: true },
+        },
+      },
+    })
+
+    if (record.sessions.length > 0) {
+      throw new Error("ALREADY_CLOCKED_IN")
+    }
+
+    // Create the new session for this clock-in.
+    const session = await prisma.attendanceSession.create({
+      data: {
+        attendanceRecordId: record.id,
+        startedAt: now,
         status,
         project: projectName,
         projectId: projectId ?? null,
-        location: location ?? null,
-        ...(notes ? { notes: `CLOCK_IN: ${notes}` } : {}),
+        clockInNotes: notes ?? null,
         ...(geo
           ? {
               clockInLat: geo.lat,
@@ -1254,16 +1384,21 @@ export const attendanceRepository = {
             }
           : {}),
       },
-      create: {
-        employeeId,
-        date: today,
-        timeIn: now,
-        lateByMin: lateMin || null,
-        status,
+      select: { id: true },
+    })
+
+    // Recompute and write rollup fields.
+    await recomputeRecordRollup(record.id, prisma)
+
+    // Also update project / location on the record (informational rollup).
+    await prisma.attendanceRecord.update({
+      where: { id: record.id },
+      data: {
         project: projectName,
         projectId: projectId ?? null,
         location: location ?? null,
-        notes: notes ? `CLOCK_IN: ${notes}` : null,
+        lateByMin: lateMin || null,
+        ...(notes ? { notes: `CLOCK_IN: ${notes}` } : {}),
         ...(geo
           ? {
               clockInLat: geo.lat,
@@ -1311,6 +1446,12 @@ export const attendanceRepository = {
       },
     })
 
+    // Link the approval to this session.
+    await prisma.attendanceSession.update({
+      where: { id: session.id },
+      data: { clockInApprovalRequestId: approval.id },
+    })
+
     const pendingApproverIds = autoApprove
       ? []
       : await resolveCurrentApproverIds(
@@ -1320,7 +1461,7 @@ export const attendanceRepository = {
           projectId ?? null,
         )
 
-    return { recordId: record.id, approvalId: approval.id, pendingApproverIds }
+    return { recordId: record.id, sessionId: session.id, approvalId: approval.id, pendingApproverIds }
   },
 
   async clockOut(
@@ -1343,7 +1484,25 @@ export const attendanceRepository = {
     const [existing, employee] = await Promise.all([
       prisma.attendanceRecord.findUnique({
         where: { employeeId_date: { employeeId, date: today } },
-        include: BREAK_INCLUDE,
+        select: {
+          id: true,
+          project: true,
+          projectId: true,
+          location: true,
+          notes: true,
+          sessions: {
+            where: { endedAt: null },
+            orderBy: { startedAt: "desc" },
+            take: 1,
+            select: {
+              id: true,
+              startedAt: true,
+              breaks: {
+                select: { startedAt: true, endedAt: true },
+              },
+            },
+          },
+        },
       }),
       prisma.user.findUnique({
         where: { id: employeeId },
@@ -1351,47 +1510,50 @@ export const attendanceRepository = {
       }),
     ])
     const orgId = employee?.organizationId ?? null
+    const openSession = existing?.sessions[0] ?? null
+
+    if (!openSession) {
+      throw new Error("NOT_CLOCKED_IN")
+    }
+
     const [hours, tz] = await Promise.all([
       this.getWorkingHours(orgId, existing?.projectId ?? null),
       this.getOrgTimezone(orgId),
     ])
 
-    // Close any open break sessions to `now` so their minutes deduct from
-    // durationMin (employees on break aren't working).
-    if (existing) {
-      await prisma.breakSession.updateMany({
-        where: { attendanceRecordId: existing.id, endedAt: null },
-        data: { endedAt: now },
-      })
-    }
+    // Close any open break sessions on this session.
+    await prisma.breakSession.updateMany({
+      where: { attendanceSessionId: openSession.id, endedAt: null },
+      data: { endedAt: now },
+    })
 
-    // Sum total break minutes across all sessions (including ones we just
-    // closed above — re-fetch to capture).
+    // Also close any orphaned breaks still attached to the record but not yet
+    // linked to a session (legacy rows or races).
+    await prisma.breakSession.updateMany({
+      where: { attendanceRecordId: existing!.id, attendanceSessionId: null, endedAt: null },
+      data: { endedAt: now },
+    })
+
+    // Sum break minutes for this session (re-fetch to capture the ones just closed).
+    const sessionBreaks = await prisma.breakSession.findMany({
+      where: { attendanceSessionId: openSession.id },
+      select: { startedAt: true, endedAt: true },
+    })
     let breakMin = 0
-    if (existing) {
-      const sessions = await prisma.breakSession.findMany({
-        where: { attendanceRecordId: existing.id },
-        select: { startedAt: true, endedAt: true },
-      })
-      for (const s of sessions) {
-        const end = s.endedAt ?? now
-        breakMin += Math.max(0, diffMinutes(s.startedAt, end))
-      }
+    for (const b of sessionBreaks) {
+      const end = b.endedAt ?? now
+      breakMin += Math.max(0, diffMinutes(b.startedAt, end))
     }
 
-    // Clamp the effective clock-in to the project's working-hours start so
-    // early arrivals don't pad durationMin. (If they clocked in at 07:50 but
-    // shift starts at 08:00, the 10 minutes early don't count as worked.)
-    let effectiveTimeIn: Date | null = existing?.timeIn ?? null
-    if (effectiveTimeIn) {
-      const expectedStart = expectedTimeOnLocalDay(now, hours.start, tz)
-      if (effectiveTimeIn.getTime() < expectedStart.getTime()) {
-        effectiveTimeIn = expectedStart
-      }
+    // Clamp effective clock-in to the project's working-hours start.
+    let effectiveTimeIn: Date = openSession.startedAt
+    const expectedStart = expectedTimeOnLocalDay(now, hours.start, tz)
+    if (effectiveTimeIn.getTime() < expectedStart.getTime()) {
+      effectiveTimeIn = expectedStart
     }
-    const rawDurationMin = effectiveTimeIn ? diffMinutes(effectiveTimeIn, now) : null
-    const durationMin =
-      rawDurationMin === null ? null : Math.max(0, rawDurationMin - breakMin)
+    const rawDurationMin = diffMinutes(effectiveTimeIn, now)
+    const sessionDurationMin = Math.max(0, rawDurationMin - breakMin)
+
     const autoApprove = await shouldAutoApprove({
       employeeId,
       role: employee?.role,
@@ -1399,17 +1561,13 @@ export const attendanceRepository = {
       kind: "CLOCK_OUT",
     })
 
-    const appendedNotes = notes
-      ? [existing?.notes, `CLOCK_OUT: ${notes}`].filter(Boolean).join("\n")
-      : undefined
-    const record = await prisma.attendanceRecord.upsert({
-      where: { employeeId_date: { employeeId, date: today } },
-      update: {
-        timeOut: now,
-        durationMin,
-        status: "CLOCKED_OUT",
-        location: location ?? existing?.location ?? null,
-        ...(appendedNotes !== undefined ? { notes: appendedNotes } : {}),
+    // Close the session.
+    await prisma.attendanceSession.update({
+      where: { id: openSession.id },
+      data: {
+        endedAt: now,
+        durationMin: sessionDurationMin,
+        clockOutNotes: notes ?? null,
         ...(geo
           ? {
               clockOutLat: geo.lat,
@@ -1418,13 +1576,24 @@ export const attendanceRepository = {
             }
           : {}),
       },
-      create: {
-        employeeId,
-        date: today,
-        timeOut: now,
-        status: "CLOCKED_OUT",
-        location: location ?? null,
-        notes: notes ? `CLOCK_OUT: ${notes}` : null,
+    })
+
+    // Recompute the day-level rollup from all sessions.
+    const rollup = await recomputeRecordRollup(existing!.id, prisma)
+    const durationMin = rollup.durationMin
+
+    // Update record with rollup + clock-out location/notes.
+    const appendedNotes = notes
+      ? [existing?.notes, `CLOCK_OUT: ${notes}`].filter(Boolean).join("\n")
+      : undefined
+    const record = await prisma.attendanceRecord.update({
+      where: { id: existing!.id },
+      data: {
+        timeOut: rollup.timeOut,
+        durationMin: rollup.durationMin,
+        status: rollup.status,
+        location: location ?? existing?.location ?? null,
+        ...(appendedNotes !== undefined ? { notes: appendedNotes } : {}),
         ...(geo
           ? {
               clockOutLat: geo.lat,
@@ -1461,14 +1630,18 @@ export const attendanceRepository = {
       },
     })
 
+    // Link the approval to this session.
+    await prisma.attendanceSession.update({
+      where: { id: openSession.id },
+      data: { clockOutApprovalRequestId: approval.id },
+    })
+
     // Auto-create an OT ApprovalRequest when the day's worked minutes
     // exceed the org's daily OT threshold. Routed through the team's
     // multi-layer chain (filtered by Team.moduleConfig.OT) — the work
     // only buckets as OT once the chain reaches APPROVED.
     let otPendingApproverIds: string[] = []
     if (durationMin && orgId) {
-      // OT threshold + per-employee enablement come from the policy
-      // now. Org-level `otEnabled` is still the master kill-switch.
       const [org, employeeProfile] = await Promise.all([
         prisma.organization.findUnique({
           where: { id: orgId },
@@ -1585,8 +1758,15 @@ export const attendanceRepository = {
           project: true,
           projectId: true,
           notes: true,
-          timeIn: true,
-          breaks: { where: { endedAt: null }, select: { id: true } },
+          sessions: {
+            where: { endedAt: null },
+            orderBy: { startedAt: "desc" },
+            take: 1,
+            select: {
+              id: true,
+              breaks: { where: { endedAt: null }, select: { id: true } },
+            },
+          },
         },
       }),
       prisma.user.findUnique({
@@ -1594,21 +1774,23 @@ export const attendanceRepository = {
         select: { role: true, organizationId: true },
       }),
     ])
-    if (!existing?.timeIn) {
+    const openSession = existing?.sessions[0] ?? null
+    if (!openSession) {
       throw new Error("Clock in before starting a break.")
     }
-    if (existing.breaks.length > 0) {
+    if (openSession.breaks.length > 0) {
       throw new Error("You're already on break.")
     }
     const tz = await this.getOrgTimezone(employee?.organizationId ?? null)
 
     const appendedNotes = notes
-      ? [existing.notes, `BREAK_START: ${notes}`].filter(Boolean).join("\n")
+      ? [existing!.notes, `BREAK_START: ${notes}`].filter(Boolean).join("\n")
       : undefined
     await prisma.$transaction([
       prisma.breakSession.create({
         data: {
-          attendanceRecordId: existing.id,
+          attendanceRecordId: existing!.id,
+          attendanceSessionId: openSession.id,
           startedAt: now,
           ...(geo
             ? {
@@ -1622,7 +1804,7 @@ export const attendanceRepository = {
       ...(appendedNotes !== undefined
         ? [
             prisma.attendanceRecord.update({
-              where: { id: existing.id },
+              where: { id: existing!.id },
               data: { notes: appendedNotes },
             }),
           ]
@@ -1632,7 +1814,7 @@ export const attendanceRepository = {
     const autoApprove = await shouldAutoApprove({
       employeeId,
       role: employee?.role,
-      projectId: existing.projectId ?? null,
+      projectId: existing!.projectId ?? null,
       kind: "BREAK",
       breakSubtype: "start",
     })
@@ -1649,7 +1831,7 @@ export const attendanceRepository = {
           notes,
         ),
         location: location ?? null,
-        project: existing.project ?? null,
+        project: existing!.project ?? null,
         ...(autoApprove
           ? {
               reviewerId: employeeId,
@@ -1679,11 +1861,19 @@ export const attendanceRepository = {
           project: true,
           projectId: true,
           notes: true,
-          breaks: {
+          sessions: {
             where: { endedAt: null },
             orderBy: { startedAt: "desc" },
             take: 1,
-            select: { id: true, startedAt: true },
+            select: {
+              id: true,
+              breaks: {
+                where: { endedAt: null },
+                orderBy: { startedAt: "desc" },
+                take: 1,
+                select: { id: true, startedAt: true },
+              },
+            },
           },
         },
       }),
@@ -1692,8 +1882,9 @@ export const attendanceRepository = {
         select: { role: true, organizationId: true },
       }),
     ])
-    const openBreak = existing?.breaks[0]
-    if (!existing || !openBreak) {
+    const openSession = existing?.sessions[0] ?? null
+    const openBreak = openSession?.breaks[0] ?? null
+    if (!existing || !openSession || !openBreak) {
       throw new Error("Start a break before ending one.")
     }
     const tz = await this.getOrgTimezone(employee?.organizationId ?? null)
@@ -2546,6 +2737,7 @@ export const attendanceRepository = {
       clockOutLat: number | null
       clockOutLng: number | null
       offSite: boolean
+      sessions: AttendanceSessionView[]
     }>
   > {
     if (!orgId) return []
@@ -2598,22 +2790,31 @@ export const attendanceRepository = {
         clockInLng: true,
         clockOutLat: true,
         clockOutLng: true,
+        sessions: {
+          orderBy: { startedAt: "asc" },
+          select: SESSION_SELECT,
+        },
       },
     })
     const byUser = new Map(records.map((r) => [r.employeeId, r]))
 
-    // Active break overlay: any open BreakSession for today's records.
-    const recordIds = records.map((r) => r.id)
-    const activeBreakRecordIds = new Set<string>()
-    if (recordIds.length > 0) {
+    // Active break overlay: check open BreakSessions on the open AttendanceSession.
+    const openSessionIds = records
+      .flatMap((r) => r.sessions)
+      .filter((s) => s.endedAt === null)
+      .map((s) => s.id)
+    const activeBreakSessionIds = new Set<string>()
+    if (openSessionIds.length > 0) {
       const breaks = await prisma.breakSession.findMany({
         where: {
-          attendanceRecordId: { in: recordIds },
+          attendanceSessionId: { in: openSessionIds },
           endedAt: null,
         },
-        select: { attendanceRecordId: true },
+        select: { attendanceSessionId: true },
       })
-      for (const b of breaks) activeBreakRecordIds.add(b.attendanceRecordId)
+      for (const b of breaks) {
+        if (b.attendanceSessionId) activeBreakSessionIds.add(b.attendanceSessionId)
+      }
     }
 
     const radius = await this.getGeofenceRadiusForOrganization(orgId)
@@ -2633,6 +2834,7 @@ export const attendanceRepository = {
           .join(", ") || null
 
       const status = (rec?.status as AttendanceStatus | undefined) ?? null
+      const openSession = (rec?.sessions ?? []).find((s) => s.endedAt === null)
       let derivedStatus:
         | "WORKING"
         | "ON_BREAK"
@@ -2644,8 +2846,8 @@ export const attendanceRepository = {
         derivedStatus = "ON_LEAVE"
       } else if (status === "CLOCKED_OUT") {
         derivedStatus = "CLOCKED_OUT"
-      } else if (rec && rec.timeIn && !rec.timeOut) {
-        derivedStatus = rec.id && activeBreakRecordIds.has(rec.id)
+      } else if (openSession) {
+        derivedStatus = activeBreakSessionIds.has(openSession.id)
           ? "ON_BREAK"
           : "WORKING"
       } else if (!rec || !rec.timeIn) {
@@ -2655,6 +2857,20 @@ export const attendanceRepository = {
       const clockInDistanceMeters = rec?.clockInDistanceMeters ?? null
       const offSite =
         clockInDistanceMeters != null && clockInDistanceMeters > radiusM
+
+      const sessions: AttendanceSessionView[] = (rec?.sessions ?? []).map((s) => ({
+        id: s.id,
+        startedAt: s.startedAt.toISOString(),
+        endedAt: s.endedAt?.toISOString() ?? null,
+        durationMin: s.durationMin,
+        status: s.status as AttendanceStatus,
+        clockInLat: s.clockInLat,
+        clockInLng: s.clockInLng,
+        clockOutLat: s.clockOutLat,
+        clockOutLng: s.clockOutLng,
+        clockInNotes: s.clockInNotes,
+        clockOutNotes: s.clockOutNotes,
+      }))
 
       return {
         id: u.id,
@@ -2671,6 +2887,7 @@ export const attendanceRepository = {
         clockOutLat: rec?.clockOutLat ?? null,
         clockOutLng: rec?.clockOutLng ?? null,
         offSite,
+        sessions,
       }
     })
   },

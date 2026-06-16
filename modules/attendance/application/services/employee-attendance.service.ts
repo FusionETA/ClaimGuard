@@ -88,10 +88,12 @@ async function enforceGeofenceForActiveRecord(
 async function uploadSelfieToXero({
   employeeId,
   attendanceRecordId,
+  sessionId,
   dataUrl,
 }: {
   employeeId: string
   attendanceRecordId: string
+  sessionId: string
   dataUrl: string
 }): Promise<void> {
   const prisma = getAttendancePrismaClientSafe()
@@ -152,13 +154,25 @@ async function uploadSelfieToXero({
     mimeType,
   })
 
-  await prisma.attendanceRecord.update({
-    where: { id: attendanceRecordId },
-    data: {
-      xeroSelfieFileId: upload.fileId,
-      selfieUploadedAt: new Date(),
-    },
-  })
+  const now = new Date()
+  await Promise.all([
+    // Keep the record-level field for backward-compat consumers.
+    prisma.attendanceRecord.update({
+      where: { id: attendanceRecordId },
+      data: {
+        xeroSelfieFileId: upload.fileId,
+        selfieUploadedAt: now,
+      },
+    }),
+    // Write to the session so each clock-in has its own selfie.
+    prisma.attendanceSession.update({
+      where: { id: sessionId },
+      data: {
+        xeroSelfieFileId: upload.fileId,
+        selfieUploadedAt: now,
+      },
+    }),
+  ])
 }
 
 /// Resolves the [Mon..Sun] week and [first..last day of month] month UTC
@@ -410,6 +424,7 @@ export const employeeAttendanceService = {
         await uploadSelfieToXero({
           employeeId,
           attendanceRecordId: result.recordId,
+          sessionId: result.sessionId,
           dataUrl: selfie,
         })
       } catch (err) {

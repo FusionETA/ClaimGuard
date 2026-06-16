@@ -208,6 +208,15 @@ export type AttendanceEditLog = Prisma.AttendanceEditLogModel
  */
 export type BreakSession = Prisma.BreakSessionModel
 /**
+ * Model AttendanceSession
+ * One clock-in / clock-out pair per employee per day. Multiple sessions
+ * may exist for the same AttendanceRecord when an employee clocks in,
+ * clocks out, and clocks in again later on the same calendar day.
+ * AttendanceRecord stays as the daily roll-up; sessions hold all the
+ * per-event data (times, GPS, selfie, approval request links).
+ */
+export type AttendanceSession = Prisma.AttendanceSessionModel
+/**
  * Model BreakSessionEditLog
  * Audit trail of supervisor/admin edits to BreakSession rows. One row
  * per save (or create/delete) — captures the before/after values of
