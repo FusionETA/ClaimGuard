@@ -89,8 +89,8 @@ const COLUMNS: Column[] = [
   { key: "epfEmployerVoluntary", required: false, description: "Voluntary employer EPF % on top of mandatory" },
   { key: "pcbBorneByEmployer", required: false, description: "TRUE/FALSE — PCB borne by employer" },
   { key: "incomeTaxNumber", required: false, description: "LHDN PCB number; PCB stays 0 until this is filled" },
-  { key: "socsoScheme", required: false, description: "EMPLOYMENT_INJURY_INVALIDITY | EMPLOYMENT_INJURY_ONLY | (blank for none)" },
-  { key: "socsoNumber", required: false, description: "PERKESO number" },
+  { key: "socsoScheme", required: false, description: "EMPLOYMENT_INJURY_INVALIDITY | EMPLOYMENT_INJURY_ONLY — auto-derived from date of birth when blank (under 55 → INVALIDITY, 60+ → INJURY_ONLY; 55–59 must be set manually)" },
+  { key: "socsoNumber", required: false, description: "PERKESO number — defaults to the idNumber (NRIC / passport) when blank, since they're usually the same in Malaysia" },
   { key: "contributeToEis", required: false, description: "TRUE/FALSE — default TRUE for Malaysians" },
   { key: "ssfwNumber", required: false, description: "SSFW number — foreign workers only" },
   // ── Bank ──

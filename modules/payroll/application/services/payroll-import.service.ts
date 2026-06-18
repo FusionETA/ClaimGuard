@@ -523,7 +523,11 @@ function buildPayrollProfileCreate(
     pcbBorneByEmployer: row.pcbBorneByEmployer ?? false,
     incomeTaxNumber: row.incomeTaxNumber,
     socsoScheme: resolveSocsoSchemeForImport(row),
-    socsoNumber: row.socsoNumber,
+    // Default SOCSO number to the NRIC / passport when the CSV cell is
+    // blank — in MY most employees' SOCSO no. equals their NRIC, and
+    // admins almost always want this fallback. Mirrors the "Use ID
+    // number" button on the Manage Employee statutory tab.
+    socsoNumber: row.socsoNumber ?? row.idNumber,
     contributeToEis: row.contributeToEis ?? true,
     ssfwNumber: row.ssfwNumber,
     bankName: row.bankName,
@@ -623,7 +627,15 @@ function buildPayrollProfileUpdate(row: RowWithChildren) {
       const resolved = resolveSocsoSchemeForImport(row)
       return resolved !== null ? { socsoScheme: resolved } : {}
     })(),
-    ...(row.socsoNumber !== null ? { socsoNumber: row.socsoNumber } : {}),
+    // Mirror the create path: blank SOCSO no. in the CSV falls back
+    // to the NRIC / passport. Skip the update entirely only when both
+    // cells are blank so we don't accidentally overwrite an existing
+    // DB value with empty.
+    ...(row.socsoNumber !== null
+      ? { socsoNumber: row.socsoNumber }
+      : row.idNumber !== null
+        ? { socsoNumber: row.idNumber }
+        : {}),
     ...(row.contributeToEis !== null
       ? { contributeToEis: row.contributeToEis }
       : {}),

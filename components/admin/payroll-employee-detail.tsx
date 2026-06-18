@@ -1902,6 +1902,12 @@ function StatutoryTab(props: {
   const [socsoNumber, setSocsoNumber] = useState(
     props.profile?.socsoNumber ?? "",
   )
+  // The ID number lives on the Personal tab. The parent component
+  // (`PayrollEmployeeDetail`) mirrors every form change into
+  // `liveProfile` and re-passes it here as `props.profile`, so the
+  // current typed value is always available as `props.profile?.idNumber`
+  // — no extra state lift needed for the "Use ID number" quick-fill.
+  const liveIdNumber = (props.profile?.idNumber ?? "").trim()
   const [incomeTaxNumber, setIncomeTaxNumber] = useState(
     props.profile?.incomeTaxNumber ?? "",
   )
@@ -2123,18 +2129,41 @@ function StatutoryTab(props: {
             ) : null}
           </Field>
           <Field label="SOCSO number">
-            <Input
-              name="socsoNumber"
-              value={socsoNumber}
-              onChange={(e) => setSocsoNumber(e.target.value)}
-              aria-invalid={socsoNumberMissing || undefined}
-              disabled={socsoScheme === ""}
-              placeholder={
-                socsoScheme === ""
-                  ? "Pick a SOCSO scheme to enable"
-                  : undefined
-              }
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                name="socsoNumber"
+                value={socsoNumber}
+                onChange={(e) => setSocsoNumber(e.target.value)}
+                aria-invalid={socsoNumberMissing || undefined}
+                disabled={socsoScheme === ""}
+                placeholder={
+                  socsoScheme === ""
+                    ? "Pick a SOCSO scheme to enable"
+                    : undefined
+                }
+                className="flex-1"
+              />
+              {/* Quick-fill: in MY most employees' SOCSO no. == their
+                  NRIC. Reads from `props.profile?.idNumber` (which the
+                  parent mirrors live from the Personal tab on every
+                  keystroke) so the latest typed value is always used. */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={socsoScheme === "" || liveIdNumber === ""}
+                onClick={() => {
+                  if (liveIdNumber) setSocsoNumber(liveIdNumber)
+                }}
+                title={
+                  liveIdNumber === ""
+                    ? "Fill in the NRIC / passport number on the Personal tab first."
+                    : "Copy the NRIC / passport number from the Personal tab into this field."
+                }
+              >
+                Use ID number
+              </Button>
+            </div>
             {socsoNumberMissing ? (
               <p className="mt-1 text-xs font-medium text-destructive">
                 Required when a SOCSO scheme is selected.
