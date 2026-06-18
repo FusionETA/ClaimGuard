@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useState } from "react"
 import { Plus } from "lucide-react"
 
+import { AdminAccessPicker } from "@/components/admin/admin-access-picker"
 import { createPayrollRunDraftAction } from "@/app/(admin)/admin/payroll/runs/actions"
 import { initialSettingsActionState } from "@/app/(admin)/admin/settings/form-state"
 import { NativeSelect } from "@/components/admin/payroll-form-controls"
@@ -71,21 +72,19 @@ export function NewPayrollRunForm({
     [availablePolicies],
   )
   const [selectedIds, setSelectedIds] = useState<string[]>(allIds)
-  // Re-seed when the prop changes (e.g. owner switches org). Cheap;
-  // memo-stable across normal renders.
-  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds])
-  const allSelected = selectedIds.length === availablePolicies.length
+  // Convert the (id, name, isDefault) shape from the server into the
+  // `{ value, label }` shape AdminAccessPicker expects. Default policy
+  // gets a "(default)" suffix so admins can still tell which one it is
+  // without the inline "DEFAULT" pill from the old checkbox list.
+  const pickerOptions = useMemo(
+    () =>
+      availablePolicies.map((p) => ({
+        value: p.id,
+        label: p.isDefault ? `${p.name} (default)` : p.name,
+      })),
+    [availablePolicies],
+  )
   const noneSelected = selectedIds.length === 0
-
-  function toggle(id: string) {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
-    )
-  }
-
-  function toggleAll() {
-    setSelectedIds(allSelected ? [] : allIds)
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -152,40 +151,18 @@ export function NewPayrollRunForm({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <Label className="text-xs">Policies in this run</Label>
-              <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={toggleAll}
-                  className="h-3.5 w-3.5 rounded border-border text-primary"
-                />
-                Select all
-              </label>
-            </div>
-            <div className="rounded-2xl border border-border/60 bg-surface-low p-2">
-              {availablePolicies.map((p) => (
-                <label
-                  key={p.id}
-                  className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm cursor-pointer hover:bg-muted/40"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedSet.has(p.id)}
-                    onChange={() => toggle(p.id)}
-                    className="h-4 w-4 rounded border-border text-primary"
-                  />
-                  <span className="flex-1">{p.name}</span>
-                  {p.isDefault ? (
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Default
-                    </span>
-                  ) : null}
-                </label>
-              ))}
-            </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Policies in this run</Label>
+            {/* Same dropdown-style multi-select used by the
+                "Manage access" dialog — collapses to a single trigger
+                button until clicked, so 1–2 policies don't take up the
+                whole form. */}
+            <AdminAccessPicker
+              label="policies"
+              options={pickerOptions}
+              value={selectedIds}
+              onChange={setSelectedIds}
+            />
             {noneSelected ? (
               <p className="text-xs text-destructive">
                 Pick at least one policy.
