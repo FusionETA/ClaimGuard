@@ -82,6 +82,16 @@ export async function createPayrollRunDraftAction(
     })
     runId = run.id
   } catch (err) {
+    // Always log the underlying error to the server console so a
+    // generic "Could not create payroll run." toast in the UI can be
+    // traced back to the real cause (e.g. an unmapped Prisma error
+    // code) without round-tripping through users.
+    console.error("[createPayrollRunDraftAction] failed", {
+      periodYear: parsed.data.periodYear,
+      periodMonth: parsed.data.periodMonth,
+      policyIds: parsed.data.policyIds,
+      err,
+    })
     return {
       status: "error",
       message:
