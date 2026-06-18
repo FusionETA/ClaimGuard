@@ -948,6 +948,14 @@ export type PayrollEmployeeRow = {
   /// from payroll runs. Drives a grey "Excluded — no salary" chip on
   /// the list page instead of the red "Incomplete" warning.
   isExcluded: boolean
+  /// First day on payroll. Used by the run detail page to exclude
+  /// employees whose joinDate is AFTER the current run's period (haven't
+  /// started yet — shouldn't appear in "Will be included"). Null when
+  /// the profile doesn't have a join date yet.
+  joinDate: string | null
+  /// Last day on payroll. Used to exclude employees whose leaveDate is
+  /// BEFORE the current run's period (already left). Null = still active.
+  leaveDate: string | null
 }
 
 // ─── Completion check ─────────────────────────────────────────────────────

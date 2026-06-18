@@ -146,7 +146,10 @@ async function loadPayrollRunsPageData(orgId: string): Promise<{
   return {
     organizationName: org?.name ?? "",
     runs,
-    eligibleEmployeeCount: employees.filter(isReadyForPayroll).length,
+    // Pure profile-based count (no period gate) — "ready in general"
+    // across the org. Wrapped in an arrow so Array.filter's index/array
+    // args don't collide with isReadyForPayroll's optional `period`.
+    eligibleEmployeeCount: employees.filter((e) => isReadyForPayroll(e)).length,
     availablePolicies,
   }
 }
@@ -204,12 +207,42 @@ export async function getPayrollRunDetailPageData(input: {
           policyIdScope: effectivePolicyIdScope,
         })
 
+  // Drop employees who aren't in this run's calendar window AT ALL —
+  // joinDate after period end (haven't started) or leaveDate before
+  // period start (already left). Without this filter they'd surface
+  // under "needs setup" / "will be included" depending on profile
+  // completeness, which is misleading: they're just not on this run.
+  const periodStartMs = Date.UTC(run.periodYear, run.periodMonth - 1, 1)
+  const periodEndMs = Date.UTC(
+    run.periodYear,
+    run.periodMonth,
+    0,
+    23,
+    59,
+    59,
+    999,
+  )
+  const inPeriod = (e: (typeof employees)[number]) => {
+    if (e.joinDate) {
+      const ms = Date.parse(e.joinDate)
+      if (!Number.isNaN(ms) && ms > periodEndMs) return false
+    }
+    if (e.leaveDate) {
+      const ms = Date.parse(e.leaveDate)
+      if (!Number.isNaN(ms) && ms < periodStartMs) return false
+    }
+    return true
+  }
+
   return {
     organizationName: org?.name ?? "",
     run,
-    employees: employees.map((e) => ({
+    employees: employees.filter(inPeriod).map((e) => ({
       ...e,
-      ready: isReadyForPayroll(e),
+      ready: isReadyForPayroll(e, {
+        year: run.periodYear,
+        month: run.periodMonth,
+      }),
     })),
   }
 }
@@ -774,8 +807,11 @@ export async function previewEmployeeNetForRun(input: {
       payrollSettingsRepository.getByOrgId(orgId),
       // When the run was scoped at draft creation, only its chosen
       // policies' employees are included in preview / generation.
+      // Period window excludes employees whose joinDate is after this
+      // month (haven't started) or whose leaveDate is before it (left).
       payrollProfileRepository.listReadyForPayroll(orgId, {
         policyIdScope: run.policyIds,
+        period: { year: run.periodYear, month: run.periodMonth },
       }),
       policyRepository.listForOrganization(orgId),
       payrollRunClaimRepository.listForCalc(run.id),
@@ -981,8 +1017,11 @@ export async function generatePayrollPayslips(input: {
       payrollSettingsRepository.getByOrgId(orgId),
       // Honour the per-run policy scope picked at draft creation.
       // `null` (legacy / org-wide) pulls every eligible employee.
+      // Period window excludes employees whose joinDate is after this
+      // month or whose leaveDate is before it.
       payrollProfileRepository.listReadyForPayroll(orgId, {
         policyIdScope: run.policyIds,
+        period: { year: run.periodYear, month: run.periodMonth },
       }),
       payrollRunClaimRepository.listForCalc(run.id),
       payrollRunAdjustmentRepository.listForRun(run.id),
@@ -1601,7 +1640,16 @@ async function loadPayrollRunDetailWithPayslipsPageData(
         excludeAttached: true,
       }),
       payrollRunAdjustmentRepository.listForRun(input.runId),
-      payrollProfileRepository.listReadyForPayroll(orgId, { policyIdScope }),
+      // Period window excludes employees whose joinDate is after this
+      // month (haven't started — they shouldn't show in the "Will be
+      // included" preview either) or whose leaveDate is before it.
+      payrollProfileRepository.listReadyForPayroll(orgId, {
+        policyIdScope,
+        period: {
+          year: base.run.periodYear,
+          month: base.run.periodMonth,
+        },
+      }),
       policyRepository.listForOrganization(orgId),
     ])
 
@@ -2602,6 +2650,37 @@ export async function getPayrollPayslipDetailPageData(input: {
  * (salary = 0). This is the filter that decides who shows up on a
  * run's draft.
  */
-function isReadyForPayroll(row: PayrollEmployeeRow): boolean {
-  return row.hasProfile && row.isComplete && !row.isArchived && !row.isExcluded
+function isReadyForPayroll(
+  row: PayrollEmployeeRow,
+  /// Optional period gate. When set, employees whose joinDate is AFTER
+  /// the period end (haven't started) or whose leaveDate is BEFORE the
+  /// period start (already left) are NOT ready for that run. Omit on
+  /// non-run surfaces (e.g. the Payroll Runs list's "X eligible" tile)
+  /// where the answer is "across all periods".
+  period?: { year: number; month: number },
+): boolean {
+  if (!(row.hasProfile && row.isComplete && !row.isArchived && !row.isExcluded)) {
+    return false
+  }
+  if (period) {
+    const periodStart = Date.UTC(period.year, period.month - 1, 1)
+    const periodEnd = Date.UTC(
+      period.year,
+      period.month,
+      0, // day 0 of next month = last day of this month
+      23,
+      59,
+      59,
+      999,
+    )
+    if (row.joinDate) {
+      const join = Date.parse(row.joinDate)
+      if (!Number.isNaN(join) && join > periodEnd) return false
+    }
+    if (row.leaveDate) {
+      const leave = Date.parse(row.leaveDate)
+      if (!Number.isNaN(leave) && leave < periodStart) return false
+    }
+  }
+  return true
 }

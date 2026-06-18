@@ -209,6 +209,11 @@ export const payrollProfileRepository = {
           isComplete: projected ? isPayrollProfileComplete(projected) : false,
           isArchived: projected?.isArchived ?? false,
           isExcluded: projected ? isExcludedFromPayroll(projected) : false,
+          // Pass through so the run-detail page's `isReadyForPayroll`
+          // call can exclude not-yet-started / already-left employees
+          // when given a period.
+          joinDate: projected?.joinDate ?? null,
+          leaveDate: projected?.leaveDate ?? null,
         }
       })
   },
@@ -223,7 +228,16 @@ export const payrollProfileRepository = {
    */
   async listReadyForPayroll(
     organizationId: string,
-    options?: { policyIdScope?: string[] | null },
+    options?: {
+      policyIdScope?: string[] | null
+      /// Optional period window. When set, employees whose `joinDate`
+      /// is after the period end (haven't started yet) OR whose
+      /// `leaveDate` is before the period start (already left) are
+      /// excluded — they shouldn't be paid for that month at all.
+      /// Omit for legacy callers (preview / counts) that want the
+      /// raw eligible list regardless of period.
+      period?: { year: number; month: number }
+    },
   ): Promise<
     Array<{
       userId: string
@@ -313,6 +327,17 @@ export const payrollProfileRepository = {
       } | null
     }> = []
 
+    // Build the period window (UTC) once. We compare against UTC dates
+    // because join/leave dates are stored at midnight UTC.
+    const periodStart = options?.period
+      ? new Date(Date.UTC(options.period.year, options.period.month - 1, 1))
+      : null
+    const periodEnd = options?.period
+      ? new Date(
+          Date.UTC(options.period.year, options.period.month, 0, 23, 59, 59, 999),
+        )
+      : null
+
     for (const u of users) {
       const ep = u.employeeProfile
       if (!ep || !ep.payrollProfile) continue
@@ -322,6 +347,20 @@ export const payrollProfileRepository = {
       // Salary = 0 is an intentional opt-out — skip these employees from
       // the run draft. See `isExcludedFromPayroll` for the rationale.
       if (isExcludedFromPayroll(profile)) continue
+      // Period-aware exclusion. Skip employees who haven't started yet
+      // (joinDate after the period end) or who left before this period
+      // began (leaveDate before period start). Both checks short-circuit
+      // when the caller didn't pass a period.
+      if (periodStart && periodEnd) {
+        if (profile.joinDate) {
+          const join = new Date(profile.joinDate)
+          if (join.getTime() > periodEnd.getTime()) continue
+        }
+        if (profile.leaveDate) {
+          const leave = new Date(profile.leaveDate)
+          if (leave.getTime() < periodStart.getTime()) continue
+        }
+      }
       const primaryProject = ep.projectAssignments[0]?.project ?? null
       rows.push({
         userId: u.id,
