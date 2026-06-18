@@ -895,6 +895,7 @@ export const PayrollRunScalarFieldEnum = {
   approvalRejectionReason: 'approvalRejectionReason',
   submittedForApprovalAt: 'submittedForApprovalAt',
   submittedForApprovalById: 'submittedForApprovalById',
+  policyIds: 'policyIds',
   xeroJournalNumber: 'xeroJournalNumber',
   xeroManualJournalId: 'xeroManualJournalId',
   xeroSyncError: 'xeroSyncError',

@@ -1,8 +1,19 @@
 import "server-only"
 
+import { Prisma } from "@/generated/prisma/client"
+
 import { getPrismaClient } from "@/lib/prisma"
 import { toNumber } from "@/lib/decimal"
 import type { PayrollRunData, PayrollRunRow } from "@/modules/payroll/domain/runs"
+
+/// Coerce the stored `PayrollRun.policyIds` Json column back into a
+/// `string[] | null` for the domain shape. `null` (legacy or org-wide)
+/// stays null; everything else is filtered to string entries.
+function jsonToPolicyIds(value: unknown): string[] | null {
+  if (value === null || value === undefined) return null
+  if (!Array.isArray(value)) return null
+  return value.filter((v): v is string => typeof v === "string")
+}
 
 /**
  * Module-scoped Prisma accessor for the payroll module. Services call
@@ -46,16 +57,22 @@ export const payrollRunRepository = {
     organizationId: string
     periodYear: number
     periodMonth: number
+    /// Employee-policy ids this run is scoped to. `null` = org-wide
+    /// (legacy default). The service is responsible for validating
+    /// that every id is one the creating admin has access to.
+    policyIds?: string[] | null
   }): Promise<PayrollRunData> {
     const prisma = getPrismaClient()
     if (!prisma) throw new Error("Database is not configured.")
 
+    const policyIds = input.policyIds ?? null
     const row = await prisma.payrollRun.create({
       data: {
         organizationId: input.organizationId,
         periodYear: input.periodYear,
         periodMonth: input.periodMonth,
         status: "DRAFT",
+        policyIds: policyIds === null ? Prisma.JsonNull : policyIds,
       },
     })
     return mapPayrollRun(row)
@@ -553,5 +570,6 @@ function mapPayrollRun(row: any): PayrollRunData {
     xeroSyncedAt: row.xeroSyncedAt
       ? row.xeroSyncedAt.toISOString()
       : null,
+    policyIds: jsonToPolicyIds(row.policyIds),
   }
 }

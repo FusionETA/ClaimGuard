@@ -89,48 +89,65 @@ export async function getPayrollRunsPageData(): Promise<{
   organizationName: string
   runs: PayrollRunRow[]
   eligibleEmployeeCount: number
+  /// Active employee policies the signed-in admin may pick when
+  /// creating a draft. Restricted admins (those with a non-null
+  /// `policyIdScope`) only see policies they were granted; owners
+  /// see all non-archived ones. Drives the "Create draft" dialog's
+  /// policy multi-select.
+  availablePolicies: Array<{ id: string; name: string; isDefault: boolean }>
 } | null> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) return null
   const orgId = resolveActiveOrgId(session)
   if (!orgId) return null
 
-  // 1-hour TTL — runs list + eligible-employee count rarely change
-  // between admin visits, and every payroll mutation busts the
-  // `org:<orgId>:payroll:*` namespace via `bustPayrollCaches`. The TTL
-  // is just a backstop when a bust is missed.
-  return getOrSetCache(
-    key("org", orgId, "payroll", "page", "runs-list"),
-    3600,
-    () => loadPayrollRunsPageData(orgId),
-  )
+  // Don't cache the runs page anymore — `availablePolicies` is
+  // per-admin (different scope = different list) and including the
+  // admin's scope tag in the cache key would balloon the keyspace.
+  // This page is light (3 small queries) so we just bypass the cache.
+  return loadPayrollRunsPageData(orgId)
 }
 
 async function loadPayrollRunsPageData(orgId: string): Promise<{
   organizationName: string
   runs: PayrollRunRow[]
   eligibleEmployeeCount: number
+  availablePolicies: Array<{ id: string; name: string; isDefault: boolean }>
 } | null> {
   const prisma = getPrismaClient()
   if (!prisma) return null
 
-  // Eligible employee count restricts to the admin's policy scope so
-  // a policy-restricted admin sees a correct "X of Y employees ready"
-  // headline on the runs list.
+  // Eligible employee count + available policies both restrict to the
+  // admin's policy scope so a policy-restricted admin sees a correct
+  // "X of Y employees ready" headline AND can only pick policies
+  // they actually administer.
   const policyIdScope = await getActiveAdminPolicyScope()
-  const [org, runs, employees] = await Promise.all([
+  const [org, runs, employees, allPolicies] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
       select: { name: true },
     }),
     payrollRunRepository.listForOrganization(orgId),
     payrollProfileRepository.listForOrganization(orgId, { policyIdScope }),
+    policyRepository.listForOrganization(orgId),
   ])
+
+  const allowedIds =
+    policyIdScope === null ? null : new Set(policyIdScope)
+  const availablePolicies = allPolicies
+    .filter((p) => !p.archived)
+    .filter((p) => allowedIds === null || allowedIds.has(p.id))
+    .map((p) => ({ id: p.id, name: p.name, isDefault: p.isDefault }))
+    .sort((a, b) => {
+      if (a.isDefault !== b.isDefault) return a.isDefault ? -1 : 1
+      return a.name.localeCompare(b.name)
+    })
 
   return {
     organizationName: org?.name ?? "",
     runs,
     eligibleEmployeeCount: employees.filter(isReadyForPayroll).length,
+    availablePolicies,
   }
 }
 
@@ -155,8 +172,8 @@ export async function getPayrollRunDetailPageData(input: {
   // Restrict the per-run "Will be included" / "Incomplete" preview to
   // the admin's policy scope. For SUBMITTED runs this also restricts
   // which payslips appear in the detail view.
-  const detailPolicyIdScope = await getActiveAdminPolicyScope()
-  const [org, run, employees] = await Promise.all([
+  const adminPolicyIdScope = await getActiveAdminPolicyScope()
+  const [org, run] = await Promise.all([
     prisma.organization.findUnique({
       where: { id: orgId },
       select: { name: true },
@@ -164,14 +181,28 @@ export async function getPayrollRunDetailPageData(input: {
     payrollRunRepository.getByIdForOrg({
       id: input.runId,
       organizationId: orgId,
-      policyIdScope: detailPolicyIdScope,
-    }),
-    payrollProfileRepository.listForOrganization(orgId, {
-      policyIdScope: detailPolicyIdScope,
+      policyIdScope: adminPolicyIdScope,
     }),
   ])
 
   if (!run) return null
+
+  // The displayed employee preview narrows by BOTH the admin's scope
+  // AND the run's own scope, so the list matches what generation will
+  // actually pay. `null` on either side means "no restriction".
+  const effectivePolicyIdScope = intersectPolicyScopes(
+    adminPolicyIdScope,
+    run.policyIds,
+  )
+  // intersection = `[]` → admin + run combined produce no eligible
+  // employees, but the run itself is visible. Short-circuit to skip
+  // the listForOrganization query.
+  const employees =
+    Array.isArray(effectivePolicyIdScope) && effectivePolicyIdScope.length === 0
+      ? []
+      : await payrollProfileRepository.listForOrganization(orgId, {
+          policyIdScope: effectivePolicyIdScope,
+        })
 
   return {
     organizationName: org?.name ?? "",
@@ -183,11 +214,34 @@ export async function getPayrollRunDetailPageData(input: {
   }
 }
 
+/// Combine two optional policy scopes (each `string[] | null`) into the
+/// effective filter to apply. `null` is "no restriction"; an array is
+/// the allow-list. Returns:
+///   - `null` when both inputs are `null` (no filter at all)
+///   - the non-null side when only one side restricts
+///   - the set intersection when both restrict (possibly `[]`, which
+///     callers treat as "no rows match")
+function intersectPolicyScopes(
+  a: string[] | null,
+  b: string[] | null,
+): string[] | null {
+  if (a === null && b === null) return null
+  if (a === null) return b
+  if (b === null) return a
+  const bSet = new Set(b)
+  return a.filter((id) => bSet.has(id))
+}
+
 // ─── Mutations ───────────────────────────────────────────────────────────
 
 export async function createPayrollRunDraft(input: {
   periodYear: number
   periodMonth: number
+  /// Employee policy ids this run covers. Empty array = pick at least
+  /// one (form-enforced). `undefined` from older callers = no scope =
+  /// org-wide (kept for backwards-compat with anything still calling
+  /// the service without a picker).
+  policyIds?: string[]
 }): Promise<PayrollRunData> {
   const session = await getCurrentSession()
   if (!session || !isAdminRole(session.role)) {
@@ -220,10 +274,40 @@ export async function createPayrollRunDraft(input: {
     )
   }
 
+  // Normalise + validate the chosen policy scope. Restricted admins
+  // (those with a non-null `policyIdScope` from AdminOrganization) can
+  // only pick policies they were granted access to — silently dropping
+  // out-of-scope ids would hide a misconfigured client; reject loudly
+  // instead. Owners / legacy admins (null scope) can pick anything.
+  let policyIds: string[] | null = null
+  if (input.policyIds && input.policyIds.length > 0) {
+    const adminScope = await getActiveAdminPolicyScope()
+    if (adminScope !== null) {
+      const allowed = new Set(adminScope)
+      const outOfScope = input.policyIds.filter((id) => !allowed.has(id))
+      if (outOfScope.length > 0) {
+        throw new Error(
+          "One or more selected policies are outside your granted access.",
+        )
+      }
+    }
+    // Confirm the ids actually belong to this org (defensive — admins
+    // can't see other orgs' policies, but the server still verifies).
+    const orgPolicies = await policyRepository.listForOrganization(orgId)
+    const validOrgIds = new Set(orgPolicies.map((p) => p.id))
+    const unknown = input.policyIds.filter((id) => !validOrgIds.has(id))
+    if (unknown.length > 0) {
+      throw new Error("Unknown policy ids in selection.")
+    }
+    // Dedupe + canonical-sort so the stored Json is stable across saves.
+    policyIds = [...new Set(input.policyIds)].sort()
+  }
+
   const draft = await payrollRunRepository.createDraft({
     organizationId: orgId,
     periodYear: input.periodYear,
     periodMonth: input.periodMonth,
+    policyIds,
   })
   await bustPayrollCaches({ organizationId: orgId })
   return draft
@@ -688,7 +772,11 @@ export async function previewEmployeeNetForRun(input: {
   const [settings, employees, policies, attachments, activeLoans, orgHours] =
     await Promise.all([
       payrollSettingsRepository.getByOrgId(orgId),
-      payrollProfileRepository.listReadyForPayroll(orgId),
+      // When the run was scoped at draft creation, only its chosen
+      // policies' employees are included in preview / generation.
+      payrollProfileRepository.listReadyForPayroll(orgId, {
+        policyIdScope: run.policyIds,
+      }),
       policyRepository.listForOrganization(orgId),
       payrollRunClaimRepository.listForCalc(run.id),
       employeeLoanRepository.listActiveForOrganization(orgId),
@@ -891,7 +979,11 @@ export async function generatePayrollPayslips(input: {
   const [settings, employees, attachments, adjustments, policies, orgHours, activeLoans] =
     await Promise.all([
       payrollSettingsRepository.getByOrgId(orgId),
-      payrollProfileRepository.listReadyForPayroll(orgId),
+      // Honour the per-run policy scope picked at draft creation.
+      // `null` (legacy / org-wide) pulls every eligible employee.
+      payrollProfileRepository.listReadyForPayroll(orgId, {
+        policyIdScope: run.policyIds,
+      }),
       payrollRunClaimRepository.listForCalc(run.id),
       payrollRunAdjustmentRepository.listForRun(run.id),
       policyRepository.listForOrganization(orgId),

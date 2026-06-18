@@ -1440,6 +1440,15 @@ model PayrollRun {
   /// when the FINAL approver pushed the run live.
   submittedForApprovalAt   DateTime?
   submittedForApprovalById String?
+  /// JSON array of EmployeePolicy ids whose employees this run covers.
+  /// `null` = no scope = every employee in the org (legacy / org-wide
+  /// behaviour). When non-null, payslip generation only pulls employees
+  /// whose `EmployeeProfile.policyId` is in this list. The unique
+  /// `(orgId, periodYear, periodMonth)` constraint stays — there's
+  /// still only one run per month per org; this scope just narrows
+  /// WHO gets paid in that run. Empty array would be valid but
+  /// useless (no employees), so the picker enforces ≥ 1 entry.
+  policyIds                Json?
   /// Human-readable journal number / narration (echoed back from
   /// Xero). Surfaced on the run page so admins can find the entry
   /// in Xero quickly.

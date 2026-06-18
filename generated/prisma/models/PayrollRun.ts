@@ -169,6 +169,7 @@ export type PayrollRunCountAggregateOutputType = {
   approvalRejectionReason: number
   submittedForApprovalAt: number
   submittedForApprovalById: number
+  policyIds: number
   xeroJournalNumber: number
   xeroManualJournalId: number
   xeroSyncError: number
@@ -319,6 +320,7 @@ export type PayrollRunCountAggregateInputType = {
   approvalRejectionReason?: true
   submittedForApprovalAt?: true
   submittedForApprovalById?: true
+  policyIds?: true
   xeroJournalNumber?: true
   xeroManualJournalId?: true
   xeroSyncError?: true
@@ -442,6 +444,7 @@ export type PayrollRunGroupByOutputType = {
   approvalRejectionReason: string | null
   submittedForApprovalAt: Date | null
   submittedForApprovalById: string | null
+  policyIds: runtime.JsonValue | null
   xeroJournalNumber: string | null
   xeroManualJournalId: string | null
   xeroSyncError: string | null
@@ -501,6 +504,7 @@ export type PayrollRunWhereInput = {
   approvalRejectionReason?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   submittedForApprovalAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
   submittedForApprovalById?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
+  policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
   xeroJournalNumber?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroManualJournalId?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncError?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
@@ -544,6 +548,7 @@ export type PayrollRunOrderByWithRelationInput = {
   approvalRejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedForApprovalAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedForApprovalById?: Prisma.SortOrderInput | Prisma.SortOrder
+  policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroJournalNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroManualJournalId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -593,6 +598,7 @@ export type PayrollRunWhereUniqueInput = Prisma.AtLeast<{
   approvalRejectionReason?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   submittedForApprovalAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
   submittedForApprovalById?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
+  policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
   xeroJournalNumber?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncError?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncStatus?: Prisma.EnumXeroSyncStatusFilter<"PayrollRun"> | $Enums.XeroSyncStatus
@@ -635,6 +641,7 @@ export type PayrollRunOrderByWithAggregationInput = {
   approvalRejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedForApprovalAt?: Prisma.SortOrderInput | Prisma.SortOrder
   submittedForApprovalById?: Prisma.SortOrderInput | Prisma.SortOrder
+  policyIds?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroJournalNumber?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroManualJournalId?: Prisma.SortOrderInput | Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -679,6 +686,7 @@ export type PayrollRunScalarWhereWithAggregatesInput = {
   approvalRejectionReason?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
   submittedForApprovalAt?: Prisma.DateTimeNullableWithAggregatesFilter<"PayrollRun"> | Date | string | null
   submittedForApprovalById?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
+  policyIds?: Prisma.JsonNullableWithAggregatesFilter<"PayrollRun">
   xeroJournalNumber?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
   xeroManualJournalId?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
   xeroSyncError?: Prisma.StringNullableWithAggregatesFilter<"PayrollRun"> | string | null
@@ -712,6 +720,7 @@ export type PayrollRunCreateInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -755,6 +764,7 @@ export type PayrollRunUncheckedCreateInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -792,6 +802,7 @@ export type PayrollRunUpdateInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -835,6 +846,7 @@ export type PayrollRunUncheckedUpdateInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -875,6 +887,7 @@ export type PayrollRunCreateManyInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -908,6 +921,7 @@ export type PayrollRunUpdateManyMutationInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -944,6 +958,7 @@ export type PayrollRunUncheckedUpdateManyInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1002,6 +1017,7 @@ export type PayrollRunCountOrderByAggregateInput = {
   approvalRejectionReason?: Prisma.SortOrder
   submittedForApprovalAt?: Prisma.SortOrder
   submittedForApprovalById?: Prisma.SortOrder
+  policyIds?: Prisma.SortOrder
   xeroJournalNumber?: Prisma.SortOrder
   xeroManualJournalId?: Prisma.SortOrder
   xeroSyncError?: Prisma.SortOrder
@@ -1338,6 +1354,7 @@ export type PayrollRunCreateWithoutSubmittedByInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1379,6 +1396,7 @@ export type PayrollRunUncheckedCreateWithoutSubmittedByInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1426,6 +1444,7 @@ export type PayrollRunCreateWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1467,6 +1486,7 @@ export type PayrollRunUncheckedCreateWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1536,6 +1556,7 @@ export type PayrollRunScalarWhereInput = {
   approvalRejectionReason?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   submittedForApprovalAt?: Prisma.DateTimeNullableFilter<"PayrollRun"> | Date | string | null
   submittedForApprovalById?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
+  policyIds?: Prisma.JsonNullableFilter<"PayrollRun">
   xeroJournalNumber?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroManualJournalId?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
   xeroSyncError?: Prisma.StringNullableFilter<"PayrollRun"> | string | null
@@ -1585,6 +1606,7 @@ export type PayrollRunCreateWithoutOrganizationInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1626,6 +1648,7 @@ export type PayrollRunUncheckedCreateWithoutOrganizationInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1689,6 +1712,7 @@ export type PayrollRunCreateWithoutReportsInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1731,6 +1755,7 @@ export type PayrollRunUncheckedCreateWithoutReportsInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1783,6 +1808,7 @@ export type PayrollRunUpdateWithoutReportsInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1825,6 +1851,7 @@ export type PayrollRunUncheckedUpdateWithoutReportsInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1861,6 +1888,7 @@ export type PayrollRunCreateWithoutClaimAttachmentsInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1903,6 +1931,7 @@ export type PayrollRunUncheckedCreateWithoutClaimAttachmentsInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -1955,6 +1984,7 @@ export type PayrollRunUpdateWithoutClaimAttachmentsInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1997,6 +2027,7 @@ export type PayrollRunUncheckedUpdateWithoutClaimAttachmentsInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2033,6 +2064,7 @@ export type PayrollRunCreateWithoutAdjustmentsInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -2075,6 +2107,7 @@ export type PayrollRunUncheckedCreateWithoutAdjustmentsInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -2127,6 +2160,7 @@ export type PayrollRunUpdateWithoutAdjustmentsInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2169,6 +2203,7 @@ export type PayrollRunUncheckedUpdateWithoutAdjustmentsInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2205,6 +2240,7 @@ export type PayrollRunCreateWithoutPayslipsInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -2247,6 +2283,7 @@ export type PayrollRunUncheckedCreateWithoutPayslipsInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -2299,6 +2336,7 @@ export type PayrollRunUpdateWithoutPayslipsInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2341,6 +2379,7 @@ export type PayrollRunUncheckedUpdateWithoutPayslipsInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2379,6 +2418,7 @@ export type PayrollRunCreateManySubmittedByInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -2414,6 +2454,7 @@ export type PayrollRunCreateManySubmittedForApprovalByInput = {
   lastMutatedAt?: Date | string | null
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -2447,6 +2488,7 @@ export type PayrollRunUpdateWithoutSubmittedByInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2488,6 +2530,7 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedByInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2527,6 +2570,7 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedByInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2560,6 +2604,7 @@ export type PayrollRunUpdateWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2601,6 +2646,7 @@ export type PayrollRunUncheckedUpdateWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2640,6 +2686,7 @@ export type PayrollRunUncheckedUpdateManyWithoutSubmittedForApprovalByInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2675,6 +2722,7 @@ export type PayrollRunCreateManyOrganizationInput = {
   approvalRejectionReason?: string | null
   submittedForApprovalAt?: Date | string | null
   submittedForApprovalById?: string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: string | null
   xeroManualJournalId?: string | null
   xeroSyncError?: string | null
@@ -2708,6 +2756,7 @@ export type PayrollRunUpdateWithoutOrganizationInput = {
   lastMutatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2749,6 +2798,7 @@ export type PayrollRunUncheckedUpdateWithoutOrganizationInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2788,6 +2838,7 @@ export type PayrollRunUncheckedUpdateManyWithoutOrganizationInput = {
   approvalRejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   submittedForApprovalAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   submittedForApprovalById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  policyIds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   xeroJournalNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroManualJournalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   xeroSyncError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2882,6 +2933,7 @@ export type PayrollRunSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   approvalRejectionReason?: boolean
   submittedForApprovalAt?: boolean
   submittedForApprovalById?: boolean
+  policyIds?: boolean
   xeroJournalNumber?: boolean
   xeroManualJournalId?: boolean
   xeroSyncError?: boolean
@@ -2928,6 +2980,7 @@ export type PayrollRunSelectScalar = {
   approvalRejectionReason?: boolean
   submittedForApprovalAt?: boolean
   submittedForApprovalById?: boolean
+  policyIds?: boolean
   xeroJournalNumber?: boolean
   xeroManualJournalId?: boolean
   xeroSyncError?: boolean
@@ -2935,7 +2988,7 @@ export type PayrollRunSelectScalar = {
   xeroSyncedAt?: boolean
 }
 
-export type PayrollRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "periodYear" | "periodMonth" | "status" | "totalGross" | "totalNet" | "totalEmployeeEpf" | "totalEmployerEpf" | "totalEmployeeSocso" | "totalEmployerSocso" | "totalEmployeeEis" | "totalEmployerEis" | "totalPcb" | "totalHrdf" | "totalZakat" | "employeeCount" | "employeesSubjectToHrdf" | "totalWagesSubjectToHrdf" | "totalCostToEmployer" | "submittedAt" | "submittedById" | "createdAt" | "updatedAt" | "lastMutatedAt" | "approvalRejectionReason" | "submittedForApprovalAt" | "submittedForApprovalById" | "xeroJournalNumber" | "xeroManualJournalId" | "xeroSyncError" | "xeroSyncStatus" | "xeroSyncedAt", ExtArgs["result"]["payrollRun"]>
+export type PayrollRunOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "organizationId" | "periodYear" | "periodMonth" | "status" | "totalGross" | "totalNet" | "totalEmployeeEpf" | "totalEmployerEpf" | "totalEmployeeSocso" | "totalEmployerSocso" | "totalEmployeeEis" | "totalEmployerEis" | "totalPcb" | "totalHrdf" | "totalZakat" | "employeeCount" | "employeesSubjectToHrdf" | "totalWagesSubjectToHrdf" | "totalCostToEmployer" | "submittedAt" | "submittedById" | "createdAt" | "updatedAt" | "lastMutatedAt" | "approvalRejectionReason" | "submittedForApprovalAt" | "submittedForApprovalById" | "policyIds" | "xeroJournalNumber" | "xeroManualJournalId" | "xeroSyncError" | "xeroSyncStatus" | "xeroSyncedAt", ExtArgs["result"]["payrollRun"]>
 export type PayrollRunInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   submittedBy?: boolean | Prisma.PayrollRun$submittedByArgs<ExtArgs>
@@ -3030,6 +3083,17 @@ export type $PayrollRunPayload<ExtArgs extends runtime.Types.Extensions.Internal
      */
     submittedForApprovalAt: Date | null
     submittedForApprovalById: string | null
+    /**
+     * JSON array of EmployeePolicy ids whose employees this run covers.
+     * `null` = no scope = every employee in the org (legacy / org-wide
+     * behaviour). When non-null, payslip generation only pulls employees
+     * whose `EmployeeProfile.policyId` is in this list. The unique
+     * `(orgId, periodYear, periodMonth)` constraint stays — there's
+     * still only one run per month per org; this scope just narrows
+     * WHO gets paid in that run. Empty array would be valid but
+     * useless (no employees), so the picker enforces ≥ 1 entry.
+     */
+    policyIds: runtime.JsonValue | null
     /**
      * Human-readable journal number / narration (echoed back from
      * Xero). Surfaced on the run page so admins can find the entry
@@ -3456,6 +3520,7 @@ export interface PayrollRunFieldRefs {
   readonly approvalRejectionReason: Prisma.FieldRef<"PayrollRun", 'String'>
   readonly submittedForApprovalAt: Prisma.FieldRef<"PayrollRun", 'DateTime'>
   readonly submittedForApprovalById: Prisma.FieldRef<"PayrollRun", 'String'>
+  readonly policyIds: Prisma.FieldRef<"PayrollRun", 'Json'>
   readonly xeroJournalNumber: Prisma.FieldRef<"PayrollRun", 'String'>
   readonly xeroManualJournalId: Prisma.FieldRef<"PayrollRun", 'String'>
   readonly xeroSyncError: Prisma.FieldRef<"PayrollRun", 'String'>

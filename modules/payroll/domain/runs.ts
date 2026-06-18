@@ -89,6 +89,13 @@ export type PayrollRunData = {
   xeroSyncStatus: "NOT_SYNCED" | "SYNCED" | "ERROR"
   xeroSyncError: string | null
   xeroSyncedAt: string | null
+
+  /// Employee-policy ids this run was scoped to at creation time.
+  /// `null` = no scope = org-wide (legacy). When non-null, payslip
+  /// generation only pulls employees whose `EmployeeProfile.policyId`
+  /// is in this list. Picked from the "Create draft" dialog (a
+  /// restricted admin sees only their granted policies).
+  policyIds: string[] | null
 }
 
 /**

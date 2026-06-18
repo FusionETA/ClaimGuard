@@ -57,14 +57,15 @@ export default async function AdminPayrollRunsPage() {
         <CardHeader>
           <CardTitle className="text-base">Start a new run</CardTitle>
           <CardDescription>
-            Pick the period (month + year). A draft is created and you can
-            run payroll on the next page. One draft per period.
+            Pick the period (month + year) and which employee policies
+            this run covers. One draft per period.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <NewPayrollRunForm
             defaultYear={defaultPeriod.year}
             defaultMonth={defaultPeriod.month}
+            availablePolicies={data.availablePolicies}
           />
         </CardContent>
       </Card>

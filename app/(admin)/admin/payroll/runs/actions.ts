@@ -39,6 +39,19 @@ import {
 const createSchema = z.object({
   periodYear: z.coerce.number().int().min(2000).max(2099),
   periodMonth: z.coerce.number().int().min(1).max(12),
+  /// Comma-separated list of EmployeePolicy ids selected in the
+  /// "Create draft" dialog. Empty / missing = no scope (org-wide).
+  /// The picker enforces "≥ 1 selected" client-side; the server
+  /// validates the ids belong to the org + the admin's granted scope.
+  policyIds: z
+    .string()
+    .optional()
+    .transform((v) =>
+      (v ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
 })
 
 export async function createPayrollRunDraftAction(
@@ -48,6 +61,7 @@ export async function createPayrollRunDraftAction(
   const parsed = createSchema.safeParse({
     periodYear: formData.get("periodYear"),
     periodMonth: formData.get("periodMonth"),
+    policyIds: formData.get("policyIds"),
   })
 
   if (!parsed.success) {
@@ -61,7 +75,11 @@ export async function createPayrollRunDraftAction(
 
   let runId: string
   try {
-    const run = await createPayrollRunDraft(parsed.data)
+    const run = await createPayrollRunDraft({
+      periodYear: parsed.data.periodYear,
+      periodMonth: parsed.data.periodMonth,
+      policyIds: parsed.data.policyIds,
+    })
     runId = run.id
   } catch (err) {
     return {
