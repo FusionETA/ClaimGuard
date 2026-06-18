@@ -212,7 +212,7 @@ function AddEmployeeDialog({
               required
             />
           </Labelled>
-          <Labelled label="Phone (for password reset)">
+          <Labelled label="Phone (optional)">
             <Input
               name="phone"
               type="tel"
@@ -220,8 +220,11 @@ function AddEmployeeDialog({
               defaultValue={state.values.phone}
               disabled={pending}
               placeholder="e.g. 0123456789"
-              required
             />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Used for forgot-password WhatsApp delivery. Leave blank and
+              share the temporary password with them directly.
+            </p>
           </Labelled>
           <Labelled label="Join date">
             <Input

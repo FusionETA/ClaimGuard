@@ -2056,10 +2056,12 @@ export const organizationRepository = {
     /// Employee policy assignment. Required: the policy's salaryType
     /// and otMethod drive compensation/OT behavior.
     policyId: string
-    /// Mandatory phone — used by the forgot-password WhatsApp delivery.
-    /// Stored on PayrollProfile.phone, which we eagerly create here even
-    /// though payroll-onboarding hasn't happened yet, so the
-    /// password-reset lookup works from day one. The rest of the
+    /// Optional phone — used by the forgot-password WhatsApp delivery
+    /// when present. Stored on PayrollProfile.phone, which we eagerly
+    /// create here even though payroll-onboarding hasn't happened yet,
+    /// so the password-reset lookup works from day one when a number
+    /// IS supplied. Empty string → null on the profile (admin will
+    /// share the temporary password manually instead). The rest of the
     /// PayrollProfile stays empty until payroll enrollment.
     phone: string
     /// Optional first-day-of-work date. Stored on `PayrollProfile.joinDate`.
@@ -2236,7 +2238,11 @@ export const organizationRepository = {
     // yet. Everything except `phone` stays empty/default — the run
     // readiness checks still treat the profile as incomplete until
     // payroll enrolment populates the rest of the fields.
-    const phoneTrimmed = data.phone.trim()
+    // Empty / whitespace-only → null on PayrollProfile.phone (column
+    // is `String?`). Forgot-password flow then can't reach the user
+    // by WhatsApp, by design.
+    const phoneRaw = data.phone.trim()
+    const phoneTrimmed = phoneRaw.length > 0 ? phoneRaw : null
     const user = await prisma.user.create({
       data: {
         name: data.name,

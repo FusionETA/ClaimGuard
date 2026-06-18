@@ -49,16 +49,17 @@ const createMemberSchema = z.object({
   /// uses admin-supplied per-type values (parsed from FormData entries
   /// `leaveDays.<typeId>` and `leaveMethod.<typeId>` below).
   leaveMethod: z.enum(["DEFAULT", "CUSTOM"]).default("DEFAULT"),
-  /// Mandatory for EMPLOYEE / SUPERVISOR so the forgot-password flow has
-  /// a WhatsApp delivery target. Stored on `PayrollProfile.phone` — the
-  /// repository auto-creates the PayrollProfile at member-creation time
-  /// with just this field set so the password-reset lookup works even
-  /// before payroll onboarding.
+  /// Optional. When provided, used by the forgot-password flow as the
+  /// WhatsApp delivery target (stored on `PayrollProfile.phone`). When
+  /// blank the employee just can't self-serve a password reset — the
+  /// admin shares the temporary password manually. Empty / whitespace
+  /// → null on the profile.
   phone: z
     .string()
     .trim()
-    .min(7, "Phone number is required (at least 7 digits).")
-    .refine((v) => v.replace(/\D/g, "").length >= 7, {
+    .optional()
+    .transform((v) => (v ?? "").trim())
+    .refine((v) => v === "" || v.replace(/\D/g, "").length >= 7, {
       message: "Phone number must contain at least 7 digits.",
     }),
   /// Optional ISO YYYY-MM-DD from the date input. Empty string =
